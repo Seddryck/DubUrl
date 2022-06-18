@@ -23,6 +23,8 @@ namespace DubUrl.Mapping
         {
             AddSchemes("System.Data.SqlClient", typeof(MssqlMapper), new[] { "mssql", "ms", "sqlserver" });
             AddSchemes("Npgsql", typeof(PgsqlMapper), new[] {"postgres", "pg", "postgresql"});
+            AddSchemes("mysql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
+            AddSchemes("oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
 
             void AddSchemes(string providerName, Type mapper, string[] aliases)
             {
