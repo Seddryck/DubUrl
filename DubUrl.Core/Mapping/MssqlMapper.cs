@@ -10,7 +10,7 @@ namespace DubUrl.Mapping
 {
     internal class MssqlMapper : BaseMapper
     {
-        internal MssqlMapper(DbConnectionStringBuilder csb) : base(csb) { }
+        public MssqlMapper(DbConnectionStringBuilder csb) : base(csb) { }
 
         public override void ExecuteSpecific(UrlInfo urlInfo)
         {

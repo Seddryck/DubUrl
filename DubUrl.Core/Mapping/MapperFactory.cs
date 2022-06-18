@@ -22,14 +22,14 @@ namespace DubUrl.Mapping
         protected virtual void Initialize()
         {
             AddSchemes("System.Data.SqlClient", typeof(MssqlMapper), new[] { "mssql", "ms", "sqlserver" });
-            AddSchemes("Npgsql", typeof(PgsqlMapper), new[] {"postgres", "pg", "postgresql"});
-            AddSchemes("mysql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
-            AddSchemes("oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
+            AddSchemes("Npgsql", typeof(PgsqlMapper), new[] { "pgsql", "postgres", "pg", "postgresql" });
+            AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
+            AddSchemes("Oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
 
             void AddSchemes(string providerName, Type mapper, string[] aliases)
             {
                 foreach (var alias in aliases)
-                    schemes.Add(alias, new ProviderInfo(providerName, mapper));
+                    AddMapping(alias, providerName, mapper);
             }
         }
 
@@ -44,6 +44,43 @@ namespace DubUrl.Mapping
                     ?? throw new NullReferenceException();
             return ctor.Invoke(new object[] { csb }) as IMapper
                 ?? throw new NullReferenceException();
+        }
+
+        public void AddAlias(string alias, string original)
+        {
+            if (schemes.ContainsKey(alias))
+                throw new ArgumentException();
+
+            if (!schemes.ContainsKey(original))
+                throw new ArgumentException();
+
+            schemes.Add(alias, schemes[original]);
+        }
+
+        public void AddMapping(string alias, string providerName, Type mapper)
+        {
+            if (schemes.ContainsKey(alias))
+                throw new ArgumentException();
+
+            if (!mapper.IsAssignableTo(typeof(BaseMapper)))
+                throw new ArgumentException();
+
+            schemes.Add(alias, new ProviderInfo(providerName, mapper));
+        }
+
+        public void RemoveMapping(string providerName)
+        {
+            foreach (var scheme in schemes)
+            {
+                if (scheme.Value.ProviderName == providerName)
+                    schemes.Remove(scheme.Key);
+            }
+        }
+
+        public void ReplaceMapping(Type oldMapper, Type newMapper)
+        {
+            foreach (var scheme in schemes.Where(x => x.Value.Mapper == oldMapper))
+                schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, newMapper);
         }
 
         protected internal string GetProviderName(string scheme)
@@ -70,6 +107,6 @@ namespace DubUrl.Mapping
             throw new SchemeNotFoundException(scheme, schemes.Keys.ToArray());
         }
 
-        
+
     }
 }
