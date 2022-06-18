@@ -13,7 +13,7 @@ build_script:
   - dotnet build DubUrl.sln -p:version="%GitVersion_SemVer%" -c Release /p:ContinuousIntegrationBuild=true --nologo 
 
 test_script:
-- dotnet test DubUrl.Testing -c Release --no-build --nologo 
+- dotnet test DubUrl.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 
 after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
