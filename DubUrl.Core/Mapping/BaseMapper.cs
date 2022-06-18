@@ -36,15 +36,18 @@ namespace DubUrl.Mapping
                 Specify(option.Key, option.Value);
         }
 
-        protected void Specify(string keyword, object value)
+        protected virtual void Specify(string keyword, object value)
         {
-            if (!Csb.ContainsKey(keyword))
+            if (!ContainsKey(keyword))
                 throw new InvalidOperationException($"The keyword '{keyword}' is not valid for this type of connection string.");
             if (value == null)
                 throw new ArgumentNullException(nameof(value), $"The value for the keyword '{keyword}' cannot be null.");
 
-            Csb.Add(keyword, value);
+            AddToken(keyword, value);
         }
+
+        protected bool ContainsKey(string keyword) => Csb.ContainsKey(keyword);
+        protected void AddToken(string keyword, object value) => Csb.Add(keyword, value);
 
         public string GetConnectionString()
             => Csb.ConnectionString;
