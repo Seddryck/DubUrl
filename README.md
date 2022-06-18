@@ -25,7 +25,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 ![Still maintained](https://img.shields.io/maintenance/yes/2022.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Seddryck/DubUrl)
 
-**Continuous integration builds:** [![Build status](https://ci.appveyor.com/api/projects/status/k26u1sesu2tt9pgl?svg=true)](https://ci.appveyor.com/project/DubUrl/nbi)
+**Continuous integration builds:** [![Build status](https://ci.appveyor.com/api/projects/status/k26u1sesu2tt9pgl?svg=true)](https://ci.appveyor.com/project/Seddryck/DubUrl/)
 [![Tests](https://img.shields.io/appveyor/tests/seddryck/DubUrl.svg)](https://ci.appveyor.com/project/Seddryck/DubUrl/build/tests)
 
 **Status:** [![stars badge](https://img.shields.io/github/stars/Seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/stargazers)
