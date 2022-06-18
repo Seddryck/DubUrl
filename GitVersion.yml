@@ -1,14 +1,12 @@
-mode: ContinuousDelivery
+mode: Mainline
 branches:
   feature:
     tag: beta
     regex: features?[/-]
     source-branches:
     - main
-    - develop
     - feature
-    - hotfix
-    - support
 ignore:
   sha: []
 merge-message-formats: {}
+mats: {}
