@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class MapperFactory
+    public class MapperFactory
     {
         private readonly record struct ProviderInfo(string ProviderName, Type Mapper);
 
@@ -33,7 +33,7 @@ namespace DubUrl.Mapping
             }
         }
 
-        public IMapper Instantiate(string scheme)
+        public virtual IMapper Instantiate(string scheme)
         {
             var mapperType = GetMapperType(scheme);
             var ctor = mapperType.GetConstructor(
