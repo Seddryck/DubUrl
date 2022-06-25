@@ -35,6 +35,10 @@
 		<SymbolPackageFormat Condition=" '$(DebugType)' != 'embedded' ">snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<None Include="..\DubUrl-icon-128.png" Pack="true" PackagePath="icon\"/>
+	</ItemGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
 	  <WarningLevel>5</WarningLevel>
 	</PropertyGroup>
