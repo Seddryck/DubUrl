@@ -11,28 +11,39 @@ namespace DubUrl
 {
     public class UrlConnection
     {
-        private MapperFactory MapperFactory { get; }
+        private SchemeMapperBuilder SchemeMapperBuilder { get; }
         private IMapper? Mapper { get; set; }
         private IParser Parser { get; }
         private string Url { get; }
 
         public UrlConnection(string url)
-            : this(url, new Parser(), new MapperFactory()) { }
+            : this(url, new Parser(), new SchemeMapperBuilder()) { }
 
-        public UrlConnection(string url, MapperFactory factory)
+        public UrlConnection(string url, SchemeMapperBuilder factory)
             : this(url, new Parser(), factory) { }
 
-        internal UrlConnection(string url, IParser parser, MapperFactory factory)
-            => (Url, Parser, MapperFactory) = (url, parser, factory);
+        internal UrlConnection(string url, IParser parser, SchemeMapperBuilder builder)
+            => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
 
         private (string ConnectionString, UrlInfo UrlInfo) ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
-            Mapper = MapperFactory.Instantiate(urlInfo.Scheme);
+            SchemeMapperBuilder.Build(urlInfo.Scheme);
+            Mapper = SchemeMapperBuilder.GetMapper();
             Mapper.Map(urlInfo);
             return (Mapper.GetConnectionString(), urlInfo);
         }
 
         public string Parse() => ParseDetail().ConnectionString;
+
+        public DbConnection Open()
+        {
+            var parsing = ParseDetail();
+            var provider = SchemeMapperBuilder.GetProviderFactory();
+            var connection = provider.CreateConnection() ?? throw new ArgumentNullException();
+            connection.ConnectionString = parsing.ConnectionString;
+            connection.Open();
+            return connection;
+        }
     }
 }
