@@ -36,7 +36,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\DubUrl-icon-128.png" Pack="true" PackagePath="\icon" />
+		<None Include="..\DubUrl-icon-128.png" Pack="true" PackagePath="icon\"/>
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">

@@ -8,13 +8,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class MapperFactory
+    public class SchemeMapperBuilder
     {
         private readonly record struct ProviderInfo(string ProviderName, Type Mapper);
-
         private readonly Dictionary<string, ProviderInfo> schemes = new();
 
-        public MapperFactory()
+        private DbProviderFactory? Provider { get; set; }
+        private IMapper? Mapper { get; set; }
+
+        public SchemeMapperBuilder()
         {
             Initialize();
         }
@@ -33,18 +35,54 @@ namespace DubUrl.Mapping
             }
         }
 
-        public IMapper Instantiate(string scheme)
+        public virtual void Build(string scheme)
         {
+            (Provider, Mapper) = (null, null);
+
+            Provider = GetProvider(GetProviderName(scheme)) ?? throw new NullReferenceException();
+
             var mapperType = GetMapperType(scheme);
             var ctor = mapperType.GetConstructor(
                         BindingFlags.Instance | BindingFlags.Public,
                         new[] { typeof(DbConnectionStringBuilder) }
                     ) ?? throw new NullReferenceException(); ;
-            var csb = GetProvider(GetProviderName(scheme)).CreateConnectionStringBuilder()
+            var csb = Provider.CreateConnectionStringBuilder()
                     ?? throw new NullReferenceException();
-            return ctor.Invoke(new object[] { csb }) as IMapper
+            Mapper = ctor.Invoke(new object[] { csb }) as IMapper
                 ?? throw new NullReferenceException();
         }
+
+        public virtual DbProviderFactory GetProviderFactory()
+            => Provider ?? throw new InvalidOperationException();
+
+        public virtual IMapper GetMapper()
+            => Mapper ?? throw new InvalidOperationException();
+
+        protected internal string GetProviderName(string scheme)
+        {
+            if (schemes.ContainsKey(scheme))
+                return schemes[scheme].ProviderName;
+
+            throw new SchemeNotFoundException(scheme, schemes.Keys.ToArray());
+        }
+
+        protected internal static DbProviderFactory GetProvider(string providerName)
+        {
+            if (DbProviderFactories.TryGetFactory(providerName, out var providerFactory))
+                return providerFactory;
+
+            throw new ProviderNotFoundException(providerName, DbProviderFactories.GetProviderInvariantNames().ToArray());
+        }
+
+        protected internal Type GetMapperType(string scheme)
+        {
+            if (schemes.ContainsKey(scheme))
+                return schemes[scheme].Mapper;
+
+            throw new SchemeNotFoundException(scheme, schemes.Keys.ToArray());
+        }
+
+        #region Add, remove aliases and mappings
 
         public void AddAlias(string alias, string original)
         {
@@ -83,30 +121,6 @@ namespace DubUrl.Mapping
                 schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, newMapper);
         }
 
-        protected internal string GetProviderName(string scheme)
-        {
-            if (schemes.ContainsKey(scheme))
-                return schemes[scheme].ProviderName;
-
-            throw new SchemeNotFoundException(scheme, schemes.Keys.ToArray());
-        }
-
-        protected internal static DbProviderFactory GetProvider(string providerName)
-        {
-            if (DbProviderFactories.TryGetFactory(providerName, out var providerFactory))
-                return providerFactory;
-
-            throw new ProviderNotFoundException(providerName, DbProviderFactories.GetProviderInvariantNames().ToArray());
-        }
-
-        protected internal Type GetMapperType(string scheme)
-        {
-            if (schemes.ContainsKey(scheme))
-                return schemes[scheme].Mapper;
-
-            throw new SchemeNotFoundException(scheme, schemes.Keys.ToArray());
-        }
-
-
+        #endregion
     }
 }

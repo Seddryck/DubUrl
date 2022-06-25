@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal interface IMapper
+    public interface IMapper
     {
         IReadOnlyDictionary<string, object> Map(UrlInfo urlInfo);
         string GetConnectionString();

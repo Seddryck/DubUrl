@@ -10,7 +10,7 @@ using DubUrl.Parsing;
 
 namespace DubUrl.Testing.Mapping
 {
-    public class MapperFactoryTest
+    public class SchemeMapperBuilderTest
     {
         [SetUp]
         public void DefaultRegistration()
@@ -34,8 +34,9 @@ namespace DubUrl.Testing.Mapping
         [TestCase("oracle", typeof(OracleMapper))]
         public void Instantiate_Scheme_CorrectType(string scheme, Type expected)
         {
-            var factory = new MapperFactory();
-            var result = factory.Instantiate(scheme);
+            var builder = new SchemeMapperBuilder();
+            builder.Build(scheme);
+            var result = builder.GetMapper();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf(expected));
@@ -46,11 +47,13 @@ namespace DubUrl.Testing.Mapping
         {
             var weirdScheme = "xyz";
 
-            var factory = new MapperFactory();
-            Assert.Catch<SchemeNotFoundException>(() => factory.Instantiate(weirdScheme)); //Should not exists
+            var builder = new SchemeMapperBuilder();
+            Assert.Catch<SchemeNotFoundException>(() => builder.Build(weirdScheme)); //Should not exists
+            Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exists
 
-            factory.AddAlias(weirdScheme, "mssql");
-            var result = factory.Instantiate(weirdScheme); //Should exists
+            builder.AddAlias(weirdScheme, "mssql");
+            builder.Build(weirdScheme);
+            var result = builder.GetMapper(); //Should exists
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<MssqlMapper>());
         }
@@ -60,13 +63,15 @@ namespace DubUrl.Testing.Mapping
         {
             var weirdScheme = "xyz";
 
-            var factory = new MapperFactory();
-            Assert.Catch<SchemeNotFoundException>(() => factory.Instantiate(weirdScheme)); //Should not exists
+            var builder = new SchemeMapperBuilder();
+            Assert.Catch<SchemeNotFoundException>(() => builder.Build(weirdScheme)); //Should not exists
+            Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exists
 
             DbProviderFactories.RegisterFactory("xyz", System.Data.SqlClient.SqlClientFactory.Instance);
-            factory.AddMapping(weirdScheme, "xyz", typeof(StubMapper));
-            
-            var result = factory.Instantiate(weirdScheme); //Should exists
+            builder.AddMapping(weirdScheme, "xyz", typeof(StubMapper));
+
+            builder.Build(weirdScheme);
+            var result = builder.GetMapper(); //Should exists
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<StubMapper>());
         }
@@ -76,12 +81,14 @@ namespace DubUrl.Testing.Mapping
         {
             var oracleScheme = "ora";
 
-            var factory = new MapperFactory();
-            var result = factory.Instantiate(oracleScheme); //should be found
+            var builder = new SchemeMapperBuilder();
+            builder.Build(oracleScheme);
+            var result = builder.GetMapper(); //should be found
             Assert.That(result, Is.Not.Null);
 
-            factory.RemoveMapping("Oracle");
-            Assert.Catch<SchemeNotFoundException>(() => factory.Instantiate(oracleScheme)); //shouldn't be found
+            builder.RemoveMapping("Oracle");
+            Assert.Catch<SchemeNotFoundException>(() => builder.Build(oracleScheme)); //shouldn't be found
+            Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exist
         }
 
         [Test]
@@ -89,11 +96,12 @@ namespace DubUrl.Testing.Mapping
         {
             var mysqlScheme = "mysql";
 
-            var factory = new MapperFactory();
+            var builder = new SchemeMapperBuilder();
             DbProviderFactories.RegisterFactory("MySql", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
-            factory.ReplaceMapping(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
+            builder.ReplaceMapping(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
-            var result = factory.Instantiate(mysqlScheme);
+            builder.Build(mysqlScheme);
+            var result = builder.GetMapper();
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<MySqlDataMapper>());
         }
