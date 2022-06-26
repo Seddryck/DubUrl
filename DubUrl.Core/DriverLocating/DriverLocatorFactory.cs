@@ -26,7 +26,7 @@ namespace DubUrl.DriverLocating
             void AddSchemes(string[] aliases, Type driverLocator)
             {
                 foreach (var alias in aliases)
-                    AddMapping(alias, driverLocator);
+                    AddDriverLocator(alias, driverLocator);
             }
         }
 
@@ -63,12 +63,12 @@ namespace DubUrl.DriverLocating
             Schemes.Add(alias, Schemes[original]);
         }
 
-        public void AddMapping(string alias, Type driverLocator)
+        public void AddDriverLocator(string alias, Type driverLocator)
         {
             if (Schemes.ContainsKey(alias))
                 throw new ArgumentException();
 
-            if (!driverLocator.IsAssignableTo(typeof(BaseDriverLocator)))
+            if (!driverLocator.IsAssignableTo(typeof(IDriverLocator)))
                 throw new ArgumentException();
 
             Schemes.Add(alias, driverLocator);

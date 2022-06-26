@@ -11,10 +11,10 @@ namespace DubUrl.Mapping
 {
     internal class OdbcMapper : BaseMapper
     {
-        private DriverLocatorFactory DriverLocatorFactory { get; } = new DriverLocatorFactory();
+        internal DriverLocatorFactory DriverLocatorFactory { get; } = new DriverLocatorFactory();
 
-        public OdbcMapper(DbConnectionStringBuilder csb) : base(csb) { }
-        public OdbcMapper(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory) : this(csb) 
+        public OdbcMapper(DbConnectionStringBuilder csb) : this(csb, new DriverLocatorFactory()) { }
+        public OdbcMapper(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory) : base(csb) 
             => DriverLocatorFactory = driverLocatorFactory;
 
         public override void ExecuteSpecific(UrlInfo urlInfo)

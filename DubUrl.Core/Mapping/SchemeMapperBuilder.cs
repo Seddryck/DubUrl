@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.DriverLocating;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace DubUrl.Mapping
 {
     public class SchemeMapperBuilder
     {
-        private readonly record struct ProviderInfo(string ProviderName, Type Mapper);
+        private readonly record struct ProviderInfo(string ProviderName, Type Mapper, DriverLocatorFactory? DriverLocatorFactory);
         private readonly Dictionary<string, ProviderInfo> Schemes = new();
 
         private DbProviderFactory? Provider { get; set; }
@@ -43,23 +44,30 @@ namespace DubUrl.Mapping
         {
             (Provider, Mapper) = (null, null);
 
-            var mainScheme = schemes.Count() == 1 
-                ? schemes[0] 
-                : schemes.Contains("odbc") 
-                    ? "odbc" 
+            var mainScheme = schemes.Count() == 1
+                ? schemes[0]
+                : schemes.Contains("odbc")
+                    ? "odbc"
                     : throw new ArgumentOutOfRangeException();
 
             Provider = GetProvider(GetProviderName(mainScheme)) ?? throw new NullReferenceException();
 
+            var ctorParamTypes= new List<Type>() { typeof(DbConnectionStringBuilder) };
+            var ctorParams = new List<object>() { Provider.CreateConnectionStringBuilder() ?? throw new NullReferenceException() };
+
+            if (GetDriverLocatorFactory(mainScheme)!=null)
+            {
+                ctorParamTypes.Add(typeof(DriverLocatorFactory));
+                ctorParams.Add(GetDriverLocatorFactory(mainScheme) ?? throw new NullReferenceException());
+            }
+
             var mapperType = GetMapperType(mainScheme);
             var ctor = mapperType.GetConstructor(
-                        BindingFlags.Instance | BindingFlags.Public,
-                        new[] { typeof(DbConnectionStringBuilder) }
-                    ) ?? throw new NullReferenceException(); ;
-            var csb = Provider.CreateConnectionStringBuilder()
+                            BindingFlags.Instance | BindingFlags.Public,
+                            ctorParamTypes.ToArray()
+                        ) ?? throw new NullReferenceException();
+            Mapper = ctor.Invoke(ctorParams.ToArray()) as IMapper
                     ?? throw new NullReferenceException();
-            Mapper = ctor.Invoke(new object[] { csb }) as IMapper
-                ?? throw new NullReferenceException();
         }
 
         public virtual DbProviderFactory GetProviderFactory()
@@ -92,6 +100,14 @@ namespace DubUrl.Mapping
             throw new SchemeNotFoundException(scheme, Schemes.Keys.ToArray());
         }
 
+        protected internal DriverLocatorFactory? GetDriverLocatorFactory(string scheme)
+        {
+            if (Schemes.ContainsKey(scheme))
+                return Schemes[scheme].DriverLocatorFactory;
+
+            throw new SchemeNotFoundException(scheme, Schemes.Keys.ToArray());
+        }
+
         #region Add, remove aliases and mappings
 
         public void AddAlias(string alias, string original)
@@ -113,7 +129,7 @@ namespace DubUrl.Mapping
             if (!mapper.IsAssignableTo(typeof(BaseMapper)))
                 throw new ArgumentException();
 
-            Schemes.Add(alias, new ProviderInfo(providerName, mapper));
+            Schemes.Add(alias, new ProviderInfo(providerName, mapper, null));
         }
 
         public void RemoveMapping(string providerName)
@@ -125,10 +141,16 @@ namespace DubUrl.Mapping
             }
         }
 
-        public void ReplaceMapping(Type oldMapper, Type newMapper)
+        public void ReplaceMapper(Type oldMapper, Type newMapper)
         {
             foreach (var scheme in Schemes.Where(x => x.Value.Mapper == oldMapper))
-                Schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, newMapper);
+                Schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, newMapper, scheme.Value.DriverLocatorFactory);
+        }
+
+        public void ReplaceDriverLocatorFactory(Type mapper, DriverLocatorFactory factory)
+        {
+            foreach (var scheme in Schemes.Where(x => x.Value.Mapper == mapper))
+                Schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, scheme.Value.Mapper, factory);
         }
 
         #endregion

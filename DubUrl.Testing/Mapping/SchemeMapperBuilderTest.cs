@@ -7,6 +7,8 @@ using NUnit.Framework;
 using DubUrl.Mapping;
 using System.Data.Common;
 using DubUrl.Parsing;
+using DubUrl.DriverLocating;
+using Moq;
 
 namespace DubUrl.Testing.Mapping
 {
@@ -96,18 +98,42 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void ReplaceMapping_NewScheme_CorrectType()
+        public void ReplaceMapper_NewScheme_CorrectType()
         {
             var mysqlScheme = "mysql";
 
             var builder = new SchemeMapperBuilder();
             DbProviderFactories.RegisterFactory("MySql", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
-            builder.ReplaceMapping(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
+            builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
             builder.Build(mysqlScheme);
             var result = builder.GetMapper();
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<MySqlDataMapper>());
+        }
+
+        private class FakeDriverLocator : IDriverLocator
+        {
+            public FakeDriverLocator() { }
+
+            public string Locate() => "ODBC Driver for fooBar";
+        }
+
+        [Test]
+        public void ReplaceDriverLocationFactory_NewDriverLocationFactory_CorrectType()
+        {
+            var factory = new DriverLocatorFactory();
+            factory.AddDriverLocator("foobar", typeof(FakeDriverLocator));
+
+            var builder = new SchemeMapperBuilder();
+            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
+            builder.ReplaceDriverLocatorFactory(typeof(OdbcMapper), factory);
+
+            builder.Build(new[] { "odbc", "foobar" });
+            var result = builder.GetMapper();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.TypeOf<OdbcMapper>());
+            Assert.That(((OdbcMapper)result).DriverLocatorFactory, Is.EqualTo(factory));
         }
     }
 }
