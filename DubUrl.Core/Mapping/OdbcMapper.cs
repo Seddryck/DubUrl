@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.DriverLocating;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -19,6 +20,15 @@ namespace DubUrl.Mapping
                 Specify("Port", urlInfo.Port);
             ExecuteAuthentification(urlInfo.Username, urlInfo.Password);
             ExecuteInitialCatalog(urlInfo.Segments);
+
+
+            if (urlInfo.Options.ContainsKey("driver"))
+            {
+                var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "odbc").First();
+                var driverLocator = new MssqlDriverLocator();
+                var driver = driverLocator.Locate();
+                urlInfo.Options.Add("driver", driver);
+            }
         }
 
         protected internal void ExecuteAuthentification(string username, string password)
