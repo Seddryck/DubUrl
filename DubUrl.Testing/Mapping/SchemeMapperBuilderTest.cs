@@ -19,6 +19,7 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
             DbProviderFactories.RegisterFactory("MySql", MySqlConnector.MySqlConnectorFactory.Instance);
             DbProviderFactories.RegisterFactory("Oracle", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
+            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         }
 
         private class StubMapper : BaseMapper
@@ -32,10 +33,13 @@ namespace DubUrl.Testing.Mapping
         [TestCase("pgsql", typeof(PgsqlMapper))]
         [TestCase("mysql", typeof(MySqlConnectorMapper))]
         [TestCase("oracle", typeof(OracleMapper))]
-        public void Instantiate_Scheme_CorrectType(string scheme, Type expected)
+        [TestCase("odbc", typeof(OdbcMapper))]
+        [TestCase("odbc+mssql", typeof(OdbcMapper))]
+        [TestCase("mssql+odbc", typeof(OdbcMapper))]
+        public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder();
-            builder.Build(scheme);
+            builder.Build(schemeList.Split("+"));
             var result = builder.GetMapper();
 
             Assert.That(result, Is.Not.Null);

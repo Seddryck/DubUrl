@@ -27,7 +27,7 @@ namespace DubUrl.Mapping
             AddSchemes("Npgsql", typeof(PgsqlMapper), new[] { "pgsql", "postgres", "pg", "postgresql" });
             AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
             AddSchemes("Oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
-            AddSchemes("System.Data.Odbc", typeof(OdbcMapper), Array.Empty<string>());
+            AddSchemes("System.Data.Odbc", typeof(OdbcMapper), new[] { "odbc" });
 
             void AddSchemes(string providerName, Type mapper, string[] aliases)
             {
@@ -43,15 +43,15 @@ namespace DubUrl.Mapping
         {
             (Provider, Mapper) = (null, null);
 
-            var scheme = schemes.Count() == 1 
+            var mainScheme = schemes.Count() == 1 
                 ? schemes[0] 
                 : schemes.Contains("odbc") 
                     ? "odbc" 
                     : throw new ArgumentOutOfRangeException();
 
-            Provider = GetProvider(GetProviderName(scheme)) ?? throw new NullReferenceException();
+            Provider = GetProvider(GetProviderName(mainScheme)) ?? throw new NullReferenceException();
 
-            var mapperType = GetMapperType(scheme);
+            var mapperType = GetMapperType(mainScheme);
             var ctor = mapperType.GetConstructor(
                         BindingFlags.Instance | BindingFlags.Public,
                         new[] { typeof(DbConnectionStringBuilder) }

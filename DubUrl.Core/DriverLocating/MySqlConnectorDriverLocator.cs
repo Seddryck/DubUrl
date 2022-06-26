@@ -11,9 +11,11 @@ namespace DubUrl.DriverLocating
     {
         private const string REGEX_PATTERN = "^\\bMySQL ODBC ([0-9]*\\.[0-9]*)\\s(\\bANSI\\b|\\bUnicode\\b)\\b Driver\\b$";
         private readonly Dictionary<string, decimal> Candidates = new();
-        private Encoding Encoding { get; }
+        internal Encoding Encoding { get; }
 
-        public MySqlConnectorDriverLocator(Encoding encoding = Encoding.Unspecified)
+        public MySqlConnectorDriverLocator()
+            : this(Encoding.Unspecified) { }
+        public MySqlConnectorDriverLocator(Encoding encoding)
             : base(REGEX_PATTERN)  => (Encoding) = (encoding);
         internal MySqlConnectorDriverLocator(DriverLister driverLister, Encoding encoding = Encoding.Unspecified)
             : base(REGEX_PATTERN, driverLister) => (Encoding) = (encoding);

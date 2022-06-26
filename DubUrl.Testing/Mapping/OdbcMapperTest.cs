@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
 using System.Data.Odbc;
+using DubUrl.DriverLocating;
+using Moq;
 
 namespace DubUrl.Testing.Mapping
 {
@@ -25,9 +27,9 @@ namespace DubUrl.Testing.Mapping
         [Test]
         [TestCase("host", "host")]
         [TestCase("host", "host", "db", 1234)]
-        public void UrlInfo_Map_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
+        public void Map_UrlInfo_ReturnsServer(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
-            var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+            var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
             var mapper = new OdbcMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
@@ -38,9 +40,9 @@ namespace DubUrl.Testing.Mapping
 
         [Test]
         [TestCase("db")]
-        public void UrlInfo_Map_InitialCatalog(string segmentsList = "db", string expected = "db")
+        public void Map_UrlInfo_ReturnsInitialCatalog(string segmentsList = "db", string expected = "db")
         {
-            var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+            var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
             var mapper = new OdbcMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
@@ -51,9 +53,9 @@ namespace DubUrl.Testing.Mapping
 
 
         [Test]
-        public void UrlInfoWithUsernamePassword_Map_Authentication()
+        public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
-            var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
+            var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
             var mapper = new OdbcMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
@@ -65,9 +67,9 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void UrlInfo_Map_Options()
+        public void Map_UrlInfoContainsOptions_OptionsReturned()
         {
-            var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
+            var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
             urlInfo.Options.Add("sslmode", "required");
             urlInfo.Options.Add("charset", "UTF8");
 
@@ -84,7 +86,7 @@ namespace DubUrl.Testing.Mapping
         [Test]
         [TestCase("{MySQL ODBC 5.1 Driver}")]
         [TestCase("MySQL ODBC 5.1 Driver")]
-        public void UrlInfo_Map_Driver(string driver)
+        public void Map_DriverSpecified_DriverAssigned(string driver)
         {
             var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
             urlInfo.Options.Add("Driver", driver);
@@ -95,6 +97,40 @@ namespace DubUrl.Testing.Mapping
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey("Driver"));
             Assert.That(result["Driver"], Is.EqualTo("{MySQL ODBC 5.1 Driver}"));
+        }
+
+        [Test]
+        public void Map_DriverSpecified_NoDriverLocationCalled()
+        {
+            var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+
+            var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
+            driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
+
+            var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+            var result = mapper.Map(urlInfo);
+
+            driverLocationFactoryMock.Verify(x => x.Instantiate(It.IsAny<string>()), Times.Never);
+        }
+
+        [Test]
+        public void Map_NoDriverSpecified_DriverLocationCalled()
+        {
+            var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql" }, Segments = new[] { "db" } };
+            
+            var driverLocationMock = new Mock<IDriverLocator>();
+            driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
+            var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
+            driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>())).Returns(driverLocationMock.Object);
+
+            var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+            var result = mapper.Map(urlInfo);
+
+            driverLocationFactoryMock.Verify(x => x.Instantiate("mssql"), Times.Once);
+            driverLocationMock.Verify(x => x.Locate());
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Does.ContainKey("Driver"));
+            Assert.That(result["Driver"], Is.EqualTo("{My driver}"));
         }
     }
 }

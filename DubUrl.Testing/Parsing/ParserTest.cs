@@ -102,13 +102,17 @@ namespace DubUrl.Testing.Parsing
         [Test]
         [TestCase("mssql://user:pwd@host/db", "mssql")]
         [TestCase("pgsql://user:pwd@host:1234/db", "pgsql")]
-        [TestCase("odbc+mssql://localhost/db?Driver={ODBC Driver 13 for SQL Server}", "odbc+mssql")]
-        public void Url_Parser_SchemeParsed(string url, string scheme)
+        [TestCase("odbc+mssql://localhost/db?Driver={ODBC Driver 13 for SQL Server}", "odbc,mssql")]
+        [TestCase("mssql+odbc://localhost/db?Driver={ODBC Driver 13 for SQL Server}", "odbc,mssql")]
+        public void Url_Parser_SchemeParsed(string url, string expectedList)
         {
+            var expected = expectedList.Split(",");
             var parser = new Parser();
             var result = parser.Parse(url);
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.Schemes, Is.EqualTo(scheme.Split("+")));
+            foreach (var scheme in expected)
+                Assert.That(result.Schemes, Does.Contain(scheme));
+            Assert.That(result.Schemes.Length, Is.EqualTo(expected.Length));
         }
     }
 }

@@ -11,7 +11,11 @@ namespace DubUrl.Mapping
 {
     internal class OdbcMapper : BaseMapper
     {
+        private DriverLocatorFactory DriverLocatorFactory { get; } = new DriverLocatorFactory();
+
         public OdbcMapper(DbConnectionStringBuilder csb) : base(csb) { }
+        public OdbcMapper(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory) : this(csb) 
+            => DriverLocatorFactory = driverLocatorFactory;
 
         public override void ExecuteSpecific(UrlInfo urlInfo)
         {
@@ -21,13 +25,12 @@ namespace DubUrl.Mapping
             ExecuteAuthentification(urlInfo.Username, urlInfo.Password);
             ExecuteInitialCatalog(urlInfo.Segments);
 
-
-            if (urlInfo.Options.ContainsKey("driver"))
+            if (!urlInfo.Options.ContainsKey("Driver"))
             {
                 var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "odbc").First();
-                var driverLocator = new MssqlDriverLocator();
+                var driverLocator = DriverLocatorFactory.Instantiate(otherScheme);
                 var driver = driverLocator.Locate();
-                urlInfo.Options.Add("driver", driver);
+                urlInfo.Options.Add("Driver", driver);
             }
         }
 

@@ -11,11 +11,13 @@ namespace DubUrl.DriverLocating
     {
         private const string REGEX_PATTERN = "^\\bPostgreSQL \\b(\\bANSI\\b|\\bUnicode\\b)\\(?(\\bx64\\b)?\\)?$";
         private readonly List<string> Candidates = new();
-        private Encoding Encoding { get; }
-        private Architecture Architecture { get; }
+        internal Encoding Encoding { get; }
+        internal Architecture Architecture { get; }
 
-        public PostgresqlDriverLocator(Encoding encoding = Encoding.Unspecified, Architecture architecture = Architecture.Unspecified)
-           : base(REGEX_PATTERN) => (Encoding, Architecture) = (encoding, architecture);
+        public PostgresqlDriverLocator()
+            : this(Encoding.Unspecified, Architecture.Unspecified) { }
+        public PostgresqlDriverLocator(Encoding encoding, Architecture architecture)
+            : base(REGEX_PATTERN) => (Encoding, Architecture) = (encoding, architecture);
         internal PostgresqlDriverLocator(DriverLister driverLister, Encoding encoding = Encoding.Unspecified, Architecture architecture = Architecture.Unspecified)
             : base(REGEX_PATTERN, driverLister) => (Encoding, Architecture) = (encoding, architecture);
 
