@@ -28,7 +28,7 @@ namespace DubUrl
         private (string ConnectionString, UrlInfo UrlInfo) ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
-            SchemeMapperBuilder.Build(urlInfo.Scheme);
+            SchemeMapperBuilder.Build(urlInfo.Schemes);
             Mapper = SchemeMapperBuilder.GetMapper();
             Mapper.Map(urlInfo);
             return (Mapper.GetConnectionString(), urlInfo);
