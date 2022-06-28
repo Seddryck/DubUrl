@@ -26,8 +26,7 @@ namespace DubUrl.Testing.Mapping
 
         private class StubMapper : BaseMapper
         {
-            public StubMapper(DbConnectionStringBuilder csb) : base(csb) { }
-            public override void ExecuteSpecific(UrlInfo urlInfo) { return; }
+            public StubMapper(DbConnectionStringBuilder csb) : base(csb, new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
         }
 
         [Test]

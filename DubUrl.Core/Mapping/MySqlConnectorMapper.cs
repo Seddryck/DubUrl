@@ -10,44 +10,60 @@ namespace DubUrl.Mapping
 {
     internal class MySqlConnectorMapper : BaseMapper
     {
-        public MySqlConnectorMapper(DbConnectionStringBuilder csb) : base(csb) { }
+        private const string SERVER_KEYWORD = "Server";
+        private const string PORT_KEYWORD = "Port";
+        private const string DATABASE_KEYWORD = "Database";
+        protected const string USERNAME_KEYWORD = "User ID";
+        protected const string PASSWORD_KEYWORD = "Password";
 
-        public override void ExecuteSpecific(UrlInfo urlInfo)
+        public MySqlConnectorMapper(DbConnectionStringBuilder csb)
+            : base(csb,
+                  new SpecificatorUnchecked(csb),
+                  new BaseTokenMapper[] {
+                    new ServerMapper(),
+                    new AuthentificationMapper(),
+                    new DatabaseMapper(),
+                    new OptionsMapper(),
+                  }
+            )
+        { }
+
+        protected MySqlConnectorMapper(DbConnectionStringBuilder csb, Specificator specificator, BaseTokenMapper[] tokenMappers)
+            : base(csb, specificator, tokenMappers) { }
+
+        internal class ServerMapper : BaseTokenMapper
         {
-            Specify("Server", urlInfo.Host);
-            if (urlInfo.Port>0)
-                Specify("Port", urlInfo.Port);
-            ExecuteAuthentification(urlInfo.Username, urlInfo.Password);
-            ExecuteDatabase(urlInfo.Segments);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
+                if (urlInfo.Port > 0)
+                    Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
+            }
         }
 
-        protected internal void ExecuteAuthentification(string username, string password)
+        internal class AuthentificationMapper : BaseTokenMapper
         {
-            if (!string.IsNullOrEmpty(username))
-                Specify("User ID", username);
-            if (!string.IsNullOrEmpty(password))
-                Specify("Password", password);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                if (!string.IsNullOrEmpty(urlInfo.Username))
+                    Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+                if (!string.IsNullOrEmpty(urlInfo.Password))
+                    Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
 
-            if (string.IsNullOrEmpty(username))
-                throw new UsernameNotFoundException();
+                if (string.IsNullOrEmpty(urlInfo.Username))
+                    throw new UsernameNotFoundException();
+            }
         }
 
-        protected internal void ExecuteDatabase(string[] segments)
+        internal class DatabaseMapper : BaseTokenMapper
         {
-            if (segments.Length == 1)
-                Specify("Database", segments.First());
-            else
-                throw new ArgumentOutOfRangeException();
-        }
-
-        protected override void Specify(string keyword, object value)
-        {
-            if (ContainsKey(keyword))
-                throw new InvalidOperationException($"The keyword '{keyword}' is already specified for this connection string.");
-            if (value == null)
-                throw new ArgumentNullException(nameof(value), $"The value for the keyword '{keyword}' cannot be null.");
-
-            AddToken(keyword, value);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                if (urlInfo.Segments.Length == 1)
+                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
+                else
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }
