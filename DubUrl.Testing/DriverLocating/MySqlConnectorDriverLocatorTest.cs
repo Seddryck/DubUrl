@@ -33,7 +33,7 @@ namespace DubUrl.Testing.DriverLocating
         public void Locate_SingleElementMatchingWhenencodingApplied_ElementReturned()
         {
             var driverLister = new FakeDriverLister(new[] { "MySQL ODBC 5.3 ANSI Driver", "MySQL ODBC 5.3 Unicode Driver" });
-            var driverLocator = new MySqlConnectorDriverLocator(driverLister, DubUrl.DriverLocating.Encoding.Unicode);
+            var driverLocator = new MySqlConnectorDriverLocator(driverLister, EncodingOption.Unicode);
             var driver = driverLocator.Locate();
             Assert.That(driver, Is.EqualTo("MySQL ODBC 5.3 Unicode Driver"));
         }
@@ -46,7 +46,7 @@ namespace DubUrl.Testing.DriverLocating
                 "MySQL ODBC 5.3 Unicode Driver",
                 "MySQL ODBC 8.0 ANSI Driver",
                 "MySQL ODBC 8.0 Unicode Driver" });
-            var driverLocator = new MySqlConnectorDriverLocator(driverLister, DubUrl.DriverLocating.Encoding.Unicode);
+            var driverLocator = new MySqlConnectorDriverLocator(driverLister, EncodingOption.Unicode);
             var driver = driverLocator.Locate();
             Assert.That(driver, Is.EqualTo("MySQL ODBC 8.0 Unicode Driver"));
         }

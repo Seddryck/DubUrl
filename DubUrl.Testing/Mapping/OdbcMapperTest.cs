@@ -19,7 +19,7 @@ namespace DubUrl.Testing.Mapping
     {
         private const string PROVIDER_NAME = "System.Data.Odbc";
 
-        private DbConnectionStringBuilder ConnectionStringBuilder
+        private static DbConnectionStringBuilder ConnectionStringBuilder
         {
             get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, OdbcFactory.Instance);
         }
@@ -121,12 +121,44 @@ namespace DubUrl.Testing.Mapping
             var driverLocationMock = new Mock<IDriverLocator>();
             driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
             var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
-            driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>())).Returns(driverLocationMock.Object);
+            driverLocationFactoryMock.Setup(x => 
+                    x.Instantiate(It.IsAny<string>(), It.IsAny<IDictionary<Type, object>>())
+                ).Returns(driverLocationMock.Object);
 
             var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
-            driverLocationFactoryMock.Verify(x => x.Instantiate("mssql"), Times.Once);
+            driverLocationFactoryMock.Verify(x => x.Instantiate("mssql", It.IsAny<IDictionary<Type, object>>()), Times.Once);
+            driverLocationMock.Verify(x => x.Locate());
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Does.ContainKey("Driver"));
+            Assert.That(result["Driver"], Is.EqualTo("{My driver}"));
+        }
+
+        [Test]
+        public void Map_NoDriverSpecifiedButOptions_DriverLocationCalled()
+        {
+            var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql" }, Segments = new[] { "db" }, 
+                Options = new Dictionary<string, string>() { { "Driver-Architecture", "x64"}, { "Driver-Encoding", "Unicode" } }
+            };
+
+            var driverLocationMock = new Mock<IDriverLocator>();
+            driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
+            var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
+            driverLocationFactoryMock.Setup(x =>
+                    x.Instantiate(It.IsAny<string>(), It.IsAny<IDictionary<Type, object>>())
+                ).Returns(driverLocationMock.Object);
+
+            var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+            var result = mapper.Map(urlInfo);
+
+            driverLocationFactoryMock.Verify(
+                x => x.Instantiate("mssql", It.Is<IDictionary<Type, object>>(
+                    x => x.ContainsKey(typeof(ArchitectureOption))
+                        && (ArchitectureOption)x[typeof(ArchitectureOption)] == ArchitectureOption.x64
+                        && x.ContainsKey(typeof(EncodingOption))
+                        && (EncodingOption)x[typeof(EncodingOption)] == EncodingOption.Unicode
+                )), Times.Once);
             driverLocationMock.Verify(x => x.Locate());
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey("Driver"));

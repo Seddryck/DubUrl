@@ -46,7 +46,7 @@ namespace DubUrl.Mapping
 
         protected internal void ExecuteInitialCatalog(string[] segments)
         {
-            if (segments.Length > 0 && segments.Count() <= 2)
+            if (segments.Length > 0 && segments.Length <= 2)
                 Specify("Initial Catalog", segments.Last());
             else
                 throw new ArgumentOutOfRangeException();

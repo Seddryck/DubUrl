@@ -25,13 +25,13 @@ namespace DubUrl.Testing.DriverLocating
         }
 
         [Test]
-        [TestCase(DubUrl.DriverLocating.Encoding.Unicode)]
-        [TestCase(DubUrl.DriverLocating.Encoding.ANSI)]
-        public void Instantiate_MysqlWithEncoding_CorrectType(DubUrl.DriverLocating.Encoding encoding)
+        [TestCase(EncodingOption.Unicode)]
+        [TestCase(EncodingOption.ANSI)]
+        public void Instantiate_MysqlWithEncoding_CorrectType(EncodingOption encoding)
         {
             var options = new Dictionary<Type, object>
             {
-                { typeof(DubUrl.DriverLocating.Encoding), encoding }
+                { typeof(EncodingOption), encoding }
             };
 
             var factory = new DriverLocatorFactory();
@@ -44,14 +44,14 @@ namespace DubUrl.Testing.DriverLocating
         }
 
         [Test]
-        [TestCase(DubUrl.DriverLocating.Encoding.Unicode, Architecture.x86)]
-        [TestCase(DubUrl.DriverLocating.Encoding.ANSI, Architecture.x64)]
-        public void Instantiate_PostgresqlWithEncodingArchitecture_CorrectType(DubUrl.DriverLocating.Encoding encoding, Architecture architecture)
+        [TestCase(EncodingOption.Unicode, ArchitectureOption.x86)]
+        [TestCase(EncodingOption.ANSI, ArchitectureOption.x64)]
+        public void Instantiate_PostgresqlWithEncodingArchitecture_CorrectType(EncodingOption encoding, ArchitectureOption architecture)
         {
             var options = new Dictionary<Type, object>
             {
-                { typeof(DubUrl.DriverLocating.Architecture), architecture },
-                { typeof(DubUrl.DriverLocating.Encoding), encoding },
+                { typeof(DubUrl.DriverLocating.ArchitectureOption), architecture },
+                { typeof(EncodingOption), encoding },
             };
 
             var factory = new DriverLocatorFactory();

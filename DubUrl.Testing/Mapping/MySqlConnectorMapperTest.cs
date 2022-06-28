@@ -16,7 +16,7 @@ namespace DubUrl.Testing.Mapping
     {
         private const string PROVIDER_NAME = "Mysql";
 
-        private DbConnectionStringBuilder ConnectionStringBuilder
+        private static DbConnectionStringBuilder ConnectionStringBuilder
         {
             get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, MySqlConnectorFactory.Instance);
         }

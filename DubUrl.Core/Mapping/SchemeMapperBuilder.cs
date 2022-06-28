@@ -44,7 +44,7 @@ namespace DubUrl.Mapping
         {
             (Provider, Mapper) = (null, null);
 
-            var mainScheme = schemes.Count() == 1
+            var mainScheme = schemes.Length == 1
                 ? schemes[0]
                 : schemes.Contains("odbc")
                     ? "odbc"

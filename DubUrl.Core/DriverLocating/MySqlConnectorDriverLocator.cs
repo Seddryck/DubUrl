@@ -11,21 +11,21 @@ namespace DubUrl.DriverLocating
     {
         private const string REGEX_PATTERN = "^\\bMySQL ODBC ([0-9]*\\.[0-9]*)\\s(\\bANSI\\b|\\bUnicode\\b)\\b Driver\\b$";
         private readonly Dictionary<string, decimal> Candidates = new();
-        internal Encoding Encoding { get; }
+        internal EncodingOption Encoding { get; }
 
         public MySqlConnectorDriverLocator()
-            : this(Encoding.Unspecified) { }
-        public MySqlConnectorDriverLocator(Encoding encoding)
+            : this(EncodingOption.Unspecified) { }
+        public MySqlConnectorDriverLocator(EncodingOption encoding)
             : base(REGEX_PATTERN)  => (Encoding) = (encoding);
-        internal MySqlConnectorDriverLocator(DriverLister driverLister, Encoding encoding = Encoding.Unspecified)
+        internal MySqlConnectorDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified)
             : base(REGEX_PATTERN, driverLister) => (Encoding) = (encoding);
 
         protected override void AddCandidate(string driver, MatchCollection matches)
         {
             var version = decimal.Parse(matches[0].Groups[1].Value, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
-            var encoding = (Encoding)Enum.Parse(typeof(Encoding), matches[0].Groups[2].Value);
+            var encoding = (EncodingOption)Enum.Parse(typeof(EncodingOption), matches[0].Groups[2].Value);
 
-            if (Encoding != Encoding.Unspecified && encoding != Encoding)
+            if (Encoding != EncodingOption.Unspecified && encoding != Encoding)
                 return;
 
             Candidates.Add(driver, version);

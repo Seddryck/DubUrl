@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.DriverLocating
 {
-    public enum Architecture
+    [DriverLocatorOption]
+    public enum EncodingOption
     {
         Unspecified,
-        x86,
-        x64,
+        ANSI,
+        Unicode
     }
 }

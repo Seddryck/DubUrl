@@ -40,10 +40,10 @@ namespace DubUrl.DriverLocating
             var driverLocatorType = Schemes[scheme];
             var ctors = driverLocatorType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
             var ctor = ctors.FirstOrDefault(
-                x => x.GetParameters().Count() == options.Count
+                x => x.GetParameters().Length == options.Count
                     && x.GetParameters().All(x => options.ContainsKey(x.ParameterType))
                 ) ?? throw new NullReferenceException();
-            var parameters = new List<object>(ctor.GetParameters().Count());
+            var parameters = new List<object>(ctor.GetParameters().Length);
             ctor.GetParameters().ToList().ForEach(x => parameters.Add(options[x.ParameterType]));
 
             return ctor.Invoke(parameters.ToArray()) as IDriverLocator
