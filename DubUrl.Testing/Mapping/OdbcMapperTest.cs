@@ -135,11 +135,17 @@ namespace DubUrl.Testing.Mapping
             Assert.That(result["Driver"], Is.EqualTo("{My driver}"));
         }
 
-        [Test]
-        public void Map_NoDriverSpecifiedButOptions_DriverLocationCalled()
+        [Test, Pairwise]
+        public void Map_NoDriverSpecifiedButOptions_DriverLocationCalled(
+                [Values(ArchitectureOption.x64, ArchitectureOption.x86)] ArchitectureOption architecture,
+                [Values(EncodingOption.ANSI, EncodingOption.Unicode)] EncodingOption encoding
+            )
         {
             var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql" }, Segments = new[] { "db" }, 
-                Options = new Dictionary<string, string>() { { "Driver-Architecture", "x64"}, { "Driver-Encoding", "Unicode" } }
+                Options = new Dictionary<string, string>() { 
+                    { "Driver-Architecture", Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentNullException()}, 
+                    { "Driver-Encoding", Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentNullException() } 
+                }
             };
 
             var driverLocationMock = new Mock<IDriverLocator>();
@@ -155,9 +161,9 @@ namespace DubUrl.Testing.Mapping
             driverLocationFactoryMock.Verify(
                 x => x.Instantiate("mssql", It.Is<IDictionary<Type, object>>(
                     x => x.ContainsKey(typeof(ArchitectureOption))
-                        && (ArchitectureOption)x[typeof(ArchitectureOption)] == ArchitectureOption.x64
+                        && (ArchitectureOption)x[typeof(ArchitectureOption)] == architecture
                         && x.ContainsKey(typeof(EncodingOption))
-                        && (EncodingOption)x[typeof(EncodingOption)] == EncodingOption.Unicode
+                        && (EncodingOption)x[typeof(EncodingOption)] == encoding
                 )), Times.Once);
             driverLocationMock.Verify(x => x.Locate());
             Assert.That(result, Is.Not.Null);
