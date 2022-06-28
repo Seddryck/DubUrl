@@ -15,7 +15,7 @@ namespace DubUrl.Testing.Mapping
     {
         private const string PROVIDER_NAME = "System.Data.SqlClient";
 
-        private DbConnectionStringBuilder ConnectionStringBuilder
+        private static DbConnectionStringBuilder ConnectionStringBuilder
         {
             get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, SqlClientFactory.Instance);
         }

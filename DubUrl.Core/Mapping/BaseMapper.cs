@@ -30,7 +30,7 @@ namespace DubUrl.Mapping
 
         public abstract void ExecuteSpecific(UrlInfo urlInfo);
 
-        protected void ExecuteOptions(IDictionary<string, string> options)
+        protected virtual void ExecuteOptions(IDictionary<string, string> options)
         {
             foreach (var option in options)
                 Specify(option.Key, option.Value);

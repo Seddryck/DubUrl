@@ -16,7 +16,7 @@ namespace DubUrl.Parsing
             var uri = new Uri(url);
             var urlInfo = new UrlInfo();
 
-            urlInfo = urlInfo with { Scheme = uri.Scheme };
+            urlInfo = urlInfo with { Schemes = uri.Scheme.Split("+") };
 
             if (!string.IsNullOrEmpty(uri.UserInfo))
             {
