@@ -10,46 +10,64 @@ namespace DubUrl.Mapping
 {
     internal class MssqlMapper : BaseMapper
     {
-        public MssqlMapper(DbConnectionStringBuilder csb) : base(csb) { }
+        private const string SERVER_KEYWORD = "Data source";
+        private const string PORT_KEYWORD = "Port";
+        private const string DATABASE_KEYWORD = "Initial catalog";
+        private const string USERNAME_KEYWORD = "User id";
+        private const string PASSWORD_KEYWORD = "Password";
+        private const string SSPI_KEYWORD = "Integrated security";
 
-        public override void ExecuteSpecific(UrlInfo urlInfo)
+        public MssqlMapper(DbConnectionStringBuilder csb)
+            : base(csb, 
+                  new Specificator(csb),
+                  new BaseTokenMapper[] {
+                    new DataSourceMapper(),
+                    new AuthentificationMapper(),
+                    new InitialCatalogMapper(),
+                    new OptionsMapper(),
+                  }
+            ) { }
+
+        internal class DataSourceMapper : BaseTokenMapper
         {
-            ExecuteDataSource(urlInfo.Host, urlInfo.Segments, urlInfo.Port);
-            ExecuteAuthentification(urlInfo.Username, urlInfo.Password);
-            ExecuteInitialCatalog(urlInfo.Segments);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                var fullHost = new StringBuilder();
+                fullHost.Append(urlInfo.Host);
+                if (urlInfo.Segments.Length == 2)
+                    fullHost.Append('\\').Append(urlInfo.Segments.First());
+                if (urlInfo.Port != 0)
+                    fullHost.Append(',').Append(urlInfo.Port);
+
+                Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
+            }
         }
 
-        protected internal void ExecuteDataSource(string host, string[] segments, int port)
+        internal class AuthentificationMapper : BaseTokenMapper
         {
-            var fullHost = new StringBuilder();
-            fullHost.Append(host);
-            if (segments.Length == 2)
-                fullHost.Append('\\').Append(segments.First());
-            if (port != 0)
-                fullHost.Append(',').Append(port);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                if (!string.IsNullOrEmpty(urlInfo.Username))
+                    Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+                if (!string.IsNullOrEmpty(urlInfo.Password))
+                    Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
 
-            Specify("Data source", fullHost.ToString());
+                if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
+                    Specificator.Execute(SSPI_KEYWORD, "sspi");
+                else
+                    Specificator.Execute(SSPI_KEYWORD, false);
+            }
         }
 
-        protected internal void ExecuteAuthentification(string username, string password)
+        internal class InitialCatalogMapper : BaseTokenMapper
         {
-            if (!string.IsNullOrEmpty(username))
-                Specify("User id", username);
-            if (!string.IsNullOrEmpty(password))
-                Specify("Password", password);
-
-            if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
-                Specify("Integrated Security", "sspi");
-            else
-                Specify("Integrated Security", false);
-        }
-
-        protected internal void ExecuteInitialCatalog(string[] segments)
-        {
-            if (segments.Length > 0 && segments.Length <= 2)
-                Specify("Initial Catalog", segments.Last());
-            else
-                throw new ArgumentOutOfRangeException();
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Count() <= 2)
+                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
+                else
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

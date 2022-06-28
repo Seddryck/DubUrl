@@ -10,43 +10,58 @@ namespace DubUrl.Mapping
 {
     internal class OracleMapper : BaseMapper
     {
-        public OracleMapper(DbConnectionStringBuilder csb) : base(csb) { }
+        private const string SERVER_KEYWORD = "HOST";
+        private const string PORT_KEYWORD = "PORT";
+        private const string DATABASE_KEYWORD = "SERVICE_NAME";
+        private const string USERNAME_KEYWORD = "USER ID";
+        private const string PASSWORD_KEYWORD = "PASSWORD";
 
-        public override void ExecuteSpecific(UrlInfo urlInfo)
+        public OracleMapper(DbConnectionStringBuilder csb)
+            : base(csb,
+                  new Specificator(csb),
+                  new BaseTokenMapper[] {
+                    new DsnMapper(),
+                    new AuthentificationMapper(),
+                    new OptionsMapper(),
+                  }
+            )
+        { }
+
+        internal class AuthentificationMapper : BaseTokenMapper
         {
-            ExecuteDataSource(urlInfo.Host, urlInfo.Port, urlInfo.Segments);
-            ExecuteAuthentification(urlInfo.Username, urlInfo.Password);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                if (!string.IsNullOrEmpty(urlInfo.Username))
+                {
+                    Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+                    if (!string.IsNullOrEmpty(urlInfo.Password))
+                        Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
+                }
+                else
+                {
+                    Specificator.Execute(USERNAME_KEYWORD, "/");
+                    Specificator.Execute(PASSWORD_KEYWORD, string.Empty);
+                }
+            }
         }
 
-        protected internal void ExecuteAuthentification(string username, string password)
+        internal class DsnMapper : BaseTokenMapper
         {
-            if (!string.IsNullOrEmpty(username))
+            internal override void Execute(UrlInfo urlInfo)
             {
-                Specify("USER ID", username);
-                if (!string.IsNullOrEmpty(password))
-                    Specify("PASSWORD", password);
-            }
-            else
-            {
-                Specify("USER ID", "/");
-                Specify("PASSWORD", string.Empty);
-            }
-        }
+                //If only host is specified, it's the TNS name
+                if (urlInfo.Segments.Length == 0 && urlInfo.Port == 0)
+                    Specificator.Execute("DATA SOURCE", urlInfo.Host);
 
-        protected internal void ExecuteDataSource(string host, int port, string[] segments)
-        {
-            //If only host is specified, it's the TNS name
-            if (segments.Length == 0 && port == 0)
-                Specify("DATA SOURCE", host);
-
-            //If segment is specified then it's the ConnectDescriptor
-            else if (segments.Length == 1)
-                Specify("DATA SOURCE",
-                    $"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)" +
-                    $"(HOST={host})(PORT={(port > 0 ? port : 1521)}))(CONNECT_DATA=" +
-                    $"(SERVICE_NAME={segments.First()})))");
-            else
-                throw new ArgumentOutOfRangeException();
+                //If segment is specified then it's the ConnectDescriptor
+                else if (urlInfo.Segments.Length == 1)
+                    Specificator.Execute("DATA SOURCE",
+                        $"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)" +
+                        $"({SERVER_KEYWORD}={urlInfo.Host})({PORT_KEYWORD}={(urlInfo.Port > 0 ? urlInfo.Port : 1521)}))(CONNECT_DATA=" +
+                        $"({DATABASE_KEYWORD}={urlInfo.Segments.First()})))");
+                else
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

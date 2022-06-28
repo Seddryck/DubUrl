@@ -8,37 +8,34 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class MySqlDataMapper : BaseMapper
+    internal class MySqlDataMapper : MySqlConnectorMapper
     {
-        public MySqlDataMapper(DbConnectionStringBuilder csb) : base(csb) { }
+        private const string SSPI_KEYWORD = "Integrated Security";
+        
+        public MySqlDataMapper(DbConnectionStringBuilder csb)
+            : base(csb,
+                  new Specificator(csb),
+                  new BaseTokenMapper[] {
+                    new ServerMapper(),
+                    new AuthentificationMapper(),
+                    new DatabaseMapper(),
+                    new OptionsMapper(),
+                  }
+            )
+        { }
 
-        public override void ExecuteSpecific(UrlInfo urlInfo)
+        internal new class AuthentificationMapper : BaseTokenMapper
         {
-            Specify("Server", urlInfo.Host);
-            if (urlInfo.Port>0)
-                Specify("Port", urlInfo.Port);
-            ExecuteAuthentification(urlInfo.Username, urlInfo.Password);
-            ExecuteDatabase(urlInfo.Segments);
+            internal override void Execute(UrlInfo urlInfo)
+            {
+                if (!string.IsNullOrEmpty(urlInfo.Username))
+                    Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+                if (!string.IsNullOrEmpty(urlInfo.Password))
+                    Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
+
+                if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
+                    Specificator.Execute(SSPI_KEYWORD, "sspi");
+            }
         }
-
-        protected internal void ExecuteAuthentification(string username, string password)
-        {
-            if (!string.IsNullOrEmpty(username))
-                Specify("User ID", username);
-            if (!string.IsNullOrEmpty(password))
-                Specify("Password", password);
-
-            if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
-                Specify("Integrated Security", "sspi");
-        }
-
-        protected internal void ExecuteDatabase(string[] segments)
-        {
-            if (segments.Length == 1)
-                Specify("Database", segments.First());
-            else
-                throw new ArgumentOutOfRangeException();
-        }
-
     }
 }
