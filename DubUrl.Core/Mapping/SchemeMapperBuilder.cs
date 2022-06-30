@@ -24,10 +24,12 @@ namespace DubUrl.Mapping
 
         protected virtual void Initialize()
         {
+            AddSchemes("Oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
+            AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
             AddSchemes("System.Data.SqlClient", typeof(MssqlMapper), new[] { "mssql", "ms", "sqlserver" });
             AddSchemes("Npgsql", typeof(PgsqlMapper), new[] { "pgsql", "postgres", "pg", "postgresql" });
-            AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
-            AddSchemes("Oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
+            AddSchemes("IBM.Data.DB2.Core", typeof(Db2Mapper), new[] { "db2" });
+            AddSchemes("Teradata.Client", typeof(TeradataMapper), new[] { "td", "tera", "teradata" });
             AddSchemes("System.Data.Odbc", typeof(OdbcMapper), new[] { "odbc" });
 
             void AddSchemes(string providerName, Type mapper, string[] aliases)
