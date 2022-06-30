@@ -21,6 +21,8 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
             DbProviderFactories.RegisterFactory("MySql", MySqlConnector.MySqlConnectorFactory.Instance);
             DbProviderFactories.RegisterFactory("Oracle", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
+            DbProviderFactories.RegisterFactory("IBM.Data.DB2.Core", IBM.Data.DB2.Core.DB2Factory.Instance);
+            DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         }
 
@@ -34,6 +36,8 @@ namespace DubUrl.Testing.Mapping
         [TestCase("pgsql", typeof(PgsqlMapper))]
         [TestCase("mysql", typeof(MySqlConnectorMapper))]
         [TestCase("oracle", typeof(OracleMapper))]
+        [TestCase("db2", typeof(Db2Mapper))]
+        [TestCase("td", typeof(TeradataMapper))]
         [TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]
