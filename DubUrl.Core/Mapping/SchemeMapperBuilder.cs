@@ -28,6 +28,7 @@ namespace DubUrl.Mapping
             AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
             AddSchemes("System.Data.SqlClient", typeof(MssqlMapper), new[] { "mssql", "ms", "sqlserver" });
             AddSchemes("Npgsql", typeof(PgsqlMapper), new[] { "pgsql", "postgres", "pg", "postgresql" });
+            AddSchemes("Microsoft.Data.Sqlite", typeof(SqliteMapper), new[] { "sqlite", "sq" });
             AddSchemes("IBM.Data.DB2.Core", typeof(Db2Mapper), new[] { "db2" });
             AddSchemes("Teradata.Client", typeof(TeradataMapper), new[] { "td", "tera", "teradata" });
             AddSchemes("Snowflake.Data.Client", typeof(SnowflakeMapper), new[] { "sf", "snwoflake" });

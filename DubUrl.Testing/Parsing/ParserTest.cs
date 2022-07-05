@@ -114,5 +114,29 @@ namespace DubUrl.Testing.Parsing
                 Assert.That(result.Schemes, Does.Contain(scheme));
             Assert.That(result.Schemes.Length, Is.EqualTo(expected.Length));
         }
+
+        [Test]
+        public void Parse_EmptyHost_EmptyHost()
+        {
+            var parser = new Parser();
+            var result = parser.Parse("sqlite:///data.db");
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Host, Is.Null.Or.Empty);
+            Assert.That(result.Segments.Length, Is.EqualTo(1));
+            Assert.That(result.Segments[0], Is.EqualTo("data.db"));
+        }
+
+        [Test]
+        public void Parse_EmptyHostAndFirstSegment_EmptyHostAndFirstSegment()
+        {
+            var parser = new Parser();
+            var result = parser.Parse("sqlite:////c:/data.db");
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Host, Is.Null.Or.Empty);
+            Assert.That(result.Segments.Length, Is.EqualTo(3));
+            Assert.That(result.Segments[0], Is.Null.Or.Empty);
+            Assert.That(result.Segments[1], Is.EqualTo("c:"));
+            Assert.That(result.Segments[2], Is.EqualTo("data.db"));
+        }
     }
 }
