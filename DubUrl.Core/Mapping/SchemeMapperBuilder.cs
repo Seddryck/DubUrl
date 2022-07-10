@@ -32,6 +32,7 @@ namespace DubUrl.Mapping
             AddSchemes("IBM.Data.DB2.Core", typeof(Db2Mapper), new[] { "db2" });
             AddSchemes("Teradata.Client", typeof(TeradataMapper), new[] { "td", "tera", "teradata" });
             AddSchemes("Snowflake.Data.Client", typeof(SnowflakeMapper), new[] { "sf", "snwoflake" });
+            AddSchemes("FirebirdSql.Data.FirebirdClient", typeof(FirebirdSqlMapper), new[] { "fb", "firebird" });
             AddSchemes("System.Data.Odbc", typeof(OdbcMapper), new[] { "odbc" });
             AddSchemes("System.Data.OleDb", typeof(OleDbMapper), new[] { "oledb" });
 
