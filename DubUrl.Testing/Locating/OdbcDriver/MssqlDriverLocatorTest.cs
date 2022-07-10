@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.DriverLocating
+namespace DubUrl.Testing.Locating.OdbcDriver
 {
-    public class MssqlDriverLocatorTest
+    public class MssqlOleDbProviderLocatorTest
     {
         private class FakeDriverLister : DriverLister
         {

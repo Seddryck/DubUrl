@@ -130,7 +130,7 @@ namespace DubUrl.Testing.Mapping
         public void ReplaceDriverLocationFactory_NewDriverLocationFactory_CorrectType()
         {
             var factory = new DriverLocatorFactory();
-            factory.AddDriverLocator("foobar", typeof(FakeDriverLocator));
+            factory.AddDriver("foobar", typeof(FakeDriverLocator));
 
             var builder = new SchemeMapperBuilder();
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);

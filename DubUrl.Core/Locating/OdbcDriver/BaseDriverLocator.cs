@@ -25,13 +25,13 @@ namespace DubUrl.Locating.OdbcDriver
             {
                 var matches = Regex.Matches(driver, RegexPattern);
                 if (matches.Any())
-                    AddCandidate(driver, matches);
+                    AddCandidate(driver, matches[0].Groups.Values.Select(x => x.Value).Skip(1).ToArray());
             }
             var bestCandidates = RankCandidates();
             return bestCandidates.Any() ? bestCandidates.First() : string.Empty;
         }
 
-        protected abstract void AddCandidate(string driver, MatchCollection matches);
+        protected abstract void AddCandidate(string driver, string[] match);
         protected abstract List<string> RankCandidates();
     }
 }

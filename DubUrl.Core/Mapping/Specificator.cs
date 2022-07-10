@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class Specificator
+    public class Specificator
     {
         private DbConnectionStringBuilder Csb { get; }
         public Specificator(DbConnectionStringBuilder csb)

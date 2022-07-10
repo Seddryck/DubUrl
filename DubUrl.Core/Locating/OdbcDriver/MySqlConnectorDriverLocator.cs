@@ -20,10 +20,10 @@ namespace DubUrl.Locating.OdbcDriver
         internal MySqlConnectorDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified)
             : base(REGEX_PATTERN, driverLister) => (Encoding) = (encoding);
 
-        protected override void AddCandidate(string driver, MatchCollection matches)
+        protected override void AddCandidate(string driver, string[] matches)
         {
-            var version = decimal.Parse(matches[0].Groups[1].Value, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
-            var encoding = (EncodingOption)Enum.Parse(typeof(EncodingOption), matches[0].Groups[2].Value);
+            var version = decimal.Parse(matches[0], System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+            var encoding = (EncodingOption)Enum.Parse(typeof(EncodingOption), matches[1]);
 
             if (Encoding != EncodingOption.Unspecified && encoding != Encoding)
                 return;

@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver
 {
-    public class DriverLocatorFactory
+    public class DriverLocatorFactory : BaseLocatorFactory
     {
-        private readonly record struct ProviderInfo(string ProviderName, Type Mapper);
-        private readonly Dictionary<string, Type> Schemes = new();
-
         public DriverLocatorFactory()
         {
             Initialize();
@@ -26,7 +23,7 @@ namespace DubUrl.Locating.OdbcDriver
             void AddSchemes(string[] aliases, Type driverLocator)
             {
                 foreach (var alias in aliases)
-                    AddDriverLocator(alias, driverLocator);
+                    AddDriver(alias, driverLocator);
             }
         }
 
@@ -50,38 +47,6 @@ namespace DubUrl.Locating.OdbcDriver
                 ?? throw new NullReferenceException();
         }
 
-        #region Add, remove aliases and mappings
-
-        public void AddAlias(string alias, string original)
-        {
-            if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
-
-            if (!Schemes.ContainsKey(original))
-                throw new ArgumentException();
-
-            Schemes.Add(alias, Schemes[original]);
-        }
-
-        public void AddDriverLocator(string alias, Type driverLocator)
-        {
-            if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
-
-            if (!driverLocator.IsAssignableTo(typeof(IDriverLocator)))
-                throw new ArgumentException();
-
-            Schemes.Add(alias, driverLocator);
-        }
-
-        public void ReplaceMapping(Type oldDriverLocator, Type newDriverLocator)
-        {
-            foreach (var scheme in Schemes.Where(x => x.Value == oldDriverLocator))
-                Schemes[scheme.Key] = newDriverLocator;
-        }
-
-        #endregion
-
-
+        public void AddDriver(string alias, Type locator) => AddElement(alias, locator);
     }
 }

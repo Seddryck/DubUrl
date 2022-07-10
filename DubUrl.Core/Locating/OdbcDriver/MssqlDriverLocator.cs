@@ -16,8 +16,8 @@ namespace DubUrl.Locating.OdbcDriver
         internal MssqlDriverLocator(DriverLister driverLister)
             : base(REGEX_PATTERN, driverLister) { }
 
-        protected override void AddCandidate(string driver, MatchCollection matches)
-            => Candidates.Add(driver, int.Parse(matches[0].Groups[1].Value));
+        protected override void AddCandidate(string driver, string[] matches)
+            => Candidates.Add(driver, int.Parse(matches[0]));
 
         protected override List<string> RankCandidates()
             => Candidates.OrderByDescending(x => x.Value).Select(x=> x.Key).ToList();
