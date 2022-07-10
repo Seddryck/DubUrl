@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     internal class DriverLister
     {

@@ -7,7 +7,7 @@ using NUnit.Framework;
 using DubUrl.Mapping;
 using System.Data.Common;
 using DubUrl.Parsing;
-using DubUrl.DriverLocating;
+using DubUrl.Locating.OdbcDriver;
 using Moq;
 
 namespace DubUrl.Testing.Mapping

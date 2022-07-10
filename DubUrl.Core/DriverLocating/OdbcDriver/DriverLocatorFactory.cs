@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     public class DriverLocatorFactory
     {

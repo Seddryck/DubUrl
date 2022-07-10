@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     internal class MssqlDriverLocator : BaseDriverLocator
     {

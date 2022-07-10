@@ -1,4 +1,4 @@
-﻿using DubUrl.DriverLocating;
+﻿using DubUrl.Locating.OdbcDriver;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
