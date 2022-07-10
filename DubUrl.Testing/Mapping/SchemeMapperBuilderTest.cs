@@ -25,6 +25,7 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("IBM.Data.DB2.Core", IBM.Data.DB2.Core.DB2Factory.Instance);
             DbProviderFactories.RegisterFactory("Snowflake.Data.Client", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
             DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
+            DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         }
 
@@ -42,6 +43,7 @@ namespace DubUrl.Testing.Mapping
         [TestCase("db2", typeof(Db2Mapper))]
         [TestCase("td", typeof(TeradataMapper))]
         [TestCase("sf", typeof(SnowflakeMapper))]
+        [TestCase("fb", typeof(FirebirdSqlMapper))]
         [TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]
