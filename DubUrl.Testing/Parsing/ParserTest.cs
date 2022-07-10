@@ -116,6 +116,16 @@ namespace DubUrl.Testing.Parsing
         }
 
         [Test]
+        public void Parse_EmptyHost_HostWithoutSegment()
+        {
+            var parser = new Parser();
+            var result = parser.Parse("sqlite://data.db");
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Host, Is.EqualTo("data.db"));
+            Assert.That(result.Segments.Length, Is.EqualTo(0));
+        }
+
+        [Test]
         public void Parse_EmptyHost_EmptyHost()
         {
             var parser = new Parser();
