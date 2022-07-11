@@ -44,5 +44,14 @@ namespace DubUrl.Mapping
                     Specificator.Execute(option.Key, option.Value);
             }
         }
+
+        protected void ReplaceTokenMapper(Type oldMapperType, BaseTokenMapper newMapper)
+        {           
+            for (int i=0; i<TokenMappers.Length; i++)
+            {
+                if (TokenMappers[i].GetType() == oldMapperType)
+                    TokenMappers[i] = newMapper;
+            }
+        }
     }
 }
