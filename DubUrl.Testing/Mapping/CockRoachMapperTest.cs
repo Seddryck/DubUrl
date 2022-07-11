@@ -4,7 +4,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ using Npgsql;
 
 namespace DubUrl.Testing.Mapping
 {
-    public class PgsqlMapperTest
+    public class CockRoachMapperTest
     {
         private const string PROVIDER_NAME = "Npgsql";
 
@@ -27,12 +26,12 @@ namespace DubUrl.Testing.Mapping
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new CockRoachMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SERVER_KEYWORD));
-            Assert.That(result[PgsqlMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.SERVER_KEYWORD));
+            Assert.That(result[CockRoachMapper.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -41,65 +40,65 @@ namespace DubUrl.Testing.Mapping
         public void Map_UrlInfo_Port(int expected, int port = 0, string host = "host", string segmentsList = "db")
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new CockRoachMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.PORT_KEYWORD));
-            Assert.That(result[PgsqlMapper.PORT_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.PORT_KEYWORD));
+            Assert.That(result[CockRoachMapper.PORT_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
-        [TestCase("db")]
-        public void UrlInfo_Map_InitialCatalog(string segmentsList = "db", string expected = "db")
+        [TestCase("db", "db.bank")]
+        public void Map_UrlInfo_Database(string segmentsList, string expected)
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new CockRoachMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.DATABASE_KEYWORD));
-            Assert.That(result[PgsqlMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.DATABASE_KEYWORD));
+            Assert.That(result[CockRoachMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new CockRoachMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.USERNAME_KEYWORD));
-            Assert.That(result[PgsqlMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result[PgsqlMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SSPI_KEYWORD));
-            Assert.That(result[PgsqlMapper.SSPI_KEYWORD], Is.EqualTo(false));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.USERNAME_KEYWORD));
+            Assert.That(result[CockRoachMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.PASSWORD_KEYWORD));
+            Assert.That(result[CockRoachMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.SSPI_KEYWORD));
+            Assert.That(result[CockRoachMapper.SSPI_KEYWORD], Is.EqualTo(false));
         }
 
         [Test]
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new CockRoachMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.Not.ContainKey(PgsqlMapper.USERNAME_KEYWORD));
-            Assert.That(result, Does.Not.ContainKey(PgsqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SSPI_KEYWORD));
-            Assert.That(result[PgsqlMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            Assert.That(result, Does.Not.ContainKey(CockRoachMapper.USERNAME_KEYWORD));
+            Assert.That(result, Does.Not.ContainKey(CockRoachMapper.PASSWORD_KEYWORD));
+            Assert.That(result, Does.ContainKey(CockRoachMapper.SSPI_KEYWORD));
+            Assert.That(result[CockRoachMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
         }
 
         [Test]
-        public void Map_UrlInfo_Options()
+        public void UrlInfo_Map_Options()
         {
             var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
             urlInfo.Options.Add("Application Name", "myApp");
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new CockRoachMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

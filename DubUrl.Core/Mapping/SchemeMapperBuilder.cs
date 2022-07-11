@@ -33,6 +33,7 @@ namespace DubUrl.Mapping
             AddSchemes("Teradata.Client", typeof(TeradataMapper), new[] { "td", "tera", "teradata" });
             AddSchemes("Snowflake.Data.Client", typeof(SnowflakeMapper), new[] { "sf", "snwoflake" });
             AddSchemes("FirebirdSql.Data.FirebirdClient", typeof(FirebirdSqlMapper), new[] { "fb", "firebird" });
+            AddSchemes("Npgsql", typeof(CockRoachMapper), new[] { "cr", "cockroach", "crdb", "cdb" });
             AddSchemes("System.Data.Odbc", typeof(OdbcMapper), new[] { "odbc" });
             AddSchemes("System.Data.OleDb", typeof(OleDbMapper), new[] { "oledb" });
 

@@ -10,12 +10,12 @@ namespace DubUrl.Mapping
 {
     internal class PgsqlMapper : BaseMapper
     {
-        private const string SERVER_KEYWORD = "Host";
-        private const string PORT_KEYWORD = "Port";
-        private const string DATABASE_KEYWORD = "Database";
-        private const string USERNAME_KEYWORD = "User id";
-        private const string PASSWORD_KEYWORD = "Password";
-        private const string SSPI_KEYWORD = "Integrated security";
+        protected internal const string SERVER_KEYWORD = "Host";
+        protected internal const string PORT_KEYWORD = "Port";
+        protected internal const string DATABASE_KEYWORD = "Database";
+        protected internal const string USERNAME_KEYWORD = "Username";
+        protected internal const string PASSWORD_KEYWORD = "Password";
+        protected internal const string SSPI_KEYWORD = "Integrated Security";
 
         public PgsqlMapper(DbConnectionStringBuilder csb)
             : base(csb,

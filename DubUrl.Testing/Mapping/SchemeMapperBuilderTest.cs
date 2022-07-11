@@ -44,6 +44,7 @@ namespace DubUrl.Testing.Mapping
         [TestCase("td", typeof(TeradataMapper))]
         [TestCase("sf", typeof(SnowflakeMapper))]
         [TestCase("fb", typeof(FirebirdSqlMapper))]
+        [TestCase("cr", typeof(CockRoachMapper))]
         [TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]
