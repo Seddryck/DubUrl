@@ -33,8 +33,8 @@ namespace DubUrl.Testing.Mapping
             var result = mapper.Map(urlInfo);
             
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Data Source"));
-            Assert.That(result["Data Source"], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(SqliteMapper.DATABASE_KEYWORD));
+            Assert.That(result[SqliteMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -48,8 +48,8 @@ namespace DubUrl.Testing.Mapping
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Data Source"));
-            Assert.That(result["Data Source"], Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
+            Assert.That(result, Does.ContainKey(SqliteMapper.DATABASE_KEYWORD));
+            Assert.That(result[SqliteMapper.DATABASE_KEYWORD], Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
         }
 
 
@@ -62,8 +62,8 @@ namespace DubUrl.Testing.Mapping
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Data Source"));
-            Assert.That(result["Data Source"], Is.EqualTo(path.Replace('/', Path.DirectorySeparatorChar)));
+            Assert.That(result, Does.ContainKey(SqliteMapper.DATABASE_KEYWORD));
+            Assert.That(result[SqliteMapper.DATABASE_KEYWORD], Is.EqualTo(path.Replace('/', Path.DirectorySeparatorChar)));
         }
     }
 }

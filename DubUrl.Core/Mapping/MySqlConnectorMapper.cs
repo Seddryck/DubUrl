@@ -10,11 +10,11 @@ namespace DubUrl.Mapping
 {
     internal class MySqlConnectorMapper : BaseMapper
     {
-        private const string SERVER_KEYWORD = "Server";
-        private const string PORT_KEYWORD = "Port";
-        private const string DATABASE_KEYWORD = "Database";
-        protected const string USERNAME_KEYWORD = "User ID";
-        protected const string PASSWORD_KEYWORD = "Password";
+        protected internal const string SERVER_KEYWORD = "Server";
+        protected internal const string PORT_KEYWORD = "Port";
+        protected internal const string DATABASE_KEYWORD = "Database";
+        protected internal const string USERNAME_KEYWORD = "User ID";
+        protected internal const string PASSWORD_KEYWORD = "Password";
 
         public MySqlConnectorMapper(DbConnectionStringBuilder csb)
             : base(csb,

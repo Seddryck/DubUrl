@@ -34,8 +34,8 @@ namespace DubUrl.Testing.Mapping
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Server"));
-            Assert.That(result["Server"], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(OdbcMapper.SERVER_KEYWORD));
+            Assert.That(result[OdbcMapper.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -47,8 +47,8 @@ namespace DubUrl.Testing.Mapping
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Database"));
-            Assert.That(result["Database"], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(OdbcMapper.DATABASE_KEYWORD));
+            Assert.That(result[OdbcMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
 
@@ -60,10 +60,10 @@ namespace DubUrl.Testing.Mapping
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Uid"));
-            Assert.That(result["Uid"], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey("Pwd"));
-            Assert.That(result["Pwd"], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(OdbcMapper.USERNAME_KEYWORD));
+            Assert.That(result[OdbcMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(OdbcMapper.PASSWORD_KEYWORD));
+            Assert.That(result[OdbcMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
         }
 
         [Test]
@@ -89,14 +89,14 @@ namespace DubUrl.Testing.Mapping
         public void Map_DriverSpecified_DriverAssigned(string driver)
         {
             var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
-            urlInfo.Options.Add("Driver", driver);
+            urlInfo.Options.Add(OdbcMapper.DRIVER_KEYWORD, driver);
 
             var mapper = new OdbcMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Driver"));
-            Assert.That(result["Driver"], Is.EqualTo("{MySQL ODBC 5.1 Driver}"));
+            Assert.That(result, Does.ContainKey(OdbcMapper.DRIVER_KEYWORD));
+            Assert.That(result[OdbcMapper.DRIVER_KEYWORD], Is.EqualTo("{MySQL ODBC 5.1 Driver}"));
         }
 
         [Test]

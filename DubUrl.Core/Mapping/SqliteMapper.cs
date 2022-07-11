@@ -10,7 +10,7 @@ namespace DubUrl.Mapping
 {
     internal class SqliteMapper : BaseMapper
     {
-        private const string DATABASE_KEYWORD = "Data Source";
+        protected internal const string DATABASE_KEYWORD = "Data Source";
 
         public SqliteMapper(DbConnectionStringBuilder csb)
             : base(csb, 

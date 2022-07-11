@@ -10,8 +10,13 @@ namespace DubUrl.Mapping
 {
     internal class MySqlDataMapper : MySqlConnectorMapper
     {
-        private const string SSPI_KEYWORD = "Integrated Security";
-        
+        protected internal new const string SERVER_KEYWORD = "server";
+        protected internal new const string DATABASE_KEYWORD = "database";
+        protected internal new const string USERNAME_KEYWORD = "user id";
+        protected internal new const string PASSWORD_KEYWORD = "password";
+        protected internal const string SSPI_KEYWORD = "Integrated Security";
+
+
         public MySqlDataMapper(DbConnectionStringBuilder csb)
             : base(csb,
                   new Specificator(csb),
