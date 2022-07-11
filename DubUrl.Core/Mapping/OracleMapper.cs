@@ -10,11 +10,12 @@ namespace DubUrl.Mapping
 {
     internal class OracleMapper : BaseMapper
     {
-        private const string SERVER_KEYWORD = "HOST";
-        private const string PORT_KEYWORD = "PORT";
-        private const string DATABASE_KEYWORD = "SERVICE_NAME";
-        private const string USERNAME_KEYWORD = "USER ID";
-        private const string PASSWORD_KEYWORD = "PASSWORD";
+        protected internal const string DATASOURCE_KEYWORD = "DATA SOURCE";
+        protected internal const string SERVER_KEYWORD = "HOST";
+        protected internal const string PORT_KEYWORD = "PORT";
+        protected internal const string DATABASE_KEYWORD = "SERVICE_NAME";
+        protected internal const string USERNAME_KEYWORD = "USER ID";
+        protected internal const string PASSWORD_KEYWORD = "PASSWORD";
 
         public OracleMapper(DbConnectionStringBuilder csb)
             : base(csb,

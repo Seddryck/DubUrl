@@ -24,48 +24,48 @@ namespace DubUrl.Testing.Mapping
         [Test]
         [TestCase("host", "host")]
         [TestCase("host", "host", "db", 1234)]
-        public void UrlInfo_Map_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
+        public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Username = "user" };
             var mapper = new MySqlConnectorMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Server"));
-            Assert.That(result["Server"], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(MySqlConnectorMapper.SERVER_KEYWORD));
+            Assert.That(result[MySqlConnectorMapper.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
         [TestCase("db")]
-        public void UrlInfo_Map_InitialCatalog(string segmentsList = "db", string expected = "db")
+        public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Username = "user" };
             var mapper = new MySqlConnectorMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("Database"));
-            Assert.That(result["Database"], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(MySqlConnectorMapper.DATABASE_KEYWORD));
+            Assert.That(result[MySqlConnectorMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
 
         [Test]
-        public void UrlInfoWithUsernamePassword_Map_Authentication()
+        public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
             var mapper = new MySqlConnectorMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey("User ID"));
-            Assert.That(result["User ID"], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey("Password"));
-            Assert.That(result["Password"], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(MySqlConnectorMapper.USERNAME_KEYWORD));
+            Assert.That(result[MySqlConnectorMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(MySqlConnectorMapper.PASSWORD_KEYWORD));
+            Assert.That(result[MySqlConnectorMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
             Assert.That(result, Does.Not.ContainKey("Integrated Security"));
         }
 
         [Test]
-        public void UrlInfoWithoutUsernamePassword_Map_Authentication()
+        public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
             var mapper = new MySqlConnectorMapper(ConnectionStringBuilder);
@@ -73,7 +73,7 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void UrlInfo_Map_Options()
+        public void Map_UrlInfo_Options()
         {
             var urlInfo = new UrlInfo() { Username="user", Segments = new[] { "db" } };
             urlInfo.Options.Add("Application Name", "myApp");

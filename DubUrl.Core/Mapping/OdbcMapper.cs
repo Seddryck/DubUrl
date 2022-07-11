@@ -11,14 +11,12 @@ namespace DubUrl.Mapping
 {
     internal class OdbcMapper : BaseMapper
     {
-        private const string SERVER_KEYWORD = "Server";
-        private const string PORT_KEYWORD = "Port";
-        private const string DATABASE_KEYWORD = "Database";
-        private const string USERNAME_KEYWORD = "Uid";
-        private const string PASSWORD_KEYWORD = "Pwd";
-        private const string DRIVER_KEYWORD = "Driver";
-
-
+        protected internal const string SERVER_KEYWORD = "Server";
+        protected internal const string PORT_KEYWORD = "Port";
+        protected internal const string DATABASE_KEYWORD = "Database";
+        protected internal const string USERNAME_KEYWORD = "Uid";
+        protected internal const string PASSWORD_KEYWORD = "Pwd";
+        protected internal const string DRIVER_KEYWORD = "Driver";
 
         public OdbcMapper(DbConnectionStringBuilder csb) : this(csb, new DriverLocatorFactory()) { }
         public OdbcMapper(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory) : base(csb,
