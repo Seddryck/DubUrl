@@ -119,6 +119,7 @@ namespace DubUrl.Testing.Mapping
 
             var providerLocatorMock = new Mock<IProviderLocator>();
             providerLocatorMock.Setup(x => x.Locate()).Returns("My provider");
+            providerLocatorMock.SetupGet(x => x.OptionsMapper).Returns(new BaseMapper.OptionsMapper());
             var providerLocatorFactoryMock = new Mock<ProviderLocatorFactory>();
             providerLocatorFactoryMock.Setup(x =>
                     x.Instantiate(It.IsAny<string>())
@@ -127,8 +128,9 @@ namespace DubUrl.Testing.Mapping
             var mapper = new OleDbMapper(ConnectionStringBuilder, providerLocatorFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
-            providerLocatorFactoryMock.Verify(x => x.Instantiate("myprovider"), Times.Once);
-            providerLocatorMock.Verify(x => x.Locate());
+            providerLocatorFactoryMock.Verify(x => x.Instantiate("myprovider"));
+            providerLocatorMock.Verify(x => x.Locate(), Times.Once);
+            providerLocatorMock.Verify(x => x.OptionsMapper, Times.Once);
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey(OleDbMapper.PROVIDER_KEYWORD));
             Assert.That(result[OleDbMapper.PROVIDER_KEYWORD], Is.EqualTo("My provider"));
