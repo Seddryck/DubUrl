@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     [DriverLocatorOption]
-    public enum ArchitectureOption
+    public enum EncodingOption
     {
         Unspecified,
-        x86,
-        x64,
+        ANSI,
+        Unicode
     }
 }

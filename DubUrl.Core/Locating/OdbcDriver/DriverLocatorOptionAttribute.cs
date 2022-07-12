@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     [AttributeUsage(AttributeTargets.Enum, Inherited = true, AllowMultiple = false)]
     sealed class DriverLocatorOptionAttribute : Attribute

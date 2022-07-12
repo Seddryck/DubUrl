@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal abstract class BaseTokenMapper
+    public abstract class BaseTokenMapper
     {
         private Specificator? _specificator;
         protected Specificator Specificator

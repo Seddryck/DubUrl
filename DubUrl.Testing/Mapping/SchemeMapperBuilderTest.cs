@@ -7,7 +7,7 @@ using NUnit.Framework;
 using DubUrl.Mapping;
 using System.Data.Common;
 using DubUrl.Parsing;
-using DubUrl.DriverLocating;
+using DubUrl.Locating.OdbcDriver;
 using Moq;
 
 namespace DubUrl.Testing.Mapping
@@ -133,7 +133,7 @@ namespace DubUrl.Testing.Mapping
         public void ReplaceDriverLocationFactory_NewDriverLocationFactory_CorrectType()
         {
             var factory = new DriverLocatorFactory();
-            factory.AddDriverLocator("foobar", typeof(FakeDriverLocator));
+            factory.AddDriver("foobar", typeof(FakeDriverLocator));
 
             var builder = new SchemeMapperBuilder();
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);

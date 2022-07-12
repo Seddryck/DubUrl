@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {
@@ -21,10 +21,10 @@ namespace DubUrl.DriverLocating
         internal PostgresqlDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified, ArchitectureOption architecture = ArchitectureOption.Unspecified)
             : base(REGEX_PATTERN, driverLister) => (Encoding, Architecture) = (encoding, architecture);
 
-        protected override void AddCandidate(string driver, MatchCollection matches)
+        protected override void AddCandidate(string driver, string[] matches)
         {
-            var encoding = (EncodingOption)Enum.Parse(typeof(EncodingOption), matches[0].Groups[1].Value);
-            var architecture = (ArchitectureOption)Enum.Parse(typeof(ArchitectureOption), matches[0].Groups.Count > 1 && !string.IsNullOrEmpty(matches[0].Groups[2].Value) ? matches[0].Groups[2].Value : "x86");
+            var encoding = (EncodingOption)Enum.Parse(typeof(EncodingOption), matches[0]);
+            var architecture = (ArchitectureOption)Enum.Parse(typeof(ArchitectureOption), matches.Length > 1 && !string.IsNullOrEmpty(matches[1]) ? matches[1] : "x86");
 
             if (Encoding != EncodingOption.Unspecified && encoding != Encoding)
                 return;

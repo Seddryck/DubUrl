@@ -1,4 +1,4 @@
-﻿using DubUrl.DriverLocating;
+﻿using DubUrl.Locating.OdbcDriver;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -35,6 +35,7 @@ namespace DubUrl.Mapping
             AddSchemes("FirebirdSql.Data.FirebirdClient", typeof(FirebirdSqlMapper), new[] { "fb", "firebird" });
             AddSchemes("Npgsql", typeof(CockRoachMapper), new[] { "cr", "cockroach", "crdb", "cdb" });
             AddSchemes("System.Data.Odbc", typeof(OdbcMapper), new[] { "odbc" });
+            AddSchemes("System.Data.OleDb", typeof(OleDbMapper), new[] { "oledb" });
 
             void AddSchemes(string providerName, Type mapper, string[] aliases)
             {
@@ -52,9 +53,11 @@ namespace DubUrl.Mapping
 
             var mainScheme = schemes.Length == 1
                 ? schemes[0]
-                : schemes.Contains("odbc")
-                    ? "odbc"
-                    : throw new ArgumentOutOfRangeException();
+                : schemes.Contains("oledb")
+                    ? "oledb"
+                    : schemes.Contains("odbc")
+                        ? "odbc"
+                        : throw new ArgumentOutOfRangeException();
 
             Provider = GetProvider(GetProviderName(mainScheme)) ?? throw new NullReferenceException();
 

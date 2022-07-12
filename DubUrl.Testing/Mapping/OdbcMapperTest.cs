@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
 using System.Data.Odbc;
-using DubUrl.DriverLocating;
+using DubUrl.Locating.OdbcDriver;
 using Moq;
 
 namespace DubUrl.Testing.Mapping

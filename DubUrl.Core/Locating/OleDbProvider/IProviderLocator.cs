@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OleDbProvider
 {
-    public interface IDriverLocator
+    public interface IProviderLocator
     {
         string Locate();
     }

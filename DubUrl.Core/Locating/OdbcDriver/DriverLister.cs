@@ -6,13 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
-namespace DubUrl.DriverLocating
+namespace DubUrl.Locating.OdbcDriver
 {
     internal class DriverLister
     {
         public virtual string[] List()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var drivers = new List<string>();
 #pragma warning disable CA1416 // Validate platform compatibility
