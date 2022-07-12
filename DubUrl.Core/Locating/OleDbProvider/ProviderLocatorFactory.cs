@@ -20,7 +20,11 @@ namespace DubUrl.Locating.OleDbProvider
             AddSchemes(new[] { "mssql", "ms", "sqlserver" }, typeof(MssqlOleDbProviderLocator) );
             AddSchemes(new[] { "mssqlncli" }, typeof(MssqlNCliProviderLocator));
             AddSchemes(new[] { "mysql", "my" }, typeof(MySqlProviderLocator));
-            
+            AddSchemes(new[] { "xls" }, typeof(AceXlsProviderLocator));
+            AddSchemes(new[] { "xlsx" }, typeof(AceXlsxProviderLocator));
+            AddSchemes(new[] { "xlsm" }, typeof(AceXlsmProviderLocator));
+            AddSchemes(new[] { "xlsb" }, typeof(AceXlsbProviderLocator));
+
             void AddSchemes(string[] aliases, Type locator)
             {
                 foreach (var alias in aliases)
