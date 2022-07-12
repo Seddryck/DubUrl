@@ -14,6 +14,7 @@ namespace DubUrl.Testing.Locating.OdbcDriver
         [TestCase("mssql", typeof(MssqlDriverLocator))]
         [TestCase("pgsql", typeof(PostgresqlDriverLocator))]
         [TestCase("mysql", typeof(MySqlConnectorDriverLocator))]
+        [TestCase("maria", typeof(MariaDbDriverLocator))]
         public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
         {
             var factory = new DriverLocatorFactory();
