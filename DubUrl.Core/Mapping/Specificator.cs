@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    public class Specificator
+    public class Specificator : ISpecificator
     {
         private DbConnectionStringBuilder Csb { get; }
         public Specificator(DbConnectionStringBuilder csb)
             => (Csb) = (csb);
 
-        internal virtual void Execute(string keyword, object value)
+        public virtual void Execute(string keyword, object value)
         {
             if (!ContainsKey(keyword))
                 throw new InvalidOperationException($"The keyword '{keyword}' is not valid for this type of connection string.");
