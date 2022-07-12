@@ -9,8 +9,8 @@ namespace DubUrl.Locating.OdbcDriver
 {
     internal abstract class BaseDriverLocator : IDriverLocator
     {
-        private string RegexPattern { get; }
-        private DriverLister Lister { get; }
+        protected string RegexPattern { get; }
+        protected DriverLister Lister { get; }
 
         public BaseDriverLocator(string regexPattern)
             : this(regexPattern, new DriverLister()) { }

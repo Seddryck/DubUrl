@@ -20,6 +20,7 @@ namespace DubUrl.Locating.OdbcDriver
             AddSchemes(new[] { "pgsql", "postgres", "pg", "postgresql" }, typeof(PostgresqlDriverLocator));
             AddSchemes(new[] { "mysql", "my" }, typeof(MySqlConnectorDriverLocator));
             AddSchemes(new[] { "mariadb", "maria" }, typeof(MariaDbDriverLocator));
+            AddSchemes(new[] { "xls", "xlsx", "xlsm", "xlsb" }, typeof(MsExcelDriverLocator));
 
             void AddSchemes(string[] aliases, Type driverLocator)
             {
