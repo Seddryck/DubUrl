@@ -11,7 +11,6 @@ namespace DubUrl.Mapping
     internal class MssqlMapper : BaseMapper
     {
         private const string SERVER_KEYWORD = "Data source";
-        private const string PORT_KEYWORD = "Port";
         private const string DATABASE_KEYWORD = "Initial catalog";
         private const string USERNAME_KEYWORD = "User id";
         private const string PASSWORD_KEYWORD = "Password";
