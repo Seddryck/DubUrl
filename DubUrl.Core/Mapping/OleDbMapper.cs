@@ -26,14 +26,10 @@ namespace DubUrl.Mapping
                     new AuthentificationMapper(),
                     new InitialCatalogMapper(),
                     new ProviderMapper(providerLocatorFactory),
-                    new OptionsMapper()
+                    new SelectMapper(providerLocatorFactory)
                   }
             )
         { }
-
-        internal ProviderLocatorFactory ProviderLocatorFactory
-            => (TokenMappers.First(x => x is ProviderMapper) as ProviderMapper)?.ProviderLocatorFactory
-                ?? throw new ArgumentNullException();
 
         internal class DataSourceMapper : BaseTokenMapper
         {
@@ -64,8 +60,8 @@ namespace DubUrl.Mapping
                 {
                     var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").First();
                     var providerLocator = ProviderLocatorFactory.Instantiate(otherScheme);
-                    var driver = providerLocator.Locate();
-                    urlInfo.Options.Add(PROVIDER_KEYWORD, driver);
+                    var provider = providerLocator.Locate();
+                    urlInfo.Options.Add(PROVIDER_KEYWORD, provider);
                 }
             }
         }
@@ -95,12 +91,19 @@ namespace DubUrl.Mapping
             }
         }
 
-        internal class ExtendedPropertiesMapper : BaseTokenMapper
+        internal class SelectMapper : BaseTokenMapper
         {
+            internal ProviderLocatorFactory ProviderLocatorFactory { get; } = new ProviderLocatorFactory();
+
+            public SelectMapper(ProviderLocatorFactory ProviderLocatorFactory)
+                => this.ProviderLocatorFactory = ProviderLocatorFactory;
+
             internal override void Execute(UrlInfo urlInfo)
             {
-                foreach (var option in urlInfo.Options)
-                    Specificator.Execute(option.Key, option.Value);
+                var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").FirstOrDefault();
+                var optionsMapper = (string.IsNullOrEmpty(otherScheme)) ? new OptionsMapper() : ProviderLocatorFactory.Instantiate(otherScheme).OptionsMapper;
+                optionsMapper.Accept(Specificator);
+                optionsMapper.Execute(urlInfo);
             }
         }
     }

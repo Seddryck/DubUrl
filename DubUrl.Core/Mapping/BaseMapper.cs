@@ -12,10 +12,10 @@ namespace DubUrl.Mapping
     internal abstract class BaseMapper : IMapper
     {
         private DbConnectionStringBuilder Csb { get; }
-        private Specificator Specificator { get; }
+        private ISpecificator Specificator { get; }
         protected BaseTokenMapper[] TokenMappers { get; }
         
-        public BaseMapper(DbConnectionStringBuilder csb, Specificator specificator, BaseTokenMapper[] tokenMappers)
+        public BaseMapper(DbConnectionStringBuilder csb, ISpecificator specificator, BaseTokenMapper[] tokenMappers)
             => (Csb, Specificator, TokenMappers) = (csb, specificator, tokenMappers);
         
 

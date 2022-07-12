@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
         public SpecificatorUnchecked(DbConnectionStringBuilder csb)
             : base(csb) { }
 
-        internal override void Execute(string keyword, object value)
+        public override void Execute(string keyword, object value)
         {
             if (ContainsKey(keyword))
                 throw new InvalidOperationException($"The keyword '{keyword}' is already specified for this connection string.");

@@ -10,8 +10,8 @@ namespace DubUrl.Mapping
 {
     public abstract class BaseTokenMapper
     {
-        private Specificator? _specificator;
-        protected Specificator Specificator
+        private ISpecificator? _specificator;
+        protected ISpecificator Specificator
         {
             get { return _specificator ?? throw new ArgumentNullException(); }
             set { _specificator = value; }
@@ -19,7 +19,7 @@ namespace DubUrl.Mapping
 
         public BaseTokenMapper() { }
 
-        public void Accept(Specificator specificator)
+        public void Accept(ISpecificator specificator)
             => Specificator = specificator;
 
         internal abstract void Execute(UrlInfo urlInfo);

@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
         public SpecificatorStraight(DbConnectionStringBuilder csb)
             : base(csb) { }
 
-        internal override void Execute(string keyword, object value)
+        public override void Execute(string keyword, object value)
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value), $"The value for the keyword '{keyword}' cannot be null.");
