@@ -35,19 +35,23 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
+        [TestCase("oracle", typeof(OracleMapper))]
+        [TestCase("mysql", typeof(MySqlConnectorMapper))]
         [TestCase("mssql", typeof(MssqlMapper))]
         [TestCase("pgsql", typeof(PgsqlMapper))]
-        [TestCase("mysql", typeof(MySqlConnectorMapper))]
-        [TestCase("oracle", typeof(OracleMapper))]
-        [TestCase("sqlite", typeof(SqliteMapper))]
         [TestCase("db2", typeof(Db2Mapper))]
-        [TestCase("td", typeof(TeradataMapper))]
+        [TestCase("sqlite", typeof(SqliteMapper))]
+        [TestCase("maria", typeof(MySqlConnectorMapper))]
         [TestCase("sf", typeof(SnowflakeMapper))]
+        [TestCase("td", typeof(TeradataMapper))]
         [TestCase("fb", typeof(FirebirdSqlMapper))]
         [TestCase("cr", typeof(CockRoachMapper))]
         [TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]
+        [TestCase("oledb", typeof(OleDbMapper))]
+        [TestCase("oledb+mssql", typeof(OleDbMapper))]
+        [TestCase("mssql+oledb", typeof(OleDbMapper))]
         public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder();

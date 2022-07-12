@@ -25,10 +25,11 @@ namespace DubUrl.Mapping
         protected virtual void Initialize()
         {
             AddSchemes("Oracle", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
-            AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my", "mariadb", "maria", "percona", "aurora" });
+            AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mysql", "my"});
             AddSchemes("System.Data.SqlClient", typeof(MssqlMapper), new[] { "mssql", "ms", "sqlserver" });
             AddSchemes("Npgsql", typeof(PgsqlMapper), new[] { "pgsql", "postgres", "pg", "postgresql" });
             AddSchemes("Microsoft.Data.Sqlite", typeof(SqliteMapper), new[] { "sqlite", "sq" });
+            AddSchemes("MySql", typeof(MySqlConnectorMapper), new[] { "mariadb", "maria"});
             AddSchemes("IBM.Data.DB2.Core", typeof(Db2Mapper), new[] { "db2" });
             AddSchemes("Teradata.Client", typeof(TeradataMapper), new[] { "td", "tera", "teradata" });
             AddSchemes("Snowflake.Data.Client", typeof(SnowflakeMapper), new[] { "sf", "snwoflake" });
