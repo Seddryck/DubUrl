@@ -11,12 +11,12 @@ namespace DubUrl.Mapping
 {
     internal class OleDbMapper : BaseMapper
     {
-        private const string SERVER_KEYWORD = "Data Source";
-        private const string DATABASE_KEYWORD = "Database";
-        private const string USERNAME_KEYWORD = "User Id";
-        private const string PASSWORD_KEYWORD = "Password";
-        private const string PROVIDER_KEYWORD = "Provider";
-        private const string SSPI_KEYWORD = "Integrated Security";
+        protected internal const string PROVIDER_KEYWORD = "Provider";
+        protected internal const string SERVER_KEYWORD = "Data Source";
+        protected internal const string DATABASE_KEYWORD = "Database";
+        protected internal const string USERNAME_KEYWORD = "User Id";
+        protected internal const string PASSWORD_KEYWORD = "Password";
+        protected internal const string SSPI_KEYWORD = "Integrated Security";
 
         public OleDbMapper(DbConnectionStringBuilder csb) : this(csb, new ProviderLocatorFactory()) { }
         public OleDbMapper(DbConnectionStringBuilder csb, ProviderLocatorFactory providerLocatorFactory) : base(csb,
@@ -25,7 +25,8 @@ namespace DubUrl.Mapping
                     new DataSourceMapper(),
                     new AuthentificationMapper(),
                     new InitialCatalogMapper(),
-                    new ProviderMapper(providerLocatorFactory)
+                    new ProviderMapper(providerLocatorFactory),
+                    new OptionsMapper()
                   }
             )
         { }
@@ -61,9 +62,9 @@ namespace DubUrl.Mapping
 
                 if (!urlInfo.Options.ContainsKey(PROVIDER_KEYWORD))
                 {
-                    var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "odbc").First();
-                    var driverLocator = ProviderLocatorFactory.Instantiate(otherScheme);
-                    var driver = driverLocator.Locate();
+                    var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").First();
+                    var providerLocator = ProviderLocatorFactory.Instantiate(otherScheme);
+                    var driver = providerLocator.Locate();
                     urlInfo.Options.Add(PROVIDER_KEYWORD, driver);
                 }
             }
