@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Mapping;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace DubUrl.Locating.OleDbProvider
 {
     public interface IProviderLocator
     {
+        BaseTokenMapper OptionsMapper { get; }
         string Locate();
     }
 }
