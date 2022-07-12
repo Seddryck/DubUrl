@@ -10,11 +10,11 @@ namespace DubUrl.Mapping
 {
     internal class MssqlMapper : BaseMapper
     {
-        protected internal const string SERVER_KEYWORD = "Data source";
-        protected internal const string DATABASE_KEYWORD = "Initial catalog";
-        protected internal const string USERNAME_KEYWORD = "User id";
+        protected internal const string SERVER_KEYWORD = "Data Source";
+        protected internal const string DATABASE_KEYWORD = "Initial Catalog";
+        protected internal const string USERNAME_KEYWORD = "User ID";
         protected internal const string PASSWORD_KEYWORD = "Password";
-        protected internal const string SSPI_KEYWORD = "Integrated security";
+        protected internal const string SSPI_KEYWORD = "Integrated Security";
 
         public MssqlMapper(DbConnectionStringBuilder csb)
             : base(csb, 
