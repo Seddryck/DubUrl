@@ -16,7 +16,7 @@ baseurl:            ""
 permalink:          /:title/
 
 # Site base hostname & protocol, e.g. http://example.com
-url:                "http://127.0.0.1:4000"
+url:                ""
 
 # Site logo # e.g. logo.png, upload logo image file to /uploads/ folder
 logo: DubUrl-icon-64.png
@@ -24,7 +24,7 @@ logo: DubUrl-icon-64.png
 navbar:
     sticky:         false
     search:         false
-  
+
 # Default author settings
 author:
     name:           Cédric L. Charlier
