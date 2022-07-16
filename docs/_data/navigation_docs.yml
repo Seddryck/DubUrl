@@ -1,0 +1,23 @@
+- title: Getting Started
+  docs:
+  - installation
+  - basics-connection-uri
+  - class-connectionUri
+
+- title: Connection schemes
+  docs:
+  - ADO.Net providers for specific databases
+  - ODBC drivers
+  - OleDb providers
+  - SSL/TLS support
+
+- title: Connection settings
+  docs:
+  - Adding and overriding some schemes
+  - Remapping a scheme to another provider
+
+- title: Extending to other ADO.Net providers
+  docs:
+  - Create a new ShemeMapper
+  - Create a new Odbc driver locator
+  - Create a new OleDb provider locator
