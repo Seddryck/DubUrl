@@ -1,0 +1,5 @@
+# Site subpath, e.g. /blog
+baseurl:            ""
+
+# Site base hostname & protocol, e.g. http://example.com
+url:                "http://127.0.0.1:4000"
