@@ -1,0 +1,16 @@
+# Boxes include navigation
+
+- title: Getting Started
+  desc: Get started fast with installation and basic usages
+  icon: cog
+  doc: installation
+
+- title: Connect to your database
+  desc: Learn about how to define a database connection URI
+  icon: settings
+  doc: connect
+
+- title: Extension points
+  desc: Tailor the framework to meet your specific needs
+  icon: code
+  doc: customize

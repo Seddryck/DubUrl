@@ -1,0 +1,24 @@
+# Changelog page source
+
+- title: Documentation work started
+  label:
+  date: Jul 15, 2022
+  list:
+  - Initial Jekyll setup (always a pleasure)
+  - Create visual identity and review stylesheets
+  - Write quick-start
+
+- title: Setup CI pipeline
+  label:
+  date: Jun 6, 2022
+  list:
+  - Creation of AppVeyor pipeline
+  - Package publication on Nuget.org
+
+- title: First commit
+  label:
+  date: Jun 5, 2022
+  list:
+  - Create repository on GitHub
+  - Initial README with first ideas and references
+  - selection of license Apache 2.0

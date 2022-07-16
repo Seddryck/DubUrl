@@ -1,0 +1,10 @@
+# Footer navigation links
+
+- title: Home
+  url: /
+
+- title: Docs
+  url: /docs/
+
+- title: GitHub
+  url: https://github.com/Seddryck/DubUrl
