@@ -1,6 +1,11 @@
 version: build.{build}
 image: Visual Studio 2022
 
+skip_commits:
+  files:
+    - docs/*
+    - misc/*
+
 init:
   - cmd: git config --global core.autocrlf true
   - ps: $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = 1
