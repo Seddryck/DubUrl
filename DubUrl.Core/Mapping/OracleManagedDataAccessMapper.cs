@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.Mapping.Tokening;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class OracleMapper : BaseMapper
+    [Mapper(
+        "Oracle Database"
+        , new[] { "oracle", "or", "ora" }
+        , "Oracle.ManagedDataAccess"
+    )]
+    internal class OracleManagedDataAccessMapper : BaseMapper
     {
         protected internal const string DATASOURCE_KEYWORD = "DATA SOURCE";
         protected internal const string SERVER_KEYWORD = "HOST";
@@ -17,7 +23,7 @@ namespace DubUrl.Mapping
         protected internal const string USERNAME_KEYWORD = "USER ID";
         protected internal const string PASSWORD_KEYWORD = "PASSWORD";
 
-        public OracleMapper(DbConnectionStringBuilder csb)
+        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb)
             : base(csb,
                   new Specificator(csb),
                   new BaseTokenMapper[] {

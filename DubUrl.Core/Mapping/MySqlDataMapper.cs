@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.Mapping.Tokening;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [AlternativeMapper(typeof(MySqlConnectorMapper))]
+    [Mapper(
+        "MySQL"
+        , new[] { "mysql", "my" }
+        , "MySql.Data"
+    )]
     internal class MySqlDataMapper : MySqlConnectorMapper
     {
         protected internal new const string SERVER_KEYWORD = "server";

@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [Mapper(
+        "CockRoachDB"
+        , new[] { "cr", "cockroach", "crdb", "cdb" }
+        , "Npgsql"
+    )]
     internal class CockRoachMapper : PgsqlMapper
     {
         public CockRoachMapper(DbConnectionStringBuilder csb)

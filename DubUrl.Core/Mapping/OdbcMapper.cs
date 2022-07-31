@@ -1,4 +1,5 @@
-﻿using DubUrl.Locating.OdbcDriver;
+﻿using DubUrl.Mapping.Tokening;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [Mapper(
+        "ODBC"
+        , new[] { "odbc" }
+        , "System.Data.Odbc"
+    )]
     internal class OdbcMapper : BaseMapper
     {
         protected internal const string SERVER_KEYWORD = "Server";
