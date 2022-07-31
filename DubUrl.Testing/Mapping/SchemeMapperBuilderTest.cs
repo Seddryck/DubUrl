@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Mapping;
 using System.Data.Common;
 using DubUrl.Parsing;
 using DubUrl.Locating.OdbcDriver;
 using Moq;
+using System.Runtime.InteropServices;
 
 namespace DubUrl.Testing.Mapping
 {
@@ -27,6 +29,10 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
             DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
+#pragma warning disable CA1416 // Validate platform compatibility
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
+#pragma warning restore CA1416 // Validate platform compatibility
         }
 
         private class StubMapper : BaseMapper
@@ -35,13 +41,13 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        [TestCase("oracle", typeof(OracleMapper))]
+        [TestCase("oracle", typeof(OracleManagedDataAccessMapper))]
         [TestCase("mysql", typeof(MySqlConnectorMapper))]
         [TestCase("mssql", typeof(MssqlMapper))]
         [TestCase("pgsql", typeof(PgsqlMapper))]
         [TestCase("db2", typeof(Db2Mapper))]
         [TestCase("sqlite", typeof(SqliteMapper))]
-        [TestCase("maria", typeof(MySqlConnectorMapper))]
+        [TestCase("maria", typeof(MariaDbConnectorMapper))]
         [TestCase("sf", typeof(SnowflakeMapper))]
         [TestCase("td", typeof(TeradataMapper))]
         [TestCase("fb", typeof(FirebirdSqlMapper))]
@@ -55,7 +61,7 @@ namespace DubUrl.Testing.Mapping
         public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder();
-            builder.Build(schemeList.Split("+"));
+            builder.Build(schemeList.Split(new[] { '+', ':' }));
             var result = builder.GetMapper();
 
             Assert.That(result, Is.Not.Null);
