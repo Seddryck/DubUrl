@@ -12,7 +12,7 @@ using NUnit.Framework;
 
 namespace DubUrl.Testing
 {
-    public class UrlConnectionTest
+    public class ConnectionUrlTest
     {
 
         [Test]
@@ -30,8 +30,8 @@ namespace DubUrl.Testing
             schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
             schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
 
-            var urlConnection = new UrlConnection(url, parserMock.Object, schemeMapperBuilderMock.Object);
-            urlConnection.Parse();
+            var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+            connectionUrl.Parse();
 
             parserMock.Verify(x => x.Parse(url), Times.Once());
         }
@@ -51,8 +51,8 @@ namespace DubUrl.Testing
             schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
             schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
 
-            var urlConnection = new UrlConnection(url, parserMock.Object, schemeMapperBuilderMock.Object);
-            urlConnection.Parse();
+            var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+            connectionUrl.Parse();
 
             schemeMapperBuilderMock.Verify(x => x.Build(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.Once());
             schemeMapperBuilderMock.Verify(x => x.GetMapper(), Times.AtLeastOnce());
@@ -73,14 +73,14 @@ namespace DubUrl.Testing
             schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
             schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
 
-            var urlConnection = new UrlConnection(url, parserMock.Object, schemeMapperBuilderMock.Object);
-            urlConnection.Parse();
+            var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+            connectionUrl.Parse();
 
             mapperMock.Verify(x => x.Map(It.IsAny<UrlInfo>()), Times.Once());
         }
 
         [Test]
-        public void Open_AnyConnectionString_OneCallToBuilderMethods()
+        public void Connect_AnyConnectionString_OneCallToBuilderMethods()
         {
             var url = "mssql://localhost/db";
 
@@ -91,7 +91,6 @@ namespace DubUrl.Testing
             mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
 
             var dbConnectionMock = new Mock<DbConnection>();
-            dbConnectionMock.Setup(x => x.Open());
 
             var dbProviderfactoryMock = new Mock<DbProviderFactory>();
             dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
@@ -101,10 +100,43 @@ namespace DubUrl.Testing
             schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
             schemeMapperBuilderMock.Setup(x => x.GetProviderFactory()).Returns(dbProviderfactoryMock.Object);
 
-            var urlConnection = new UrlConnection(url, parserMock.Object, schemeMapperBuilderMock.Object);
-            urlConnection.Open();
+            var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+            connectionUrl.Connect();
 
             schemeMapperBuilderMock.VerifyAll();
+        }
+
+        [Test]
+        public void Connect_AnyConnectionString_CreateWithConnectionStringAlreadySet()
+        {
+            var url = "mssql://localhost/db";
+            var connString = "Data Source=localhost;Initial Catalog=db";
+
+            var parserMock = new Mock<IParser>();
+            parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
+
+            var mapperMock = new Mock<IMapper>();
+            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.GetConnectionString()).Returns(connString);
+
+            var sequence = new MockSequence();
+            var dbConnectionMock = new Mock<DbConnection>();
+            dbConnectionMock.InSequence(sequence).SetupSet(x => x.ConnectionString=It.IsAny<string>());
+
+            var dbProviderfactoryMock = new Mock<DbProviderFactory>();
+            dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
+
+            var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
+            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
+            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory()).Returns(dbProviderfactoryMock.Object);
+
+            var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+            connectionUrl.Connect();
+
+            dbConnectionMock.VerifySet(x => x.ConnectionString = connString);
+            dbConnectionMock.VerifyAll();
+            dbConnectionMock.Verify(x => x.Open(), Times.Never());
         }
 
         [Test]
@@ -122,7 +154,7 @@ namespace DubUrl.Testing
 
             var sequence = new MockSequence();
             var dbConnectionMock = new Mock<DbConnection>();
-            dbConnectionMock.InSequence(sequence).SetupSet(x => x.ConnectionString=It.IsAny<string>());
+            dbConnectionMock.InSequence(sequence).SetupSet(x => x.ConnectionString = It.IsAny<string>());
             dbConnectionMock.InSequence(sequence).Setup(x => x.Open());
 
             var dbProviderfactoryMock = new Mock<DbProviderFactory>();
@@ -133,11 +165,11 @@ namespace DubUrl.Testing
             schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
             schemeMapperBuilderMock.Setup(x => x.GetProviderFactory()).Returns(dbProviderfactoryMock.Object);
 
-            var urlConnection = new UrlConnection(url, parserMock.Object, schemeMapperBuilderMock.Object);
-            urlConnection.Open();
+            var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+            connectionUrl.Open();
 
             dbConnectionMock.VerifySet(x => x.ConnectionString = connString);
-            dbConnectionMock.VerifyAll();
+            dbConnectionMock.Verify(x => x.Open(), Times.Once());
         }
     }
 }
