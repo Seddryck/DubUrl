@@ -9,20 +9,20 @@ using System.Threading.Tasks;
 
 namespace DubUrl
 {
-    public class UrlConnection
+    public class ConnectionUrl
     {
         private SchemeMapperBuilder SchemeMapperBuilder { get; }
         private IMapper? Mapper { get; set; }
         private IParser Parser { get; }
         private string Url { get; }
 
-        public UrlConnection(string url)
+        public ConnectionUrl(string url)
             : this(url, new Parser(), new SchemeMapperBuilder()) { }
 
-        public UrlConnection(string url, SchemeMapperBuilder factory)
+        public ConnectionUrl(string url, SchemeMapperBuilder factory)
             : this(url, new Parser(), factory) { }
 
-        internal UrlConnection(string url, IParser parser, SchemeMapperBuilder builder)
+        internal ConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
             => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
 
         private (string ConnectionString, UrlInfo UrlInfo) ParseDetail()
@@ -36,12 +36,18 @@ namespace DubUrl
 
         public string Parse() => ParseDetail().ConnectionString;
 
-        public DbConnection Open()
+        public DbConnection Connect()
         {
             var parsing = ParseDetail();
             var provider = SchemeMapperBuilder.GetProviderFactory();
             var connection = provider.CreateConnection() ?? throw new ArgumentNullException();
             connection.ConnectionString = parsing.ConnectionString;
+            return connection;
+        }
+
+        public DbConnection Open()
+        {
+            var connection = Connect();
             connection.Open();
             return connection;
         }
