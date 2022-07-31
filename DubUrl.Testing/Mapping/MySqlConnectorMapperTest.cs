@@ -14,7 +14,7 @@ namespace DubUrl.Testing.Mapping
 {
     public class MySqlConnectorMapperTest
     {
-        private const string PROVIDER_NAME = "Mysql";
+        private const string PROVIDER_NAME = "MySqlConnector";
 
         private static DbConnectionStringBuilder ConnectionStringBuilder
         {

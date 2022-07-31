@@ -19,11 +19,11 @@ namespace DubUrl.Testing.Mapping
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
             DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-            DbProviderFactories.RegisterFactory("MySql", MySqlConnector.MySqlConnectorFactory.Instance);
-            DbProviderFactories.RegisterFactory("Oracle", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
+            DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance);
+            DbProviderFactories.RegisterFactory("Oracle.ManagedDataAccess", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
             DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
             DbProviderFactories.RegisterFactory("IBM.Data.DB2.Core", IBM.Data.DB2.Core.DB2Factory.Instance);
-            DbProviderFactories.RegisterFactory("Snowflake.Data.Client", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
+            DbProviderFactories.RegisterFactory("Snowflake.Data", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
             DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
             DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
@@ -106,7 +106,7 @@ namespace DubUrl.Testing.Mapping
             var result = builder.GetMapper(); //should be found
             Assert.That(result, Is.Not.Null);
 
-            builder.RemoveMapping("Oracle");
+            builder.RemoveMapping("Oracle.ManagedDataAccess");
             Assert.Catch<SchemeNotFoundException>(() => builder.Build(oracleScheme)); //shouldn't be found
             Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exist
         }

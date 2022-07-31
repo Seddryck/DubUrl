@@ -14,7 +14,7 @@ namespace DubUrl.Testing.Mapping
 {
     public class OracleMapperTest
     {
-        private const string PROVIDER_NAME = "Oracle";
+        private const string PROVIDER_NAME = "Oracle.ManagedDataAccess";
 
         private static DbConnectionStringBuilder ConnectionStringBuilder
         {
