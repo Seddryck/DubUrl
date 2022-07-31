@@ -6,7 +6,7 @@
   doc: installation
 
 - title: Connect to your database
-  desc: Learn about how to define a database connection URI
+  desc: Learn about how to define a database connection URL
   icon: settings
   doc: connect
 

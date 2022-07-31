@@ -1,8 +1,8 @@
 - title: Getting Started
   docs:
   - installation
-  - basics-connection-uri
-  - class-connectionUri
+  - basics-connection-url
+  - class-connectionUrl
 
 - title: Connection schemes
   docs:

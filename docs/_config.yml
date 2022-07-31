@@ -6,7 +6,7 @@
 
 # Site title and description
 title:              DubUrl
-description:        Documentation of DubUrl, a database connection URI for .NET ecosystem
+description:        Documentation of DubUrl, a database connection URL for .NET ecosystem
 lang:               en
 
 # Site subpath, e.g. /blog

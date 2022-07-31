@@ -1,6 +1,6 @@
 ---
-title: Class ConnectionUri
-subtitle: Instantiate and manipulate the class ConnectionUri
+title: Class ConnectionUrl
+subtitle: Instantiate and manipulate the class ConnectionUrl
 tags: [connection, quick-start]
 ---
 
@@ -17,28 +17,28 @@ If you're using .NET Core (and not .NET Framework), don't forget to register the
 DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
 ```
 
-Once the string representation of a connectionUri is specified, you can instantiate an object of the class `ConnectionUri` and use the function `Parse` to transform the connection URI into a classical *connection string*.
+Once the string representation of a connectionUrl is specified, you can instantiate an object of the class `ConnectionUrl` and use the function `Parse` to transform the connection URL into a classical *connection string*.
 ```csharp
-string connectionUri = "mssql://{server}/{database_name}";
-string connectionString = new ConnectionUri(connectionUri).Parse();
+string connectionUrl = "mssql://{server}/{database_name}";
+string connectionString = new ConnectionUrl(connectionUrl).Parse();
 // returns Data Source={server};Initial Catalog={database_name}
 ```
 
 You can also directly create a connection object. To achieve this, you need to use one of the functions `Connect` or `Open`. Both returns a connection object but the latest is also opening the connection, which is not the case for the former. Both connection objects are initialized with a `ConnectionString` property equal to the return of the `Parse` function.
 ```csharp
-string connectionUri = "mssql://{server}:{port}/{database_name}";
-var firstConnection = new ConnectionUri(connectionUri).Connect();
+string connectionUrl = "mssql://{server}:{port}/{database_name}";
+var firstConnection = new ConnectionUrl(connectionUrl).Connect();
 // the firstConnection is not open
 
-var secondConnection = new ConnectionUri(connectionUri).Open();
+var secondConnection = new ConnectionUrl(connectionUrl).Open();
 // the secondConnection is open
 ```
 
 You can use the created connection in a `using` statement to be sure that it's properly disposed when leaving the scope and you can also use the created connection to create a new command.
 ```csharp
 DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-string connectionUri = "mssql://{server}/{database_name}";
-using (var connection = new ConnectionUri(connectionUri).Open())
+string connectionUrl = "mssql://{server}/{database_name}";
+using (var connection = new ConnectionUrl(connectionUrl).Open())
 {
     var command = connection.CreateCommand();
     command.CommandText = "SELECT @@version"; //returns SQL Server version
@@ -46,4 +46,4 @@ using (var connection = new ConnectionUri(connectionUri).Open())
 }
 ```
 
-The exact type of the connection object returned by the functions `Connect` or `Open` is depending of the scheme provided in the connection URI but it's always inheriting of the type `DbConnection`. As such, you can use it the same way than your classical `SqlConnection`, `OleDbConnection` or `OdbcConnection` or any other type of connection return by ADO.NET providers.
+The exact type of the connection object returned by the functions `Connect` or `Open` is depending of the scheme provided in the connection URL but it's always inheriting of the type `DbConnection`. As such, you can use it the same way than your classical `SqlConnection`, `OleDbConnection` or `OdbcConnection` or any other type of connection return by ADO.NET providers.
