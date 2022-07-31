@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.Mapping.Tokening;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,6 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [Mapper(
+        "Snowflake"
+        , new[] { "sf", "snowflake" }
+        , "Snowflake.Data"
+    )]
     internal class SnowflakeMapper : BaseMapper
     {
         internal const string SERVER_KEYWORD = "ACCOUNT";

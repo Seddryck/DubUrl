@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping
+namespace DubUrl.Mapping.Tokening
 {
     public class Specificator : ISpecificator
     {

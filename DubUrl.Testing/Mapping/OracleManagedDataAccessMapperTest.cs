@@ -12,7 +12,7 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace DubUrl.Testing.Mapping
 {
-    public class OracleMapperTest
+    public class OracleManagedDataAccessMapperTest
     {
         private const string PROVIDER_NAME = "Oracle.ManagedDataAccess";
 
@@ -27,26 +27,26 @@ namespace DubUrl.Testing.Mapping
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList="", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments= string.IsNullOrEmpty(segmentsList) ? Array.Empty<string>() : segmentsList.Split("/") };
-            var mapper = new OracleMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OracleMapper.DATASOURCE_KEYWORD));
-            Assert.That(result[OracleMapper.DATASOURCE_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.DATASOURCE_KEYWORD));
+            Assert.That(result[OracleManagedDataAccessMapper.DATASOURCE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-            var mapper = new OracleMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OracleMapper.USERNAME_KEYWORD));
-            Assert.That(result[OracleMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey(OracleMapper.PASSWORD_KEYWORD));
-            Assert.That(result[OracleMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.USERNAME_KEYWORD));
+            Assert.That(result[OracleManagedDataAccessMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.PASSWORD_KEYWORD));
+            Assert.That(result[OracleManagedDataAccessMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
             Assert.That(result, Does.Not.ContainKey("INTEGRATED SECURITY"));
         }
 
@@ -54,14 +54,14 @@ namespace DubUrl.Testing.Mapping
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new OracleMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OracleMapper.USERNAME_KEYWORD));
-            Assert.That(result[OracleMapper.USERNAME_KEYWORD], Is.EqualTo("/"));
-            Assert.That(result, Does.ContainKey(OracleMapper.PASSWORD_KEYWORD));
-            Assert.That(result[OracleMapper.PASSWORD_KEYWORD], Is.Empty);
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.USERNAME_KEYWORD));
+            Assert.That(result[OracleManagedDataAccessMapper.USERNAME_KEYWORD], Is.EqualTo("/"));
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.PASSWORD_KEYWORD));
+            Assert.That(result[OracleManagedDataAccessMapper.PASSWORD_KEYWORD], Is.Empty);
         }
 
         [Test]
@@ -71,7 +71,7 @@ namespace DubUrl.Testing.Mapping
             urlInfo.Options.Add("Statement Cache Size", "100");
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new OracleMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

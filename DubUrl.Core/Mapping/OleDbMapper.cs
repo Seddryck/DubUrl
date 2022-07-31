@@ -1,4 +1,5 @@
-﻿using DubUrl.Locating.OleDbProvider;
+﻿using DubUrl.Mapping.Tokening;
+using DubUrl.Locating.OleDbProvider;
 using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [Mapper(
+        "OLEDB"
+        , new[] { "oledb" }
+        , "System.Data.OleDb"
+    )]
     internal class OleDbMapper : BaseMapper
     {
         protected internal const string PROVIDER_KEYWORD = "Provider";

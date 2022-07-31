@@ -16,6 +16,7 @@ namespace DubUrl.Mapping
 
         private DbProviderFactory? Provider { get; set; }
         private IMapper? Mapper { get; set; }
+        private MapperLocator MapperLocator { get; set; } = new MapperLocator();
 
         public SchemeMapperBuilder()
         {
@@ -24,20 +25,9 @@ namespace DubUrl.Mapping
 
         protected virtual void Initialize()
         {
-            AddSchemes("Oracle.ManagedDataAccess", typeof(OracleMapper), new[] { "oracle", "or", "ora" });
-            AddSchemes("MySqlConnector", typeof(MySqlConnectorMapper), new[] { "mysql", "my"});
-            AddSchemes("System.Data.SqlClient", typeof(MssqlMapper), new[] { "mssql", "ms", "sqlserver" });
-            AddSchemes("Npgsql", typeof(PgsqlMapper), new[] { "pgsql", "postgres", "pg", "postgresql" });
-            AddSchemes("Microsoft.Data.Sqlite", typeof(SqliteMapper), new[] { "sqlite", "sq" });
-            AddSchemes("MySqlConnector", typeof(MySqlConnectorMapper), new[] { "mariadb", "maria"});
-            AddSchemes("IBM.Data.DB2.Core", typeof(Db2Mapper), new[] { "db2" });
-            AddSchemes("Teradata.Client", typeof(TeradataMapper), new[] { "td", "tera", "teradata" });
-            AddSchemes("Snowflake.Data", typeof(SnowflakeMapper), new[] { "sf", "snwoflake" });
-            AddSchemes("FirebirdSql.Data.FirebirdClient", typeof(FirebirdSqlMapper), new[] { "fb", "firebird" });
-            AddSchemes("Npgsql", typeof(CockRoachMapper), new[] { "cr", "cockroach", "crdb", "cdb" });
-            AddSchemes("System.Data.Odbc", typeof(OdbcMapper), new[] { "odbc" });
-            AddSchemes("System.Data.OleDb", typeof(OleDbMapper), new[] { "oledb" });
-
+            foreach (var mapper in MapperLocator.Locate())
+                AddSchemes(mapper.ProviderInvariantName, mapper.MapperType, mapper.Aliases);
+            
             void AddSchemes(string providerName, Type mapper, string[] aliases)
             {
                 foreach (var alias in aliases)
