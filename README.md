@@ -38,16 +38,15 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 Supported database connection URLs are of the form:
 
 ```text
-protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
-protocol:/path/to/file
+driver:alias://user:pass@host/dbname?opt1=a&opt2=b
 ```
 
 Where:
 
 | Component          | Description                                                                          |
 |--------------------|--------------------------------------------------------------------------------------|
-| protocol           | driver name or alias (see below)                                                     |
-| transport          | "tcp", "udp", "unix" or driver name (odbc/oleodbc)                                   |
+| alias              | database type (see below)                                                            |
+| driver             | driver/provider name (only for odbc/oleodbc)                                         |
 | user               | username                                                                             |
 | pass               | password                                                                             |
 | host               | host                                                                                 |
@@ -64,22 +63,28 @@ or SID, and `/dbname` is optional. Please see below for examples.</i>
 Database connection URLs in the above format can be parsed to a standard connection string with the [`Parse`] as such:
 
 ```csharp
-var db = new DubUrl.Database();
-var connectionString = db.Parse("mssql://user:password@host:port/db?option1=value1&option2=value2")
+string connectionUrl = "mssql://{server}/{database_name}";
+string connectionString = new ConnectionUrl(connectionUrl).Parse();
 ```
 
-Additionally, a simple helper, [`Open`], is provided that will parse, open, and return a [standard `DbConnection`](https://docs.microsoft.com/en-us/dotnet/api/system.data.common.dbconnection)
-connection:
+Additionally, a simple helper, [`Open`], is provided that will parse, open, and return a [standard `DbConnection`](https://docs.microsoft.com/en-us/dotnet/api/system.data.common.dbconnection). 
 
 ```csharp
-var db = new DubUrl.Database();
-var connection = db.Open("mssql://user:password@host:port/db?option1=value1&option2=value2")
+string connectionUrl = "mssql://{server}/{database_name}";
+IDbConnection connection = new ConnectionUrl(connectionUrl).Open();
+```
+
+If you don't want to open the connection but only return it and manage its state by yourself, use the function [`Connect`]
+
+```csharp
+string connectionUrl = "mssql://{server}/{database_name}";
+IDbConnection connection = new ConnectionUrl(connectionUrl).Connect();
 ```
 
 ## Example URLs
 
 The following are example database connection URLs that can be handled by
-[`Parse`] and [`Open`]:
+[`Parse`], [`Connect`] and [`Open`]:
 
 ```text
 mssql://user:pass@remote-host.com/instance/dbname?keepAlive=10
@@ -90,22 +95,29 @@ odbc+postgres://user:pass@localhost:port/dbname?option1=
 
 mysql://user:pass@localhost/dbname
 oracle://user:pass@somehost.com/sid
-sap://user:pass@localhost/dbname
+db2://user:pass@localhost/dbname
 ```
 
 ## Protocol Schemes and Aliases
 
-The following protocols schemes (ie, driver) and their associated aliases are
-supported out of the box:
+### ADO.Net data providers
+
+The following databases and their associated schemes are supported out of the box:
 
 <!-- START SCHEME TABLE -->
-| Database                         | Protocol Aliases                                 | Driver namespace        |
-|----------------------------------|--------------------------------------------------|-------------------------|
-| Microsoft SQL Server (sqlserver) | ms, mssql, sqlserver                             | System.Data.SqlServer   |
-| PostgreSQL (postgres)            | pg, postgresql, pgsql, postgres                  | Npgsql                  |
-| MySQL (mysql)                    | my, mysql, mariadb, maria, percona, aurora       | MySql.Data.MySqlClient  |
-| Oracle Database (oracle)         | or, oracle, ora, oracle, oci, oci8, odpi, odpi-c |                         |
-| SQLite3 (sqlite3)                | sq, sqlite, sqlite3, file                        |                         |
+| Database                         | Protocol Aliases                    | Provider Invariant Name         | Downloadable from                                                       |
+|----------------------------------|-------------------------------------|---------------------------------|----------------------------------------------------------|
+| Microsoft SQL Server             | ms, mssql, sqlserver                | System.Data.SqlServer           | [Nuget](https://www.nuget.org/packages/System.Data.SqlClient)           |
+| PostgreSQL                       | pg, pgsql, postgresql, postgres     | Npgsql                          | [Nuget](https://www.nuget.org/packages/Npgsql)                          |
+| MySQL                            | my, mysql                           | MySqlConnector                  | [Nuget](https://www.nuget.org/packages/MySqlConnector)                  |
+| Oracle Database                  | or, oracle, ora,                    | Oracle.ManagedDataAccess        | [Nuget](https://www.nuget.org/packages/Oracle.ManagedDataAccess)        |
+| SQLite3                          | sq, sqlite                          | Microsoft.Data.Sqlite           | [Nuget](https://www.nuget.org/packages/Microsoft.Data.Sqlite)           |
+| IBM DB2                          | db2                                 | IBM.Data.DB2.Core               | [Nuget](https://www.nuget.org/packages/IBM.Data.DB2.Core)               |
+| Snowflake                        | sf, snowflake                       | Snowflake.Data                  | [Nuget](https://www.nuget.org/packages/Snowflake.Data)                  |
+| MariaDB                          | maria, mariadb                      | MySqlConnector                  | [Nuget](https://www.nuget.org/packages/MySqlConnector)                  |
+| Teradata                         | td, teradata, tera                  | Teradata.Client                 | [Nuget](https://www.nuget.org/packages/Teradata.Client.Provider)        |
+| FirebirdSql                      | fb, firebird                        | FirebirdSql.Data.FirebirdClient | [Nuget](https://www.nuget.org/packages/FirebirdSql.Data.FirebirdClient) |
+| CockRoach                        | cr, cockroach, crdb, cdb            | Npgsql                          | [Nuget](https://www.nuget.org/packages/Npgsql)                          |
 <!-- END SCHEME TABLE -->
 
 ## Installing
@@ -113,10 +125,11 @@ supported out of the box:
 Install in the usual .NET fashion:
 
 ```sh
-No release at this moment
+Install-Package DubUrl
 ```
 
 ## Using
 
-Please note that `DubUrl` does not install actual drivers, and only provides
-a standard way to [parse] respective database connection URLs and [open] connections.
+Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
+
+Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
