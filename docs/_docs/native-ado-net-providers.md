@@ -18,7 +18,7 @@ To embrace the world of DubUrl, you need to follow some conventions regarding th
 | {{- provider.Database -}}
 | {{- provider.Aliases | join: ", " -}}
 | {{- provider.ProviderInvariantName -}}
-| <a href="https://nuget.org/packages/{{- provider.ProviderInvariantName -}}" style="border: 0px;"><img src="/assets/img/nuget.png" alt="Go to Nuget repository" width="24" style="max-width: fit-content;"/></a>|
+| <a href="https://nuget.org/packages/{{- provider.ProviderInvariantName -}}" style="border: 0px;"><img src="{{ '/assets/img/nuget.png' | relative_url }}" alt="Go to Nuget repository" width="24" style="max-width: fit-content;"/></a>|
 {% endfor %}
 
 ### Example
