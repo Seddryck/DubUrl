@@ -5,6 +5,11 @@ skip_commits:
   files:
     - docs/*
     - misc/*
+    - README.md
+
+environment:
+  github_access_token:
+    secure: j31Dt6ak1HtS5PTfhwc/He4jeCesBw9GULDRlPhNLjwBQEgFivhypRi5m4M7o3cb
 
 init:
   - cmd: git config --global core.autocrlf true
@@ -38,10 +43,18 @@ deploy:
     branch: main
 
 on_success:
+
   - pwsh: |
-      ls   
-      .\generate_scheme_info.ps1
+      & .\generate-scheme-info.ps1
       if ($LastExitCode -gt 0) {
         Write-Host "Update of README.md needed"
-        .\generate_table_scheme.ps1
+        & .\generate_table_scheme.ps1
       }
+  - git config --global credential.helper store
+  - ps: Set-Content -Path "$HOME\.git-credentials" -Value "https://$($env:github_access_token):x-oauth-basic@github.com`n" -NoNewline
+  - git config --global user.email "no-reply@nbiguity.io"
+  - git config --global user.name "AppVeyor build bot"
+  - git add -all
+  - git status
+  - git commit -m 'Update automatically generated documentation related to schemes'
+  - git push origin
