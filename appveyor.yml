@@ -49,12 +49,12 @@ on_success:
       if ($LastExitCode -gt 0) {
         Write-Host "Update of README.md needed"
         & .\generate-table-scheme.ps1
+        & git config --global credential.helper store
+        Set-Content -Path "$HOME\.git-credentials" -Value "https://$($env:github_access_token):x-oauth-basic@github.com`n" -NoNewline
+        & git config --global user.email "no-reply@nbiguity.io"
+        & git config --global user.name "AppVeyor bot"
+        & git add --all
+        & git status
+        & git commit -m "Update automatically generated documentation related to schemes"
+        & git push origin
       }
-  - git config --global credential.helper store
-  - ps: Set-Content -Path "$HOME\.git-credentials" -Value "https://$($env:github_access_token):x-oauth-basic@github.com`n" -NoNewline
-  - git config --global user.email "no-reply@nbiguity.io"
-  - git config --global user.name "AppVeyor bot"
-  - git add --all
-  - git status
-  - git commit -m "Update automatically generated documentation related to schemes"
-  - git push origin
