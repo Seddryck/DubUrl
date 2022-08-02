@@ -36,3 +36,11 @@ deploy:
   artifact: /.*(\.|\.s)nupkg/
   on:
     branch: main
+
+on_success:
+  - ps: |
+      .\generate_scheme_info.ps1
+      if ($LastExitCode -gt 0) {
+        Write-Host "Update of README.md needed"
+        .\generate_table_scheme.ps1
+      }
