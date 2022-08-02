@@ -105,19 +105,21 @@ db2://user:pass@localhost/dbname
 The following databases and their associated schemes are supported out of the box:
 
 <!-- START SCHEME TABLE -->
-| Database                         | Protocol Aliases                    | Provider Invariant Name         | Downloadable from                                                       |
-|----------------------------------|-------------------------------------|---------------------------------|----------------------------------------------------------|
-| Microsoft SQL Server             | ms, mssql, sqlserver                | System.Data.SqlServer           | [Nuget](https://www.nuget.org/packages/System.Data.SqlClient)           |
-| PostgreSQL                       | pg, pgsql, postgresql, postgres     | Npgsql                          | [Nuget](https://www.nuget.org/packages/Npgsql)                          |
-| MySQL                            | my, mysql                           | MySqlConnector                  | [Nuget](https://www.nuget.org/packages/MySqlConnector)                  |
-| Oracle Database                  | or, oracle, ora,                    | Oracle.ManagedDataAccess        | [Nuget](https://www.nuget.org/packages/Oracle.ManagedDataAccess)        |
-| SQLite3                          | sq, sqlite                          | Microsoft.Data.Sqlite           | [Nuget](https://www.nuget.org/packages/Microsoft.Data.Sqlite)           |
-| IBM DB2                          | db2                                 | IBM.Data.DB2.Core               | [Nuget](https://www.nuget.org/packages/IBM.Data.DB2.Core)               |
-| Snowflake                        | sf, snowflake                       | Snowflake.Data                  | [Nuget](https://www.nuget.org/packages/Snowflake.Data)                  |
-| MariaDB                          | maria, mariadb                      | MySqlConnector                  | [Nuget](https://www.nuget.org/packages/MySqlConnector)                  |
-| Teradata                         | td, teradata, tera                  | Teradata.Client                 | [Nuget](https://www.nuget.org/packages/Teradata.Client.Provider)        |
-| FirebirdSql                      | fb, firebird                        | FirebirdSql.Data.FirebirdClient | [Nuget](https://www.nuget.org/packages/FirebirdSql.Data.FirebirdClient) |
-| CockRoach                        | cr, cockroach, crdb, cdb            | Npgsql                          | [Nuget](https://www.nuget.org/packages/Npgsql)                          |
+|Database             | Aliases                         | Provider Invariant Name        |
+|-------------------- | ------------------------------- | -------------------------------|
+|Microsoft SQL Server | mssql, ms, sqlserver            | System.Data.SqlClient          |
+|MySQL                | mysql, my                       | MySqlConnector                 |
+|PostgreSQL           | pg, pgsql, postgres, postgresql | Npgsql                         |
+|Oracle Database      | oracle, or, ora                 | Oracle.ManagedDataAccess       |
+|SQLite3              | sq, sqlite                      | Microsoft.Data.Sqlite          |
+|IBM DB2              | db2                             | IBM.Data.DB2.Core              |
+|MariaDB              | maria, mariadb                  | MySqlConnector                 |
+|Snowflake            | sf, snowflake                   | Snowflake.Data                 |
+|Teradata             | td, teradata, tera              | Teradata.Client                |
+|CockRoachDB          | cr, cockroach, crdb, cdb        | Npgsql                         |
+|Firebird SQL         | fb, firebird                    | FirebirdSql.Data.FirebirdClient|
+|ODBC                 | odbc                            | System.Data.Odbc               |
+|OLEDB                | oledb                           | System.Data.OleDb              |
 <!-- END SCHEME TABLE -->
 
 ## Installing
@@ -133,3 +135,26 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
