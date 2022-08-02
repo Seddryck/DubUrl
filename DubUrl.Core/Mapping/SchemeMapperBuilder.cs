@@ -16,7 +16,7 @@ namespace DubUrl.Mapping
 
         private DbProviderFactory? Provider { get; set; }
         private IMapper? Mapper { get; set; }
-        private MapperLocator MapperLocator { get; set; } = new MapperLocator();
+        private MapperIntrospector MapperLocator { get; set; } = new MapperIntrospector();
 
         public SchemeMapperBuilder()
         {
