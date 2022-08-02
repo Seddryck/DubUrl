@@ -3,8 +3,14 @@ image: Visual Studio 2022
 
 skip_commits:
   files:
-    - docs/*
-    - misc/*
+    - docs/
+    - misc/
+    - README.md
+    - LICENSE
+
+environment:
+  github_access_token:
+    secure: j31Dt6ak1HtS5PTfhwc/He4jeCesBw9GULDRlPhNLjwBQEgFivhypRi5m4M7o3cb
 
 init:
   - cmd: git config --global core.autocrlf true
@@ -36,3 +42,20 @@ deploy:
   artifact: /.*(\.|\.s)nupkg/
   on:
     branch: main
+
+on_success:
+
+  - pwsh: |
+      & .\generate-scheme-info.ps1
+      if ($LastExitCode -gt 0) {
+        Write-Host "Update of README.md needed"
+        & .\generate-table-scheme.ps1
+        & git config --global credential.helper store
+        Set-Content -Path "$HOME\.git-credentials" -Value "https://$($env:github_access_token):x-oauth-basic@github.com`n" -NoNewline
+        & git config --global user.email "no-reply@nbiguity.io"
+        & git config --global user.name "AppVeyor bot"
+        & git add --all
+        & git status
+        & git commit -m "Update automatically generated documentation related to schemes"
+        & git push origin
+      }

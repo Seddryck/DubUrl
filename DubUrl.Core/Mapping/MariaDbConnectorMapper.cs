@@ -11,7 +11,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "MariaDB"
         , new[] { "maria", "mariadb" }
-        , "MySqlConnector"
+        , "MySqlConnector", 3
     )]
     internal class MariaDbConnectorMapper : MySqlConnectorMapper
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class UsernameNotFoundException : DubUrlException
+    public class UsernameNotFoundException : DubUrlException
     {
         public UsernameNotFoundException()
             : base($"The url must contain a username.")

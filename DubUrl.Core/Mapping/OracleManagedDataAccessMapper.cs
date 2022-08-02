@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "Oracle Database"
         , new[] { "oracle", "or", "ora" }
-        , "Oracle.ManagedDataAccess"
+        , "Oracle.ManagedDataAccess", 2
     )]
     internal class OracleManagedDataAccessMapper : BaseMapper
     {

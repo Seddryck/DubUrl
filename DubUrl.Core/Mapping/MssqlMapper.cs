@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "Microsoft SQL Server"
         , new[] { "mssql", "ms", "sqlserver" }
-        , "System.Data.SqlClient"
+        , "System.Data.SqlClient", 0
     )]
     internal class MssqlMapper : BaseMapper
     {

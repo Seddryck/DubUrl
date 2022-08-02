@@ -13,7 +13,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "ODBC"
         , new[] { "odbc" }
-        , "System.Data.Odbc"
+        , "System.Data.Odbc", 10
     )]
     internal class OdbcMapper : BaseMapper
     {

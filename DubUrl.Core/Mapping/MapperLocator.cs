@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class MapperLocator
+    public class MapperLocator
     {
-        internal record struct MapperInfo(Type MapperType, string DatabaseName, string[] Aliases, string ProviderInvariantName) { }
+        public record struct MapperInfo(Type MapperType, string DatabaseName, string[] Aliases, string ProviderInvariantName, int ListingPriority) { }
 
-        internal IEnumerable<MapperInfo> Locate()
+        public IEnumerable<MapperInfo> Locate()
             => typeof(SchemeMapperBuilder).Assembly
                     .GetTypes()
                     .Where(x => x.IsClass
@@ -22,7 +22,8 @@ namespace DubUrl.Mapping
                         x.Type,
                         x.Attribute.DatabaseName,
                         x.Attribute.Aliases, 
-                        x.Attribute.ProviderInvariantName
+                        x.Attribute.ProviderInvariantName,
+                        x.Attribute.ListingPriority
                    ));
     }
 }

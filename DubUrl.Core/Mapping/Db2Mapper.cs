@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "IBM DB2"
         , new[] { "db2" }
-        , "IBM.Data.DB2.Core"
+        , "IBM.Data.DB2.Core", 3
     )]
     internal class Db2Mapper : BaseMapper
     {
