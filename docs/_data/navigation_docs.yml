@@ -1,12 +1,13 @@
 - title: Getting Started
   docs:
-  - installation
+  - installation-duburl
+  - installation-ado-net-provider
   - basics-connection-url
   - class-connectionUrl
 
 - title: Connection schemes
   docs:
-  - ADO.Net providers for specific databases
+  - native-ado-net-providers
   - ODBC drivers
   - OleDb providers
   - SSL/TLS support

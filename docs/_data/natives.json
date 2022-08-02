@@ -1,0 +1,124 @@
+[
+  {
+    "Class": "MssqlMapper",
+    "Database": "Microsoft SQL Server",
+    "Aliases": [
+      "mssql",
+      "ms",
+      "sqlserver"
+    ],
+    "ProviderInvariantName": "System.Data.SqlClient"
+  },
+  {
+    "Class": "MySqlConnectorMapper",
+    "Database": "MySQL",
+    "Aliases": [
+      "mysql",
+      "my"
+    ],
+    "ProviderInvariantName": "MySqlConnector"
+  },
+  {
+    "Class": "PgsqlMapper",
+    "Database": "PostgreSQL",
+    "Aliases": [
+      "pg",
+      "pgsql",
+      "postgres",
+      "postgresql"
+    ],
+    "ProviderInvariantName": "Npgsql"
+  },
+  {
+    "Class": "OracleManagedDataAccessMapper",
+    "Database": "Oracle Database",
+    "Aliases": [
+      "oracle",
+      "or",
+      "ora"
+    ],
+    "ProviderInvariantName": "Oracle.ManagedDataAccess"
+  },
+  {
+    "Class": "SqliteMapper",
+    "Database": "SQLite3",
+    "Aliases": [
+      "sq",
+      "sqlite"
+    ],
+    "ProviderInvariantName": "Microsoft.Data.Sqlite"
+  },
+  {
+    "Class": "Db2Mapper",
+    "Database": "IBM DB2",
+    "Aliases": [
+      "db2"
+    ],
+    "ProviderInvariantName": "IBM.Data.DB2.Core"
+  },
+  {
+    "Class": "MariaDbConnectorMapper",
+    "Database": "MariaDB",
+    "Aliases": [
+      "maria",
+      "mariadb"
+    ],
+    "ProviderInvariantName": "MySqlConnector"
+  },
+  {
+    "Class": "SnowflakeMapper",
+    "Database": "Snowflake",
+    "Aliases": [
+      "sf",
+      "snowflake"
+    ],
+    "ProviderInvariantName": "Snowflake.Data"
+  },
+  {
+    "Class": "TeradataMapper",
+    "Database": "Teradata",
+    "Aliases": [
+      "td",
+      "teradata",
+      "tera"
+    ],
+    "ProviderInvariantName": "Teradata.Client"
+  },
+  {
+    "Class": "CockRoachMapper",
+    "Database": "CockRoachDB",
+    "Aliases": [
+      "cr",
+      "cockroach",
+      "crdb",
+      "cdb"
+    ],
+    "ProviderInvariantName": "Npgsql"
+  },
+  {
+    "Class": "FirebirdSqlMapper",
+    "Database": "Firebird SQL",
+    "Aliases": [
+      "fb",
+      "firebird"
+    ],
+    "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient"
+  },
+  {
+    "Class": "OdbcMapper",
+    "Database": "ODBC",
+    "Aliases": [
+      "odbc"
+    ],
+    "ProviderInvariantName": "System.Data.Odbc"
+  },
+  {
+    "Class": "OleDbMapper",
+    "Database": "OLEDB",
+    "Aliases": [
+      "oledb"
+    ],
+    "ProviderInvariantName": "System.Data.OleDb"
+  }
+
+]
