@@ -12,7 +12,7 @@ namespace DubUrl.Locating.OdbcDriver
         , new[] { "xls", "xlsx", "xlsm", "xlsb" }
         , "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"
         , new Type[] { }
-        , 0
+        , 2
     )]
     internal class MsExcelDriverLocator : BaseDriverLocator
     {

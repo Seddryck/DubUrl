@@ -1,29 +1,5 @@
 [
   {
-    "Class": "MariaDbDriverLocator",
-    "Database": "MariaDB",
-    "Aliases": [
-      "maria",
-      "mariadb"
-    ],
-    "NamePattern": "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$",
-    "Options": [
-      "VersionOption"
-    ]
-  },
-  {
-    "Class": "MsExcelDriverLocator",
-    "Database": "Microsoft Excel",
-    "Aliases": [
-      "xls",
-      "xlsx",
-      "xlsm",
-      "xlsb"
-    ],
-    "NamePattern": "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)",
-    "Options": []
-  },
-  {
     "Class": "MssqlDriverLocator",
     "Database": "Microsoft SQL Server",
     "Aliases": [
@@ -62,6 +38,30 @@
     "Options": [
       "EncodingOption",
       "ArchitectureOption"
+    ]
+  },
+  {
+    "Class": "MsExcelDriverLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xls",
+      "xlsx",
+      "xlsm",
+      "xlsb"
+    ],
+    "NamePattern": "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)",
+    "Options": []
+  },
+  {
+    "Class": "MariaDbDriverLocator",
+    "Database": "MariaDB",
+    "Aliases": [
+      "maria",
+      "mariadb"
+    ],
+    "NamePattern": "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$",
+    "Options": [
+      "VersionOption"
     ]
   }
 ]

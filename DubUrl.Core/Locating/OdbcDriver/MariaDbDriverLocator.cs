@@ -12,7 +12,7 @@ namespace DubUrl.Locating.OdbcDriver
         , new[] { "maria", "mariadb" }
         , "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$"
         , new[] { typeof(VersionOption) }
-        , 0
+        , 3
     )]
     internal class MariaDbDriverLocator : BaseDriverLocator
     {
