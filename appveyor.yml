@@ -56,5 +56,5 @@ on_success:
   - git config --global user.name "AppVeyor bot"
   - git add --all
   - git status
-  - git commit -m 'Update automatically generated documentation related to schemes'
+  - git commit -m "Update automatically generated documentation related to schemes"
   - git push origin
