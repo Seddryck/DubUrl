@@ -6,6 +6,7 @@ skip_commits:
     - docs/
     - misc/
     - README.md
+    - LICENSE
 
 environment:
   github_access_token:
