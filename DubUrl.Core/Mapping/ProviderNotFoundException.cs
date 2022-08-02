@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal class ProviderNotFoundException : DubUrlException
+    public class ProviderNotFoundException : DubUrlException
     {
         public ProviderNotFoundException(string providerName, string[] validProviderNames)
             : base($"The provider '{providerName}' is not available. The list of valid provider is '{string.Join("', '", validProviderNames)}'.")

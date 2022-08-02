@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "MySQL"
         , new[] { "mysql", "my" }
-        , "MySqlConnector"
+        , "MySqlConnector", 1
     )]
     internal class MySqlConnectorMapper : BaseMapper
     {

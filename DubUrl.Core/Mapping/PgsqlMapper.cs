@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "PostgreSQL"
         , new[] { "pg", "pgsql", "postgres", "postgresql" }
-        , "Npgsql"
+        , "Npgsql", 1
     )]
     internal class PgsqlMapper : BaseMapper
     {

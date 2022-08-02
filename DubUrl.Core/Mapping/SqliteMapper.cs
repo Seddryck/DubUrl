@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "SQLite3"
         , new[] { "sq", "sqlite" }
-        , "Microsoft.Data.Sqlite"
+        , "Microsoft.Data.Sqlite", 2
     )]
     internal class SqliteMapper : BaseMapper
     {

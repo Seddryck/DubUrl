@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "Teradata"
         , new[] { "td", "teradata", "tera" }
-        , "Teradata.Client"
+        , "Teradata.Client", 4
     )]
     internal class TeradataMapper : BaseMapper
     {

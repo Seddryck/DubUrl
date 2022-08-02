@@ -13,8 +13,11 @@ namespace DubUrl.Mapping
         public string[] Aliases { get; }
         public string ProviderInvariantName { get; }
 
-        public MapperAttribute(string databaseName, string[] aliases, string providerInvariantName)
-            => (DatabaseName, Aliases, ProviderInvariantName) = (databaseName, aliases, providerInvariantName);       
+        public int ListingPriority { get; }
+
+        public MapperAttribute(string databaseName, string[] aliases, string providerInvariantName, int listingPriority = 5)
+            => (DatabaseName, Aliases, ProviderInvariantName, ListingPriority) 
+                = (databaseName, aliases, providerInvariantName, listingPriority);       
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]

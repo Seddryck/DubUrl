@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
     [Mapper(
         "Snowflake"
         , new[] { "sf", "snowflake" }
-        , "Snowflake.Data"
+        , "Snowflake.Data", 4
     )]
     internal class SnowflakeMapper : BaseMapper
     {
