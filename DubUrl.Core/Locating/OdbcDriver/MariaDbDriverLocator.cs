@@ -7,20 +7,32 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver
 {
+    [Driver(
+        "MariaDB"
+        , new[] { "maria", "mariadb" }
+        , "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$"
+        , new[] { typeof(VersionOption) }
+        , 0
+    )]
     internal class MariaDbDriverLocator : BaseDriverLocator
     {
-        private const string REGEX_PATTERN = "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$";
+        
         private readonly Dictionary<string, decimal> Candidates = new();
         internal EncodingOption Encoding { get; }
 
         public MariaDbDriverLocator()
-            : base(REGEX_PATTERN) { }
+            : base(GetNamePattern<MariaDbDriverLocator>()) { }
         internal MariaDbDriverLocator(DriverLister driverLister)
-            : base(REGEX_PATTERN, driverLister) { }
+            : base(GetNamePattern<MariaDbDriverLocator>(), driverLister) { }
 
         protected override void AddCandidate(string driver, string[] matches)
         {
-            var version = decimal.Parse(matches[0], System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+            var version = decimal.Parse
+            (
+                matches[GetOptionPosition<MariaDbDriverLocator>(typeof(VersionOption))]
+                , System.Globalization.NumberStyles.AllowDecimalPoint
+                , System.Globalization.CultureInfo.InvariantCulture.NumberFormat
+            );
             Candidates.Add(driver, version);
         }
 

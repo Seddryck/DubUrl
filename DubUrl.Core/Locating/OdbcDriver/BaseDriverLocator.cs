@@ -33,5 +33,17 @@ namespace DubUrl.Locating.OdbcDriver
 
         protected abstract void AddCandidate(string driver, string[] match);
         protected abstract List<string> RankCandidates();
+
+        protected internal static string GetNamePattern<T>()
+        =>
+            (typeof(T).GetCustomAttributes(typeof(DriverAttribute), false).FirstOrDefault() as DriverAttribute)
+            ?.NamePattern
+            ?? throw new ArgumentOutOfRangeException();
+
+        protected internal static int GetOptionPosition<T>(Type optionType)
+        =>
+            (typeof(T).GetCustomAttributes(typeof(DriverAttribute), false).FirstOrDefault() as DriverAttribute)
+            ?.Options.ToList().IndexOf(optionType)
+            ?? throw new ArgumentOutOfRangeException();
     }
 }
