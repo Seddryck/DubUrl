@@ -21,8 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{95E83BA6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{09BDFA96-353F-419D-890A-D9B9045E66DD}"
 	ProjectSection(SolutionItems) = preProject
-		DubUrl-icon-128.png = DubUrl-icon-128.png
-		DubUrl-icon.png = DubUrl-icon.png
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection

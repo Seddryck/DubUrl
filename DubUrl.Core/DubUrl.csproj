@@ -26,18 +26,24 @@
 		<Owners>Seddryck</Owners>
 		<Company>nbiguity</Company>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/Seddryck/DubUrl</PackageProjectUrl>
+		<PackageProjectUrl>https://seddryck.github.io/DubUrl</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
 		<RespositoryType>git</RespositoryType>
 		<RequireLicenseAcceptance>false</RequireLicenseAcceptance>
 		<PackageTags>connection-string;database;sql</PackageTags>
-		<Description>DubUrl provides a standard, URL style mechanism for parsing database connection strings and opening DbConnections for .NET. With DubUrl, you can parse and open URLs for popular databases such as Microsoft SQL Server, PostgreSQL, MySQL, SQLite3, Oracle Database and most of the other SQL databases.</Description>
+		<Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
 		<PackageIcon>icon\DubUrl-icon-128.png</PackageIcon>
 		<SymbolPackageFormat Condition=" '$(DebugType)' != 'embedded' ">snupkg</SymbolPackageFormat>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\DubUrl-icon-128.png" Pack="true" PackagePath="icon\" />
+		<None Include="..\misc\icon\DubUrl-icon-128.png" Pack="true" PackagePath="icon\" />
+		<None Include="..\README.md">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
