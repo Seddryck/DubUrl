@@ -38,7 +38,7 @@ namespace DubUrl.Mapping
         { }
 
         internal DriverLocatorFactory DriverLocatorFactory
-            => (TokenMappers.First(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory 
+            => (TokenMappers.First(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
                 ?? throw new ArgumentNullException();
 
         internal class HostMapper : BaseTokenMapper
@@ -64,25 +64,51 @@ namespace DubUrl.Mapping
 
                 if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
                 {
-                    if (AvailableOptions == null)
-                        AvailableOptions = InitializeOptions();
-                    var options = new Dictionary<Type, object>();
-                    urlInfo.Options.Where(x => x.Key.StartsWith(DRIVER_KEYWORD + "-")).ToList()
-                        .ForEach(x => options.Add(
-                            OptionMatch(AvailableOptions, x)
-                            , Enum.TryParse(OptionMatch(AvailableOptions, x), x.Value, out var e)
-                                ? e ?? throw new ArgumentNullException()
-                                : throw new ArgumentOutOfRangeException()
-                    ));
+                    var otherSchemes = urlInfo.Schemes.Where(x => x != "odbc");
 
-                    var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "odbc").First();
-                    var driverLocator = DriverLocatorFactory.Instantiate(otherScheme, options);
-                    var driver = driverLocator.Locate();
-                    urlInfo.Options.Add(DRIVER_KEYWORD, driver);
+                    var secondScheme = string.Empty;
+                    switch(otherSchemes.Count(s => DriverLocatorFactory.GetValidAliases().Any(v => v==s)))
+                    {
+                        case 0: throw new SchemeNotFoundException(otherSchemes.ToArray(), DriverLocatorFactory.GetValidAliases());
+                        case 1: secondScheme = otherSchemes.First(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)); break;
+                        case >1: throw new MultipleSchemeFoundException(otherSchemes.Where(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)).ToArray());
+                    }
+                    var remainingSchemes = otherSchemes.Where(x => x != secondScheme);
+
+                    //Case of the full driver name is specified
+                    if (!remainingSchemes.Any())
+                    {
+                        var driverLocator = DriverLocatorFactory.Instantiate(secondScheme);
+                        Specificator.Execute(DRIVER_KEYWORD, "{" + driverLocator.Locate() + "}");
+                    }
+                    else if (remainingSchemes.Any(s => s.StartsWith("{") && s.EndsWith("}")))
+                    {
+                        if (remainingSchemes.Count() > 1)
+                            throw new UnexpectedSchemesWithDriverNameException(
+                                otherSchemes.Where(s => !s.StartsWith("{") || !s.EndsWith("}")).ToArray()
+                                , otherSchemes.First(s => s.StartsWith("{") && s.EndsWith("}"))
+                            );
+
+                        Specificator.Execute(DRIVER_KEYWORD, otherSchemes.First(s => s.StartsWith("{") && s.EndsWith("}")));
+                    }
+                    else
+                    {
+                        if (AvailableOptions == null)
+                            AvailableOptions = InitializeOptions();
+                        var options = new Dictionary<Type, object>();
+                        foreach (var scheme in remainingSchemes)
+                        {
+                            var remainingOptions = AvailableOptions.Where(x => !options.Keys.ToArray().Any(z => z == x));
+                            foreach (var remainingOption in remainingOptions)
+                            {
+                                if (Enum.TryParse(remainingOption, scheme, out var value))
+                                    options.Add(remainingOption, value ?? throw new ArgumentNullException());
+                            }
+                        }
+                        var driverLocator = DriverLocatorFactory.Instantiate(secondScheme, options);
+                        Specificator.Execute(DRIVER_KEYWORD, "{" + driverLocator.Locate() + "}");
+                    }
                 }
-
-                Type OptionMatch(IEnumerable<Type> options, KeyValuePair<string, string> keyValue)
-                    => options.FirstOrDefault(t => t.Name[..^6] == keyValue.Key[7..]) ?? throw new ArgumentOutOfRangeException();
             }
 
             protected internal virtual List<Type> InitializeOptions()

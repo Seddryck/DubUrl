@@ -11,5 +11,9 @@ namespace DubUrl.Mapping
         public SchemeNotFoundException(string scheme, string[] validSchemes)
             : base($"The scheme '{scheme}' is not a known scheme. The list of valid schemes is '{string.Join("', '", validSchemes)}'.")
         { }
+
+        public SchemeNotFoundException(string[] schemes, string[] validSchemes)
+            : base($"None of the schemes '{string.Join("', '", schemes)}' are known schemes. The list of valid schemes is '{string.Join("', '", validSchemes)}'.")
+        { }
     }
 }
