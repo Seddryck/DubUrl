@@ -37,7 +37,7 @@ $elapsed = Measure-Command -Expression {
     $mappers | ForEach-Object {Write-Host "`t`t$($_.Class)"}
     $mappers | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"
 }
-Write-Host  "File created at $destinationPath in $($elapsed.TotalSeconds) seconds"
+Write-Host  "File created at $destinationPath\$destinationFile in $($elapsed.TotalSeconds) seconds"
 
 
 ########### Check if it's useful to report a change #############
