@@ -38,7 +38,8 @@ deploy:
     branch: main
 
 on_success:
-  - ps: |
+  - pwsh: |
+      ls   
       .\generate_scheme_info.ps1
       if ($LastExitCode -gt 0) {
         Write-Host "Update of README.md needed"
