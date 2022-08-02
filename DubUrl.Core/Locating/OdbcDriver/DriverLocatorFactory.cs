@@ -9,6 +9,8 @@ namespace DubUrl.Locating.OdbcDriver
 {
     public class DriverLocatorFactory : BaseLocatorFactory
     {
+        private DriverLocatorIntrospector DriverLocatorIntrospector { get; set; } = new DriverLocatorIntrospector();
+
         public DriverLocatorFactory()
         {
             Initialize();
@@ -16,11 +18,8 @@ namespace DubUrl.Locating.OdbcDriver
 
         protected virtual void Initialize()
         {
-            AddSchemes(new[] { "mssql", "ms", "sqlserver" }, typeof(MssqlDriverLocator));
-            AddSchemes(new[] { "pgsql", "postgres", "pg", "postgresql" }, typeof(PostgresqlDriverLocator));
-            AddSchemes(new[] { "mysql", "my" }, typeof(MySqlConnectorDriverLocator));
-            AddSchemes(new[] { "mariadb", "maria" }, typeof(MariaDbDriverLocator));
-            AddSchemes(new[] { "xls", "xlsx", "xlsm", "xlsb" }, typeof(MsExcelDriverLocator));
+            foreach (var driverLocator in DriverLocatorIntrospector.Locate())
+                AddSchemes(driverLocator.Aliases, driverLocator.DriverLocatorType);
 
             void AddSchemes(string[] aliases, Type driverLocator)
             {

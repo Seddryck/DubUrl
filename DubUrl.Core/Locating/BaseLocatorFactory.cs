@@ -10,6 +10,8 @@ namespace DubUrl.Locating
     {
         protected readonly Dictionary<string, Type> Schemes = new();
 
+        protected internal virtual string[] GetValidAliases() => Schemes.Keys.ToArray();
+
         #region Add, remove aliases and mappings
 
         public void AddAlias(string alias, string original)

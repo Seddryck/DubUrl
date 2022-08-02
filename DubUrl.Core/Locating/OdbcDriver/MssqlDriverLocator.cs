@@ -7,17 +7,23 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver
 {
+    [Driver(
+        "Microsoft SQL Server"
+        , new[] { "mssql", "ms", "sqlserver" }
+        , "^\\bODBC Driver \\b([0-9]*)\\b for SQL Server\\b$"
+        , new[] { typeof(VersionOption) }
+        , 0
+    )]
     internal class MssqlDriverLocator : BaseDriverLocator
     {
-        private const string REGEX_PATTERN = "^\\bODBC Driver \\b([0-9]*)\\b for SQL Server\\b$";
         private readonly Dictionary<string, int> Candidates = new();
         public MssqlDriverLocator()
-            : base(REGEX_PATTERN) { }
+            : base(GetNamePattern<MssqlDriverLocator>()) { }
         internal MssqlDriverLocator(DriverLister driverLister)
-            : base(REGEX_PATTERN, driverLister) { }
+            : base(GetNamePattern<MssqlDriverLocator>(), driverLister) { }
 
         protected override void AddCandidate(string driver, string[] matches)
-            => Candidates.Add(driver, int.Parse(matches[0]));
+            => Candidates.Add(driver, int.Parse(matches[GetOptionPosition<MssqlDriverLocator>(typeof(VersionOption))]));
 
         protected override List<string> RankCandidates()
             => Candidates.OrderByDescending(x => x.Value).Select(x=> x.Key).ToList();

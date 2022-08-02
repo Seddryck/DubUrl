@@ -1,7 +1,7 @@
 ﻿#requires -PSEdition Core
 
 $destinationPath = ".\Docs\_data"
-$destinationFile = "natives.json"
+$destinationFile = "odbc.json"
 
 
 ########### Check if it's useful to make changes to doc or readme #############
@@ -29,13 +29,13 @@ Add-Type -Path "$directory\$dllfile"
 
 Set-Location "..\..\"
 
-Write-Host "Generating JSON for ADO.Net data providers based on $assemblyPath\$directory\$dllfile"
+Write-Host "Generating JSON for Odbc driver locators based on $assemblyPath\$directory\$dllfile"
 $elapsed = Measure-Command -Expression {
-    $locator = New-Object  DubUrl.Mapping.MapperIntrospector
-    $mappers = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.MapperType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, ProviderInvariantName
-    Write-Host  "`t$($mappers.Count) mappers identified"
-    $mappers | ForEach-Object {Write-Host "`t`t$($_.Class)"}
-    $mappers | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"
+    $locator = New-Object  DubUrl.Locating.OdbcDriver.DriverLocatorIntrospector
+    $driverLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.DriverLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, Options
+    Write-Host  "`t$($driverLocators.Count) mappers identified"
+    $driverLocators | ForEach-Object {Write-Host "`t`t$($_.Class)"}
+    $driverLocators | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"
 }
 Write-Host  "File created at $destinationPath\$destinationFile in $($elapsed.TotalSeconds) seconds"
 
@@ -43,9 +43,9 @@ Write-Host  "File created at $destinationPath\$destinationFile in $($elapsed.Tot
 ########### Check if it's useful to report a change #############
 
 If ($hash.Hash -eq (Get-FileHash $destinationPath\$destinationFile).Hash) {
-    Write-Host "No change detected in the list of providers."
+    Write-Host "No change detected in the list of Odbc driver locators."
     Exit 0
 } else {
-    Write-Host "Changes detected in the list of providers."
+    Write-Host "Changes detected in the list of Odbc driver locators."
     Exit 1
 }

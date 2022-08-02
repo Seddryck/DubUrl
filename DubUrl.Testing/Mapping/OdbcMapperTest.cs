@@ -67,9 +67,9 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void Map_UrlInfoContainsOptions_OptionsReturned()
+        public void Map_OptionsContainsOptions_OptionsReturned()
         {
-            var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+            var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Schemes = new[] { "odbc", "mssql", "ODBC Driver 18 for SQL Server" } };
             urlInfo.Options.Add("sslmode", "required");
             urlInfo.Options.Add("charset", "UTF8");
 
@@ -84,27 +84,25 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        [TestCase("{MySQL ODBC 5.1 Driver}")]
-        [TestCase("MySQL ODBC 5.1 Driver")]
-        public void Map_DriverSpecified_DriverAssigned(string driver)
+        public void Map_SchemeContainsDriverName_DriverNameReturned()
         {
-            var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
-            urlInfo.Options.Add(OdbcMapper.DRIVER_KEYWORD, driver);
+            var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql", "{ODBC Driver 18 for SQL Server}" }, Segments = new[] { "db" } };
 
             var mapper = new OdbcMapper(ConnectionStringBuilder);
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey(OdbcMapper.DRIVER_KEYWORD));
-            Assert.That(result[OdbcMapper.DRIVER_KEYWORD], Is.EqualTo("{MySQL ODBC 5.1 Driver}"));
+            Assert.That(result[OdbcMapper.DRIVER_KEYWORD], Is.EqualTo("{ODBC Driver 18 for SQL Server}"));
         }
 
         [Test]
         public void Map_DriverSpecified_NoDriverLocationCalled()
         {
-            var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+            var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql", "{ODBC Driver 18 for SQL Server}" }, Segments = new[] { "db" } };
 
             var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
+            driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new [] { "mssql", "pgsql" });
             driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
 
             var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
@@ -114,21 +112,23 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void Map_NoDriverSpecified_DriverLocationCalled()
+        public void Map_NoDriverSpecifiedNoAdditionalOption_DriverLocationCalled()
         {
             var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql" }, Segments = new[] { "db" } };
-            
+
             var driverLocationMock = new Mock<IDriverLocator>();
             driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
             var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
+            driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "mssql", "pgsql" });
             driverLocationFactoryMock.Setup(x => 
-                    x.Instantiate(It.IsAny<string>(), It.IsAny<IDictionary<Type, object>>())
+                    x.Instantiate(It.IsAny<string>())
                 ).Returns(driverLocationMock.Object);
 
             var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
-            driverLocationFactoryMock.Verify(x => x.Instantiate("mssql", It.IsAny<IDictionary<Type, object>>()), Times.Once);
+            driverLocationFactoryMock.Verify(x => x.GetValidAliases(), Times.AtLeastOnce);
+            driverLocationFactoryMock.Verify(x => x.Instantiate("mssql"), Times.Once);
             driverLocationMock.Verify(x => x.Locate());
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey("Driver"));
@@ -141,16 +141,16 @@ namespace DubUrl.Testing.Mapping
                 [Values(EncodingOption.ANSI, EncodingOption.Unicode)] EncodingOption encoding
             )
         {
-            var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql" }, Segments = new[] { "db" }, 
-                Options = new Dictionary<string, string>() { 
-                    { "Driver-Architecture", Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentNullException()}, 
-                    { "Driver-Encoding", Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentNullException() } 
-                }
-            };
+            var schemes = new List<string>() { "odbc", "mssql" };
+            schemes.Add(Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentNullException());
+            schemes.Add(Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentNullException());
+
+            var urlInfo = new UrlInfo() { Schemes = schemes.ToArray(), Segments = new[] { "db" } };
 
             var driverLocationMock = new Mock<IDriverLocator>();
             driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
             var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
+            driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "mssql", "pgsql" });
             driverLocationFactoryMock.Setup(x =>
                     x.Instantiate(It.IsAny<string>(), It.IsAny<IDictionary<Type, object>>())
                 ).Returns(driverLocationMock.Object);
@@ -158,6 +158,7 @@ namespace DubUrl.Testing.Mapping
             var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
+            driverLocationFactoryMock.Verify(x => x.GetValidAliases(), Times.AtLeastOnce);
             driverLocationFactoryMock.Verify(
                 x => x.Instantiate("mssql", It.Is<IDictionary<Type, object>>(
                     x => x.ContainsKey(typeof(ArchitectureOption))

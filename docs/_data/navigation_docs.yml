@@ -8,7 +8,7 @@
 - title: Connection schemes
   docs:
   - native-ado-net-providers
-  - ODBC drivers
+  - odbc-driver-locators
   - OleDb providers
   - SSL/TLS support
 

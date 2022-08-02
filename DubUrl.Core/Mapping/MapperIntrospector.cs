@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    public class MapperLocator
+    public class MapperIntrospector
     {
         public record struct MapperInfo(Type MapperType, string DatabaseName, string[] Aliases, string ProviderInvariantName, int ListingPriority) { }
 

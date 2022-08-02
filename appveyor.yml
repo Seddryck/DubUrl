@@ -47,7 +47,10 @@ on_success:
 
   - pwsh: |
       & .\generate-scheme-info.ps1
-      if ($LastExitCode -gt 0) {
+      $exitCode = $LastExitCode
+      & .\generate-odbc-driver-info.ps1
+      $exitCode += $LastExitCode
+      if ($exitCode -gt 0) {
         Write-Host "Update of README.md needed"
         & .\generate-table-scheme.ps1
         & git config --global credential.helper store

@@ -7,16 +7,21 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver
 {
+    [Driver(
+        "Microsoft Excel"
+        , new[] { "xls", "xlsx", "xlsm", "xlsb" }
+        , "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"
+        , new Type[] { }
+        , 2
+    )]
     internal class MsExcelDriverLocator : BaseDriverLocator
     {
-        private const string STRING_PATTERN = "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)";
         private readonly List<string> Candidates = new();
-        internal EncodingOption Encoding { get; }
 
         public MsExcelDriverLocator()
-            : base(STRING_PATTERN) { }
+            : base(GetNamePattern<MsExcelDriverLocator>()) { }
         internal MsExcelDriverLocator(DriverLister driverLister)
-            : base(STRING_PATTERN, driverLister) { }
+            : base(GetNamePattern<MsExcelDriverLocator>(), driverLister) { }
 
         public override string Locate()
         {

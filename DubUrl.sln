@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{95E83BA6
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		Directory.Build.targets = Directory.Build.targets
+		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
 		generate-scheme-info.ps1 = generate-scheme-info.ps1
 		generate-table-scheme.ps1 = generate-table-scheme.ps1
 		GitVersion.yml = GitVersion.yml
