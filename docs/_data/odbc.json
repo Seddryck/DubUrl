@@ -1,0 +1,67 @@
+[
+  {
+    "Class": "MariaDbDriverLocator",
+    "Database": "MariaDB",
+    "Aliases": [
+      "maria",
+      "mariadb"
+    ],
+    "NamePattern": "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$",
+    "Options": [
+      "VersionOption"
+    ]
+  },
+  {
+    "Class": "MsExcelDriverLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xls",
+      "xlsx",
+      "xlsm",
+      "xlsb"
+    ],
+    "NamePattern": "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)",
+    "Options": []
+  },
+  {
+    "Class": "MssqlDriverLocator",
+    "Database": "Microsoft SQL Server",
+    "Aliases": [
+      "mssql",
+      "ms",
+      "sqlserver"
+    ],
+    "NamePattern": "^\\bODBC Driver \\b([0-9]*)\\b for SQL Server\\b$",
+    "Options": [
+      "VersionOption"
+    ]
+  },
+  {
+    "Class": "MySqlConnectorDriverLocator",
+    "Database": "MySQL",
+    "Aliases": [
+      "mysql",
+      "my"
+    ],
+    "NamePattern": "^\\bMySQL ODBC ([0-9]*\\.[0-9]*)\\s(\\bANSI\\b|\\bUnicode\\b)\\b Driver\\b$",
+    "Options": [
+      "VersionOption",
+      "EncodingOption"
+    ]
+  },
+  {
+    "Class": "PostgresqlDriverLocator",
+    "Database": "PostgreSQL",
+    "Aliases": [
+      "pg",
+      "pgsql",
+      "postgres",
+      "postgresql"
+    ],
+    "NamePattern": "^\\bPostgreSQL \\b(\\bANSI\\b|\\bUnicode\\b)\\(?(\\bx64\\b)?\\)?$",
+    "Options": [
+      "EncodingOption",
+      "ArchitectureOption"
+    ]
+  }
+]
