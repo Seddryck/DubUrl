@@ -16,6 +16,7 @@ namespace DubUrl.Testing.Locating.OdbcDriver
         [TestCase("mysql", typeof(MySqlConnectorDriverLocator))]
         [TestCase("maria", typeof(MariaDbDriverLocator))]
         [TestCase("xlsx", typeof(MsExcelDriverLocator))]
+        [TestCase("ts", typeof(TimescaleDriverLocator))]
         public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
         {
             var factory = new DriverLocatorFactory();
