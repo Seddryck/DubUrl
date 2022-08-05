@@ -105,6 +105,15 @@
     "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient"
   },
   {
+    "Class": "TimescaleMapper",
+    "Database": "Timescale",
+    "Aliases": [
+      "ts",
+      "timescale"
+    ],
+    "ProviderInvariantName": "Npgsql"
+  },
+  {
     "Class": "OdbcMapper",
     "Database": "ODBC",
     "Aliases": [

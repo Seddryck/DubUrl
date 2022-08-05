@@ -118,6 +118,7 @@ The following databases and their associated schemes are supported out of the bo
 |Teradata             | td, teradata, tera              | Teradata.Client                |
 |CockRoachDB          | cr, cockroach, crdb, cdb        | Npgsql                         |
 |Firebird SQL         | fb, firebird                    | FirebirdSql.Data.FirebirdClient|
+|Timescale            | ts, timescale                   | Npgsql                         |
 |ODBC                 | odbc                            | System.Data.Odbc               |
 |OLEDB                | oledb                           | System.Data.OleDb              |
 <!-- END SCHEME TABLE -->
@@ -135,6 +136,7 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
 
 
 
