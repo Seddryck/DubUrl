@@ -16,7 +16,9 @@ namespace DubUrl.Locating.OdbcDriver
     )]
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {
-        private readonly List<string> Candidates = new();
+        private record struct CandidateInfo(string Driver, EncodingOption Encoding, ArchitectureOption Architecture);
+
+        private readonly List<CandidateInfo> Candidates = new();
         internal EncodingOption Encoding { get; }
         internal ArchitectureOption Architecture { get; }
 
@@ -47,10 +49,17 @@ namespace DubUrl.Locating.OdbcDriver
             if (Architecture != ArchitectureOption.Unspecified && architecture != Architecture)
                 return;
 
-            Candidates.Add(driver);
+            Candidates.Add(new CandidateInfo(driver, encoding, architecture));
         }
 
+        protected virtual ArchitectureOption GetRunningArchitecture()
+            => ArchitectureOption.x64;
+
         protected override List<string> RankCandidates()
-            => Candidates.ToList();
+            => Candidates
+                .OrderByDescending(x => x.Encoding)
+                .OrderByDescending(x => x.Architecture==GetRunningArchitecture())
+                .Select(x => x.Driver)
+                .ToList();
     }
 }
