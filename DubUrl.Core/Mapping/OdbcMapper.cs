@@ -18,7 +18,6 @@ namespace DubUrl.Mapping
     internal class OdbcMapper : BaseMapper
     {
         protected internal const string SERVER_KEYWORD = "Server";
-        protected internal const string PORT_KEYWORD = "Port";
         protected internal const string DATABASE_KEYWORD = "Database";
         protected internal const string USERNAME_KEYWORD = "Uid";
         protected internal const string PASSWORD_KEYWORD = "Pwd";
@@ -45,9 +44,15 @@ namespace DubUrl.Mapping
         {
             internal override void Execute(UrlInfo urlInfo)
             {
-                Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
+                var fullHost = new StringBuilder(urlInfo.Host);
+
+                if (urlInfo.Segments.Length > 1)
+                    fullHost.Append("\\").Append(urlInfo.Segments.First());
+
                 if (urlInfo.Port > 0)
-                    Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
+                    fullHost.Append(", ").Append(urlInfo.Port);
+
+                Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
             }
         }
 
@@ -138,8 +143,8 @@ namespace DubUrl.Mapping
         {
             internal override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
-                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
+                if (urlInfo.Segments.Length <= 2)
+                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
                 else
                     throw new ArgumentOutOfRangeException();
             }
