@@ -68,7 +68,7 @@ namespace DubUrl.Mapping
                 if (urlInfo.Segments.Length == 1)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
                 else
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Expecting a single segment in the connectionUrl but found {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments.ToArray())}'");
             }
         }
     }

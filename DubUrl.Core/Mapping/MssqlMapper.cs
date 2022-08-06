@@ -68,10 +68,10 @@ namespace DubUrl.Mapping
         {
             internal override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Count() <= 2)
+                if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Length <= 2)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
                 else
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Expecting one or two segments in the connectionUrl but was {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments.ToArray())}'");
             }
         }
     }
