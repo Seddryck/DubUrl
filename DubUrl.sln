@@ -33,9 +33,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74}"
 	ProjectSection(SolutionItems) = preProject
 		deploy-mssql-test-env.ps1 = deploy-mssql-test-env.ps1
+		deploy-pgsql-test-env.ps1 = deploy-pgsql-test-env.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.QA.Mssql", "DubUrl.QA.Mssql\DubUrl.QA.Mssql.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA.Mssql", "DubUrl.QA.Mssql\DubUrl.QA.Mssql.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QA", "QA", "{0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA.Pgsql", "DubUrl.QA.Pgsql\DubUrl.QA.Pgsql.csproj", "{894A49A4-CED1-4D23-8BAB-7B5CC224C91C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +60,10 @@ Global
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653}.Release|Any CPU.Build.0 = Release|Any CPU
+		{894A49A4-CED1-4D23-8BAB-7B5CC224C91C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{894A49A4-CED1-4D23-8BAB-7B5CC224C91C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{894A49A4-CED1-4D23-8BAB-7B5CC224C91C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{894A49A4-CED1-4D23-8BAB-7B5CC224C91C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +73,8 @@ Global
 		{09BDFA96-353F-419D-890A-D9B9045E66DD} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
 		{210C887C-6FF3-4D1B-9A7B-894E2F286FF4} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
 		{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74} = {95E83BA6-B535-4D56-B06A-D00249A4EF00}
+		{64B6AA4F-BFD2-40EB-B04A-8FE795272653} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
+		{894A49A4-CED1-4D23-8BAB-7B5CC224C91C} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}
