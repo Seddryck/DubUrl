@@ -19,6 +19,7 @@ namespace DubUrl.Locating.OdbcDriver
                 drivers.AddRange(ListFromRegistry(Registry.LocalMachine));
                 drivers.AddRange(ListFromRegistry(Registry.CurrentUser));
 #pragma warning restore CA1416 // Validate platform compatibility
+                return drivers.ToArray();
             }
             return Array.Empty<string>();
         }
