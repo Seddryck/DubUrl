@@ -63,5 +63,18 @@
     "Options": [
       "VersionOption"
     ]
+  },
+  {
+    "Class": "TimescaleDriverLocator",
+    "Database": "Timescale",
+    "Aliases": [
+      "ts",
+      "Timescale"
+    ],
+    "NamePattern": "^\\bPostgreSQL \\b(\\bANSI\\b|\\bUnicode\\b)\\(?(\\bx64\\b)?\\)?$",
+    "Options": [
+      "EncodingOption",
+      "ArchitectureOption"
+    ]
   }
 ]
