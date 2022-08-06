@@ -26,7 +26,9 @@ namespace DubUrl.Testing.Mapping
 
         [Test]
         [TestCase("host", "host")]
-        [TestCase("host", "host", "db", 1234)]
+        [TestCase("host\\instance", "host", "instance/db")]
+        [TestCase("host, 1234", "host", "db", 1234)]
+        [TestCase("host\\instance, 1234", "host", "instance/db", 1234)]
         public void Map_UrlInfo_ReturnsServer(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
