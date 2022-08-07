@@ -11,6 +11,7 @@ using DubUrl.Parsing;
 using DubUrl.Locating.OdbcDriver;
 using Moq;
 using System.Runtime.InteropServices;
+using DubUrl.Mapping.Implementation;
 
 namespace DubUrl.Testing.Mapping
 {
