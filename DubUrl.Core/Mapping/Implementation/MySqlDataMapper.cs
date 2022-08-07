@@ -9,11 +9,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [AlternativeMapper(typeof(MySqlConnectorMapper))]
-    [Mapper(
-        "MySQL"
-        , new[] { "mysql", "my" }
-        , "MySql.Data"
+    [AlternativeMapper
+        <MySqlConnectorMapper>(
+        "MySql.Data"
     )]
     internal class MySqlDataMapper : MySqlConnectorMapper
     {
@@ -22,7 +20,6 @@ namespace DubUrl.Mapping.Implementation
         protected internal new const string USERNAME_KEYWORD = "user id";
         protected internal new const string PASSWORD_KEYWORD = "password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
-
 
         public MySqlDataMapper(DbConnectionStringBuilder csb)
             : base(csb,

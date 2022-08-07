@@ -8,11 +8,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [AlternativeMapper(typeof(MariaDbConnectorMapper))]
-    [Mapper(
-        "MariaDB"
-        , new[] { "maria", "mariadb" }
-        , "MySql.Data"
+    [AlternativeMapper
+        <MariaDbConnectorMapper>(
+        "MySql.Data"
     )]
     internal class MariaDbDataMapper : MySqlDataMapper
     {

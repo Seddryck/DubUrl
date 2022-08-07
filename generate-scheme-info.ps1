@@ -31,8 +31,8 @@ Set-Location "..\..\"
 
 Write-Host "Generating JSON for ADO.Net data providers based on $assemblyPath\$directory\$dllfile"
 $elapsed = Measure-Command -Expression {
-    $locator = New-Object  DubUrl.Mapping.MapperIntrospector
-    $mappers = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.MapperType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, ProviderInvariantName
+    $introspector = New-Object  DubUrl.Mapping.MapperIntrospector
+    $mappers = $introspector.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.MapperType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, ProviderInvariantName
     Write-Host  "`t$($mappers.Count) mappers identified"
     $mappers | ForEach-Object {Write-Host "`t`t$($_.Class)"}
     $mappers | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"

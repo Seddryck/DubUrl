@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    internal abstract class BaseMapper : IMapper
+    public abstract class BaseMapper : IMapper
     {
         private DbConnectionStringBuilder Csb { get; }
         private ISpecificator Specificator { get; }

@@ -11,19 +11,37 @@ namespace DubUrl.Mapping
     {
         public record struct MapperInfo(Type MapperType, string DatabaseName, string[] Aliases, string ProviderInvariantName, int ListingPriority) { }
 
+        protected MapperClassIntrospector MapperClassIntrospectorInstance { get; } = new();
+
+        public MapperIntrospector() {}
+        internal MapperIntrospector(MapperClassIntrospector introspector)
+            => MapperClassIntrospectorInstance = introspector;
+
         public IEnumerable<MapperInfo> Locate()
-            => typeof(SchemeMapperBuilder).Assembly
-                    .GetTypes()
-                    .Where(x => x.IsClass
-                        && x.GetCustomAttributes(typeof(MapperAttribute), false).Length > 0
-                        && x.GetCustomAttributes(typeof(AlternativeMapperAttribute), false).Length == 0)
-                    .Select(x => (Type: x, Attribute: x.GetCustomAttribute<MapperAttribute>() ?? throw new InvalidOperationException()))
+            => Locate<MapperAttribute>();
+
+        public IEnumerable<MapperInfo> LocateAlternative()
+            => Locate<AlternativeMapperAttribute>();
+
+        public IEnumerable<MapperInfo> Locate<T>() where T : BaseMapperAttribute
+            => MapperClassIntrospectorInstance.LocateClass<T>()
+                    .Where(
+                        x => x.IsClass
+                        && x.GetCustomAttributes(typeof(T), false).Length > 0
+                    )
+                    .Select(x => (Type: x, Attribute: x.GetCustomAttribute<T>() ?? throw new InvalidOperationException()))
                     .Select(x => new MapperInfo(
                         x.Type,
                         x.Attribute.DatabaseName,
-                        x.Attribute.Aliases, 
+                        x.Attribute.Aliases,
                         x.Attribute.ProviderInvariantName,
                         x.Attribute.ListingPriority
                    ));
+
+        public class MapperClassIntrospector
+        {
+            public virtual IEnumerable<Type> LocateClass<T>() where T : BaseMapperAttribute
+                => typeof(SchemeMapperBuilder).Assembly.GetTypes();
+        }
     }
 }
