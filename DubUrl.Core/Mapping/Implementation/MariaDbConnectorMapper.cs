@@ -1,0 +1,22 @@
+﻿using DubUrl.Parsing;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DubUrl.Mapping.Implementation
+{
+    [Mapper(
+        "MariaDB"
+        , new[] { "maria", "mariadb" }
+        , "MySqlConnector", 3
+    )]
+    internal class MariaDbConnectorMapper : MySqlConnectorMapper
+    {
+        public MariaDbConnectorMapper(DbConnectionStringBuilder csb)
+            : base(csb)
+        { }
+    }
+}

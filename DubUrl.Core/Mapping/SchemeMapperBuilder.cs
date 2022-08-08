@@ -16,7 +16,7 @@ namespace DubUrl.Mapping
 
         private DbProviderFactory? Provider { get; set; }
         private IMapper? Mapper { get; set; }
-        private MapperIntrospector MapperLocator { get; set; } = new MapperIntrospector();
+        private MapperIntrospector MapperIntrospector { get; set; } = new MapperIntrospector();
 
         public SchemeMapperBuilder()
         {
@@ -25,7 +25,7 @@ namespace DubUrl.Mapping
 
         protected virtual void Initialize()
         {
-            foreach (var mapper in MapperLocator.Locate())
+            foreach (var mapper in MapperIntrospector.Locate())
                 AddSchemes(mapper.ProviderInvariantName, mapper.MapperType, mapper.Aliases);
             
             void AddSchemes(string providerName, Type mapper, string[] aliases)
