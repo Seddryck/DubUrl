@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 
-namespace DubUrl.QA.Mssql
+namespace DubUrl.QA.Pgsql
 {
     public class AdoProvider
     {
@@ -30,6 +30,16 @@ namespace DubUrl.QA.Mssql
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        public void QueryCustomerWithDatabase()
+        {
+            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
+
+            var db = new Database("pgsql://postgres:Password12!@localhost/DubUrl");
+            var fullName = db.ExecuteNonNullScalar<string>($"{GetType().Namespace}.SelectFirstCustomer");
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
         [Test]
