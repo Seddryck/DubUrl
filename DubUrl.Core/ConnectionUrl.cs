@@ -2,6 +2,7 @@
 using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -19,24 +20,24 @@ namespace DubUrl
         public ConnectionUrl(string url)
             : this(url, new Parser(), new SchemeMapperBuilder()) { }
 
-        public ConnectionUrl(string url, SchemeMapperBuilder factory)
-            : this(url, new Parser(), factory) { }
+        public ConnectionUrl(string url, SchemeMapperBuilder builder)
+            : this(url, new Parser(), builder) { }
 
         internal ConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
             => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
 
-        private (string ConnectionString, UrlInfo UrlInfo) ParseDetail()
+        private (string ConnectionString, UrlInfo UrlInfo, string[] Dialects) ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
             SchemeMapperBuilder.Build(urlInfo.Schemes);
             Mapper = SchemeMapperBuilder.GetMapper();
             Mapper.Map(urlInfo);
-            return (Mapper.GetConnectionString(), urlInfo);
+            return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialects());
         }
 
         public string Parse() => ParseDetail().ConnectionString;
 
-        public DbConnection Connect()
+        public virtual IDbConnection Connect()
         {
             var parsing = ParseDetail();
             var provider = SchemeMapperBuilder.GetProviderFactory();
@@ -45,11 +46,13 @@ namespace DubUrl
             return connection;
         }
 
-        public DbConnection Open()
+        public virtual IDbConnection Open()
         {
             var connection = Connect();
             connection.Open();
             return connection;
         }
+
+        public virtual string[] Dialects { get => ParseDetail().Dialects; }
     }
 }

@@ -108,5 +108,17 @@ namespace DubUrl.Testing.Mapping.Implementation
             Assert.That(result, Does.ContainKey("Persist Security Info"));
             Assert.That(result["Persist Security Info"], Is.True);
         }
+
+
+        [Test]
+        public void GetDialect_None_DialectReturned()
+        {
+            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var result = mapper.GetDialects();
+
+            Assert.That(result, Is.Not.Null.Or.Empty);
+            Assert.That(result, Does.Contain("pgsql"));
+            Assert.That(result, Does.Contain("pg"));
+        }
     }
 }

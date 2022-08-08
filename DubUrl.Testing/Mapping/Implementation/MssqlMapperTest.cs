@@ -99,5 +99,16 @@ namespace DubUrl.Testing.Mapping.Implementation
             Assert.That(result, Does.ContainKey("ConnectRetryCount"));
             Assert.That(result["ConnectRetryCount"], Is.EqualTo(5));
         }
+
+        [Test]
+        public void GetDialect_None_DialectReturned()
+        {
+            var mapper = new MssqlMapper(ConnectionStringBuilder);
+            var result = mapper.GetDialects();
+
+            Assert.That(result, Is.Not.Null.Or.Empty);
+            Assert.That(result, Does.Contain("mssql"));
+            Assert.That(result, Does.Contain("ms"));
+        }
     }
 }

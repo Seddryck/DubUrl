@@ -12,5 +12,6 @@ namespace DubUrl.Mapping
     {
         IReadOnlyDictionary<string, object> Map(UrlInfo urlInfo);
         string GetConnectionString();
+        string[] GetDialects();
     }
 }

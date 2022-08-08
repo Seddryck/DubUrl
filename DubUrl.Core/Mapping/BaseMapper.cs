@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -54,5 +55,9 @@ namespace DubUrl.Mapping
                     TokenMappers[i] = newMapper;
             }
         }
+        
+        public string[] GetDialects()
+            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.Aliases
+            ?? throw new InvalidOperationException();
     }
 }
