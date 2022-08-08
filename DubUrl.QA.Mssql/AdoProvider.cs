@@ -33,6 +33,16 @@ namespace DubUrl.QA.Mssql
         }
 
         [Test]
+        public void QueryCustomerWithDatabase()
+        {
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
+
+            var db = new Database("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var fullName = db.ExecuteNonNullScalar<string>($"{GetType().Namespace}.SelectFirstCustomer");
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
         public void QueryCustomerWithParams()
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);

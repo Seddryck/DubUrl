@@ -41,7 +41,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 
 	# Installing ODBC driver
 	Write-host "`tDeploying PostgreSQL ODBC drivers"
-	$drivers = Get-OdbcDriver -Name "*postgresK*" -Platform "64-bit"
+	$drivers = Get-OdbcDriver -Name "*postgres*" -Platform "64-bit"
 	If ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading PostgreSQL ODBC driver ..."
 		Invoke-WebRequest "https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc_13_02_0000-x64.zip" -OutFile "$env:temp\psqlodbc.zip"

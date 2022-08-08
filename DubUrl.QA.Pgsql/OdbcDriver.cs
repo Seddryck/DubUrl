@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 
-namespace DubUrl.QA.Mssql
+namespace DubUrl.QA.Pgsql
 {
     public class OdbcDriver
     {
@@ -30,6 +30,17 @@ namespace DubUrl.QA.Mssql
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        [Ignore("Database for odbc is not supported at this moment")]
+        public void QueryCustomerWithDatabase()
+        {
+            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
+
+            var db = new Database("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var fullName = db.ExecuteNonNullScalar<string>($"{GetType().Namespace}.SelectFirstCustomer");
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
         [Test]
