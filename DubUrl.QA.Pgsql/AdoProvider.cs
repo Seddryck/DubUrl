@@ -2,6 +2,8 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
+using DubUrl.Querying;
+using DubUrl.Querying.Reading;
 
 namespace DubUrl.QA.Pgsql
 {
@@ -37,8 +39,25 @@ namespace DubUrl.QA.Pgsql
         {
             DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
 
-            var db = new Database("pgsql://postgres:Password12!@localhost/DubUrl");
-            var fullName = db.ExecuteNonNullScalar<string>($"{GetType().Namespace}.SelectFirstCustomer");
+            var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
+            var fullName = db.ReadScalarNonNull<string>("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        private class SelectFirstCustomerQuery : EmbeddedSqlFileQuery
+        {
+            public SelectFirstCustomerQuery()
+                : base($"{typeof(AdoProvider).Namespace}.SelectFirstCustomer") 
+            { }
+        }
+
+        [Test]
+        public void QueryCustomerWithDatabaseQuery()
+        {
+            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
+
+            var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
+            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 

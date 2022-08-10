@@ -38,8 +38,8 @@ namespace DubUrl.QA.Pgsql
         {
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
 
-            var db = new Database("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
-            var fullName = db.ExecuteNonNullScalar<string>($"{GetType().Namespace}.SelectFirstCustomer");
+            var db = new DatabaseUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var fullName = db.ReadScalarNonNull<string>("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 

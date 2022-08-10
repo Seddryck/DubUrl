@@ -12,17 +12,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl
 {
-    public class Database
+    public class DatabaseUrl
     {
         protected ConnectionUrl ConnectionUrl { get; }
         protected CommandFactory CommandFactory { get; }
 
-        public Database(string url)
-        : this(new ConnectionUrl(url, new SchemeMapperBuilder())
-              , new CommandFactory(new EmbeddedResourceCommandReader(Assembly.GetCallingAssembly()))) 
+        public DatabaseUrl(string url)
+        : this(new ConnectionUrl(url, new SchemeMapperBuilder()), new CommandFactory())
         { }
 
-        internal Database(ConnectionUrl connectionUrl, CommandFactory commandFactory)
+        internal DatabaseUrl(ConnectionUrl connectionUrl, CommandFactory commandFactory)
         {
             ConnectionUrl = connectionUrl;
             CommandFactory = commandFactory;
@@ -34,30 +33,42 @@ namespace DubUrl
         public IDbConnection Open()
             => ConnectionUrl.Open();
 
-        public object? ExecuteScalar(string queryId)
+        public object? ReadScalar(string query)
+            => ReadScalar(new InlineQuery(query));
+
+        public object? ReadScalar(IQuery query)
         {
             using var conn = ConnectionUrl.Open();
-            using var cmd = CommandFactory.Execute(conn, queryId, ConnectionUrl.Dialects);
+            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialects);
             return cmd.ExecuteScalar();
         }
 
-        public T? ExecuteScalar<T>(string queryId)
+        public T? ReadScalar<T>(string query)
+           => ReadScalar<T>(new InlineQuery(query));
+
+        public T? ReadScalar<T>(IQuery query)
         {
-            var result = ExecuteScalar(queryId);
+            var result = ReadScalar(query);
             return (T?)(result == DBNull.Value ? null : result);
         }
 
-        public T ExecuteNonNullScalar<T>(string queryId)
+        public T ReadScalarNonNull<T>(string query)
+           => ReadScalarNonNull<T>(new InlineQuery(query));
+
+        public T ReadScalarNonNull<T>(IQuery query)
         {
-            var result = ExecuteScalar(queryId);
+            var result = ReadScalar(query);
             var typedResult = (T?)(result == DBNull.Value ? null : result);
             return typedResult ?? throw new NullReferenceException();
         }
 
-        public IDataReader ExecuteReader(string queryId)
+        public IDataReader ExecuteReader(string query)
+           => ExecuteReader(new InlineQuery(query));
+
+        public IDataReader ExecuteReader(IQuery query)
         {
             using var conn = ConnectionUrl.Open();
-            using var cmd = CommandFactory.Execute(conn, queryId, ConnectionUrl.Dialects);
+            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialects);
             return cmd.ExecuteReader();
         }
     }
