@@ -15,7 +15,7 @@ using NUnit.Framework;
 
 namespace DubUrl.Testing
 {
-    public class DatabaseTest
+    public class DatabaseUrlTest
     {
 
         [Test]
@@ -24,9 +24,9 @@ namespace DubUrl.Testing
             var connectionUrlMock = new Mock<ConnectionUrl>(It.IsAny<string>());
             connectionUrlMock.Setup(x => x.Connect());
 
-            var commandFactoryMock = new Mock<CommandFactory>(It.IsAny<ICommandReader>());
+            var commandFactoryMock = new Mock<CommandFactory>();
 
-            var db = new Database(connectionUrlMock.Object, commandFactoryMock.Object);
+            var db = new DatabaseUrl(connectionUrlMock.Object, commandFactoryMock.Object);
             db.Connect();
 
             connectionUrlMock.VerifyAll();
@@ -38,9 +38,9 @@ namespace DubUrl.Testing
             var connectionUrlMock = new Mock<ConnectionUrl>(It.IsAny<string>());
             connectionUrlMock.Setup(x => x.Open());
 
-            var commandFactoryMock = new Mock<CommandFactory>(It.IsAny<ICommandReader>());
+            var commandFactoryMock = new Mock<CommandFactory>();
 
-            var db = new Database(connectionUrlMock.Object, commandFactoryMock.Object);
+            var db = new DatabaseUrl(connectionUrlMock.Object, commandFactoryMock.Object);
             db.Open();
 
             connectionUrlMock.VerifyAll();
@@ -57,12 +57,12 @@ namespace DubUrl.Testing
             connectionUrlMock.Setup(x => x.Open()).Returns(connectionStub.Object);
             connectionUrlMock.SetupGet(x => x.Dialects).Returns(new[] { "mssql" });
 
-            var commandFactoryMock = new Mock<CommandFactory>(It.IsAny<ICommandReader>());
-            commandFactoryMock.Setup(x => x.Execute(It.IsAny<IDbConnection>(), It.IsAny<string>(), It.IsAny<string[]>()))
+            var commandFactoryMock = new Mock<CommandFactory>();
+            commandFactoryMock.Setup(x => x.Execute(It.IsAny<IDbConnection>(), It.IsAny<IQuery>(), It.IsAny<string[]>()))
                 .Returns(commandMock.Object);
 
-            var db = new Database(connectionUrlMock.Object, commandFactoryMock.Object);
-            db.ExecuteScalar("QueryId");
+            var db = new DatabaseUrl(connectionUrlMock.Object, commandFactoryMock.Object);
+            db.ReadScalar("QueryId");
 
             connectionUrlMock.VerifyAll();
         }
@@ -78,12 +78,12 @@ namespace DubUrl.Testing
             connectionUrlMock.Setup(x => x.Open()).Returns(connectionStub.Object);
             connectionUrlMock.SetupGet(x => x.Dialects).Returns(new[] { "mssql" });
 
-            var commandFactoryMock = new Mock<CommandFactory>(It.IsAny<ICommandReader>());
-            commandFactoryMock.Setup(x => x.Execute(It.IsAny<IDbConnection>(), It.IsAny<string>(), It.IsAny<string[]>()))
+            var commandFactoryMock = new Mock<CommandFactory>();
+            commandFactoryMock.Setup(x => x.Execute(It.IsAny<IDbConnection>(), It.IsAny<IQuery>(), It.IsAny<string[]>()))
                 .Returns(commandMock.Object);
 
-            var db = new Database(connectionUrlMock.Object, commandFactoryMock.Object);
-            db.ExecuteScalar("QueryId");
+            var db = new DatabaseUrl(connectionUrlMock.Object, commandFactoryMock.Object);
+            db.ReadScalar("QueryId");
 
             commandMock.VerifyAll();
         }

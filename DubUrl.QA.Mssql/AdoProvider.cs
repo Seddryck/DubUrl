@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
+using DubUrl.Querying.Reading;
 
 namespace DubUrl.QA.Mssql
 {
@@ -37,8 +38,25 @@ namespace DubUrl.QA.Mssql
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
 
-            var db = new Database("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
-            var fullName = db.ExecuteNonNullScalar<string>($"{GetType().Namespace}.SelectFirstCustomer");
+            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        private class SelectFirstCustomerQuery : EmbeddedSqlFileQuery
+        {
+            public SelectFirstCustomerQuery()
+                : base($"{typeof(AdoProvider).Namespace}.SelectFirstCustomer")
+            { }
+        }
+
+        [Test]
+        public void QueryCustomerWithDatabaseQuery()
+        {
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
+
+            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 

@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading
 {
-    public interface ICommandReader
+    public interface IResourceManager
     {
-        string[] GetAllResourceNames();
         string ReadCommandText(string fullResourceName);
         ParameterInfo[] ReadParameters(string fullResourceName);
+        bool Any(string id, string[] dialects);
+        string BestMatch(string id, string[] dialects);
     }
 }
