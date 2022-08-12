@@ -1,9 +1,12 @@
 - title: Getting Started
   docs:
+  - why-duburl
   - installation-duburl
   - installation-ado-net-provider
   - basics-connection-url
   - class-connectionUrl
+  - executing-query
+  - class-databaseUrl
 
 - title: Connection schemes
   docs:
@@ -11,6 +14,11 @@
   - odbc-driver-locators
   - OleDb providers
   - SSL/TLS support
+
+- title: Interfaces with other frameworks
+  docs:
+  - Using with Dapper
+  - Using with DbReader
 
 - title: Connection settings
   docs:
@@ -20,5 +28,6 @@
 - title: Extending to other ADO.Net providers
   docs:
   - Create a new ShemeMapper
+  - Create a new SQL dialect
   - Create a new Odbc driver locator
   - Create a new OleDb provider locator
