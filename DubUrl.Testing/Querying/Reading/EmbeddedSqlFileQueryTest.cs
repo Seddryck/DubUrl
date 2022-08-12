@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying;
+using DubUrl.Querying.Dialecting;
 using DubUrl.Querying.Reading;
 using Moq;
 using NUnit.Framework;
@@ -32,23 +33,29 @@ namespace DubUrl.Testing.Querying.Reading
             resourceManager.Setup( x=> x.Any(id, dialects)).Returns(hasCandidates);
             resourceManager.Setup(x => x.BestMatch(id, dialects)).Returns(bestCandidate);
 
+            var dialectMock = new Mock<IDialect>();
+            dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
+
             var query = new EmbeddedSqlFileQuery(id, resourceManager.Object);
-            var result = query.Exists(dialects, true);
+            var result = query.Exists(dialectMock.Object, true);
             Assert.That(result, Is.EqualTo(expected));
         }
 
         [Test]
-        [TestCase(true, "QueryId.sql", "QueryId", new[] { "mssql" }, false)]
-        [TestCase(true, "QueryId.mssql.sql", "QueryId", new[] { "mssql" })]
-        [TestCase(false, "", "QueryId", new[] { "mssql" }, false)]
-        public void ExistsWithoutFallback_ListOfResources_Value(bool hasCandidates, string bestCandidate, string id, string[] dialects, bool expected = true)
+        [TestCase("QueryId.sql", "QueryId", new[] { "mssql" }, false)]
+        [TestCase("QueryId.mssql.sql", "QueryId", new[] { "mssql" })]
+        [TestCase("", "QueryId", new[] { "mssql" }, false)]
+        public void ExistsWithoutFallback_ListOfResources_Value(string bestCandidate, string id, string[] dialects, bool expected = true)
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(id, dialects)).Returns(hasCandidates);
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>())).Returns(!string.IsNullOrEmpty(bestCandidate));
             resourceManager.Setup(x => x.BestMatch(id, dialects)).Returns(bestCandidate);
 
+            var dialectMock = new Mock<IDialect>();
+            dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
+
             var query = new EmbeddedSqlFileQuery(id, resourceManager.Object);
-            var result = query.Exists(dialects, false);
+            var result = query.Exists(dialectMock.Object, false);
             Assert.That(result, Is.EqualTo(expected));
         }
     }
