@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/DubUrl.Core.Testing/" # Location of package manifests
+    directory: "/DubUrl.Testing/" # Location of package manifests
     schedule:
       interval: "weekly"
     labels:
