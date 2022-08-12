@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -114,11 +115,12 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void GetDialect_None_DialectReturned()
         {
             var mapper = new PgsqlMapper(ConnectionStringBuilder);
-            var result = mapper.GetDialects();
+            var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);
-            Assert.That(result, Does.Contain("pgsql"));
-            Assert.That(result, Does.Contain("pg"));
+            Assert.IsInstanceOf<PgsqlDialect>(result);
+            Assert.That(result.Aliases, Does.Contain("pgsql"));
+            Assert.That(result.Aliases, Does.Contain("pg"));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Locating.OleDbProvider;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<AnsiDialect>(
         "OLEDB"
         , new[] { "oledb" }
         , "System.Data.OleDb", 10

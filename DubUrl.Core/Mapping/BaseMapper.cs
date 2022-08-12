@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -56,8 +57,8 @@ namespace DubUrl.Mapping
             }
         }
         
-        public string[] GetDialects()
-            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.Aliases
+        public IDialect GetDialect()
+            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.Dialect
             ?? throw new InvalidOperationException();
     }
 }

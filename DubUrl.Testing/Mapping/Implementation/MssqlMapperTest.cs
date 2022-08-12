@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Implementation;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -104,11 +105,12 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void GetDialect_None_DialectReturned()
         {
             var mapper = new MssqlMapper(ConnectionStringBuilder);
-            var result = mapper.GetDialects();
+            var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);
-            Assert.That(result, Does.Contain("mssql"));
-            Assert.That(result, Does.Contain("ms"));
+            Assert.IsInstanceOf<MssqlDialect>(result);
+            Assert.That(result.Aliases, Does.Contain("mssql"));
+            Assert.That(result.Aliases, Does.Contain("ms"));
         }
     }
 }

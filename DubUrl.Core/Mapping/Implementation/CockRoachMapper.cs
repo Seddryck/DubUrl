@@ -1,4 +1,5 @@
 ﻿using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<PgsqlDialect>(
         "CockRoachDB"
         , new[] { "cr", "cockroach", "crdb", "cdb" }
         , "Npgsql"

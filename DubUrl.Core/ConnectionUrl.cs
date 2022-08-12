@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -26,13 +27,13 @@ namespace DubUrl
         internal ConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
             => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
 
-        private (string ConnectionString, UrlInfo UrlInfo, string[] Dialects) ParseDetail()
+        private (string ConnectionString, UrlInfo UrlInfo, IDialect Dialect) ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
             SchemeMapperBuilder.Build(urlInfo.Schemes);
             Mapper = SchemeMapperBuilder.GetMapper();
             Mapper.Map(urlInfo);
-            return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialects());
+            return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect());
         }
 
         public string Parse() => ParseDetail().ConnectionString;
@@ -53,6 +54,6 @@ namespace DubUrl
             return connection;
         }
 
-        public virtual string[] Dialects { get => ParseDetail().Dialects; }
+        public virtual IDialect Dialect { get => ParseDetail().Dialect; }
     }
 }
