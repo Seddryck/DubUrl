@@ -27,8 +27,8 @@ namespace DubUrl.Testing
             mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
-            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.Build());
+            schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Parse();
@@ -48,14 +48,14 @@ namespace DubUrl.Testing
             mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
-            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.Build());
+            schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Parse();
 
-            schemeMapperBuilderMock.Verify(x => x.Build(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.Once());
-            schemeMapperBuilderMock.Verify(x => x.GetMapper(), Times.AtLeastOnce());
+            schemeMapperBuilderMock.Verify(x => x.Build(), Times.Once());
+            schemeMapperBuilderMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.AtLeastOnce());
         }
 
         [Test]
@@ -70,8 +70,8 @@ namespace DubUrl.Testing
             mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
-            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.Build());
+            schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Parse();
@@ -96,9 +96,9 @@ namespace DubUrl.Testing
             dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
-            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
-            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory()).Returns(dbProviderfactoryMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.Build());
+            schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Connect();
@@ -127,9 +127,9 @@ namespace DubUrl.Testing
             dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
-            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
-            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory()).Returns(dbProviderfactoryMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.Build());
+            schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Connect();
@@ -161,9 +161,9 @@ namespace DubUrl.Testing
             dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-            schemeMapperBuilderMock.Setup(x => x.Build(It.IsAny<string[]>()));
-            schemeMapperBuilderMock.Setup(x => x.GetMapper()).Returns(mapperMock.Object);
-            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory()).Returns(dbProviderfactoryMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.Build());
+            schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+            schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Open();

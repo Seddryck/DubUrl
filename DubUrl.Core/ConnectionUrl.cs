@@ -30,8 +30,8 @@ namespace DubUrl
         private (string ConnectionString, UrlInfo UrlInfo, IDialect Dialect) ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
-            SchemeMapperBuilder.Build(urlInfo.Schemes);
-            Mapper = SchemeMapperBuilder.GetMapper();
+            SchemeMapperBuilder.Build();
+            Mapper = SchemeMapperBuilder.GetMapper(urlInfo.Schemes);
             Mapper.Map(urlInfo);
             return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect());
         }
@@ -41,7 +41,7 @@ namespace DubUrl
         public virtual IDbConnection Connect()
         {
             var parsing = ParseDetail();
-            var provider = SchemeMapperBuilder.GetProviderFactory();
+            var provider = SchemeMapperBuilder.GetProviderFactory(parsing.UrlInfo.Schemes);
             var connection = provider.CreateConnection() ?? throw new ArgumentNullException();
             connection.ConnectionString = parsing.ConnectionString;
             return connection;

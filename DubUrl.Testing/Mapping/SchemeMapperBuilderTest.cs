@@ -12,6 +12,7 @@ using DubUrl.Locating.OdbcDriver;
 using Moq;
 using System.Runtime.InteropServices;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping
 {
@@ -38,7 +39,7 @@ namespace DubUrl.Testing.Mapping
 
         private class StubMapper : BaseMapper
         {
-            public StubMapper(DbConnectionStringBuilder csb) : base(csb, new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
+            public StubMapper(DbConnectionStringBuilder csb, IDialect dialect) : base(csb, dialect, new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
         }
 
         [Test]
@@ -63,8 +64,8 @@ namespace DubUrl.Testing.Mapping
         public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder();
-            builder.Build(schemeList.Split(new[] { '+', ':' }));
-            var result = builder.GetMapper();
+            builder.Build();
+            var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf(expected));
@@ -76,12 +77,12 @@ namespace DubUrl.Testing.Mapping
             var weirdScheme = "xyz";
 
             var builder = new SchemeMapperBuilder();
-            Assert.Catch<SchemeNotFoundException>(() => builder.Build(weirdScheme)); //Should not exists
-            Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exists
+            builder.Build();
+            Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
 
             builder.AddAlias(weirdScheme, "mssql");
-            builder.Build(weirdScheme);
-            var result = builder.GetMapper(); //Should exists
+            builder.Build();
+            var result = builder.GetMapper(weirdScheme); //Should exists
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<MssqlMapper>());
         }
@@ -89,17 +90,17 @@ namespace DubUrl.Testing.Mapping
         [Test]
         public void AddMapping_NewScheme_CorrectType()
         {
-            var weirdScheme = "xyz";
+            (var weirdScheme, var invariantName) = ("xyz", "x.y.z");
 
             var builder = new SchemeMapperBuilder();
-            Assert.Catch<SchemeNotFoundException>(() => builder.Build(weirdScheme)); //Should not exists
-            Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exists
+            builder.Build();
+            Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
 
-            DbProviderFactories.RegisterFactory("xyz", System.Data.SqlClient.SqlClientFactory.Instance);
-            builder.AddMapping(weirdScheme, "xyz", typeof(StubMapper));
+            DbProviderFactories.RegisterFactory(invariantName, System.Data.SqlClient.SqlClientFactory.Instance);
+            builder.AddMapping(typeof(StubMapper), invariantName, new[] { weirdScheme }, typeof(AnsiDialect));
 
-            builder.Build(weirdScheme);
-            var result = builder.GetMapper(); //Should exists
+            builder.Build();
+            var result = builder.GetMapper(weirdScheme); //Should exists
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<StubMapper>());
         }
@@ -110,13 +111,13 @@ namespace DubUrl.Testing.Mapping
             var oracleScheme = "ora";
 
             var builder = new SchemeMapperBuilder();
-            builder.Build(oracleScheme);
-            var result = builder.GetMapper(); //should be found
+            builder.Build();
+            var result = builder.GetMapper(oracleScheme); //should be found
             Assert.That(result, Is.Not.Null);
 
             builder.RemoveMapping("Oracle.ManagedDataAccess");
-            Assert.Catch<SchemeNotFoundException>(() => builder.Build(oracleScheme)); //shouldn't be found
-            Assert.Catch<InvalidOperationException>(() => builder.GetMapper()); //Should not exist
+            builder.Build();
+            Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(oracleScheme)); //Should not exist
         }
 
         [Test]
@@ -128,8 +129,8 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("MySql", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
             builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
-            builder.Build(mysqlScheme);
-            var result = builder.GetMapper();
+            builder.Build();
+            var result = builder.GetMapper(mysqlScheme);
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<MySqlDataMapper>());
         }
@@ -151,8 +152,8 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
             builder.ReplaceDriverLocatorFactory(typeof(OdbcMapper), factory);
 
-            builder.Build(new[] { "odbc", "foobar" });
-            var result = builder.GetMapper();
+            builder.Build();
+            var result = builder.GetMapper(new[] { "odbc", "foobar" });
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.TypeOf<OdbcMapper>());
             Assert.That(((OdbcMapper)result).DriverLocatorFactory, Is.EqualTo(factory));

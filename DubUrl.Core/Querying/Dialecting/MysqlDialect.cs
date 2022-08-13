@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialecting
 {
-    internal class MysqlDialect : BaseDialect
+    internal class MySqlDialect : BaseDialect
     {
-        public MysqlDialect(string[] aliases)
+        public MySqlDialect(string[] aliases)
             : base(aliases) { }
     }
 }
