@@ -1,16 +1,21 @@
 # Boxes include navigation
 
+- title: Why DubUrl
+  desc: Not another micro-ORM but support for database-agnostic solutions
+  icon: check
+  doc: why-duburl
+
 - title: Getting Started
   desc: Get started fast with installation and basic usages
   icon: cog
-  doc: installation
+  doc: installation-duburl
 
 - title: Connect to your database
   desc: Learn about how to define a database connection URL
   icon: settings
-  doc: connect
+  doc: native-ado-net-providers
 
-- title: Extension points
-  desc: Tailor the framework to meet your specific needs
-  icon: code
-  doc: customize
+# - title: Extension points
+#   desc: Tailor the framework to meet your specific needs
+#   icon: code
+#   doc: customize
