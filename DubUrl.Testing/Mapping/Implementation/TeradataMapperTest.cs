@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -25,7 +26,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host")
         {
             var urlInfo = new UrlInfo() { Host = host };
-            var mapper = new TeradataMapper(ConnectionStringBuilder);
+            var mapper = new TeradataMapper(ConnectionStringBuilder, new TeradataDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -38,7 +39,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_PortNumber(int expected, int port)
         {
             var urlInfo = new UrlInfo() { Port = port };
-            var mapper = new TeradataMapper(ConnectionStringBuilder);
+            var mapper = new TeradataMapper(ConnectionStringBuilder, new TeradataDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -51,7 +52,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new TeradataMapper(ConnectionStringBuilder);
+            var mapper = new TeradataMapper(ConnectionStringBuilder, new TeradataDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -63,7 +64,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-            var mapper = new TeradataMapper(ConnectionStringBuilder);
+            var mapper = new TeradataMapper(ConnectionStringBuilder, new TeradataDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -79,7 +80,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { };
-            var mapper = new TeradataMapper(ConnectionStringBuilder);
+            var mapper = new TeradataMapper(ConnectionStringBuilder, new TeradataDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<OracleDialect>(
         "Oracle Database"
         , new[] { "oracle", "or", "ora" }
         , "Oracle.ManagedDataAccess", 2
@@ -23,8 +24,9 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string USERNAME_KEYWORD = "USER ID";
         protected internal const string PASSWORD_KEYWORD = "PASSWORD";
 
-        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb)
+        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DsnMapper(),

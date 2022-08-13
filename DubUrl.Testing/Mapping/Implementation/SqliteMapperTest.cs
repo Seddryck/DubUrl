@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -29,7 +30,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "data.db")
         {
             var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-            var mapper = new SqliteMapper(ConnectionStringBuilder);
+            var mapper = new SqliteMapper(ConnectionStringBuilder, new SqliteDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -44,7 +45,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.db")
         {
             var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-            var mapper = new SqliteMapper(ConnectionStringBuilder);
+            var mapper = new SqliteMapper(ConnectionStringBuilder, new SqliteDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -58,7 +59,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         {
             var path = "c:/directory/data.db";
             var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
-            var mapper = new SqliteMapper(ConnectionStringBuilder);
+            var mapper = new SqliteMapper(ConnectionStringBuilder, new SqliteDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

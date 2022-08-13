@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -27,7 +28,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Username = "user" };
-            var mapper = new MySqlDataMapper(ConnectionStringBuilder);
+            var mapper = new MySqlDataMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -40,7 +41,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Username = "user" };
-            var mapper = new MySqlDataMapper(ConnectionStringBuilder);
+            var mapper = new MySqlDataMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -53,7 +54,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new MySqlDataMapper(ConnectionStringBuilder);
+            var mapper = new MySqlDataMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -68,7 +69,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new MySqlDataMapper(ConnectionStringBuilder);
+            var mapper = new MySqlDataMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             Assert.Catch<PlatformNotSupportedException>(() => mapper.Map(urlInfo));
         }
 
@@ -79,7 +80,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("SslCa", "myCert");
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new MySqlDataMapper(ConnectionStringBuilder);
+            var mapper = new MySqlDataMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

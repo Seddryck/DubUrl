@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -27,7 +28,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = string.IsNullOrEmpty(segmentsList) ? Array.Empty<string>() : segmentsList.Split("/") };
-            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -39,7 +40,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -54,7 +55,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -71,7 +72,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("Statement Cache Size", "100");
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder);
+            var mapper = new OracleManagedDataAccessMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

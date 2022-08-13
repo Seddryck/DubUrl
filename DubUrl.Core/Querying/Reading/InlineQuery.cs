@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Querying.Dialecting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace DubUrl.Querying.Reading
 
         public InlineQuery(string text) => Text = text;
 
-        public string Read(string[] dialects) => Text;
-        public bool Exists(string[] dialects, bool includeDefault = false) => true;
+        public string Read(IDialect dialect) => Text;
+        public bool Exists(IDialect dialect, bool includeDefault = false) => true;
     }
 }

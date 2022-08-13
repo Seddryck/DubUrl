@@ -39,7 +39,7 @@ namespace DubUrl
         public object? ReadScalar(IQuery query)
         {
             using var conn = ConnectionUrl.Open();
-            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialects);
+            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialect);
             return cmd.ExecuteScalar();
         }
 
@@ -68,7 +68,7 @@ namespace DubUrl
         public IDataReader ExecuteReader(IQuery query)
         {
             using var conn = ConnectionUrl.Open();
-            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialects);
+            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialect);
             return cmd.ExecuteReader();
         }
     }

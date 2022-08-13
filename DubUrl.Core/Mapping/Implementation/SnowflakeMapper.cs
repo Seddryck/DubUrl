@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<SnowflakeDialect>(
         "Snowflake"
         , new[] { "sf", "snowflake" }
         , "Snowflake.Data", 4
@@ -22,8 +23,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string USERNAME_KEYWORD = "USER";
         internal const string PASSWORD_KEYWORD = "PASSWORD";
 
-        public SnowflakeMapper(DbConnectionStringBuilder csb)
+        public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new SpecificatorUnchecked(csb),
                   new BaseTokenMapper[] {
                     new AccountMapper(),

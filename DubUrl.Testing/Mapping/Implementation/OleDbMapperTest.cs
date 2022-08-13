@@ -10,6 +10,7 @@ using DubUrl.Locating.OleDbProvider;
 using Moq;
 using System.Runtime.InteropServices;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -34,7 +35,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Server(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
-            var mapper = new OleDbMapper(ConnectionStringBuilder);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -47,7 +48,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_ReturnsInitialCatalog(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
-            var mapper = new OleDbMapper(ConnectionStringBuilder);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -60,7 +61,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
-            var mapper = new OleDbMapper(ConnectionStringBuilder);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -76,7 +77,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new OleDbMapper(ConnectionStringBuilder);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -91,7 +92,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
             urlInfo.Options.Add("Provider", driver);
 
-            var mapper = new OleDbMapper(ConnectionStringBuilder);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -107,7 +108,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             var providerLocatorFactoryMock = new Mock<ProviderLocatorFactory>();
             providerLocatorFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
 
-            var mapper = new OleDbMapper(ConnectionStringBuilder, providerLocatorFactoryMock.Object);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()), providerLocatorFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
             providerLocatorFactoryMock.Verify(x => x.Instantiate(It.IsAny<string>()), Times.Never);
@@ -126,7 +127,7 @@ namespace DubUrl.Testing.Mapping.Implementation
                     x.Instantiate(It.IsAny<string>())
                 ).Returns(providerLocatorMock.Object);
 
-            var mapper = new OleDbMapper(ConnectionStringBuilder, providerLocatorFactoryMock.Object);
+            var mapper = new OleDbMapper(ConnectionStringBuilder, new OracleDialect(Array.Empty<string>()), providerLocatorFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
             providerLocatorFactoryMock.Verify(x => x.Instantiate("myprovider"));

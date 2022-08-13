@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<Db2Dialect>(
         "IBM DB2"
         , new[] { "db2" }
         , "IBM.Data.DB2.Core", 3
@@ -21,8 +22,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string USERNAME_KEYWORD = "User ID";
         internal const string PASSWORD_KEYWORD = "Password";
 
-        public Db2Mapper(DbConnectionStringBuilder csb)
+        public Db2Mapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new ServerMapper(),

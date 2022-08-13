@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -16,10 +17,10 @@ namespace DubUrl.Mapping
         private DbConnectionStringBuilder Csb { get; }
         private ISpecificator Specificator { get; }
         protected BaseTokenMapper[] TokenMappers { get; }
-        
-        public BaseMapper(DbConnectionStringBuilder csb, ISpecificator specificator, BaseTokenMapper[] tokenMappers)
-            => (Csb, Specificator, TokenMappers) = (csb, specificator, tokenMappers);
-        
+        protected IDialect Dialect { get; }
+        public BaseMapper(DbConnectionStringBuilder csb, IDialect dialect, ISpecificator specificator, BaseTokenMapper[] tokenMappers)
+            => (Csb, Dialect, Specificator, TokenMappers) = (csb, dialect, specificator, tokenMappers);
+
 
         public IReadOnlyDictionary<string, object> Map(UrlInfo urlInfo)
         {
@@ -55,9 +56,8 @@ namespace DubUrl.Mapping
                     TokenMappers[i] = newMapper;
             }
         }
-        
-        public string[] GetDialects()
-            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.Aliases
-            ?? throw new InvalidOperationException();
+
+        public IDialect GetDialect()
+            => Dialect;
     }
 }

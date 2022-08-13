@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Implementation;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new MssqlMapper(ConnectionStringBuilder);
+            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -42,7 +43,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_InitialCatalog(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new MssqlMapper(ConnectionStringBuilder);
+            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -55,7 +56,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new MssqlMapper(ConnectionStringBuilder);
+            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -71,7 +72,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new MssqlMapper(ConnectionStringBuilder);
+            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -90,7 +91,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("Application Name", "myApp");
             urlInfo.Options.Add("ConnectRetryCount", "5");
 
-            var mapper = new MssqlMapper(ConnectionStringBuilder);
+            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -103,12 +104,13 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new MssqlMapper(ConnectionStringBuilder);
-            var result = mapper.GetDialects();
+            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(new[] { "ms","mssql" }));
+            var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);
-            Assert.That(result, Does.Contain("mssql"));
-            Assert.That(result, Does.Contain("ms"));
+            Assert.IsInstanceOf<MssqlDialect>(result);
+            Assert.That(result.Aliases, Does.Contain("mssql"));
+            Assert.That(result.Aliases, Does.Contain("ms"));
         }
     }
 }
