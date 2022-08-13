@@ -28,7 +28,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -42,7 +42,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Port(int expected, int port = 0, string host = "host", string segmentsList = "db")
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -55,7 +55,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void UrlInfo_Map_InitialCatalog(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -67,7 +67,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -83,7 +83,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -100,7 +100,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("Application Name", "myApp");
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -114,7 +114,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new PgsqlMapper(ConnectionStringBuilder);
+            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(new[] { "pg", "pgsql" }));
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);

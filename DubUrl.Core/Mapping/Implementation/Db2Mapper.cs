@@ -22,8 +22,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string USERNAME_KEYWORD = "User ID";
         internal const string PASSWORD_KEYWORD = "Password";
 
-        public Db2Mapper(DbConnectionStringBuilder csb)
+        public Db2Mapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new ServerMapper(),

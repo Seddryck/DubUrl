@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<MysqlDialect>(
+    [Mapper<MySqlDialect>(
         "MariaDB"
         , new[] { "maria", "mariadb" }
         , "MySqlConnector", 3
     )]
     internal class MariaDbConnectorMapper : MySqlConnectorMapper
     {
-        public MariaDbConnectorMapper(DbConnectionStringBuilder csb)
-            : base(csb)
+        public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, dialect)
         { }
     }
 }

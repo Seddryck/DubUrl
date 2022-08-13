@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -25,7 +26,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Account(string expected, string host = "host")
         {
             var urlInfo = new UrlInfo() { Host = host };
-            var mapper = new SnowflakeMapper(ConnectionStringBuilder);
+            var mapper = new SnowflakeMapper(ConnectionStringBuilder, new SnowflakeDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -38,7 +39,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new SnowflakeMapper(ConnectionStringBuilder);
+            var mapper = new SnowflakeMapper(ConnectionStringBuilder, new SnowflakeDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -50,7 +51,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoDatabaseMissing_Database()
         {
             var urlInfo = new UrlInfo() { Segments = Array.Empty<string>() };
-            var mapper = new SnowflakeMapper(ConnectionStringBuilder);
+            var mapper = new SnowflakeMapper(ConnectionStringBuilder, new SnowflakeDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -61,7 +62,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithSchema_DatabaseAndSchema()
         {
             var urlInfo = new UrlInfo() { Segments = "db/schema".Split('/') };
-            var mapper = new SnowflakeMapper(ConnectionStringBuilder);
+            var mapper = new SnowflakeMapper(ConnectionStringBuilder, new SnowflakeDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -75,7 +76,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoSchemaMissing_Database()
         {
             var urlInfo = new UrlInfo() { Segments = string.Empty.Split('/') };
-            var mapper = new SnowflakeMapper(ConnectionStringBuilder);
+            var mapper = new SnowflakeMapper(ConnectionStringBuilder, new SnowflakeDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -86,7 +87,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-            var mapper = new SnowflakeMapper(ConnectionStringBuilder);
+            var mapper = new SnowflakeMapper(ConnectionStringBuilder, new SnowflakeDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

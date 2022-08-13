@@ -25,8 +25,10 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public OleDbMapper(DbConnectionStringBuilder csb) : this(csb, new ProviderLocatorFactory()) { }
-        public OleDbMapper(DbConnectionStringBuilder csb, ProviderLocatorFactory providerLocatorFactory) : base(csb,
+        public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect) : this(csb, dialect, new ProviderLocatorFactory()) { }
+        public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, ProviderLocatorFactory providerLocatorFactory) 
+            : base(csb,
+                  dialect,
                   new SpecificatorStraight(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

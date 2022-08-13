@@ -23,8 +23,9 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public MssqlMapper(DbConnectionStringBuilder csb)
-            : base(csb,
+        public MssqlMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, 
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

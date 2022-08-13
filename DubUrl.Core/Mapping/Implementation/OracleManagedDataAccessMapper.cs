@@ -24,8 +24,9 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string USERNAME_KEYWORD = "USER ID";
         protected internal const string PASSWORD_KEYWORD = "PASSWORD";
 
-        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb)
+        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DsnMapper(),

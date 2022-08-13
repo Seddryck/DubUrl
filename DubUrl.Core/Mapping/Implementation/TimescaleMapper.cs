@@ -17,8 +17,8 @@ namespace DubUrl.Mapping.Implementation
     )]
     internal class TimescaleMapper : PgsqlMapper
     {
-        public TimescaleMapper(DbConnectionStringBuilder csb)
-            : base(csb)
+        public TimescaleMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, dialect)
         { }
     }
 }

@@ -24,8 +24,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string PASSWORD_KEYWORD = "Password";
         internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public TeradataMapper(DbConnectionStringBuilder csb)
+        public TeradataMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

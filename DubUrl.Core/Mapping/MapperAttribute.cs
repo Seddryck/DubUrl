@@ -10,10 +10,10 @@ namespace DubUrl.Mapping
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public class MapperAttribute : BaseMapperAttribute
     {
-        public MapperAttribute(string databaseName, string[] aliases, string providerInvariantName, IDialect dialect, int listingPriority = 5)
+        public MapperAttribute(string databaseName, string[] aliases, string providerInvariantName, Type dialectType, int listingPriority = 5)
         {
-            (DatabaseName, Aliases, ProviderInvariantName, Dialect, ListingPriority)
-                = (databaseName, aliases, providerInvariantName, dialect, listingPriority);
+            (DatabaseName, Aliases, ProviderInvariantName, DialectType, ListingPriority)
+                = (databaseName, aliases, providerInvariantName, dialectType, listingPriority);
         }
     }
 
@@ -26,7 +26,7 @@ namespace DubUrl.Mapping
                   databaseName
                   , aliases
                   , providerInvariantName
-                  , (IDialect)(Activator.CreateInstance(typeof(T), new object[] { aliases }) ?? throw new ArgumentException())
+                  , typeof(T)
                   , listingPriority
             )
         { }

@@ -16,8 +16,8 @@ namespace DubUrl.Mapping.Implementation
     )]
     internal class CockRoachMapper : PgsqlMapper
     {
-        public CockRoachMapper(DbConnectionStringBuilder csb)
-            : base(csb)
+        public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, dialect)
         => ReplaceTokenMapper(typeof(PgsqlMapper.DatabaseMapper), new DatabaseMapper());
 
         internal new class DatabaseMapper : BaseTokenMapper

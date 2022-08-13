@@ -17,10 +17,10 @@ namespace DubUrl.Mapping
         private DbConnectionStringBuilder Csb { get; }
         private ISpecificator Specificator { get; }
         protected BaseTokenMapper[] TokenMappers { get; }
-        
-        public BaseMapper(DbConnectionStringBuilder csb, ISpecificator specificator, BaseTokenMapper[] tokenMappers)
-            => (Csb, Specificator, TokenMappers) = (csb, specificator, tokenMappers);
-        
+        protected IDialect Dialect { get; }
+        public BaseMapper(DbConnectionStringBuilder csb, IDialect dialect, ISpecificator specificator, BaseTokenMapper[] tokenMappers)
+            => (Csb, Dialect, Specificator, TokenMappers) = (csb, dialect, specificator, tokenMappers);
+
 
         public IReadOnlyDictionary<string, object> Map(UrlInfo urlInfo)
         {
@@ -56,9 +56,8 @@ namespace DubUrl.Mapping
                     TokenMappers[i] = newMapper;
             }
         }
-        
+
         public IDialect GetDialect()
-            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.Dialect
-            ?? throw new InvalidOperationException();
+            => Dialect;
     }
 }

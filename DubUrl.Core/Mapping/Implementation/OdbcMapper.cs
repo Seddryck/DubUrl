@@ -24,8 +24,10 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Pwd";
         protected internal const string DRIVER_KEYWORD = "Driver";
 
-        public OdbcMapper(DbConnectionStringBuilder csb) : this(csb, new DriverLocatorFactory()) { }
-        public OdbcMapper(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory) : base(csb,
+        public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect) : this(csb, dialect, new DriverLocatorFactory()) { }
+        public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, DriverLocatorFactory driverLocatorFactory)
+            : base(csb,
+                  dialect,
                   new SpecificatorStraight(csb),
                   new BaseTokenMapper[] {
                     new HostMapper(),

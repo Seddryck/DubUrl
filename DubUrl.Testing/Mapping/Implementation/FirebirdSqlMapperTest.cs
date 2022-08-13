@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -28,7 +29,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "localhost")
         {
             var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder);
+            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder, new FirebirdSqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -41,7 +42,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_DoubleSlash_Database(string host, string expected = "data.fdb")
         {
             var urlInfo = new UrlInfo() { Host = host, Segments = Array.Empty<string>() };
-            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder);
+            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder, new FirebirdSqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -59,7 +60,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.fdb")
         {
             var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder);
+            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder, new FirebirdSqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -73,7 +74,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         {
             var path = "c:/directory/data.fdb";
             var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
-            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder);
+            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder, new FirebirdSqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -85,7 +86,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder);
+            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder, new FirebirdSqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -99,7 +100,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithPort_Port()
         {
             var urlInfo = new UrlInfo() { Host = "localhost", Port = 3001, Segments = new[] { "db" } };
-            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder);
+            var mapper = new FirebirdSqlMapper(ConnectionStringBuilder, new FirebirdSqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

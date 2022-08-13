@@ -12,6 +12,7 @@ using System.Data.Odbc;
 using DubUrl.Locating.OdbcDriver;
 using Moq;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -32,7 +33,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_ReturnsServer(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
-            var mapper = new OdbcMapper(ConnectionStringBuilder);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -45,7 +46,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_ReturnsInitialCatalog(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
-            var mapper = new OdbcMapper(ConnectionStringBuilder);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -58,7 +59,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
-            var mapper = new OdbcMapper(ConnectionStringBuilder);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -75,7 +76,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("sslmode", "required");
             urlInfo.Options.Add("charset", "UTF8");
 
-            var mapper = new OdbcMapper(ConnectionStringBuilder);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -90,7 +91,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         {
             var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql", "{ODBC Driver 18 for SQL Server}" }, Segments = new[] { "db" } };
 
-            var mapper = new OdbcMapper(ConnectionStringBuilder);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -107,7 +108,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "mssql", "pgsql" });
             driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
 
-            var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()), driverLocationFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
             driverLocationFactoryMock.Verify(x => x.Instantiate(It.IsAny<string>()), Times.Never);
@@ -126,7 +127,7 @@ namespace DubUrl.Testing.Mapping.Implementation
                     x.Instantiate(It.IsAny<string>())
                 ).Returns(driverLocationMock.Object);
 
-            var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()), driverLocationFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
             driverLocationFactoryMock.Verify(x => x.GetValidAliases(), Times.AtLeastOnce);
@@ -157,7 +158,7 @@ namespace DubUrl.Testing.Mapping.Implementation
                     x.Instantiate(It.IsAny<string>(), It.IsAny<IDictionary<Type, object>>())
                 ).Returns(driverLocationMock.Object);
 
-            var mapper = new OdbcMapper(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+            var mapper = new OdbcMapper(ConnectionStringBuilder, new MySqlDialect(Array.Empty<string>()), driverLocationFactoryMock.Object);
             var result = mapper.Map(urlInfo);
 
             driverLocationFactoryMock.Verify(x => x.GetValidAliases(), Times.AtLeastOnce);

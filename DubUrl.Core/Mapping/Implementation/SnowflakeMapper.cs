@@ -23,8 +23,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string USERNAME_KEYWORD = "USER";
         internal const string PASSWORD_KEYWORD = "PASSWORD";
 
-        public SnowflakeMapper(DbConnectionStringBuilder csb)
+        public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new SpecificatorUnchecked(csb),
                   new BaseTokenMapper[] {
                     new AccountMapper(),

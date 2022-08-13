@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<MysqlDialect>(
+    [Mapper<MySqlDialect>(
         "MySQL"
         , new[] { "mysql", "my" }
         , "MySqlConnector", 1
@@ -23,8 +23,9 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string USERNAME_KEYWORD = "User ID";
         protected internal const string PASSWORD_KEYWORD = "Password";
 
-        public MySqlConnectorMapper(DbConnectionStringBuilder csb)
+        public MySqlConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new SpecificatorUnchecked(csb),
                   new BaseTokenMapper[] {
                     new ServerMapper(),
@@ -35,8 +36,8 @@ namespace DubUrl.Mapping.Implementation
             )
         { }
 
-        protected MySqlConnectorMapper(DbConnectionStringBuilder csb, Specificator specificator, BaseTokenMapper[] tokenMappers)
-            : base(csb, specificator, tokenMappers) { }
+        protected MySqlConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, Specificator specificator, BaseTokenMapper[] tokenMappers)
+            : base(csb, dialect, specificator, tokenMappers) { }
 
         internal class ServerMapper : BaseTokenMapper
         {

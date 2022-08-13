@@ -23,8 +23,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string USERNAME_KEYWORD = "User";
         internal const string PASSWORD_KEYWORD = "Password";
 
-        public FirebirdSqlMapper(DbConnectionStringBuilder csb)
+        public FirebirdSqlMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new SpecificatorUnchecked(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

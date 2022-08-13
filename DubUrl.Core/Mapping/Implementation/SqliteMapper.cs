@@ -19,8 +19,9 @@ namespace DubUrl.Mapping.Implementation
     {
         protected internal const string DATABASE_KEYWORD = "Data Source";
 
-        public SqliteMapper(DbConnectionStringBuilder csb)
+        public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

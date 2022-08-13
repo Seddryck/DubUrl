@@ -12,7 +12,7 @@ namespace DubUrl.Mapping
         public virtual string DatabaseName { get; protected set; } = string.Empty;
         public virtual string[] Aliases { get; protected set; } = Array.Empty<string>();
         public virtual string ProviderInvariantName { get; protected set; } = string.Empty;
-        public virtual IDialect Dialect { get; protected set; } = new AnsiDialect(Array.Empty<string>());
+        public virtual Type DialectType { get; protected set; } = typeof(AnsiDialect);
         public int ListingPriority { get; protected set; } = 0;
     }
 }
