@@ -1,4 +1,5 @@
 ﻿using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -14,8 +15,8 @@ namespace DubUrl.Mapping.Implementation
     )]
     internal class MariaDbDataMapper : MySqlDataMapper
     {
-        public MariaDbDataMapper(DbConnectionStringBuilder csb)
-            : base(csb)
+        public MariaDbDataMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, dialect)
         { }
     }
 }

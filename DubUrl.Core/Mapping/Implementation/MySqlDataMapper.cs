@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -21,8 +22,9 @@ namespace DubUrl.Mapping.Implementation
         protected internal new const string PASSWORD_KEYWORD = "password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public MySqlDataMapper(DbConnectionStringBuilder csb)
-            : base(csb,
+        public MySqlDataMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, 
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new ServerMapper(),

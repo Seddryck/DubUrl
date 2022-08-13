@@ -1,7 +1,9 @@
 ﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,12 +13,15 @@ namespace DubUrl.Mapping
 {
     public class SchemeMapperBuilder
     {
-        private readonly record struct ProviderInfo(string ProviderName, Type Mapper, DriverLocatorFactory? DriverLocatorFactory);
-        private readonly Dictionary<string, ProviderInfo> Schemes = new();
+        private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
+        private bool IsBuilt { get; }
 
-        private DbProviderFactory? Provider { get; set; }
-        private IMapper? Mapper { get; set; }
-        private MapperIntrospector MapperIntrospector { get; set; } = new MapperIntrospector();
+        private readonly Dictionary<Type, ProviderInfo> MapperData = new();
+
+        protected Dictionary<string, IMapper> Mappers { get; set; } = new();
+        private MapperIntrospector MapperIntrospector { get; } = new MapperIntrospector();
+
+        private DialectBuilder DialectBuilder { get; } = new DialectBuilder();
 
         public SchemeMapperBuilder()
         {
@@ -25,133 +30,145 @@ namespace DubUrl.Mapping
 
         protected virtual void Initialize()
         {
-            foreach (var mapper in MapperIntrospector.Locate())
-                AddSchemes(mapper.ProviderInvariantName, mapper.MapperType, mapper.Aliases);
-            
-            void AddSchemes(string providerName, Type mapper, string[] aliases)
+            foreach (var mapperData in MapperIntrospector.Locate())
+                AddMapping(mapperData.MapperType, mapperData.ProviderInvariantName, mapperData.Aliases, mapperData.DialectType);
+        }
+
+        public virtual void Build()
+        {
+            foreach (var mapperData in MapperData)
+                DialectBuilder.AddAliases(mapperData.Value.DialectType, mapperData.Value.Aliases.ToArray());
+            DialectBuilder.Build();
+
+            Mappers.Clear();
+            foreach (var mapperData in MapperData)
             {
-                foreach (var alias in aliases)
-                    AddMapping(alias, providerName, mapper);
+                var provider = GetProvider(mapperData.Value.ProviderName);
+                if (provider==null)
+                {
+                    Debug.WriteLine($"No provider registered with the name '{mapperData.Value.ProviderName}', skipping associated mapper.");
+                    continue;
+                }
+
+                var ctorParamTypes = new List<Type>() { typeof(DbConnectionStringBuilder), typeof(IDialect) };
+                var ctorParams = new List<object>() {
+                    provider.CreateConnectionStringBuilder() ?? throw new NullReferenceException()
+                    , DialectBuilder.Get(mapperData.Value.Aliases.First())
+                };
+
+                if (mapperData.Value.DriverLocatorFactory != null)
+                {
+                    ctorParamTypes.Add(typeof(DriverLocatorFactory));
+                    ctorParams.Add(mapperData.Value.DriverLocatorFactory);
+                }
+
+                var ctor = mapperData.Key.GetConstructor(
+                                BindingFlags.Instance | BindingFlags.Public,
+                                ctorParamTypes.ToArray()
+                            ) ?? throw new NullReferenceException($"Unable to find a suitable constructor for the mapper of type '{mapperData.Key.Name}'.");
+                var mapper = ctor.Invoke(ctorParams.ToArray()) as IMapper
+                        ?? throw new NullReferenceException();
+
+                foreach (var alias in mapperData.Value.Aliases)
+                    Mappers.Add(alias, mapper);
             }
         }
 
-        internal void Build(string name)
-            => Build(new string[] { name });
-
-        public virtual void Build(string[] schemes)
-        {
-            (Provider, Mapper) = (null, null);
-
-            var mainScheme = schemes.Length == 1
-                ? schemes[0]
-                : schemes.Contains("oledb")
+        private string GetMainAlias(string[] aliases)
+            => aliases.Length == 1
+                ? aliases[0]
+                : aliases.Contains("oledb")
                     ? "oledb"
-                    : schemes.Contains("odbc")
+                    : aliases.Contains("odbc")
                         ? "odbc"
                         : throw new ArgumentOutOfRangeException();
 
-            Provider = GetProvider(GetProviderName(mainScheme)) ?? throw new NullReferenceException();
+        public IMapper GetMapper(string alias)
+            => GetMapper(new[] { alias });
 
-            var ctorParamTypes= new List<Type>() { typeof(DbConnectionStringBuilder) };
-            var ctorParams = new List<object>() { Provider.CreateConnectionStringBuilder() ?? throw new NullReferenceException() };
+        public virtual IMapper GetMapper(string[] aliases)
+        {
+            var mainAlias = GetMainAlias(aliases);
 
-            if (GetDriverLocatorFactory(mainScheme)!=null)
-            {
-                ctorParamTypes.Add(typeof(DriverLocatorFactory));
-                ctorParams.Add(GetDriverLocatorFactory(mainScheme) ?? throw new NullReferenceException());
-            }
+            if (!Mappers.ContainsKey(mainAlias))
+                throw new SchemeNotFoundException(mainAlias, Mappers.Keys.ToArray());
 
-            var mapperType = GetMapperType(mainScheme);
-            var ctor = mapperType.GetConstructor(
-                            BindingFlags.Instance | BindingFlags.Public,
-                            ctorParamTypes.ToArray()
-                        ) ?? throw new NullReferenceException();
-            Mapper = ctor.Invoke(ctorParams.ToArray()) as IMapper
-                    ?? throw new NullReferenceException();
+            return Mappers[mainAlias];
         }
 
-        public virtual DbProviderFactory GetProviderFactory()
-            => Provider ?? throw new InvalidOperationException();
-
-        public virtual IMapper GetMapper()
-            => Mapper ?? throw new InvalidOperationException();
-
-        protected internal string GetProviderName(string scheme)
+        public virtual DbProviderFactory GetProviderFactory(string[] aliases)
         {
-            if (Schemes.ContainsKey(scheme))
-                return Schemes[scheme].ProviderName;
+            var mainAlias = GetMainAlias(aliases);
 
-            throw new SchemeNotFoundException(scheme, Schemes.Keys.ToArray());
+            if (!Mappers.ContainsKey(mainAlias))
+                throw new SchemeNotFoundException(mainAlias, Mappers.Keys.ToArray());
+            
+            var mapper = Mappers[mainAlias];
+            return GetProvider(MapperData[mapper.GetType()].ProviderName)
+                ?? throw new ProviderNotFoundException(MapperData[mapper.GetType()].ProviderName, DbProviderFactories.GetProviderInvariantNames().ToArray());
         }
 
-        protected internal static DbProviderFactory GetProvider(string providerName)
+        protected internal static DbProviderFactory? GetProvider(string providerName)
         {
-            if (DbProviderFactories.TryGetFactory(providerName, out var providerFactory))
-                return providerFactory;
-
-            throw new ProviderNotFoundException(providerName, DbProviderFactories.GetProviderInvariantNames().ToArray());
-        }
-
-        protected internal Type GetMapperType(string scheme)
-        {
-            if (Schemes.ContainsKey(scheme))
-                return Schemes[scheme].Mapper;
-
-            throw new SchemeNotFoundException(scheme, Schemes.Keys.ToArray());
-        }
-
-        protected internal DriverLocatorFactory? GetDriverLocatorFactory(string scheme)
-        {
-            if (Schemes.ContainsKey(scheme))
-                return Schemes[scheme].DriverLocatorFactory;
-
-            throw new SchemeNotFoundException(scheme, Schemes.Keys.ToArray());
+            DbProviderFactories.TryGetFactory(providerName, out var providerFactory);
+            return providerFactory;
         }
 
         #region Add, remove aliases and mappings
 
         public void AddAlias(string alias, string original)
         {
-            if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
+            if (!MapperData.Any(x => x.Value.Aliases.Contains(original)))
+                throw new ArgumentOutOfRangeException();
 
-            if (!Schemes.ContainsKey(original))
-                throw new ArgumentException();
-
-            Schemes.Add(alias, Schemes[original]);
+            MapperData.First(x => x.Value.Aliases.Contains(original))
+                .Value.Aliases.Add(alias);
         }
 
-        public void AddMapping(string alias, string providerName, Type mapper)
+        public void AddMapping<M, D>(string providerName, string alias)
+            where M : IMapper
+            where D : IDialect
+            => AddMapping<M, D>(providerName, new[] { alias });
+
+        public void AddMapping<M, D>(string providerName, string[] aliases)
+            where M : IMapper
+            where D : IDialect
+            => AddMapping(typeof(M), providerName, aliases, typeof(D));
+        public void AddMapping(Type mapperType, string providerName, string[] aliases, Type dialectType)
         {
-            if (Schemes.ContainsKey(alias))
+            if (!mapperType.IsAssignableTo(typeof(IMapper)))
+                throw new ArgumentException(nameof(mapperType));
+
+            if (!dialectType.IsAssignableTo(typeof(IDialect)))
+                throw new ArgumentException(nameof(dialectType));
+
+            if (MapperData.ContainsKey(mapperType))
                 throw new ArgumentException();
 
-            if (!mapper.IsAssignableTo(typeof(BaseMapper)))
-                throw new ArgumentException();
-
-            Schemes.Add(alias, new ProviderInfo(providerName, mapper, null));
+            MapperData.Add(mapperType, new ProviderInfo(providerName, aliases.ToList(), dialectType, null));
         }
 
         public void RemoveMapping(string providerName)
         {
-            foreach (var scheme in Schemes)
+            foreach (var provider in MapperData)
             {
-                if (scheme.Value.ProviderName == providerName)
-                    Schemes.Remove(scheme.Key);
+                if (provider.Value.ProviderName == providerName)
+                    MapperData.Remove(provider.Key);
             }
         }
 
         public void ReplaceMapper(Type oldMapper, Type newMapper)
         {
-            foreach (var scheme in Schemes.Where(x => x.Value.Mapper == oldMapper))
-                Schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, newMapper, scheme.Value.DriverLocatorFactory);
+            MapperData.Add(newMapper, MapperData[oldMapper]);
+            MapperData.Remove(oldMapper);
         }
 
         public void ReplaceDriverLocatorFactory(Type mapper, DriverLocatorFactory factory)
-        {
-            foreach (var scheme in Schemes.Where(x => x.Value.Mapper == mapper))
-                Schemes[scheme.Key] = new ProviderInfo(scheme.Value.ProviderName, scheme.Value.Mapper, factory);
-        }
+            => MapperData[mapper] = new ProviderInfo(
+                MapperData[mapper].ProviderName,
+                MapperData[mapper].Aliases,
+                MapperData[mapper].DialectType,
+                factory);
 
         #endregion
     }

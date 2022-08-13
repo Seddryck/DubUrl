@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<SqliteDialect>(
         "SQLite3"
         , new[] { "sq", "sqlite" }
         , "Microsoft.Data.Sqlite", 2
@@ -18,8 +19,9 @@ namespace DubUrl.Mapping.Implementation
     {
         protected internal const string DATABASE_KEYWORD = "Data Source";
 
-        public SqliteMapper(DbConnectionStringBuilder csb)
+        public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

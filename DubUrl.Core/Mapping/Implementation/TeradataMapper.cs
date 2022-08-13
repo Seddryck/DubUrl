@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<TeradataDialect>(
         "Teradata"
         , new[] { "td", "teradata", "tera" }
         , "Teradata.Client", 4
@@ -23,8 +24,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string PASSWORD_KEYWORD = "Password";
         internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public TeradataMapper(DbConnectionStringBuilder csb)
+        public TeradataMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new Specificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -26,13 +27,13 @@ namespace DubUrl
         internal ConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
             => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
 
-        private (string ConnectionString, UrlInfo UrlInfo, string[] Dialects) ParseDetail()
+        private (string ConnectionString, UrlInfo UrlInfo, IDialect Dialect) ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
-            SchemeMapperBuilder.Build(urlInfo.Schemes);
-            Mapper = SchemeMapperBuilder.GetMapper();
+            SchemeMapperBuilder.Build();
+            Mapper = SchemeMapperBuilder.GetMapper(urlInfo.Schemes);
             Mapper.Map(urlInfo);
-            return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialects());
+            return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect());
         }
 
         public string Parse() => ParseDetail().ConnectionString;
@@ -40,7 +41,7 @@ namespace DubUrl
         public virtual IDbConnection Connect()
         {
             var parsing = ParseDetail();
-            var provider = SchemeMapperBuilder.GetProviderFactory();
+            var provider = SchemeMapperBuilder.GetProviderFactory(parsing.UrlInfo.Schemes);
             var connection = provider.CreateConnection() ?? throw new ArgumentNullException();
             connection.ConnectionString = parsing.ConnectionString;
             return connection;
@@ -53,6 +54,6 @@ namespace DubUrl
             return connection;
         }
 
-        public virtual string[] Dialects { get => ParseDetail().Dialects; }
+        public virtual IDialect Dialect { get => ParseDetail().Dialect; }
     }
 }

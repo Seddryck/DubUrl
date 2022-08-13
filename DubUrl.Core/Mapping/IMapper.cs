@@ -1,4 +1,5 @@
 ﻿using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -12,6 +13,6 @@ namespace DubUrl.Mapping
     {
         IReadOnlyDictionary<string, object> Map(UrlInfo urlInfo);
         string GetConnectionString();
-        string[] GetDialects();
+        IDialect GetDialect();
     }
 }

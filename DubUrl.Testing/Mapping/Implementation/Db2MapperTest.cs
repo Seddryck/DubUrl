@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -26,7 +27,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", int port = 0, string segmentsList = "db")
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new Db2Mapper(ConnectionStringBuilder);
+            var mapper = new Db2Mapper(ConnectionStringBuilder, new Db2Dialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -39,7 +40,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new Db2Mapper(ConnectionStringBuilder);
+            var mapper = new Db2Mapper(ConnectionStringBuilder, new Db2Dialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -52,7 +53,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication(string segmentsList = "db")
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = segmentsList.Split('/') };
-            var mapper = new Db2Mapper(ConnectionStringBuilder);
+            var mapper = new Db2Mapper(ConnectionStringBuilder, new Db2Dialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);

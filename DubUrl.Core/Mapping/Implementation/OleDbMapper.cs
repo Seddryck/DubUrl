@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Locating.OleDbProvider;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<AnsiDialect>(
         "OLEDB"
         , new[] { "oledb" }
         , "System.Data.OleDb", 10
@@ -24,8 +25,10 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public OleDbMapper(DbConnectionStringBuilder csb) : this(csb, new ProviderLocatorFactory()) { }
-        public OleDbMapper(DbConnectionStringBuilder csb, ProviderLocatorFactory providerLocatorFactory) : base(csb,
+        public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect) : this(csb, dialect, new ProviderLocatorFactory()) { }
+        public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, ProviderLocatorFactory providerLocatorFactory) 
+            : base(csb,
+                  dialect,
                   new SpecificatorStraight(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

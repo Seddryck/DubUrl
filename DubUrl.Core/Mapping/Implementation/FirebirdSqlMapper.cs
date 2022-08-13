@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<FirebirdSqlDialect>(
         "Firebird SQL"
         , new[] { "fb", "firebird" }
         , "FirebirdSql.Data.FirebirdClient"
@@ -22,8 +23,9 @@ namespace DubUrl.Mapping.Implementation
         internal const string USERNAME_KEYWORD = "User";
         internal const string PASSWORD_KEYWORD = "Password";
 
-        public FirebirdSqlMapper(DbConnectionStringBuilder csb)
+        public FirebirdSqlMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
+                  dialect,
                   new SpecificatorUnchecked(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),

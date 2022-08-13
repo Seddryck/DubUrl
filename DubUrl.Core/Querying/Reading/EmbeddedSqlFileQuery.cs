@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Querying.Dialecting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -18,20 +19,20 @@ namespace DubUrl.Querying.Reading
         internal EmbeddedSqlFileQuery(string basePath, IResourceManager resourceManager)
             => (BasePath, ResourceManager) = (basePath, resourceManager);
 
-        public string Read(string[] dialects)
+        public string Read(IDialect dialect)
         {
-            if (!ResourceManager.Any(BasePath, dialects))
+            if (!ResourceManager.Any(BasePath, dialect.Aliases))
                 throw new ArgumentException();
 
-            return ResourceManager.ReadCommandText(ResourceManager.BestMatch(BasePath, dialects));
+            return ResourceManager.ReadCommandText(ResourceManager.BestMatch(BasePath, dialect.Aliases));
         }
 
-        public bool Exists(string[] dialects, bool includeDefault = false)
+        public bool Exists(IDialect dialect, bool includeDefault = false)
         {
-            if (!ResourceManager.Any(BasePath, dialects))
+            if (!ResourceManager.Any(BasePath, dialect.Aliases))
                 return false;
-            var bestMatch = ResourceManager.BestMatch(BasePath, dialects);
-            return includeDefault || dialects.Any(x => bestMatch.EndsWith($".{x}.sql"));
+            var bestMatch = ResourceManager.BestMatch(BasePath, dialect.Aliases);
+            return includeDefault || dialect.Aliases.Any(x => bestMatch.EndsWith($".{x}.sql"));
         }
     }
 }

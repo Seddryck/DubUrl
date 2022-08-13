@@ -1,4 +1,5 @@
 ﻿using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<MySqlDialect>(
         "MariaDB"
         , new[] { "maria", "mariadb" }
         , "MySqlConnector", 3
     )]
     internal class MariaDbConnectorMapper : MySqlConnectorMapper
     {
-        public MariaDbConnectorMapper(DbConnectionStringBuilder csb)
-            : base(csb)
+        public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect)
+            : base(csb, dialect)
         { }
     }
 }

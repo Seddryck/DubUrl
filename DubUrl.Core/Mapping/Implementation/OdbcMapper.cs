@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping.Tokening;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper(
+    [Mapper<AnsiDialect>(
         "ODBC"
         , new[] { "odbc" }
         , "System.Data.Odbc", 10
@@ -23,8 +24,10 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Pwd";
         protected internal const string DRIVER_KEYWORD = "Driver";
 
-        public OdbcMapper(DbConnectionStringBuilder csb) : this(csb, new DriverLocatorFactory()) { }
-        public OdbcMapper(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory) : base(csb,
+        public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect) : this(csb, dialect, new DriverLocatorFactory()) { }
+        public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, DriverLocatorFactory driverLocatorFactory)
+            : base(csb,
+                  dialect,
                   new SpecificatorStraight(csb),
                   new BaseTokenMapper[] {
                     new HostMapper(),

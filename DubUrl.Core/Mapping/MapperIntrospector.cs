@@ -9,7 +9,7 @@ namespace DubUrl.Mapping
 {
     public class MapperIntrospector
     {
-        public record struct MapperInfo(Type MapperType, string DatabaseName, string[] Aliases, string ProviderInvariantName, int ListingPriority) { }
+        public record struct MapperInfo(Type MapperType, string DatabaseName, string[] Aliases, Type DialectType, string ProviderInvariantName, int ListingPriority) { }
 
         protected MapperClassIntrospector MapperClassIntrospectorInstance { get; } = new();
 
@@ -34,6 +34,7 @@ namespace DubUrl.Mapping
                         x.Type,
                         x.Attribute.DatabaseName,
                         x.Attribute.Aliases,
+                        x.Attribute.DialectType, 
                         x.Attribute.ProviderInvariantName,
                         x.Attribute.ListingPriority
                    ));
