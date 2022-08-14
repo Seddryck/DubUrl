@@ -4,16 +4,19 @@ using System.Data;
 using System.Data.Common;
 using DubUrl.Querying;
 using DubUrl.Querying.Reading;
+using DubUrl.Registering;
 
 namespace DubUrl.QA.Pgsql
 {
     public class AdoProvider
     {
+        [OneTimeSetUp]
+        public void SetupFixture()
+            => new ProviderFactoriesRegistrator().Register();
+
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
             Console.WriteLine(connectionUrl.Parse());
 
@@ -24,8 +27,6 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomer()
         {
-            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
             
             using var conn = connectionUrl.Open();
@@ -37,8 +38,6 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomerWithDatabase()
         {
-            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-
             var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
             var fullName = db.ReadScalarNonNull<string>("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -54,8 +53,6 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomerWithDatabaseQuery()
         {
-            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-
             var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -64,8 +61,6 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomerWithParams()
         {
-            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
 
             using var conn = connectionUrl.Open();
