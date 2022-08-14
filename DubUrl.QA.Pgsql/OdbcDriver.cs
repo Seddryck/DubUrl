@@ -2,16 +2,19 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
+using DubUrl.Registering;
 
 namespace DubUrl.QA.Pgsql
 {
     public class OdbcDriver
     {
+        [OneTimeSetUp]
+        public void SetupFixture()
+            => new ProviderFactoriesRegistrator().Register();
+
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
             Console.WriteLine(connectionUrl.Parse());
 
@@ -22,8 +25,6 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomer()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
             
             using var conn = connectionUrl.Open();
@@ -36,8 +37,6 @@ namespace DubUrl.QA.Pgsql
         [Ignore("Database for odbc is not supported at this moment")]
         public void QueryCustomerWithDatabase()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var db = new DatabaseUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
             var fullName = db.ReadScalarNonNull<string>("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -46,8 +45,6 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomerWithParams()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
 
             using var conn = connectionUrl.Open();

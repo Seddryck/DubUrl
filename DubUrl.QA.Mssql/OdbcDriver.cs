@@ -2,16 +2,19 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
+using DubUrl.Registering;
 
 namespace DubUrl.QA.Mssql
 {
     public class OdbcDriver
     {
+        [OneTimeSetUp]
+        public void SetupFixture()
+            => new ProviderFactoriesRegistrator().Register();
+
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
             Console.WriteLine(connectionUrl.Parse());
 
@@ -22,8 +25,6 @@ namespace DubUrl.QA.Mssql
         [Test]
         public void QueryCustomer()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
             
             using var conn = connectionUrl.Open();
@@ -35,8 +36,6 @@ namespace DubUrl.QA.Mssql
         [Test]
         public void QueryCustomerWithParams()
         {
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
 
             using var conn = connectionUrl.Open();

@@ -126,7 +126,8 @@ namespace DubUrl.Testing.Mapping
             var mysqlScheme = "mysql";
 
             var builder = new SchemeMapperBuilder();
-            DbProviderFactories.RegisterFactory("MySql", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
+            if(!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
+                DbProviderFactories.RegisterFactory("MySql.Data", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
             builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
             builder.Build();
