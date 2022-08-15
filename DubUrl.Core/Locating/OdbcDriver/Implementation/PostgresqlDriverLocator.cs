@@ -1,21 +1,30 @@
-﻿using System;
+﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Implementation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver(
-        "PostgreSQL"
-        , new[] { "pg", "pgsql", "postgres", "postgresql" }
-        , "^\\bPostgreSQL \\b(\\bANSI\\b|\\bUnicode\\b)\\(?(\\bx64\\b)?\\)?$"
-        , new[] { typeof(EncodingOption), typeof(ArchitectureOption) }
-        , 1
-    )]
+    [Driver<PostgresqlDriverRegex, PgsqlMapper>()]
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {
+        internal class PostgresqlDriverRegex : BaseDriverRegex
+        {
+            public PostgresqlDriverRegex()
+                : base(new BaseRegex[]
+                {
+                    new WordMatch("PostgreSQL"),
+                    new SpaceMatch(),
+                    new AnyOfCapture<EncodingOption>(new[] { "ANSI", "Unicode" }),
+                    new OptionalCapture<ArchitectureOption>("(x64)"),
+                })
+            { }
+        }
+
         private record struct CandidateInfo(string Driver, EncodingOption Encoding, ArchitectureOption Architecture);
 
         private readonly List<CandidateInfo> Candidates = new();
@@ -40,7 +49,7 @@ namespace DubUrl.Locating.OdbcDriver
             (
                 typeof(ArchitectureOption)
                 , matches.Length > 1 && !string.IsNullOrEmpty(matches[GetOptionPosition<PostgresqlDriverLocator>(typeof(ArchitectureOption))])
-                    ? matches[GetOptionPosition<PostgresqlDriverLocator>(typeof(ArchitectureOption))] 
+                    ? matches[GetOptionPosition<PostgresqlDriverLocator>(typeof(ArchitectureOption))].Replace("(", "").Replace(")", "")
                     : "x86"
             );
 
@@ -58,7 +67,7 @@ namespace DubUrl.Locating.OdbcDriver
         protected override List<string> RankCandidates()
             => Candidates
                 .OrderByDescending(x => x.Encoding)
-                .OrderByDescending(x => x.Architecture==GetRunningArchitecture())
+                .OrderByDescending(x => x.Architecture == GetRunningArchitecture())
                 .Select(x => x.Driver)
                 .ToList();
     }

@@ -1,22 +1,31 @@
-﻿using System;
+﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Implementation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver(
-        "MariaDB"
-        , new[] { "maria", "mariadb" }
-        , "^\\bMariaDB ODBC \\b([0-9]*\\.[0-9]*)\\b Driver\\b$"
-        , new[] { typeof(VersionOption) }
-        , 3
-    )]
+    [Driver<MariaDbDriverRegex, MariaDbConnectorMapper>()]
     internal class MariaDbDriverLocator : BaseDriverLocator
     {
-        
+        internal class MariaDbDriverRegex : BaseDriverRegex
+        {
+            public MariaDbDriverRegex()
+                : base(new BaseRegex[]
+                {
+                    new WordMatch("MariaDB ODBC"),
+                    new SpaceMatch(),
+                    new VersionCapture<VersionOption>(),
+                    new SpaceMatch(),
+                    new WordMatch("Driver"),
+                })
+            { }
+        }
+
         private readonly Dictionary<string, decimal> Candidates = new();
         internal EncodingOption Encoding { get; }
 
@@ -37,6 +46,8 @@ namespace DubUrl.Locating.OdbcDriver
         }
 
         protected override List<string> RankCandidates()
-            => Candidates.OrderByDescending(x => x.Value).Select(x=> x.Key).ToList();
+            => Candidates.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
+
+        
     }
 }

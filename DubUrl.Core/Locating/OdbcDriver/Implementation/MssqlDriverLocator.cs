@@ -1,21 +1,31 @@
-﻿using System;
+﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Implementation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver(
-        "Microsoft SQL Server"
-        , new[] { "mssql", "ms", "sqlserver" }
-        , "^\\bODBC Driver \\b([0-9]*)\\b for SQL Server\\b$"
-        , new[] { typeof(VersionOption) }
-        , 0
-    )]
+    [Driver<MssqlDriverRegex, MssqlMapper>()]
     internal class MssqlDriverLocator : BaseDriverLocator
     {
+        internal class MssqlDriverRegex : BaseDriverRegex
+        {
+            public MssqlDriverRegex()
+                : base(new BaseRegex[]
+                {
+                    new WordMatch("ODBC Driver"),
+                    new SpaceMatch(),
+                    new VersionCapture<VersionOption>(),
+                    new SpaceMatch(),
+                    new WordMatch("for SQL Server"),
+                })
+            { }
+        }
+
         private readonly Dictionary<string, int> Candidates = new();
         public MssqlDriverLocator()
             : base(GetNamePattern<MssqlDriverLocator>()) { }
@@ -26,6 +36,6 @@ namespace DubUrl.Locating.OdbcDriver
             => Candidates.Add(driver, int.Parse(matches[GetOptionPosition<MssqlDriverLocator>(typeof(VersionOption))]));
 
         protected override List<string> RankCandidates()
-            => Candidates.OrderByDescending(x => x.Value).Select(x=> x.Key).ToList();
+            => Candidates.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
     }
 }

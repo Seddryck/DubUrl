@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Locating.RegexUtils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,15 +8,25 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver
 {
-    [Driver(
+    [Driver<MsExcelDriverRegex>(
         "Microsoft Excel"
         , new[] { "xls", "xlsx", "xlsm", "xlsb" }
-        , "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"
         , new Type[] { }
         , 2
     )]
     internal class MsExcelDriverLocator : BaseDriverLocator
     {
+        internal class MsExcelDriverRegex : BaseDriverRegex
+        {
+            public MsExcelDriverRegex()
+                : base(new BaseRegex[]
+                {
+                    new WordMatch("Microsoft Excel Driver"),
+                    new SpaceMatch(),
+                    new LiteralMatch("(*.xls, *.xlsx, *.xlsm, *.xlsb)"),
+                })
+            { }
+        }
         private readonly List<string> Candidates = new();
 
         public MsExcelDriverLocator()
@@ -23,17 +34,6 @@ namespace DubUrl.Locating.OdbcDriver
         internal MsExcelDriverLocator(DriverLister driverLister)
             : base(GetNamePattern<MsExcelDriverLocator>(), driverLister) { }
 
-        public override string Locate()
-        {
-            var allDrivers = Lister.List();
-            foreach (var driver in allDrivers)
-            {
-                if (StringComparer.InvariantCultureIgnoreCase.Compare(RegexPattern, driver)==0)
-                    AddCandidate(driver, new[] { driver });
-            }
-            var bestCandidates = RankCandidates();
-            return bestCandidates.Any() ? bestCandidates.First() : string.Empty;
-        }
 
         protected override void AddCandidate(string driver, string[] matches)
             => Candidates.Add(driver);
