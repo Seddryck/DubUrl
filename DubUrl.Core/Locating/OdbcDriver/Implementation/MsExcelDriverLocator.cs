@@ -16,7 +16,7 @@ namespace DubUrl.Locating.OdbcDriver
     )]
     internal class MsExcelDriverLocator : BaseDriverLocator
     {
-        internal class MsExcelDriverRegex : CompositeRegex, IRegexDriver
+        internal class MsExcelDriverRegex : CompositeRegex, IDriverRegex
         {
             public MsExcelDriverRegex()
                 : base(new BaseRegex[]
@@ -26,6 +26,7 @@ namespace DubUrl.Locating.OdbcDriver
                     new LiteralMatch("(*.xls, *.xlsx, *.xlsm, *.xlsb)"),
                 })
             { }
+            public Type[] Options { get => Array.Empty<Type>(); }
         }
         private readonly List<string> Candidates = new();
 

@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<PostgresqlDriverRegex, TimescaleMapper>(
-        new[] { typeof(EncodingOption), typeof(ArchitectureOption) }
-    )]
+    [Driver<PostgresqlDriverRegex, TimescaleMapper>()]
     internal class TimescaleDriverLocator : PostgresqlDriverLocator
     {
         public TimescaleDriverLocator()

@@ -24,7 +24,7 @@ namespace DubUrl.Locating.OdbcDriver
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class DriverAttribute<R> : DriverAttribute where R : IRegexDriver
+    public class DriverAttribute<R> : DriverAttribute where R : IDriverRegex
     {
         public DriverAttribute(string databaseName, string[] aliases, Type[]? options = null, int listingPriority = 5)
             : base(
@@ -39,17 +39,18 @@ namespace DubUrl.Locating.OdbcDriver
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public class DriverAttribute<R, M> : DriverAttribute
-        where R : IRegexDriver
+        where R : IDriverRegex
         where M : BaseMapper
     {
-        public DriverAttribute(Type[]? options = null)
+        public DriverAttribute()
             : base()
         {
             var attr = ReadMapperAttribute();
+            var regex = Activator.CreateInstance<R>();
             DatabaseName = attr.DatabaseName;
             Aliases = attr.Aliases;
-            NamePattern = Activator.CreateInstance<R>().ToString();
-            Options = options ?? Array.Empty<Type>();
+            NamePattern = regex.ToString();
+            Options = regex.Options;
             ListingPriority = attr.ListingPriority;
         }
 

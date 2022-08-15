@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MssqlDriverRegex, MssqlMapper>(
-        new[] { typeof(VersionOption) }
-    )]
+    [Driver<MssqlDriverRegex, MssqlMapper>()]
     internal class MssqlDriverLocator : BaseDriverLocator
     {
-        internal class MssqlDriverRegex : CompositeRegex, IRegexDriver
+        internal class MssqlDriverRegex : CompositeRegex, IDriverRegex
         {
             public MssqlDriverRegex()
                 : base(new BaseRegex[]
@@ -26,6 +24,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
                     new WordMatch("for SQL Server"),
                 })
             { }
+            public Type[] Options { get => new[] { typeof(VersionOption) }; }
         }
 
         private readonly Dictionary<string, int> Candidates = new();

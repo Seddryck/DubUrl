@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MySqlConnectorDriverRegex, MySqlConnectorMapper>(
-        new[] { typeof(VersionOption), typeof(EncodingOption) }
-    )]
+    [Driver<MySqlConnectorDriverRegex, MySqlConnectorMapper>()]
     internal class MySqlConnectorDriverLocator : BaseDriverLocator
     {
-        internal class MySqlConnectorDriverRegex : CompositeRegex, IRegexDriver
+        internal class MySqlConnectorDriverRegex : CompositeRegex, IDriverRegex
         {
             public MySqlConnectorDriverRegex()
                 : base(new BaseRegex[]
@@ -28,6 +26,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
                     new WordMatch("Driver"),
                 })
             { }
+            public Type[] Options { get => new[] { typeof(VersionOption), typeof(EncodingOption) };}
         }
 
         private readonly Dictionary<string, decimal> Candidates = new();

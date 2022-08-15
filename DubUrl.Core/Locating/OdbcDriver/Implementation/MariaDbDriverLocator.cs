@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MariaDbDriverRegex, MariaDbConnectorMapper>(
-        new[] { typeof(VersionOption) }
-    )]
+    [Driver<MariaDbDriverRegex, MariaDbConnectorMapper>()]
     internal class MariaDbDriverLocator : BaseDriverLocator
     {
-        internal class MariaDbDriverRegex : CompositeRegex, IRegexDriver
+        internal class MariaDbDriverRegex : CompositeRegex, IDriverRegex
         {
             public MariaDbDriverRegex()
                 : base(new BaseRegex[]
@@ -26,6 +24,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
                     new WordMatch("Driver"),
                 })
             { }
+            public Type[] Options { get => new[] { typeof(VersionOption) }; }
         }
 
         private readonly Dictionary<string, decimal> Candidates = new();

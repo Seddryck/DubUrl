@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating
 {
-    public interface IRegexDriver
+    public interface IDriverRegex
     {
         string ToString();
+        Type[] Options { get; }
     }
 }

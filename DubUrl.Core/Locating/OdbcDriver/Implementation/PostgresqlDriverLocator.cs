@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<PostgresqlDriverRegex, PgsqlMapper>(
-        new[] { typeof(EncodingOption), typeof(ArchitectureOption) }
-    )]
+    [Driver<PostgresqlDriverRegex, PgsqlMapper>()]
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {
-        internal class PostgresqlDriverRegex : CompositeRegex, IRegexDriver
+        internal class PostgresqlDriverRegex : CompositeRegex, IDriverRegex
         {
             public PostgresqlDriverRegex()
                 : base(new BaseRegex[]
@@ -25,6 +23,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
                     new OptionalCapture("(x64)"),
                 })
             { }
+            public Type[] Options { get => new[] { typeof(EncodingOption), typeof(ArchitectureOption) }; }
         }
 
         private record struct CandidateInfo(string Driver, EncodingOption Encoding, ArchitectureOption Architecture);
