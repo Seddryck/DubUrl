@@ -12,19 +12,18 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
     [Driver<MariaDbDriverRegex, MariaDbConnectorMapper>()]
     internal class MariaDbDriverLocator : BaseDriverLocator
     {
-        internal class MariaDbDriverRegex : CompositeRegex, IDriverRegex
+        internal class MariaDbDriverRegex : BaseDriverRegex
         {
             public MariaDbDriverRegex()
                 : base(new BaseRegex[]
                 {
                     new WordMatch("MariaDB ODBC"),
                     new SpaceMatch(),
-                    new VersionCapture(),
+                    new VersionCapture<VersionOption>(),
                     new SpaceMatch(),
                     new WordMatch("Driver"),
                 })
             { }
-            public Type[] Options { get => new[] { typeof(VersionOption) }; }
         }
 
         private readonly Dictionary<string, decimal> Candidates = new();

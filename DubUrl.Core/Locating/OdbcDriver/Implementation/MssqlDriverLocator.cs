@@ -12,19 +12,18 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
     [Driver<MssqlDriverRegex, MssqlMapper>()]
     internal class MssqlDriverLocator : BaseDriverLocator
     {
-        internal class MssqlDriverRegex : CompositeRegex, IDriverRegex
+        internal class MssqlDriverRegex : BaseDriverRegex
         {
             public MssqlDriverRegex()
                 : base(new BaseRegex[]
                 {
                     new WordMatch("ODBC Driver"),
                     new SpaceMatch(),
-                    new VersionCapture(),
+                    new VersionCapture<VersionOption>(),
                     new SpaceMatch(),
                     new WordMatch("for SQL Server"),
                 })
             { }
-            public Type[] Options { get => new[] { typeof(VersionOption) }; }
         }
 
         private readonly Dictionary<string, int> Candidates = new();

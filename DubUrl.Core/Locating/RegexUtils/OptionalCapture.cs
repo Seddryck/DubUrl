@@ -15,4 +15,9 @@ namespace DubUrl.Locating.RegexUtils
         protected internal override StringBuilder ToRegex(StringBuilder stringBuilder)
             => stringBuilder.Append('(').AppendEscaped(Option).Append(@")?");
     }
+
+    internal class OptionalCapture<T> : OptionalCapture
+    {
+        public OptionalCapture(string option) : base(option) { }
+    }
 }

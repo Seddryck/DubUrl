@@ -12,21 +12,20 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
     [Driver<MySqlConnectorDriverRegex, MySqlConnectorMapper>()]
     internal class MySqlConnectorDriverLocator : BaseDriverLocator
     {
-        internal class MySqlConnectorDriverRegex : CompositeRegex, IDriverRegex
+        internal class MySqlConnectorDriverRegex : BaseDriverRegex
         {
             public MySqlConnectorDriverRegex()
                 : base(new BaseRegex[]
                 {
                     new WordMatch("MySQL ODBC"),
                     new SpaceMatch(),
-                    new VersionCapture(),
+                    new VersionCapture<VersionOption>(),
                     new SpaceMatch(),
-                    new AnyOfCapture(new[] { "ANSI", "Unicode" }),
+                    new AnyOfCapture<EncodingOption>(new[] { "ANSI", "Unicode" }),
                     new SpaceMatch(),
                     new WordMatch("Driver"),
                 })
             { }
-            public Type[] Options { get => new[] { typeof(VersionOption), typeof(EncodingOption) };}
         }
 
         private readonly Dictionary<string, decimal> Candidates = new();

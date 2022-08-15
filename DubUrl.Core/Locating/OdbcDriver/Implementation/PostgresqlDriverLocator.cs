@@ -12,18 +12,17 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
     [Driver<PostgresqlDriverRegex, PgsqlMapper>()]
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {
-        internal class PostgresqlDriverRegex : CompositeRegex, IDriverRegex
+        internal class PostgresqlDriverRegex : BaseDriverRegex
         {
             public PostgresqlDriverRegex()
                 : base(new BaseRegex[]
                 {
                     new WordMatch("PostgreSQL"),
                     new SpaceMatch(),
-                    new AnyOfCapture(new[] { "ANSI", "Unicode" }),
-                    new OptionalCapture("(x64)"),
+                    new AnyOfCapture<EncodingOption>(new[] { "ANSI", "Unicode" }),
+                    new OptionalCapture<ArchitectureOption>("(x64)"),
                 })
             { }
-            public Type[] Options { get => new[] { typeof(EncodingOption), typeof(ArchitectureOption) }; }
         }
 
         private record struct CandidateInfo(string Driver, EncodingOption Encoding, ArchitectureOption Architecture);

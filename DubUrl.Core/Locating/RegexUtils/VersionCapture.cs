@@ -11,4 +11,9 @@ namespace DubUrl.Locating.RegexUtils
         protected internal override StringBuilder ToRegex(StringBuilder stringBuilder)
             => stringBuilder.Append(@"([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})");
     }
+
+    internal class VersionCapture<T> : VersionCapture
+    {
+        public VersionCapture() : base() { }
+    }
 }

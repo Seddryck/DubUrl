@@ -24,6 +24,10 @@ namespace DubUrl.Locating.RegexUtils
             stringBuilder.Append(')');
             return stringBuilder;
         }
-            
+    }
+
+    internal class AnyOfCapture<T> : AnyOfCapture
+    {
+        public AnyOfCapture(string[] options) : base(options) { }
     }
 }

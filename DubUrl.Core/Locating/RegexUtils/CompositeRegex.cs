@@ -8,7 +8,7 @@ namespace DubUrl.Locating.RegexUtils
 {
     internal class CompositeRegex
     {
-        private BaseRegex[] Regexes { get; }
+        protected BaseRegex[] Regexes { get; }
 
         public CompositeRegex(BaseRegex[] regexes)
             => Regexes = regexes;
