@@ -5,12 +5,14 @@
 
 version: 2
 updates:
-  - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/DubUrl.Core/" # Location of package manifests
+  - package-ecosystem: "nuget" 
+    directory: "/DubUrl.Core/" 
     schedule:
       interval: "daily"
-  - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/DubUrl.Testing/" # Location of package manifests
+    labels:
+      - "dependency-update"
+  - package-ecosystem: "nuget" 
+    directory: "/DubUrl.Testing/"
     schedule:
       interval: "weekly"
     labels:
