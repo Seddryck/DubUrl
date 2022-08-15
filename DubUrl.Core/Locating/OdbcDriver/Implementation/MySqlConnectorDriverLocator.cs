@@ -1,30 +1,46 @@
-﻿using System;
+﻿using DubUrl.Locating.RegexUtils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver(
+    [Driver<MySqlConnectorDriverRegex>(
         "MySQL"
         , new[] { "mysql", "my" }
-        , "^\\bMySQL ODBC ([0-9]*\\.[0-9]*)\\s(\\bANSI\\b|\\bUnicode\\b)\\b Driver\\b$"
         , new[] { typeof(VersionOption), typeof(EncodingOption) }
         , 1
     )]
     internal class MySqlConnectorDriverLocator : BaseDriverLocator
     {
+        internal class MySqlConnectorDriverRegex : CompositeRegex, IRegexDriver
+        {
+            public MySqlConnectorDriverRegex()
+                : base(new BaseRegex[]
+                {
+                    new WordMatch("MySQL ODBC"),
+                    new SpaceMatch(),
+                    new VersionCapture(),
+                    new SpaceMatch(),
+                    new AnyOfCapture(new[] { "ANSI", "Unicode" }),
+                    new SpaceMatch(),
+                    new WordMatch("Driver"),
+                })
+            { }
+        }
+
         private readonly Dictionary<string, decimal> Candidates = new();
         internal EncodingOption Encoding { get; }
 
         public MySqlConnectorDriverLocator()
             : this(EncodingOption.Unspecified) { }
         public MySqlConnectorDriverLocator(EncodingOption encoding)
-            : base(GetNamePattern<MySqlConnectorDriverLocator>())  => (Encoding) = (encoding);
+            : base(GetNamePattern<MySqlConnectorDriverLocator>()) => Encoding = encoding;
         internal MySqlConnectorDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified)
-            : base(GetNamePattern<MySqlConnectorDriverLocator>(), driverLister) => (Encoding) = (encoding);
+            : base(GetNamePattern<MySqlConnectorDriverLocator>(), driverLister) => Encoding = encoding;
 
         protected override void AddCandidate(string driver, string[] matches)
         {
@@ -47,6 +63,6 @@ namespace DubUrl.Locating.OdbcDriver
         }
 
         protected override List<string> RankCandidates()
-            => Candidates.OrderByDescending(x => x.Value).Select(x=> x.Key).ToList();
+            => Candidates.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
     }
 }

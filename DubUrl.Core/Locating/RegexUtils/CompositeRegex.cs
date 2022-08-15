@@ -24,5 +24,8 @@ namespace DubUrl.Locating.RegexUtils
 
         public string ToRegex()
             => ToRegex(new StringBuilder()).ToString();
+
+        public override string ToString()
+            => ToRegex();
     }
 }

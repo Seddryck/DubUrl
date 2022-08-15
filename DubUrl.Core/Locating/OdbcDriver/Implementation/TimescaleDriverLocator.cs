@@ -5,12 +5,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver(
+    [Driver<PostgresqlDriverRegex>(
         "Timescale"
         , new[] { "ts", "Timescale" }
-        , "^\\bPostgreSQL \\b(\\bANSI\\b|\\bUnicode\\b)\\(?(\\bx64\\b)?\\)?$"
         , new[] { typeof(EncodingOption), typeof(ArchitectureOption) }
         , 6
     )]
