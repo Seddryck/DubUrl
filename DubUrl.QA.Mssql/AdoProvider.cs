@@ -3,16 +3,19 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 using DubUrl.Querying.Reading;
+using DubUrl.Registering;
 
 namespace DubUrl.QA.Mssql
 {
     public class AdoProvider
     {
+        [OneTimeSetUp]
+        public void SetupFixture()
+            => new ProviderFactoriesRegistrator().Register();
+
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
             Console.WriteLine(connectionUrl.Parse());
 
@@ -23,10 +26,8 @@ namespace DubUrl.QA.Mssql
         [Test]
         public void QueryCustomer()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
-            
+
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "select FullName from Customer where CustomerId=1";
@@ -36,8 +37,6 @@ namespace DubUrl.QA.Mssql
         [Test]
         public void QueryCustomerWithDatabase()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-
             var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
             var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -53,8 +52,6 @@ namespace DubUrl.QA.Mssql
         [Test]
         public void QueryCustomerWithDatabaseQuery()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-
             var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -63,8 +60,6 @@ namespace DubUrl.QA.Mssql
         [Test]
         public void QueryCustomerWithParams()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-
             var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
 
             using var conn = connectionUrl.Open();
