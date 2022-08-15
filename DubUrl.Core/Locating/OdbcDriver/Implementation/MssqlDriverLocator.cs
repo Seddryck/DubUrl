@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MssqlDriverRegex>(
-        "Microsoft SQL Server"
-        , new[] { "mssql", "ms", "sqlserver" }
-        , new[] { typeof(VersionOption) }
-        , 0
+    [Driver<MssqlDriverRegex, MssqlMapper>(
+        new[] { typeof(VersionOption) }
     )]
     internal class MssqlDriverLocator : BaseDriverLocator
     {

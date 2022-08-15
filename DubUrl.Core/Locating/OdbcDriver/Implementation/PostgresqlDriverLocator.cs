@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<PostgresqlDriverRegex>(
-        "PostgreSQL"
-        , new[] { "pg", "pgsql", "postgres", "postgresql" }
-        , new[] { typeof(EncodingOption), typeof(ArchitectureOption) }
-        , 1
+    [Driver<PostgresqlDriverRegex, PgsqlMapper>(
+        new[] { typeof(EncodingOption), typeof(ArchitectureOption) }
     )]
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {

@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MySqlConnectorDriverRegex>(
-        "MySQL"
-        , new[] { "mysql", "my" }
-        , new[] { typeof(VersionOption), typeof(EncodingOption) }
-        , 1
+    [Driver<MySqlConnectorDriverRegex, MySqlConnectorMapper>(
+        new[] { typeof(VersionOption), typeof(EncodingOption) }
     )]
     internal class MySqlConnectorDriverLocator : BaseDriverLocator
     {
