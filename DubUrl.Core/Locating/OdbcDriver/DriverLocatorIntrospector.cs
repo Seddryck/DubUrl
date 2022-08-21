@@ -10,7 +10,7 @@ namespace DubUrl.Locating.OdbcDriver
 {
     public class DriverLocatorIntrospector : BaseIntrospector
     {
-        public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority) { }
+        public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority, Type[] Options) { }
 
         public DriverLocatorIntrospector()
             : this(new AssemblyClassesIntrospector()) { }
@@ -32,6 +32,7 @@ namespace DubUrl.Locating.OdbcDriver
                         , db.Attribute.Aliases
                         , driver.Attribute.RegexPattern
                         , db.Attribute.ListingPriority
+                        , driver.Attribute.Options
                     );
             }
         }
