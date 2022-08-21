@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -10,11 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<FirebirdSqlDialect>(
-        "Firebird SQL"
-        , new[] { "fb", "firebird" }
-        , "FirebirdSql.Data.FirebirdClient"
-    )]
+    [Mapper<FirebirdSqlDatabase>("FirebirdSql.Data.FirebirdClient")]
     internal class FirebirdSqlMapper : BaseMapper
     {
         internal const string SERVER_KEYWORD = "DataSource";

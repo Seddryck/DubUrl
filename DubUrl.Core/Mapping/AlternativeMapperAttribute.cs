@@ -8,17 +8,21 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class AlternativeMapperAttribute<T> : AlternativeMapperAttribute where T : BaseMapper
+    sealed public class AlternativeMapperAttribute<T> : AlternativeMapperAttribute where T : IDatabase
     {
-        public override string DatabaseName
-        => typeof(T).GetCustomAttribute<MapperAttribute>()?.DatabaseName
-            ?? throw new Exception();
-        public override string[] Aliases
-        => typeof(T).GetCustomAttribute<MapperAttribute>()?.Aliases
-                ?? throw new Exception();
-        public AlternativeMapperAttribute(string providerInvariantName) : base()
-            => (ProviderInvariantName) = (providerInvariantName);
+        public AlternativeMapperAttribute(string providerInvariantName)
+            : base(
+                  typeof(T)
+                  , providerInvariantName
+            )
+        { }
     }
 
-    public abstract class AlternativeMapperAttribute : BaseMapperAttribute { }
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    public class AlternativeMapperAttribute : BaseMapperAttribute
+    {
+        public AlternativeMapperAttribute(Type database, string providerInvariantName)
+            : base(database, providerInvariantName)
+        { }
+    }
 }

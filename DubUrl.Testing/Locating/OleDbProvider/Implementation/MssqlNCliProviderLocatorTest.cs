@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.OleDbProvider;
+using DubUrl.Locating.OleDbProvider.Implementation;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Locating.OleDbProvider
+namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
 {
     public class MssqlNCliProviderLocatorTest
     {

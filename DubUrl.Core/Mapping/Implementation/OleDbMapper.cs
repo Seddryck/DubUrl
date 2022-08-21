@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Connectivity;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Locating.OleDbProvider;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
@@ -11,12 +12,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<AnsiDialect>(
-        "OLEDB"
-        , new[] { "oledb" }
-        , "System.Data.OleDb", 10
+    [GenericMapper<OleDbConnectivity>(
+        "System.Data.OleDb"
     )]
-    internal class OleDbMapper : BaseMapper
+    internal class OleDbMapper : BaseMapper, IOleDbMapper
     {
         protected internal const string PROVIDER_KEYWORD = "Provider";
         protected internal const string SERVER_KEYWORD = "Data Source";

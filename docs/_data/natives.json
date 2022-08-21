@@ -1,6 +1,6 @@
 [
   {
-    "Class": "MssqlMapper",
+    "Class": "MsSqlServerMapper",
     "Database": "Microsoft SQL Server",
     "Aliases": [
       "mssql",
@@ -19,7 +19,7 @@
     "ProviderInvariantName": "MySqlConnector"
   },
   {
-    "Class": "PgsqlMapper",
+    "Class": "PostgresqlMapper",
     "Database": "PostgreSQL",
     "Aliases": [
       "pg",
@@ -112,21 +112,5 @@
       "timescale"
     ],
     "ProviderInvariantName": "Npgsql"
-  },
-  {
-    "Class": "OdbcMapper",
-    "Database": "ODBC",
-    "Aliases": [
-      "odbc"
-    ],
-    "ProviderInvariantName": "System.Data.Odbc"
-  },
-  {
-    "Class": "OleDbMapper",
-    "Database": "OLEDB",
-    "Aliases": [
-      "oledb"
-    ],
-    "ProviderInvariantName": "System.Data.OleDb"
   }
 ]

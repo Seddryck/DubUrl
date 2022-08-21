@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Connectivity;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
@@ -11,12 +12,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<AnsiDialect>(
-        "ODBC"
-        , new[] { "odbc" }
-        , "System.Data.Odbc", 10
+    [GenericMapper<OdbcConnectivity>(
+        "System.Data.Odbc"
     )]
-    internal class OdbcMapper : BaseMapper
+    internal class OdbcMapper : BaseMapper, IOdbcMapper
     {
         protected internal const string SERVER_KEYWORD = "Server";
         protected internal const string DATABASE_KEYWORD = "Database";
@@ -40,7 +39,7 @@ namespace DubUrl.Mapping.Implementation
         { }
 
         internal DriverLocatorFactory DriverLocatorFactory
-            => (TokenMappers.First(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
+            => (TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
                 ?? throw new ArgumentNullException();
 
         internal class HostMapper : BaseTokenMapper

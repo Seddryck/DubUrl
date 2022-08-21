@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -10,13 +11,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<PgsqlDialect>(
-        "PostgreSQL"
-        , new[] { "pg", "pgsql", "postgres", "postgresql" }
-        , "Npgsql"
-        , 1
+    [MapperAttribute<Database.PostgresqlDatabase>(
+        "Npgsql"
     )]
-    internal class PgsqlMapper : BaseMapper
+    internal class PostgresqlMapper : BaseMapper
     {
         protected internal const string SERVER_KEYWORD = "Host";
         protected internal const string PORT_KEYWORD = "Port";
@@ -25,7 +23,7 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public PgsqlMapper(DbConnectionStringBuilder csb, IDialect dialect)
+        public PostgresqlMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb,
                   dialect,
                   new Specificator(csb),

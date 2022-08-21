@@ -34,15 +34,15 @@ namespace DubUrl.Locating.OdbcDriver
         protected abstract void AddCandidate(string driver, string[] match);
         protected abstract List<string> RankCandidates();
 
-        protected internal static string GetNamePattern<T>()
+        protected internal static string GetRegexPattern<T>()
         =>
-            (typeof(T).GetCustomAttributes(typeof(DriverAttribute), false).FirstOrDefault() as DriverAttribute)
-            ?.NamePattern
+            (typeof(T).GetCustomAttributes(typeof(LocatorAttribute), false).FirstOrDefault() as LocatorAttribute)
+            ?.RegexPattern
             ?? throw new ArgumentOutOfRangeException();
 
         protected internal static int GetOptionPosition<T>(Type optionType)
         =>
-            (typeof(T).GetCustomAttributes(typeof(DriverAttribute), false).FirstOrDefault() as DriverAttribute)
+            (typeof(T).GetCustomAttributes(typeof(LocatorAttribute), false).FirstOrDefault() as LocatorAttribute)
             ?.Options.ToList().IndexOf(optionType)
             ?? throw new ArgumentOutOfRangeException();
     }

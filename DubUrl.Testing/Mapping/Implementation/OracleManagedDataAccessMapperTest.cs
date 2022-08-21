@@ -32,8 +32,8 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.DATASOURCE_KEYWORD));
-            Assert.That(result[OracleManagedDataAccessMapper.DATASOURCE_KEYWORD], Is.EqualTo(expected));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessMapper.DATASOURCE_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessMapper.DATASOURCE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -44,10 +44,10 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.USERNAME_KEYWORD));
-            Assert.That(result[OracleManagedDataAccessMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.PASSWORD_KEYWORD));
-            Assert.That(result[OracleManagedDataAccessMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessMapper.USERNAME_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessMapper.PASSWORD_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
             Assert.That(result, Does.Not.ContainKey("INTEGRATED SECURITY"));
         }
 
@@ -59,10 +59,10 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.USERNAME_KEYWORD));
-            Assert.That(result[OracleManagedDataAccessMapper.USERNAME_KEYWORD], Is.EqualTo("/"));
-            Assert.That(result, Does.ContainKey(OracleManagedDataAccessMapper.PASSWORD_KEYWORD));
-            Assert.That(result[OracleManagedDataAccessMapper.PASSWORD_KEYWORD], Is.Empty);
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessMapper.USERNAME_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessMapper.USERNAME_KEYWORD], Is.EqualTo("/"));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessMapper.PASSWORD_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessMapper.PASSWORD_KEYWORD], Is.Empty);
         }
 
         [Test]

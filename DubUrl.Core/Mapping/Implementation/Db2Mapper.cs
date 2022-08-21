@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -10,11 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<Db2Dialect>(
-        "IBM DB2"
-        , new[] { "db2" }
-        , "IBM.Data.DB2.Core", 3
-    )]
+    [Mapper<Db2Database>("IBM.Data.DB2.Core")]
     internal class Db2Mapper : BaseMapper
     {
         internal const string SERVER_KEYWORD = "Server";

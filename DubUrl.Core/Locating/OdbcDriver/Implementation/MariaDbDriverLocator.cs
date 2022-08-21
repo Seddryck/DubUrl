@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MariaDbDriverRegex, MariaDbConnectorMapper>()]
+    [Driver<MariaDbDriverRegex, OdbcMapper, MariaDbDatabase>()]
     internal class MariaDbDriverLocator : BaseDriverLocator
     {
         internal class MariaDbDriverRegex : BaseDriverRegex
@@ -30,9 +31,9 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
         internal EncodingOption Encoding { get; }
 
         public MariaDbDriverLocator()
-            : base(GetNamePattern<MariaDbDriverLocator>()) { }
+            : base(GetRegexPattern<MariaDbDriverLocator>()) { }
         internal MariaDbDriverLocator(DriverLister driverLister)
-            : base(GetNamePattern<MariaDbDriverLocator>(), driverLister) { }
+            : base(GetRegexPattern<MariaDbDriverLocator>(), driverLister) { }
 
         protected override void AddCandidate(string driver, string[] matches)
         {

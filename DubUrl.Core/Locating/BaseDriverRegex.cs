@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating
 {
-    internal class BaseDriverRegex : CompositeRegex, IDriverRegex
+    internal class BaseLocatorRegex : CompositeRegex
     {
-        public BaseDriverRegex(BaseRegex[] regexes)
+        public BaseLocatorRegex(BaseRegex[] regexes)
             : base(regexes) { }
 
         public Type[] Options 
@@ -27,5 +27,17 @@ namespace DubUrl.Locating
                 return types.ToArray();
             } 
         }
+    }
+
+    internal class BaseDriverRegex : BaseLocatorRegex, IDriverRegex
+    {
+        public BaseDriverRegex(BaseRegex[] regexes)
+            : base(regexes) { }
+    }
+
+    internal class BaseProviderRegex : BaseLocatorRegex, IProviderRegex
+    {
+        public BaseProviderRegex(BaseRegex[] regexes)
+            : base(regexes) { }
     }
 }

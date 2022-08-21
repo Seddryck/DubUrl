@@ -7,28 +7,24 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class MapperAttribute : BaseMapperAttribute
+    sealed public class MapperAttribute<T> : MapperAttribute where T : IDatabase
     {
-        public MapperAttribute(string databaseName, string[] aliases, string providerInvariantName, Type dialectType, int listingPriority = 5)
-        {
-            (DatabaseName, Aliases, ProviderInvariantName, DialectType, ListingPriority)
-                = (databaseName, aliases, providerInvariantName, dialectType, listingPriority);
-        }
-    }
-
-
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class MapperAttribute<T> : MapperAttribute where T : IDialect
-    {
-        public MapperAttribute(string databaseName, string[] aliases, string providerInvariantName, int listingPriority = 5)
+        public MapperAttribute(string providerInvariantName)
             : base(
-                  databaseName
-                  , aliases
+                  typeof(T)
                   , providerInvariantName
-                  , typeof(T)
-                  , listingPriority
             )
         { }
     }
+
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    public class MapperAttribute : BaseMapperAttribute
+    {
+        public MapperAttribute(Type database, string providerInvariantName)
+            : base(database, providerInvariantName)
+        { }
+    }
+
 }

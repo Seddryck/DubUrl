@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<PostgresqlDriverRegex, PgsqlMapper>()]
+    [Driver<PostgresqlDriverRegex, OdbcMapper, PostgresqlDatabase>()]
     internal class PostgresqlDriverLocator : BaseDriverLocator
     {
         internal class PostgresqlDriverRegex : BaseDriverRegex
@@ -34,9 +35,9 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
         public PostgresqlDriverLocator()
             : this(EncodingOption.Unspecified, ArchitectureOption.Unspecified) { }
         public PostgresqlDriverLocator(EncodingOption encoding, ArchitectureOption architecture)
-            : base(GetNamePattern<PostgresqlDriverLocator>()) => (Encoding, Architecture) = (encoding, architecture);
+            : base(GetRegexPattern<PostgresqlDriverLocator>()) => (Encoding, Architecture) = (encoding, architecture);
         internal PostgresqlDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified, ArchitectureOption architecture = ArchitectureOption.Unspecified)
-            : base(GetNamePattern<PostgresqlDriverLocator>(), driverLister) => (Encoding, Architecture) = (encoding, architecture);
+            : base(GetRegexPattern<PostgresqlDriverLocator>(), driverLister) => (Encoding, Architecture) = (encoding, architecture);
 
         protected override void AddCandidate(string driver, string[] matches)
         {

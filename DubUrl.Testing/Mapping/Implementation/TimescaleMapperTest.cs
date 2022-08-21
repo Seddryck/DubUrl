@@ -32,8 +32,8 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SERVER_KEYWORD));
-            Assert.That(result[PgsqlMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.SERVER_KEYWORD));
+            Assert.That(result[TimescaleMapper.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -46,8 +46,8 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.PORT_KEYWORD));
-            Assert.That(result[PgsqlMapper.PORT_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.PORT_KEYWORD));
+            Assert.That(result[TimescaleMapper.PORT_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -59,8 +59,8 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.DATABASE_KEYWORD));
-            Assert.That(result[PgsqlMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.DATABASE_KEYWORD));
+            Assert.That(result[TimescaleMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -71,12 +71,12 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.USERNAME_KEYWORD));
-            Assert.That(result[PgsqlMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result[PgsqlMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SSPI_KEYWORD));
-            Assert.That(result[PgsqlMapper.SSPI_KEYWORD], Is.EqualTo(false));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.USERNAME_KEYWORD));
+            Assert.That(result[TimescaleMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.PASSWORD_KEYWORD));
+            Assert.That(result[TimescaleMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.SSPI_KEYWORD));
+            Assert.That(result[TimescaleMapper.SSPI_KEYWORD], Is.EqualTo(false));
         }
 
         [Test]
@@ -87,10 +87,10 @@ namespace DubUrl.Testing.Mapping.Implementation
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.Not.ContainKey(PgsqlMapper.USERNAME_KEYWORD));
-            Assert.That(result, Does.Not.ContainKey(PgsqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SSPI_KEYWORD));
-            Assert.That(result[PgsqlMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            Assert.That(result, Does.Not.ContainKey(TimescaleMapper.USERNAME_KEYWORD));
+            Assert.That(result, Does.Not.ContainKey(TimescaleMapper.PASSWORD_KEYWORD));
+            Assert.That(result, Does.ContainKey(TimescaleMapper.SSPI_KEYWORD));
+            Assert.That(result[TimescaleMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
         }
 
         [Test]
