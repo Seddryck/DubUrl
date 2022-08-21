@@ -9,10 +9,10 @@ namespace DubUrl.Mapping
 {
     public abstract class BaseMapperAttribute : Attribute
     {
-        public virtual string DatabaseName { get; protected set; } = string.Empty;
-        public virtual string[] Aliases { get; protected set; } = Array.Empty<string>();
+        public virtual Type Database { get; protected set; } = typeof(object);
         public virtual string ProviderInvariantName { get; protected set; } = string.Empty;
-        public virtual Type DialectType { get; protected set; } = typeof(AnsiDialect);
-        public int ListingPriority { get; protected set; } = 0;
+
+        protected BaseMapperAttribute(Type database, string providerInvariantName)
+            => (Database, ProviderInvariantName) = (database, providerInvariantName);
     }
 }

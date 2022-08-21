@@ -11,4 +11,10 @@ namespace DubUrl.Locating
         string ToString();
         Type[] Options { get; }
     }
+
+    public interface IProviderRegex
+    {
+        string ToString();
+        Type[] Options { get; }
+    }
 }

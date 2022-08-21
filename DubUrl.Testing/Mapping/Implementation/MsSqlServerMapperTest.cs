@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
-    public class MssqlMapperTest
+    public class MsSqlServerMapperTest
     {
         private const string PROVIDER_NAME = "System.Data.SqlClient";
 
@@ -29,12 +29,12 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(MssqlMapper.SERVER_KEYWORD));
-            Assert.That(result[MssqlMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.SERVER_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -43,12 +43,12 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_InitialCatalog(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(MssqlMapper.DATABASE_KEYWORD));
-            Assert.That(result[MssqlMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.DATABASE_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
 
@@ -56,32 +56,32 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(MssqlMapper.USERNAME_KEYWORD));
-            Assert.That(result[MssqlMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey(MssqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result[MssqlMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That(result, Does.ContainKey(MssqlMapper.SSPI_KEYWORD));
-            Assert.That(result[MssqlMapper.SSPI_KEYWORD], Is.EqualTo(false));
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.USERNAME_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.PASSWORD_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.SSPI_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.SSPI_KEYWORD], Is.EqualTo(false));
         }
 
         [Test]
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(MssqlMapper.USERNAME_KEYWORD));
-            Assert.That(result[MssqlMapper.USERNAME_KEYWORD], Is.Empty);
-            Assert.That(result, Does.ContainKey(MssqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result[MssqlMapper.PASSWORD_KEYWORD], Is.Empty);
-            Assert.That(result, Does.ContainKey(MssqlMapper.SSPI_KEYWORD));
-            Assert.That(result[MssqlMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.USERNAME_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.USERNAME_KEYWORD], Is.Empty);
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.PASSWORD_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.PASSWORD_KEYWORD], Is.Empty);
+            Assert.That(result, Does.ContainKey(MsSqlServerMapper.SSPI_KEYWORD));
+            Assert.That(result[MsSqlServerMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
         }
 
         [Test]
@@ -91,7 +91,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("Application Name", "myApp");
             urlInfo.Options.Add("ConnectRetryCount", "5");
 
-            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -104,7 +104,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new MssqlMapper(ConnectionStringBuilder, new MssqlDialect(new[] { "ms","mssql" }));
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(new[] { "ms","mssql" }));
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);

@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.OleDbProvider;
+using DubUrl.Locating.OleDbProvider.Implementation;
 using DubUrl.Mapping;
 using DubUrl.Mapping.Tokening;
 using NUnit.Framework;
@@ -14,7 +15,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider
     {
         [Test]
         [TestCase("mssql", typeof(MssqlOleDbProviderLocator))]
-        [TestCase("mssqlncli", typeof(MssqlNCliProviderLocator))]
+        //[TestCase("mssqlncli", typeof(MssqlNCliProviderLocator))]
         [TestCase("mysql", typeof(MySqlProviderLocator))]
         [TestCase("xls", typeof(AceXlsProviderLocator))]
         [TestCase("xlsx", typeof(AceXlsxProviderLocator))]
@@ -32,7 +33,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider
 
         [Test]
         [TestCase("mssql", typeof(BaseMapper.OptionsMapper))]
-        [TestCase("mssqlncli", typeof(BaseMapper.OptionsMapper))]
+        //[TestCase("mssqlncli", typeof(BaseMapper.OptionsMapper))]
         [TestCase("mysql", typeof(BaseMapper.OptionsMapper))]
         [TestCase("xls", typeof(ExtendedPropertiesMapper))]
         [TestCase("xlsx", typeof(ExtendedPropertiesMapper))]

@@ -43,6 +43,11 @@ namespace DubUrl.Locating.OleDbProvider
             var bestCandidates = RankCandidates();
             return bestCandidates.Any() ? bestCandidates.First() : string.Empty;
         }
+        protected internal static string GetRegexPattern<T>()
+        =>
+            (typeof(T).GetCustomAttributes(typeof(BaseLocatorAttribute), false).FirstOrDefault() as BaseLocatorAttribute)
+            ?.RegexPattern
+            ?? throw new ArgumentOutOfRangeException();
 
         protected abstract void AddCandidate(string driver, string[] matches);
         protected abstract List<string> RankCandidates();

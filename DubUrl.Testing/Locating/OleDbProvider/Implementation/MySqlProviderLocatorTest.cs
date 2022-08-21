@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.OleDbProvider;
+using DubUrl.Locating.OleDbProvider.Implementation;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -6,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Locating.OleDbProvider
+namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
 {
-    public class MssqlOleDbProviderLocatorTest
+    public class MySqlProviderLocatorTest
     {
         private class FakeProviderLister : ProviderLister
         {
@@ -23,10 +24,10 @@ namespace DubUrl.Testing.Locating.OleDbProvider
         [Test]
         public void Locate_SingleElementMatching_ElementReturned()
         {
-            var providerLister = new FakeProviderLister(new[] { new ProviderInfo("MSOLEDBSQL", "Microsoft OLE DB Driver for SQL Server") });
-            var providerLocator = new MssqlOleDbProviderLocator(providerLister);
+            var providerLister = new FakeProviderLister(new[] { new ProviderInfo("MySQL Provider", "MySQL Provider") });
+            var providerLocator = new MySqlProviderLocator(providerLister);
             var provider = providerLocator.Locate();
-            Assert.That(provider, Is.EqualTo("MSOLEDBSQL"));
+            Assert.That(provider, Is.EqualTo("MySQL Provider"));
         }
 
         [Test]
@@ -34,12 +35,12 @@ namespace DubUrl.Testing.Locating.OleDbProvider
         {
             var providerLister = new FakeProviderLister(
                 new[] { new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0"),
-                    new ProviderInfo("MSOLEDBSQL", "Microsoft OLE DB Driver for SQL Server"),
+                    new ProviderInfo("MySQL Provider", "MySQL Provider"),
                     new ProviderInfo("SQLNCLI11", "SQL Server Native Client 11.0") }
             );
-            var providerLocator = new MssqlOleDbProviderLocator(providerLister);
+            var providerLocator = new MySqlProviderLocator(providerLister);
             var provider = providerLocator.Locate();
-            Assert.That(provider, Is.EqualTo("MSOLEDBSQL"));
+            Assert.That(provider, Is.EqualTo("MySQL Provider"));
         }
 
         [Test]
@@ -47,7 +48,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider
         {
             var providerLister = new FakeProviderLister(
                 new[] { new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0") });
-            var providerLocator = new MssqlOleDbProviderLocator(providerLister);
+            var providerLocator = new MySqlProviderLocator(providerLister);
             var provider = providerLocator.Locate();
             Assert.That(provider, Is.Null.Or.Empty);
         }

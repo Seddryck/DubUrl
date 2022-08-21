@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -10,10 +11,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<SnowflakeDialect>(
-        "Snowflake"
-        , new[] { "sf", "snowflake" }
-        , "Snowflake.Data", 4
+    [Mapper<SnowflakeDatabase>(
+        "Snowflake.Data"
     )]
     internal class SnowflakeMapper : BaseMapper
     {

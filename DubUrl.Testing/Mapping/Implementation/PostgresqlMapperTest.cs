@@ -13,7 +13,7 @@ using DubUrl.Querying.Dialecting;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
-    public class PgsqlMapperTest
+    public class PostrgresqlMapperTest
     {
         private const string PROVIDER_NAME = "Npgsql";
 
@@ -28,12 +28,12 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SERVER_KEYWORD));
-            Assert.That(result[PgsqlMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.SERVER_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -42,12 +42,12 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void Map_UrlInfo_Port(int expected, int port = 0, string host = "host", string segmentsList = "db")
         {
             var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.PORT_KEYWORD));
-            Assert.That(result[PgsqlMapper.PORT_KEYWORD], Is.EqualTo(expected));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.PORT_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.PORT_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -55,42 +55,42 @@ namespace DubUrl.Testing.Mapping.Implementation
         public void UrlInfo_Map_InitialCatalog(string segmentsList = "db", string expected = "db")
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.DATABASE_KEYWORD));
-            Assert.That(result[PgsqlMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.DATABASE_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(PgsqlMapper.USERNAME_KEYWORD));
-            Assert.That(result[PgsqlMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result[PgsqlMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SSPI_KEYWORD));
-            Assert.That(result[PgsqlMapper.SSPI_KEYWORD], Is.EqualTo(false));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.USERNAME_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.PASSWORD_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.SSPI_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.SSPI_KEYWORD], Is.EqualTo(false));
         }
 
         [Test]
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.Not.ContainKey(PgsqlMapper.USERNAME_KEYWORD));
-            Assert.That(result, Does.Not.ContainKey(PgsqlMapper.PASSWORD_KEYWORD));
-            Assert.That(result, Does.ContainKey(PgsqlMapper.SSPI_KEYWORD));
-            Assert.That(result[PgsqlMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.Not.ContainKey(PostgresqlMapper.USERNAME_KEYWORD));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.Not.ContainKey(PostgresqlMapper.PASSWORD_KEYWORD));
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlMapper.SSPI_KEYWORD));
+            Assert.That((object)result[PostgresqlMapper.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
         }
 
         [Test]
@@ -100,7 +100,7 @@ namespace DubUrl.Testing.Mapping.Implementation
             urlInfo.Options.Add("Application Name", "myApp");
             urlInfo.Options.Add("Persist Security Info", "true");
 
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(Array.Empty<string>()));
             var result = mapper.Map(urlInfo);
 
             Assert.That(result, Is.Not.Null);
@@ -114,7 +114,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new PgsqlMapper(ConnectionStringBuilder, new PgsqlDialect(new[] { "pg", "pgsql" }));
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new[] { "pg", "pgsql" }));
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);

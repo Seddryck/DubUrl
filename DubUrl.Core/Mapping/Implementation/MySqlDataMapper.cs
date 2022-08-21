@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -10,8 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [AlternativeMapper
-        <MySqlConnectorMapper>(
+    [AlternativeMapper<MySqlDatabase>(
         "MySql.Data"
     )]
     internal class MySqlDataMapper : MySqlConnectorMapper

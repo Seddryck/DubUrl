@@ -14,18 +14,18 @@ namespace DubUrl.Registering
     public class BinFolderDiscover : IProviderFactoriesDiscover
     {
         private Assembly? Assembly { get; } = null;
-        private MapperIntrospector MapperIntrospector { get; } = new ();
+        private NativeMapperIntrospector MapperIntrospector { get; } = new ();
 
         public BinFolderDiscover()
             : this(Assembly.GetEntryAssembly()) { }
 
-        internal BinFolderDiscover(MapperIntrospector mapperIntrospector)
+        internal BinFolderDiscover(NativeMapperIntrospector mapperIntrospector)
             : this(Assembly.GetEntryAssembly(), mapperIntrospector) { }
 
         public BinFolderDiscover(Assembly? assembly)
-            : this(assembly, new MapperIntrospector()) { }
+            : this(assembly, new NativeMapperIntrospector()) { }
 
-        internal BinFolderDiscover(Assembly? assembly, MapperIntrospector mapperIntrospector)
+        internal BinFolderDiscover(Assembly? assembly, NativeMapperIntrospector mapperIntrospector)
             => (Assembly, MapperIntrospector) = (assembly, mapperIntrospector);
 
         public virtual IEnumerable<Type> Execute()

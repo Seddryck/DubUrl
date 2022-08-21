@@ -39,6 +39,10 @@ namespace DubUrl.Mapping
         public string GetConnectionString()
             => Csb.ConnectionString;
 
+        public string GetProviderName()
+            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.ProviderInvariantName
+                ?? throw new InvalidDataException();
+
         internal class OptionsMapper : BaseTokenMapper
         {
             internal override void Execute(UrlInfo urlInfo)

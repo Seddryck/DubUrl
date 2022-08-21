@@ -1,4 +1,5 @@
 ﻿using DubUrl.Mapping;
+using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using NUnit.Framework;
 using System;
@@ -9,36 +10,36 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Mapping
 {
-    public class MapperIntrospectorTest
+    public class NativeMapperIntrospectorTest
     {
-        public class FakeMapperClassIntrospector : MapperIntrospector.MapperClassIntrospector
+        internal class FakeMappersIntrospector : BaseIntrospector.AssemblyClassesIntrospector
         {
             private Type[] Types { get; }
 
-            public FakeMapperClassIntrospector(Type[] types)
+            public FakeMappersIntrospector(Type[] types)
                 => Types = types;
 
-            public override IEnumerable<Type> LocateClass<T>()
+            public override IEnumerable<Type> Locate()
                 => Types;
         }
 
         [Test]
         public void Locate_OneMapperClass_ClassReturned()
         {
-            var classes = new FakeMapperClassIntrospector(new[] { typeof(MssqlMapper) });
-            var introspector = new MapperIntrospector(classes);
+            var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MsSqlServerDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
             var result = introspector.Locate();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count(), Is.EqualTo(1));
-            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MssqlMapper)));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
         }
 
         [Test]
         public void Locate_TwoMapperClasses_ClassesReturned()
         {
-            var classes = new FakeMapperClassIntrospector(new[] { typeof(MssqlMapper), typeof(PgsqlMapper) });
-            var introspector = new MapperIntrospector(classes);
+            var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(PostgresqlMapper), typeof(MsSqlServerDatabase), typeof(PostgresqlDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
             var result = introspector.Locate();
 
             Assert.That(result, Is.Not.Null);
@@ -48,20 +49,20 @@ namespace DubUrl.Testing.Mapping
         [Test]
         public void Locate_TwoMapperClassesButOneAlternate_ClassesReturned()
         {
-            var classes = new FakeMapperClassIntrospector(new[] { typeof(MssqlMapper), typeof(MySqlDataMapper) });
-            var introspector = new MapperIntrospector(classes);
+            var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MySqlDataMapper), typeof(MsSqlServerDatabase), typeof(MySqlDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
             var result = introspector.Locate();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count(), Is.EqualTo(1));
-            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MssqlMapper)));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
         }
 
         [Test]
         public void LocateAlternative_TwoMapperClassesButOneAlternate_ClassesReturned()
         {
-            var classes = new FakeMapperClassIntrospector(new[] { typeof(MssqlMapper), typeof(MySqlDataMapper) });
-            var introspector = new MapperIntrospector(classes);
+            var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MySqlDataMapper), typeof(MsSqlServerDatabase), typeof(MySqlDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
             var result = introspector.LocateAlternative();
 
             Assert.That(result, Is.Not.Null);
@@ -72,8 +73,8 @@ namespace DubUrl.Testing.Mapping
         [Test]
         public void Aliases_TwoMapperClassesIncludingAlternative_Equivalent()
         {
-            var classes = new FakeMapperClassIntrospector(new[] { typeof(MySqlConnectorMapper), typeof(MySqlDataMapper) });
-            var introspector = new MapperIntrospector(classes);
+            var types = new FakeMappersIntrospector(new[] { typeof(MySqlConnectorMapper), typeof(MySqlDataMapper), typeof(MySqlDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
             var alternative = introspector.LocateAlternative().ElementAt(0).Aliases;
             var primary = introspector.Locate().ElementAt(0).Aliases;
 
@@ -85,8 +86,8 @@ namespace DubUrl.Testing.Mapping
         [Test]
         public void DatabaseName_TwoMapperClassesIncludingAlternative_Equivalent()
         {
-            var classes = new FakeMapperClassIntrospector(new[] { typeof(MySqlConnectorMapper), typeof(MySqlDataMapper) });
-            var introspector = new MapperIntrospector(classes);
+            var types = new FakeMappersIntrospector(new[] { typeof(MySqlConnectorMapper), typeof(MySqlDataMapper), typeof(MySqlDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
             var alternative = introspector.LocateAlternative().ElementAt(0).DatabaseName;
             var primary = introspector.Locate().ElementAt(0).DatabaseName;
 

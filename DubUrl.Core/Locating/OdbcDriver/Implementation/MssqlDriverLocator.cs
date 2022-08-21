@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MssqlDriverRegex, MssqlMapper>()]
+    [Driver<MssqlDriverRegex, OdbcMapper, MsSqlServerDatabase>()]
     internal class MssqlDriverLocator : BaseDriverLocator
     {
         internal class MssqlDriverRegex : BaseDriverRegex
@@ -28,9 +29,9 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
 
         private readonly Dictionary<string, int> Candidates = new();
         public MssqlDriverLocator()
-            : base(GetNamePattern<MssqlDriverLocator>()) { }
+            : base(GetRegexPattern<MssqlDriverLocator>()) { }
         internal MssqlDriverLocator(DriverLister driverLister)
-            : base(GetNamePattern<MssqlDriverLocator>(), driverLister) { }
+            : base(GetRegexPattern<MssqlDriverLocator>(), driverLister) { }
 
         protected override void AddCandidate(string driver, string[] matches)
             => Candidates.Add(driver, int.Parse(matches[GetOptionPosition<MssqlDriverLocator>(typeof(VersionOption))]));

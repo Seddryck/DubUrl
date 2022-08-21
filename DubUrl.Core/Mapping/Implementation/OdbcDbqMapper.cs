@@ -1,5 +1,4 @@
 ﻿using DubUrl.Mapping.Connectivity;
-using DubUrl.Mapping.Tokening;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
@@ -9,50 +8,42 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Mapping.Tokening;
 
 namespace DubUrl.Mapping.Implementation
 {
     [GenericMapper<OdbcConnectivity>(
         "System.Data.Odbc"
     )]
-    internal class OdbcMapper : BaseMapper, IOdbcMapper
+    internal class OdbcDbqMapper : BaseMapper, IOdbcMapper
     {
-        protected internal const string SERVER_KEYWORD = "Server";
-        protected internal const string DATABASE_KEYWORD = "Database";
+        protected internal const string SERVER_KEYWORD = "DBQ";
         protected internal const string USERNAME_KEYWORD = "Uid";
         protected internal const string PASSWORD_KEYWORD = "Pwd";
         protected internal const string DRIVER_KEYWORD = "Driver";
 
-        public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect) : this(csb, dialect, new DriverLocatorFactory()) { }
-        public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, DriverLocatorFactory driverLocatorFactory)
+        public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect) : this(csb, dialect, new DriverLocatorFactory()) { }
+        public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, DriverLocatorFactory driverLocatorFactory)
             : base(csb,
                   dialect,
                   new SpecificatorStraight(csb),
                   new BaseTokenMapper[] {
-                    new HostMapper(),
+                    new DbqMapper(),
                     new AuthentificationMapper(),
-                    new DatabaseMapper(),
                     new DriverMapper(driverLocatorFactory),
                     new OptionsMapper(),
                   }
             )
         { }
 
-        internal DriverLocatorFactory DriverLocatorFactory
-            => (TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
-                ?? throw new ArgumentNullException();
-
-        internal class HostMapper : BaseTokenMapper
+        internal class DbqMapper : BaseTokenMapper
         {
             internal override void Execute(UrlInfo urlInfo)
             {
                 var fullHost = new StringBuilder(urlInfo.Host);
 
-                if (urlInfo.Segments.Length > 1)
-                    fullHost.Append("\\").Append(urlInfo.Segments.First());
-
-                if (urlInfo.Port > 0)
-                    fullHost.Append(", ").Append(urlInfo.Port);
+                foreach (var segment in urlInfo.Segments)
+                    fullHost.Append('\\').Append(segment);
 
                 Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
             }
@@ -138,39 +129,6 @@ namespace DubUrl.Mapping.Implementation
                     Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
                 if (!string.IsNullOrEmpty(urlInfo.Password))
                     Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
-            }
-        }
-
-        internal class DatabaseMapper : BaseTokenMapper
-        {
-            internal override void Execute(UrlInfo urlInfo)
-            {
-                if (urlInfo.Segments.Length <= 2)
-                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
-                else
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        internal new class OptionsMapper : BaseTokenMapper
-        {
-            internal override void Execute(UrlInfo urlInfo)
-            {
-                foreach (var option in urlInfo.Options)
-                {
-                    if (StringComparer.OrdinalIgnoreCase.Equals(option.Key, DRIVER_KEYWORD))
-                    {
-                        if (!option.Value.StartsWith("{") || !option.Value.EndsWith("}"))
-                            if (option.Value.StartsWith("{") ^ option.Value.EndsWith("}"))
-                                throw new ArgumentOutOfRangeException($"The value of the option '{DRIVER_KEYWORD}' must start with a '{{' and end with '}}' or both should be missing. The value was '{option.Value}'");
-                            else
-                                Specificator.Execute(option.Key, $"{{{option.Value}}}");
-                        else
-                            Specificator.Execute(option.Key, $"{option.Value}");
-                    }
-                    else
-                        Specificator.Execute(option.Key, option.Value);
-                }
             }
         }
     }

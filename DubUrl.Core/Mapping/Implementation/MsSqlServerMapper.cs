@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Mapping.Tokening;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -10,12 +11,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<MssqlDialect>(
-        "Microsoft SQL Server"
-        , new[] { "mssql", "ms", "sqlserver" }
-        , "System.Data.SqlClient", 0
+    [Mapper<MsSqlServerDatabase>(
+        "System.Data.SqlClient"
     )]
-    internal class MssqlMapper : BaseMapper
+    internal class MsSqlServerMapper : BaseMapper
     {
         protected internal const string SERVER_KEYWORD = "Data Source";
         protected internal const string DATABASE_KEYWORD = "Initial Catalog";
@@ -23,7 +22,7 @@ namespace DubUrl.Mapping.Implementation
         protected internal const string PASSWORD_KEYWORD = "Password";
         protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-        public MssqlMapper(DbConnectionStringBuilder csb, IDialect dialect)
+        public MsSqlServerMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb, 
                   dialect,
                   new Specificator(csb),

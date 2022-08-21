@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
@@ -9,16 +10,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<PgsqlDialect>(
-        "CockRoachDB"
-        , new[] { "cr", "cockroach", "crdb", "cdb" }
-        , "Npgsql"
-    )]
-    internal class CockRoachMapper : PgsqlMapper
+    [Mapper<CockRoachDatabase>("Npgsql")]
+    internal class CockRoachMapper : PostgresqlMapper
     {
         public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect)
             : base(csb, dialect)
-        => ReplaceTokenMapper(typeof(PgsqlMapper.DatabaseMapper), new DatabaseMapper());
+        => ReplaceTokenMapper(typeof(PostgresqlMapper.DatabaseMapper), new DatabaseMapper());
 
         internal new class DatabaseMapper : BaseTokenMapper
         {

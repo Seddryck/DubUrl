@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.OleDbProvider;
+using DubUrl.Locating.OleDbProvider.Implementation;
 using DubUrl.Mapping.Tokening;
 using NUnit.Framework;
 using System;
@@ -8,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Locating.OleDbProvider
+namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
 {
     public class AceProviderLocatorTest
     {

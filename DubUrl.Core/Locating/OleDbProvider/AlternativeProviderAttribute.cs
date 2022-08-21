@@ -6,22 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OleDbProvider
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class DriverAttribute : LocatorAttribute
+    public class AlternativeProviderAttribute : BaseLocatorAttribute
     {
-        public DriverAttribute(IDriverRegex driverRegex, Type mapper, Type database)
-            : base(driverRegex.ToString(), driverRegex.Options, mapper, database) { }
+        public AlternativeProviderAttribute(IProviderRegex providerRegex, Type mapper, Type database)
+            : base(providerRegex.ToString(), providerRegex.Options, mapper, database) { }
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class DriverAttribute<R, O, D> : DriverAttribute
-        where R : IDriverRegex
-        where O : IOdbcMapper
+    public class AlternativeProviderAttribute<R, O, D> : AlternativeProviderAttribute
+        where R : IProviderRegex
+        where O : IOleDbMapper
         where D : IDatabase
     {
-        public DriverAttribute()
+        public AlternativeProviderAttribute()
             : base(
                   Activator.CreateInstance<R>()
                   , typeof(O)

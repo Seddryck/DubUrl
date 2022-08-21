@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Mapping;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,23 +8,32 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver
 {
-    public class DriverLocatorIntrospector
+    public class DriverLocatorIntrospector : BaseIntrospector
     {
-        public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, string[] Options, int ListingPriority) { }
+        public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority) { }
+
+        public DriverLocatorIntrospector()
+            : this(new AssemblyClassesIntrospector()) { }
+
+        internal DriverLocatorIntrospector(AssemblyClassesIntrospector introspector)
+            : base(introspector) { }
 
         public IEnumerable<DriverLocatorInfo> Locate()
-            => typeof(DriverLocatorFactory).Assembly
-                    .GetTypes()
-                    .Where(x => x.IsClass
-                        && x.GetCustomAttributes(typeof(DriverAttribute), false).Length > 0)
-                    .Select(x => (Type: x, Attribute: x.GetCustomAttribute<DriverAttribute>() ?? throw new InvalidOperationException()))
-                    .Select(x => new DriverLocatorInfo(
-                        x.Type,
-                        x.Attribute.DatabaseName,
-                        x.Attribute.Aliases,
-                        x.Attribute.NamePattern,
-                        x.Attribute.Options.Select(t => t.Name).ToArray(),
-                        x.Attribute.ListingPriority
-                   ));
+        {
+            var databases = LocateAttribute<DatabaseAttribute>();
+            var drivers = LocateAttribute<DriverAttribute>();
+
+            foreach (var driver in drivers)
+            {
+                var db = databases.Single(x => x.Type == driver.Attribute.Database);
+                yield return new DriverLocatorInfo(
+                        driver.Type
+                        , db.Attribute.DatabaseName
+                        , db.Attribute.Aliases
+                        , driver.Attribute.RegexPattern
+                        , db.Attribute.ListingPriority
+                    );
+            }
+        }
     }
 }

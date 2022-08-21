@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.RegexUtils;
+using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver.Implementation
 {
-    [Driver<MySqlConnectorDriverRegex, MySqlConnectorMapper>()]
+    [Driver<MySqlConnectorDriverRegex, OdbcMapper, MySqlDatabase>()]
     internal class MySqlConnectorDriverLocator : BaseDriverLocator
     {
         internal class MySqlConnectorDriverRegex : BaseDriverRegex
@@ -34,9 +35,9 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
         public MySqlConnectorDriverLocator()
             : this(EncodingOption.Unspecified) { }
         public MySqlConnectorDriverLocator(EncodingOption encoding)
-            : base(GetNamePattern<MySqlConnectorDriverLocator>()) => Encoding = encoding;
+            : base(GetRegexPattern<MySqlConnectorDriverLocator>()) => Encoding = encoding;
         internal MySqlConnectorDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified)
-            : base(GetNamePattern<MySqlConnectorDriverLocator>(), driverLister) => Encoding = encoding;
+            : base(GetRegexPattern<MySqlConnectorDriverLocator>(), driverLister) => Encoding = encoding;
 
         protected override void AddCandidate(string driver, string[] matches)
         {
