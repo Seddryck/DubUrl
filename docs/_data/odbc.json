@@ -8,9 +8,7 @@
       "sqlserver"
     ],
     "NamePattern": "^\\bODBC Driver\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s\\bfor SQL Server$",
-    "Options": [
-      "VersionOption"
-    ]
+    "Options": null
   },
   {
     "Class": "MySqlConnectorDriverLocator",
@@ -20,10 +18,7 @@
       "my"
     ],
     "NamePattern": "^\\bMySQL ODBC\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s(ANSI|Unicode)\\s\\bDriver$",
-    "Options": [
-      "VersionOption",
-      "EncodingOption"
-    ]
+    "Options": null
   },
   {
     "Class": "PostgresqlDriverLocator",
@@ -35,22 +30,7 @@
       "postgresql"
     ],
     "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
-    "Options": [
-      "EncodingOption",
-      "ArchitectureOption"
-    ]
-  },
-  {
-    "Class": "MsExcelDriverLocator",
-    "Database": "Microsoft Excel",
-    "Aliases": [
-      "xls",
-      "xlsx",
-      "xlsm",
-      "xlsb"
-    ],
-    "NamePattern": "^\\bMicrosoft Excel Driver\\s\\(\\*\\.xls, \\*\\.xlsx, \\*\\.xlsm, \\*\\.xlsb\\)$",
-    "Options": []
+    "Options": null
   },
   {
     "Class": "MariaDbDriverLocator",
@@ -60,9 +40,7 @@
       "mariadb"
     ],
     "NamePattern": "^\\bMariaDB ODBC\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s\\bDriver$",
-    "Options": [
-      "VersionOption"
-    ]
+    "Options": null
   },
   {
     "Class": "TimescaleDriverLocator",
@@ -72,9 +50,18 @@
       "timescale"
     ],
     "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
-    "Options": [
-      "EncodingOption",
-      "ArchitectureOption"
-    ]
+    "Options": null
+  },
+  {
+    "Class": "MsExcelDriverLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xls",
+      "xlsx",
+      "xlsb",
+      "xlsm"
+    ],
+    "NamePattern": "^\\bMicrosoft Excel Driver\\s\\(\\*\\.xls, \\*\\.xlsx, \\*\\.xlsm, \\*\\.xlsb\\)$",
+    "Options": null
   }
 ]
