@@ -53,4 +53,10 @@
 		<WarningLevel>5</WarningLevel>
 		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+		<WarningLevel>5</WarningLevel>
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
 </Project>
