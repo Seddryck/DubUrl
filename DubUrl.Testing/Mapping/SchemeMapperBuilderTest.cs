@@ -58,9 +58,6 @@ namespace DubUrl.Testing.Mapping
         //[TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]
-        //[TestCase("oledb", typeof(OleDbMapper))]
-        [TestCase("oledb+mssql", typeof(OleDbMapper))]
-        [TestCase("mssql+oledb", typeof(OleDbMapper))]
         public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder();

@@ -10,14 +10,14 @@ namespace DubUrl.Mapping
 {
     public abstract class BaseIntrospector
     {
-        protected record struct AttributeInfo<T>(Type Type, T Attribute) { }
-        private AssemblyClassesIntrospector ClassesIntrospector { get; } = new();
+        protected record class AttributeInfo<T>(Type Type, T Attribute) { }
+        private ITypesProbe Probe { get; }
 
         protected Type[]? _types;
-        protected Type[] Types { get => _types ??= ClassesIntrospector.Locate().ToArray(); }
+        protected Type[] Types { get => _types ??= Probe.Locate().ToArray(); }
 
-        protected BaseIntrospector(AssemblyClassesIntrospector introspector)
-            => (ClassesIntrospector) = (introspector);
+        protected BaseIntrospector(ITypesProbe probe)
+            => (Probe) = (probe);
 
         protected IEnumerable<AttributeInfo<T>> LocateAttribute<T>() where T : Attribute
             => Types.Where(
@@ -29,17 +29,33 @@ namespace DubUrl.Mapping
                         x.Type,
                         x.Attribute
                     ));
+    }
 
-        public class AssemblyClassesIntrospector
-        {
-            public virtual IEnumerable<Type> Locate()
-                => typeof(SchemeMapperBuilder).Assembly.GetTypes().Where(x => x.IsClass);
-        }
+    public class AssemblyTypesProbe : ITypesProbe
+    {
+        private Assembly[] Assemblies { get; } = new[] { typeof(SchemeMapperBuilder).Assembly };
+
+        public AssemblyTypesProbe()
+        { }
+
+        public AssemblyTypesProbe(Assembly[] assemblies)
+            => Assemblies = assemblies;
+
+        public virtual IEnumerable<Type> Locate()
+            => Assemblies.Aggregate(
+                    Array.Empty<Type>(), (types, asm)
+                    => types.Concat(asm.GetTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+                );
+    }
+
+    public interface ITypesProbe
+    {
+        IEnumerable<Type> Locate();
     }
 
     public abstract class BaseMapperIntrospector : BaseIntrospector
     {
-        protected BaseMapperIntrospector(AssemblyClassesIntrospector introspector)
+        protected BaseMapperIntrospector(AssemblyTypesProbe introspector)
             : base(introspector) { }
 
         public abstract IEnumerable<MapperInfo> Locate();

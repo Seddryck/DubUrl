@@ -19,20 +19,29 @@ namespace DubUrl.Mapping
         private readonly List<MapperInfo> MapperData = new();
 
         protected Dictionary<string, IMapper> Mappers { get; set; } = new();
-        private NativeMapperIntrospector NativeMapperIntrospector { get; } = new NativeMapperIntrospector();
-        private GenericMapperIntrospector GenericMapperIntrospector { get; } = new GenericMapperIntrospector();
+        private BaseMapperIntrospector[] MapperIntrospectors { get; } = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new GenericMapperIntrospector() };
         private DialectBuilder DialectBuilder { get; } = new DialectBuilder();
 
         public SchemeMapperBuilder()
+         : this(new[] { typeof(SchemeMapperBuilder).Assembly }) { }
+
+        public SchemeMapperBuilder(Assembly[] assemblies)
         {
+            var asmIntrospector = new AssemblyTypesProbe(assemblies);
+            MapperIntrospectors = new BaseMapperIntrospector[]
+            {
+                new NativeMapperIntrospector(asmIntrospector)
+                , new GenericMapperIntrospector(asmIntrospector)
+            };
             Initialize();
         }
 
         protected virtual void Initialize()
         {
             foreach (var mapperData 
-                in NativeMapperIntrospector.Locate()
-                .Union(GenericMapperIntrospector.Locate())
+                in MapperIntrospectors.Aggregate(
+                    Array.Empty<MapperInfo>(), (data, introspector)
+                    => data.Concat(introspector.Locate()).ToArray())
             )
                 AddMapping(mapperData);
         }

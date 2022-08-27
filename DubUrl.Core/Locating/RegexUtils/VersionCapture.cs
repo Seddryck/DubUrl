@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.RegexUtils
 {
-    internal class VersionCapture : BaseRegex
+    public class VersionCapture : BaseRegex
     {
         protected internal override StringBuilder ToRegex(StringBuilder stringBuilder)
             => stringBuilder.Append(@"([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})");
     }
 
-    internal class VersionCapture<T> : VersionCapture
+    public class VersionCapture<T> : VersionCapture
     {
         public VersionCapture() : base() { }
     }

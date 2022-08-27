@@ -1,5 +1,6 @@
 ﻿using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.OdbcDriver.Implementation;
+using DubUrl.Locating.Options;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace DubUrl.Testing.Locating.OdbcDriver
         {
             var options = new Dictionary<Type, object>
             {
-                { typeof(DubUrl.Locating.OdbcDriver.ArchitectureOption), architecture },
+                { typeof(ArchitectureOption), architecture },
                 { typeof(EncodingOption), encoding },
             };
 

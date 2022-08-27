@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.RegexUtils
 {
-    internal class WordMatch : LiteralMatch
+    public class WordMatch : LiteralMatch
     {
         public WordMatch(string text)
             : base(text) { }

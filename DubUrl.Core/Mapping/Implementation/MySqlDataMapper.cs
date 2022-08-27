@@ -37,7 +37,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal new class AuthentificationMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (!string.IsNullOrEmpty(urlInfo.Username))
                     Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);

@@ -13,6 +13,7 @@ using DubUrl.Locating.OdbcDriver;
 using Moq;
 using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Locating.Options;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {

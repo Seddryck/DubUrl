@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Tokening
 {
-    internal class ExtendedPropertiesMapper : BaseTokenMapper
+    public class ExtendedPropertiesMapper : BaseTokenMapper
     {
 
         protected internal const string EXTENDED_PROPERTIES_KEYWORD = "Extended Properties";
@@ -16,7 +16,7 @@ namespace DubUrl.Mapping.Tokening
         public ExtendedPropertiesMapper(string[] values)
             => Values = values;
 
-        internal override void Execute(UrlInfo urlInfo)
+        public override void Execute(UrlInfo urlInfo)
         {
             var internalStringBuilder = new StringBuilder();
             internalStringBuilder.Append('\"');

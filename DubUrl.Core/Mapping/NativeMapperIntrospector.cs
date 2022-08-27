@@ -11,8 +11,8 @@ namespace DubUrl.Mapping
     public class NativeMapperIntrospector : BaseMapperIntrospector
     {
         public NativeMapperIntrospector()
-            : this(new AssemblyClassesIntrospector()) { }
-        internal NativeMapperIntrospector(AssemblyClassesIntrospector introspector)
+            : this(new AssemblyTypesProbe()) { }
+        public NativeMapperIntrospector(AssemblyTypesProbe introspector)
             : base(introspector) { }
 
         public override IEnumerable<MapperInfo> Locate()
@@ -29,7 +29,7 @@ namespace DubUrl.Mapping
 
             foreach (var mapper in mappers)
             {
-                var db = databases.Single(x => x.Type == mapper.Attribute.Database);
+                var db = databases.Single(x => x.Type == mapper.Attribute.Connectivity);
                 yield return new MapperInfo(
                         mapper.Type
                         , db.Attribute.DatabaseName

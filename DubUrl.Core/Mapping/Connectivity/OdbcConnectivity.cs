@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.Locating;
+using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
@@ -13,5 +14,16 @@ namespace DubUrl.Mapping.Connectivity
         "ODBC"
         , new[] { "odbc" }
     )]
-    internal class OdbcConnectivity : IGenericConnectivity { }
+    public class OdbcConnectivity : IGenericConnectivity {
+
+        public IEnumerable<string> DefineAliases(GenericConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
+            => CartesianProduct(connectivity.Aliases, database.Aliases);
+
+        private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)
+        {
+            foreach (var item1 in firstArray)
+                foreach (var item2 in secondArray)
+                    yield return $"{item1}+{item2}";
+        }
+    }
 }

@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "sq", "sqlite" }
         , 2
     )]
-    internal class SqliteDatabase : IDatabase
+    public class SqliteDatabase : IDatabase
     { }
 }

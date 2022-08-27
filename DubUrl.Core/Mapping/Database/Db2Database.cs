@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "db2" }
         , 3
     )]
-    internal class Db2Database : IDatabase
+    public class Db2Database : IDatabase
     { }
 }

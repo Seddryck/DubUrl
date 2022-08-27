@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Tokening
 {
-    internal class SpecificatorStraight : Specificator
+    public class SpecificatorStraight : Specificator
     {
         public SpecificatorStraight(DbConnectionStringBuilder csb)
             : base(csb) { }

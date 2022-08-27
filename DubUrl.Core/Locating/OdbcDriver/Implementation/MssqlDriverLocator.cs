@@ -1,4 +1,5 @@
-﻿using DubUrl.Locating.RegexUtils;
+﻿using DubUrl.Locating.Options;
+using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using System;

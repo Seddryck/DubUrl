@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.RegexUtils
 {
-    internal abstract class BaseRegex
+    public abstract class BaseRegex
     {
         protected internal abstract StringBuilder ToRegex(StringBuilder stringBuilder);
         public string ToRegex()

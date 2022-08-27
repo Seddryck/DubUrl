@@ -9,7 +9,7 @@ namespace DubUrl.Locating.OdbcDriver
 {
     public class DriverLocatorFactory : BaseLocatorFactory
     {
-        private DriverLocatorIntrospector DriverLocatorIntrospector { get; set; } = new DriverLocatorIntrospector();
+        private DriverLocatorIntrospector DriverLocatorIntrospector { get; } = new ();
 
         public DriverLocatorFactory()
         {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.RegexUtils
 {
-    internal class CompositeRegex
+    public class CompositeRegex
     {
         protected BaseRegex[] Regexes { get; }
 
