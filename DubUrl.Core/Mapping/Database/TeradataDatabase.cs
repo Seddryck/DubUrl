@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "td", "teradata", "tera" }
         , 4
     )]
-    internal class TeradataDatabase : IDatabase
+    public class TeradataDatabase : IDatabase
     { }
 }

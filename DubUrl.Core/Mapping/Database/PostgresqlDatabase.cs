@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "pg", "pgsql", "postgres", "postgresql" }
         , 1
     )]
-    internal class PostgresqlDatabase : IDatabase
+    public class PostgresqlDatabase : IDatabase
     { }
 }
