@@ -6,13 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating
 {
-    public interface IDriverRegex
-    {
-        string ToString();
-        Type[] Options { get; }
-    }
-
-    public interface IProviderRegex
+    public interface ILocatorRegex
     {
         string ToString();
         Type[] Options { get; }

@@ -11,13 +11,13 @@ namespace DubUrl.Locating.OdbcDriver
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public class DriverAttribute : LocatorAttribute
     {
-        public DriverAttribute(IDriverRegex driverRegex, Type mapper, Type database)
+        public DriverAttribute(ILocatorRegex driverRegex, Type mapper, Type database)
             : base(driverRegex.ToString(), driverRegex.Options, mapper, database) { }
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public class DriverAttribute<R, O, D> : DriverAttribute
-        where R : IDriverRegex
+        where R : ILocatorRegex
         where O : IOdbcMapper
         where D : IDatabase
     {
