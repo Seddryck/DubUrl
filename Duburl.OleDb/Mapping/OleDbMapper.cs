@@ -16,7 +16,7 @@ namespace DubUrl.OleDb.Mapping
     [GenericMapper<OleDbConnectivity>(
         "System.Data.OleDb"
     )]
-    internal class OleDbMapper : BaseMapper, IOleDbMapper
+    public class OleDbMapper : BaseMapper, IOleDbMapper
     {
         protected internal const string PROVIDER_KEYWORD = "Provider";
         protected internal const string SERVER_KEYWORD = "Data Source";
@@ -93,8 +93,8 @@ namespace DubUrl.OleDb.Mapping
         {
             public override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
-                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
+                if (urlInfo.Segments.Length <= 2)
+                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
                 else
                     throw new ArgumentOutOfRangeException();
             }

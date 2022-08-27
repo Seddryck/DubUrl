@@ -8,6 +8,7 @@ using DubUrl.Registering;
 namespace DubUrl.QA.MsSqlServer
 {
     [Category("MsSqlServer")]
+    [FixtureLifeCycle(LifeCycle.SingleInstance)]
     public class AdoProvider
     {
         [OneTimeSetUp]

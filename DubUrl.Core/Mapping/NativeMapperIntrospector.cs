@@ -12,8 +12,10 @@ namespace DubUrl.Mapping
     {
         public NativeMapperIntrospector()
             : this(new AssemblyTypesProbe()) { }
-        public NativeMapperIntrospector(AssemblyTypesProbe introspector)
-            : base(introspector) { }
+        public NativeMapperIntrospector(Assembly[] assemblies)
+            : this(new AssemblyTypesProbe(assemblies)) { }
+        public NativeMapperIntrospector(ITypesProbe probe)
+            : base(probe) { }
 
         public override IEnumerable<MapperInfo> Locate()
             => Locate<MapperAttribute>();

@@ -33,7 +33,7 @@ namespace DubUrl.Mapping
 
     public class AssemblyTypesProbe : ITypesProbe
     {
-        private Assembly[] Assemblies { get; } = new[] { typeof(SchemeMapperBuilder).Assembly };
+        public Assembly[] Assemblies { get; } = new[] { typeof(SchemeMapperBuilder).Assembly };
 
         public AssemblyTypesProbe()
         { }
@@ -55,8 +55,8 @@ namespace DubUrl.Mapping
 
     public abstract class BaseMapperIntrospector : BaseIntrospector
     {
-        protected BaseMapperIntrospector(AssemblyTypesProbe introspector)
-            : base(introspector) { }
+        protected BaseMapperIntrospector(ITypesProbe probe)
+            : base(probe) { }
 
         public abstract IEnumerable<MapperInfo> Locate();
     }

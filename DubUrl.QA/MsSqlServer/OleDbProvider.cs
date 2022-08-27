@@ -3,21 +3,34 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
+using DubUrl.Mapping.Implementation;
+using DubUrl.OleDb.Mapping;
+using DubUrl.Mapping;
 
 namespace DubUrl.QA.MsSqlServer
 {
     [Category("MsSqlServer")]
     [FixtureLifeCycle(LifeCycle.SingleInstance)]
-    public class OdbcDriver
+    public class OleDbProvider
     {
+        private SchemeMapperBuilder SchemeMapperBuilder { get; set; }
+
         [OneTimeSetUp]
         public void SetupFixture()
-            => new ProviderFactoriesRegistrator().Register();
+        {
+            var assemblies = new[] { typeof(OdbcMapper).Assembly, typeof(OleDbMapper).Assembly };
+            
+            var discovery = new BinFolderDiscover(assemblies);
+            var registrator = new ProviderFactoriesRegistrator(discovery);
+            registrator.Register();
+
+            SchemeMapperBuilder = new SchemeMapperBuilder(assemblies);
+        }
 
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("oledb+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes", SchemeMapperBuilder);
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -27,7 +40,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("oledb+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes", SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -38,7 +51,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("oledb+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes", SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();

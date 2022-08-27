@@ -44,8 +44,10 @@ namespace DubUrl.Mapping
     {
         public GenericMapperIntrospector()
             : this(new AssemblyTypesProbe()) { }
-        public GenericMapperIntrospector(AssemblyTypesProbe introspector)
-            : base(introspector) { }
+        public GenericMapperIntrospector(Assembly[] assemblies)
+            : this(new AssemblyTypesProbe(assemblies)) { }
+        public GenericMapperIntrospector(ITypesProbe probe)
+            : base(probe) { }
 
         public override IEnumerable<MapperInfo> Locate()
         {
