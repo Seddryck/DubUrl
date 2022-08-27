@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.Options
 {
     [AttributeUsage(AttributeTargets.Enum, Inherited = true, AllowMultiple = false)]
-    sealed class DriverLocatorOptionAttribute : Attribute
+    sealed class LocatorOptionAttribute : Attribute
     {
-        public DriverLocatorOptionAttribute()
-        {}
+        public LocatorOptionAttribute()
+        { }
     }
 }

@@ -1,12 +1,13 @@
-﻿using System;
+﻿using DubUrl.Locating.OdbcDriver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.Options
 {
-    [DriverLocatorOption]
+    [LocatorOption]
     public enum ArchitectureOption
     {
         Unspecified,

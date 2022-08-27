@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.Options
 {
-    [DriverLocatorOption]
+    [LocatorOption]
     public enum VersionOption
     {
-        
+
     }
 }
