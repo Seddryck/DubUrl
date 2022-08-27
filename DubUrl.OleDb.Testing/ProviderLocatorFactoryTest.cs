@@ -1,5 +1,5 @@
-﻿using DubUrl.Locating.OleDbProvider;
-using DubUrl.Locating.OleDbProvider.Implementation;
+﻿using DubUrl.OleDb;
+using DubUrl.OleDb.Providers;
 using DubUrl.Mapping;
 using DubUrl.Mapping.Tokening;
 using NUnit.Framework;
@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Moq;
+using DubUrl.Mapping.Database;
 
-namespace DubUrl.Testing.Locating.OleDbProvider
+namespace DubUrl.OleDb.Testing
 {
     public class ProviderLocatorFactoryTest
     {
@@ -23,7 +25,16 @@ namespace DubUrl.Testing.Locating.OleDbProvider
         [TestCase("xlsb", typeof(AceXlsbProviderLocator))]
         public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
         {
-            var factory = new ProviderLocatorFactory();
+            var probeMock = new Mock<ITypesProbe>();
+            probeMock.Setup(x => x.Locate()).Returns(
+                new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
+                , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
+                , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
+                , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
+                }
+            );
+            var introspector = new ProviderLocatorIntrospector(probeMock.Object);
+            var factory = new ProviderLocatorFactory(introspector);
             var result = factory.Instantiate(scheme);
 
             Assert.That(result, Is.Not.Null);
@@ -41,7 +52,16 @@ namespace DubUrl.Testing.Locating.OleDbProvider
         [TestCase("xlsb", typeof(ExtendedPropertiesMapper))]
         public void Instantiate_SchemeWithoutOptions_CorrectOptionsMapper(string scheme, Type expected)
         {
-            var factory = new ProviderLocatorFactory();
+            var probeMock = new Mock<ITypesProbe>();
+            probeMock.Setup(x => x.Locate()).Returns(
+                new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
+                , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
+                , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator) 
+                , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
+                }
+            );
+            var introspector = new ProviderLocatorIntrospector(probeMock.Object);
+            var factory = new ProviderLocatorFactory(introspector);
             var result = factory.Instantiate(scheme).OptionsMapper;
 
             Assert.That(result, Is.Not.Null);

@@ -1,18 +1,20 @@
-﻿using DubUrl.Locating.OdbcDriver;
+﻿using DubUrl.OleDb;
+using DubUrl.Locating.Options;
 using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Mapping.Tokening;
+using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider.Implementation
+namespace DubUrl.OleDb.Providers
 {
-    [Provider<AceProviderRegex, OleDbMapper, MsExcelDatabase>()]
-    internal class AceProviderLocator : BaseProviderLocator
+
+    [Provider<AceProviderRegex, OleDbMapper, MsExcelDatabase>]
+    internal abstract class AceProviderLocator : BaseProviderLocator
     {
         internal class AceProviderRegex : BaseProviderRegex
         {
@@ -47,21 +49,25 @@ namespace DubUrl.Locating.OleDbProvider.Implementation
         
     }
 
+    [ProviderSpecialization<AceProviderLocator>("xls")]
     internal class AceXlsProviderLocator : AceProviderLocator
     {
         public AceXlsProviderLocator() : base("Excel 8.0") { }
     }
 
+    [ProviderSpecialization<AceProviderLocator>("xlsx")]
     internal class AceXlsxProviderLocator : AceProviderLocator
     {
         public AceXlsxProviderLocator() : base("Excel 12.0 Xml") { }
     }
 
+    [ProviderSpecialization<AceProviderLocator>("xlsm")]
     internal class AceXlsmProviderLocator : AceProviderLocator
     {
         public AceXlsmProviderLocator() : base("Excel 12.0 Macro") { }
     }
 
+    [ProviderSpecialization<AceProviderLocator>("xlsb")]
     internal class AceXlsbProviderLocator : AceProviderLocator
     {
         public AceXlsbProviderLocator() : base("Excel 12.0") { }

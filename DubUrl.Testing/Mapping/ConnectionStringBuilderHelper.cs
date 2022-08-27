@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Mapping
 {
-    internal class ConnectionStringBuilderHelper
+    public class ConnectionStringBuilderHelper
     {
         public static DbConnectionStringBuilder Retrieve(string invariantName, DbProviderFactory dbProviderFactory)
         {

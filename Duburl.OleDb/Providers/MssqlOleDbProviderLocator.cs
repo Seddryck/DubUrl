@@ -1,8 +1,8 @@
-﻿using DubUrl.Locating.OdbcDriver;
+﻿using DubUrl.OleDb;
 using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Mapping.Tokening;
+using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider.Implementation
+namespace DubUrl.OleDb.Providers
 {
     [Provider<MssqlOleDbProviderRegex, OleDbMapper, MsSqlServerDatabase>()]
     internal class MssqlOleDbProviderLocator : BaseProviderLocator

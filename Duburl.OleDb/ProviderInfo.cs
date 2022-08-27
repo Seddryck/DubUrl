@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider
+namespace DubUrl.OleDb
 {
     internal record struct ProviderInfo(string NickName, string FullName);
 }

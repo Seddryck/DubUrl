@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating;
+using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;
@@ -8,16 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Connectivity
+namespace DubUrl.OleDb.Mapping
 {
     [GenericConnectivity(
-        "ODBC"
-        , new[] { "odbc" }
+        "OLE DB"
+        , new[] { "oledb" }
     )]
-    public class OdbcConnectivity : IGenericConnectivity {
-
+    internal class OleDbConnectivity : IGenericConnectivity 
+    {
         public IEnumerable<string> DefineAliases(GenericConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
-            => CartesianProduct(connectivity.Aliases, database.Aliases);
+            => CartesianProduct(connectivity.Aliases, 
+                (locator as ProviderSpecializationAttribute)?.Aliases ?? database.Aliases);
 
         private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)
         {

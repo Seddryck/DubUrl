@@ -1,15 +1,16 @@
-﻿using DubUrl.Locating.OdbcDriver;
+﻿using DubUrl.OleDb;
+using DubUrl.Locating.Options;
 using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Mapping.Tokening;
+using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider.Implementation
+namespace DubUrl.OleDb.Providers
 {
     [AlternativeProvider<MssqlNCliProviderRegex, OleDbMapper, MsSqlServerDatabase>()]
     internal class MssqlNCliProviderLocator : BaseProviderLocator
@@ -24,7 +25,7 @@ namespace DubUrl.Locating.OleDbProvider.Implementation
                 })
             { }
         }
-        private const string REGEX_PATTERN = "^[S][Q][L][N][C][L][I]([0-9]*)$";
+
         private readonly Dictionary<string, int> Candidates = new();
 
         public MssqlNCliProviderLocator()

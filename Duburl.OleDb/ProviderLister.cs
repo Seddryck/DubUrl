@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.OleDb;
 
-namespace DubUrl.Locating.OleDbProvider
+namespace DubUrl.OleDb
 {
     internal class ProviderLister
     {

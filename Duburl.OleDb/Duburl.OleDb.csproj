@@ -5,10 +5,11 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
 	</ItemGroup>
-	
+
 	<PropertyGroup>
-		<TargetFrameworks>net6.0</TargetFrameworks>
+		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -16,9 +17,9 @@
 	<PropertyGroup>
 		<DebugType>portable</DebugType>
 	</PropertyGroup>
-	
+
 	<PropertyGroup>
-		<PackageId>DubUrl</PackageId>
+		<PackageId>DubUrl.OleDb</PackageId>
 		<Version>0.0.0</Version>
 		<Authors>Cédric L. Charlier</Authors>
 		<Owners>Seddryck</Owners>
@@ -28,7 +29,7 @@
 		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
 		<RespositoryType>git</RespositoryType>
 		<RequireLicenseAcceptance>false</RequireLicenseAcceptance>
-		<PackageTags>connection-string;database;sql</PackageTags>
+		<PackageTags>connection-string;database;sql;oledb</PackageTags>
 		<Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
 		<PackageIcon>icon\DubUrl-icon-128.png</PackageIcon>
 		<SymbolPackageFormat Condition=" '$(DebugType)' != 'embedded' ">snupkg</SymbolPackageFormat>
@@ -39,24 +40,23 @@
 	<ItemGroup>
 		<None Include="..\misc\icon\DubUrl-icon-128.png" Pack="true" PackagePath="icon\" />
 		<None Include="..\README.md">
-		  <Pack>True</Pack>
-		  <PackagePath>\</PackagePath>
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
-
+	
 	<ItemGroup>
-		<InternalsVisibleTo Include="$(AssemblyName).Testing" />
-		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
+		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
-	  <WarningLevel>5</WarningLevel>
-	  <LangVersion>preview</LangVersion>
+		<WarningLevel>5</WarningLevel>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
-	  <WarningLevel>5</WarningLevel>
-	  <LangVersion>preview</LangVersion>
+		<WarningLevel>5</WarningLevel>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 </Project>

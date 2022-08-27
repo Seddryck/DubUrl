@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping;
+﻿using DubUrl.Locating;
+using DubUrl.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider
+namespace DubUrl.OleDb
 {
     internal abstract class BaseProviderLocator : IProviderLocator
     {

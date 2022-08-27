@@ -1,5 +1,5 @@
-﻿using DubUrl.Locating.OleDbProvider.Implementation;
-using DubUrl.Mapping;
+﻿using DubUrl.Locating;
+using DubUrl.OleDb.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,29 +7,30 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider
+namespace DubUrl.OleDb
 {
     public class ProviderLocatorFactory : BaseLocatorFactory
     {
+        private ProviderLocatorIntrospector Introspector { get; }
+
         public ProviderLocatorFactory()
+            : this(new ProviderLocatorIntrospector()) { }
+
+        internal ProviderLocatorFactory(ProviderLocatorIntrospector introspector)
         {
+            Introspector = introspector;
             Initialize();
         }
 
         protected virtual void Initialize()
         {
-            AddSchemes(new[] { "mssql", "ms", "sqlserver" }, typeof(MssqlOleDbProviderLocator) );
-            AddSchemes(new[] { "mssqlncli" }, typeof(MssqlNCliProviderLocator));
-            AddSchemes(new[] { "mysql", "my" }, typeof(MySqlProviderLocator));
-            AddSchemes(new[] { "xls" }, typeof(AceXlsProviderLocator));
-            AddSchemes(new[] { "xlsx" }, typeof(AceXlsxProviderLocator));
-            AddSchemes(new[] { "xlsm" }, typeof(AceXlsmProviderLocator));
-            AddSchemes(new[] { "xlsb" }, typeof(AceXlsbProviderLocator));
+            foreach (var providerLocator in Introspector.Locate())
+                AddSchemes(providerLocator.Aliases, providerLocator.ProviderLocatorType);
 
-            void AddSchemes(string[] aliases, Type locator)
+            void AddSchemes(string[] aliases, Type providerLocator)
             {
                 foreach (var alias in aliases)
-                    AddProvider(alias, locator);
+                    AddProvider(alias, providerLocator);
             }
         }
 

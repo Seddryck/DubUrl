@@ -12,7 +12,7 @@ namespace DubUrl.Testing.Mapping
 {
     public class NativeMapperIntrospectorTest
     {
-        internal class FakeMappersIntrospector : BaseIntrospector.AssemblyClassesIntrospector
+        internal class FakeMappersIntrospector : AssemblyTypesProbe
         {
             private Type[] Types { get; }
 

@@ -1,5 +1,5 @@
-﻿using DubUrl.Locating.OleDbProvider;
-using DubUrl.Locating.OleDbProvider.Implementation;
+﻿using DubUrl.OleDb;
+using DubUrl.OleDb.Providers;
 using DubUrl.Mapping.Tokening;
 using NUnit.Framework;
 using System;
@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
+namespace DubUrl.OleDb.Testing.Providers
 {
     public class AceProviderLocatorTest
     {
@@ -23,11 +23,17 @@ namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
             internal override ProviderInfo[] List() => Providers;
         }
 
+        private class AceProviderLocatorTestable : AceProviderLocator
+        {
+            public AceProviderLocatorTestable(ProviderLister providerLister)
+            : base(providerLister) { }
+        }
+
         [Test]
         public void Locate_SingleElementMatching_ElementReturned()
         {
             var providerLister = new FakeProviderLister(new[] { new ProviderInfo("Microsoft.ACE.OLEDB.16.0", "Microsoft Office 16.0 Access Database Engine OLE DB Provider") });
-            var providerLocator = new AceProviderLocator(providerLister);
+            var providerLocator = new AceProviderLocatorTestable(providerLister);
             var provider = providerLocator.Locate();
             Assert.That(provider, Is.EqualTo("Microsoft.ACE.OLEDB.16.0"));
         }
@@ -40,7 +46,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
                     new ProviderInfo("Microsoft.ACE.OLEDB.16.0", "Microsoft Office 16.0 Access Database Engine OLE DB Provider"),
                     new ProviderInfo("Microsoft.ACE.OLEDB.7.0", "Microsoft Office 7.0 Access Database Engine OLE DB Provider") }
             );
-            var providerLocator = new AceProviderLocator(providerLister);
+            var providerLocator = new AceProviderLocatorTestable(providerLister);
             var provider = providerLocator.Locate();
             Assert.That(provider, Is.EqualTo("Microsoft.ACE.OLEDB.16.0"));
         }
@@ -53,7 +59,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
                     new ProviderInfo("Microsoft.ACE.OLEDB.16.0", "Microsoft Office 16.0 Access Database Engine OLE DB Provider"),
                     new ProviderInfo("MSOLEDBSQL", "Microsoft OLE DB Driver for SQL Server") }
             );
-            var providerLocator = new AceProviderLocator(providerLister);
+            var providerLocator = new AceProviderLocatorTestable(providerLister);
             var provider = providerLocator.Locate();
             Assert.That(provider, Is.EqualTo("Microsoft.ACE.OLEDB.16.0"));
         }
@@ -63,7 +69,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
         {
             var providerLister = new FakeProviderLister(
                 new[] { new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0") });
-            var providerLocator = new AceProviderLocator(providerLister);
+            var providerLocator = new AceProviderLocatorTestable(providerLister);
             var provider = providerLocator.Locate();
             Assert.That(provider, Is.Null.Or.Empty);
         }
@@ -76,11 +82,7 @@ namespace DubUrl.Testing.Locating.OleDbProvider.Implementation
         [TestCase(typeof(AceXlsbProviderLocator))]
         public void OptionsMapper_ExtendedProperties(Type aceProviderLocatorType)
         {
-            var aceProviderLocator = aceProviderLocatorType
-                .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
-                .First(x => x.GetParameters().Length == 0)
-                .Invoke(Array.Empty<object>()) as AceProviderLocator
-                ?? throw new ArgumentOutOfRangeException();
+            var aceProviderLocator = Activator.CreateInstance(aceProviderLocatorType) as AceProviderLocator ?? throw new InvalidCastException();
             Assert.That(aceProviderLocator.OptionsMapper, Is.TypeOf<ExtendedPropertiesMapper>());
         }
     }

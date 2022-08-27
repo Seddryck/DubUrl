@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OleDbProvider
+namespace DubUrl.OleDb
 {
     public interface IProviderLocator
     {

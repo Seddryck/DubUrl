@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Locating;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,7 @@ namespace DubUrl.Mapping
     { }
 
     public interface IGenericConnectivity : IConnectivity
-    { }
+    {
+        IEnumerable<string> DefineAliases(GenericConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator);
+    }
 }
