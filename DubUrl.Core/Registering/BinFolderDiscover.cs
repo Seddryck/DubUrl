@@ -14,19 +14,19 @@ namespace DubUrl.Registering
     public class BinFolderDiscover : IProviderFactoriesDiscover
     {
         private Assembly? Assembly { get; } = null;
-        private NativeMapperIntrospector MapperIntrospector { get; } = new ();
+        private BaseMapperIntrospector[] MapperIntrospectors { get; }
 
         public BinFolderDiscover()
             : this(Assembly.GetEntryAssembly()) { }
 
-        internal BinFolderDiscover(NativeMapperIntrospector mapperIntrospector)
-            : this(Assembly.GetEntryAssembly(), mapperIntrospector) { }
+        internal BinFolderDiscover(BaseMapperIntrospector[] mapperIntrospectors)
+            : this(Assembly.GetEntryAssembly(), mapperIntrospectors) { }
 
         public BinFolderDiscover(Assembly? assembly)
-            : this(assembly, new NativeMapperIntrospector()) { }
+            : this(assembly, new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new GenericMapperIntrospector() }) { }
 
-        internal BinFolderDiscover(Assembly? assembly, NativeMapperIntrospector mapperIntrospector)
-            => (Assembly, MapperIntrospector) = (assembly, mapperIntrospector);
+        internal BinFolderDiscover(Assembly? assembly, BaseMapperIntrospector[] mapperIntrospectors)
+            => (Assembly, MapperIntrospectors) = (assembly, mapperIntrospectors);
 
         public virtual IEnumerable<Type> Execute()
         {
@@ -37,7 +37,10 @@ namespace DubUrl.Registering
             if (!Directory.Exists(rootPath))
                 yield break;
 
-            var listCandidates = MapperIntrospector.Locate().Select(x => x.ProviderInvariantName);
+            var listCandidates = MapperIntrospectors.Aggregate(
+                Array.Empty<string>(), (seed, x) =>
+                    seed = seed.Concat(x.Locate().Select(x => x.ProviderInvariantName)).ToArray()
+                ).Distinct();
             var stack = new Stack<string>(Directory.GetFiles(rootPath));
 
             while (stack.Count > 0)
