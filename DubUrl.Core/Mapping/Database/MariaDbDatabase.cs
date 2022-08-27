@@ -14,6 +14,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "maria", "mariadb" }
         , 3
     )]
-    public class MariaDbDatabase : IDatabase
+    internal class MariaDbDatabase : IDatabase
     { }
 }

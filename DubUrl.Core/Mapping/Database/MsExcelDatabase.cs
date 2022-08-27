@@ -16,6 +16,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "xls", "xlsx", "xlsb", "xlsm" }
         , 10
     )]
-    public class MsExcelDatabase : IDatabase
+    internal class MsExcelDatabase : IDatabase
     { }
 }

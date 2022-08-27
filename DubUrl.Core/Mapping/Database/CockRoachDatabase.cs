@@ -13,5 +13,5 @@ namespace DubUrl.Mapping.Database
         "CockRoachDB"
         , new[] { "cr", "cockroach", "crdb", "cdb" }
     )]
-    public class CockRoachDatabase : IDatabase { }
+    internal class CockRoachDatabase : IDatabase { }
 }

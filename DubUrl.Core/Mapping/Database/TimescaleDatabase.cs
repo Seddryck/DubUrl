@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "ts", "timescale" }
         , 6
     )]
-    public class TimescaleDatabase : IDatabase
+    internal class TimescaleDatabase : IDatabase
     { }
 }

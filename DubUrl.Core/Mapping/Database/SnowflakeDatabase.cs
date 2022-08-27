@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "sf", "snowflake" }
         , 4
     )]
-    public class SnowflakeDatabase : IDatabase
+    internal class SnowflakeDatabase : IDatabase
     { }
 }

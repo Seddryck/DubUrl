@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "mysql", "my" }
         , 1
     )]
-    public class MySqlDatabase : IDatabase
+    internal class MySqlDatabase : IDatabase
     { }
 }

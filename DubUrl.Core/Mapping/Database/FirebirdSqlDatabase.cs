@@ -14,6 +14,6 @@ namespace DubUrl.Mapping.Database
         "Firebird SQL"
         , new[] { "fb", "firebird" }
     )]
-    public class FirebirdSqlDatabase : IDatabase
+    internal class FirebirdSqlDatabase : IDatabase
     { }
 }
