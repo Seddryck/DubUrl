@@ -23,6 +23,6 @@ namespace DubUrl.Mapping
         public void Accept(ISpecificator specificator)
             => Specificator = specificator;
 
-        internal abstract void Execute(UrlInfo urlInfo);
+        public abstract void Execute(UrlInfo urlInfo);
     }
 }

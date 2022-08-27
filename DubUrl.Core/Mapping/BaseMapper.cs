@@ -43,9 +43,9 @@ namespace DubUrl.Mapping
             => GetType().GetCustomAttribute<BaseMapperAttribute>()?.ProviderInvariantName
                 ?? throw new InvalidDataException();
 
-        internal class OptionsMapper : BaseTokenMapper
+        public class OptionsMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 foreach (var option in urlInfo.Options)
                     Specificator.Execute(option.Key, option.Value);

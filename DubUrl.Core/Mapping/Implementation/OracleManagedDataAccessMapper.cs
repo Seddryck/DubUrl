@@ -37,7 +37,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class AuthentificationMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (!string.IsNullOrEmpty(urlInfo.Username))
                 {
@@ -55,7 +55,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class DsnMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 //If only host is specified, it's the TNS name
                 if (urlInfo.Segments.Length == 0 && urlInfo.Port == 0)

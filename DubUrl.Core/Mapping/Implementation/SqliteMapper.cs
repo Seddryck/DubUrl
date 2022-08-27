@@ -31,7 +31,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class DataSourceMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 var segments = new List<string>();
                 if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))

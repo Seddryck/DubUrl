@@ -38,7 +38,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class DataSourceMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
             }
@@ -46,7 +46,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class PortNumberMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (urlInfo.Port > 0)
                     Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
@@ -55,7 +55,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class DatabaseMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (urlInfo.Segments.Length == 0)
                     return;
@@ -68,7 +68,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class AuthentificationMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (!string.IsNullOrEmpty(urlInfo.Username))
                     Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);

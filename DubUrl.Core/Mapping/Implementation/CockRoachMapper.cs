@@ -19,7 +19,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal new class DatabaseMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (urlInfo.Segments.Length == 1)
                     Specificator.Execute(DATABASE_KEYWORD, $"{urlInfo.Segments.First()}.bank");

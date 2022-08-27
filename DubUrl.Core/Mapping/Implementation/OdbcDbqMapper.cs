@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping.Tokening;
+using DubUrl.Locating.Options;
 
 namespace DubUrl.Mapping.Implementation
 {
@@ -38,7 +39,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class DbqMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 var segments = new List<string>();
                 if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
@@ -75,7 +76,7 @@ namespace DubUrl.Mapping.Implementation
             public DriverMapper(DriverLocatorFactory driverLocatorFactory)
                 => DriverLocatorFactory = driverLocatorFactory;
 
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
 
                 if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
@@ -132,7 +133,7 @@ namespace DubUrl.Mapping.Implementation
                 var types = new List<Type>();
                 AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(assembly => assembly.GetTypes())
-                    .Where(x => x.IsEnum && x.GetCustomAttributes(typeof(DriverLocatorOptionAttribute), true).Length > 0)
+                    .Where(x => x.IsEnum && x.GetCustomAttributes(typeof(LocatorOptionAttribute), true).Length > 0)
                     .ToList()
                     .ForEach(x => types.Add(x));
                 return types;
@@ -141,7 +142,7 @@ namespace DubUrl.Mapping.Implementation
 
         internal class AuthentificationMapper : BaseTokenMapper
         {
-            internal override void Execute(UrlInfo urlInfo)
+            public override void Execute(UrlInfo urlInfo)
             {
                 if (!string.IsNullOrEmpty(urlInfo.Username))
                     Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
