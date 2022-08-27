@@ -9,7 +9,7 @@
     ],
     "NamePattern": "^\\bODBC Driver\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s\\bfor SQL Server$",
     "Options": [
-      "DubUrl.Locating.OdbcDriver.VersionOption"
+      "DubUrl.Locating.Options.VersionOption"
     ]
   },
   {
@@ -21,8 +21,8 @@
     ],
     "NamePattern": "^\\bMySQL ODBC\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s(ANSI|Unicode)\\s\\bDriver$",
     "Options": [
-      "DubUrl.Locating.OdbcDriver.VersionOption",
-      "DubUrl.Locating.OdbcDriver.EncodingOption"
+      "DubUrl.Locating.Options.VersionOption",
+      "DubUrl.Locating.Options.EncodingOption"
     ]
   },
   {
@@ -36,8 +36,8 @@
     ],
     "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
     "Options": [
-      "DubUrl.Locating.OdbcDriver.EncodingOption",
-      "DubUrl.Locating.OdbcDriver.ArchitectureOption"
+      "DubUrl.Locating.Options.EncodingOption",
+      "DubUrl.Locating.Options.ArchitectureOption"
     ]
   },
   {
@@ -49,7 +49,7 @@
     ],
     "NamePattern": "^\\bMariaDB ODBC\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s\\bDriver$",
     "Options": [
-      "DubUrl.Locating.OdbcDriver.VersionOption"
+      "DubUrl.Locating.Options.VersionOption"
     ]
   },
   {
@@ -61,8 +61,8 @@
     ],
     "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
     "Options": [
-      "DubUrl.Locating.OdbcDriver.EncodingOption",
-      "DubUrl.Locating.OdbcDriver.ArchitectureOption"
+      "DubUrl.Locating.Options.EncodingOption",
+      "DubUrl.Locating.Options.ArchitectureOption"
     ]
   },
   {
