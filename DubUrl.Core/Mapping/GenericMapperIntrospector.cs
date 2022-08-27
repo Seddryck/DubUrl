@@ -1,6 +1,5 @@
 ﻿using DubUrl.Locating;
 using DubUrl.Locating.OdbcDriver;
-using DubUrl.Locating.OleDbProvider;
 using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
@@ -11,11 +10,41 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    public abstract class NoElementFoundException : DubUrlException
+    {
+        protected NoElementFoundException(string elementName, string attributeName, Type locatorType, Type elementType, IEnumerable<Type> types)
+            : this(elementName, elementName + 's', attributeName, locatorType, elementType, types) { }
+
+        protected NoElementFoundException(string elementName, string elementNamePlural, string attributeName, Type locatorType, Type elementType, IEnumerable<Type> types)
+            : base(
+                  $"No {elementName} found for the {attributeName} '{locatorType.Name}'. The framework was looking for the {elementName} '{elementType.Name}' but the list of potential {elementNamePlural} is {(types.Any() ? "\'" + string.Join("\', \'", types.Select(x => x.Name)) + "\'" : "empty")}."
+            )
+        { }
+    }
+
+    public class NoMapperFoundException : NoElementFoundException
+    {
+        public NoMapperFoundException(Type locatorType, Type elementType, IEnumerable<Type> types)
+            : base("mapper", "locator", locatorType, elementType, types) { }
+    }
+
+    public class NoDatabaseFoundException : NoElementFoundException
+    {
+        public NoDatabaseFoundException(Type locatorType, Type elementType, IEnumerable<Type> types)
+            : base("database", "locator", locatorType, elementType, types) { }
+    }
+
+    public class NoConnectivityFoundException : NoElementFoundException
+    {
+        public NoConnectivityFoundException(Type locatorType, Type elementType, IEnumerable<Type> types)
+            : base("connectivity", "connectivities", "mapper", locatorType, elementType, types) { }
+    }
+
     public class GenericMapperIntrospector : BaseMapperIntrospector
     {
         public GenericMapperIntrospector()
-            : this(new AssemblyClassesIntrospector()) { }
-        internal GenericMapperIntrospector(AssemblyClassesIntrospector introspector)
+            : this(new AssemblyTypesProbe()) { }
+        public GenericMapperIntrospector(AssemblyTypesProbe introspector)
             : base(introspector) { }
 
         public override IEnumerable<MapperInfo> Locate()
@@ -27,13 +56,22 @@ namespace DubUrl.Mapping
 
             foreach (var locator in locators)
             {
-                var mapper = mappers.Single(x => x.Type == locator.Attribute.Mapper);
-                var database = databases.Single(x => x.Type == locator.Attribute.Database);
-                var connectivity = connectivities.Single(x => x.Type == mapper.Attribute.Database);
+                var mapper = mappers.SingleOrDefault(x => x.Type == locator.Attribute.Mapper)
+                    ?? throw new NoMapperFoundException(locator.Type, locator.Attribute.Mapper, mappers.Select(x => x.Type));
+
+                var database = databases.SingleOrDefault(x => x.Type == locator.Attribute.Database)
+                    ?? throw new NoDatabaseFoundException(locator.Type, locator.Attribute.Database, databases.Select(x => x.Type));
+
+                var connectivity = connectivities.SingleOrDefault(x => x.Type == mapper.Attribute.Connectivity)
+                    ?? throw new NoConnectivityFoundException(mapper.Type, mapper.Attribute.Connectivity, connectivities.Select(x => x.Type));
+
+                var connectivityInstance = Activator.CreateInstance(connectivity.Type) as IGenericConnectivity
+                    ?? throw new InvalidCastException();
+
                 yield return new MapperInfo(
                         mapper.Type
                         , $"{connectivity.Attribute.ConnectivityName} for {database.Attribute.DatabaseName}"
-                        , CartesianProduct(connectivity.Attribute.Aliases, database.Attribute.Aliases).ToArray()
+                        , connectivityInstance.DefineAliases(connectivity.Attribute, database.Attribute, locator.Attribute).ToArray()
                         , database.Attribute.DialectType
                         , database.Attribute.ListingPriority
                         , mapper.Attribute.ProviderInvariantName

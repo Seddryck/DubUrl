@@ -13,9 +13,9 @@ namespace DubUrl.Locating.OdbcDriver
         public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority, Type[] Options) { }
 
         public DriverLocatorIntrospector()
-            : this(new AssemblyClassesIntrospector()) { }
+            : this(new AssemblyTypesProbe()) { }
 
-        internal DriverLocatorIntrospector(AssemblyClassesIntrospector introspector)
+        internal DriverLocatorIntrospector(AssemblyTypesProbe introspector)
             : base(introspector) { }
 
         public IEnumerable<DriverLocatorInfo> Locate()
