@@ -37,7 +37,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -f ".\DubUrl.QA.Pgsql\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -f ".\DubUrl.QA\Postgresql\deploy-pgsql-database.sql"
 
 	# Installing ODBC driver
 	Write-host "`tDeploying PostgreSQL ODBC drivers"
@@ -61,8 +61,8 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to mssql"
-	& dotnet build DubUrl.QA.Pgsql -c Release --nologo
-	& dotnet test DubUrl.QA.Pgsql -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build DubUrl.QA -c Release --nologo
+	& dotnet test DubUrl.QA --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for PostgreSQL"
 }

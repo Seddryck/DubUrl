@@ -4,8 +4,9 @@ using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
 
-namespace DubUrl.QA.Mssql
+namespace DubUrl.QA.MsSqlServer
 {
+    [Category("MsSqlServer")]
     public class OdbcDriver
     {
         [OneTimeSetUp]
@@ -26,7 +27,7 @@ namespace DubUrl.QA.Mssql
         public void QueryCustomer()
         {
             var connectionUrl = new ConnectionUrl("odbc+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes");
-            
+
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "select FullName from Customer where CustomerId=1";

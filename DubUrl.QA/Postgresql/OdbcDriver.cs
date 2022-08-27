@@ -4,8 +4,9 @@ using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
 
-namespace DubUrl.QA.Pgsql
+namespace DubUrl.QA.Postgresql
 {
+    [Category("Postgresql")]
     public class OdbcDriver
     {
         [OneTimeSetUp]
