@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "mssql", "ms", "sqlserver" }
         , 0
     )]
-    internal class MsSqlServerDatabase : IDatabase
+    public class MsSqlServerDatabase : IDatabase
     { }
 }

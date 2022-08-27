@@ -15,6 +15,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "oracle", "or", "ora" }
         , 2
     )]
-    internal class OracleDatabase : IDatabase
+    public class OracleDatabase : IDatabase
     { }
 }
