@@ -25,8 +25,8 @@ namespace DubUrl.Registering
         public BinFolderDiscover(Assembly[] assemblies)
             : this(assemblies, new BaseMapperIntrospector[] 
                 {
-                    new NativeMapperIntrospector(assemblies)
-                    , new GenericMapperIntrospector(assemblies) 
+                    new NativeMapperIntrospector(assemblies.Concat(new[] {typeof(NativeMapperIntrospector).Assembly }).ToArray())
+                    , new GenericMapperIntrospector(assemblies.Concat(new[] {typeof(GenericMapperIntrospector).Assembly }).ToArray()) 
                 }
             ) { }
 

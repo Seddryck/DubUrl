@@ -13,7 +13,7 @@ namespace DubUrl.Mapping
         public NativeMapperIntrospector()
             : this(new AssemblyTypesProbe()) { }
         public NativeMapperIntrospector(Assembly[] assemblies)
-            : this(new AssemblyTypesProbe(assemblies)) { }
+            : this(new AssemblyTypesProbe(assemblies.Distinct().ToArray())) { }
         public NativeMapperIntrospector(ITypesProbe probe)
             : base(probe) { }
 
