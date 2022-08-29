@@ -2,16 +2,15 @@ Param(
 	[switch] $force=$false
 	, $databaseService= "postgresql-x64-13"
 )
+if ($force) {
+	Write-Warning "Forcing QA testing for PostgreSQL"
+}
 
 $pgPath = "C:\Program Files\PostgreSQL\$($databaseService.Split('-')[2])\bin"
 If (-not (Test-Path -Path $pgPath)) {
 	$pgPath = $pgPath -replace "C:", "E:"
 }
 Write-Host "Using '$pgPath' as PostgreSQL installation folder"
-
-if ($force) {
-	Write-Warning "Forcing QA testing for PostgreSQL"
-}
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*pgsql*")) {
@@ -49,7 +48,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		& 7z e "$env:temp\psqlodbc.zip" -o"$env:temp" -y
 		Write-Host "`t`tInstalling PostgreSQL ODBC driver ..."
 		& msiexec /i "$env:temp\psqlodbc_x64.msi" /quiet /qn /norestart /log "$env:temp\install.log" | Out-Host
-		Get-Content "$env:temp\install.log"
+		#Get-Content "$env:temp\install.log"
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*postgres*"
 		Write-Host "`tDeployment of PostgreSQL ODBC driver finalized."
