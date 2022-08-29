@@ -30,6 +30,7 @@ test_script:
 - pwsh: |
       & .\deploy-mssql-test-env.ps1 -force
       & .\deploy-pgsql-test-env.ps1 -force
+      & .\deploy-msexcel-test-env.ps1 -force
 
 after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 

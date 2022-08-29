@@ -11,9 +11,11 @@
   <ItemGroup>
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
+    <None Remove="SelectFirstCustomer.xlsx.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.mssql.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.pgsql.sql" />
   </ItemGroup>
@@ -34,6 +36,12 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
     <ProjectReference Include="..\Duburl.OleDb\Duburl.OleDb.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="MsExcel\Customer.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
