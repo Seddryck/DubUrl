@@ -47,8 +47,8 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		Write-Host "`t`tExtracting from archive PostgreSQL ODBC driver ..."
 		& 7z e "$env:temp\psqlodbc.zip" -o"$env:temp" -y
 		Write-Host "`t`tInstalling PostgreSQL ODBC driver ..."
-		& msiexec /i "$env:temp\psqlodbc_x64.msi" /quiet /qn /norestart /log "$env:temp\install.log" | Out-Host
-		#Get-Content "$env:temp\install.log"
+		& msiexec /i "$env:temp\psqlodbc_x64.msi" /quiet /qn /norestart /log "$env:temp\install-pgsql.log" | Out-Host
+		#Get-Content "$env:temp\install-pgsql.log"
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*postgres*"
 		Write-Host "`tDeployment of PostgreSQL ODBC driver finalized."
