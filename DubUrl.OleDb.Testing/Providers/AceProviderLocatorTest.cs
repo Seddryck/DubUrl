@@ -83,7 +83,7 @@ namespace DubUrl.OleDb.Testing.Providers
         public void OptionsMapper_ExtendedProperties(Type aceProviderLocatorType)
         {
             var aceProviderLocator = Activator.CreateInstance(aceProviderLocatorType) as AceProviderLocator ?? throw new InvalidCastException();
-            Assert.That(aceProviderLocator.OptionsMapper, Is.TypeOf<ExtendedPropertiesMapper>());
+            Assert.That(aceProviderLocator.AdditionalMappers[0], Is.TypeOf<ExtendedPropertiesMapper>());
         }
     }
 }

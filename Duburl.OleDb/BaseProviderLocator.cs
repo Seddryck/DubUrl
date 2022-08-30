@@ -15,13 +15,13 @@ namespace DubUrl.OleDb
         private string RegexPattern { get; }
         private Func<ProviderInfo, string> NamePointer { get; }
         private ProviderLister Lister { get; }
-        public BaseTokenMapper OptionsMapper { get; } = new BaseMapper.OptionsMapper();
+        public BaseTokenMapper[] AdditionalMappers { get; } = new[] { new BaseMapper.OptionsMapper() };
 
         public BaseProviderLocator(string regexPattern)
             : this(regexPattern, new Func<ProviderInfo, string>(x => x.NickName)) { }
 
-        public BaseProviderLocator(string regexPattern, BaseTokenMapper optionMapper)
-            : this(regexPattern, new Func<ProviderInfo, string>(x => x.NickName)) { OptionsMapper = optionMapper; }
+        public BaseProviderLocator(string regexPattern, BaseTokenMapper[] additionalMappers)
+            : this(regexPattern, new Func<ProviderInfo, string>(x => x.NickName)) { AdditionalMappers = additionalMappers; }
 
         public BaseProviderLocator(string regexPattern, Func<ProviderInfo, string> namePointer)
             : this(regexPattern, namePointer, new ProviderLister()) { }

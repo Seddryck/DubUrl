@@ -9,7 +9,7 @@ namespace DubUrl.OleDb
 {
     public interface IProviderLocator
     {
-        BaseTokenMapper OptionsMapper { get; }
+        BaseTokenMapper[] AdditionalMappers { get; }
         string Locate();
     }
 }

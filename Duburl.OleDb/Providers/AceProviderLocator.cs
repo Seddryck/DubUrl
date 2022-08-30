@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Mapping;
 
 namespace DubUrl.OleDb.Providers
 {
@@ -35,7 +36,11 @@ namespace DubUrl.OleDb.Providers
             : base(GetRegexPattern<AceProviderLocator>(), providerLister) { }
 
         public AceProviderLocator(string value)
-            : base(GetRegexPattern<AceProviderLocator>(), new ExtendedPropertiesMapper(new[] { value })) { }
+            : base(GetRegexPattern<AceProviderLocator>(), new BaseTokenMapper[] 
+                { 
+                    new ExtendedPropertiesMapper(new[] { value })
+                    , new OleDbMapper.DataSourceMapper() 
+                }) { }
 
 
         protected override void AddCandidate(string provider, string[] matches)
