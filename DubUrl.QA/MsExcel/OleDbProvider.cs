@@ -40,7 +40,7 @@ namespace DubUrl.QA.MsExcel
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl($"oledb+xlsx:///MsExcel/customer.xlsx");
+            var connectionUrl = new ConnectionUrl($"oledb+xlsx:///MsExcel/customer.xlsx", SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -51,7 +51,7 @@ namespace DubUrl.QA.MsExcel
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl($"oledb+xlsx:///MsExcel/customer.xlsx");
+            var connectionUrl = new ConnectionUrl($"oledb+xlsx:///MsExcel/customer.xlsx", SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
