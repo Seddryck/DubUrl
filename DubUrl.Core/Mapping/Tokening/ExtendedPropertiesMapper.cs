@@ -19,13 +19,13 @@ namespace DubUrl.Mapping.Tokening
         public override void Execute(UrlInfo urlInfo)
         {
             var internalStringBuilder = new StringBuilder();
-            internalStringBuilder.Append('\"');
+            //internalStringBuilder.Append('\"');
             foreach (var value in Values)
                 internalStringBuilder.Append(value).Append(';');
 
             foreach (var option in urlInfo.Options)
                 internalStringBuilder.Append(option.Key).Append('=').Append(option.Value).Append(';');
-            internalStringBuilder.Append('\"');
+            //internalStringBuilder.Append('\"');
 
             Specificator.Execute(EXTENDED_PROPERTIES_KEYWORD, internalStringBuilder.ToString());
         }

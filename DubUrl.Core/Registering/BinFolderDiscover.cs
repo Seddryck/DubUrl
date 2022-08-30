@@ -13,36 +13,47 @@ namespace DubUrl.Registering
 {
     public class BinFolderDiscover : IProviderFactoriesDiscover
     {
-        private Assembly? Assembly { get; } = null;
+        private Assembly[] Assemblies { get; }
         private BaseMapperIntrospector[] MapperIntrospectors { get; }
 
         public BinFolderDiscover()
-            : this(Assembly.GetEntryAssembly()) { }
+            : this(new[] { Assembly.GetEntryAssembly() ?? throw new ArgumentNullException() }) { }
 
         internal BinFolderDiscover(BaseMapperIntrospector[] mapperIntrospectors)
-            : this(Assembly.GetEntryAssembly(), mapperIntrospectors) { }
+            : this(new[] { Assembly.GetEntryAssembly() ?? throw new ArgumentNullException() } , mapperIntrospectors) { }
 
-        public BinFolderDiscover(Assembly? assembly)
-            : this(assembly, new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new GenericMapperIntrospector() }) { }
+        public BinFolderDiscover(Assembly[] assemblies)
+            : this(assemblies, new BaseMapperIntrospector[] 
+                {
+                    new NativeMapperIntrospector(assemblies.Concat(new[] {typeof(NativeMapperIntrospector).Assembly }).ToArray())
+                    , new GenericMapperIntrospector(assemblies.Concat(new[] {typeof(GenericMapperIntrospector).Assembly }).ToArray()) 
+                }
+            ) { }
 
-        internal BinFolderDiscover(Assembly? assembly, BaseMapperIntrospector[] mapperIntrospectors)
-            => (Assembly, MapperIntrospectors) = (assembly, mapperIntrospectors);
+        internal BinFolderDiscover(Assembly[] assemblies, BaseMapperIntrospector[] mapperIntrospectors)
+            => (Assemblies, MapperIntrospectors) = (assemblies, mapperIntrospectors);
 
         public virtual IEnumerable<Type> Execute()
         {
-            if (Assembly == null || string.IsNullOrEmpty(Assembly.Location))
-                yield break;
+            var files = Assemblies.Aggregate(
+                    Array.Empty<string>(), (seed, asm) =>
+                    seed.Concat(new[] { asm?.Location ?? string.Empty }).ToArray()
+                )
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .Select(x => Path.GetDirectoryName(x))
+                .Where(x => Directory.Exists(x))
+                .Aggregate(
+                    Array.Empty<string>(), (seed, location) =>
+                    seed.Concat(Directory.GetFiles(location!)).ToArray()
+                );
 
-            var rootPath = Path.GetDirectoryName(Assembly.Location);
-            if (!Directory.Exists(rootPath))
-                yield break;
-
+            var stack = new Stack<string>(files);
             var listCandidates = MapperIntrospectors.Aggregate(
                 Array.Empty<string>(), (seed, x) =>
                     seed = seed.Concat(x.Locate().Select(x => x.ProviderInvariantName)).ToArray()
                 ).Distinct();
-            var stack = new Stack<string>(Directory.GetFiles(rootPath));
-
+            
             while (stack.Count > 0)
             {
                 var asmPath = stack.Pop();

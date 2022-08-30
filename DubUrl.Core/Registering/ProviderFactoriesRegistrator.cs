@@ -16,7 +16,7 @@ namespace DubUrl.Registering
             : this(Assembly.GetCallingAssembly()) { }
 
         public ProviderFactoriesRegistrator(Assembly asm)
-            : this(new BinFolderDiscover(asm)) { }
+            : this(new BinFolderDiscover(new[] { asm })) { }
 
         public ProviderFactoriesRegistrator(IProviderFactoriesDiscover discover)
             => Discover = discover;

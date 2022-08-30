@@ -4,8 +4,10 @@ using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
 
-namespace DubUrl.QA.Pgsql
+namespace DubUrl.QA.MsExcel
 {
+    [Category("MsExcel")]
+    [FixtureLifeCycle(LifeCycle.SingleInstance)]
     public class OdbcDriver
     {
         [OneTimeSetUp]
@@ -15,7 +17,7 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            var connectionUrl = new ConnectionUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("odbc+xlsx:///customer.xlsx");
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -25,31 +27,24 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
-            
+            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location) + "\\";
+            var connectionUrl = new ConnectionUrl($"odbc+xlsx:///MsExcel/customer.xlsx?Defaultdir={currentDir}");
+
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
+            cmd.CommandText = "select [FullName] from [Customer$] where [CustomerId]=1";
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
-        }
-
-        [Test]
-        [Ignore("Database for odbc is not supported at this moment")]
-        public void QueryCustomerWithDatabase()
-        {
-            var db = new DatabaseUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
-            var fullName = db.ReadScalarNonNull<string>("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl("odbc+pgsql://postgres:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location) + "\\";
+            var connectionUrl = new ConnectionUrl($"odbc+xlsx:///MsExcel/customer.xlsx?Defaultdir={currentDir}");
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select \"FullName\" from \"Customer\" where \"CustomerId\"=?";
+            cmd.CommandText = "select [FullName] from [Customer$] where [CustomerId]=?";
             var param = cmd.CreateParameter();
             param.DbType = DbType.Int32;
             param.Value = 2;

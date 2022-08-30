@@ -32,7 +32,7 @@ namespace DubUrl.Testing.Mapping.Tokening
 
             Assert.That(specificator.Properties, Has.Count.EqualTo(1));
             Assert.That(specificator.Properties, Does.ContainKey(ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD));
-            Assert.That(specificator.Properties[ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD], Is.EqualTo("\"Excel 8.0;\""));
+            Assert.That(specificator.Properties[ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD], Is.EqualTo("Excel 8.0;"));
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace DubUrl.Testing.Mapping.Tokening
 
             Assert.That(specificator.Properties, Has.Count.EqualTo(1));
             Assert.That(specificator.Properties, Does.ContainKey(ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD));
-            Assert.That(specificator.Properties[ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD], Is.EqualTo("\"HDR=YES;IMEX=1;\""));
+            Assert.That(specificator.Properties[ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD], Is.EqualTo("HDR=YES;IMEX=1;"));
         }
 
         [Test]
@@ -65,7 +65,7 @@ namespace DubUrl.Testing.Mapping.Tokening
 
             Assert.That(specificator.Properties, Has.Count.EqualTo(1));
             Assert.That(specificator.Properties, Does.ContainKey(ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD));
-            Assert.That(specificator.Properties[ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD], Is.EqualTo("\"Excel 8.0;HDR=YES;IMEX=1;\""));
+            Assert.That(specificator.Properties[ExtendedPropertiesMapper.EXTENDED_PROPERTIES_KEYWORD], Is.EqualTo("Excel 8.0;HDR=YES;IMEX=1;"));
         }
     }
 }

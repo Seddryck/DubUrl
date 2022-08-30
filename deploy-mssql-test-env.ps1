@@ -19,11 +19,11 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 		Write-host "`tService" $databaseService "already started"
 	}
 	Write-host "`tDeploying database"
-	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\DubUrl.QA.Mssql\deploy-mssql-database.sql"
+	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\DubUrl.QA\MsSqlServer\deploy-mssql-database.sql"
 	
 	Write-Host "Running QA tests related to mssql"
-	& dotnet build DubUrl.QA.Mssql -c Release --nologo
-	& dotnet test DubUrl.QA.Mssql -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build DubUrl.QA -c Release --nologo
+	& dotnet test DubUrl.QA --filter TestCategory="MsSqlServer" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for mssql"
 }

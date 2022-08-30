@@ -13,7 +13,7 @@ using DubUrl.OleDb.Mapping;
 using DubUrl.OleDb.Providers;
 using DubUrl.Mapping.Tokening;
 
-namespace DubUrl.OleDb.Testing
+namespace DubUrl.OleDb.Testing.Mapping
 {
     [Platform("Win")]
     public class OleDbMapperTest
@@ -35,26 +35,67 @@ namespace DubUrl.OleDb.Testing
         [TestCase("host,1234", "host", "db", 1234)]
         public void Map_UrlInfo_Server(string expected, string host = "host", string segmentsList = "db", int port = 0)
         {
-            var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
-            var mapper = new OleDbMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
-            var result = mapper.Map(urlInfo);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Ignore("OleDb is Windows only");
+            else
+            {
+                var csb = new OleDbConnectionStringBuilder();
+                var specificator = new SpecificatorStraight(csb);
+                var mapper = new OleDbMapper.ServerMapper();
+                mapper.Accept(specificator);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OleDbMapper.SERVER_KEYWORD));
-            Assert.That(result[OleDbMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+                var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+                mapper.Execute(urlInfo);
+
+                Assert.That(csb, Is.Not.Null);
+                Assert.That(csb, Does.ContainKey(OleDbMapper.SERVER_KEYWORD));
+                Assert.That(csb[OleDbMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+            }
+        }
+
+        [Test]
+        [TestCase("MsExcel\\customer.xlsx", "MsExcel/customer.xlsx")]
+        [TestCase("customer.xlsx", "customer.xlsx")]
+        public void Map_UrlInfo_DataSource(string expected, string segmentsList)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Ignore("OleDb is Windows only");
+            else
+            {
+                var csb = new OleDbConnectionStringBuilder();
+                var specificator = new SpecificatorStraight(csb);
+                var mapper = new OleDbMapper.DataSourceMapper();
+                mapper.Accept(specificator);
+
+                var urlInfo = new UrlInfo() { Host = string.Empty, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+                mapper.Execute(urlInfo);
+
+                Assert.That(csb, Is.Not.Null);
+                Assert.That(csb, Does.ContainKey(OleDbMapper.SERVER_KEYWORD));
+                Assert.That(csb[OleDbMapper.SERVER_KEYWORD], Is.EqualTo(expected));
+            }
         }
 
         [Test]
         [TestCase("db")]
         public void Map_UrlInfo_ReturnsInitialCatalog(string segmentsList = "db", string expected = "db")
         {
-            var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
-            var mapper = new OleDbMapper(ConnectionStringBuilder, new MssqlDialect(Array.Empty<string>()));
-            var result = mapper.Map(urlInfo);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Ignore("OleDb is Windows only");
+            else
+            {
+                var csb = new OleDbConnectionStringBuilder();
+                var specificator = new SpecificatorStraight(csb);
+                var mapper = new OleDbMapper.InitialCatalogMapper();
+                mapper.Accept(specificator);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.ContainKey(OleDbMapper.DATABASE_KEYWORD));
-            Assert.That(result[OleDbMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
+                var urlInfo = new UrlInfo() { Host = string.Empty, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+                mapper.Execute(urlInfo);
+
+                Assert.That(csb, Is.Not.Null);
+                Assert.That(csb, Does.ContainKey(OleDbMapper.DATABASE_KEYWORD));
+                Assert.That(csb[OleDbMapper.DATABASE_KEYWORD], Is.EqualTo(expected));
+            }
         }
 
 
@@ -122,7 +163,7 @@ namespace DubUrl.OleDb.Testing
 
             var providerLocatorMock = new Mock<IProviderLocator>();
             providerLocatorMock.Setup(x => x.Locate()).Returns("My provider");
-            providerLocatorMock.SetupGet(x => x.OptionsMapper).Returns(new BaseMapper.OptionsMapper());
+            providerLocatorMock.SetupGet(x => x.AdditionalMappers).Returns(new[] { new BaseMapper.OptionsMapper() });
             var providerLocatorFactoryMock = new Mock<ProviderLocatorFactory>();
             providerLocatorFactoryMock.Setup(x =>
                     x.Instantiate(It.IsAny<string>())
@@ -133,7 +174,7 @@ namespace DubUrl.OleDb.Testing
 
             providerLocatorFactoryMock.Verify(x => x.Instantiate("myprovider"));
             providerLocatorMock.Verify(x => x.Locate(), Times.Once);
-            providerLocatorMock.Verify(x => x.OptionsMapper, Times.Once);
+            providerLocatorMock.Verify(x => x.AdditionalMappers, Times.Once);
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey(OleDbMapper.PROVIDER_KEYWORD));
             Assert.That(result[OleDbMapper.PROVIDER_KEYWORD], Is.EqualTo("My provider"));

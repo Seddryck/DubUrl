@@ -62,11 +62,12 @@ namespace DubUrl.OleDb.Testing
             );
             var introspector = new ProviderLocatorIntrospector(probeMock.Object);
             var factory = new ProviderLocatorFactory(introspector);
-            var result = factory.Instantiate(scheme).OptionsMapper;
+            var result = factory.Instantiate(scheme).AdditionalMappers;
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.InstanceOf<BaseTokenMapper>());
-            Assert.That(result, Is.TypeOf(expected));
+            Assert.That(result.Count, Is.GreaterThanOrEqualTo(1));
+            Assert.That(result[0], Is.InstanceOf<BaseTokenMapper>());
+            Assert.That(result[0], Is.TypeOf(expected));
         }
     }
 }

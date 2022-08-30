@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Mapping;
 
 namespace DubUrl.OleDb.Providers
 {
@@ -29,13 +30,25 @@ namespace DubUrl.OleDb.Providers
         private readonly Dictionary<string, int> Candidates = new();
 
         public MssqlNCliProviderLocator()
-            : base(GetRegexPattern<MssqlNCliProviderLocator>()) { }
+            : base(GetRegexPattern<MssqlNCliProviderLocator>(), new BaseTokenMapper[]
+                { new BaseMapper.OptionsMapper()
+                    , new OleDbMapper.InitialCatalogMapper()
+                    , new OleDbMapper.ServerMapper()
+                }
+            )
+        { }
 
         internal MssqlNCliProviderLocator(ProviderLister providerLister)
             : base(GetRegexPattern<MssqlNCliProviderLocator>(), providerLister) { }
 
         internal MssqlNCliProviderLocator(string value)
-            : base(GetRegexPattern<MssqlNCliProviderLocator>(), new ExtendedPropertiesMapper(new[] { value })) { }
+            : base(GetRegexPattern<MssqlNCliProviderLocator>(), new BaseTokenMapper[]
+                { new BaseMapper.OptionsMapper()
+                    , new OleDbMapper.InitialCatalogMapper()
+                    , new OleDbMapper.ServerMapper()
+                }
+            )
+        { }
 
         protected override void AddCandidate(string provider, string[] matches)
             => Candidates.Add(provider, int.Parse(matches[0]));

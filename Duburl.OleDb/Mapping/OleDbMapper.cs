@@ -16,7 +16,7 @@ namespace DubUrl.OleDb.Mapping
     [GenericMapper<OleDbConnectivity>(
         "System.Data.OleDb"
     )]
-    internal class OleDbMapper : BaseMapper, IOleDbMapper
+    public class OleDbMapper : BaseMapper, IOleDbMapper
     {
         protected internal const string PROVIDER_KEYWORD = "Provider";
         protected internal const string SERVER_KEYWORD = "Data Source";
@@ -31,16 +31,49 @@ namespace DubUrl.OleDb.Mapping
                   dialect,
                   new SpecificatorStraight(csb),
                   new BaseTokenMapper[] {
-                    new DataSourceMapper(),
                     new AuthentificationMapper(),
-                    new InitialCatalogMapper(),
                     new ProviderMapper(providerLocatorFactory),
-                    new SelectMapper(providerLocatorFactory)
+                    new AdditionalMappers(providerLocatorFactory)
                   }
             )
         { }
 
         internal class DataSourceMapper : BaseTokenMapper
+        {
+            public override void Execute(UrlInfo urlInfo)
+            {
+                var segments = new List<string>();
+                if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
+                    segments = urlInfo.Segments.Skip(1).ToList();
+                else
+                {
+                    if (!(
+                            string.IsNullOrEmpty(urlInfo.Host)
+                            || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, "localhost") == 0 
+                            || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ".") == 0)
+                        )
+                        segments.Add(urlInfo.Host);
+                    segments.AddRange(urlInfo.Segments);
+                }
+
+                Specificator.Execute(SERVER_KEYWORD, BuildPath(segments));
+            }
+
+            private string BuildPath(IEnumerable<string> segments)
+            {
+                if (segments == null || segments.Count() == 0)
+                    throw new ArgumentException();
+
+                var path = new StringBuilder();
+                foreach (var segment in segments)
+                    if (!string.IsNullOrEmpty(segment))
+                        path.Append(segment).Append(Path.DirectorySeparatorChar);
+                path.Remove(path.Length - 1, 1);
+                return path.ToString();
+            }
+        }
+
+        internal class ServerMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
             {
@@ -70,7 +103,7 @@ namespace DubUrl.OleDb.Mapping
                     var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").First();
                     var providerLocator = ProviderLocatorFactory.Instantiate(otherScheme);
                     var provider = providerLocator.Locate();
-                    urlInfo.Options.Add(PROVIDER_KEYWORD, provider);
+                    Specificator.Execute(PROVIDER_KEYWORD, provider);
                 }
             }
         }
@@ -83,9 +116,6 @@ namespace DubUrl.OleDb.Mapping
                     Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
                 if (!string.IsNullOrEmpty(urlInfo.Password))
                     Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
-
-                if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
-                    Specificator.Execute(SSPI_KEYWORD, "SSPI");
             }
         }
 
@@ -93,26 +123,29 @@ namespace DubUrl.OleDb.Mapping
         {
             public override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
-                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
+                if (urlInfo.Segments.Length <= 2)
+                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
                 else
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        internal class SelectMapper : BaseTokenMapper
+        internal class AdditionalMappers : BaseTokenMapper
         {
             internal ProviderLocatorFactory ProviderLocatorFactory { get; } = new ProviderLocatorFactory();
 
-            public SelectMapper(ProviderLocatorFactory ProviderLocatorFactory)
+            public AdditionalMappers(ProviderLocatorFactory ProviderLocatorFactory)
                 => this.ProviderLocatorFactory = ProviderLocatorFactory;
 
             public override void Execute(UrlInfo urlInfo)
             {
                 var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").FirstOrDefault();
-                var optionsMapper = string.IsNullOrEmpty(otherScheme) ? new OptionsMapper() : ProviderLocatorFactory.Instantiate(otherScheme).OptionsMapper;
-                optionsMapper.Accept(Specificator);
-                optionsMapper.Execute(urlInfo);
+                var additionalMappers = string.IsNullOrEmpty(otherScheme) ? new[] { new OptionsMapper() } : ProviderLocatorFactory.Instantiate(otherScheme).AdditionalMappers;
+                foreach (var mapper in additionalMappers)
+                {
+                    mapper.Accept(Specificator);
+                    mapper.Execute(urlInfo);
+                }
             }
         }
     }

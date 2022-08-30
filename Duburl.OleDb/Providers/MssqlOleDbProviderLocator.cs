@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DubUrl.Mapping;
 
 namespace DubUrl.OleDb.Providers
 {
@@ -27,13 +28,24 @@ namespace DubUrl.OleDb.Providers
         private readonly List<string> Candidates = new();
 
         public MssqlOleDbProviderLocator()
-            : base(GetRegexPattern<MssqlOleDbProviderLocator>()) { }
+            : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
+                { new BaseMapper.OptionsMapper()
+                    , new OleDbMapper.InitialCatalogMapper()
+                    , new OleDbMapper.ServerMapper()
+                }
+            )
+        { }
 
         internal MssqlOleDbProviderLocator(ProviderLister providerLister)
             : base(GetRegexPattern<MssqlOleDbProviderLocator>(), providerLister) { }
 
         internal MssqlOleDbProviderLocator(string value)
-            : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new ExtendedPropertiesMapper(new[] { value })) { }
+            : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
+                { new BaseMapper.OptionsMapper()
+                    , new OleDbMapper.InitialCatalogMapper()
+                    , new OleDbMapper.ServerMapper()
+                }
+            ) { }
 
         protected override void AddCandidate(string provider, string[] matches)
             => Candidates.Add(provider);

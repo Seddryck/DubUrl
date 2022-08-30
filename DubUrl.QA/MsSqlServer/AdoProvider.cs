@@ -2,12 +2,13 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
-using DubUrl.Querying;
 using DubUrl.Querying.Reading;
 using DubUrl.Registering;
 
-namespace DubUrl.QA.Pgsql
+namespace DubUrl.QA.MsSqlServer
 {
+    [Category("MsSqlServer")]
+    [FixtureLifeCycle(LifeCycle.SingleInstance)]
     public class AdoProvider
     {
         [OneTimeSetUp]
@@ -17,7 +18,7 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
+            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -27,33 +28,33 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
-            
+            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
+            cmd.CommandText = "select FullName from Customer where CustomerId=1";
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
         }
 
         [Test]
         public void QueryCustomerWithDatabase()
         {
-            var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
-            var fullName = db.ReadScalarNonNull<string>("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
+            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
         private class SelectFirstCustomerQuery : EmbeddedSqlFileQuery
         {
             public SelectFirstCustomerQuery()
-                : base($"{typeof(AdoProvider).Namespace}.SelectFirstCustomer") 
+                : base($"{typeof(AdoProvider).Assembly.GetName().Name}.SelectFirstCustomer")
             { }
         }
 
         [Test]
         public void QueryCustomerWithDatabaseQuery()
         {
-            var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
+            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
@@ -61,11 +62,11 @@ namespace DubUrl.QA.Pgsql
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
+            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select \"FullName\" from \"Customer\" where \"CustomerId\"=@CustId";
+            cmd.CommandText = "select FullName from Customer where CustomerId=@CustId";
             var param = cmd.CreateParameter();
             param.ParameterName = "CustId";
             param.DbType = DbType.Int32;

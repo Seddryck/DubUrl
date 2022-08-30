@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping;
+﻿using Duburl.OleDb;
+using DubUrl.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace DubUrl.OleDb
         public record struct ProviderLocatorInfo(Type ProviderLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority, Type[] Options) { }
 
         public ProviderLocatorIntrospector()
-            : this(new AssemblyTypesProbe()) { }
+            : this(new AssemblyTypesProbeOleDb()) { }
 
         internal ProviderLocatorIntrospector(ITypesProbe probe)
             : base(probe) { }
