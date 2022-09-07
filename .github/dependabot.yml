@@ -12,7 +12,19 @@ updates:
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
+    directory: "/DubUrl.OleDb/" 
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependency-update"
+  - package-ecosystem: "nuget" 
     directory: "/DubUrl.Testing/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependency-update"
+  - package-ecosystem: "nuget" 
+    directory: "/DubUrl.OleDb.Testing/"
     schedule:
       interval: "weekly"
     labels:
