@@ -27,6 +27,7 @@ build_script:
 test_script:
 - dotnet test DubUrl.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
+- dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
       & .\deploy-mssql-test-env.ps1 -force
       & .\deploy-pgsql-test-env.ps1 -force
@@ -35,6 +36,7 @@ test_script:
 after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.OleDb -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
+- dotnet pack DubUrl.Extensions.DependencyInjection -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 
 artifacts:
 - path: '**\*.nupkg'

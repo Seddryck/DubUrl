@@ -19,7 +19,7 @@ namespace DubUrl.Mapping
         private readonly List<MapperInfo> MapperData = new();
 
         protected Dictionary<string, IMapper> Mappers { get; set; } = new();
-        private BaseMapperIntrospector[] MapperIntrospectors { get; } = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new GenericMapperIntrospector() };
+        private BaseMapperIntrospector[] MapperIntrospectors { get; } = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new WrapperMapperIntrospector() };
         private DialectBuilder DialectBuilder { get; } = new DialectBuilder();
 
         public SchemeMapperBuilder()
@@ -27,11 +27,11 @@ namespace DubUrl.Mapping
 
         public SchemeMapperBuilder(Assembly[] assemblies)
         {
-            var asmIntrospector = new AssemblyTypesProbe(assemblies);
+            var asmTypesProbe = new AssemblyTypesProbe(assemblies);
             MapperIntrospectors = new BaseMapperIntrospector[]
             {
-                new NativeMapperIntrospector(asmIntrospector)
-                , new GenericMapperIntrospector(asmIntrospector)
+                new NativeMapperIntrospector(asmTypesProbe)
+                , new WrapperMapperIntrospector(asmTypesProbe)
             };
             Initialize();
         }

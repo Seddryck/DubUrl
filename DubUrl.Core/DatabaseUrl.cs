@@ -18,7 +18,11 @@ namespace DubUrl
         protected CommandFactory CommandFactory { get; }
 
         public DatabaseUrl(string url)
-        : this(new ConnectionUrl(url, new SchemeMapperBuilder()), new CommandFactory())
+        : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
+        { }
+        
+        public DatabaseUrl(ConnectionUrlFactory factory, string url)
+        : this(factory.Instantiate(url), new CommandFactory())
         { }
 
         internal DatabaseUrl(ConnectionUrl connectionUrl, CommandFactory commandFactory)

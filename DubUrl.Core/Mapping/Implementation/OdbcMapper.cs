@@ -13,7 +13,7 @@ using DubUrl.Locating.Options;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [GenericMapper<OdbcConnectivity>(
+    [WrapperMapper<OdbcConnectivity>(
         "System.Data.Odbc"
     )]
     public class OdbcMapper : BaseMapper, IOdbcMapper
