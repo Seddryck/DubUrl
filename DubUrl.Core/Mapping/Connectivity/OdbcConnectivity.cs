@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Connectivity
 {
-    [GenericConnectivity(
+    [WrapperConnectivity(
         "ODBC"
         , new[] { "odbc" }
     )]
     public class OdbcConnectivity : IGenericConnectivity {
 
-        public IEnumerable<string> DefineAliases(GenericConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
+        public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
             => CartesianProduct(connectivity.Aliases, database.Aliases);
 
         private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)

@@ -15,6 +15,6 @@ namespace DubUrl.Mapping
 
     public interface IGenericConnectivity : IConnectivity
     {
-        IEnumerable<string> DefineAliases(GenericConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator);
+        IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator);
     }
 }

@@ -3,6 +3,8 @@ using DubUrl.Mapping;
 using DubUrl.Mapping.Connectivity;
 using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
+using DubUrl.OleDb.Mapping;
+using DubUrl.OleDb.Providers;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,9 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Mapping
+namespace DubUrl.OleDb.Testing
 {
-    public class GenericMapperIntrospectorTest
+    public class WrapperMapperIntrospectorTest
     {
         internal class FakeMappersIntrospector : AssemblyTypesProbe
         {
@@ -26,12 +28,31 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void LocateGeneric_OneGenericMapperClassesForOneDatabase_GenericReturned()
+        public void LocateGeneric_TwoGenericMappersClassesForOneDatabase_GenericReturned()
         {
             var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
-                , typeof(MssqlDriverLocator), typeof(MsSqlServerDatabase) 
+                , typeof(OleDbConnectivity), typeof(OleDbMapper)
+                , typeof(MssqlDriverLocator), typeof(MssqlOleDbProviderLocator)
+                , typeof(MsSqlServerDatabase)
             });
-            var introspector = new GenericMapperIntrospector(types);
+            var introspector = new WrapperMapperIntrospector(types);
+            var result = introspector.Locate();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Count(), Is.EqualTo(2));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+            Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OleDbMapper)));
+        }
+
+        [Test]
+        public void LocateGeneric_TwoGenericMappersClassesForOneDatabaseButAlternative_GenericReturned()
+        {
+            var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
+                , typeof(OleDbConnectivity), typeof(OleDbMapper)
+                , typeof(MssqlDriverLocator), typeof(MssqlNCliProviderLocator)
+                , typeof(MsSqlServerDatabase)
+            });
+            var introspector = new WrapperMapperIntrospector(types);
             var result = introspector.Locate();
 
             Assert.That(result, Is.Not.Null);
@@ -39,20 +60,5 @@ namespace DubUrl.Testing.Mapping
             Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
         }
 
-        [Test]
-        public void LocateGeneric_OneGenericMapperClassesForTwoDatabases_GenericReturned()
-        {
-            var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
-                , typeof(MssqlDriverLocator), typeof(MsSqlServerDatabase)
-                , typeof(MySqlConnectorDriverLocator), typeof(MySqlDatabase)
-            });
-            var introspector = new GenericMapperIntrospector(types);
-            var result = introspector.Locate();
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(2));
-            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
-            Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OdbcMapper)));
-        }
     }
 }

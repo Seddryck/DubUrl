@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
-    public class GenericConnectivityAttribute : Attribute
+    public class WrapperConnectivityAttribute : Attribute
     {
         public virtual string ConnectivityName { get; protected set; } = string.Empty;
         public virtual string[] Aliases { get; protected set; } = Array.Empty<string>();
 
-        public GenericConnectivityAttribute(string connectivityName, string[] aliases)
+        public WrapperConnectivityAttribute(string connectivityName, string[] aliases)
         {
             ConnectivityName = connectivityName;
             Aliases = aliases;
