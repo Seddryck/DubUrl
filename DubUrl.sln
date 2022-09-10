@@ -12,11 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{95E83BA6-B535-4D56-B06A-D00249A4EF00}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
+		.github\dependabot.yml = .github\dependabot.yml
 		Directory.Build.targets = Directory.Build.targets
-		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
-		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
-		generate-scheme-info.ps1 = generate-scheme-info.ps1
-		generate-table-scheme.ps1 = generate-table-scheme.ps1
 		GitVersion.yml = GitVersion.yml
 	EndProjectSection
 EndProject
@@ -29,7 +26,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Edit", "Edit", "{210C887C-6FF3-4D1B-9A7B-894E2F286FF4}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		.github\dependabot.yml = .github\dependabot.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74}"
@@ -49,11 +45,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.OleDb.Testing", "Dub
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OleDb", "OleDb", "{C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Extensions.DependencyInjection", "DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj", "{152A80A1-6FA5-43DD-8645-5A8270F4989A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection", "DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj", "{152A80A1-6FA5-43DD-8645-5A8270F4989A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{475458EB-5E08-4618-A8FE-02A6E1E1FF5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Extensions.DependencyInjection.Testing", "DubUrl.Extensions.DependencyInjection.Testing\DubUrl.Extensions.DependencyInjection.Testing.csproj", "{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection.Testing", "DubUrl.Extensions.DependencyInjection.Testing\DubUrl.Extensions.DependencyInjection.Testing.csproj", "{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{4697F07B-6CD6-442B-A42E-A30ECC98D6B7}"
+	ProjectSection(SolutionItems) = preProject
+		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
+		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
+		generate-scheme-info.ps1 = generate-scheme-info.ps1
+		generate-table-scheme.ps1 = generate-table-scheme.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,6 +107,7 @@ Global
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997} = {C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}
 		{152A80A1-6FA5-43DD-8645-5A8270F4989A} = {475458EB-5E08-4618-A8FE-02A6E1E1FF5B}
 		{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D} = {475458EB-5E08-4618-A8FE-02A6E1E1FF5B}
+		{4697F07B-6CD6-442B-A42E-A30ECC98D6B7} = {95E83BA6-B535-4D56-B06A-D00249A4EF00}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}
