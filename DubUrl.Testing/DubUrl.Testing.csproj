@@ -29,7 +29,7 @@
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
-		<PackageReference Include="Teradata.Client.Provider" Version="17.20.2" />
+		<PackageReference Include="Teradata.Client.Provider" Version="17.20.3" />
 	</ItemGroup>
 
 	<ItemGroup>
