@@ -18,6 +18,12 @@ updates:
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
+    directory: "/DubUrl.Extensions.DependencyInjection/" 
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependency-update"
+  - package-ecosystem: "nuget" 
     directory: "/DubUrl.Testing/"
     schedule:
       interval: "weekly"
@@ -25,6 +31,12 @@ updates:
       - "dependency-update"
   - package-ecosystem: "nuget" 
     directory: "/DubUrl.OleDb.Testing/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependency-update"
+  - package-ecosystem: "nuget" 
+    directory: "/DubUrl.Extensions.DependencyInjection.Testing/"
     schedule:
       interval: "weekly"
     labels:
