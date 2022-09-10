@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class GenericMapperAttribute<T> : GenericMapperAttribute where T : IGenericConnectivity
+    sealed public class WrapperMapperAttribute<T> : GenericMapperAttribute where T : IGenericConnectivity
     {
-        public GenericMapperAttribute(string providerInvariantName)
+        public WrapperMapperAttribute(string providerInvariantName)
             : base(
                   typeof(T)
                   , providerInvariantName

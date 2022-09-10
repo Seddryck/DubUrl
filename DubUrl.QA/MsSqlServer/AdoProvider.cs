@@ -4,6 +4,11 @@ using System.Data;
 using System.Data.Common;
 using DubUrl.Querying.Reading;
 using DubUrl.Registering;
+using DubUrl.Mapping;
+using System.Configuration;
+using DubUrl.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace DubUrl.QA.MsSqlServer
 {
@@ -44,21 +49,6 @@ namespace DubUrl.QA.MsSqlServer
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
-        private class SelectFirstCustomerQuery : EmbeddedSqlFileQuery
-        {
-            public SelectFirstCustomerQuery()
-                : base($"{typeof(AdoProvider).Assembly.GetName().Name}.SelectFirstCustomer")
-            { }
-        }
-
-        [Test]
-        public void QueryCustomerWithDatabaseQuery()
-        {
-            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
-            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
-
         [Test]
         public void QueryCustomerWithParams()
         {
@@ -74,5 +64,55 @@ namespace DubUrl.QA.MsSqlServer
             cmd.Parameters.Add(param);
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
         }
+
+        [Test]
+        public void QueryCustomerWithDatabaseUrlAndQueryClass()
+        {
+            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        public void QueryCustomerWithRepository()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
+                    , new[] { "mssql://sa:Password12!@localhost/SQL2019/DubUrl" }))
+                .BuildServiceProvider();
+            var repo = provider.GetRequiredService<CustomerRepository>();
+            var fullName = repo.SelectFirstCustomer();
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        public void QueryCustomerWithRepositoryFactory()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddSingleton<RepositoryFactory>()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<RepositoryFactory>();
+            var repo = factory.Instantiate<CustomerRepository>(
+                            "mssql://sa:Password12!@localhost/SQL2019/DubUrl"
+                        );
+            var fullName = repo.SelectFirstCustomer();
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        private static IConfiguration EmptyDubUrlConfiguration
+        {
+            get
+            {
+                var builder = new ConfigurationBuilder().AddInMemoryCollection();
+                return builder.Build();
+            }
+        }
+
     }
 }

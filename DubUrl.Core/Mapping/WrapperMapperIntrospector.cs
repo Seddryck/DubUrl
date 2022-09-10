@@ -40,20 +40,20 @@ namespace DubUrl.Mapping
             : base("connectivity", "connectivities", "mapper", locatorType, elementType, types) { }
     }
 
-    public class GenericMapperIntrospector : BaseMapperIntrospector
+    public class WrapperMapperIntrospector : BaseMapperIntrospector
     {
-        public GenericMapperIntrospector()
+        public WrapperMapperIntrospector()
             : this(new AssemblyTypesProbe()) { }
-        public GenericMapperIntrospector(Assembly[] assemblies)
+        public WrapperMapperIntrospector(Assembly[] assemblies)
             : this(new AssemblyTypesProbe(assemblies.Distinct().ToArray())) { }
-        public GenericMapperIntrospector(ITypesProbe probe)
+        public WrapperMapperIntrospector(ITypesProbe probe)
             : base(probe) { }
 
         public override IEnumerable<MapperInfo> Locate()
         {
             var mappers = LocateAttribute<GenericMapperAttribute>();
             var databases = LocateAttribute<DatabaseAttribute>();
-            var connectivities = LocateAttribute<GenericConnectivityAttribute>();
+            var connectivities = LocateAttribute<WrapperConnectivityAttribute>();
             var locators = LocateAttribute<LocatorAttribute>();
 
             foreach (var locator in locators)

@@ -13,7 +13,7 @@ using DubUrl.Mapping;
 
 namespace DubUrl.OleDb.Mapping
 {
-    [GenericMapper<OleDbConnectivity>(
+    [WrapperMapper<OleDbConnectivity>(
         "System.Data.OleDb"
     )]
     public class OleDbMapper : BaseMapper, IOleDbMapper

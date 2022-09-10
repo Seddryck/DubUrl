@@ -5,6 +5,10 @@ using System.Data.Common;
 using DubUrl.Querying;
 using DubUrl.Querying.Reading;
 using DubUrl.Registering;
+using DubUrl.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DubUrl.QA.Postgresql
 {
@@ -44,18 +48,11 @@ namespace DubUrl.QA.Postgresql
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
-        private class SelectFirstCustomerQuery : EmbeddedSqlFileQuery
-        {
-            public SelectFirstCustomerQuery()
-                : base($"{typeof(AdoProvider).Assembly.GetName().Name}.SelectFirstCustomer") 
-            { }
-        }
-
         [Test]
-        public void QueryCustomerWithDatabaseQuery()
+        public void QueryCustomerWithDatabaseUrlAndQueryClass()
         {
             var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
-            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
+            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
@@ -73,6 +70,47 @@ namespace DubUrl.QA.Postgresql
             param.Value = 2;
             cmd.Parameters.Add(param);
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
+        }
+
+        [Test]
+        public void QueryCustomerWithRepository()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
+                    , new[] { "pgsql://postgres:Password12!@localhost/DubUrl" }))
+                .BuildServiceProvider();
+            var repo = provider.GetRequiredService<CustomerRepository>();
+            var fullName = repo.SelectFirstCustomer();
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        public void QueryCustomerWithRepositoryFactory()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddSingleton<RepositoryFactory>()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<RepositoryFactory>();
+            var repo = factory.Instantiate<CustomerRepository>(
+                            "pgsql://postgres:Password12!@localhost/DubUrl"
+                        );
+            var fullName = repo.SelectFirstCustomer();
+            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        private static IConfiguration EmptyDubUrlConfiguration
+        {
+            get
+            {
+                var builder = new ConfigurationBuilder().AddInMemoryCollection();
+                return builder.Build();
+            }
         }
     }
 }

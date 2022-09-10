@@ -26,7 +26,7 @@ namespace DubUrl.Registering
             : this(assemblies, new BaseMapperIntrospector[] 
                 {
                     new NativeMapperIntrospector(assemblies.Concat(new[] {typeof(NativeMapperIntrospector).Assembly }).ToArray())
-                    , new GenericMapperIntrospector(assemblies.Concat(new[] {typeof(GenericMapperIntrospector).Assembly }).ToArray()) 
+                    , new WrapperMapperIntrospector(assemblies.Concat(new[] {typeof(WrapperMapperIntrospector).Assembly }).ToArray()) 
                 }
             ) { }
 

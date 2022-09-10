@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj" />
     <ProjectReference Include="..\Duburl.OleDb\Duburl.OleDb.csproj" />
   </ItemGroup>
 

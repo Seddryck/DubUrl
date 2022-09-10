@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace DubUrl.OleDb.Mapping
 {
-    [GenericConnectivity(
+    [WrapperConnectivity(
         "OLE DB"
         , new[] { "oledb" }
     )]
     internal class OleDbConnectivity : IGenericConnectivity 
     {
-        public IEnumerable<string> DefineAliases(GenericConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
+        public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
             => CartesianProduct(connectivity.Aliases, 
                 (locator as ProviderSpecializationAttribute)?.Aliases ?? database.Aliases);
 
