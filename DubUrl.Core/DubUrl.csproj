@@ -1,12 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-	</PropertyGroup>
-	
+
 	<PropertyGroup>
 		<PackageId>DubUrl</PackageId>
 		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
-		<PackageTags>connection-string;database;sql</PackageTags>
+		<PackageTags>connection-string;database;sql;odbc;ado-net;adonet</PackageTags>
 		<Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
 	</PropertyGroup>
 
