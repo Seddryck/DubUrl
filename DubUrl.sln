@@ -12,12 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{95E83BA6-B535-4D56-B06A-D00249A4EF00}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
-		Directory.Build.targets = Directory.Build.targets
 		Directory.Build.props = Directory.Build.props
-		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
-		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
-		generate-scheme-info.ps1 = generate-scheme-info.ps1
-		generate-table-scheme.ps1 = generate-table-scheme.ps1
+		Directory.Build.targets = Directory.Build.targets
 		GitVersion.yml = GitVersion.yml
 	EndProjectSection
 EndProject
@@ -54,6 +50,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection", "DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj", "{E89F60EE-4A74-4159-B340-95BBA7507F46}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection.Testing", "DubUrl.Extensions.DependencyInjection.Testing\DubUrl.Extensions.DependencyInjection.Testing.csproj", "{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{BAFC00CA-8CE9-4A48-B05B-45982D1F6F0F}"
+	ProjectSection(SolutionItems) = preProject
+		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
+		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
+		generate-scheme-info.ps1 = generate-scheme-info.ps1
+		generate-table-scheme.ps1 = generate-table-scheme.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,6 +107,7 @@ Global
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997} = {C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}
 		{E89F60EE-4A74-4159-B340-95BBA7507F46} = {AD94AAB8-523D-44E3-AAB6-29FA38611B8F}
 		{B609EAA1-2443-4F75-9C31-AE048B3CB1DF} = {AD94AAB8-523D-44E3-AAB6-29FA38611B8F}
+		{BAFC00CA-8CE9-4A48-B05B-45982D1F6F0F} = {95E83BA6-B535-4D56-B06A-D00249A4EF00}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}
