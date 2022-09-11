@@ -1,12 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<Nullable>enable</Nullable>
-
-		<IsPackable>false</IsPackable>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
 		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.0.2" />
