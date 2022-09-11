@@ -12,8 +12,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{95E83BA6-B535-4D56-B06A-D00249A4EF00}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
-		.github\dependabot.yml = .github\dependabot.yml
 		Directory.Build.targets = Directory.Build.targets
+		Directory.Build.props = Directory.Build.props
+		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
+		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
+		generate-scheme-info.ps1 = generate-scheme-info.ps1
+		generate-table-scheme.ps1 = generate-table-scheme.ps1
 		GitVersion.yml = GitVersion.yml
 	EndProjectSection
 EndProject
@@ -45,19 +49,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.OleDb.Testing", "Dub
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OleDb", "OleDb", "{C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection", "DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj", "{152A80A1-6FA5-43DD-8645-5A8270F4989A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{AD94AAB8-523D-44E3-AAB6-29FA38611B8F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{475458EB-5E08-4618-A8FE-02A6E1E1FF5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection", "DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj", "{E89F60EE-4A74-4159-B340-95BBA7507F46}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection.Testing", "DubUrl.Extensions.DependencyInjection.Testing\DubUrl.Extensions.DependencyInjection.Testing.csproj", "{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{4697F07B-6CD6-442B-A42E-A30ECC98D6B7}"
-	ProjectSection(SolutionItems) = preProject
-		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
-		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
-		generate-scheme-info.ps1 = generate-scheme-info.ps1
-		generate-table-scheme.ps1 = generate-table-scheme.ps1
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection.Testing", "DubUrl.Extensions.DependencyInjection.Testing\DubUrl.Extensions.DependencyInjection.Testing.csproj", "{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,14 +81,14 @@ Global
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997}.Release|Any CPU.Build.0 = Release|Any CPU
-		{152A80A1-6FA5-43DD-8645-5A8270F4989A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{152A80A1-6FA5-43DD-8645-5A8270F4989A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{152A80A1-6FA5-43DD-8645-5A8270F4989A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{152A80A1-6FA5-43DD-8645-5A8270F4989A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E89F60EE-4A74-4159-B340-95BBA7507F46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E89F60EE-4A74-4159-B340-95BBA7507F46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E89F60EE-4A74-4159-B340-95BBA7507F46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E89F60EE-4A74-4159-B340-95BBA7507F46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -105,9 +101,8 @@ Global
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
 		{0AE44749-5793-4138-BC6F-4092A69976C0} = {C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997} = {C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}
-		{152A80A1-6FA5-43DD-8645-5A8270F4989A} = {475458EB-5E08-4618-A8FE-02A6E1E1FF5B}
-		{AEAAF14F-1E51-48A2-8B18-864AA4B8D74D} = {475458EB-5E08-4618-A8FE-02A6E1E1FF5B}
-		{4697F07B-6CD6-442B-A42E-A30ECC98D6B7} = {95E83BA6-B535-4D56-B06A-D00249A4EF00}
+		{E89F60EE-4A74-4159-B340-95BBA7507F46} = {AD94AAB8-523D-44E3-AAB6-29FA38611B8F}
+		{B609EAA1-2443-4F75-9C31-AE048B3CB1DF} = {AD94AAB8-523D-44E3-AAB6-29FA38611B8F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}
