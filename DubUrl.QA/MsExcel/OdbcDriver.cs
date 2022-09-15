@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
+using System.Data.Odbc;
 
 namespace DubUrl.QA.MsExcel
 {

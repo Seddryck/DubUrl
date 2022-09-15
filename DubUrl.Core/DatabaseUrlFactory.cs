@@ -15,9 +15,9 @@ namespace DubUrl
     public class DatabaseUrlFactory
     {
         private ConnectionUrlFactory ConnectionUrlFactory { get; }
-        protected CommandFactory CommandFactory { get; }
+        protected CommandBuilder CommandFactory { get; }
 
-        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandFactory commandFactory)
+        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandBuilder commandFactory)
             => (ConnectionUrlFactory, CommandFactory) = (connectionUrlFactory, commandFactory);
 
         public DatabaseUrl Instantiate(string url)

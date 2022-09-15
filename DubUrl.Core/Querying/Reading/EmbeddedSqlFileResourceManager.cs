@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading
 {
-    internal class EmbeddedSqlFileResourceManager : IResourceManager
+    public class EmbeddedSqlFileResourceManager : IResourceManager
     {
         private Assembly ResouceAssembly { get; }
         public virtual string[] ResourceNames { get; }

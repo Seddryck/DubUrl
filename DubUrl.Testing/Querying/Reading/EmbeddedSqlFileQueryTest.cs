@@ -36,7 +36,7 @@ namespace DubUrl.Testing.Querying.Reading
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
 
-            var query = new EmbeddedSqlFileQuery(id, resourceManager.Object);
+            var query = new EmbeddedSqlFileQuery(resourceManager.Object, id);
             var result = query.Exists(dialectMock.Object, true);
             Assert.That(result, Is.EqualTo(expected));
         }
@@ -54,7 +54,7 @@ namespace DubUrl.Testing.Querying.Reading
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
 
-            var query = new EmbeddedSqlFileQuery(id, resourceManager.Object);
+            var query = new EmbeddedSqlFileQuery(resourceManager.Object, id);
             var result = query.Exists(dialectMock.Object, false);
             Assert.That(result, Is.EqualTo(expected));
         }

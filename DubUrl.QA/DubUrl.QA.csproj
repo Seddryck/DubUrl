@@ -5,12 +5,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectCustomerbyId.mssql.sql" />
+    <None Remove="SelectCustomerById.pgsql.sql" />
+    <None Remove="SelectCustomerById.xlsx.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectCustomerById.pgsql.sql" />
+    <EmbeddedResource Include="SelectCustomerById.mssql.sql" />
+    <EmbeddedResource Include="SelectCustomerById.xlsx.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.mssql.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.pgsql.sql" />

@@ -1,10 +1,12 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Querying;
+using DubUrl.Querying.Reading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace DubUrl.Extensions.DependencyInjection
 {
@@ -88,7 +90,7 @@ namespace DubUrl.Extensions.DependencyInjection
                 });
             services.AddSingleton<SchemeMapperBuilder>();
             services.AddSingleton<ConnectionUrlFactory>();
-            services.AddSingleton<CommandFactory>();
+            services.AddSingleton<CommandBuilder>();
             services.AddSingleton<DatabaseUrlFactory>();
             return services;
         }

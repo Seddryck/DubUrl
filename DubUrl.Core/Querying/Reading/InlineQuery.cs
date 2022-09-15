@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading
 {
-    internal class InlineQuery : IQuery
+    internal class InlineQuery : IQueryProvider
     {
         private string Text { get; }
 

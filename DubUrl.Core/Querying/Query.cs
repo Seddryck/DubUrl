@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying
 {
-    public interface IQuery
+    public interface IQueryProvider
     {
         string Read(IDialect dialect);
         bool Exists(IDialect dialect, bool includeDefault = false);

@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Querying;
+using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
@@ -15,20 +16,20 @@ namespace DubUrl
     public class DatabaseUrl
     {
         protected ConnectionUrl ConnectionUrl { get; }
-        protected CommandFactory CommandFactory { get; }
+        protected CommandBuilder CommandBuilder { get; }
 
         public DatabaseUrl(string url)
         : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
         { }
         
         public DatabaseUrl(ConnectionUrlFactory factory, string url)
-        : this(factory.Instantiate(url), new CommandFactory())
+        : this(factory.Instantiate(url), new CommandBuilder())
         { }
 
-        internal DatabaseUrl(ConnectionUrl connectionUrl, CommandFactory commandFactory)
+        internal DatabaseUrl(ConnectionUrl connectionUrl, CommandBuilder commandFactory)
         {
             ConnectionUrl = connectionUrl;
-            CommandFactory = commandFactory;
+            CommandBuilder = commandFactory;
         }
 
         public IDbConnection Connect()
@@ -40,17 +41,19 @@ namespace DubUrl
         public object? ReadScalar(string query)
             => ReadScalar(new InlineQuery(query));
 
-        public object? ReadScalar(IQuery query)
+        public object? ReadScalar(Querying.IQueryProvider queryProvider)
         {
             using var conn = ConnectionUrl.Open();
-            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialect);
+            CommandBuilder.Setup(queryProvider, ConnectionUrl.Dialect);
+            var parameters = (queryProvider as IParametrizedQuery)?.Parameters;
+            using var cmd = parameters == null ? CommandBuilder.Execute(conn) : CommandBuilder.Execute(conn, parameters);
             return cmd.ExecuteScalar();
         }
 
         public T? ReadScalar<T>(string query)
            => ReadScalar<T>(new InlineQuery(query));
 
-        public T? ReadScalar<T>(IQuery query)
+        public T? ReadScalar<T>(Querying.IQueryProvider query)
         {
             var result = ReadScalar(query);
             return (T?)(result == DBNull.Value ? null : result);
@@ -59,7 +62,7 @@ namespace DubUrl
         public T ReadScalarNonNull<T>(string query)
            => ReadScalarNonNull<T>(new InlineQuery(query));
 
-        public T ReadScalarNonNull<T>(IQuery query)
+        public T ReadScalarNonNull<T>(Querying.IQueryProvider query)
         {
             var result = ReadScalar(query);
             var typedResult = (T?)(result == DBNull.Value ? null : result);
@@ -69,10 +72,11 @@ namespace DubUrl
         public IDataReader ExecuteReader(string query)
            => ExecuteReader(new InlineQuery(query));
 
-        public IDataReader ExecuteReader(IQuery query)
+        public IDataReader ExecuteReader(Querying.IQueryProvider queryProvider)
         {
             using var conn = ConnectionUrl.Open();
-            using var cmd = CommandFactory.Execute(conn, query, ConnectionUrl.Dialect);
+            CommandBuilder.Setup(queryProvider, ConnectionUrl.Dialect);
+            using var cmd = CommandBuilder.Execute(conn);
             return cmd.ExecuteReader();
         }
     }
