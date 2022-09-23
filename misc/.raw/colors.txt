@@ -1,6 +1,0 @@
-1F1E23 - black
-3A515F - blue/grey dark
-8399A6 - grey dark
-B3BEC2 - grey light
-FEC156 - yellow dark
-FFD376 - yellow light
