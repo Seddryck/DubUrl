@@ -5,6 +5,7 @@ using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
 using DubUrl.OleDb.Mapping;
 using DubUrl.OleDb.Providers;
+using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace DubUrl.OleDb.Testing
         }
 
         [Test]
-        public void LocateGeneric_TwoGenericMappersClassesForOneDatabase_GenericReturned()
+        public void LocateWrapper_TwoGenericMappersClassesForOneDatabase_WrapperReturned()
         {
             var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
                 , typeof(OleDbConnectivity), typeof(OleDbMapper)
@@ -45,7 +46,7 @@ namespace DubUrl.OleDb.Testing
         }
 
         [Test]
-        public void LocateGeneric_TwoGenericMappersClassesForOneDatabaseButAlternative_GenericReturned()
+        public void LocateWrapper_TwoGenericMappersClassesForOneDatabaseButAlternative_WrapperReturned()
         {
             var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
                 , typeof(OleDbConnectivity), typeof(OleDbMapper)

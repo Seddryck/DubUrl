@@ -1,7 +1,7 @@
 ﻿using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Tokening;
-using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Rewriting.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -11,65 +11,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<SnowflakeDatabase>(
+    [Mapper<SnowflakeDatabase, PositionalNamedParametrizer>(
         "Snowflake.Data"
     )]
     internal class SnowflakeMapper : BaseMapper
     {
-        internal const string SERVER_KEYWORD = "ACCOUNT";
-        internal const string DATABASE_KEYWORD = "DB";
-        internal const string SCHEMA_KEYWORD = "SCHEMA";
-        internal const string USERNAME_KEYWORD = "USER";
-        internal const string PASSWORD_KEYWORD = "PASSWORD";
-
-        public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect)
-            : base(csb,
+        public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+            : base(new SnowflakeRewriter(csb),
                   dialect,
-                  new SpecificatorUnchecked(csb),
-                  new BaseTokenMapper[] {
-                    new AccountMapper(),
-                    new DatabaseMapper(),
-                    new SchemaMapper(),
-                    new AuthentificationMapper(),
-                  }
+                  parametrizer
             )
         { }
-
-        internal class AccountMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
-            }
-        }
-
-        internal class DatabaseMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                if (urlInfo.Segments.Length >= 1)
-                    Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
-            }
-        }
-
-        internal class SchemaMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                if (urlInfo.Segments.Length >= 2)
-                    Specificator.Execute(SCHEMA_KEYWORD, urlInfo.Segments.Skip(1).First());
-            }
-        }
-
-        internal class AuthentificationMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                if (!string.IsNullOrEmpty(urlInfo.Username))
-                    Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
-                if (!string.IsNullOrEmpty(urlInfo.Password))
-                    Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
-            }
-        }
     }
 }

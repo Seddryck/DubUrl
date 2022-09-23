@@ -1,7 +1,5 @@
-﻿using DubUrl.OleDb;
-using DubUrl.Locating.RegexUtils;
+﻿using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Tokening;
 using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;
@@ -10,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DubUrl.Mapping;
+using DubUrl.Rewriting.Tokening;
 
 namespace DubUrl.OleDb.Providers
 {
@@ -29,9 +28,9 @@ namespace DubUrl.OleDb.Providers
 
         public MssqlOleDbProviderLocator()
             : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
-                { new BaseMapper.OptionsMapper()
-                    , new OleDbMapper.InitialCatalogMapper()
-                    , new OleDbMapper.ServerMapper()
+                { new OptionsMapper()
+                    , new OleDbRewriter.InitialCatalogMapper()
+                    , new OleDbRewriter.ServerMapper()
                 }
             )
         { }
@@ -41,9 +40,9 @@ namespace DubUrl.OleDb.Providers
 
         internal MssqlOleDbProviderLocator(string value)
             : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
-                { new BaseMapper.OptionsMapper()
-                    , new OleDbMapper.InitialCatalogMapper()
-                    , new OleDbMapper.ServerMapper()
+                { new OptionsMapper()
+                    , new OleDbRewriter.InitialCatalogMapper()
+                    , new OleDbRewriter.ServerMapper()
                 }
             ) { }
 

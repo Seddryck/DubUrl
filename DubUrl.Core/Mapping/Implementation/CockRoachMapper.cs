@@ -1,6 +1,9 @@
 ﻿using DubUrl.Mapping.Database;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Rewriting.Implementation;
+using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -10,22 +13,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<CockRoachDatabase>("Npgsql")]
+    [Mapper<CockRoachDatabase, PositionalParametrizer>("Npgsql")]
     internal class CockRoachMapper : PostgresqlMapper
     {
-        public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect)
-            : base(csb, dialect)
-        => ReplaceTokenMapper(typeof(PostgresqlMapper.DatabaseMapper), new DatabaseMapper());
+        public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+            : base(new CockRoachRewriter(csb), dialect, parametrizer) { }
 
-        internal new class DatabaseMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                if (urlInfo.Segments.Length == 1)
-                    Specificator.Execute(DATABASE_KEYWORD, $"{urlInfo.Segments.First()}.bank");
-                else
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
     }
 }

@@ -13,80 +13,59 @@ using DubUrl.Querying.Dialecting;
 using DubUrl.Querying.Reading;
 using Moq;
 using NUnit.Framework;
+using System.Linq.Expressions;
 
 namespace DubUrl.Testing
 {
     public class DatabaseUrlTest
     {
-
-        [Test]
-        public void Connect_AnyConnectionString_OneCallToConnectionUrl()
+        private static Mock<IDbCommand> DefineExpr(
+            Expression<Func<IDbCommand, object?>> expression
+            , object? returnValue = null
+        )
         {
-            var connectionUrlMock = new Mock<ConnectionUrl>(It.IsAny<string>());
-            connectionUrlMock.Setup(x => x.Connect());
-
-            var commandFactoryMock = new Mock<CommandBuilder>();
-
-            var db = new DatabaseUrl(connectionUrlMock.Object, commandFactoryMock.Object);
-            db.Connect();
-
-            connectionUrlMock.VerifyAll();
-        }
-
-        [Test]
-        public void Open_AnyConnectionString_OneCallToConnectionUrl()
-        {
-            var connectionUrlMock = new Mock<ConnectionUrl>(It.IsAny<string>());
-            connectionUrlMock.Setup(x => x.Open());
-
-            var commandFactoryMock = new Mock<CommandBuilder>();
-
-            var db = new DatabaseUrl(connectionUrlMock.Object, commandFactoryMock.Object);
-            db.Open();
-
-            connectionUrlMock.VerifyAll();
-        }
-
-        [Test]
-        public void ExecuteScalar_AnyQuery_OneCallToCommand()
-        {
-            var connectionStub = new Mock<IDbConnection>();
             var commandMock = new Mock<IDbCommand>();
-            commandMock.Setup(x => x.ExecuteScalar());
-
-            var connectionUrlMock = new Mock<ConnectionUrl>(It.IsAny<string>());
-            connectionUrlMock.Setup(x => x.Open()).Returns(connectionStub.Object);
-            connectionUrlMock.SetupGet(x => x.Dialect).Returns(new MssqlDialect(new[] { "mssql" }));
-
-            var commandBuilderMock = new Mock<CommandBuilder>();
-            commandBuilderMock.Setup(x => x.Setup(It.IsAny<DubUrl.Querying.IQueryProvider>(), It.IsAny<IDialect>()));
-            commandBuilderMock.Setup(x => x.Execute(It.IsAny<IDbConnection>())).Returns(commandMock.Object);
-
-            var db = new DatabaseUrl(connectionUrlMock.Object, commandBuilderMock.Object);
-            db.ReadScalar("QueryId");
-
-            connectionUrlMock.VerifyAll();
+            if (returnValue==null)
+                commandMock.Setup(expression);
+            else
+                commandMock.Setup(expression).Returns(returnValue);
+            return commandMock;
         }
 
-        [Test]
-        public void ExecuteScalar_AnyQuery_OneCallToCommandExecuteScalar()
+        static readonly object[] Actions =
         {
-            var connectionStub = new Mock<IDbConnection>();
-            var commandMock = new Mock<IDbCommand>();
-            commandMock.Setup(x => x.ExecuteScalar());
+            new object[] {
+                (Action<DatabaseUrl>) ((DatabaseUrl db) => db.ExecuteReader("QueryId"))
+                , DefineExpr(x => x.ExecuteReader()) },
+            new object[] {
+                (Action<DatabaseUrl>) ((DatabaseUrl db) => db.ReadScalar("QueryId"))
+                , DefineExpr(x => x.ExecuteScalar(), "Value") },
+            new object[] {
+                (Action<DatabaseUrl>) ((DatabaseUrl db) => db.ReadScalarNonNull("QueryId"))
+                , DefineExpr(x => x.ExecuteScalar(), "Value") }
+        };
+
+        
+        [TestCaseSource(nameof(Actions))]
+        public void DbAction_AnyQuery_MocksVerified(Action<DatabaseUrl> dbAction, Mock<IDbCommand> commandMock)
+        {
+            var connectionMock = new Mock<IDbConnection>();
+            connectionMock.Setup(x => x.CreateCommand()).Returns(commandMock.Object);
 
             var connectionUrlMock = new Mock<ConnectionUrl>(It.IsAny<string>());
-            connectionUrlMock.Setup(x => x.Open()).Returns(connectionStub.Object);
-            connectionUrlMock.SetupGet(x => x.Dialect).Returns(new MssqlDialect(new[] { "mssql" }));
+            connectionUrlMock.Setup(x => x.Open()).Returns(connectionMock.Object);
 
-            var commandBuilderMock = new Mock<CommandBuilder>();
-            commandBuilderMock.Setup(x => x.Setup(It.IsAny<DubUrl.Querying.IQueryProvider>(), It.IsAny<IDialect>()));
-            commandBuilderMock.Setup(x => x.Execute(It.IsAny<IDbConnection>())).Returns(commandMock.Object);
+            var cpfMock = new Mock<CommandProvisionerFactory>();
+            cpfMock.Setup(x => x.Instantiate(It.IsAny<ICommandProvider>(), It.IsAny<ConnectionUrl>()))
+                .Returns(Array.Empty<ICommandProvisioner>());
 
-            var db = new DatabaseUrl(connectionUrlMock.Object, commandBuilderMock.Object);
-            db.ReadScalar("QueryId");
+            var db = new DatabaseUrl(connectionUrlMock.Object, cpfMock.Object);
+            dbAction.Invoke(db);
 
+            connectionUrlMock.VerifyAll();
+            connectionMock.VerifyAll();
             commandMock.VerifyAll();
+            cpfMock.VerifyAll();
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.QA
 {
-    internal class SelectFirstCustomer : EmbeddedSqlFileQuery
+    internal class SelectFirstCustomer : EmbeddedSqlFileCommand
     {
         public SelectFirstCustomer()
             : base($"{typeof(SelectFirstCustomer).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}")

@@ -1,6 +1,9 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.Querying;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,9 +16,13 @@ namespace DubUrl
 {
     public class ConnectionUrl
     {
+        private record ParseResult(string ConnectionString, UrlInfo UrlInfo, IDialect Dialect, IParametrizer Parametrizer) { }
+        private ParseResult? _result;
+        private ParseResult Result { get => _result ??= ParseDetail(); }
         private SchemeMapperBuilder SchemeMapperBuilder { get; }
         private IMapper? Mapper { get; set; }
         private IParser Parser { get; }
+        
         private string Url { get; }
 
         public ConnectionUrl(string url)
@@ -27,23 +34,22 @@ namespace DubUrl
         internal ConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
             => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
 
-        private (string ConnectionString, UrlInfo UrlInfo, IDialect Dialect) ParseDetail()
+        private ParseResult ParseDetail()
         {
             var urlInfo = Parser.Parse(Url);
             SchemeMapperBuilder.Build();
             Mapper = SchemeMapperBuilder.GetMapper(urlInfo.Schemes);
-            Mapper.Map(urlInfo);
-            return (Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect());
+            Mapper.Rewrite(urlInfo);
+            return new ParseResult(Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect(), Mapper.GetParametrizer());
         }
 
-        public string Parse() => ParseDetail().ConnectionString;
+        public string Parse() => Result.ConnectionString;
 
         public virtual IDbConnection Connect()
         {
-            var parsing = ParseDetail();
-            var provider = SchemeMapperBuilder.GetProviderFactory(parsing.UrlInfo.Schemes);
+            var provider = SchemeMapperBuilder.GetProviderFactory(Result.UrlInfo.Schemes);
             var connection = provider.CreateConnection() ?? throw new ArgumentNullException();
-            connection.ConnectionString = parsing.ConnectionString;
+            connection.ConnectionString = Result.ConnectionString;
             return connection;
         }
 
@@ -53,7 +59,8 @@ namespace DubUrl
             connection.Open();
             return connection;
         }
-
-        public virtual IDialect Dialect { get => ParseDetail().Dialect; }
+                    
+        public virtual IDialect Dialect { get => Result.Dialect; }
+        public virtual IParametrizer Parametrizer { get => Result.Parametrizer; }
     }
 }

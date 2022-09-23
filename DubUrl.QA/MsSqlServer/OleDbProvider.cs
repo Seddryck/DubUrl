@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
-using DubUrl.Mapping.Implementation;
+using DubUrl.Rewriting.Implementation;
 using DubUrl.OleDb.Mapping;
 using DubUrl.Mapping;
 
@@ -18,7 +18,7 @@ namespace DubUrl.QA.MsSqlServer
         [OneTimeSetUp]
         public void SetupFixture()
         {
-            var assemblies = new[] { typeof(OdbcMapper).Assembly, typeof(OleDbMapper).Assembly };
+            var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
             
             var discovery = new BinFolderDiscover(assemblies);
             var registrator = new ProviderFactoriesRegistrator(discovery);

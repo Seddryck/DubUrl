@@ -90,8 +90,8 @@ namespace DubUrl.Extensions.DependencyInjection
                 });
             services.AddSingleton<SchemeMapperBuilder>();
             services.AddSingleton<ConnectionUrlFactory>();
-            services.AddSingleton<CommandBuilder>();
             services.AddSingleton<DatabaseUrlFactory>();
+            services.AddSingleton<CommandProvisionerFactory>();
             return services;
         }
     }

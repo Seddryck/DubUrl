@@ -1,15 +1,15 @@
-﻿using DubUrl.OleDb;
+﻿using DubUrl.Mapping;
+using DubUrl.Rewriting.Tokening;
 using DubUrl.Locating.Options;
 using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Tokening;
 using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl.Mapping;
+
 
 namespace DubUrl.OleDb.Providers
 {
@@ -31,9 +31,9 @@ namespace DubUrl.OleDb.Providers
 
         public MssqlNCliProviderLocator()
             : base(GetRegexPattern<MssqlNCliProviderLocator>(), new BaseTokenMapper[]
-                { new BaseMapper.OptionsMapper()
-                    , new OleDbMapper.InitialCatalogMapper()
-                    , new OleDbMapper.ServerMapper()
+                { new OptionsMapper()
+                    , new OleDbRewriter.InitialCatalogMapper()
+                    , new OleDbRewriter.ServerMapper()
                 }
             )
         { }
@@ -43,9 +43,9 @@ namespace DubUrl.OleDb.Providers
 
         internal MssqlNCliProviderLocator(string value)
             : base(GetRegexPattern<MssqlNCliProviderLocator>(), new BaseTokenMapper[]
-                { new BaseMapper.OptionsMapper()
-                    , new OleDbMapper.InitialCatalogMapper()
-                    , new OleDbMapper.ServerMapper()
+                { new OptionsMapper()
+                    , new OleDbRewriter.InitialCatalogMapper()
+                    , new OleDbRewriter.ServerMapper()
                 }
             )
         { }

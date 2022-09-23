@@ -1,7 +1,7 @@
 ﻿using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Tokening;
-using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Rewriting.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -11,65 +11,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<OracleDatabase>(
+    [Mapper<OracleDatabase, NamedParametrizer>(
         "Oracle.ManagedDataAccess"
     )]
     internal class OracleManagedDataAccessMapper : BaseMapper
     {
-        protected internal const string DATASOURCE_KEYWORD = "DATA SOURCE";
-        protected internal const string SERVER_KEYWORD = "HOST";
-        protected internal const string PORT_KEYWORD = "PORT";
-        protected internal const string DATABASE_KEYWORD = "SERVICE_NAME";
-        protected internal const string USERNAME_KEYWORD = "USER ID";
-        protected internal const string PASSWORD_KEYWORD = "PASSWORD";
-
-        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect)
-            : base(csb,
+        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+            : base(new OracleManagedDataAccessRewriter(csb),
                   dialect,
-                  new Specificator(csb),
-                  new BaseTokenMapper[] {
-                    new DsnMapper(),
-                    new AuthentificationMapper(),
-                    new OptionsMapper(),
-                  }
+                  parametrizer
             )
         { }
-
-        internal class AuthentificationMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                if (!string.IsNullOrEmpty(urlInfo.Username))
-                {
-                    Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
-                    if (!string.IsNullOrEmpty(urlInfo.Password))
-                        Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
-                }
-                else
-                {
-                    Specificator.Execute(USERNAME_KEYWORD, "/");
-                    Specificator.Execute(PASSWORD_KEYWORD, string.Empty);
-                }
-            }
-        }
-
-        internal class DsnMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                //If only host is specified, it's the TNS name
-                if (urlInfo.Segments.Length == 0 && urlInfo.Port == 0)
-                    Specificator.Execute("DATA SOURCE", urlInfo.Host);
-
-                //If segment is specified then it's the ConnectDescriptor
-                else if (urlInfo.Segments.Length == 1)
-                    Specificator.Execute("DATA SOURCE",
-                        $"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)" +
-                        $"({SERVER_KEYWORD}={urlInfo.Host})({PORT_KEYWORD}={(urlInfo.Port > 0 ? urlInfo.Port : 1521)}))(CONNECT_DATA=" +
-                        $"({DATABASE_KEYWORD}={urlInfo.Segments.First()})))");
-                else
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
     }
 }

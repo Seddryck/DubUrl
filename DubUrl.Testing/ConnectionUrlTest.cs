@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,9 @@ using System.Threading.Tasks;
 using DubUrl;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.Querying;
+using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Reading;
 using Moq;
 using NUnit.Framework;
 
@@ -24,7 +28,7 @@ namespace DubUrl.Testing
             parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
             var mapperMock = new Mock<IMapper>();
-            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
             schemeMapperBuilderMock.Setup(x => x.Build());
@@ -45,7 +49,7 @@ namespace DubUrl.Testing
             parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo() { Schemes = new[] { "mssql" } });
 
             var mapperMock = new Mock<IMapper>();
-            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
             schemeMapperBuilderMock.Setup(x => x.Build());
@@ -67,7 +71,7 @@ namespace DubUrl.Testing
             parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
             var mapperMock = new Mock<IMapper>();
-            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
             var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
             schemeMapperBuilderMock.Setup(x => x.Build());
@@ -76,7 +80,7 @@ namespace DubUrl.Testing
             var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
             connectionUrl.Parse();
 
-            mapperMock.Verify(x => x.Map(It.IsAny<UrlInfo>()), Times.Once());
+            mapperMock.Verify(x => x.Rewrite(It.IsAny<UrlInfo>()), Times.Once());
         }
 
         [Test]
@@ -88,7 +92,7 @@ namespace DubUrl.Testing
             parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
             var mapperMock = new Mock<IMapper>();
-            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
             var dbConnectionMock = new Mock<DbConnection>();
 
@@ -116,7 +120,7 @@ namespace DubUrl.Testing
             parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
             var mapperMock = new Mock<IMapper>();
-            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
             mapperMock.Setup(x => x.GetConnectionString()).Returns(connString);
 
             var sequence = new MockSequence();
@@ -149,7 +153,7 @@ namespace DubUrl.Testing
             parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
             var mapperMock = new Mock<IMapper>();
-            mapperMock.Setup(x => x.Map(It.IsAny<UrlInfo>()));
+            mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
             mapperMock.Setup(x => x.GetConnectionString()).Returns(connString);
 
             var sequence = new MockSequence();
@@ -171,5 +175,6 @@ namespace DubUrl.Testing
             dbConnectionMock.VerifySet(x => x.ConnectionString = connString);
             dbConnectionMock.Verify(x => x.Open(), Times.Once());
         }
+
     }
 }

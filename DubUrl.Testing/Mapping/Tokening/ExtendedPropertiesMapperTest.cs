@@ -1,12 +1,12 @@
 ﻿using DubUrl.Parsing;
+using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using DubUrl.Mapping.Tokening;
-using DubUrl.Mapping;
+
 
 namespace DubUrl.Testing.Mapping.Tokening
 {
@@ -16,8 +16,11 @@ namespace DubUrl.Testing.Mapping.Tokening
         {
             public Dictionary<string, object> Properties { get; } = new();
 
+            public string ConnectionString => throw new NotImplementedException();
+
             public void Execute(string keyword, object value)
                 => Properties.Add(keyword, value);
+            public IReadOnlyDictionary<string, object> ToReadOnlyDictionary() => throw new NotImplementedException();
         }
 
 

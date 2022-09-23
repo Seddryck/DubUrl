@@ -39,6 +39,7 @@ namespace DubUrl.Mapping
                         , db.Attribute.DialectType
                         , db.Attribute.ListingPriority
                         , mapper.Attribute.ProviderInvariantName
+                        , mapper.Attribute.Parametrizer
                     );
             }
         }

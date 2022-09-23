@@ -2,6 +2,7 @@
 using DubUrl.Parsing;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,15 +16,15 @@ namespace DubUrl
     public class DatabaseUrlFactory
     {
         private ConnectionUrlFactory ConnectionUrlFactory { get; }
-        protected CommandBuilder CommandFactory { get; }
+        private CommandProvisionerFactory CommandProvisionerFactory { get; }
 
-        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandBuilder commandFactory)
-            => (ConnectionUrlFactory, CommandFactory) = (connectionUrlFactory, commandFactory);
+        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory)
+            => (ConnectionUrlFactory, CommandProvisionerFactory) = (connectionUrlFactory, commandProvisionerFactory);
 
         public DatabaseUrl Instantiate(string url)
         {
             var connectionUrl = ConnectionUrlFactory.Instantiate(url);
-            return new DatabaseUrl(connectionUrl, CommandFactory);
+            return new DatabaseUrl(connectionUrl, CommandProvisionerFactory);
         }
     }
 }

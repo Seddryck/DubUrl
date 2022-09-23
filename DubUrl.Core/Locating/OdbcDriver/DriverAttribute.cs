@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Mapping.Implementation;
+using DubUrl.Rewriting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
