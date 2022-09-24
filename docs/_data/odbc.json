@@ -76,5 +76,16 @@
     ],
     "NamePattern": "^\\bMicrosoft Excel Driver\\s\\(\\*\\.xls, \\*\\.xlsx, \\*\\.xlsm, \\*\\.xlsb\\)$",
     "Options": []
+  },
+  {
+    "Class": "TextDriverLocator",
+    "Database": "Text files",
+    "Aliases": [
+      "txt",
+      "csv",
+      "tsv"
+    ],
+    "NamePattern": "^\\bMicrosoft Access Driver\\s\\(\\*\\.txt, \\*\\.csv\\)$",
+    "Options": []
   }
 ]
