@@ -19,6 +19,9 @@ namespace DubUrl.Testing.Locating.OdbcDriver
         [TestCase("maria", typeof(MariaDbDriverLocator))]
         [TestCase("xlsx", typeof(MsExcelDriverLocator))]
         [TestCase("ts", typeof(TimescaleDriverLocator))]
+        [TestCase("txt", typeof(TextDriverLocator))]
+        [TestCase("csv", typeof(TextDriverLocator))]
+        [TestCase("tsv", typeof(TextDriverLocator))]
         public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
         {
             var factory = new DriverLocatorFactory();
