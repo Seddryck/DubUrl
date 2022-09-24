@@ -18,7 +18,7 @@ namespace DubUrl.Locating.OdbcDriver
             public TextDriverRegex()
                 : base(new BaseRegex[]
                 {
-                    new WordMatch("Microsoft Access Driver"),
+                    new WordMatch("Microsoft Access Text Driver"),
                     new SpaceMatch(),
                     new LiteralMatch("(*.txt, *.csv)"),
                 })

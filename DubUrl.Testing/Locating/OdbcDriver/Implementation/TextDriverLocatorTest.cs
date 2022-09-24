@@ -23,28 +23,28 @@ namespace DubUrl.Testing.Locating.OdbcDriver.Implementation
         [Test]
         public void Locate_SingleElementMatching_ElementReturned()
         {
-            var driverLister = new FakeDriverLister(new[] { "Microsoft Access Driver (*.txt, *.csv)" });
+            var driverLister = new FakeDriverLister(new[] { "Microsoft Access Text Driver (*.txt, *.csv)" });
             var driverLocator = new TextDriverLocator(driverLister);
             var driver = driverLocator.Locate();
-            Assert.That(driver, Is.EqualTo("Microsoft Access Driver (*.txt, *.csv)"));
+            Assert.That(driver, Is.EqualTo("Microsoft Access Text Driver (*.txt, *.csv)"));
         }
 
         [Test]
         public void Locate_MultipleIdenticalElementMatching_BestElementReturned()
         {
-            var driverLister = new FakeDriverLister(new[] { "Microsoft Access Driver (*.txt, *.csv)", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" });
+            var driverLister = new FakeDriverLister(new[] { "Microsoft Access Text Driver (*.txt, *.csv)", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" });
             var driverLocator = new TextDriverLocator(driverLister);
             var driver = driverLocator.Locate();
-            Assert.That(driver, Is.EqualTo("Microsoft Access Driver (*.txt, *.csv)"));
+            Assert.That(driver, Is.EqualTo("Microsoft Access Text Driver (*.txt, *.csv)"));
         }
 
         [Test]
         public void Locate_ElementNonMatching_ElementNotReturned()
         {
-            var driverLister = new FakeDriverLister(new[] { "ODBC Driver 13 for SQL Server", "Microsoft Access Driver (*.txt, *.csv)" });
+            var driverLister = new FakeDriverLister(new[] { "ODBC Driver 13 for SQL Server", "Microsoft Access Text Driver (*.txt, *.csv)" });
             var driverLocator = new TextDriverLocator(driverLister);
             var driver = driverLocator.Locate();
-            Assert.That(driver, Is.EqualTo("Microsoft Access Driver (*.txt, *.csv)"));
+            Assert.That(driver, Is.EqualTo("Microsoft Access Text Driver (*.txt, *.csv)"));
         }
 
         [Test]
