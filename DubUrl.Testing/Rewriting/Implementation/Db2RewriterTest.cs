@@ -1,6 +1,6 @@
 ﻿using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
-using IBM.Data.DB2.Core;
+using IBM.Data.Db2;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

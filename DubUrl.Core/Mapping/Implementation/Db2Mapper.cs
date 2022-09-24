@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<Db2Database, NamedParametrizer>("IBM.Data.DB2.Core")]
+    [Mapper<Db2Database, NamedParametrizer>("IBM.Data.Db2")]
     internal class Db2Mapper : BaseMapper
     {
         public Db2Mapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

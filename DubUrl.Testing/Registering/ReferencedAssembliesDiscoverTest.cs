@@ -22,7 +22,7 @@ namespace DubUrl.Testing.Registering
         [TestCase(typeof(MySql.Data.MySqlClient.MySqlClientFactory))]
         [TestCase(typeof(Microsoft.Data.Sqlite.SqliteFactory))]
         [TestCase(typeof(FirebirdSql.Data.FirebirdClient.FirebirdClientFactory))]
-        [TestCase(typeof(IBM.Data.DB2.Core.DB2Factory))]
+        [TestCase(typeof(IBM.Data.Db2.DB2Factory))]
         [TestCase(typeof(Teradata.Client.Provider.TdFactory))]
         [TestCase(typeof(Snowflake.Data.Client.SnowflakeDbFactory))]
         [TestCase(typeof(System.Data.Odbc.OdbcFactory))]
