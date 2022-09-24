@@ -1,7 +1,5 @@
-﻿using DubUrl.OleDb;
-using DubUrl.OleDb.Providers;
+﻿using DubUrl.OleDb.Providers;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Tokening;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using DubUrl.Mapping.Database;
+using DubUrl.Rewriting.Tokening;
 
 namespace DubUrl.OleDb.Testing
 {
@@ -43,9 +42,9 @@ namespace DubUrl.OleDb.Testing
         }
 
         [Test]
-        [TestCase("mssql", typeof(BaseMapper.OptionsMapper))]
+        [TestCase("mssql", typeof(OptionsMapper))]
         //[TestCase("mssqlncli", typeof(BaseMapper.OptionsMapper))]
-        [TestCase("mysql", typeof(BaseMapper.OptionsMapper))]
+        [TestCase("mysql", typeof(OptionsMapper))]
         [TestCase("xls", typeof(ExtendedPropertiesMapper))]
         [TestCase("xlsx", typeof(ExtendedPropertiesMapper))]
         [TestCase("xlsm", typeof(ExtendedPropertiesMapper))]

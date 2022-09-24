@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping.Database;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -10,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Implementation
 {
-    [Mapper<MariaDbDatabase>("MySqlConnector")]
+    [Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
     internal class MariaDbConnectorMapper : MySqlConnectorMapper
     {
-        public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect)
-            : base(csb, dialect)
+        public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+            : base(csb, dialect, parametrizer)
         { }
     }
 }

@@ -1,7 +1,5 @@
-﻿using DubUrl.OleDb;
-using DubUrl.Locating.RegexUtils;
+﻿using DubUrl.Locating.RegexUtils;
 using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Tokening;
 using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;
@@ -9,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DubUrl.Mapping;
+using DubUrl.Rewriting.Tokening;
 
 namespace DubUrl.OleDb.Providers
 {
@@ -29,9 +27,9 @@ namespace DubUrl.OleDb.Providers
 
         public MySqlProviderLocator()
             : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]
-                { new BaseMapper.OptionsMapper()
-                    , new OleDbMapper.InitialCatalogMapper()
-                    , new OleDbMapper.ServerMapper()
+                { new OptionsMapper()
+                    , new OleDbRewriter.InitialCatalogMapper()
+                    , new OleDbRewriter.ServerMapper()
                 }
             )
         { }
@@ -41,9 +39,9 @@ namespace DubUrl.OleDb.Providers
 
         internal MySqlProviderLocator(string value)
             : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]
-                { new BaseMapper.OptionsMapper()
-                    , new OleDbMapper.InitialCatalogMapper()
-                    , new OleDbMapper.ServerMapper()
+                { new OptionsMapper()
+                    , new OleDbRewriter.InitialCatalogMapper()
+                    , new OleDbRewriter.ServerMapper()
                 }
             )
         { }

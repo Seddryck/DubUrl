@@ -1,6 +1,5 @@
-﻿using DubUrl.OleDb;
-using DubUrl.OleDb.Providers;
-using DubUrl.Mapping.Tokening;
+﻿using DubUrl.OleDb.Providers;
+using DubUrl.Rewriting.Tokening;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

@@ -13,7 +13,7 @@ namespace DubUrl.Mapping
     public interface IDirectConnectivity : IConnectivity
     { }
 
-    public interface IGenericConnectivity : IConnectivity
+    public interface IWrapperConnectivity : IConnectivity
     {
         IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator);
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Querying.Parametrizing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,21 +9,24 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class WrapperMapperAttribute<T> : GenericMapperAttribute where T : IGenericConnectivity
+    sealed public class WrapperMapperAttribute<T, P> : WrapperMapperAttribute
+        where T : IWrapperConnectivity
+        where P : IParametrizer
     {
         public WrapperMapperAttribute(string providerInvariantName)
             : base(
                   typeof(T)
+                  , typeof(P)
                   , providerInvariantName
             )
         { }
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class GenericMapperAttribute : BaseMapperAttribute
+    public class WrapperMapperAttribute : BaseMapperAttribute
     {
-        public GenericMapperAttribute(Type database, string providerInvariantName)
-            : base(database, providerInvariantName)
+        public WrapperMapperAttribute(Type database, Type parametrizer, string providerInvariantName)
+            : base(database, parametrizer, providerInvariantName)
         { }
     }
 }

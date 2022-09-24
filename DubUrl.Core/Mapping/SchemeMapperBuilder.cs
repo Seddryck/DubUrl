@@ -1,5 +1,7 @@
 ﻿using DubUrl.Locating.OdbcDriver;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Rewriting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -20,7 +22,8 @@ namespace DubUrl.Mapping
 
         protected Dictionary<string, IMapper> Mappers { get; set; } = new();
         private BaseMapperIntrospector[] MapperIntrospectors { get; } = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new WrapperMapperIntrospector() };
-        private DialectBuilder DialectBuilder { get; } = new DialectBuilder();
+        private DialectBuilder DialectBuilder { get; } = new();
+        private ParametrizerFactory ParametrizerFactory { get; } = new();
 
         public SchemeMapperBuilder()
          : this(new[] { typeof(SchemeMapperBuilder).Assembly }) { }
@@ -62,10 +65,11 @@ namespace DubUrl.Mapping
                     continue;
                 }
 
-                var ctorParamTypes = new List<Type>() { typeof(DbConnectionStringBuilder), typeof(IDialect) };
+                var ctorParamTypes = new List<Type>() { typeof(DbConnectionStringBuilder), typeof(IDialect), typeof(IParametrizer) };
                 var ctorParams = new List<object>() {
                     provider.CreateConnectionStringBuilder() ?? throw new NullReferenceException()
                     , DialectBuilder.Get(mapperData.Aliases.First())
+                    , ParametrizerFactory.Instantiate(mapperData.ParametrizerType)
                 };
 
                 //if (mapperData.DriverLocatorFactory != null)
@@ -96,7 +100,7 @@ namespace DubUrl.Mapping
                     ? "oledb"
                     : aliases.Contains("odbc")
                         ? "odbc"
-                        : throw new ArgumentOutOfRangeException();
+                        : throw new ArgumentOutOfRangeException(nameof(aliases));
 
             var secondAlias = aliases.SkipWhile(x => x.Equals(mainAlias)).FirstOrDefault();
 
@@ -150,15 +154,17 @@ namespace DubUrl.Mapping
             mapperData.Aliases = newAliases.ToArray();
         }
 
-        public void AddMapping<M, D>(string databaseName, string alias, string providerName)
+        public void AddMapping<M, D, P>(string databaseName, string alias, string providerName)
             where M : IMapper
             where D : IDialect
-            => AddMapping<M, D>(databaseName, new[] { alias }, providerName);
+            where P : IParametrizer
+            => AddMapping<M, D, P>(databaseName, new[] { alias }, providerName);
 
-        public void AddMapping<M, D>(string databaseName, string[] aliases, string providerName)
+        public void AddMapping<M, D, P>(string databaseName, string[] aliases, string providerName)
             where M : IMapper
             where D : IDialect
-            => AddMapping(new MapperInfo(typeof(M), databaseName, aliases, typeof(D), 9, providerName));
+            where P : IParametrizer
+            => AddMapping(new MapperInfo(typeof(M), databaseName, aliases, typeof(D), 9, providerName, typeof(P)));
 
         public void AddMapping(MapperInfo mapperInfo)
         {
@@ -166,10 +172,13 @@ namespace DubUrl.Mapping
                 throw new ArgumentException(nameof(mapperInfo.MapperType));
 
             if (!mapperInfo.DialectType.IsAssignableTo(typeof(IDialect)))
-                throw new ArgumentException(nameof(mapperInfo.MapperType));
+                throw new ArgumentException(nameof(mapperInfo.DialectType));
+
+            if (!mapperInfo.ParametrizerType.IsAssignableTo(typeof(IParametrizer)))
+                throw new ArgumentException(nameof(mapperInfo.ParametrizerType));
 
             if (MapperData.Contains(mapperInfo))
-                throw new ArgumentException();
+                throw new ArgumentException($"The mapper information for '{mapperInfo.MapperType.Name}' is already registered");
 
             MapperData.Add(mapperInfo);
         }

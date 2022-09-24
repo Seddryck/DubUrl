@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using DubUrl.Mapping.Tokening;
+﻿using DubUrl.Locating.OdbcDriver;
 using DubUrl.Mapping;
-using System.Data.Common;
-using DubUrl.Parsing;
-using DubUrl.Locating.OdbcDriver;
-using Moq;
-using System.Runtime.InteropServices;
 using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Rewriting.Tokening;
+using DubUrl.Rewriting;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using DubUrl.Rewriting.Implementation;
 
 namespace DubUrl.Testing.Mapping
 {
@@ -39,7 +40,15 @@ namespace DubUrl.Testing.Mapping
 
         private class StubMapper : BaseMapper
         {
-            public StubMapper(DbConnectionStringBuilder csb, IDialect dialect) : base(csb, dialect, new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
+            public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
+                : base(new StubRewriter(csb), dialect, parametrizer) { }
+
+            private class StubRewriter : ConnectionStringRewriter 
+            {
+                public StubRewriter(DbConnectionStringBuilder csb)
+                    : base(new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
+            }
+
         }
 
         [Test]
@@ -82,7 +91,7 @@ namespace DubUrl.Testing.Mapping
             builder.Build();
             var result = builder.GetMapper(weirdScheme); //Should exists
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<MsSqlServerMapper>());
+            Assert.That(result, Is.TypeOf<MsSqlServerRewriter>());
         }
 
         [Test]
@@ -95,7 +104,7 @@ namespace DubUrl.Testing.Mapping
             Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
 
             DbProviderFactories.RegisterFactory(invariantName, System.Data.SqlClient.SqlClientFactory.Instance);
-            builder.AddMapping<StubMapper, AnsiDialect>(databaseName, new[] { weirdScheme }, invariantName);
+            builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer> (databaseName, new[] { weirdScheme }, invariantName);
 
             builder.Build();
             var result = builder.GetMapper(weirdScheme); //Should exists
@@ -151,13 +160,13 @@ namespace DubUrl.Testing.Mapping
 
             var builder = new SchemeMapperBuilder();
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-            builder.ReplaceDriverLocatorFactory(typeof(OdbcMapper), factory);
+            builder.ReplaceDriverLocatorFactory(typeof(OdbcRewriter), factory);
 
             builder.Build();
             var result = builder.GetMapper(new[] { "odbc", "foobar" });
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<OdbcMapper>());
-            Assert.That(((OdbcMapper)result).DriverLocatorFactory, Is.EqualTo(factory));
+            Assert.That(result, Is.TypeOf<OdbcRewriter>());
+            Assert.That(((OdbcRewriter)result).DriverLocatorFactory, Is.EqualTo(factory));
         }
     }
 }

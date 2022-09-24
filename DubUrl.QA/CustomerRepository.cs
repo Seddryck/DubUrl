@@ -20,7 +20,7 @@ namespace DubUrl.QA
         public string SelectFirstCustomer()
             => DatabaseUrl.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
 
-        private class SelectFirstCustomerQuery : EmbeddedSqlFileQuery
+        private class SelectFirstCustomerQuery : EmbeddedSqlFileCommand
         {
             public SelectFirstCustomerQuery()
                 : base($"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}")
@@ -30,7 +30,7 @@ namespace DubUrl.QA
         public string SelectCustomerById(int id)
             => DatabaseUrl.ReadScalarNonNull<string>(new SelectCustomerByIdQuery(id));
 
-        private class SelectCustomerByIdQuery : EmbeddedParametrizedSqlFileQuery
+        private class SelectCustomerByIdQuery : ParametrizedEmbeddedSqlFileCommand
         {
             public SelectCustomerByIdQuery(int id)
                 : base(

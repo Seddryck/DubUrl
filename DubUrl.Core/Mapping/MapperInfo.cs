@@ -13,5 +13,6 @@ namespace DubUrl.Mapping
         , Type DialectType
         , int ListingPriority
         , string ProviderInvariantName
+        , Type ParametrizerType
     ) { }
 }

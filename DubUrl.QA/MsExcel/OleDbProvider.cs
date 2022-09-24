@@ -6,6 +6,7 @@ using DubUrl.Registering;
 using DubUrl.Mapping.Implementation;
 using DubUrl.Mapping;
 using DubUrl.OleDb.Mapping;
+using DubUrl.Rewriting.Implementation;
 
 namespace DubUrl.QA.MsExcel
 {
@@ -18,7 +19,7 @@ namespace DubUrl.QA.MsExcel
         [OneTimeSetUp]
         public void SetupFixture()
         {
-            var assemblies = new[] { typeof(OdbcMapper).Assembly, typeof(OleDbMapper).Assembly };
+            var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
 
             var discovery = new BinFolderDiscover(assemblies);
             var registrator = new ProviderFactoriesRegistrator(discovery);

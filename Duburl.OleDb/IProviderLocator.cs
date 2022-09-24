@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+﻿using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
 using System.Linq;

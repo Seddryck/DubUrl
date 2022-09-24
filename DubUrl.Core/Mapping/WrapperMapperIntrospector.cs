@@ -51,7 +51,7 @@ namespace DubUrl.Mapping
 
         public override IEnumerable<MapperInfo> Locate()
         {
-            var mappers = LocateAttribute<GenericMapperAttribute>();
+            var mappers = LocateAttribute<WrapperMapperAttribute>();
             var databases = LocateAttribute<DatabaseAttribute>();
             var connectivities = LocateAttribute<WrapperConnectivityAttribute>();
             var locators = LocateAttribute<LocatorAttribute>();
@@ -67,7 +67,7 @@ namespace DubUrl.Mapping
                 var connectivity = connectivities.SingleOrDefault(x => x.Type == mapper.Attribute.Connectivity)
                     ?? throw new NoConnectivityFoundException(mapper.Type, mapper.Attribute.Connectivity, connectivities.Select(x => x.Type));
 
-                var connectivityInstance = Activator.CreateInstance(connectivity.Type) as IGenericConnectivity
+                var connectivityInstance = Activator.CreateInstance(connectivity.Type) as IWrapperConnectivity
                     ?? throw new InvalidCastException();
 
                 yield return new MapperInfo(
@@ -77,15 +77,16 @@ namespace DubUrl.Mapping
                         , database.Attribute.DialectType
                         , database.Attribute.ListingPriority
                         , mapper.Attribute.ProviderInvariantName
+                        , mapper.Attribute.Parametrizer
                     );
             }
         }
 
-        private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)
-        {
-            foreach (var item1 in firstArray)
-                foreach (var item2 in secondArray)
-                    yield return $"{item1}+{item2}";
-        }
+        //private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)
+        //{
+        //    foreach (var item1 in firstArray)
+        //        foreach (var item2 in secondArray)
+        //            yield return $"{item1}+{item2}";
+        //}
     }
 }

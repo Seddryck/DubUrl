@@ -1,6 +1,4 @@
-﻿using DubUrl.Mapping.Tokening;
-using DubUrl.Parsing;
-using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Querying.Dialecting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;

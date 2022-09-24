@@ -1,5 +1,6 @@
 ﻿using DubUrl.Locating;
 using DubUrl.Mapping;
+using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace DubUrl.OleDb
         private string RegexPattern { get; }
         private Func<ProviderInfo, string> NamePointer { get; }
         private ProviderLister Lister { get; }
-        public BaseTokenMapper[] AdditionalMappers { get; } = new[] { new BaseMapper.OptionsMapper() };
+        public BaseTokenMapper[] AdditionalMappers { get; } = new[] { new OptionsMapper() };
 
         public BaseProviderLocator(string regexPattern)
             : this(regexPattern, new Func<ProviderInfo, string>(x => x.NickName)) { }

@@ -15,7 +15,7 @@ namespace DubUrl.OleDb.Mapping
         "OLE DB"
         , new[] { "oledb" }
     )]
-    internal class OleDbConnectivity : IGenericConnectivity 
+    internal class OleDbConnectivity : IWrapperConnectivity 
     {
         public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
             => CartesianProduct(connectivity.Aliases, 

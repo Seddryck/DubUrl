@@ -34,7 +34,7 @@ namespace DubUrl.OleDb.Testing
         public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder(new[] 
-                { typeof(OleDbMapper).Assembly, typeof(SchemeMapperBuilder).Assembly }
+                { typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly }
             );
             builder.Build();
             var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
@@ -48,7 +48,7 @@ namespace DubUrl.OleDb.Testing
         public void Instantiate_RevertedScheme_CorrectType(string schemeList, Type expected)
         {
             var builder = new SchemeMapperBuilder(new[]
-                { typeof(OleDbMapper).Assembly, typeof(SchemeMapperBuilder).Assembly }
+                { typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly }
             );
             builder.Build();
             var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));

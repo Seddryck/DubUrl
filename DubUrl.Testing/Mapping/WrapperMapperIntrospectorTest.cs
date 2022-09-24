@@ -26,7 +26,7 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void LocateGeneric_OneGenericMapperClassesForOneDatabase_GenericReturned()
+        public void LocateWrapper_OneWrapperMapperClassesForOneDatabase_WrapperReturned()
         {
             var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
                 , typeof(MssqlDriverLocator), typeof(MsSqlServerDatabase) 
@@ -40,7 +40,7 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
-        public void LocateGeneric_OneGenericMapperClassesForTwoDatabases_GenericReturned()
+        public void LocateWrapper_OneWrapperMapperClassesForTwoDatabases_WrapperReturned()
         {
             var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
                 , typeof(MssqlDriverLocator), typeof(MsSqlServerDatabase)
