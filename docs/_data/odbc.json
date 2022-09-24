@@ -85,7 +85,7 @@
       "csv",
       "tsv"
     ],
-    "NamePattern": "^\\bMicrosoft Access Driver\\s\\(\\*\\.txt, \\*\\.csv\\)$",
+    "NamePattern": "^\\bMicrosoft Access Text Driver\\s\\(\\*\\.txt, \\*\\.csv\\)$",
     "Options": []
   }
 ]
