@@ -27,7 +27,7 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance);
             DbProviderFactories.RegisterFactory("Oracle.ManagedDataAccess", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
             DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
-            DbProviderFactories.RegisterFactory("IBM.Data.DB2.Core", IBM.Data.DB2.Core.DB2Factory.Instance);
+            DbProviderFactories.RegisterFactory("IBM.Data.Db2", IBM.Data.Db2.DB2Factory.Instance);
             DbProviderFactories.RegisterFactory("Snowflake.Data", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
             DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
             DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);

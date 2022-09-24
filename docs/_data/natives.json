@@ -54,7 +54,7 @@
     "Aliases": [
       "db2"
     ],
-    "ProviderInvariantName": "IBM.Data.DB2.Core"
+    "ProviderInvariantName": "IBM.Data.Db2"
   },
   {
     "Class": "MariaDbConnectorMapper",
