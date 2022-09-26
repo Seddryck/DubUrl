@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -22,10 +23,10 @@ namespace DubUrl
         public DatabaseUrl(string url)
         : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
         { }
-        
+
         public DatabaseUrl(ConnectionUrlFactory factory, string url)
             : this(factory.Instantiate(url), new CommandProvisionerFactory())
-            { }
+        { }
 
         public DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
             : this(factory.Instantiate(url), commandProvisionerFactory)
@@ -34,18 +35,23 @@ namespace DubUrl
         internal DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory)
             => (ConnectionUrl, CommandProvisionerFactory) = (connectionUrl, commandProvisionerFactory);
 
-        public object? ReadScalar(string query)
-            => ReadScalar(new InlineCommand(query));
-
-        public object? ReadScalar(ICommandProvider commandProvider)
+        protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
         {
             using var conn = ConnectionUrl.Open();
             using var cmd = conn.CreateCommand();
             var provisioners = CommandProvisionerFactory.Instantiate(commandProvider, ConnectionUrl);
             foreach (var provisioner in provisioners)
                 provisioner.Execute(cmd);
-            return cmd.ExecuteScalar();
+            return cmd;
         }
+
+        #region Scalar
+
+        public object? ReadScalar(string query)
+            => ReadScalar(new InlineCommand(query));
+
+        public object? ReadScalar(ICommandProvider commandProvider)
+            => PrepareCommand(commandProvider).ExecuteScalar();
 
         public T? ReadScalar<T>(string query)
            => ReadScalar<T>(new InlineCommand(query));
@@ -72,18 +78,68 @@ namespace DubUrl
         public T ReadScalarNonNull<T>(ICommandProvider query)
             => (T)ReadScalarNonNull(query);
 
+        #endregion
+
+        #region Single
+
+        protected (object?, IDataReader) ReadInternal(ICommandProvider commandProvider)
+        {
+            using var dr = PrepareCommand(commandProvider).ExecuteReader();
+            if (!dr.Read())
+                return (null, dr);
+
+            var dyn = new ExpandoObject();
+            for (int i = 0; i < dr.FieldCount; i++)
+                dyn.TryAdd(dr.GetName(i), dr.GetValue(i));
+            return (dyn, dr);
+        }
+
+        public object? ReadSingle(string query)
+            => ReadSingle(new InlineCommand(query));
+
+        public object? ReadSingle(ICommandProvider commandProvider)
+        {
+            (var dyn, var dr) = ReadInternal(commandProvider);
+            return !dr.Read() ? dyn : throw new ArgumentOutOfRangeException();
+        }
+
+
+        public object ReadSingleNonNull(string query)
+            => ReadSingleNonNull(new InlineCommand(query));
+
+        public object ReadSingleNonNull(ICommandProvider commandProvider)
+            => ReadSingle(commandProvider) ?? throw new NullReferenceException();
+
+        #endregion
+
+        #region First 
+
+        public object? ReadFirst(string query)
+            => ReadFirst(new InlineCommand(query));
+
+        public object? ReadFirst(ICommandProvider commandProvider)
+        {
+            (var dyn, _) = ReadInternal(commandProvider);
+            return dyn;
+        }
+
+        public object ReadFirstNonNull(string query)
+            => ReadFirstNonNull(new InlineCommand(query));
+
+        public object ReadFirstNonNull(ICommandProvider commandProvider)
+            => ReadFirst(commandProvider) ?? throw new NullReferenceException();
+
+        #endregion
+
+        #region ExecuteReader
+
         public IDataReader ExecuteReader(string query)
            => ExecuteReader(new InlineCommand(query));
 
         public IDataReader ExecuteReader(ICommandProvider commandProvider)
-        {
-            using var conn = ConnectionUrl.Open();
-            using var cmd = conn.CreateCommand();
-            var provisioners = CommandProvisionerFactory.Instantiate(commandProvider, ConnectionUrl);
-            foreach (var provisioner in provisioners)
-                provisioner.Execute(cmd);
-            return cmd.ExecuteReader();
-        }
+            => PrepareCommand(commandProvider).ExecuteReader();
+
+        #endregion
     }
 }
 
