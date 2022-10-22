@@ -1,5 +1,5 @@
 ﻿using DubUrl.Mapping;
-using DubUrl.Querying;
+using DubUrl.MicroOrm;
 using DubUrl.Querying.Reading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -90,8 +90,15 @@ namespace DubUrl.Extensions.DependencyInjection
                 });
             services.AddSingleton<SchemeMapperBuilder>();
             services.AddSingleton<ConnectionUrlFactory>();
-            services.AddSingleton<DatabaseUrlFactory>();
+            services.AddSingleton(typeof(IDatabaseUrlFactory), typeof(DatabaseUrlFactory));
             services.AddSingleton<CommandProvisionerFactory>();
+            services.AddSingleton(typeof(IReflectionCache), typeof(ReflectionCache));
+            return services;
+        }
+
+        public static IServiceCollection AddDubUrlMicroOrm(this IServiceCollection services)
+        {
+            services.AddSingleton(typeof(IDatabaseUrlFactory), typeof(MicroOrm.DatabaseUrlFactory));
             return services;
         }
     }
