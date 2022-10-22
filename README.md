@@ -14,7 +14,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 ## About
 
 **Social media:**
-[![twitter badge](https://img.shields.io/badge/twitterdburl-@Seddryck-blue.svg?style=flat&logo=twitter)](https://twitter.com/Seddryck)
+[![twitter badge](https://img.shields.io/badge/twitter%20DubUrl-@Seddryck-blue.svg?style=flat&logo=twitter)](https://twitter.com/Seddryck)
 
 **Releases:** [![nuget](https://img.shields.io/nuget/v/DubUrl.svg)](https://www.nuget.org/packages/DubUrl/) <!-- [![GitHub Release Date](https://img.shields.io/github/release-date/seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/releases/latest) --> [![licence badge](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://github.com/Seddryck/DubUrl/blob/master/LICENSE)
 <!-- [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl?ref=badge_shield) -->
@@ -135,40 +135,3 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
