@@ -14,7 +14,7 @@ namespace DubUrl.QA
     {
         private DatabaseUrl DatabaseUrl { get; }
 
-        public CustomerRepository(DatabaseUrlFactory factory, string url)
+        public CustomerRepository(IDatabaseUrlFactory factory, string url)
             => DatabaseUrl = factory.Instantiate(url);
 
         public string SelectFirstCustomer()
@@ -40,6 +40,36 @@ namespace DubUrl.QA
                             .Add("Id", id)
                 )
             { }
+        }
+    }
+
+    internal class MicroOrmCustomerRepository
+    {
+        private MicroOrm.DatabaseUrl DatabaseUrl { get; }
+
+        public MicroOrmCustomerRepository(DatabaseUrlFactory factory, string url)
+            => DatabaseUrl = (MicroOrm.DatabaseUrl)factory.Instantiate(url);
+
+        public List<Customer> SelectYoungestCustomers(int count)
+            => DatabaseUrl.ReadMultiple<Customer>(new SelectYoungestCustomersQuery(count)).ToList();
+
+        private class SelectYoungestCustomersQuery : ParametrizedEmbeddedSqlFileCommand
+        {
+            public SelectYoungestCustomersQuery(int count)
+                : base(
+                      new EmbeddedSqlFileResourceManager(Assembly.GetExecutingAssembly())
+                      , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectYoungestCustomers)}"
+                      , new DubUrlParameterCollection()
+                            .Add("count", count)
+                )
+            { }
+        }
+
+        public class Customer
+        {
+            public int CustomerId { get; set; }
+            public string FullName { get; set; } = "";
+            public DateTime BirthDate { get; set; }
         }
     }
 }

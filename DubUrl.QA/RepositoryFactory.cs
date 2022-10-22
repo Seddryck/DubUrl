@@ -12,9 +12,9 @@ namespace DubUrl.QA
 {
     internal class RepositoryFactory
     {
-        private DatabaseUrlFactory DatabaseUrlFactory { get; }
+        private IDatabaseUrlFactory DatabaseUrlFactory { get; }
 
-        public RepositoryFactory(DatabaseUrlFactory databaseUrlFactory)
+        public RepositoryFactory(IDatabaseUrlFactory databaseUrlFactory)
             => DatabaseUrlFactory = databaseUrlFactory;
 
         public T Instantiate<T>(string url)

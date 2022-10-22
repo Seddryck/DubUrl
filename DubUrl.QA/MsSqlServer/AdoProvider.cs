@@ -105,6 +105,25 @@ namespace DubUrl.QA.MsSqlServer
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
+        [Test]
+        public void QueryTwoYoungestCustomersWithRepositoryFactory()
+        {
+            var options = new DubUrlServiceOptions().WithMicroOrm();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddSingleton<RepositoryFactory>()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<RepositoryFactory>();
+            var repo = factory.Instantiate<MicroOrmCustomerRepository>(
+                            "mssql://sa:Password12!@localhost/SQL2019/DubUrl"
+                        );
+            var customers = repo.SelectYoungestCustomers(2);
+            Assert.That(customers, Has.Count.EqualTo(2));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("Alan Turing"));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
+        }
+
         private static IConfiguration EmptyDubUrlConfiguration
         {
             get
