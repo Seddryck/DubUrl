@@ -1,4 +1,5 @@
 ﻿using DubUrl.Mapping;
+using DubUrl.MicroOrm;
 using DubUrl.Querying;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl
 {
-    public class DatabaseUrl
+    public partial class DatabaseUrl
     {
         protected ConnectionUrl ConnectionUrl { get; }
         private CommandProvisionerFactory CommandProvisionerFactory { get; }
@@ -37,13 +38,14 @@ namespace DubUrl
 
         protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
         {
-            using var conn = ConnectionUrl.Open();
-            using var cmd = conn.CreateCommand();
+            var conn = ConnectionUrl.Open();
+            var cmd = conn.CreateCommand();
             var provisioners = CommandProvisionerFactory.Instantiate(commandProvider, ConnectionUrl);
             foreach (var provisioner in provisioners)
                 provisioner.Execute(cmd);
             return cmd;
         }
+
 
         #region Scalar
 
@@ -52,15 +54,6 @@ namespace DubUrl
 
         public object? ReadScalar(ICommandProvider commandProvider)
             => PrepareCommand(commandProvider).ExecuteScalar();
-
-        public T? ReadScalar<T>(string query)
-           => ReadScalar<T>(new InlineCommand(query));
-
-        public T? ReadScalar<T>(ICommandProvider query)
-        {
-            var result = ReadScalar(query);
-            return (T?)(result == DBNull.Value ? null : result);
-        }
 
         public object ReadScalarNonNull(string query)
             => ReadScalarNonNull(new InlineCommand(query));
@@ -72,11 +65,21 @@ namespace DubUrl
             return typedResult ?? throw new NullReferenceException();
         }
 
+        public T? ReadScalar<T>(string query)
+          => ReadScalar<T>(new InlineCommand(query));
+
+        public T? ReadScalar<T>(ICommandProvider query)
+        {
+            var result = ReadScalar(query);
+            return (T?)(result == DBNull.Value ? null : result);
+        }
+
         public T ReadScalarNonNull<T>(string query)
            => ReadScalarNonNull<T>(new InlineCommand(query));
 
         public T ReadScalarNonNull<T>(ICommandProvider query)
             => (T)ReadScalarNonNull(query);
+
 
         #endregion
 
@@ -87,11 +90,7 @@ namespace DubUrl
             using var dr = PrepareCommand(commandProvider).ExecuteReader();
             if (!dr.Read())
                 return (null, dr);
-
-            var dyn = new ExpandoObject();
-            for (int i = 0; i < dr.FieldCount; i++)
-                dyn.TryAdd(dr.GetName(i), dr.GetValue(i));
-            return (dyn, dr);
+            return (dr.ToExpandoObject(), dr);
         }
 
         public object? ReadSingle(string query)
@@ -100,15 +99,14 @@ namespace DubUrl
         public object? ReadSingle(ICommandProvider commandProvider)
         {
             (var dyn, var dr) = ReadInternal(commandProvider);
-            return !dr.Read() ? dyn : throw new ArgumentOutOfRangeException();
+            return !dr.Read() ? dyn : throw new InvalidOperationException();
         }
-
 
         public object ReadSingleNonNull(string query)
             => ReadSingleNonNull(new InlineCommand(query));
 
         public object ReadSingleNonNull(ICommandProvider commandProvider)
-            => ReadSingle(commandProvider) ?? throw new NullReferenceException();
+            => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
 
         #endregion
 
@@ -127,7 +125,22 @@ namespace DubUrl
             => ReadFirstNonNull(new InlineCommand(query));
 
         public object ReadFirstNonNull(ICommandProvider commandProvider)
-            => ReadFirst(commandProvider) ?? throw new NullReferenceException();
+            => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
+
+        #endregion
+
+        #region Multiple
+
+        public IEnumerable<object> ReadMultiple(string query)
+            => ReadMultiple(new InlineCommand(query));
+
+        public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
+        {
+            using var dr = PrepareCommand(commandProvider).ExecuteReader();
+            while (dr.Read())
+                yield return dr.ToExpandoObject();
+            dr?.Close();
+        }
 
         #endregion
 

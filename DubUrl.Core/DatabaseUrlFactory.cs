@@ -1,4 +1,5 @@
 ﻿using DubUrl.Mapping;
+using DubUrl.MicroOrm;
 using DubUrl.Parsing;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialecting;
@@ -13,15 +14,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl
 {
-    public class DatabaseUrlFactory
+    public class DatabaseUrlFactory : IDatabaseUrlFactory
     {
-        private ConnectionUrlFactory ConnectionUrlFactory { get; }
-        private CommandProvisionerFactory CommandProvisionerFactory { get; }
+        protected ConnectionUrlFactory ConnectionUrlFactory { get; }
+        protected CommandProvisionerFactory CommandProvisionerFactory { get; }
 
         public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory)
             => (ConnectionUrlFactory, CommandProvisionerFactory) = (connectionUrlFactory, commandProvisionerFactory);
 
-        public DatabaseUrl Instantiate(string url)
+        public virtual DatabaseUrl Instantiate(string url)
         {
             var connectionUrl = ConnectionUrlFactory.Instantiate(url);
             return new DatabaseUrl(connectionUrl, CommandProvisionerFactory);
