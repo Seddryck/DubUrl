@@ -112,6 +112,7 @@ namespace DubUrl.QA.MsSqlServer
             using var provider = new ServiceCollection()
                 .AddSingleton(EmptyDubUrlConfiguration)
                 .AddDubUrl(options)
+                .AddDubUrlMicroOrm()
                 .AddSingleton<RepositoryFactory>()
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();
