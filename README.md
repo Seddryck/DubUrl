@@ -16,9 +16,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 **Social media:**
 [![twitter badge](https://img.shields.io/badge/twitterdburl-@Seddryck-blue.svg?style=flat&logo=twitter)](https://twitter.com/Seddryck)
 
-**Releases:** [![nuget](https://img.shields.io/nuget/v/DubUrl.svg)](https://www.nuget.org/packages/DubUrl/)
-[![GitHub Release Date](https://img.shields.io/github/release-date/seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/releases/latest)
-[![licence badge](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://github.com/Seddryck/DubUrl/blob/master/LICENSE)
+**Releases:** [![nuget](https://img.shields.io/nuget/v/DubUrl.svg)](https://www.nuget.org/packages/DubUrl/) <!-- [![GitHub Release Date](https://img.shields.io/github/release-date/seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/releases/latest) --> [![licence badge](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://github.com/Seddryck/DubUrl/blob/master/LICENSE)
 <!-- [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl?ref=badge_shield) -->
 
 **Dev. activity:** [![GitHub last commit](https://img.shields.io/github/last-commit/Seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/commits)
@@ -30,7 +28,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 
 **Status:** [![stars badge](https://img.shields.io/github/stars/Seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/stargazers)
 [![Bugs badge](https://img.shields.io/github/issues/Seddryck/DubUrl/bug.svg?color=red&label=Bugs)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:bug+)
-[![Features badge](https://img.shields.io/github/issues/seddryck/DubUrl/feature-request.svg?color=purple&label=Feature%20requests)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:feature-request+)
+[![Features badge](https://img.shields.io/github/issues/seddryck/DubUrl/new-feature.svg?color=purple&label=Feature%20requests)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:feature-request+)
 [![Top language](https://img.shields.io/github/languages/top/seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/search?l=C%23)
 
 ## Database Connection URL Overview
