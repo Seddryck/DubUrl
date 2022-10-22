@@ -11,9 +11,13 @@
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
+    <None Remove="SelectYoungestCustomers.mssql.sql" />
+    <None Remove="SelectYoungestCustomers.pgsql.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectYoungestCustomers.mssql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.pgsql.sql" />
     <EmbeddedResource Include="SelectCustomerById.pgsql.sql" />
     <EmbeddedResource Include="SelectCustomerById.mssql.sql" />
     <EmbeddedResource Include="SelectCustomerById.xlsx.sql" />

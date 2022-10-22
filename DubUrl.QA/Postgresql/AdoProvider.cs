@@ -135,6 +135,26 @@ namespace DubUrl.QA.Postgresql
             Assert.That(fullName, Is.EqualTo("Alan Turing"));
         }
 
+        [Test]
+        public void QueryTwoYoungestCustomersWithRepositoryFactory()
+        {
+            var options = new DubUrlServiceOptions().WithMicroOrm();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddDubUrlMicroOrm()
+                .AddSingleton<RepositoryFactory>()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<RepositoryFactory>();
+            var repo = factory.Instantiate<MicroOrmCustomerRepository>(
+                            "pgsql://postgres:Password12!@localhost/DubUrl"
+                        );
+            var customers = repo.SelectYoungestCustomers(2);
+            Assert.That(customers, Has.Count.EqualTo(2));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("Alan Turing"));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
+        }
+
         private static IConfiguration EmptyDubUrlConfiguration
         {
             get
