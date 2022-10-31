@@ -1,5 +1,6 @@
 ﻿using DubUrl.Locating;
 using DubUrl.Mapping;
+using DubUrl.Mapping.Connectivity;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialecting;
 using System;

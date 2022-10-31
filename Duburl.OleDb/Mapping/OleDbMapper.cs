@@ -25,6 +25,7 @@ namespace DubUrl.OleDb.Mapping
         public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, ProviderLocatorFactory providerLocatorFactory)
             : base(new OleDbRewriter(csb),
                   dialect,
+                  new OleDbConnectivity(),
                   parametrizer
             )
         { }
