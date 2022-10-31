@@ -1,6 +1,10 @@
-﻿using DubUrl.Querying;
+﻿using DubUrl.Mapping;
+using DubUrl.Mapping.Connectivity;
+using DubUrl.Querying;
 using DubUrl.Querying.Dialecting;
 using DubUrl.Querying.Reading;
+using DubUrl.Querying.Reading.ResourceManagement;
+using DubUrl.Querying.Reading.ResourceMatching;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -15,50 +19,89 @@ namespace DubUrl.Testing.Querying.Reading
 {
     public class EmbeddedSqlFileCommandTest
     {
-        private class FakeEmbeddedSqlFileResourceManager : EmbeddedSqlFileResourceManager
+        [Test]
+        public void Locate_ResourceMatcherFactoryInstantiate()
         {
-            private string[] resourceNames;
-            public override string[] ResourceNames { get => resourceNames; }
-            public FakeEmbeddedSqlFileResourceManager(string[] resourceNames)
-                : base(Assembly.GetCallingAssembly())
-                => this.resourceNames = resourceNames;
+            var resourceManager = new Mock<IResourceManager>();
+            resourceManager.Setup(x => x.ListResources()).Returns(new string[] { "QueryId.sql" });
+
+            var resourceMatcher = new Mock<IResourceMatcher>();
+            resourceMatcher.Setup(x=> x.Execute(It.IsAny<string>(), It.IsAny<string[]>())).Returns("QueryId.sql");
+
+            var resourceMatcherFactory = new Mock<IResourceMatcherFactory>();
+            resourceMatcherFactory.Setup(x => x.Instantiate(It.IsAny<IConnectivity>(), It.IsAny<string[]>())).Returns(resourceMatcher.Object);
+
+            var query = new EmbeddedSqlFileCommand(resourceManager.Object, resourceMatcherFactory.Object, "QueryId");
+            var connectivity = new NativeConnectivity();
+            var dialect = new MssqlDialect(new[] { "mssql" });
+
+            var result = query.Locate(connectivity, dialect);
+
+            resourceMatcherFactory.Verify(x => x.Instantiate(connectivity, dialect.Aliases));
+            resourceMatcher.Verify(x => x.Execute("QueryId", new string[] { "QueryId.sql" }));
         }
 
         [Test]
-        [TestCase(true, "QueryId.sql", "QueryId", new[] { "mssql" })]
-        [TestCase(true, "QueryId.mssql.sql", "QueryId", new[] { "mssql" })]
-        [TestCase(false, "", "QueryId", new[] { "mssql" }, false)]
-        public void ExistsWithFallback_ListOfResources_Value(bool hasCandidates, string bestCandidate, string id, string[] dialects, bool expected = true)
+        public void Locate_ListResourcesCalled()
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup( x=> x.Any(id, dialects)).Returns(hasCandidates);
-            resourceManager.Setup(x => x.BestMatch(id, dialects)).Returns(bestCandidate);
+            resourceManager.Setup(x => x.ListResources()).Returns(new string[] { "QueryId.sql" });
 
-            var dialectMock = new Mock<IDialect>();
-            dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
+            var resourceMatcher = new Mock<IResourceMatcher>();
+            resourceMatcher.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string[]>())).Returns("QueryId.sql");
 
-            var query = new EmbeddedSqlFileCommand(resourceManager.Object, id);
-            var result = query.Exists(dialectMock.Object, true);
-            Assert.That(result, Is.EqualTo(expected));
+            var resourceMatcherFactory = new Mock<IResourceMatcherFactory>();
+            resourceMatcherFactory.Setup(x => x.Instantiate(It.IsAny<IConnectivity>(), It.IsAny<string[]>())).Returns(resourceMatcher.Object);
+
+            var query = new EmbeddedSqlFileCommand(resourceManager.Object, resourceMatcherFactory.Object, "QueryId");
+            var connectivity = new NativeConnectivity();
+            var dialect = new MssqlDialect(new[] { "mssql" });
+
+            var result = query.Locate(connectivity, dialect);
+
+            resourceManager.Verify(x => x.ListResources());
         }
 
         [Test]
-        [TestCase("QueryId.sql", "QueryId", new[] { "mssql" }, false)]
-        [TestCase("QueryId.mssql.sql", "QueryId", new[] { "mssql" })]
-        [TestCase("", "QueryId", new[] { "mssql" }, false)]
-        public void ExistsWithoutFallback_ListOfResources_Value(string bestCandidate, string id, string[] dialects, bool expected = true)
+        public void Locate_ResourceMatcherCalled()
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>())).Returns(!string.IsNullOrEmpty(bestCandidate));
-            resourceManager.Setup(x => x.BestMatch(id, dialects)).Returns(bestCandidate);
+            resourceManager.Setup(x => x.ListResources()).Returns(new string[] { "QueryId.sql" });
 
-            var dialectMock = new Mock<IDialect>();
-            dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
+            var resourceMatcher = new Mock<IResourceMatcher>();
+            resourceMatcher.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string[]>())).Returns("QueryId.sql");
 
-            var query = new EmbeddedSqlFileCommand(resourceManager.Object, id);
-            var result = query.Exists(dialectMock.Object, false);
-            Assert.That(result, Is.EqualTo(expected));
+            var resourceMatcherFactory = new Mock<IResourceMatcherFactory>();
+            resourceMatcherFactory.Setup(x => x.Instantiate(It.IsAny<IConnectivity>(), It.IsAny<string[]>())).Returns(resourceMatcher.Object);
+
+            var query = new EmbeddedSqlFileCommand(resourceManager.Object, resourceMatcherFactory.Object, "QueryId");
+            var connectivity = new NativeConnectivity();
+            var dialect = new MssqlDialect(new[] { "mssql" });
+
+            var result = query.Locate(connectivity, dialect);
+
+            resourceMatcher.Verify(x => x.Execute("QueryId", new string[] { "QueryId.sql" }));
         }
 
+        [Test]
+        public void Read_ReadCommandTextCalled()
+        {
+            var resourceManager = new Mock<IResourceManager>();
+            resourceManager.Setup(x => x.ListResources()).Returns(new string[] { "QueryId.sql" });
+
+            var resourceMatcher = new Mock<IResourceMatcher>();
+            resourceMatcher.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string[]>())).Returns("QueryId.sql");
+
+            var resourceMatcherFactory = new Mock<IResourceMatcherFactory>();
+            resourceMatcherFactory.Setup(x => x.Instantiate(It.IsAny<IConnectivity>(), It.IsAny<string[]>())).Returns(resourceMatcher.Object);
+
+            var query = new EmbeddedSqlFileCommand(resourceManager.Object, resourceMatcherFactory.Object, "QueryId");
+            var connectivity = new NativeConnectivity();
+            var dialect = new MssqlDialect(new[] { "mssql" });
+
+            var result = query.Read(dialect, connectivity);
+
+            resourceManager.Verify(x => x.ReadCommandText("QueryId.sql"));
+        }
     }
 }

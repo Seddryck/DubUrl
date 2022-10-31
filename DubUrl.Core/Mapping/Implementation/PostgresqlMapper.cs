@@ -15,7 +15,7 @@ namespace DubUrl.Mapping.Implementation
     [MapperAttribute<PostgresqlDatabase, PositionalParametrizer>(
         "Npgsql"
     )]
-    internal class PostgresqlMapper : BaseMapper
+    internal class PostgresqlMapper : AdoNetProviderMapper
     {
         public PostgresqlMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
             : base(new PostgresqlRewriter(csb),

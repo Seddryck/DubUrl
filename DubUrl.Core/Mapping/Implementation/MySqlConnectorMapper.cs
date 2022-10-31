@@ -16,7 +16,7 @@ namespace DubUrl.Mapping.Implementation
     [Mapper<MySqlDatabase, NamedParametrizer>(
         "MySqlConnector"
     )]
-    internal class MySqlConnectorMapper : BaseMapper
+    internal class MySqlConnectorMapper : AdoNetProviderMapper
     {
         public MySqlConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
             : base(new MySqlConnectorRewriter(csb),

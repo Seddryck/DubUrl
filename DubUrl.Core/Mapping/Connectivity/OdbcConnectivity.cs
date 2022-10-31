@@ -14,8 +14,8 @@ namespace DubUrl.Mapping.Connectivity
         "ODBC"
         , new[] { "odbc" }
     )]
-    public class OdbcConnectivity : IWrapperConnectivity {
-
+    public class OdbcConnectivity : IWrapperConnectivity 
+    {
         public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
             => CartesianProduct(connectivity.Aliases, database.Aliases);
 

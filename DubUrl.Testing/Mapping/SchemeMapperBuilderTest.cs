@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Rewriting.Implementation;
+using DubUrl.Mapping.Connectivity;
 
 namespace DubUrl.Testing.Mapping
 {
@@ -41,7 +42,7 @@ namespace DubUrl.Testing.Mapping
         private class StubMapper : BaseMapper
         {
             public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
-                : base(new StubRewriter(csb), dialect, parametrizer) { }
+                : base(new StubRewriter(csb), dialect, new NativeConnectivity(), parametrizer) { }
 
             private class StubRewriter : ConnectionStringRewriter 
             {

@@ -13,7 +13,7 @@ namespace DubUrl.Querying.Reading
         {
             var list = new List<ICommandProvisioner>
             {
-                new TextCommandProvisioner(provider, connectionUrl.Dialect)
+                new TextCommandProvisioner(provider, connectionUrl.Dialect, connectionUrl.Connectivity)
             };
             if (provider is IParametrizedCommand parametrizedProvider)
                 list.Add(new ParametersCommandProvisioner(parametrizedProvider, connectionUrl.Parametrizer));

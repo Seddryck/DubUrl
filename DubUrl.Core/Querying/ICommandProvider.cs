@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Mapping;
+using DubUrl.Querying.Dialecting;
 using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,6 @@ namespace DubUrl.Querying
 {
     public interface ICommandProvider
     {
-        string Read(IDialect dialect);
-        bool Exists(IDialect dialect, bool includeDefault = false);
+        string Read(IDialect dialect, IConnectivity connectivity);
     }
 }

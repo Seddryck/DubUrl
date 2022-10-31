@@ -18,9 +18,10 @@ namespace DubUrl.Mapping
         private IConnectionStringRewriter Rewriter { get; }
         
         protected IDialect Dialect { get; }
+        protected IConnectivity Connectivity { get; }
         protected IParametrizer Parametrizer { get; }
-        public BaseMapper(IConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
-            => (Rewriter, Dialect, Parametrizer) = (rewriter, dialect, parametrizer);
+        public BaseMapper(IConnectionStringRewriter rewriter, IDialect dialect, IConnectivity connectivity, IParametrizer parametrizer)
+            => (Rewriter, Dialect, Connectivity, Parametrizer) = (rewriter, dialect, connectivity, parametrizer);
 
         public string GetConnectionString()
             => Rewriter.ConnectionString;
@@ -31,7 +32,10 @@ namespace DubUrl.Mapping
         
         public IDialect GetDialect()
             => Dialect;
-        
+
+        public IConnectivity GetConnectivity()
+            => Connectivity;
+
         public IParametrizer GetParametrizer()
             => Parametrizer;
         public IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo)

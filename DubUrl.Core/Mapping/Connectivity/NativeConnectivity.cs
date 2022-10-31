@@ -9,5 +9,6 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Connectivity
 {
-    internal class NativeConnectivity : IDirectConnectivity { }
+    internal class NativeConnectivity : IDirectConnectivity 
+    { }
 }

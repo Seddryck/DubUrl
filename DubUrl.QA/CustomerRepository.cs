@@ -1,5 +1,7 @@
 ﻿using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
+using DubUrl.Querying.Reading.ResourceManagement;
+using DubUrl.Querying.Reading.ResourceMatching;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -35,6 +37,7 @@ namespace DubUrl.QA
             public SelectCustomerByIdQuery(int id)
                 : base(
                       new EmbeddedSqlFileResourceManager(Assembly.GetExecutingAssembly())
+                      , new ResourceMatcherFactory()
                       , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectCustomerById)}"
                       , new DubUrlParameterCollection()
                             .Add("Id", id)
@@ -58,6 +61,7 @@ namespace DubUrl.QA
             public SelectYoungestCustomersQuery(int count)
                 : base(
                       new EmbeddedSqlFileResourceManager(Assembly.GetExecutingAssembly())
+                      , new ResourceMatcherFactory()
                       , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectYoungestCustomers)}"
                       , new DubUrlParameterCollection()
                             .Add("count", count)

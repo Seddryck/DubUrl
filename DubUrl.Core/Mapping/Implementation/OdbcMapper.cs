@@ -26,6 +26,7 @@ namespace DubUrl.Mapping.Implementation
         public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
             : base(new OdbcRewriter(csb),
                   dialect,
+                  new OdbcConnectivity(),
                   parametrizer
             )
         { }

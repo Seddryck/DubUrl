@@ -15,6 +15,7 @@ namespace DubUrl.Mapping
         IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo);
         string GetConnectionString();
         IDialect GetDialect();
+        IConnectivity GetConnectivity();
         string GetProviderName();
         IParametrizer GetParametrizer();
     }
