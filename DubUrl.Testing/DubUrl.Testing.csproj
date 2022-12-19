@@ -15,7 +15,7 @@
 	<ItemGroup>
 		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.0" />
 		<PackageReference Include="Net.IBM.Data.Db2" Version="6.0.0.300" />
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.1" />
 		<PackageReference Include="MySql.Data" Version="8.0.31" />
 		<PackageReference Include="MySqlConnector" Version="2.2.2" />
 		<PackageReference Include="Npgsql" Version="7.0.0" />
