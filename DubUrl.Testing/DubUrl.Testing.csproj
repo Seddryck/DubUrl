@@ -13,7 +13,7 @@
 		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.0" />
+		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
 		<PackageReference Include="Net.IBM.Data.Db2" Version="6.0.0.300" />
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.2" />
 		<PackageReference Include="MySql.Data" Version="8.0.31" />
