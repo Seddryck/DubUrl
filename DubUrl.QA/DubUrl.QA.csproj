@@ -5,17 +5,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectCustomerById.duckdb.sql" />
     <None Remove="SelectCustomerbyId.mssql.sql" />
     <None Remove="SelectCustomerById.pgsql.sql" />
     <None Remove="SelectCustomerById.xlsx.sql" />
+    <None Remove="SelectFirstCustomer.duckdb.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
+    <None Remove="SelectYoungestCustomers.duckdb.sql" />
     <None Remove="SelectYoungestCustomers.mssql.sql" />
     <None Remove="SelectYoungestCustomers.pgsql.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectCustomerById.duckdb.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.duckdb.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.duckdb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.mssql.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.pgsql.sql" />
     <EmbeddedResource Include="SelectCustomerById.pgsql.sql" />
@@ -46,6 +52,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="DuckDB.NET.Bindings">
+      <HintPath>..\.lib\DuckDB.NET.Bindings.dll</HintPath>
+    </Reference>
+    <Reference Include="DuckDB.NET.Data">
+      <HintPath>..\.lib\DuckDB.NET.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DuckDB\deploy-duckdb-database.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="MsExcel\Customer.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
