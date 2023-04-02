@@ -25,6 +25,7 @@ namespace DubUrl.Testing.Registering
         [TestCase(typeof(IBM.Data.Db2.DB2Factory))]
         [TestCase(typeof(Teradata.Client.Provider.TdFactory))]
         [TestCase(typeof(Snowflake.Data.Client.SnowflakeDbFactory))]
+        [TestCase(typeof(DuckDB.NET.Data.DuckDBClientFactory))] 
         [TestCase(typeof(System.Data.Odbc.OdbcFactory))]
         public void Execute_CurrentAssembly_IncludesType(Type type)
         {
