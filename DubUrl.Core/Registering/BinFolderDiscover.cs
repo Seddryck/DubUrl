@@ -41,12 +41,13 @@ namespace DubUrl.Registering
                 )
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Distinct()
-                .Select(x => Path.GetDirectoryName(x))
-                .Where(x => Directory.Exists(x))
+                .Select(Path.GetDirectoryName)
+                .Where(Directory.Exists)
                 .Aggregate(
                     Array.Empty<string>(), (seed, location) =>
                     seed.Concat(Directory.GetFiles(location!)).ToArray()
-                );
+                )
+                .Where(x => Path.GetExtension(x) == ".dll");
 
             var stack = new Stack<string>(files);
             var listCandidates = MapperIntrospectors.Aggregate(
