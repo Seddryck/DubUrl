@@ -30,6 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Edit", "Edit", "{210C887C-6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74}"
 	ProjectSection(SolutionItems) = preProject
+		deploy-duckdb-test-env.ps1 = deploy-duckdb-test-env.ps1
 		deploy-drill-test-env.ps1 = deploy-drill-test-env.ps1
 		deploy-firebirdsql-test-env.ps1 = deploy-firebirdsql-test-env.ps1
 		deploy-msexcel-test-env.ps1 = deploy-msexcel-test-env.ps1
