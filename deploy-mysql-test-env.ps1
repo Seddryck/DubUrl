@@ -49,25 +49,33 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	# Installing ODBC driver
 	Write-host "`tDeploying MySQL ODBC drivers"
 	$drivers = Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
+	$OdbcDriverInstalled = $false
 	If ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading MySQL ODBC driver ..."
-		try { 
+		$response = try { 
 			(Invoke-WebRequest `
 			    -Uri "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" `
 			    -OutFile "$env:temp\mysql-connector-odbc.msi" `
-				--ErrorAction Stop
+				-ErrorAction Stop
 			).BaseResponse
 		} catch [System.Net.WebException] { 
 			Write-Verbose "An exception was caught: $($_.Exception.Message)"
 			$_.Exception.Response 
 		} 
-		Write-Host "`t`tInstalling MySQL ODBC driver ..."
-		& msiexec /i "$env:temp\mysql-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mysql.log" | Out-Host
-		#Get-Content "$env:temp\install-mysql.log"
-		Write-Host "`t`tChecking installation ..."
-		Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
-		Write-Host "`tDeployment of MySQL ODBC driver finalized."
+		$statusCodeInt = [int]$response.BaseResponse.StatusCode
+
+		If ($statusCodeInt -eq 200) {
+            Write-Host "`t`tInstalling MySQL ODBC driver ..."
+		    & msiexec /i "$env:temp\mysql-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mysql.log" | Out-Host
+		    #Get-Content "$env:temp\install-mysql.log"
+		    Write-Host "`t`tChecking installation ..."
+		    Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
+		    Write-Host "`tDeployment of MySQL ODBC driver finalized."
+			$OdbcDriverInstalled = $true
+		}
+		
 	} else {
+		$OdbcDriverInstalled = $true
 		Write-Host "`t`tDrivers already installed:"
 		Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
 		Write-Host "`t`tSkipping installation of new drivers"
@@ -76,7 +84,10 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	# Running QA tests
 	Write-Host "Running QA tests related to MySQL"
 	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter TestCategory="MySQL" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	If ($OdbcDriverInstalled -eq $true) {
+		& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	}
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for MySQL"
 }

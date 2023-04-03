@@ -14,6 +14,7 @@ using System.Reflection;
 namespace DubUrl.QA.Mysql
 {
     [Category("MySQL")]
+    [Category("AdoProvider")]
     public class AdoProvider
     {
         [OneTimeSetUp]

@@ -7,6 +7,7 @@ using DubUrl.Registering;
 namespace DubUrl.QA.Mysql
 {
     [Category("MySQL")]
+    [Category("ODBC")]
     public class OdbcDriver
     {
         [OneTimeSetUp]
