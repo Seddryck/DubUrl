@@ -51,7 +51,16 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	$drivers = Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
 	If ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading MySQL ODBC driver ..."
-		Invoke-WebRequest "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" -OutFile "$env:temp\mysql-connector-odbc.msi"
+		try { 
+			(Invoke-WebRequest `
+			    -Uri "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" `
+			    -OutFile "$env:temp\mysql-connector-odbc.msi" `
+				--ErrorAction Stop
+			).BaseResponse
+		} catch [System.Net.WebException] { 
+			Write-Verbose "An exception was caught: $($_.Exception.Message)"
+			$_.Exception.Response 
+		} 
 		Write-Host "`t`tInstalling MySQL ODBC driver ..."
 		& msiexec /i "$env:temp\mysql-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mysql.log" | Out-Host
 		#Get-Content "$env:temp\install-mysql.log"
