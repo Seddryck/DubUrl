@@ -64,7 +64,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 		Write-Host "`t`tExtracting from archive DuckDB ODBC driver ..."
 		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y
 		Write-Host "`t`tInstalling DuckDB ODBC driver ..."
-		& "$duckPath\odbc_install.exe" | Out-Host
+		& "$duckPath\odbc_install.exe" "/CI /Install".Split(" ") | Out-Host
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*DuckDB*"
 		Write-Host "`tDeployment of DuckDB ODBC driver finalized."
