@@ -57,6 +57,15 @@
     "ProviderInvariantName": "IBM.Data.Db2"
   },
   {
+    "Class": "DuckdbMapper",
+    "Database": "DuckDB",
+    "Aliases": [
+      "duck",
+      "duckdb"
+    ],
+    "ProviderInvariantName": "DuckDB.NET.Data"
+  },
+  {
     "Class": "MariaDbConnectorMapper",
     "Database": "MariaDB",
     "Aliases": [
