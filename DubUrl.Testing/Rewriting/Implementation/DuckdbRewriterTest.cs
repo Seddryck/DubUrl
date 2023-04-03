@@ -21,7 +21,7 @@ namespace DubUrl.Testing.Rewriting.Implementation
 
         private static DbConnectionStringBuilder ConnectionStringBuilder
         {
-            get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, SqliteFactory.Instance);
+            get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, DuckDB.NET.Data.DuckDBClientFactory.Instance);
         }
 
         [Test]
