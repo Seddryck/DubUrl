@@ -115,6 +115,7 @@ The following databases and their associated schemes are supported out of the bo
 |Oracle Database      | oracle, or, ora                 | Oracle.ManagedDataAccess       |
 |SQLite3              | sq, sqlite                      | Microsoft.Data.Sqlite          |
 |IBM DB2              | db2                             | IBM.Data.Db2                   |
+|DuckDB               | duck, duckdb                    | DuckDB.NET.Data                |
 |MariaDB              | maria, mariadb                  | MySqlConnector                 |
 |Snowflake            | sf, snowflake                   | Snowflake.Data                 |
 |Teradata             | td, teradata, tera              | Teradata.Client                |
@@ -136,3 +137,4 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+

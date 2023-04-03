@@ -41,6 +41,16 @@
     ]
   },
   {
+    "Class": "DuckdbDriverLocator",
+    "Database": "DuckDB",
+    "Aliases": [
+      "duck",
+      "duckdb"
+    ],
+    "NamePattern": "^\\bDuckDB\\s\\bDriver$",
+    "Options": []
+  },
+  {
     "Class": "MariaDbDriverLocator",
     "Database": "MariaDB",
     "Aliases": [
