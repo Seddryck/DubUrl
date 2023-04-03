@@ -58,7 +58,7 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			    -OutFile "$env:temp\mysql-connector-odbc.msi" `
 			).BaseResponse
 		} catch { 
-			Write-Verbose "An exception was caught: $($_.Exception.Message)"
+			Write-Host "An exception was caught: $($_.Exception.Message)"
 			$_.Exception.Response 
 		} 
 		$statusCodeInt = [int]$response.BaseResponse.StatusCode
@@ -71,6 +71,8 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 		    Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
 		    Write-Host "`tDeployment of MySQL ODBC driver finalized."
 			$OdbcDriverInstalled = $true
+		} else {
+			Write-Host "`t`tInstalling MySQL ODBC driver was interrupted."
 		}
 		
 	} else {
