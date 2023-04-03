@@ -56,9 +56,8 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			(Invoke-WebRequest `
 			    -Uri "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" `
 			    -OutFile "$env:temp\mysql-connector-odbc.msi" `
-				-ErrorAction Stop
 			).BaseResponse
-		} catch [System.Net.WebException] { 
+		} catch { 
 			Write-Verbose "An exception was caught: $($_.Exception.Message)"
 			$_.Exception.Response 
 		} 
