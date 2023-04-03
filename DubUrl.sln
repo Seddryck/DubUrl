@@ -30,9 +30,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Edit", "Edit", "{210C887C-6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74}"
 	ProjectSection(SolutionItems) = preProject
+		deploy-duckdb-test-env.ps1 = deploy-duckdb-test-env.ps1
 		deploy-msexcel-test-env.ps1 = deploy-msexcel-test-env.ps1
 		deploy-mssql-test-env.ps1 = deploy-mssql-test-env.ps1
 		deploy-pgsql-test-env.ps1 = deploy-pgsql-test-env.ps1
+		deploy-text-test-env.ps1 = deploy-text-test-env.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA", "DubUrl.QA\DubUrl.QA.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
