@@ -31,6 +31,7 @@ test_script:
 - pwsh: |
       & .\deploy-mssql-test-env.ps1 -force
       & .\deploy-pgsql-test-env.ps1 -force
+      & .\deploy-mysql-test-env.ps1 -force
       & .\deploy-msexcel-test-env.ps1 -force
       & .\deploy-text-test-env.ps1 -force
 
