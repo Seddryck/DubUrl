@@ -43,7 +43,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	$retry = 0
 	$started = $false
 	$firebirdServiceName = "FirebirdServerDefaultInstance"
-	while($retry -lt 5 -and $started -eq $false)
+	while($retry -lt 10 -and $started -eq $false)
 	{
 		try {
 			$service = Get-Service -Name $firebirdServiceName -ErrorAction Stop
@@ -58,10 +58,14 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 			$started = $true
 		} catch {
 			$retry += 1
-			if ($retry -lt 5) {
+			if ($retry -lt 10) {
 				Start-Sleep -Seconds 5
 			}
 		}
+	}
+
+	if ($started -eq $false) {
+		Write-Error "`tService '$firebirdServiceName' cannot be detected or started"
 	}
 
 	# Deploying database based on script
