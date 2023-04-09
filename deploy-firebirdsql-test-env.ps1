@@ -31,11 +31,12 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		Write-Host "`tDownloading FirebirdSQL $firebirdVersion ..."
 		Invoke-WebRequest "$rootUrl/$firebirdVersion/$package.exe" -OutFile "$env:temp\firebird-install.exe"
 		Write-Host "`tInstalling FirebirdSQL ..."
-		& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS".Split(" ")
+		& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS /LOG=`"$env:temp\firebird-log.txt`".Split(" ")
 		if ((Test-Path -Path $firebirdPath\firebird.exe)) {
-			Write-Host  "`tFirebirdSQL installed in $firebirdPath"
+			Write-Host "`tFirebirdSQL installed in $firebirdPath"
 		} else {
-			Write-Host  "`tCannot find the location of the installation of FirebirdSQL"
+			Write-Host "`tCannot find the location of the installation of FirebirdSQL"
+			Get-Content($env:temp\firebird-log.txt) | Write-Host 
 		}
 	} else {
 		Write-Host "`tFirebirdSQL already installed: skipping installation."
