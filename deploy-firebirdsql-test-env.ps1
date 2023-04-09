@@ -32,9 +32,16 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		Invoke-WebRequest "$rootUrl/$firebirdVersion/$package.exe" -OutFile "$env:temp\firebird-install.exe"
 		Write-Host "`tInstalling FirebirdSQL ..."
 		& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS".Split(" ")
+		if ((Test-Path -Path $firebirdPath\firebird.exe)) {
+			Write-Host  "`tFirebirdSQL installed in $firebirdPath"
+		} else {
+			Write-Host  "`tCannot find the location of the installation of FirebirdSQL"
+		}
 	} else {
 		Write-Host "`tFirebirdSQL already installed: skipping installation."
 	}
+
+
 
 	# Starting service
 	$firebirdServiceName = "FirebirdServerDefaultInstance"
