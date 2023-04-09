@@ -92,7 +92,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	Write-Host "Running QA tests related to FirebirdSQL"
 	& dotnet build DubUrl.QA -c Release --nologo
 
-	# No idea why but here we should split in two distinct sets of tests.
+	# To avoid to run the two test-suites in parallel
 	& dotnet test DubUrl.QA --filter "(TestCategory=FirebirdSQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	If ($odbcDriverInstalled -eq $true) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=FirebirdSQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
