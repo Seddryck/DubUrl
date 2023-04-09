@@ -31,30 +31,35 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		Write-Host "`tDownloading FirebirdSQL $firebirdVersion ..."
 		Invoke-WebRequest "$rootUrl/$firebirdVersion/$package.exe" -OutFile "$env:temp\firebird-install.exe"
 		Write-Host "`tInstalling FirebirdSQL ..."
-		& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS /LOG=`"$env:temp\firebird-log.txt`".Split(" ")
-		if ((Test-Path -Path $firebirdPath\firebird.exe)) {
-			Write-Host "`tFirebirdSQL installed in $firebirdPath"
-		} else {
-			Write-Host "`tCannot find the location of the installation of FirebirdSQL"
-			Get-Content($env:temp\firebird-log.txt) | Write-Host 
-		}
+		& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS /LOG=""$env:temp\firebird-log.txt""".Split(" ")
 	} else {
 		Write-Host "`tFirebirdSQL already installed: skipping installation."
 	}
 
-
-
 	# Starting service
+	$retry = 0
+	$started = $false
 	$firebirdServiceName = "FirebirdServerDefaultInstance"
-    $service = Get-Service -Name $firebirdServiceName
-     
-    if ($service.Status -eq "Running") {
-        Write-Host "`tService '$($service.DisplayName)' already started."
-    } else {
-        Write-Host "`tStarting service '$($service.DisplayName)' ..."
-        Start-Service -Name $firebirdServiceName
-        Write-Host "`tService started."
-    }
+	while($retry -lt 5 -and $started -eq $false)
+	{
+		try {
+			$service = Get-Service -Name $firebirdServiceName -ErrorAction Stop
+		
+			if ($service.Status -eq "Running") {
+				Write-Host "`tService '$($service.DisplayName)' already started."
+			} else {
+				Write-Host "`tStarting service '$($service.DisplayName)' ..."
+				Start-Service -Name $firebirdServiceName
+				Write-Host "`tService started."
+			}
+			$started = $true
+		} catch {
+			$retry += 1
+			if ($retry -lt 5) {
+				Start-Sleep -Seconds 5
+			}
+		}
+	}
 
 	# Deploying database based on script
 	$databasePath = "$binPath\Customer.fdb"
