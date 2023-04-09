@@ -8,18 +8,21 @@ if ($force) {
 }
 $binPath = "./DubUrl.QA/bin/$config/net6.0/"
 $rootUrl = "https://github.com/FirebirdSQL/firebird/releases/download/"
-If (-not($env:PATH -like "7-zip")) {
+If (-not($env:PATH -like "*7-zip*")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
 }
 
-$firebirdPath = "C:/Program Files/Firebird/"
+$firebirdPath = "C:\Program Files\Firebird"
 If (-not (Test-Path -Path $firebirdPath)) {
 	$firebirdPath = $firebirdPath -replace "C:", "E:"
 	If (-not (Test-Path -Path $firebirdPath)) {
 		$firebirdPath = $firebirdPath -replace "E:", "C:"
 	}
 }
-$firebirdPath = "C:/Program Files/Firebird/Firebird_$($package.Split(".")[0].Split("-")[1])_$($package.Split(".")[1])"
+$firebirdPath = "$firebirdPath\Firebird_$($package.Split(".")[0].Split("-")[1])_$($package.Split(".")[1])"
+If (-not($env:PATH -like "*$firebirdPath*")) {
+	$env:PATH += ";$firebirdPath"
+}
 Write-Host "Using '$firebirdPath' as FirebirdSQL installation folder"
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -68,9 +71,6 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	Write-host "`tCreating database at $databasePath"
-	If (-not($env:PATH -like $firebirdPath)) {
-		$env:PATH += ";$firebirdPath"
-	}
 	Get-Content ".\DubUrl.QA\FirebirdSQL\deploy-firebird-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\Duburl.QA\FirebirdSQL\deploy-firebird-database.sql" -b -e -q
 
 	# Installing ODBC driver
