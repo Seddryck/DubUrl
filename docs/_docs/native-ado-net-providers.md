@@ -21,6 +21,14 @@ To embrace the world of DubUrl, you need to follow some conventions regarding th
 | <a href="https://nuget.org/packages/{{- provider.ProviderInvariantName -}}" style="border: 0px;"><img src="{{ '/assets/img/nuget.png' | relative_url }}" alt="Go to Nuget repository" width="24" style="max-width: fit-content;"/></a>|
 {% endfor %}
 
+### Additional packages
+
+SQLite3 is expecting additional libraries (.dll) to work properly. If these libraries are missing, you ‘ll receive an exception `You need to call SQLitePCL.raw.SetProvider()`. To avoid this exception, you must include the package `SQLitePCLRaw_bundle_e_sqlite3` into your solution or copy the following dlls:
+
+* `SQLitePCLRaw.batteries_v2.dll`
+* `SQLitePCLRaw.core.dll`
+* `SQLitePCLRaw.provider.e_sqlite3.dll`
+
 ### Example
 
 Following example shows how to use DubUrl to connect to a PostgreSQL database.
