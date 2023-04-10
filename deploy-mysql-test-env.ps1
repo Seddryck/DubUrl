@@ -59,7 +59,7 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 					-OutFile "$env:temp\mariadb-connector-odbc.msi"
 			Write-Host "`t`tInstalling MariaDB ODBC driver ..."
 			& msiexec /i "$env:temp\mariadb-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mariadb.log" | Out-Host
-			Get-Content "$env:temp\install-mariadb.log" | Write-Host
+			#Get-Content "$env:temp\install-mariadb.log" | Write-Host
 			Write-Host "`t`tChecking installation ..."
 			Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
 			Write-Host "`tDeployment of MariaDB ODBC driver finalized."

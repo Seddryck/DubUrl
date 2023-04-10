@@ -17,7 +17,7 @@ namespace DubUrl.QA.Mysql
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            var connectionUrl = new ConnectionUrl("odbc+mysql://root:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("odbc+mariadb://root:Password12!@localhost/DubUrl");
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -27,7 +27,7 @@ namespace DubUrl.QA.Mysql
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("odbc+mysql://root:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("odbc+mariadb://root:Password12!@localhost/DubUrl");
             
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -47,7 +47,7 @@ namespace DubUrl.QA.Mysql
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl("odbc+mysql://root:Password12!@localhost/DubUrl?TrustServerCertificate=Yes");
+            var connectionUrl = new ConnectionUrl("odbc+mariadb://root:Password12!@localhost/DubUrl");
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
