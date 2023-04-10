@@ -5,16 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectCustomerById.firebird.sql" />
     <None Remove="SelectCustomerbyId.mssql.sql" />
     <None Remove="SelectCustomerById.mysql.sql" />
     <None Remove="SelectCustomerById.pgsql.sql" />
     <None Remove="SelectCustomerById.sqlite.sql" />
     <None Remove="SelectCustomerById.xlsx.sql" />
+    <None Remove="SelectFirstCustomer.firebird.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.mysql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
     <None Remove="SelectFirstCustomer.sqlite.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
+    <None Remove="SelectYoungestCustomers.firebird.sql" />
     <None Remove="SelectYoungestCustomers.mssql.sql" />
     <None Remove="SelectYoungestCustomers.mysql.sql" />
     <None Remove="SelectYoungestCustomers.pgsql.sql" />

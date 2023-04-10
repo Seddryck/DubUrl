@@ -8,7 +8,7 @@ When selecting the ADO.Net data provider for ODBC with the scheme `odbc://`, you
 
 On Windows, DubUrl is fixing these troubles by analyzing the ODBC drivers registered and trying to select the driver that you'd like to use. To select the right driver, DubUrl use the second part of the scheme to determine to which database you're trying to connect. If you want to connect to a Microsoft SQL Server database by the means of ODBC, you can specify the scheme `odbc:mssql://`. Under the hood, DubUrl is analyzing your registry to identify all the potentials drivers and is extracting all the drivers where the name is corresponding to the pattern described in the 3rd column of the table bellow for the row corresponding to the second part of the scheme used.
 
-## List of Native ADO.Net data providers
+## List of ODBC drivers
 
 | Database | Aliases | Driver name pattern | | | | |
 |----------|---------|--------------------------------------|-|-|-|-|
