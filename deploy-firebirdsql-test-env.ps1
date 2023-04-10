@@ -52,7 +52,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		if (-not (Test-Path -Path $firebirdPath\firebird.exe)) {
 			Write-Error "`tInstallation of FirebirdSQL failed. Cannot find firebird.exe in $firebirdPath."
 		} else {
-			$process = Start-Process [-FilePath] "$firebirdPath\firebird.exe" -ArgumentList "-a".Split(" ") -PassThru
+			$process = Start-Process -FilePath "$firebirdPath\firebird.exe" -ArgumentList "-a".Split(" ") -PassThru
 		}
 	} else {
 		$retry = 0
