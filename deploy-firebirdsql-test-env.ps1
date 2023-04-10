@@ -2,6 +2,7 @@ Param(
 	[switch] $force=$false
 	, $package= "Firebird-4.0.2.2816-0-x64"
 	, $config= "Release"
+	, $extension = "zip"
 )
 if ($force) {
 	Write-Warning "Forcing QA testing for FirebirdSQL"
@@ -32,42 +33,62 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	if (-not (Test-Path -Path $firebirdPath\firebird.exe)) {
 		$firebirdVersion = "v$($package.Split(".")[0].Split("-")[1]).$($package.Split(".")[1]).$($package.Split(".")[2])"
 		Write-Host "`tDownloading FirebirdSQL $firebirdVersion ..."
-		Invoke-WebRequest "$rootUrl/$firebirdVersion/$package.exe" -OutFile "$env:temp\firebird-install.exe"
+		Invoke-WebRequest "$rootUrl/$firebirdVersion/$package.$extension" -OutFile "$env:temp\firebird-install.$extension"
+		Unblock-File "$env:temp\firebird-install.$extension"
 		Write-Host "`tInstalling FirebirdSQL ..."
-		& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS /LOG=""$env:temp\firebird-log.txt""".Split(" ")
+		if ($extension -eq "zip") {
+			Write-Host "`tDecompressing FirebirdSQL archive in $firebirdPath ..."
+			& 7z x "$env:temp\firebird-install.$extension" -o"$firebirdPath" -aoa
+		} else {
+			Write-Host "`tRunning FirebirdSQL installer ..."
+			& "$env:temp\firebird-install.exe" "/VERYSILENT /NORESTART /NOICONS /LOG=""$env:temp\firebird-log.txt""".Split(" ")
+		}	
 	} else {
 		Write-Host "`tFirebirdSQL already installed: skipping installation."
 	}
 
-	# Starting service
-	$retry = 0
-	$started = $false
-	$firebirdServiceName = "FirebirdServerDefaultInstance"
-	while($retry -lt 50 -and $started -eq $false)
-	{
-		try {
-			$service = Get-Service -Name $firebirdServiceName -ErrorAction Stop
+	# Starting service/executable
+	if ($extension -eq "zip") {
+		if (-not (Test-Path -Path $firebirdPath\firebird.exe)) {
+			Write-Error "`tInstallation of FirebirdSQL failed. Cannot find firebird.exe in $firebirdPath."
+		} else {
+			& "$firebirdPath\firebird.exe" "-a".Split(" ")
+		}
+	} else {
+		$retry = 0
+		$started = $false
+		$firebirdServiceName = "FirebirdServerDefaultInstance"
+		while($retry -lt 50 -and $started -eq $false)
+		{
+			try {
+				$service = Get-Service -Name $firebirdServiceName -ErrorAction Stop
 		
-			if ($service.Status -eq "Running") {
-				Write-Host "`tService '$($service.DisplayName)' already started."
-			} else {
-				Write-Host "`tStarting service '$($service.DisplayName)' ..."
-				Start-Service -Name $firebirdServiceName
-				Write-Host "`tService started."
-			}
-			$started = $true
-		} catch {
-			$retry += 1
-			if ($retry -lt 50) {
-				Start-Sleep -Seconds 5
+				if ($service.Status -eq "Running") {
+					Write-Host "`tService '$($service.DisplayName)' already started."
+				} else {
+					Write-Host "`tStarting service '$($service.DisplayName)' ..."
+					Start-Service -Name $firebirdServiceName
+					Write-Host "`tService started."
+				}
+				$started = $true
+			} catch {
+				$retry += 1
+				if ($retry -lt 50) {
+					Start-Sleep -Seconds 5
+				}
 			}
 		}
-	}
 
-	if ($started -eq $false) {
-		Get-Content("$env:temp\firebird-log.txt") | Write-Host
-		Write-Error "`tService '$firebirdServiceName' cannot be detected or started"
+		if ($started -eq $false) {
+			if (Test-Path -Path "$env:temp\firebird-log.txt") {
+				Get-Content("$env:temp\firebird-log.txt") | Write-Host
+			} else {
+				Write-Host "`tNo log available for the installation of ForebirdSQL."
+			}
+			Write-Error "`tService '$firebirdServiceName' cannot be detected or started"
+		}
 	}
+	
 
 	# Deploying database based on script
 	$databasePath = "$binPath\Customer.fdb"
