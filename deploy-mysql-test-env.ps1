@@ -1,6 +1,7 @@
 Param(
 	[switch] $force=$false
 	, $databaseService= "MySQL57"
+	, $odbcDriver= "MariaDB"
 )
 if ($force) {
 	Write-Warning "Forcing QA testing for MySQL"
@@ -46,47 +47,69 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 		Write-host "`tSkipping database creation"
 	}
 
+	$odbcDriverInstalled = $false
 	# Installing ODBC driver
-	Write-host "`tDeploying MySQL ODBC drivers"
-	$drivers = Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
-	$OdbcDriverInstalled = $false
-	If ($drivers.Length -eq 0) {
-		Write-Host "`t`tDownloading MySQL ODBC driver ..."
-		$response = try { 
-			(Invoke-WebRequest `
-			    -Uri "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" `
-			    -OutFile "$env:temp\mysql-connector-odbc.msi" `
-			).BaseResponse
-		} catch { 
-			Write-Host "An exception was caught: $($_.Exception.Message)"
-			$_.Exception.Response 
-		} 
-		$statusCodeInt = [int]$response.BaseResponse.StatusCode
-
-		If ($statusCodeInt -eq 200) {
-            Write-Host "`t`tInstalling MySQL ODBC driver ..."
-		    & msiexec /i "$env:temp\mysql-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mysql.log" | Out-Host
-		    #Get-Content "$env:temp\install-mysql.log"
-		    Write-Host "`t`tChecking installation ..."
-		    Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
-		    Write-Host "`tDeployment of MySQL ODBC driver finalized."
-			$OdbcDriverInstalled = $true
+	if ($odbcDriver -eq "MariaDB") {
+		Write-host "`tDeploying MariaDB ODBC drivers"
+		$drivers = Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
+		if ($drivers.Length -eq 0) {
+			Write-Host "`t`tDownloading MariaDB ODBC driver ..."
+			Invoke-WebRequest `
+					-Uri "https://dlm.mariadb.com/2454057/Connectors/odbc/connector-odbc-3.1.17/mariadb-connector-odbc-3.1.17-win64.msi" `
+					-OutFile "$env:temp\mariadb-connector-odbc.msi" `
+			Write-Host "`t`tInstalling MariaDB ODBC driver ..."
+			& msiexec /i "$env:temp\mariadb-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mariadb.log" | Out-Host
+			Get-Content "$env:temp\install-mariadb.log" | Write-Host
+			Write-Host "`t`tChecking installation ..."
+			Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
+			Write-Host "`tDeployment of MariaDB ODBC driver finalized."
+			$odbcDriverInstalled = $true
 		} else {
-			Write-Host "`t`tInstalling MySQL ODBC driver was interrupted."
+			$odbcDriverInstalled = $true
+			Write-Host "`t`tDrivers already installed:"
+			Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
+			Write-Host "`t`tSkipping installation of new drivers"
 		}
-		
 	} else {
-		$OdbcDriverInstalled = $true
-		Write-Host "`t`tDrivers already installed:"
-		Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
-		Write-Host "`t`tSkipping installation of new drivers"
+		Write-host "`tDeploying MySQL ODBC drivers"
+		$drivers = Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
+		if ($drivers.Length -eq 0) {
+			Write-Host "`t`tDownloading MySQL ODBC driver ..."
+			$response = try { 
+				(Invoke-WebRequest `
+					-Uri "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" `
+					-OutFile "$env:temp\mysql-connector-odbc.msi" `
+				).BaseResponse
+			} catch { 
+				Write-Host "An exception was caught: $($_.Exception.Message)"
+				$_.Exception.Response 
+			} 
+			$statusCodeInt = [int]$response.BaseResponse.StatusCode
+
+			If ($statusCodeInt -eq 200) {
+				Write-Host "`t`tInstalling MySQL ODBC driver ..."
+				& msiexec /i "$env:temp\mysql-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mysql.log" | Out-Host
+				#Get-Content "$env:temp\install-mysql.log"
+				Write-Host "`t`tChecking installation ..."
+				Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
+				Write-Host "`tDeployment of MySQL ODBC driver finalized."
+				$odbcDriverInstalled = $true
+			} else {
+				Write-Host "`t`tInstalling MySQL ODBC driver was interrupted."
+			}
+		} else {
+			$odbcDriverInstalled = $true
+			Write-Host "`t`tDrivers already installed:"
+			Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
+			Write-Host "`t`tSkipping installation of new drivers"
+		}
 	}
 
 	# Running QA tests
 	Write-Host "Running QA tests related to MySQL"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	If ($OdbcDriverInstalled -eq $true) {
+	If ($odbcDriverInstalled -eq $true) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	}
 } else {
