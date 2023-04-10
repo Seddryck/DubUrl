@@ -5,22 +5,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectCustomerById.firebird.sql" />
     <None Remove="SelectCustomerbyId.mssql.sql" />
     <None Remove="SelectCustomerById.mysql.sql" />
     <None Remove="SelectCustomerById.pgsql.sql" />
     <None Remove="SelectCustomerById.xlsx.sql" />
+    <None Remove="SelectFirstCustomer.firebird.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.mysql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
+    <None Remove="SelectYoungestCustomers.firebird.sql" />
     <None Remove="SelectYoungestCustomers.mssql.sql" />
     <None Remove="SelectYoungestCustomers.mysql.sql" />
     <None Remove="SelectYoungestCustomers.pgsql.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
     <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.mysql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.firebird.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.mysql.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.mssql.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.pgsql.sql" />
@@ -34,6 +40,7 @@
 
   <ItemGroup>
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
     <PackageReference Include="MySqlConnector" Version="2.2.5" />
     <PackageReference Include="Npgsql" Version="6.0.6" />
