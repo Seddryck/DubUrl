@@ -56,7 +56,7 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			Write-Host "`t`tDownloading MariaDB ODBC driver ..."
 			Invoke-WebRequest `
 					-Uri "https://dlm.mariadb.com/2454057/Connectors/odbc/connector-odbc-3.1.17/mariadb-connector-odbc-3.1.17-win64.msi" `
-					-OutFile "$env:temp\mariadb-connector-odbc.msi" `
+					-OutFile "$env:temp\mariadb-connector-odbc.msi"
 			Write-Host "`t`tInstalling MariaDB ODBC driver ..."
 			& msiexec /i "$env:temp\mariadb-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mariadb.log" | Out-Host
 			Get-Content "$env:temp\install-mariadb.log" | Write-Host
