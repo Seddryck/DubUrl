@@ -56,9 +56,10 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		}
 	} else {
 		$retry = 0
+		$maxRetry = 5
 		$started = $false
 		$firebirdServiceName = "FirebirdServerDefaultInstance"
-		while($retry -lt 50 -and $started -eq $false)
+		while($retry -le $maxRetry -and $started -eq $false)
 		{
 			try {
 				$service = Get-Service -Name $firebirdServiceName -ErrorAction Stop
@@ -72,10 +73,10 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 				}
 				$started = $true
 			} catch {
-				$retry += 1
-				if ($retry -lt 50) {
+				if ($retry -ne $maxRetry) {
 					Start-Sleep -Seconds 5
 				}
+				$retry += 1
 			}
 		}
 
@@ -138,14 +139,16 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	# Stoping service
-    $service = Get-Service -Name $firebirdServiceName
-    if ($service.Status -eq "Stopped") {
-        Write-Host "Service '$($service.DisplayName)' already stopped."
-    } else {
-        Write-Host "Stopping service '$($service.DisplayName)' ..."
-        Stop-Service -Name $firebirdServiceName
-        Write-Host "Service stopped."
-    }
+	if ($extension -ne "zip") {
+		$service = Get-Service -Name $firebirdServiceName
+		if ($service.Status -eq "Stopped") {
+			Write-Host "Service '$($service.DisplayName)' already stopped."
+		} else {
+			Write-Host "Stopping service '$($service.DisplayName)' ..."
+			Stop-Service -Name $firebirdServiceName
+			Write-Host "Service stopped."
+		}
+	}
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for DuckDB"
+	Write-Host "Skipping the deployment and run of QA testing for FirebirdSQL"
 }
