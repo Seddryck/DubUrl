@@ -52,7 +52,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		if (-not (Test-Path -Path $firebirdPath\firebird.exe)) {
 			Write-Error "`tInstallation of FirebirdSQL failed. Cannot find firebird.exe in $firebirdPath."
 		} else {
-			& "$firebirdPath\firebird.exe" "-a".Split(" ")
+			$process = Start-Process [-FilePath] "$firebirdPath\firebird.exe" -ArgumentList "-a".Split(" ") -PassThru
 		}
 	} else {
 		$retry = 0
@@ -139,7 +139,11 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	# Stoping service
-	if ($extension -ne "zip") {
+	if ($extension -eq "zip") {
+		Write-Host "Stopping executable '$($process.Name)' ..."
+		Stop-Process -Id $process.Id
+		Write-Host "Executable stopped."
+	} else {
 		$service = Get-Service -Name $firebirdServiceName
 		if ($service.Status -eq "Stopped") {
 			Write-Host "Service '$($service.DisplayName)' already stopped."
