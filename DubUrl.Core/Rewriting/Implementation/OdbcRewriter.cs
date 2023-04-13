@@ -34,11 +34,14 @@ namespace DubUrl.Rewriting.Implementation
             )
         { }
 
+        protected OdbcRewriter(DbConnectionStringBuilder csb, BaseTokenMapper[] tokenMappers)
+            : base(new SpecificatorStraight(csb), tokenMappers) { }
+
         internal DriverLocatorFactory DriverLocatorFactory
             => (TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
                 ?? throw new ArgumentNullException();
 
-        internal class HostMapper : BaseTokenMapper
+        protected internal class HostMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
             {
@@ -54,7 +57,7 @@ namespace DubUrl.Rewriting.Implementation
             }
         }
 
-        internal class DriverMapper : BaseTokenMapper
+        protected internal class DriverMapper : BaseTokenMapper
         {
             internal DriverLocatorFactory DriverLocatorFactory { get; } = new DriverLocatorFactory();
             private IList<Type>? AvailableOptions { get; set; }
@@ -126,7 +129,7 @@ namespace DubUrl.Rewriting.Implementation
             }
         }
 
-        internal class AuthentificationMapper : BaseTokenMapper
+        protected internal class AuthentificationMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
             {
@@ -137,7 +140,7 @@ namespace DubUrl.Rewriting.Implementation
             }
         }
 
-        internal class DatabaseMapper : BaseTokenMapper
+        protected internal class DatabaseMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
             {
@@ -148,7 +151,7 @@ namespace DubUrl.Rewriting.Implementation
             }
         }
 
-        internal class OptionsMapper : BaseTokenMapper
+        protected internal class OptionsMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
             {

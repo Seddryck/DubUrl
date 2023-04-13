@@ -29,6 +29,7 @@ test_script:
 - dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
+      & .\deploy-drill-test-env.ps1 -force
       & .\deploy-mssql-test-env.ps1 -force
       & .\deploy-pgsql-test-env.ps1 -force
       & .\deploy-mysql-test-env.ps1 -force
