@@ -76,4 +76,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include=".bigdata\Customer\CUST-001.csvh" />
+    <None Include=".bigdata\Customer\CUST-002.csvh" />
+  </ItemGroup>
+
 </Project>
