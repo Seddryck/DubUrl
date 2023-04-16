@@ -73,6 +73,7 @@ on_success:
         Write-Host "`tCreating commit ..."
         & git add --all
         & git status
+        & git pull
         & git commit -m "Update automatically generated documentation related to schemes"
         Write-Host "`tPushing commit ..."
         $pushCommit = & git push origin
