@@ -67,7 +67,7 @@ on_success:
         & .\generate-table-scheme.ps1
         Write-Host "`tSetting GitHub credentials ..."
         & git config --global credential.helper store
-        Set-Content -Path "$HOME\.git-credentials" -Value "https://$($env:github_access_token):x-oauth-basic@github.com`n" -NoNewline
+        Set-Content -Path "$HOME\.git-credentials" -Value "https://Seddryck:$($env:github_access_token)@github.com`n" -NoNewline
         & git config --global user.email "no-reply@nbiguity.io"
         & git config --global user.name "AppVeyor bot"
         Write-Host "`tCreating commit ..."
