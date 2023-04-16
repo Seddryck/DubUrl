@@ -66,6 +66,15 @@
     ]
   },
   {
+    "Class": "DrillDriverLocator",
+    "Database": "Apache Drill",
+    "Aliases": [
+      "drill"
+    ],
+    "NamePattern": "^\\bMapR Drill ODBC Driver$",
+    "Options": []
+  },
+  {
     "Class": "MsExcelDriverLocator",
     "Database": "Microsoft Excel",
     "Aliases": [
