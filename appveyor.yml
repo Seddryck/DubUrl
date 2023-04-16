@@ -76,7 +76,6 @@ on_success:
         & git pull
         & git commit -m "Update automatically generated documentation related to schemes"
         Write-Host "`tPushing commit ..."
-        $pushCommit = & git push origin
-        Write-Host "`tPush result = $pushCommit"
+        & git push origin
         Write-Host "`tNew commit uploaded."
       }
