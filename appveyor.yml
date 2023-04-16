@@ -63,14 +63,18 @@ on_success:
       & .\generate-odbc-driver-info.ps1
       $exitCode += $LastExitCode
       if ($exitCode -gt 0) {
-        Write-Host "Update of README.md needed"
+        Write-Host "`tUpdating README.md ..."
         & .\generate-table-scheme.ps1
+        Write-Host "`tSetting GitHub credentials ..."
         & git config --global credential.helper store
         Set-Content -Path "$HOME\.git-credentials" -Value "https://$($env:github_access_token):x-oauth-basic@github.com`n" -NoNewline
         & git config --global user.email "no-reply@nbiguity.io"
         & git config --global user.name "AppVeyor bot"
+        Write-Host "`tCreating commit ..."
         & git add --all
         & git status
         & git commit -m "Update automatically generated documentation related to schemes"
+        Write-Host "`tPushing commit ..."
         & git push origin
+        Write-Host "`tNew commit uploaded."
       }
