@@ -105,6 +105,15 @@
     "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient"
   },
   {
+    "Class": "QuestDbMapper",
+    "Database": "QuestDb",
+    "Aliases": [
+      "quest",
+      "questdb"
+    ],
+    "ProviderInvariantName": "Npgsql"
+  },
+  {
     "Class": "TimescaleMapper",
     "Database": "Timescale",
     "Aliases": [
