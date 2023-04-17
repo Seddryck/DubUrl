@@ -53,6 +53,19 @@
     ]
   },
   {
+    "Class": "QuestDbDriverLocator",
+    "Database": "QuestDb",
+    "Aliases": [
+      "quest",
+      "questdb"
+    ],
+    "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
+    "Options": [
+      "DubUrl.Locating.Options.EncodingOption",
+      "DubUrl.Locating.Options.ArchitectureOption"
+    ]
+  },
+  {
     "Class": "TimescaleDriverLocator",
     "Database": "Timescale",
     "Aliases": [
