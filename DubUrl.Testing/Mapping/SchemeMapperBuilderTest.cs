@@ -64,6 +64,7 @@ namespace DubUrl.Testing.Mapping
         [TestCase("fb", typeof(FirebirdSqlMapper))]
         [TestCase("cr", typeof(CockRoachMapper))]
         [TestCase("ts", typeof(TimescaleMapper))]
+        [TestCase("quest", typeof(QuestDbMapper))]
         //[TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]

@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FD180A2C
 		deploy-mssql-test-env.ps1 = deploy-mssql-test-env.ps1
 		deploy-mysql-test-env.ps1 = deploy-mysql-test-env.ps1
 		deploy-pgsql-test-env.ps1 = deploy-pgsql-test-env.ps1
+		deploy-questdb-test-env.ps1 = deploy-questdb-test-env.ps1
 		deploy-sqlite-test-env.ps1 = deploy-sqlite-test-env.ps1
 		deploy-text-test-env.ps1 = deploy-text-test-env.ps1
 	EndProjectSection
