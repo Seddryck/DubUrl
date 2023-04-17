@@ -9,28 +9,34 @@
     <None Remove="SelectCustomerbyId.mssql.sql" />
     <None Remove="SelectCustomerById.mysql.sql" />
     <None Remove="SelectCustomerById.pgsql.sql" />
+    <None Remove="SelectCustomerById.questdb.sql" />
     <None Remove="SelectCustomerById.sqlite.sql" />
     <None Remove="SelectCustomerById.xlsx.sql" />
     <None Remove="SelectFirstCustomer.firebird.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.mysql.sql" />
     <None Remove="SelectFirstCustomer.pgsql.sql" />
+    <None Remove="SelectFirstCustomer.questdb.sql" />
     <None Remove="SelectFirstCustomer.sqlite.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
     <None Remove="SelectYoungestCustomers.firebird.sql" />
     <None Remove="SelectYoungestCustomers.mssql.sql" />
     <None Remove="SelectYoungestCustomers.mysql.sql" />
     <None Remove="SelectYoungestCustomers.pgsql.sql" />
+    <None Remove="SelectYoungestCustomers.questdb.sql" />
     <None Remove="SelectYoungestCustomers.sqlite.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectCustomerById.questdb.sql" />
     <EmbeddedResource Include="SelectCustomerById.sqlite.sql" />
     <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
     <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.mysql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.questdb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.sqlite.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.firebird.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.mysql.sql" />
