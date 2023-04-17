@@ -22,6 +22,7 @@ namespace DubUrl.Rewriting.Implementation
             : base(   new Specificator(csb),
                       new BaseTokenMapper[] {
                         new HostMapper(),
+                        new PortMapper(),
                         new AuthentificationMapper(),
                         new DatabaseMapper(),
                         new OptionsMapper(),
@@ -29,11 +30,19 @@ namespace DubUrl.Rewriting.Implementation
             )
         { }
 
+        protected PostgresqlRewriter(ISpecificator specificator, BaseTokenMapper[] tokenMappers)
+            : base(specificator, tokenMappers) { }
+
         internal class HostMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
+                => Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
+        }
+
+        internal class PortMapper : BaseTokenMapper
+        {
+            public override void Execute(UrlInfo urlInfo)
             {
-                Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
                 if (urlInfo.Port > 0)
                     Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
             }
