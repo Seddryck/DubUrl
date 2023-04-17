@@ -41,3 +41,9 @@ updates:
       interval: "weekly"
     labels:
       - "dependency-update"
+  - package-ecosystem: "nuget" 
+    directory: "/DubUrl.QA/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependency-update"
