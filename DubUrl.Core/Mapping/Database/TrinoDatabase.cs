@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<TrinoDialect>(
         "Trino"
         , new[] { "tr", "trino" }
-        , 0
+        , 7
     )]
     public class TrinoDatabase : IDatabase
     { }
