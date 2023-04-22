@@ -11,10 +11,14 @@ $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*trino*")) {
 	Write-Host "Deploying Trino testing environment"
 
+	# Checking docker architecture
+	$dockerVersion = docker version --format '{{json .}}' | ConvertFrom-Json
+	Write-Host "OS/architecture for docker engine: $($docker.Engine.Os)"
+
 	# Creating network
 	$network = & docker network inspect $networkName --format "{{.ID}}" 2>$null
 	if (!$network) {
-		$network = & docker network create --driver nat $networkName
+		$network = & docker network create $networkName
 		Write-Host "`tNetwork '$networkName' created with ID '$network'"
 	} else {
 		Write-Host "`tNetwork '$networkName' already existing with ID '$network'"
