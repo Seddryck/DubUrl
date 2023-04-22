@@ -14,7 +14,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	# Creating network
 	$network = & docker network inspect $networkName --format "{{.ID}}" 2>$null
 	if (!$network) {
-		$network = & docker network create $networkName
+		$network = & docker network create --driver nat $networkName
 		Write-Host "`tNetwork '$networkName' created with ID '$network'"
 	} else {
 		Write-Host "`tNetwork '$networkName' already existing with ID '$network'"
