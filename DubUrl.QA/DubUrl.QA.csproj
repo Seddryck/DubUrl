@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -11,6 +11,7 @@
     <None Remove="SelectCustomerById.pgsql.sql" />
     <None Remove="SelectCustomerById.questdb.sql" />
     <None Remove="SelectCustomerById.sqlite.sql" />
+    <None Remove="SelectCustomerById.trino.sql" />
     <None Remove="SelectCustomerById.xlsx.sql" />
     <None Remove="SelectFirstCustomer.firebird.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
@@ -18,6 +19,7 @@
     <None Remove="SelectFirstCustomer.pgsql.sql" />
     <None Remove="SelectFirstCustomer.questdb.sql" />
     <None Remove="SelectFirstCustomer.sqlite.sql" />
+    <None Remove="SelectFirstCustomer.trino.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
     <None Remove="SelectYoungestCustomers.firebird.sql" />
     <None Remove="SelectYoungestCustomers.mssql.sql" />
@@ -25,17 +27,21 @@
     <None Remove="SelectYoungestCustomers.pgsql.sql" />
     <None Remove="SelectYoungestCustomers.questdb.sql" />
     <None Remove="SelectYoungestCustomers.sqlite.sql" />
+    <None Remove="SelectYoungestCustomers.trino.sql" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectCustomerById.trino.sql" />
     <EmbeddedResource Include="SelectCustomerById.questdb.sql" />
     <EmbeddedResource Include="SelectCustomerById.sqlite.sql" />
     <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
     <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.mysql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.trino.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.questdb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.sqlite.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.firebird.sql" />
@@ -57,6 +63,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
     <PackageReference Include="MySqlConnector" Version="2.2.5" />
     <PackageReference Include="Npgsql" Version="7.0.2" />
+    <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="NUnit.Analyzers" Version="3.3.0" />
@@ -85,6 +92,9 @@
   <ItemGroup>
     <None Include=".bigdata\Customer\CUST-001.csvh" />
     <None Include=".bigdata\Customer\CUST-002.csvh" />
+    <None Include="Trino\.catalog\pg.properties">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

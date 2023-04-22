@@ -1,0 +1,1 @@
+﻿select FullName from pg.public.customer where CustomerId=1

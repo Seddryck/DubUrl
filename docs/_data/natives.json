@@ -121,5 +121,14 @@
       "timescale"
     ],
     "ProviderInvariantName": "Npgsql"
+  },
+  {
+    "Class": "TrinoMapper",
+    "Database": "Trino",
+    "Aliases": [
+      "tr",
+      "trino"
+    ],
+    "ProviderInvariantName": "NReco.PrestoAdo"
   }
 ]

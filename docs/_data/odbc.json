@@ -88,6 +88,16 @@
     "Options": []
   },
   {
+    "Class": "TrinoDriverLocator",
+    "Database": "Trino",
+    "Aliases": [
+      "tr",
+      "trino"
+    ],
+    "NamePattern": "^(Simba)\\s\\bTrino ODBC Driver$",
+    "Options": []
+  },
+  {
     "Class": "MsExcelDriverLocator",
     "Database": "Microsoft Excel",
     "Aliases": [

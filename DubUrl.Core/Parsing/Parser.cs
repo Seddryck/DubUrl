@@ -23,7 +23,7 @@ namespace DubUrl.Parsing
                 urlInfo = urlInfo with
                 {
                     Username = uri.UserInfo.Split(':')[0],
-                    Password = uri.UserInfo.Split(':')[1]
+                    Password = uri.UserInfo.Contains(':') ? uri.UserInfo.Split(':')[1] : string.Empty,
                 };
             }
             urlInfo = urlInfo with { Host = uri.Host };
