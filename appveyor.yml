@@ -29,7 +29,7 @@ test_script:
 - dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
-      & docker version
+      & if (Get-Process -Name "dockerd" -ErrorAction SilentlyContinue | Select-String -Pattern "Windows") {Write-Host "Docker is running on Windows"} else {Write-Host "Docker is running on Linux"}
 
 - pwsh: |
       & .\deploy-trino-test-env.ps1 -force
