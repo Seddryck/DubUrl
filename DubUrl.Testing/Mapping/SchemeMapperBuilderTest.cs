@@ -32,6 +32,7 @@ namespace DubUrl.Testing.Mapping
             DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
             DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
             DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
+            DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
 #pragma warning disable CA1416 // Validate platform compatibility
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
@@ -65,6 +66,7 @@ namespace DubUrl.Testing.Mapping
         [TestCase("cr", typeof(CockRoachMapper))]
         [TestCase("ts", typeof(TimescaleMapper))]
         [TestCase("quest", typeof(QuestDbMapper))]
+        [TestCase("tr", typeof(TrinoMapper))]
         //[TestCase("odbc", typeof(OdbcMapper))]
         [TestCase("odbc+mssql", typeof(OdbcMapper))]
         [TestCase("mssql+odbc", typeof(OdbcMapper))]
