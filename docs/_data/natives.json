@@ -10,6 +10,15 @@
     "ProviderInvariantName": "System.Data.SqlClient"
   },
   {
+    "Class": "TrinoMapper",
+    "Database": "Trino",
+    "Aliases": [
+      "tr",
+      "trino"
+    ],
+    "ProviderInvariantName": "NReco.PrestoAdo"
+  },
+  {
     "Class": "MySqlConnectorMapper",
     "Database": "MySQL",
     "Aliases": [
