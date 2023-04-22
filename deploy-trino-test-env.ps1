@@ -13,7 +13,12 @@ if ($force -or ($filesChanged -like "*trino*")) {
 
 	# Checking docker architecture
 	$dockerVersion = docker version --format '{{json .}}' | ConvertFrom-Json
-	Write-Host "OS/architecture for docker engine: $($docker.Engine.Os)"
+	$dockerServerOS = $dockerVersion.Server.Os
+	Write-Host "OS/architecture for docker engine: $dockerServerOS"
+	if ($dockerServerOS -ne "linux") {
+		Write-Warning "Cannot run this test-suite because docker server OS/architecture is not Linux"
+		exit 1
+	}
 
 	# Creating network
 	$network = & docker network inspect $networkName --format "{{.ID}}" 2>$null
