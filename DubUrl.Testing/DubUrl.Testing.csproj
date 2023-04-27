@@ -15,13 +15,13 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
-		<PackageReference Include="Net.IBM.Data.Db2" Version="6.0.0.300" />
+		<PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.200" />
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.5" />
-		<PackageReference Include="MySql.Data" Version="8.0.32.1" />
+		<PackageReference Include="MySql.Data" Version="8.0.33" />
 		<PackageReference Include="MySqlConnector" Version="2.2.5" />
 		<PackageReference Include="Npgsql" Version="7.0.2" />
 		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.100" />
-		<PackageReference Include="Snowflake.Data" Version="2.0.22" />
+		<PackageReference Include="Snowflake.Data" Version="2.0.23" />
 		<PackageReference Include="System.Data.Odbc" Version="7.0.0" />
 		<PackageReference Include="System.Data.OleDb" Version="7.0.0" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
