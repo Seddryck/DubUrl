@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectAllCustomer.pgsql.sql" />
     <None Remove="SelectCustomerById.firebird.sql" />
     <None Remove="SelectCustomerbyId.mssql.sql" />
     <None Remove="SelectCustomerById.mysql.sql" />
@@ -36,6 +37,7 @@
     <EmbeddedResource Include="SelectCustomerById.sqlite.sql" />
     <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
     <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.pgsql.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.sqlite.sql" />
@@ -58,6 +60,7 @@
 
   <ItemGroup>
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />

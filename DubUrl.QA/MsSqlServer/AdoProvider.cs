@@ -9,6 +9,8 @@ using System.Configuration;
 using DubUrl.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Dapper;
+using DubUrl.QA.Dapper;
 
 namespace DubUrl.QA.MsSqlServer
 {
@@ -134,5 +136,43 @@ namespace DubUrl.QA.MsSqlServer
             }
         }
 
+
+        [Test]
+        [Category("Dapper")]
+        public void QueryCustomerWithDapper()
+        {
+            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+
+            using var conn = connectionUrl.Open();
+            var customers = conn.Query<Customer>("select * from Customer").ToList();
+            Assert.That(customers, Has.Count.EqualTo(5));
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        }
+
+        [Test]
+        [Category("Dapper")]
+        [Category("Repository")]
+        public void QueryCustomerWithDapperRepository()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddSingleton<IDapperConfiguration>(
+                    provider => ActivatorUtilities.CreateInstance<DapperConfiguration>(provider
+                        , new[] { "mssql://sa:Password12!@localhost/SQL2019/DubUrl" }))
+                .AddTransient<ICustomerRepository, DapperCustomerRepository>()
+                .BuildServiceProvider();
+            var repo = provider.GetRequiredService<ICustomerRepository>();
+            var customers = repo.GetAllAsync().Result;
+            Assert.That(customers, Has.Count.EqualTo(5));
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        }
     }
 }
