@@ -17,7 +17,7 @@
 
 - title: Interfaces with other frameworks
   docs:
-  - Using with Dapper
+  - dapper
   - Using with DbReader
 
 - title: Connection settings

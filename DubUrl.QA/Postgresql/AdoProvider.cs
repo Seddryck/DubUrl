@@ -1,15 +1,11 @@
 using NUnit.Framework;
-using System.Diagnostics;
-using System.Data;
-using System.Data.Common;
-using DubUrl.Querying;
-using DubUrl.Querying.Reading;
+using Dapper;
+using DubUrl.QA.Dapper;
 using DubUrl.Registering;
 using DubUrl.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Reflection;
+using System.Data;
 
 namespace DubUrl.QA.Postgresql
 {
@@ -21,7 +17,8 @@ namespace DubUrl.QA.Postgresql
             => new ProviderFactoriesRegistrator().Register();
 
         [Test]
-        public void ConnectToServerWithSQLLogin()
+        [Category("ConnectionUrl")]
+        public void ParseConnectionString()
         {
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
             Console.WriteLine(connectionUrl.Parse());
@@ -31,6 +28,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("ConnectionUrl")]
         public void QueryCustomer()
         {
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
@@ -42,6 +40,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("DatabaseUrl")]
         public void QueryCustomerWithDatabase()
         {
             var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
@@ -50,6 +49,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("DatabaseUrl")]
         public void QueryCustomerWithDatabaseUrlAndQueryClass()
         {
             var db = new DatabaseUrl("pgsql://postgres:Password12!@localhost/DubUrl");
@@ -58,6 +58,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("ConnectionUrl")]
         public void QueryCustomerWithNamedParameter()
         {
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
@@ -74,6 +75,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("ConnectionUrl")]
         public void QueryCustomerWithPositionalParameter()
         {
             var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
@@ -89,6 +91,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("Repository")]
         public void QueryCustomerWithRepository()
         {
             var options = new DubUrlServiceOptions();
@@ -103,7 +106,9 @@ namespace DubUrl.QA.Postgresql
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
 
+
         [Test]
+        [Category("RepositoryFactory")]
         public void QueryCustomerWithRepositoryFactory()
         {
             var options = new DubUrlServiceOptions();
@@ -121,6 +126,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("Repository")]
         public void ParametrizedQueryCustomerWithRepositoryFactory()
         {
             var options = new DubUrlServiceOptions();
@@ -136,6 +142,7 @@ namespace DubUrl.QA.Postgresql
         }
 
         [Test]
+        [Category("RepositoryFactory")]
         public void QueryTwoYoungestCustomersWithRepositoryFactory()
         {
             var options = new DubUrlServiceOptions().WithMicroOrm();
@@ -162,6 +169,44 @@ namespace DubUrl.QA.Postgresql
                 var builder = new ConfigurationBuilder().AddInMemoryCollection();
                 return builder.Build();
             }
+        }
+
+        [Test]
+        [Category("Dapper")]
+        public void QueryCustomerWithDapper()
+        {
+            var connectionUrl = new ConnectionUrl("pgsql://postgres:Password12!@localhost/DubUrl");
+
+            using var conn = connectionUrl.Open();
+            var customers = conn.Query<Customer>("select * from \"Customer\"").ToList();
+            Assert.That(customers, Has.Count.EqualTo(5));
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        }
+
+        [Test]
+        [Category("Dapper")]
+        [Category("Repository")]
+        public void QueryCustomerWithDapperRepository()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddSingleton<IDapperConfiguration>(
+                    provider => ActivatorUtilities.CreateInstance<DapperConfiguration>(provider
+                        , new[] { "pgsql://postgres:Password12!@localhost/DubUrl" }))
+                .AddTransient<ICustomerRepository, DapperCustomerRepository>()
+                .BuildServiceProvider();
+            var repo = provider.GetRequiredService<ICustomerRepository>();
+            var customers = repo.GetAllAsync().Result;
+            Assert.That(customers, Has.Count.EqualTo(5));
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
         }
     }
 }
