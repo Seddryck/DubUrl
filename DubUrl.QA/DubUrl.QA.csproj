@@ -5,8 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectAllCustomer.cockroach.sql" />
     <None Remove="SelectAllCustomer.mssql.sql" />
     <None Remove="SelectAllCustomer.pgsql.sql" />
+    <None Remove="SelectCustomerById.cockroach.sql" />
     <None Remove="SelectCustomerById.firebird.sql" />
     <None Remove="SelectCustomerbyId.mssql.sql" />
     <None Remove="SelectCustomerById.mysql.sql" />
@@ -15,6 +17,7 @@
     <None Remove="SelectCustomerById.sqlite.sql" />
     <None Remove="SelectCustomerById.trino.sql" />
     <None Remove="SelectCustomerById.xlsx.sql" />
+    <None Remove="SelectFirstCustomer.cockroach.sql" />
     <None Remove="SelectFirstCustomer.firebird.sql" />
     <None Remove="SelectFirstCustomer.mssql.sql" />
     <None Remove="SelectFirstCustomer.mysql.sql" />
@@ -23,6 +26,7 @@
     <None Remove="SelectFirstCustomer.sqlite.sql" />
     <None Remove="SelectFirstCustomer.trino.sql" />
     <None Remove="SelectFirstCustomer.xlsx.sql" />
+    <None Remove="SelectYoungestCustomers.cockroach.sql" />
     <None Remove="SelectYoungestCustomers.firebird.sql" />
     <None Remove="SelectYoungestCustomers.mssql.sql" />
     <None Remove="SelectYoungestCustomers.mysql.sql" />
@@ -33,18 +37,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectAllCustomer.mssql.sql" />
+    <EmbeddedResource Include="SelectCustomerById.cockroach.sql" />
     <EmbeddedResource Include="SelectCustomerById.trino.sql" />
     <EmbeddedResource Include="SelectCustomerById.questdb.sql" />
     <EmbeddedResource Include="SelectCustomerById.sqlite.sql" />
     <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
     <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
     <EmbeddedResource Include="SelectAllCustomer.pgsql.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.mysql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.cockroach.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.trino.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.questdb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.sqlite.sql" />
