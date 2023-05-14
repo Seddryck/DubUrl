@@ -56,9 +56,9 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	}
 
 	# Running QA tests
-	# Write-Host "Running QA tests related to CockRoach"
-	# & dotnet build DubUrl.QA -c Release --nologo
-	# & dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	Write-Host "Running QA tests related to CockRoach"
+	& dotnet build DubUrl.QA -c Release --nologo
+	& dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
 }

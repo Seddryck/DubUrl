@@ -37,6 +37,7 @@ test_script:
       & .\deploy-msexcel-test-env.ps1 -force
       & .\deploy-text-test-env.ps1 -force
       & .\deploy-questdb-test-env.ps1 -force
+      & .\deploy-cockroach-test-env.ps1 -force
       & .\deploy-trino-test-env.ps1 -force
 
 after_test:
