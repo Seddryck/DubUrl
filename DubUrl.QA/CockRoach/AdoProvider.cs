@@ -10,6 +10,7 @@ using System.Data;
 namespace DubUrl.QA.CockRoach
 {
     [Category("CockRoach")]
+    [Category("AdoProvider")]
     public class AdoProvider
     {
         [OneTimeSetUp]
