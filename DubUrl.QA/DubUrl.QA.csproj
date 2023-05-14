@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SelectAllCustomer.mssql.sql" />
     <None Remove="SelectAllCustomer.pgsql.sql" />
     <None Remove="SelectCustomerById.firebird.sql" />
     <None Remove="SelectCustomerbyId.mssql.sql" />
@@ -32,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SelectAllCustomer.mssql.sql" />
     <EmbeddedResource Include="SelectCustomerById.trino.sql" />
     <EmbeddedResource Include="SelectCustomerById.questdb.sql" />
     <EmbeddedResource Include="SelectCustomerById.sqlite.sql" />
