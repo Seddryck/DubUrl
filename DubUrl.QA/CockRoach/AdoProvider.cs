@@ -21,7 +21,7 @@ namespace DubUrl.QA.CockRoach
         [Category("ConnectionUrl")]
         public void ParseConnectionString()
         {
-            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable");
+            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -32,7 +32,7 @@ namespace DubUrl.QA.CockRoach
         [Category("ConnectionUrl")]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable");
+            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
             
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -44,7 +44,7 @@ namespace DubUrl.QA.CockRoach
         [Category("DatabaseUrl")]
         public void QueryCustomerWithDatabase()
         {
-            var db = new DatabaseUrl("cr://root@localhost/duburl?sslmode=disable");
+            var db = new DatabaseUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
             var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
@@ -53,7 +53,7 @@ namespace DubUrl.QA.CockRoach
         [Category("DatabaseUrl")]
         public void QueryCustomerWithDatabaseUrlAndQueryClass()
         {
-            var db = new DatabaseUrl("cr://root@localhost/duburl?sslmode=disable");
+            var db = new DatabaseUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
@@ -62,7 +62,7 @@ namespace DubUrl.QA.CockRoach
         [Category("ConnectionUrl")]
         public void QueryCustomerWithNamedParameter()
         {
-            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable");
+            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -79,7 +79,7 @@ namespace DubUrl.QA.CockRoach
         [Category("ConnectionUrl")]
         public void QueryCustomerWithPositionalParameter()
         {
-            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable");
+            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -100,7 +100,7 @@ namespace DubUrl.QA.CockRoach
                 .AddSingleton(EmptyDubUrlConfiguration)
                 .AddDubUrl(options)
                 .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
-                    , new[] { "cr://root@localhost/duburl?sslmode=disable" }))
+                    , new[] { "cr://root@localhost/duburl?sslmode=disable&Timeout=5" }))
                 .BuildServiceProvider();
             var repo = provider.GetRequiredService<CustomerRepository>();
             var fullName = repo.SelectFirstCustomer();
@@ -120,7 +120,7 @@ namespace DubUrl.QA.CockRoach
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();
             var repo = factory.Instantiate<CustomerRepository>(
-                            "cr://root@localhost/duburl?sslmode=disable"
+                            "cr://root@localhost/duburl?sslmode=disable&Timeout=5"
                         );
             var fullName = repo.SelectFirstCustomer();
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -135,7 +135,7 @@ namespace DubUrl.QA.CockRoach
                 .AddSingleton(EmptyDubUrlConfiguration)
                 .AddDubUrl(options)
                 .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
-                    , new[] { "cr://root@localhost/duburl?sslmode=disable" }))
+                    , new[] { "cr://root@localhost/duburl?sslmode=disable&Timeout=5" }))
                 .BuildServiceProvider();
             var repo = provider.GetRequiredService<CustomerRepository>();
             var fullName = repo.SelectCustomerById(4);
@@ -155,7 +155,7 @@ namespace DubUrl.QA.CockRoach
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();
             var repo = factory.Instantiate<MicroOrmCustomerRepository>(
-                            "cr://root@localhost/duburl?sslmode=disable"
+                            "cr://root@localhost/duburl?sslmode=disable&Timeout=5"
                         );
             var customers = repo.SelectYoungestCustomers(2);
             Assert.That(customers, Has.Count.EqualTo(2));
@@ -176,7 +176,7 @@ namespace DubUrl.QA.CockRoach
         [Category("Dapper")]
         public void QueryCustomerWithDapper()
         {
-            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable");
+            var connectionUrl = new ConnectionUrl("cr://root@localhost/duburl?sslmode=disable&Timeout=5");
 
             using var conn = connectionUrl.Open();
             var customers = conn.Query<Customer>("select * from Customer").ToList();
@@ -198,7 +198,7 @@ namespace DubUrl.QA.CockRoach
                 .AddDubUrl(options)
                 .AddSingleton<IDapperConfiguration>(
                     provider => ActivatorUtilities.CreateInstance<DapperConfiguration>(provider
-                        , new[] { "cr://root@localhost/duburl?sslmode=disable" }))
+                        , new[] { "cr://root@localhost/duburl?sslmode=disable&Timeout=5" }))
                 .AddTransient<ICustomerRepository, DapperCustomerRepository>()
                 .BuildServiceProvider();
             var repo = provider.GetRequiredService<ICustomerRepository>();
