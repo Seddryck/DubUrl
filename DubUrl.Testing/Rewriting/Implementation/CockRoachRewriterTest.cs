@@ -49,7 +49,20 @@ namespace DubUrl.Testing.Rewriting.Implementation
         }
 
         [Test]
-        [TestCase("db", "db.bank")]
+        public void Map_UrlInfoDefautPort_Port()
+        {
+            var urlInfo = new UrlInfo() { Host = "host", Segments = "db".Split('/') };
+            var mapper = new CockRoachRewriter(ConnectionStringBuilder);
+            var result = mapper.Execute(urlInfo);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.PORT_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.PORT_KEYWORD], Is.EqualTo(26257));
+        }
+
+
+        [Test]
+        [TestCase("db", "db")]
         public void Map_UrlInfo_Database(string segmentsList, string expected)
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };

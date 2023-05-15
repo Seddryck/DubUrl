@@ -90,6 +90,7 @@
     "Aliases": [
       "cr",
       "cockroach",
+      "cockroachdb",
       "crdb",
       "cdb"
     ],
