@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Database
 {
-    [Database<PgsqlDialect>(
+    [Database<CockRoachDialect>(
         "CockRoachDB"
-        , new[] { "cr", "cockroach", "crdb", "cdb" }
+        , new[] { "cr", "cockroach", "cockroachdb", "crdb", "cdb" }
     )]
     public class CockRoachDatabase : IDatabase { }
 }

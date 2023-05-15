@@ -26,7 +26,26 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
-		Start-Sleep -s 10
+
+		$cmd = "/cockroach/cockroach node status --insecure"
+		$startWait = Get-Date
+		do {
+			$response = & docker exec -it roach-single sh -c "$cmd"
+			$isRunning = ($response -join " ") -notlike "ERROR: cannot dial server*"
+			$wait = New-TimeSpan -Start $startWait
+			if (!$isRunning) {
+				if ($wait -gt (New-TimeSpan -Seconds 1)) {
+					Write-Host "`t`tWaiting since $($wait.ToString("ss")) seconds ..."
+				}
+				Start-Sleep -s 1
+			}
+		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 60)))
+		if (!$isRunning) {
+			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test harness for CockRoachDB."
+			exit 0
+		} else {
+			Write-Host "`tServer is available: waited $($wait.ToString("ss")) seconds to get it live."
+		}
 	}
 
 	# Deploying database based on script
@@ -56,9 +75,22 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	}
 
 	# Running QA tests
-	# Write-Host "Running QA tests related to CockRoach"
-	# & dotnet build DubUrl.QA -c Release --nologo
-	# & dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	Write-Host "Running QA tests related to CockRoach"
+	& dotnet build DubUrl.QA -c Release --nologo
+	& dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	if ($lastexitcode -gt 0) {
+		throw "At least one test is in error for CockRoach."
+	}
+
+	# Stop the docker container if not previously running
+	if (!$previously_running){
+		Write-Host "`tStopping container '$running' ..."
+		& docker stop $running
+		Write-Host "`tContainer stopped."
+		Write-Host "`tRemoving container '$running' ..."
+		& docker rm $running
+		Write-Host "`tContainer removed."
+	}
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
 }

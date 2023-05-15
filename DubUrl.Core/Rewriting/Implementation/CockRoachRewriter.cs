@@ -11,18 +11,19 @@ namespace DubUrl.Rewriting.Implementation
 {
     internal class CockRoachRewriter : PostgresqlRewriter
     {
+        private const int DEFAULT_PORT = 26257;
+
         public CockRoachRewriter(DbConnectionStringBuilder csb)
             : base(csb)
-            => ReplaceTokenMapper(typeof(PostgresqlRewriter.DatabaseMapper), new DatabaseMapper());
+            => ReplaceTokenMapper(typeof(PostgresqlRewriter.PortMapper), new PortMapper());
 
-        internal new class DatabaseMapper : BaseTokenMapper
+        internal new class PortMapper : PostgresqlRewriter.PortMapper
         {
             public override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
-                    Specificator.Execute(DATABASE_KEYWORD, $"{urlInfo.Segments.First()}.bank");
-                else
-                    throw new ArgumentOutOfRangeException();
+                base.Execute(urlInfo);
+                if (urlInfo.Port == 0)
+                    Specificator.Execute(PORT_KEYWORD, DEFAULT_PORT);
             }
         }
     }
