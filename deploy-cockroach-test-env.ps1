@@ -26,9 +26,10 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
-		Write-Host "`t`tWaiting for 10 seconds for server to start ..."
-		Start-Sleep -s 30
-		& docker container ls --format "{{.ID}}" --filter "name=roach"
+		Write-Host "`t`tWaiting for 20 seconds for server to start ..."
+		Start-Sleep -s 20
+		$cmd = "/cockroach/cockroach node status --insecure"
+		& docker exec -it roach-single sh -c "$cmd"
 		Write-Host "`t`tServer expected to be started."
 	}
 
