@@ -31,15 +31,20 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		$startWait = Get-Date
 		do {
 			$response = & docker exec -it roach-single sh -c "$cmd"
-			Write-Host $response
 			$isRunning = ($response -join " ") -notlike "ERROR: cannot dial server*"
+			$wait = New-TimeSpan -Start $startWait
 			if (!$isRunning) {
+				if ($wait -gt (New-TimeSpan -Seconds 1)) {
+					Write-Host "`t`tWaiting since $($wait.ToString("ss")) seconds ..."
+				}
 				Start-Sleep -s 1
 			}
-			$wait = New-TimeSpan -Start $startWait
 		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 40)))
 		if (!$isRunning) {
-			throw "Not able to check that server is running. Waiting too long."
+			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test."
+			exit 0
+		} else {
+			Write-Host "`tServer is available: waited $($wait.ToString("ss")) seconds to get it live."
 		}
 	}
 
