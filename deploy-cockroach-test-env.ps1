@@ -26,7 +26,12 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
-		Start-Sleep -s 10
+
+		Write-Host "`tWaiting port to be available ..."
+		while (!(((& netstat -anp tcp) -join " ").ToString() -like "*:26257*")) {
+				Start-Sleep -s 1
+		} 
+		Write-Host "`tCockRoach port (26257) open."
 	}
 
 	# Deploying database based on script
