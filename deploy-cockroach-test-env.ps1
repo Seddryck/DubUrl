@@ -39,7 +39,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 				}
 				Start-Sleep -s 1
 			}
-		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 60)))
+		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 40)))
 		if (!$isRunning) {
 			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test harness for CockRoachDB."
 			exit 0
