@@ -41,7 +41,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 			}
 		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 40)))
 		if (!$isRunning) {
-			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test."
+			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test harness for CockRoachDB."
 			exit 0
 		} else {
 			Write-Host "`tServer is available: waited $($wait.ToString("ss")) seconds to get it live."
