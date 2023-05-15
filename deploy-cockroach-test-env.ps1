@@ -28,14 +28,19 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		Write-Host "`tContainer started with ID '$running'."
 
 		$cmd = "/cockroach/cockroach node status --insecure"
+		$startWait = Get-Date
 		do {
 			$response = & docker exec -it roach-single sh -c "$cmd"
 			Write-Host $response
 			$isRunning = ($response -join " ") -notlike "ERROR: cannot dial server*"
 			if (!$isRunning) {
-				Start-Sleep -s 5
+				Start-Sleep -s 1
 			}
-		} while (!$isRunning)
+			$wait = New-TimeSpan -Start $startWait
+		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 20)))
+		if (!$isRunning) {
+			throw "Not able to check that server is running. Waiting too long."
+		}
 	}
 
 	# Deploying database based on script
@@ -70,6 +75,16 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	& dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	if ($lastexitcode -gt 0) {
 		throw "At least one test is in error for CockRoach."
+	}
+
+	# Stop the docker container if not previously running
+	if (!$previously_running){
+		Write-Host "`tStopping container '$running' ..."
+		& docker stop $running
+		Write-Host "`tContainer stopped."
+		Write-Host "`tRemoving container '$running' ..."
+		& docker rm $running
+		Write-Host "`tContainer removed."
 	}
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
