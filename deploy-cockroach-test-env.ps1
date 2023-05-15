@@ -26,11 +26,16 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
-		Write-Host "`t`tWaiting for 20 seconds for server to start ..."
-		Start-Sleep -s 20
+
 		$cmd = "/cockroach/cockroach node status --insecure"
-		& docker exec -it roach-single sh -c "$cmd"
-		Write-Host "`t`tServer expected to be started."
+		do {
+			$response = & docker exec -it roach-single sh -c "$cmd"
+			Write-Host $response
+			$isRunning = ($response -join " ") -notlike "ERROR: cannot dial server*"
+			if (!$isRunning) {
+				Start-Sleep -s 5
+			}
+		} while (!$isRunning)
 	}
 
 	# Deploying database based on script
