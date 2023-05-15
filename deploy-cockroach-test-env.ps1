@@ -26,7 +26,10 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
-		Start-Sleep -s 10
+		Write-Host "`t`tWaiting for 10 seconds for server to start ..."
+		Start-Sleep -s 30
+		& docker container ls --format "{{.ID}}" --filter "name=roach"
+		Write-Host "`t`tServer expected to be started."
 	}
 
 	# Deploying database based on script
