@@ -26,12 +26,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
-
-		Write-Host "`tWaiting port to be available ..."
-		while (!(((& netstat -anp tcp) -join " ").ToString() -like "*:26257*")) {
-				Start-Sleep -s 1
-		} 
-		Write-Host "`tCockRoach port (26257) open."
+		Start-Sleep -s 10
 	}
 
 	# Deploying database based on script
@@ -64,6 +59,9 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	Write-Host "Running QA tests related to CockRoach"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	if ($lastexitcode -gt 0) {
+		throw "At least one test is in error for CockRoach."
+	}
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
 }
