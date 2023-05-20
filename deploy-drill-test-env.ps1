@@ -74,11 +74,8 @@ if ($force -or ($filesChanged -like "*drill*")) {
 
 	# Stop the docker container if not previously running
 	if (!$previously_running -and $null -ne $running){
-		Write-Host "`tStopping container '$running' ..."
-		& docker stop $running
-		Write-Host "`tContainer stopped."
-		Write-Host "`tRemoving container '$running' ..."
-		& docker rm $running
+		Write-Host "`tForcefully removing container '$running' ..."
+		& docker rm --force $running | Out-Null
 		Write-Host "`tContainer removed."
 	}
 
