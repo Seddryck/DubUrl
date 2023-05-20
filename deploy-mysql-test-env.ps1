@@ -22,14 +22,16 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	Write-Host "Deploying MySQL testing environment"
 
 	# Starting database service
+	$previouslyRunning = $false
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($getservice -ne $null)
+	if ($null -ne $getservice)
 	{
 		if($getservice.Status -ne 'Running') {
 			Start-Service $databaseService 
 			Write-host "`tStarting" $databaseService "service"
 		} else {
 			Write-host "`tService" $databaseService "already started"
+			$previouslyRunning = $true
 		}
 	} else {
 		Write-Warning "Service $databaseService is not installed. Expecting that MySQL is running on docker."
@@ -109,8 +111,24 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	Write-Host "Running QA tests related to MySQL"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	If ($odbcDriverInstalled -eq $true) {
+	if ($odbcDriverInstalled -eq $true) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	}
+
+	# Stopping DB Service
+	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
+	if ($null -ne $getservice -and !$previouslyRunning)
+	{
+		if($getservice.Status -ne 'Stopped') {
+			Stop-Service $databaseService 
+			Write-host "`tStopping" $databaseService "service"
+		} else {
+			Write-host "`tService" $databaseService "already stopped"
+		}
+	} else {
+		if ($previouslyRunning) {
+			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
+		}
 	}
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for MySQL"

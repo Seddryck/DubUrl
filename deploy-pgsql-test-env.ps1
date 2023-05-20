@@ -19,7 +19,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	# Starting database service
 	$previouslyRunning = $false
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($getservice -ne $null)
+	if ($null -ne $getservice)
 	{
 		if($getservice.Status -ne 'Running') {
 			Start-Service $databaseService 
