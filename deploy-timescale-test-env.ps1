@@ -79,7 +79,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 	& dotnet test DubUrl.QA --filter TestCategory="Timescale" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 
 	#Stop the docker container if not previously running
-	if (!$previously_running){
+	if (!$previously_running -and $null -ne $running){
 		Write-Host "`tStopping container '$running' ..."
 		& docker stop $running
 		Write-Host "`tContainer stopped."

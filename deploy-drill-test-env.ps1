@@ -23,7 +23,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	# Starting docker container for Apache Drill
 	$previously_running = $false
 	$running = & docker container ls --format "{{.ID}}" --filter "name=drill"
-	if ($running -ne $null) {
+	if ($null -ne $running) {
 		$previously_running = $true
 		Write-Host "`tContainer is already running with ID '$running'."
 	} else {
@@ -31,10 +31,10 @@ if ($force -or ($filesChanged -like "*drill*")) {
 		Start-Process -FilePath ".\DubUrl.QA\Drill\run-drill-docker.cmd" -ArgumentList @("C:\Users\cedri\Projects\DubUrl\DubUrl.QA\bin\Release\net6.0\.bigdata")
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=drill"
-			if ($running -eq $null) {
+			if ($null -eq $running) {
 				Start-Sleep -s 1
 			}
-		} while($running -eq $null)
+		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
 		Start-Sleep -s 10
@@ -71,22 +71,15 @@ if ($force -or ($filesChanged -like "*drill*")) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=Drill""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	}
 
-	# Stopping and removing docker container
-	if ($previously_running -eq $true) {
-		Write-Host "Let continue container with ID '$running'"
-	} else {
-		$running = & docker container ls --format "{{.ID}}" --filter "name=drill"
-		if ($running -ne $null) {
-			Write-Host "`tStopping container '$running' ..."
-			& docker stop $running | out-null
-			Write-Host "`tDeleting container '$running' ..."
-			& docker rm $running | out-null
-			Write-Host "`tContainer '$running' stopped and removed"
-		} else {
-			Write-Host "`tNo running container named 'drill' found."
-		}
+	# Stop the docker container if not previously running
+	if (!$previously_running -and $null -ne $running){
+		Write-Host "`tStopping container '$running' ..."
+		& docker stop $running
+		Write-Host "`tContainer stopped."
+		Write-Host "`tRemoving container '$running' ..."
+		& docker rm $running
+		Write-Host "`tContainer removed."
 	}
-	
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Apache Drill"
 }

@@ -83,7 +83,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	}
 
 	# Stop the docker container if not previously running
-	if (!$previously_running){
+	if (!$previously_running -and $null -ne $running){
 		Write-Host "`tStopping container '$running' ..."
 		& docker stop $running
 		Write-Host "`tContainer stopped."
