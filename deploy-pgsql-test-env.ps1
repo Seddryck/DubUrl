@@ -19,7 +19,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	# Starting database service
 	$previouslyRunning = $false
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($getservice -ne $null)
+	if ($null -ne $getservice)
 	{
 		if($getservice.Status -ne 'Running') {
 			Start-Service $databaseService 
@@ -64,7 +64,8 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	Write-Host "Running QA tests related to mssql"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	
+	$testSuccessful = ($lastexitcode -gt 0)
+
 	# Stopping DB Service
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
 	if ($null -ne $getservice -and !$previouslyRunning)
@@ -81,6 +82,8 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		}
 	}
 
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for PostgreSQL"
 }

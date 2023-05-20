@@ -13,7 +13,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	# Starting docker container for Apache Drill
 	$previously_running = $false
 	$running = & docker container ls --format "{{.ID}}" --filter "name=quest"
-	if ($running -ne $null) {
+	if ($null -ne $running) {
 		$previously_running = $true
 		Write-Host "`tContainer is already running with ID '$running'."
 	} else {
@@ -21,10 +21,10 @@ if ($force -or ($filesChanged -like "*quest*")) {
 		Start-Process -FilePath ".\DubUrl.QA\QuestDB\run-questdb-docker.cmd"
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=questdb"
-			if ($running -eq $null) {
+			if ($null -eq $running) {
 				Start-Sleep -s 1
 			}
-		} while($running -eq $null)
+		} while($null -eq $running)
 		
 		Write-Host "`tContainer started with ID '$running'."
 		Start-Sleep -s 10
@@ -62,6 +62,17 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	Write-Host "Running QA tests related to mssql"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="QuestDB" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful = ($lastexitcode -gt 0)
+
+	# Stop the docker container if not previously running
+	if (!$previously_running -and $null -ne $running){
+		Write-Host "`tForcefully removing container '$running' ..."
+		& docker rm --force $running | Out-Null
+		Write-Host "`tContainer removed."
+	}
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for QuestDB"
 }

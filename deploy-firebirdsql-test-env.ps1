@@ -134,8 +134,10 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 
 	# To avoid to run the two test-suites in parallel
 	& dotnet test DubUrl.QA --filter "(TestCategory=FirebirdSQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	If ($odbcDriverInstalled -eq $true) {
+	$testSuccessful = ($lastexitcode -gt 0)
+	if ($odbcDriverInstalled -eq $true) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=FirebirdSQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		$testSuccessful += ($lastexitcode -gt 0)
 	}
 
 	# Stoping service
@@ -153,6 +155,9 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 			Write-Host "Service stopped."
 		}
 	}
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for FirebirdSQL"
 }
