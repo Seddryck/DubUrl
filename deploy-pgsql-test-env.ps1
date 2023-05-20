@@ -17,6 +17,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	Write-Host "Deploying PostgreSQL testing environment"
 
 	# Starting database service
+	$previouslyRunning = $false
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
 	if ($getservice -ne $null)
 	{
@@ -25,6 +26,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 			Write-host "`tStarting" $databaseService "service"
 		} else {
 			Write-host "`tService" $databaseService "already started"
+			$previouslyRunning = $true
 		}
 	} else {
 		Write-Warning "Service $databaseService is not installed. Expecting that PostgreSQL is running on docker."
@@ -62,6 +64,23 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	Write-Host "Running QA tests related to mssql"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	
+	# Stopping DB Service
+	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
+	if ($null -ne $getservice -and !$previouslyRunning)
+	{
+		if($getservice.Status -ne 'Stopped') {
+			Stop-Service $databaseService 
+			Write-host "`tStopping" $databaseService "service"
+		} else {
+			Write-host "`tService" $databaseService "already stopped"
+		}
+	} else {
+		if ($previouslyRunning) {
+			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
+		}
+	}
+
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for PostgreSQL"
 }
