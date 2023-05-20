@@ -31,6 +31,10 @@ if ($force -or ($filesChanged -like "*excel*")) {
 	Write-Host "Running QA tests related to Microsoft Excel"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="MsExcel" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful = ($lastexitcode -gt 0)
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Microsoft Excel"
 }

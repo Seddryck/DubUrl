@@ -20,13 +20,14 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 		Write-host "`tService" $databaseService "already started"
 		$previouslyRunning = $true
 	}
-	
+
 	Write-host "`tDeploying database"
 	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\DubUrl.QA\MsSqlServer\deploy-mssql-database.sql"
 	
 	Write-Host "Running QA tests related to mssql"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="MsSqlServer" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Stopping DB Service
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
@@ -43,6 +44,9 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
 		}
 	}
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for mssql"
 }

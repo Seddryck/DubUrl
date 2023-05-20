@@ -111,8 +111,10 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	Write-Host "Running QA tests related to MySQL"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful = ($lastexitcode -gt 0)
 	if ($odbcDriverInstalled -eq $true) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		$testSuccessful += ($lastexitcode -gt 0)
 	}
 
 	# Stopping DB Service
@@ -130,6 +132,9 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
 		}
 	}
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for MySQL"
 }

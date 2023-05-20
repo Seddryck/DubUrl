@@ -69,6 +69,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	Write-Host "Running QA tests related to Apache Drill"
 	if ($odbcDriverInstalled -eq $true) {
 		& dotnet test DubUrl.QA --filter "(TestCategory=Drill""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		$testSuccessful = ($lastexitcode -gt 0)
 	}
 
 	# Stop the docker container if not previously running
@@ -80,6 +81,9 @@ if ($force -or ($filesChanged -like "*drill*")) {
 		& docker rm $running
 		Write-Host "`tContainer removed."
 	}
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Apache Drill"
 }

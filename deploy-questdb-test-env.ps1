@@ -62,6 +62,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	Write-Host "Running QA tests related to mssql"
 	& dotnet build DubUrl.QA -c Release --nologo
 	& dotnet test DubUrl.QA --filter TestCategory="QuestDB" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Stop the docker container if not previously running
 	if (!$previously_running -and $null -ne $running){
@@ -72,6 +73,9 @@ if ($force -or ($filesChanged -like "*quest*")) {
 		& docker rm $running
 		Write-Host "`tContainer removed."
 	}
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for QuestDB"
 }
