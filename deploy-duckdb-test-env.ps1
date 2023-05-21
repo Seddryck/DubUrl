@@ -7,7 +7,7 @@ if ($force) {
 }
 $binPath = "./DubUrl.QA/bin/$config/net6.0/"
 $rootUrl = "https://github.com/duckdb/duckdb/releases/latest/download"
-If (-not($env:PATH -like "7-zip")) {
+if (-not($env:PATH -like "7-zip")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
 }
 Write-Host "Deployment for testing in '$binPath'"
@@ -80,7 +80,12 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 
 	# No idea why but here we should split in two distinct sets of tests.
 	& dotnet test DubUrl.QA --filter "(TestCategory=DuckDB""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful = ($lastexitcode -gt 0)
 	& dotnet test DubUrl.QA --filter "(TestCategory=DuckDB""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	$testSuccessful += ($lastexitcode -gt 0)
+
+	# Raise failing tests
+	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for DuckDB"
 }

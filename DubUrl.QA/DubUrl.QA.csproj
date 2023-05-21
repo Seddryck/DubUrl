@@ -5,86 +5,52 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SelectAllCustomer.cockroach.sql" />
-    <None Remove="SelectAllCustomer.mssql.sql" />
-    <None Remove="SelectAllCustomer.pgsql.sql" />
-    <None Remove="SelectAllCustomer.timescale.sql" />
-    <None Remove="SelectCustomerById.cockroach.sql" />
-    <None Remove="SelectCustomerById.firebird.sql" />
-    <None Remove="SelectCustomerById.duckdb.sql" />
-    <None Remove="SelectCustomerbyId.mssql.sql" />
-    <None Remove="SelectCustomerById.mysql.sql" />
-    <None Remove="SelectCustomerById.pgsql.sql" />
-    <None Remove="SelectCustomerById.questdb.sql" />
-    <None Remove="SelectCustomerById.sqlite.sql" />
-    <None Remove="SelectCustomerById.timescale.sql" />
-    <None Remove="SelectCustomerById.trino.sql" />
-    <None Remove="SelectCustomerById.xlsx.sql" />
-    <None Remove="SelectFirstCustomer.cockroach.sql" />
-    <None Remove="SelectFirstCustomer.firebird.sql" />
-    <None Remove="SelectFirstCustomer.duckdb.sql" />
-    <None Remove="SelectFirstCustomer.mssql.sql" />
-    <None Remove="SelectFirstCustomer.mysql.sql" />
-    <None Remove="SelectFirstCustomer.pgsql.sql" />
-    <None Remove="SelectFirstCustomer.questdb.sql" />
-    <None Remove="SelectFirstCustomer.sqlite.sql" />
-    <None Remove="SelectFirstCustomer.timescale.sql" />
-    <None Remove="SelectFirstCustomer.trino.sql" />
-    <None Remove="SelectFirstCustomer.xlsx.sql" />
-    <None Remove="SelectYoungestCustomers.cockroach.sql" />
-    <None Remove="SelectYoungestCustomers.firebird.sql" />
-    <None Remove="SelectYoungestCustomers.duckdb.sql" />
-    <None Remove="SelectYoungestCustomers.mssql.sql" />
-    <None Remove="SelectYoungestCustomers.mysql.sql" />
-    <None Remove="SelectYoungestCustomers.pgsql.sql" />
-    <None Remove="SelectYoungestCustomers.questdb.sql" />
-    <None Remove="SelectYoungestCustomers.sqlite.sql" />
-    <None Remove="SelectYoungestCustomers.timescale.sql" />
-    <None Remove="SelectYoungestCustomers.trino.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectAllCustomer.mssql.sql" />
-    <EmbeddedResource Include="SelectCustomerById.timescale.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.pgsql.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
+    
     <EmbeddedResource Include="SelectCustomerById.cockroach.sql" />
-    <EmbeddedResource Include="SelectCustomerById.trino.sql" />
+    <EmbeddedResource Include="SelectCustomerById.duckdb.sql" />
+    <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
+    <EmbeddedResource Include="SelectCustomerById.mssql.sql" />
+    <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
+    <EmbeddedResource Include="SelectCustomerById.pgsql.sql" />
     <EmbeddedResource Include="SelectCustomerById.questdb.sql" />
     <EmbeddedResource Include="SelectCustomerById.sqlite.sql" />
-    <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
-    <EmbeddedResource Include="SelectCustomerById.mysql.sql" />
-    <EmbeddedResource Include="SelectAllCustomer.pgsql.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.timescale.sql" />
+    <EmbeddedResource Include="SelectCustomerById.timescale.sql" />
+    <EmbeddedResource Include="SelectCustomerById.trino.sql" />
+    <EmbeddedResource Include="SelectCustomerById.xlsx.sql" />
+
     <EmbeddedResource Include="SelectFirstCustomer.cockroach.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.duckdb.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.mssql.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.mysql.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.pgsql.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.sqlite.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.mysql.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.timescale.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.timescale.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
+
     <EmbeddedResource Include="SelectYoungestCustomers.cockroach.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.trino.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.duckdb.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.firebird.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.mssql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.mysql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.pgsql.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.questdb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.sqlite.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.firebird.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.mysql.sql" />
-    <EmbeddedResource Include="SelectCustomerById.duckdb.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.duckdb.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.duckdb.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.mssql.sql" />
-    <EmbeddedResource Include="SelectYoungestCustomers.pgsql.sql" />
-    <EmbeddedResource Include="SelectCustomerById.pgsql.sql" />
-    <EmbeddedResource Include="SelectCustomerById.mssql.sql" />
-    <EmbeddedResource Include="SelectCustomerById.xlsx.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.mssql.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.pgsql.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.timescale.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.trino.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
     <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="DuckDB.NET.Bindings" Version="0.8.0" />
+    <PackageReference Include="DuckDB.NET.Data" Version="0.8.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
@@ -108,18 +74,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DuckDB.NET.Bindings">
-      <HintPath>..\.lib\DuckDB.NET.Bindings.dll</HintPath>
-    </Reference>
-    <Reference Include="DuckDB.NET.Data">
-      <HintPath>..\.lib\DuckDB.NET.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="DuckDB\deploy-duckdb-database.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="MsExcel\Customer.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
