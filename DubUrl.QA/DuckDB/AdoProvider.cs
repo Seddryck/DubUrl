@@ -134,6 +134,5 @@ namespace DubUrl.QA.DuckDB
                 return builder.Build();
             }
         }
-
     }
 }
