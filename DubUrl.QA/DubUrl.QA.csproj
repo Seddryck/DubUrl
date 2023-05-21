@@ -74,6 +74,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="DuckDB.NET.Bindings">
+      <HintPath>..\.lib\DuckDB.NET.Bindings.dll</HintPath>
+    </Reference>
+    <Reference Include="DuckDB.NET.Data">
+      <HintPath>..\.lib\DuckDB.NET.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DuckDB\deploy-duckdb-database.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="MsExcel\Customer.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
