@@ -32,4 +32,13 @@
 		<ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Reference Include="DuckDB.NET.Bindings">
+	    <HintPath>..\.lib\DuckDB.NET.Bindings.dll</HintPath>
+	  </Reference>
+	  <Reference Include="DuckDB.NET.Data">
+	    <HintPath>..\.lib\DuckDB.NET.Data.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
 </Project>
