@@ -17,7 +17,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 		Write-Host "`tContainer is already running with ID '$running'."
 	} else {
 		Write-Host "`tStarting new container"
-		Start-Process -FilePath ".\DubUrl.QA\CockRoach\run-cockroach-docker.cmd"
+		Start-Process -FilePath ".\run-cockroach-docker.cmd"
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=roach"
 			if ($null -eq $running) {
@@ -50,7 +50,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 
 	# Deploying database based on script
 	Write-host "`tCreating database"
-	$statements = Get-Content ".\DubUrl.QA\CockRoach\deploy-cockroach-database.sql"
+	$statements = Get-Content ".\deploy-cockroach-database.sql"
 	$cmd = "/cockroach/cockroach sql --insecure --database duburl --execute=""$statements"";"
 	& docker exec -it roach-single sh -c "$cmd"
 
@@ -76,8 +76,8 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to CockRoach"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
+	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Stop the docker container if not previously running

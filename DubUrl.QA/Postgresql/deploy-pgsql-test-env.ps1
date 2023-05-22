@@ -22,8 +22,9 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	if ($null -ne $getservice)
 	{
 		if($getservice.Status -ne 'Running') {
+			Write-host "`tStarting $databaseService service"
 			Start-Service $databaseService 
-			Write-host "`tStarting" $databaseService "service"
+			Write-host "`tService started"
 		} else {
 			Write-host "`tService" $databaseService "already started"
 			$previouslyRunning = $true
@@ -38,7 +39,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -f ".\DubUrl.QA\Postgresql\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -f ".\deploy-pgsql-database.sql"
 
 	# Installing ODBC driver
 	Write-host "`tDeploying PostgreSQL ODBC drivers"
@@ -61,9 +62,9 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	}
 
 	# Running QA tests
-	Write-Host "Running QA tests related to mssql"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	Write-Host "Running QA tests related to PostgreSQL"
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
+	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Stopping DB Service
@@ -71,8 +72,9 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	if ($null -ne $getservice -and !$previouslyRunning)
 	{
 		if($getservice.Status -ne 'Stopped') {
+			Write-host "`tStopping $databaseService service"
 			Stop-Service $databaseService 
-			Write-host "`tStopping" $databaseService "service"
+			Write-host "`tService stopped"
 		} else {
 			Write-host "`tService" $databaseService "already stopped"
 		}

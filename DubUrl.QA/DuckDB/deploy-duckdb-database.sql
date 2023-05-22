@@ -1,4 +1,4 @@
-.open ./DubUrl.QA/bin/Release/net6.0/Customer.duckdb
+.open ./../bin/Release/net6.0/Customer.duckdb
 
 CREATE SEQUENCE CustomerIdSeq 
 	INCREMENT BY 1 

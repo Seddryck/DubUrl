@@ -7,7 +7,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for FirebirdSQL"
 }
-$binPath = "./DubUrl.QA/bin/$config/net6.0/"
+$binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/FirebirdSQL/firebird/releases/download/"
 If (-not($env:PATH -like "*7-zip*")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
@@ -98,7 +98,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	Write-host "`tCreating database at $databasePath"
-	Get-Content ".\DubUrl.QA\FirebirdSQL\deploy-firebird-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\Duburl.QA\FirebirdSQL\deploy-firebird-database.sql" -b -e -q
+	Get-Content ".\deploy-firebird-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\deploy-firebird-database.sql" -b -e -q
 
 	# Installing ODBC driver
 	Write-host "`tDeploying FirebirdSQL ODBC drivers"
@@ -130,13 +130,13 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to FirebirdSQL"
-	& dotnet build DubUrl.QA -c Release --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
 
 	# To avoid to run the two test-suites in parallel
-	& dotnet test DubUrl.QA --filter "(TestCategory=FirebirdSQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=FirebirdSQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test DubUrl.QA --filter "(TestCategory=FirebirdSQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=FirebirdSQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 		$testSuccessful += ($lastexitcode -gt 0)
 	}
 

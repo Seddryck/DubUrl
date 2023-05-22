@@ -5,7 +5,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for DuckDB"
 }
-$binPath = "./DubUrl.QA/bin/$config/net6.0/"
+$binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/duckdb/duckdb/releases/latest/download"
 if (-not($env:PATH -like "7-zip")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
@@ -44,7 +44,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	}
 
 	# Deploying database based on script
-	$databasePath = "$binPath\Customer.duckdb"
+	$databasePath = "$binPath/Customer.duckdb"
 	If (Test-Path -Path $databasePath) {
 		Remove-Item -Path $databasePath
 	}
@@ -53,7 +53,8 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	If (-not($env:PATH -like $duckPath)) {
 		$env:PATH += ";$duckPath"
 	}
-	Get-Content ".\DubUrl.QA\DuckDB\deploy-duckdb-database.sql" | & duckdb.exe
+	Get-Content ".\deploy-duckdb-database.sql" | & duckdb.exe
+	Write-host "`tDatabase created"
 
 	# Installing ODBC driver
 	Write-host "`tDeploying DuckDB ODBC drivers"
@@ -75,13 +76,13 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	}
 
 	# Running QA tests
-	Write-Host "Running QA tests related to mssql"
-	& dotnet build DubUrl.QA -c Release --nologo
+	Write-Host "Running QA tests related to DuckDB"
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
 
 	# No idea why but here we should split in two distinct sets of tests.
-	& dotnet test DubUrl.QA --filter "(TestCategory=DuckDB""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=DuckDB""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
-	& dotnet test DubUrl.QA --filter "(TestCategory=DuckDB""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=DuckDB""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful += ($lastexitcode -gt 0)
 
 	# Raise failing tests

@@ -28,15 +28,16 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	} else {
 		Write-Host "`tNetwork '$networkName' already existing with ID '$network'"
 	}
-	$containers = docker network inspect $networkName -f '{{json .Containers}}'
+	$containers = & docker network inspect $networkName -f '{{json .Containers}}'
 
 	# Starting docker container for Postgresql
 	$containerName = "postgresql"
+	Write-Host "`tStarting container '$containerName' ..."
 	$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
 	if ($running) {
 		Write-Host "`tContainer '$containerName' is already running with ID '$running'."
 	} else {
-		Start-Process -FilePath ".\DubUrl.QA\PostgreSQL\run-postgresql-docker.cmd"
+		Start-Process -FilePath ".\..\PostgreSQL\run-postgresql-docker.cmd"
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
 			if (!$running) {
@@ -57,11 +58,12 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	$containerName = "trino"
 	$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
 	if ($running) {
+		$previously_running = $true
 		Write-Host "`tContainer '$containerName' is already running with ID '$running'."
 	} else {
-		$mountedFolder = ".\DubUrl.QA\bin\$config\net6.0\.catalog"
+		$mountedFolder = ".\..\bin\$config\net6.0\.catalog"
 		Write-Host "`tStarting new container '$containerName' with mounting at $mountedFolder"
-		Start-Process -FilePath ".\DubUrl.QA\Trino\run-trino-docker.cmd" -ArgumentList @($mountedFolder)
+		Start-Process -FilePath ".\run-trino-docker.cmd" -ArgumentList @($mountedFolder)
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
 			if (!$running) {
@@ -86,7 +88,8 @@ if ($force -or ($filesChanged -like "*trino*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -p "5432" -f ".\DubUrl.QA\PostgreSQL\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -p "5432" -f ".\..\PostgreSQL\deploy-pgsql-database.sql"
+	Write-host "`tDatabase created"
 
 	#Install ODBC drivers
 	Write-host "`tDeploying Simba Trino ODBC drivers"
@@ -103,12 +106,29 @@ if ($force -or ($filesChanged -like "*trino*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Trino"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter "(TestCategory=Trino""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo
+	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Trino""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test DubUrl.QA --filter "(TestCategory=Trino""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Trino""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 		$testSuccessful += ($lastexitcode -gt 0)
+	}
+
+	#Stop the docker container if not previously running
+	if (!$previously_running){
+		$running = & docker container ls --format "{{.ID}}" --filter "name=trino"
+		if ($null -ne $running) {
+			Write-Host "`tForcefully removing container '$running' ..."
+			& docker rm --force $running | Out-Null
+			Write-Host "`tContainer removed."
+		}
+
+		$running = & docker container ls --format "{{.ID}}" --filter "name=postgresql"
+		if ($null -ne $running) {
+			Write-Host "`tForcefully removing container '$running' ..."
+			& docker rm --force $running | Out-Null
+			Write-Host "`tContainer removed."
+		}
 	}
 
 	# Raise failing tests

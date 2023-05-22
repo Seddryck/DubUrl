@@ -1,4 +1,4 @@
-.open ".\\DubUrl.QA\\bin\\Release\\net6.0\\Customer.db"
+.open ".\\..\\bin\\Release\\net6.0\\Customer.db"
 
 CREATE TABLE Customer(
     CustomerId INTEGER PRIMARY KEY,

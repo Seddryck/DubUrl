@@ -17,7 +17,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 		Write-Host "`tContainer is already running with ID '$running'."
 	} else {
 		Write-Host "`tStarting new container"
-		Start-Process -FilePath ".\DubUrl.QA\Timescale\run-timescale-docker.cmd"
+		Start-Process -FilePath ".\run-timescale-docker.cmd"
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=timescale"
 			if ($null -eq $running) {
@@ -41,7 +41,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 			}
 		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 60)))
 		if (!$isRunning) {
-			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test harness for CockRoachDB."
+			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test harness for TimescaleDB."
 			exit 0
 		} else {
 			Write-Host "`tServer is available: waited $($wait.ToString("ss")) seconds to get it live."
@@ -51,7 +51,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 	# Deploying database based on script
 	Write-host "`tCreating database"
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -f ".\DubUrl.QA\Timescale\deploy-timescale-database.sql"
+	& psql -U "postgres" -h "localhost" -f ".\deploy-timescale-database.sql"
 
 	# Installing ODBC driver
 	Write-host "`tDeploying PostgreSQL ODBC drivers"
@@ -75,8 +75,8 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Timescale"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter TestCategory="Timescale" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
+	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="Timescale" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	#Stop the docker container if not previously running

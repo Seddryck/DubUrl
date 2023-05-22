@@ -29,8 +29,8 @@ if ($force -or ($filesChanged -like "*excel*")) {
 	}
 
 	Write-Host "Running QA tests related to Microsoft Excel"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter TestCategory="MsExcel" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
+	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="MsExcel" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Raise failing tests

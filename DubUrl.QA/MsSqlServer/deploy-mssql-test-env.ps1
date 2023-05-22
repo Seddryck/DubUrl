@@ -4,7 +4,7 @@ Param(
 )
 
 if ($force) {
-	Write-Warning "Forcing QA testing for mssql"
+	Write-Warning "Forcing QA testing for Microsoft SQL Server"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -14,19 +14,21 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	$previouslyRunning = $false
 	$getservice = Get-Service -Name $databaseService
 	if($getservice.Status -ne 'Running'){
+		Write-host "`tStarting $databaseService service"
 		Start-Service $databaseService 
-		Write-host "`tStarting" $databaseService "service"
+		Write-host "`tService started"
 	} else {
 		Write-host "`tService" $databaseService "already started"
 		$previouslyRunning = $true
 	}
 
 	Write-host "`tDeploying database"
-	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\DubUrl.QA\MsSqlServer\deploy-mssql-database.sql"
+	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql"
+	Write-host "`tDatabase deployed"
 	
 	Write-Host "Running QA tests related to mssql"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter TestCategory="MsSqlServer" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
+	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="MsSqlServer" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Stopping DB Service
@@ -34,8 +36,9 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	if ($null -ne $getservice -and !$previouslyRunning)
 	{
 		if($getservice.Status -ne 'Stopped') {
+			Write-host "`tStopping $databaseService service"
 			Stop-Service $databaseService 
-			Write-host "`tStopping" $databaseService "service"
+			Write-host "`tService stopped"
 		} else {
 			Write-host "`tService" $databaseService "already stopped"
 		}

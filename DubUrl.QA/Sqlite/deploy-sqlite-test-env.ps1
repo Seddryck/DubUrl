@@ -6,7 +6,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for Sqlite"
 }
-$binPath = "./DubUrl.QA/bin/$config/net6.0/"
+$binPath = "./../bin/$config/net6.0/"
 If (-not($env:PATH -like "*7-zip*")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
 }
@@ -49,7 +49,7 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	}
 
 	Write-host "`tCreating database at $databasePath"
-	Get-Content ".\DubUrl.QA\Sqlite\deploy-sqlite-database.sql" | & sqlite3.exe
+	Get-Content ".\deploy-sqlite-database.sql" | & sqlite3.exe
 
 	# Installing ODBC driver
 	Write-host "`tDeploying Sqlite ODBC drivers"
@@ -70,13 +70,13 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Sqlite"
-	& dotnet build DubUrl.QA -c Release --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
 
 	# To avoid to run the two test-suites in parallel
-	& dotnet test DubUrl.QA --filter "(TestCategory=Sqlite""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Sqlite""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test DubUrl.QA --filter "(TestCategory=Sqlite""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Sqlite""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 		$testSuccessful += ($lastexitcode -gt 0)
 	}
 

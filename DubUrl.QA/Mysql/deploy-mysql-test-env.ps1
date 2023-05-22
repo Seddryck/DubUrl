@@ -44,7 +44,8 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			$env:PATH += ";$mySqlPath"
 		}
 		$env:MYSQL_PWD = "Password12!"
-		Get-Content ".\DubUrl.QA\MySQL\deploy-mysql-database.sql" | & mysql --user=root
+		Get-Content ".\deploy-mysql-database.sql" | & mysql --user=root
+		Write-host "`tDatabase created"
 	} else {
 		Write-host "`tSkipping database creation"
 	}
@@ -109,11 +110,11 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to MySQL"
-	& dotnet build DubUrl.QA -c Release --nologo
-	& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
+	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test DubUrl.QA --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 		$testSuccessful += ($lastexitcode -gt 0)
 	}
 
@@ -122,8 +123,9 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	if ($null -ne $getservice -and !$previouslyRunning)
 	{
 		if($getservice.Status -ne 'Stopped') {
+			Write-host "`tStopping $databaseService service"
 			Stop-Service $databaseService 
-			Write-host "`tStopping" $databaseService "service"
+			Write-host "`tService stopped"
 		} else {
 			Write-host "`tService" $databaseService "already stopped"
 		}

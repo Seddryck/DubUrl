@@ -12,12 +12,12 @@ if ($force -or ($filesChanged -like "*drill*")) {
 
 	# Deploying mounted folder
 	Write-host "`tCopying file to mounted folder"
-	$mountedFolder = ".\DubUrl.QA\bin\$config\net6.0\.bigdata"
+	$mountedFolder = ".\..\bin\$config\net6.0\.bigdata"
 	if (Test-Path -Path $mountedFolder) {
 		Remove-Item -Path $mountedFolder -Force -Recurse
 	}
 	New-Item -Path $mountedFolder -Type Directory | out-null 
-	Copy-Item -Path ".\DubUrl.QA\.bigdata\*" -Destination $mountedFolder -Recurse
+	Copy-Item -Path ".\..\.bigdata\*" -Destination $mountedFolder -Recurse
 	Write-Host "`tFiles copied to mounted folder"
 
 	# Starting docker container for Apache Drill
@@ -28,7 +28,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 		Write-Host "`tContainer is already running with ID '$running'."
 	} else {
 		Write-Host "`tStarting new container with mounting at $mountedFolder"
-		Start-Process -FilePath ".\DubUrl.QA\Drill\run-drill-docker.cmd" -ArgumentList @("C:\Users\cedri\Projects\DubUrl\DubUrl.QA\bin\Release\net6.0\.bigdata")
+		Start-Process -FilePath ".\run-drill-docker.cmd" -ArgumentList @("C:\Users\cedri\Projects\DubUrl\DubUrl.QA\bin\Release\net6.0\.bigdata")
 		do {
 			$running = & docker container ls --format "{{.ID}}" --filter "name=drill"
 			if ($null -eq $running) {
@@ -65,10 +65,10 @@ if ($force -or ($filesChanged -like "*drill*")) {
 
 	# Running QA tests
 	Write-Host "Building QA test-suite"
-	& dotnet build DubUrl.QA -c Release --nologo | out-null
+	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
 	Write-Host "Running QA tests related to Apache Drill"
 	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test DubUrl.QA --filter "(TestCategory=Drill""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
+		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Drill""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 		$testSuccessful = ($lastexitcode -gt 0)
 	}
 
