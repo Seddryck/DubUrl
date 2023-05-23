@@ -5,6 +5,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for QuestDB"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*quest*")) {
@@ -77,3 +78,4 @@ if ($force -or ($filesChanged -like "*quest*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for QuestDB"
 }
+Pop-Location

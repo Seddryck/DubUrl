@@ -5,6 +5,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for PostgreSQL"
 }
+Push-Location $PSScriptRoot
 
 $pgPath = "C:\Program Files\PostgreSQL\$($databaseService.Split('-')[2])\bin"
 If (-not (Test-Path -Path $pgPath)) {
@@ -89,3 +90,4 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for PostgreSQL"
 }
+Pop-Location

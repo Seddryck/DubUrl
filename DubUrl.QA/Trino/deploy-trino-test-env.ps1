@@ -6,6 +6,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for Trino"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*trino*")) {
@@ -132,7 +133,9 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	}
 
 	# Raise failing tests
+	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Trino"
 }
+Pop-Location

@@ -5,6 +5,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for Microsoft Excel"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*excel*")) {
@@ -38,3 +39,4 @@ if ($force -or ($filesChanged -like "*excel*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Microsoft Excel"
 }
+Pop-Location

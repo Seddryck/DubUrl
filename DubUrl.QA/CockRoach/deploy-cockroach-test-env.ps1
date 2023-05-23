@@ -4,6 +4,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for CockRoachDB"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*cockroach*")) {
@@ -92,3 +93,4 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
 }
+Pop-Location

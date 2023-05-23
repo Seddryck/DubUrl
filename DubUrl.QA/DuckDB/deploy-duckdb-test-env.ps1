@@ -5,6 +5,8 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for DuckDB"
 }
+Push-Location $PSScriptRoot
+
 $binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/duckdb/duckdb/releases/latest/download"
 if (-not($env:PATH -like "7-zip")) {
@@ -90,3 +92,4 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for DuckDB"
 }
+Pop-Location

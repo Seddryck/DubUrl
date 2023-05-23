@@ -4,6 +4,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for TimescaleDB"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*timescale*")) {
@@ -90,3 +91,4 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for TimescaleDB"
 }
+Pop-Location

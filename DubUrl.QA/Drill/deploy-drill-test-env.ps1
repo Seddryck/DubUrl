@@ -5,6 +5,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for Apache Drill"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*drill*")) {
@@ -84,3 +85,4 @@ if ($force -or ($filesChanged -like "*drill*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Apache Drill"
 }
+Pop-Location

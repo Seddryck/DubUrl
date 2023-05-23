@@ -5,6 +5,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for Text files"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*csv*")) {
@@ -39,3 +40,4 @@ if ($force -or ($filesChanged -like "*csv*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Text files"
 }
+Pop-Location

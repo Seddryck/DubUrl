@@ -6,6 +6,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for MySQL"
 }
+Push-Location $PSScriptRoot
 
 $databaseVersion = $databaseService.Substring($databaseService.Length - 2)
 $mySqlPath = "C:\Program Files\MySQL\MySQL Server $($databaseVersion[0]).$($databaseVersion[1])\bin"
@@ -140,3 +141,4 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for MySQL"
 }
+Pop-Location

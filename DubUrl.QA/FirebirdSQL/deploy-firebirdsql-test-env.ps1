@@ -7,6 +7,8 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for FirebirdSQL"
 }
+Push-Location $PSScriptRoot
+
 $binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/FirebirdSQL/firebird/releases/download/"
 If (-not($env:PATH -like "*7-zip*")) {
@@ -161,3 +163,4 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for FirebirdSQL"
 }
+Pop-Location
