@@ -87,6 +87,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 		Write-Host "`tContainer removed."
 	}
 	# Raise failing tests
+	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for TimescaleDB"

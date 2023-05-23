@@ -74,6 +74,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	}
 
 	# Raise failing tests
+	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for QuestDB"

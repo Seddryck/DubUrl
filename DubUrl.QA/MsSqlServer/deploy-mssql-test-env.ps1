@@ -27,7 +27,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql"
 	Write-host "`tDatabase deployed"
 	
-	Write-Host "Running QA tests related to mssql"
+	Write-Host "Running QA tests related to Microsoft SQL Server"
 	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
 	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="MsSqlServer" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)

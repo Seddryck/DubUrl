@@ -35,6 +35,7 @@ if ($force -or ($filesChanged -like "*excel*")) {
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Raise failing tests
+	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Microsoft Excel"
