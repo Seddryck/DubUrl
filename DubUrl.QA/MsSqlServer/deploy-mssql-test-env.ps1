@@ -6,6 +6,7 @@ Param(
 if ($force) {
 	Write-Warning "Forcing QA testing for Microsoft SQL Server"
 }
+Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*mssql*")) {
@@ -53,3 +54,4 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for mssql"
 }
+Pop-Location
