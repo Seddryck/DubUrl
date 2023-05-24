@@ -2,25 +2,22 @@ Param(
 	[switch] $force=$false
 	, $databaseService= "MSSQL`$SQL2019"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Windows-Service.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for Microsoft SQL Server"
 }
-Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*mssql*")) {
-	Write-Host "Deploying mssql testing environment"
-
-	$previouslyRunning = $false
-	$getservice = Get-Service -Name $databaseService
-	if($getservice.Status -ne 'Running'){
-		Write-host "`tStarting $databaseService service"
-		Start-Service $databaseService 
-		Write-host "`tService started"
-	} else {
-		Write-host "`tService" $databaseService "already started"
-		$previouslyRunning = $true
+	Write-Host "Deploying Microsoft SQL Server testing environment"
+	
+	# Starting DB Service
+	try { $previouslyRunning = Start-Windows-Service $databaseService }
+	catch {
+		Write-Warning "Failure to start a Windows service: $_"
+		exit 1
 	}
 
 	Write-host "`tDeploying database"
@@ -33,22 +30,10 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	$testSuccessful = ($lastexitcode -gt 0)
 
 	# Stopping DB Service
-	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($null -ne $getservice -and !$previouslyRunning)
-	{
-		if($getservice.Status -ne 'Stopped') {
-			Write-host "`tStopping $databaseService service"
-			Stop-Service $databaseService 
-			Write-host "`tService stopped"
-		} else {
-			Write-host "`tService" $databaseService "already stopped"
-		}
-	} else {
-		if ($previouslyRunning) {
-			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
-		}
+	if (!$previouslyRunning) {
+		Stop-Windows-Service $databaseService
 	}
-
+	
 	# Raise failing tests
 	Pop-Location
 	exit $testSuccessful
