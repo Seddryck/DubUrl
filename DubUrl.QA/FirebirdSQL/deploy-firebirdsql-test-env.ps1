@@ -4,10 +4,12 @@ Param(
 	, $config= "Release"
 	, $extension = "zip"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for FirebirdSQL"
 }
-Push-Location $PSScriptRoot
 
 $binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/FirebirdSQL/firebird/releases/download/"
@@ -132,15 +134,11 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to FirebirdSQL"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-
-	# To avoid to run the two test-suites in parallel
-	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=FirebirdSQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
-	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=FirebirdSQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-		$testSuccessful += ($lastexitcode -gt 0)
+	$suites = @("FirebirdSQL+AdoProvider")
+	if ($odbcDriverInstalled) {
+		@suites += "FirebirdSQL+ODBC"
 	}
+	$testSuccessful = Run-TestSuite $suites
 
 	# Stoping service
 	if ($extension -eq "zip") {

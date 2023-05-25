@@ -23,19 +23,10 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	Write-Host "Deploying MySQL testing environment"
 
 	# Starting database service
-	$previouslyRunning = $false
-	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($null -ne $getservice)
-	{
-		if($getservice.Status -ne 'Running') {
-			Start-Service $databaseService 
-			Write-host "`tStarting" $databaseService "service"
-		} else {
-			Write-host "`tService" $databaseService "already started"
-			$previouslyRunning = $true
-		}
-	} else {
-		Write-Warning "Service $databaseService is not installed. Expecting that MySQL is running on docker."
+	try { $previouslyRunning = Start-Windows-Service $databaseService }
+	catch {
+		Write-Warning "Failure to start a Windows service: $_"
+		exit 1
 	}
 
 	# Deploying database based on script

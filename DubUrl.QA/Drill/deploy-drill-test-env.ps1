@@ -2,10 +2,12 @@ Param(
 	[switch] $force=$false
 	, $config = "Release"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for Apache Drill"
 }
-Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*drill*")) {
@@ -65,13 +67,12 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	}
 
 	# Running QA tests
-	Write-Host "Building QA test-suite"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-	Write-Host "Running QA tests related to Apache Drill"
-	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Drill""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-		$testSuccessful = ($lastexitcode -gt 0)
+	Write-Host "Running QA tests related to Drill"
+	$suites = @("Drill+AdoProvider")
+	if ($odbcDriverInstalled) {
+		@suites += "Drill+ODBC"
 	}
+	$testSuccessful = Run-TestSuite $suites
 
 	# Stop the docker container if not previously running
 	if (!$previously_running -and $null -ne $running){

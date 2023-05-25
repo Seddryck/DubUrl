@@ -5,6 +5,7 @@ if ($force) {
 	Write-Warning "Forcing QA testing for CockRoachDB"
 }
 Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*cockroach*")) {
@@ -77,9 +78,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to CockRoach"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="CockRoach" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
+	$testSuccessful = Run-TestSuite @("CockRoach")
 
 	# Stop the docker container if not previously running
 	if (!$previously_running -and $null -ne $running){

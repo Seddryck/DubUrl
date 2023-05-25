@@ -2,10 +2,12 @@ Param(
 	[switch] $force=$false
 	, $databaseService= "postgresql-x64-13"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for PostgreSQL"
 }
-Push-Location $PSScriptRoot
 
 $pgPath = "C:\Program Files\PostgreSQL\$($databaseService.Split('-')[2])\bin"
 If (-not (Test-Path -Path $pgPath)) {
@@ -18,20 +20,10 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	Write-Host "Deploying PostgreSQL testing environment"
 
 	# Starting database service
-	$previouslyRunning = $false
-	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($null -ne $getservice)
-	{
-		if($getservice.Status -ne 'Running') {
-			Write-host "`tStarting $databaseService service"
-			Start-Service $databaseService 
-			Write-host "`tService started"
-		} else {
-			Write-host "`tService" $databaseService "already started"
-			$previouslyRunning = $true
-		}
-	} else {
-		Write-Warning "Service $databaseService is not installed. Expecting that PostgreSQL is running on docker."
+	try { $previouslyRunning = Start-Windows-Service $databaseService }
+	catch {
+		Write-Warning "Failure to start a Windows service: $_"
+		exit 1
 	}
 
 	# Deploying database based on script
@@ -68,21 +60,9 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
 	$testSuccessful = ($lastexitcode -gt 0)
 
-	# Stopping DB Service
-	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($null -ne $getservice -and !$previouslyRunning)
-	{
-		if($getservice.Status -ne 'Stopped') {
-			Write-host "`tStopping $databaseService service"
-			Stop-Service $databaseService 
-			Write-host "`tService stopped"
-		} else {
-			Write-host "`tService" $databaseService "already stopped"
-		}
-	} else {
-		if ($previouslyRunning) {
-			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
-		}
+	# Stopping database Service
+	if (!$previouslyRunning) {
+		Stop-Windows-Service $databaseService
 	}
 
 	# Raise failing tests

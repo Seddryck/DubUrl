@@ -1,10 +1,12 @@
 Param(
 	[switch] $force=$false
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for TimescaleDB"
 }
-Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*timescale*")) {
@@ -76,9 +78,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Timescale"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="Timescale" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
+	$testSuccessful = Run-TestSuite @("Timescale")
 
 	#Stop the docker container if not previously running
 	if (!$previously_running -and $null -ne $running){

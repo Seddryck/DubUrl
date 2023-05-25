@@ -3,10 +3,12 @@ Param(
 	, $config = "Release"
 	, $networkName = "trino-network"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for Trino"
 }
-Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*trino*")) {
@@ -107,13 +109,11 @@ if ($force -or ($filesChanged -like "*trino*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Trino"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo
-	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Trino""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
-	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Trino""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-		$testSuccessful += ($lastexitcode -gt 0)
+	$suites = @("Trino+AdoProvider")
+	if ($odbcDriverInstalled) {
+		@suites += "Trino+ODBC"
 	}
+	$testSuccessful = Run-TestSuite $suites
 
 	#Stop the docker container if not previously running
 	if (!$previously_running){

@@ -2,10 +2,12 @@ Param(
 	[switch] $force=$false
 	, $config = "Release"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for QuestDB"
 }
-Push-Location $PSScriptRoot
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*quest*")) {

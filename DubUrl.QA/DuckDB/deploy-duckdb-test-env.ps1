@@ -2,10 +2,12 @@ Param(
 	[switch] $force=$false
 	, $config= "Release"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for DuckDB"
 }
-Push-Location $PSScriptRoot
 
 $binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/duckdb/duckdb/releases/latest/download"
@@ -79,13 +81,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to DuckDB"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-
-	# No idea why but here we should split in two distinct sets of tests.
-	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=DuckDB""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
-	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=DuckDB""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful += ($lastexitcode -gt 0)
+	$testSuccessful = Run-TestSuite @("DuckDB+AdoProvider", "DuckDB+ODBC")
 
 	# Raise failing tests
 	Pop-Location
