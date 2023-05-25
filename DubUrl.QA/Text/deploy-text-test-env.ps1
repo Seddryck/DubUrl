@@ -31,6 +31,7 @@ if ($force -or ($filesChanged -like "*csv*")) {
 		Write-Host "`t`tSkipping installation of new drivers"
 	}
 
+	# Running test-suite
 	Write-Host "Running QA tests related to Text files"
 	$testSuccessful = Run-TestSuite @("Text")
 

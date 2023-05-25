@@ -64,9 +64,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to QuestDB"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="QuestDB" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
+	$testSuccessful = Run-TestSuite @("QuestDB")
 
 	# Stop the docker container if not previously running
 	if (!$previously_running -and $null -ne $running){

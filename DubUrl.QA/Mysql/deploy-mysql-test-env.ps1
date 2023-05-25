@@ -3,10 +3,13 @@ Param(
 	, $databaseService= "MySQL57"
 	, $odbcDriver= "MariaDB"
 )
+Push-Location $PSScriptRoot
+. $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Windows-Service.ps1
+
 if ($force) {
 	Write-Warning "Forcing QA testing for MySQL"
 }
-Push-Location $PSScriptRoot
 
 $databaseVersion = $databaseService.Substring($databaseService.Length - 2)
 $mySqlPath = "C:\Program Files\MySQL\MySQL Server $($databaseVersion[0]).$($databaseVersion[1])\bin"
@@ -102,13 +105,11 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to MySQL"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=MySQL""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
-	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=MySQL""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-		$testSuccessful += ($lastexitcode -gt 0)
+	$suites = @("MySQL+AdoProvider")
+	if ($odbcDriverInstalled) {
+		@suites += "MySQL+ODBC"
 	}
+	$testSuccessful = Run-TestSuite $suites
 
 	# Stopping DB Service
 	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue

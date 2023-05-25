@@ -4,6 +4,7 @@ Param(
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Windows-Service.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for PostgreSQL"
@@ -56,9 +57,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to PostgreSQL"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-	& dotnet test "..\..\DubUrl.QA" --filter TestCategory="Postgresql" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
+	$testSuccessful = Run-TestSuite @("Postgresql")
 
 	# Stopping database Service
 	if (!$previouslyRunning) {

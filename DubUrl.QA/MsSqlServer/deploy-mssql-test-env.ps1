@@ -4,6 +4,7 @@ Param(
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Windows-Service.ps1
+. $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for Microsoft SQL Server"
@@ -24,8 +25,10 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql"
 	Write-host "`tDatabase deployed"
 	
+	# Running QA tests
 	Write-Host "Running QA tests related to Microsoft SQL Server"
-	
+	$testSuccessful = Run-TestSuite @("MsSqlServer")
+
 	# Stopping database Service
 	if (!$previouslyRunning) {
 		Stop-Windows-Service $databaseService
