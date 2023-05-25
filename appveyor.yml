@@ -18,7 +18,7 @@ init:
 
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
-- cmd: echo "Building DubUrl version %GitVersion_SemVer%"
+- pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 
 build_script:
   #- dotnet --info
