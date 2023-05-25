@@ -46,9 +46,9 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	
 	# Copying correct config
 	$filePath = "$PSScriptRoot\..\bin\$config\net6.0\Instance.txt"
-	$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/2019" } else { "localhost" }
+	$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2019" } else { "localhost" }
 	$serverUrl | Set-Content -NoNewline -Force $filePath
-	Write-Host "Wrote value '$serverUrl' into $filePath"
+	Write-Host "\tConfigure value '$serverUrl' into $filePath"
 
 	# Running QA tests
 	$testSuccessful = Run-TestSuite @("MsSqlServer") $config
