@@ -34,7 +34,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	Write-host "`tDeploying database ..."
 	if ($env:APPVEYOR -eq "True") {
 		Write-host "`t`tUsing local client ..."
-		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql"
+		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql" | Out-Null
 	} else {
 		Write-host "`t`tCopying deployment script on container ..."
 		& docker cp "./deploy-mssql-database.sql" mssql:"./deploy-mssql-database.sql" 
@@ -48,7 +48,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	$filePath = "$PSScriptRoot\..\bin\$config\net6.0\Instance.txt"
 	$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2019" } else { "localhost" }
 	$serverUrl | Set-Content -NoNewline -Force $filePath
-	Write-Host "\tConfigure value '$serverUrl' into $filePath"
+	Write-Host "`tConfigure value '$serverUrl' into $filePath"
 
 	# Running QA tests
 	$testSuccessful = Run-TestSuite @("MsSqlServer") $config

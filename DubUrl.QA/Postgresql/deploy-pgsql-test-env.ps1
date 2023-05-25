@@ -36,12 +36,13 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 	}
 
 	# Deploying database based on script
-	Write-host "`tCreating database"
+	Write-host "`tDeploying database ..."
 	If (-not($env:PATH -like $pgPath)) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -p "5432" -f ".\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -p "5432" -f ".\deploy-pgsql-database.sql" | Out-Null
+	Write-host "`tDatabase deployed"
 
 	# Installing ODBC driver
 	. $PSScriptRoot\deploy-pgsql-odbc-driver.ps1

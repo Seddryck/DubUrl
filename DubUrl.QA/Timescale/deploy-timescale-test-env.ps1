@@ -20,9 +20,10 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 	}
 
 	# Deploying database based on script
-	Write-host "`tCreating database"
+	Write-host "`tDeploying database ..."
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -f ".\deploy-timescale-database.sql"
+	& psql -U "postgres" -h "localhost" -f ".\deploy-timescale-database.sql" | Out-Null
+	Write-host "`tDatabase deployed"
 
 	# Installing ODBC driver
 	. $PSScriptRoot\..\Postgresql\deploy-pgsql-odbc-driver.ps1
