@@ -4,6 +4,7 @@ Param(
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for Apache Drill"
@@ -24,22 +25,8 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	Write-Host "`tFiles copied to mounted folder"
 
 	# Starting docker container for Apache Drill
-	$previously_running = $false
-	$running = & docker container ls --format "{{.ID}}" --filter "name=drill"
-	if ($null -ne $running) {
-		$previously_running = $true
-		Write-Host "`tContainer is already running with ID '$running'."
-	} else {
-		Write-Host "`tStarting new container with mounting at $mountedFolder"
-		Start-Process -FilePath ".\run-drill-docker.cmd" -ArgumentList @("C:\Users\cedri\Projects\DubUrl\DubUrl.QA\bin\Release\net6.0\.bigdata")
-		do {
-			$running = & docker container ls --format "{{.ID}}" --filter "name=drill"
-			if ($null -eq $running) {
-				Start-Sleep -s 1
-			}
-		} while($null -eq $running)
-		
-		Write-Host "`tContainer started with ID '$running'."
+	$previouslyRunning, $running = Deploy-Container -FullName "drill" -Arguments @("$PSScriptRoot\..\bin\$config\net6.0\.bigdata")
+	if (!$previouslyRunning) {
 		Start-Sleep -s 10
 	}
 
@@ -75,10 +62,8 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	$testSuccessful = Run-TestSuite $suites
 
 	# Stop the docker container if not previously running
-	if (!$previously_running -and $null -ne $running){
-		Write-Host "`tForcefully removing container '$running' ..."
-		& docker rm --force $running | Out-Null
-		Write-Host "`tContainer removed."
+	if (!$previouslyRunning){
+		Remove-Container $running
 	}
 
 	# Raise failing tests

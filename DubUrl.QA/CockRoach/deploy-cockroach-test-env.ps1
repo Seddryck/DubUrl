@@ -6,48 +6,17 @@ if ($force) {
 }
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*cockroach*")) {
 	Write-Host "Deploying CockRoachDB testing environment"
 
-	# Starting docker container for QuestDb
-	$previously_running = $false
-	$running = & docker container ls --format "{{.ID}}" --filter "name=roach"
-	if ($null -ne $running) {
-		$previously_running = $true
-		Write-Host "`tContainer is already running with ID '$running'."
-	} else {
-		Write-Host "`tStarting new container"
-		Start-Process -FilePath ".\run-cockroach-docker.cmd"
-		do {
-			$running = & docker container ls --format "{{.ID}}" --filter "name=roach"
-			if ($null -eq $running) {
-				Start-Sleep -s 1
-			}
-		} while($null -eq $running)
-		
-		Write-Host "`tContainer started with ID '$running'."
-
-		$cmd = "/cockroach/cockroach node status --insecure"
-		$startWait = Get-Date
-		do {
+	# Starting docker container
+	$previouslyRunning, $running = Deploy-Container -FullName "cockroach" -NickName "roach" -ScriptBlock {
+			$cmd = "/cockroach/cockroach node status --insecure"
 			$response = & docker exec -it roach-single sh -c "$cmd"
-			$isRunning = ($response -join " ") -notlike "ERROR: cannot dial server*"
-			$wait = New-TimeSpan -Start $startWait
-			if (!$isRunning) {
-				if ($wait -gt (New-TimeSpan -Seconds 1)) {
-					Write-Host "`t`tWaiting since $($wait.ToString("ss")) seconds ..."
-				}
-				Start-Sleep -s 1
-			}
-		} while (!$isRunning -and !($wait -gt (New-TimeSpan -Seconds 60)))
-		if (!$isRunning) {
-			Write-Warning "Waited during $($wait.ToString("ss")) seconds. Stopping test harness for CockRoachDB."
-			exit 0
-		} else {
-			Write-Host "`tServer is available: waited $($wait.ToString("ss")) seconds to get it live."
-		}
+			return ($response -join " ") -notlike "ERROR: cannot dial server*"
 	}
 
 	# Deploying database based on script
@@ -81,10 +50,8 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	$testSuccessful = Run-TestSuite @("CockRoach")
 
 	# Stop the docker container if not previously running
-	if (!$previously_running -and $null -ne $running){
-		Write-Host "`tForcefully removing container '$running' ..."
-		& docker rm --force $running | Out-Null
-		Write-Host "`tContainer removed."
+	if (!$previouslyRunning){
+		Remove-Container $running
 	}
 
 	# Raise failing tests

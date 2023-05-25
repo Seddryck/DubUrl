@@ -5,6 +5,7 @@ Param(
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for Trino"
@@ -34,56 +35,16 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	$containers = & docker network inspect $networkName -f '{{json .Containers}}'
 
 	# Starting docker container for Postgresql
-	$containerName = "postgresql"
-	Write-Host "`tStarting container '$containerName' ..."
-	$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
-	if ($running) {
-		Write-Host "`tContainer '$containerName' is already running with ID '$running'."
-	} else {
-		Start-Process -FilePath ".\..\PostgreSQL\run-postgresql-docker.cmd"
-		do {
-			$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
-			if (!$running) {
-				Start-Sleep -s 1
-			}
-		} while(!$running)
-		Write-Host "`tContainer '$containerName' started with ID '$running'."
-	}
-	if ($containers.Contains($running)) {
-		Write-Host "`tContainer '$running' already connected to network '$networkName'."
-	} else {
-		Write-Host "`tConnecting container '$running' to network '$networkName' ..."
-		& docker network connect $networkName $running
-		Write-Host "`tContainer'$running' connected to network '$networkName'."
-	}
+	$previouslyRunning, $running = Deploy-Container -FullName "postgresql" -FilePath ".\..\PostgreSQL\run-postgresql-docker.cmd"
+	Connect-Network -Container $running -Network $networkName
 
 	# Starting docker container for Trino
-	$containerName = "trino"
-	$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
-	if ($running) {
-		$previously_running = $true
-		Write-Host "`tContainer '$containerName' is already running with ID '$running'."
-	} else {
-		$mountedFolder = ".\..\bin\$config\net6.0\.catalog"
-		Write-Host "`tStarting new container '$containerName' with mounting at $mountedFolder"
-		Start-Process -FilePath ".\run-trino-docker.cmd" -ArgumentList @($mountedFolder)
-		do {
-			$running = & docker container ls --format "{{.ID}}" --filter "name=$containerName"
-			if (!$running) {
-				Start-Sleep -s 1
-			}
-		} while(!$running)
-		
-		Write-Host "`tContainer '$containerName' started with ID '$running'."
+	$mountedFolder = ".\..\bin\$config\net6.0\Trino\.catalog"
+	$previouslyRunning, $running = Deploy-Container -FullName "trino" -Arguments @($mountedFolder)
+	if (!$previouslyRunning) {
 		Start-Sleep -s 10
 	}
-	if ($containers.Contains($running)) {
-		Write-Host "`tContainer '$running' already connected to network '$networkName'."
-	} else {
-		Write-Host "`tConnecting container '$running' to network '$networkName' ..."
-		& docker network connect $networkName $running
-		Write-Host "`tContainer'$running' connected to network '$networkName'."
-	}
+	Connect-Network -Container $running -Network $networkName
 
 	# Deploying database based on script
 	Write-host "`tCreating database"
@@ -115,21 +76,13 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	}
 	$testSuccessful = Run-TestSuite $suites
 
-	#Stop the docker container if not previously running
-	if (!$previously_running){
+	#Remove the docker containers, if not previously running
+	if (!$previouslyRunning){
 		$running = & docker container ls --format "{{.ID}}" --filter "name=trino"
-		if ($null -ne $running) {
-			Write-Host "`tForcefully removing container '$running' ..."
-			& docker rm --force $running | Out-Null
-			Write-Host "`tContainer removed."
-		}
+		Remove-Container $running
 
 		$running = & docker container ls --format "{{.ID}}" --filter "name=postgresql"
-		if ($null -ne $running) {
-			Write-Host "`tForcefully removing container '$running' ..."
-			& docker rm --force $running | Out-Null
-			Write-Host "`tContainer removed."
-		}
+		Remove-Container $running
 	}
 
 	# Raise failing tests

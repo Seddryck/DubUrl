@@ -4,6 +4,7 @@ Param(
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for QuestDB"
@@ -13,23 +14,9 @@ $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*quest*")) {
 	Write-Host "Deploying QuestDB testing environment"
 
-	# Starting docker container for Apache Drill
-	$previously_running = $false
-	$running = & docker container ls --format "{{.ID}}" --filter "name=quest"
-	if ($null -ne $running) {
-		$previously_running = $true
-		Write-Host "`tContainer is already running with ID '$running'."
-	} else {
-		Write-Host "`tStarting new container with mounting at $mountedFolder"
-		Start-Process -FilePath ".\run-questdb-docker.cmd"
-		do {
-			$running = & docker container ls --format "{{.ID}}" --filter "name=questdb"
-			if ($null -eq $running) {
-				Start-Sleep -s 1
-			}
-		} while($null -eq $running)
-		
-		Write-Host "`tContainer started with ID '$running'."
+	# Starting docker container
+	$previouslyRunning, $running = Deploy-Container -FullName "questdb" -NickName "quest"
+	if (!$previouslyRunning) {
 		Start-Sleep -s 10
 	}
 
@@ -67,10 +54,8 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	$testSuccessful = Run-TestSuite @("QuestDB")
 
 	# Stop the docker container if not previously running
-	if (!$previously_running -and $null -ne $running){
-		Write-Host "`tForcefully removing container '$running' ..."
-		& docker rm --force $running | Out-Null
-		Write-Host "`tContainer removed."
+	if (!$previouslyRunning){
+		Remove-Container $running
 	}
 
 	# Raise failing tests
