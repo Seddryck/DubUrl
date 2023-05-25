@@ -107,7 +107,7 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	Write-Host "Running QA tests related to MySQL"
 	$suites = @("MySQL+AdoProvider")
 	if ($odbcDriverInstalled) {
-		@suites += "MySQL+ODBC"
+		$suites += "MySQL+ODBC"
 	}
 	$testSuccessful = Run-TestSuite $suites
 

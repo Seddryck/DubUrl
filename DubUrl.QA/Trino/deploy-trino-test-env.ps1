@@ -111,7 +111,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	Write-Host "Running QA tests related to Trino"
 	$suites = @("Trino+AdoProvider")
 	if ($odbcDriverInstalled) {
-		@suites += "Trino+ODBC"
+		$suites += "Trino+ODBC"
 	}
 	$testSuccessful = Run-TestSuite $suites
 

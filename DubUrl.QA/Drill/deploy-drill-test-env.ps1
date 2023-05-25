@@ -70,7 +70,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	Write-Host "Running QA tests related to Drill"
 	$suites = @("Drill+AdoProvider")
 	if ($odbcDriverInstalled) {
-		@suites += "Drill+ODBC"
+		$suites += "Drill+ODBC"
 	}
 	$testSuccessful = Run-TestSuite $suites
 

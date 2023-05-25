@@ -136,7 +136,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	Write-Host "Running QA tests related to FirebirdSQL"
 	$suites = @("FirebirdSQL+AdoProvider")
 	if ($odbcDriverInstalled) {
-		@suites += "FirebirdSQL+ODBC"
+		$suites += "FirebirdSQL+ODBC"
 	}
 	$testSuccessful = Run-TestSuite $suites
 
