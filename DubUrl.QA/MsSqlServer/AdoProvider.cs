@@ -22,10 +22,18 @@ namespace DubUrl.QA.MsSqlServer
         public void SetupFixture()
             => new ProviderFactoriesRegistrator().Register();
 
+        private const string FILENAME = "Instance.txt";
+
+        public string ConnectionString
+        {
+            get => $"mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2019")}/DubUrl";
+        }
+
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            Console.WriteLine(ConnectionString);
+            var connectionUrl = new ConnectionUrl(ConnectionString);
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -35,7 +43,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var connectionUrl = new ConnectionUrl(ConnectionString);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -46,7 +54,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomerWithDatabase()
         {
-            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var db = new DatabaseUrl(ConnectionString);
             var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
@@ -54,7 +62,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var connectionUrl = new ConnectionUrl(ConnectionString);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -70,7 +78,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomerWithDatabaseUrlAndQueryClass()
         {
-            var db = new DatabaseUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var db = new DatabaseUrl(ConnectionString);
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
         }
@@ -83,7 +91,7 @@ namespace DubUrl.QA.MsSqlServer
                 .AddSingleton(EmptyDubUrlConfiguration)
                 .AddDubUrl(options)
                 .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
-                    , new[] { "mssql://sa:Password12!@localhost/SQL2019/DubUrl" }))
+                    , new[] { ConnectionString }))
                 .BuildServiceProvider();
             var repo = provider.GetRequiredService<CustomerRepository>();
             var fullName = repo.SelectFirstCustomer();
@@ -101,7 +109,7 @@ namespace DubUrl.QA.MsSqlServer
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();
             var repo = factory.Instantiate<CustomerRepository>(
-                            "mssql://sa:Password12!@localhost/SQL2019/DubUrl"
+                            ConnectionString
                         );
             var fullName = repo.SelectFirstCustomer();
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
@@ -119,7 +127,7 @@ namespace DubUrl.QA.MsSqlServer
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();
             var repo = factory.Instantiate<MicroOrmCustomerRepository>(
-                            "mssql://sa:Password12!@localhost/SQL2019/DubUrl"
+                            ConnectionString
                         );
             var customers = repo.SelectYoungestCustomers(2);
             Assert.That(customers, Has.Count.EqualTo(2));
@@ -141,7 +149,7 @@ namespace DubUrl.QA.MsSqlServer
         [Category("Dapper")]
         public void QueryCustomerWithDapper()
         {
-            var connectionUrl = new ConnectionUrl("mssql://sa:Password12!@localhost/SQL2019/DubUrl");
+            var connectionUrl = new ConnectionUrl(ConnectionString);
 
             using var conn = connectionUrl.Open();
             var customers = conn.Query<Customer>("select * from Customer").ToList();
@@ -163,7 +171,7 @@ namespace DubUrl.QA.MsSqlServer
                 .AddDubUrl(options)
                 .AddSingleton<IDapperConfiguration>(
                     provider => ActivatorUtilities.CreateInstance<DapperConfiguration>(provider
-                        , new[] { "mssql://sa:Password12!@localhost/SQL2019/DubUrl" }))
+                        , new[] { ConnectionString }))
                 .AddTransient<ICustomerRepository, DapperCustomerRepository>()
                 .BuildServiceProvider();
             var repo = provider.GetRequiredService<ICustomerRepository>();

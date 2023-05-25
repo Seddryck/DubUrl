@@ -1,9 +1,11 @@
 Param(
 	[switch] $force=$false
-	, $databaseService= "MSSQL`$SQL2019"
+	, [string] $databaseService= "MSSQL`$SQL2019"
+	, [string] $config = "Release"
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Windows-Service.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
@@ -15,19 +17,43 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	Write-Host "Deploying Microsoft SQL Server testing environment"
 	
 	# Starting database Service
-	try { $previouslyRunning = Start-Windows-Service $databaseService }
-	catch {
-		Write-Warning "Failure to start a Windows service: $_"
-		exit 1
+	if ($env:APPVEYOR -eq "True") {
+		try { $previouslyRunning = Start-Windows-Service $databaseService }
+		catch {
+			Write-Warning "Failure to start a Windows service: $_"
+			exit 1
+		}
+	} else {
+		$previouslyRunning, $running = Deploy-Container -FullName "mssql"
+		if (!$previouslyRunning){
+			Start-Sleep -s 10
+		}
 	}
 
-	Write-host "`tDeploying database"
-	& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql"
+	# Deploying database based on script
+	Write-host "`tDeploying database ..."
+	if ($env:APPVEYOR -eq "True") {
+		Write-host "`t`tUsing local client ..."
+		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql"
+	} else {
+		Write-host "`t`tCopying deployment script on container ..."
+		& docker cp "./deploy-mssql-database.sql" mssql:"./deploy-mssql-database.sql" 
+		Write-host "`t`tScript copied"
+		Write-host "`t`tUsing remote client on the docker container ..."
+		& docker exec -it mssql /opt/mssql-tools/bin/sqlcmd "-Usa" "-PPassword12!" "-i./deploy-mssql-database.sql" | Out-Null
+	}
 	Write-host "`tDatabase deployed"
 	
+	# Copying correct config
+	$configFile = "$PSScriptRoot\..\bin\$config\net6.0\Instance.txt"
+	if ($env:APPVEYOR -eq "True") {
+		"localhost/2019" | Set-Content -NoNewline -Force $configFile
+	} else {
+		"localhost" | Set-Content -NoNewline -Force $configFile
+	}
+
 	# Running QA tests
-	Write-Host "Running QA tests related to Microsoft SQL Server"
-	$testSuccessful = Run-TestSuite @("MsSqlServer")
+	$testSuccessful = Run-TestSuite @("MsSqlServer") $config
 
 	# Stopping database Service
 	if (!$previouslyRunning) {

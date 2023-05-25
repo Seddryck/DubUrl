@@ -27,10 +27,18 @@ namespace DubUrl.QA.MsSqlServer
             SchemeMapperBuilder = new SchemeMapperBuilder(assemblies);
         }
 
+        private const string FILENAME = "Instance.txt";
+
+        public string ConnectionString
+        {
+            get => $"oledb+mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2019")}/DubUrl?TrustServerCertificate=Yes";
+        }
+
         [Test]
         public void ConnectToServerWithSQLLogin()
         {
-            var connectionUrl = new ConnectionUrl("oledb+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes", SchemeMapperBuilder);
+            Console.WriteLine(ConnectionString);
+            var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -40,7 +48,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomer()
         {
-            var connectionUrl = new ConnectionUrl("oledb+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes", SchemeMapperBuilder);
+            var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
@@ -51,7 +59,7 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public void QueryCustomerWithParams()
         {
-            var connectionUrl = new ConnectionUrl("oledb+mssql://sa:Password12!@localhost/SQL2019/DubUrl?TrustServerCertificate=Yes", SchemeMapperBuilder);
+            var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();

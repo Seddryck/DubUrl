@@ -5,6 +5,7 @@ Param(
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
 	Write-Warning "Forcing QA testing for PostgreSQL"
@@ -20,11 +21,18 @@ $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*pgsql*")) {
 	Write-Host "Deploying PostgreSQL testing environment"
 
-	# Starting database service
-	try { $previouslyRunning = Start-Windows-Service $databaseService }
-	catch {
-		Write-Warning "Failure to start a Windows service: $_"
-		exit 1
+	# Starting database service or docker container
+	if ($env:APPVEYOR -eq "True") {
+		try { $previouslyRunning = Start-Windows-Service $databaseService }
+		catch {
+			Write-Warning "Failure to start a Windows service: $_"
+			exit 1
+		}
+	} else {
+		$previouslyRunning, $running = Deploy-Container -FullName "postgresql" -ScriptBlock {
+			$response = & pg_isready -U postgres -h localhost
+			return ($response -join " ") -like "*accepting connections*"
+		}
 	}
 
 	# Deploying database based on script
@@ -33,7 +41,7 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -f ".\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -p "5432" -f ".\deploy-pgsql-database.sql"
 
 	# Installing ODBC driver
 	. $PSScriptRoot\deploy-pgsql-odbc-driver.ps1
@@ -44,7 +52,11 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 
 	# Stopping database Service
 	if (!$previouslyRunning) {
-		Stop-Windows-Service $databaseService
+		if ($env:APPVEYOR -eq "True") {
+			Stop-Windows-Service $databaseService
+		} else {
+			Remove-Container $running
+		}
 	}
 
 	# Raise failing tests

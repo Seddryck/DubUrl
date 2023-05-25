@@ -1,5 +1,5 @@
 @ECHO OFF
-ECHO Starting docker container for CockRoachDB
+ECHO Starting docker container for TimescaleDB
 
 docker run -d ^
           --name=timescale ^

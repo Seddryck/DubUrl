@@ -14,8 +14,7 @@ Function Run-TestSuite {
 		}
 	}
 
-	Process{
-		Write-Host $pwd
+	Process {
         & dotnet build "..\..\DubUrl.QA" -c $config --nologo | Out-Null
 		foreach ($category in $categories) {
 			Write-Host "`tRunning test-suite for $category"
@@ -29,7 +28,7 @@ Function Run-TestSuite {
 		}
     }
 
-    End{
+    End {
         return $testSuccessful
     }
 }

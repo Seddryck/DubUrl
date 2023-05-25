@@ -25,9 +25,7 @@ Function Deploy-Container {
 		$previously_running = $false
 		if ($null -eq $filePath -or $filePath -eq "") {
 			$filePath = ".\run-$fullname-docker.cmd"
-			Write-Host "Hello"
 		}
-		Write-Host "World $($null -eq $filePath)"
 	}
 
 	Process {

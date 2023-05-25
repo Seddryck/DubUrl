@@ -5,6 +5,7 @@ Param(
 )
 Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
 
 if ($force) {
@@ -13,7 +14,7 @@ if ($force) {
 
 $databaseVersion = $databaseService.Substring($databaseService.Length - 2)
 $mySqlPath = "C:\Program Files\MySQL\MySQL Server $($databaseVersion[0]).$($databaseVersion[1])\bin"
-If (-not (Test-Path -Path $mySqlPath)) {
+if (-not (Test-Path -Path $mySqlPath)) {
 	$mySqlPath = $mySqlPath -replace "C:", "E:"
 	If (-not (Test-Path -Path $mySqlPath)) {
 		$mySqlPath = $mySqlPath -replace "E:", "C:"
@@ -25,26 +26,35 @@ $filesChanged = & git diff --name-only HEAD HEAD~1
 if ($force -or ($filesChanged -like "*mysql*")) {
 	Write-Host "Deploying MySQL testing environment"
 
-	# Starting database service
-	try { $previouslyRunning = Start-Windows-Service $databaseService }
-	catch {
-		Write-Warning "Failure to start a Windows service: $_"
-		exit 1
+	# Starting database service or docker container
+	if ($env:APPVEYOR -eq "True") {
+		try { $previouslyRunning = Start-Windows-Service $databaseService }
+		catch {
+			Write-Warning "Failure to start a Windows service: $_"
+			exit 1
+		}
+	} else {
+		$previouslyRunning, $running = Deploy-Container -FullName "mysql"
+		if (!$previouslyRunning){
+			Start-Sleep -s 10
+		}
 	}
 
 	# Deploying database based on script
-	If (Test-Path -Path $mySqlPath) {
-		Write-host "`tCreating database"
-		If (-not($env:PATH -like $mySqlPath)) {
+	Write-host "`tCreating database"
+	$env:MYSQL_PWD = "Password12!"
+	if (Test-Path -Path $mySqlPath) {
+		Write-host "`tUsing local client"
+		if (-not($env:PATH -like $mySqlPath)) {
 			$env:PATH += ";$mySqlPath"
 		}
-		$env:MYSQL_PWD = "Password12!"
 		Get-Content ".\deploy-mysql-database.sql" | & mysql --user=root
-		Write-host "`tDatabase created"
 	} else {
-		Write-host "`tSkipping database creation"
+		Write-host "`tUsing remote client on the docker container"
+		& docker exec -it some-mysql mysql "--user=root" "--password=$($env:MYSQL_PWD)" "--execute=$(Get-Content .\deploy-mysql-database.sql)" | Out-Null
 	}
-
+	Write-host "`tDatabase created"
+	
 	$odbcDriverInstalled = $false
 	# Installing ODBC driver
 	if ($odbcDriver -eq "MariaDB") {
@@ -112,19 +122,13 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	$testSuccessful = Run-TestSuite $suites
 
 	# Stopping DB Service
-	$getservice = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
-	if ($null -ne $getservice -and !$previouslyRunning)
+	if (!$previouslyRunning)
 	{
-		if($getservice.Status -ne 'Stopped') {
-			Write-host "`tStopping $databaseService service"
+		$service = Get-Service -Name $databaseService -ErrorAction SilentlyContinue
+		if ($null -ne $service) { 
 			Stop-Service $databaseService 
-			Write-host "`tService stopped"
 		} else {
-			Write-host "`tService" $databaseService "already stopped"
-		}
-	} else {
-		if ($previouslyRunning) {
-			Write-Warning "Service $databaseService was running before the deployment of the test harness, not stopping it."
+			Remove-Container $running
 		}
 	}
 
