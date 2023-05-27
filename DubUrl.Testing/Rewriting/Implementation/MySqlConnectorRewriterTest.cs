@@ -1,17 +1,7 @@
-﻿using DubUrl.Mapping;
-using DubUrl.Parsing;
+﻿using DubUrl.Parsing;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MySqlConnector;
-using DubUrl.Mapping.Implementation;
-using DubUrl.Querying.Dialecting;
-using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Implementation;
 using DubUrl.Rewriting;
 

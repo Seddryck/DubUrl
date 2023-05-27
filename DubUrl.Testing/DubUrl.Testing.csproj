@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
 		<PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
 		<PackageReference Include="NUnit" Version="3.13.3" />
@@ -24,7 +25,6 @@
 		<PackageReference Include="Snowflake.Data" Version="2.0.23" />
 		<PackageReference Include="System.Data.Odbc" Version="7.0.0" />
 		<PackageReference Include="System.Data.OleDb" Version="7.0.0" />
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
 		<PackageReference Include="Teradata.Client.Provider" Version="17.20.6" />
 	</ItemGroup>
 

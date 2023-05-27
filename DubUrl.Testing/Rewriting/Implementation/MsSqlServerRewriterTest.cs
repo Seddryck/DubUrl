@@ -1,22 +1,14 @@
-﻿using DubUrl.Mapping.Implementation;
-using DubUrl.Parsing;
-using DubUrl.Querying.Dialecting;
-using DubUrl.Querying.Parametrizing;
+﻿using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 namespace DubUrl.Testing.Rewriting.Implementation
 {
     public class MsSqlServerRewriterTest
     {
-        private const string PROVIDER_NAME = "System.Data.SqlClient";
+        private const string PROVIDER_NAME = "Microsoft.Data.SqlClient";
 
         private static DbConnectionStringBuilder ConnectionStringBuilder
         {
@@ -98,7 +90,7 @@ namespace DubUrl.Testing.Rewriting.Implementation
         {
             var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
             urlInfo.Options.Add("Application Name", "myApp");
-            urlInfo.Options.Add("ConnectRetryCount", "5");
+            urlInfo.Options.Add("Enlist", "False");
 
             var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
             var result = Rewriter.Execute(urlInfo);
@@ -108,8 +100,8 @@ namespace DubUrl.Testing.Rewriting.Implementation
             {
                 Assert.That(result, Does.ContainKey("Application Name"));
                 Assert.That(result["Application Name"], Is.EqualTo("myApp"));
-                Assert.That(result, Does.ContainKey("ConnectRetryCount"));
-                Assert.That(result["ConnectRetryCount"], Is.EqualTo(5));
+                Assert.That(result, Does.ContainKey("Enlist"));
+                Assert.That(result["Enlist"], Is.EqualTo(false));
             });
         }
 

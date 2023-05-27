@@ -1,20 +1,9 @@
 ﻿using DubUrl.Parsing;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Npgsql;
 using System.Data.Odbc;
 using DubUrl.Locating.OdbcDriver;
 using Moq;
-using DubUrl.Mapping.Implementation;
-using DubUrl.Querying.Dialecting;
-using System.IO;
-using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Implementation;
 
 namespace DubUrl.Testing.Rewriting.Implementation
