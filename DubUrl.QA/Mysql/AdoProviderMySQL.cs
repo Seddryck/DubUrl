@@ -2,25 +2,24 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
+using DubUrl.Querying;
 using DubUrl.Querying.Reading;
 using DubUrl.Registering;
-using DubUrl.Mapping;
-using System.Configuration;
 using DubUrl.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Reflection;
 
-namespace DubUrl.QA.DuckDB
+namespace DubUrl.QA.Mysql
 {
-    [Category("DuckDB")]
+    [Category("MySQL")]
     [Category("AdoProvider")]
-    [FixtureLifeCycle(LifeCycle.SingleInstance)]
-    [NonParallelizable]
-    public class AdoProvider : BaseAdoProvider
+    public class AdoProviderMySQL : BaseAdoProvider
     {
         public override string ConnectionString
         {
-            get => $"duckdb:///customer.duckdb";
+            get => $"mysql://root:Password12!@localhost/DubUrl";
         }
 
         [Test]
@@ -33,11 +32,11 @@ namespace DubUrl.QA.DuckDB
 
         [Test]
         public override void QueryCustomerWithParams()
-            => Assert.Ignore("Named parameters not supported by DuckDB");
+            => QueryCustomerWithParams("select FullName from Customer where CustomerId=@CustId");
 
         [Test]
         public override void QueryCustomerWithPositionalParameter()
-            => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=($1)");
+            => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=?");
 
         [Test]
         public override void QueryCustomerWithDapper()

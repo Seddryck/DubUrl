@@ -1,21 +1,15 @@
 using NUnit.Framework;
-using Dapper;
-using DubUrl.QA.Dapper;
-using DubUrl.Registering;
-using DubUrl.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using System.Data;
 
-namespace DubUrl.QA.CockRoach
+namespace DubUrl.QA.MsSqlServer
 {
-    [Category("CockRoach")]
-    [Category("AdoProvider")]
-    public class AdoProvider : Postgresql.AdoProvider
+    [Category("MsSqlServer")]
+    public class AdoProviderMsSqlServer : BaseAdoProvider
     {
+        private const string FILENAME = "Instance.txt";
+
         public override string ConnectionString
         {
-            get => $"cr://root@localhost/duburl?sslmode=disable&Timeout=5";
+            get => $"mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2019")}/DubUrl";
         }
 
         [Test]
@@ -32,7 +26,7 @@ namespace DubUrl.QA.CockRoach
 
         [Test]
         public override void QueryCustomerWithPositionalParameter()
-            => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=($1)");
+            => Assert.Ignore("Positional parameters not supported for Microsoft SQL Server");
 
         [Test]
         public override void QueryCustomerWithDapper()

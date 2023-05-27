@@ -4,7 +4,7 @@ namespace DubUrl.QA.QuestDB
 {
     [Category("QuestDB")]
     [Category("AdoProvider")]
-    public class AdoProvider : Postgresql.AdoProvider
+    public class AdoProviderQuestDB : Postgresql.BaseAdoProviderPostgresql
     {
         public override string ConnectionString
         {

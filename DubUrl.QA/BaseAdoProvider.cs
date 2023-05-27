@@ -1,11 +1,6 @@
 using NUnit.Framework;
-using System.Diagnostics;
 using System.Data;
-using System.Data.Common;
-using DubUrl.Querying.Reading;
 using DubUrl.Registering;
-using DubUrl.Mapping;
-using System.Configuration;
 using DubUrl.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +9,7 @@ using DubUrl.QA.Dapper;
 
 namespace DubUrl.QA
 {
+    [Category("AdoProvider")]
     [FixtureLifeCycle(LifeCycle.SingleInstance)]
     public abstract class BaseAdoProvider
     {

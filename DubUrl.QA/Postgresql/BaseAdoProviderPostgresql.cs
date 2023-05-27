@@ -2,15 +2,9 @@ using NUnit.Framework;
 
 namespace DubUrl.QA.Postgresql
 {
-    [Category("Postgresql")]
     [Category("AdoProvider")]
-    public class AdoProvider : BaseAdoProvider
+    public abstract class BaseAdoProviderPostgresql : BaseAdoProvider
     {
-        public override string ConnectionString
-        {
-            get => $"pgsql://postgres:Password12!@localhost/DubUrl";
-        }
-
         [Test]
         public override void QueryCustomer()
             => QueryCustomer("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");

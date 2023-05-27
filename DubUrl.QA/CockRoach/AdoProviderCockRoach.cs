@@ -1,15 +1,21 @@
 using NUnit.Framework;
+using Dapper;
+using DubUrl.QA.Dapper;
+using DubUrl.Registering;
+using DubUrl.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using System.Data;
 
-namespace DubUrl.QA.Trino
+namespace DubUrl.QA.CockRoach
 {
-    [Category("Trino")]
+    [Category("CockRoach")]
     [Category("AdoProvider")]
-    [FixtureLifeCycle(LifeCycle.SingleInstance)]
-    public class AdoProvider : BaseAdoProvider
+    public class AdoProviderCockRoach : BaseAdoProvider
     {
         public override string ConnectionString
         {
-            get => $"trino://localhost:8080/pg/public";
+            get => $"cr://root@localhost/duburl?sslmode=disable&Timeout=5";
         }
 
         [Test]
@@ -22,18 +28,14 @@ namespace DubUrl.QA.Trino
 
         [Test]
         public override void QueryCustomerWithParams()
-            => Assert.Ignore("NReco.AdoPresto is not supporting parameters");
+            => QueryCustomerWithParams("select FullName from Customer where CustomerId=@CustId");
 
         [Test]
         public override void QueryCustomerWithPositionalParameter()
-            => Assert.Ignore("NReco.AdoPresto is not supporting parameters");
+            => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=($1)");
 
         [Test]
         public override void QueryCustomerWithDapper()
             => QueryCustomerWithDapper("select * from Customer");
-
-        [Test]
-        public override void QueryTwoYoungestCustomersWithRepositoryFactory()
-            => Assert.Ignore("NReco.AdoPresto is not supporting parameters");
     }
 }
