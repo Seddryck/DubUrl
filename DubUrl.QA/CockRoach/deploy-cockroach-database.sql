@@ -1,16 +1,16 @@
-DROP DATABASE IF EXISTS DubUrl;
+DROP DATABASE IF EXISTS "DubUrl";
 
-CREATE DATABASE DubUrl;
+CREATE DATABASE "DubUrl";
 
-DROP TABLE IF EXISTS Customer;
+DROP TABLE IF EXISTS "Customer";
 
-CREATE TABLE Customer (
-    CustomerId INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    FullName STRING,
-    BirthDate DATE
+CREATE TABLE "Customer" (
+    "CustomerId" INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
+    "FullName" STRING,
+    "BirthDate" DATE
 );
 
-INSERT INTO Customer (FullName, BirthDate) VALUES
+INSERT INTO "Customer" ("FullName", "BirthDate") VALUES
      ('Nikola Tesla',        '1856-07-10')
     ,('Albert Einstein',    '1879-03-14')
     ,('John von Neumann',   '1903-12-28')

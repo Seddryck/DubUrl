@@ -6,8 +6,13 @@
 
   <ItemGroup>
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.duckdb.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.fb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.mssql.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.mysql.sql" />
     <EmbeddedResource Include="SelectAllCustomer.pgsql.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
+    <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
     
     <EmbeddedResource Include="SelectCustomerById.cockroach.sql" />
@@ -74,18 +79,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DuckDB.NET.Bindings">
-      <HintPath>..\.lib\DuckDB.NET.Bindings.dll</HintPath>
-    </Reference>
-    <Reference Include="DuckDB.NET.Data">
-      <HintPath>..\.lib\DuckDB.NET.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="DuckDB\deploy-duckdb-database.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="MsExcel\Customer.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
