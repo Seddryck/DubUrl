@@ -8,13 +8,12 @@ using DubUrl.Mapping;
 using DubUrl.OleDb.Mapping;
 using DubUrl.Rewriting.Implementation;
 
-namespace DubUrl.QA.MsExcel
+namespace DubUrl.QA
 {
-    [Category("MsExcel")]
     [FixtureLifeCycle(LifeCycle.SingleInstance)]
-    public class OleDbProvider
+    public abstract class BaseOleDbProvider
     {
-        private SchemeMapperBuilder SchemeMapperBuilder { get; set; }
+        protected SchemeMapperBuilder SchemeMapperBuilder { get; set; }
 
         [OneTimeSetUp]
         public void SetupFixture()
@@ -28,10 +27,12 @@ namespace DubUrl.QA.MsExcel
             SchemeMapperBuilder = new SchemeMapperBuilder(assemblies);
         }
 
+        public abstract string ConnectionString { get; }
+
         [Test]
-        public void ConnectToServerWithSQLLogin()
+        public void Connect()
         {
-            var connectionUrl = new ConnectionUrl("oledb+xlsx:///MsExcel/customer.xlsx", SchemeMapperBuilder);
+            var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
             Console.WriteLine(connectionUrl.Parse());
 
             using var conn = connectionUrl.Connect();
@@ -39,24 +40,26 @@ namespace DubUrl.QA.MsExcel
         }
 
         [Test]
-        public void QueryCustomer()
+        public abstract void QueryCustomer();
+        protected virtual void QueryCustomer(string sql)
         {
-            var connectionUrl = new ConnectionUrl($"oledb+xlsx:///MsExcel/customer.xlsx", SchemeMapperBuilder);
+            var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select [FullName] from [Customer$] where [CustomerId]=1";
+            cmd.CommandText = sql;
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
         }
 
         [Test]
-        public void QueryCustomerWithParams()
+        public abstract void QueryCustomerWithParams();
+        protected virtual void QueryCustomerWithParams(string sql)
         {
-            var connectionUrl = new ConnectionUrl($"oledb+xlsx:///MsExcel/customer.xlsx", SchemeMapperBuilder);
+            var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
 
             using var conn = connectionUrl.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select [FullName] from [Customer$] where [CustomerId]=?";
+            cmd.CommandText = sql;
             var param = cmd.CreateParameter();
             param.DbType = DbType.Int32;
             param.Value = 2;
