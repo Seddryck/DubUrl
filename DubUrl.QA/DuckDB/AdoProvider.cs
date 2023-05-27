@@ -16,123 +16,31 @@ namespace DubUrl.QA.DuckDB
     [Category("AdoProvider")]
     [FixtureLifeCycle(LifeCycle.SingleInstance)]
     [NonParallelizable]
-    public class AdoProvider
+    public class AdoProvider : BaseAdoProvider
     {
-        [OneTimeSetUp]
-        public void SetupFixture()
-            => new ProviderFactoriesRegistrator().Register();
-
-        [Test]
-        public void ConnectToFile()
+        public override string ConnectionString
         {
-            var connectionUrl = new ConnectionUrl("duckdb:///customer.duckdb");
-            Console.WriteLine(connectionUrl.Parse());
-
-            using var conn = connectionUrl.Connect();
-            Assert.That(conn.State, Is.EqualTo(ConnectionState.Closed));
+            get => $"duckdb:///customer.duckdb";
         }
 
         [Test]
-        public void QueryCustomer()
-        {
-            var connectionUrl = new ConnectionUrl("duckdb:///customer.duckdb");
-
-            using var conn = connectionUrl.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select FullName from Customer where CustomerId=1";
-            Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomer()
+            => QueryCustomer("select FullName from Customer where CustomerId=1");
 
         [Test]
-        public void QueryCustomerWithDatabase()
-        {
-            var db = new DatabaseUrl("duckdb:///customer.duckdb");
-            var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomerWithDatabase()
+            => QueryCustomerWithDatabase("select FullName from Customer where CustomerId=1");
 
         [Test]
-        public void QueryCustomerWithParams()
-        {
-            var connectionUrl = new ConnectionUrl("duckdb:///customer.duckdb");
-
-            using var conn = connectionUrl.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select FullName from Customer where CustomerId=?";
-            var param = cmd.CreateParameter();
-            param.DbType = DbType.Int32;
-            param.Value = 2;
-            cmd.Parameters.Add(param);
-            Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
-        }
+        public override void QueryCustomerWithParams()
+            => Assert.Ignore("Named parameters not supported by DuckDB");
 
         [Test]
-        public void QueryCustomerWithDatabaseUrlAndQueryClass()
-        {
-            var db = new DatabaseUrl("duckdb:///customer.duckdb");
-            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomerWithPositionalParameter()
+            => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=($1)");
 
         [Test]
-        public void QueryCustomerWithRepository()
-        {
-            var options = new DubUrlServiceOptions();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
-                    , new[] { "duckdb:///customer.duckdb" }))
-                .BuildServiceProvider();
-            var repo = provider.GetRequiredService<CustomerRepository>();
-            var fullName = repo.SelectFirstCustomer();
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
-
-        [Test]
-        public void QueryCustomerWithRepositoryFactory()
-        {
-            var options = new DubUrlServiceOptions();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddSingleton<RepositoryFactory>()
-                .BuildServiceProvider();
-            var factory = provider.GetRequiredService<RepositoryFactory>();
-            var repo = factory.Instantiate<CustomerRepository>(
-                            "duckdb:///customer.duckdb"
-                        );
-            var fullName = repo.SelectFirstCustomer();
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
-
-        [Test]
-        [Ignore("Cannot map DuckDBDateOnly to DateTime")]
-        public void QueryTwoYoungestCustomersWithRepositoryFactory()
-        {
-            var options = new DubUrlServiceOptions().WithMicroOrm();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddSingleton<RepositoryFactory>()
-                .BuildServiceProvider();
-            var factory = provider.GetRequiredService<RepositoryFactory>();
-            var repo = factory.Instantiate<MicroOrmCustomerRepository>(
-                            "duckdb:///customer.duckdb"
-                        );
-            var customers = repo.SelectYoungestCustomers(2);
-            Assert.That(customers, Has.Count.EqualTo(2));
-            Assert.That(customers.Select(x => x.FullName), Has.Member("Alan Turing"));
-            Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
-        }
-
-        private static IConfiguration EmptyDubUrlConfiguration
-        {
-            get
-            {
-                var builder = new ConfigurationBuilder().AddInMemoryCollection();
-                return builder.Build();
-            }
-        }
+        public override void QueryCustomerWithDapper()
+            => QueryCustomerWithDapper("select * from Customer");
     }
 }

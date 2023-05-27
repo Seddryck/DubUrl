@@ -15,153 +15,40 @@ namespace DubUrl.QA.FirebirdSQL
 {
     [Category("FirebirdSQL")]
     [Category("AdoProvider")]
-    public class AdoProvider
+    public class AdoProvider : BaseAdoProvider
     {
-        [OneTimeSetUp]
-        public void SetupFixture()
-            => new ProviderFactoriesRegistrator().Register();
-
-        [Test]
-        public void ConnectToFile()
+        protected string CurrentDirectory
         {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-            var connectionUrl = new ConnectionUrl($"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled");
-            Console.WriteLine(connectionUrl.Parse());
+            get => Path.GetDirectoryName(GetType().Assembly.Location) ?? throw new NotImplementedException();
+        }
 
-            using var conn = connectionUrl.Connect();
-            Assert.That(conn.State, Is.EqualTo(ConnectionState.Closed));
+        public override string ConnectionString
+        {
+            get => $"firebird://fbUser:Password12!@localhost/{CurrentDirectory}\\Customer.fdb?wire crypt=Enabled";
         }
 
         [Test]
-        public void QueryCustomer()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-            var connectionUrl = new ConnectionUrl($"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled");
-
-            using var conn = connectionUrl.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select FullName from Customer where CustomerId=1";
-            Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomer()
+            => QueryCustomer("select FullName from Customer where CustomerId=1");
 
         [Test]
-        public void QueryCustomerWithDatabase()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-            var db = new DatabaseUrl($"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled");
-            var fullName = db.ReadScalarNonNull<string>("select FullName from Customer where CustomerId=1");
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomerWithDatabase()
+            => QueryCustomerWithDatabase("select FullName from Customer where CustomerId=1");
 
         [Test]
-        public void QueryCustomerWithDatabaseUrlAndQueryClass()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-            var db = new DatabaseUrl($"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled");
-            var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomerWithParams()
+            => QueryCustomerWithParams("select FullName from Customer where CustomerId=@CustId");
 
         [Test]
-        public void QueryCustomerWithNamedParameter()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-            var connectionUrl = new ConnectionUrl($"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled");
-
-            using var conn = connectionUrl.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select FullName from Customer where CustomerId=@CustId";
-            var param = cmd.CreateParameter();
-            param.ParameterName = "CustId";
-            param.DbType = DbType.Int32;
-            param.Value = 2;
-            cmd.Parameters.Add(param);
-            Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
-        }
+        public override void QueryCustomerWithPositionalParameter()
+            => Assert.Ignore("Positional parameters not supported by FirebirdSQL");
 
         [Test]
-        public void QueryCustomerWithRepository()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-
-            var options = new DubUrlServiceOptions();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
-                    , new[] { $"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled" }))
-                .BuildServiceProvider();
-            var repo = provider.GetRequiredService<CustomerRepository>();
-            var fullName = repo.SelectFirstCustomer();
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
+        public override void QueryCustomerWithDapper()
+            => QueryCustomerWithDapper("select * from Customer");
 
         [Test]
-        public void QueryCustomerWithRepositoryFactory()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-
-            var options = new DubUrlServiceOptions();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddSingleton<RepositoryFactory>()
-                .BuildServiceProvider();
-            var factory = provider.GetRequiredService<RepositoryFactory>();
-            var repo = factory.Instantiate<CustomerRepository>(
-                            $"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled"
-                        );
-            var fullName = repo.SelectFirstCustomer();
-            Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
-        }
-
-        [Test]
-        public void ParametrizedQueryCustomerWithRepositoryFactory()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-
-            var options = new DubUrlServiceOptions();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
-                    , new[] { $"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled" }))
-                .BuildServiceProvider();
-            var repo = provider.GetRequiredService<CustomerRepository>();
-            var fullName = repo.SelectCustomerById(4);
-            Assert.That(fullName, Is.EqualTo("Alan Turing"));
-        }
-
-        [Test]
-        [Ignore("probably not Micro-Orm compatible")]
-        public void QueryTwoYoungestCustomersWithRepositoryFactory()
-        {
-            var currentDir = Path.GetDirectoryName(GetType().Assembly.Location);
-            
-            var options = new DubUrlServiceOptions().WithMicroOrm();
-            using var provider = new ServiceCollection()
-                .AddSingleton(EmptyDubUrlConfiguration)
-                .AddDubUrl(options)
-                .AddDubUrlMicroOrm()
-                .AddSingleton<RepositoryFactory>()
-                .BuildServiceProvider();
-            var factory = provider.GetRequiredService<RepositoryFactory>();
-            var repo = factory.Instantiate<MicroOrmCustomerRepository>(
-                            $"firebird://fbUser:Password12!@localhost/{currentDir}\\Customer.fdb?wire crypt=Enabled"
-                        );
-            var customers = repo.SelectYoungestCustomers(2);
-            Assert.That(customers, Has.Count.EqualTo(2));
-            Assert.That(customers.Select(x => x.FullName), Has.Member("Alan Turing"));
-            Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
-        }
-
-        private static IConfiguration EmptyDubUrlConfiguration
-        {
-            get
-            {
-                var builder = new ConfigurationBuilder().AddInMemoryCollection();
-                return builder.Build();
-            }
-        }
+        public override void QueryTwoYoungestCustomersWithRepositoryFactory()
+            => Assert.Ignore("Not investigated why, but not working");
     }
 }
