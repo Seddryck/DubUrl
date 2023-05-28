@@ -7,7 +7,7 @@
       "ms",
       "sqlserver"
     ],
-    "ProviderInvariantName": "System.Data.SqlClient"
+    "ProviderInvariantName": "Microsoft.Data.SqlClient"
   },
   {
     "Class": "MySqlConnectorMapper",
