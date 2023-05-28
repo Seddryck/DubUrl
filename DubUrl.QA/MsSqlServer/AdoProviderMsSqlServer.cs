@@ -9,7 +9,7 @@ namespace DubUrl.QA.MsSqlServer
 
         public override string ConnectionString
         {
-            get => $"mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2019")}/DubUrl";
+            get => $"mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2019")}/DubUrl?Encrypt=false;";
         }
 
         [Test]
