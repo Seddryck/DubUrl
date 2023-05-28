@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping.Implementation
 {
     [Mapper<MsSqlServerDatabase, NamedParametrizer>(
-        "System.Data.SqlClient"
+        "Microsoft.Data.SqlClient"
     )]
     internal class MsSqlServerMapper : BaseMapper
     {

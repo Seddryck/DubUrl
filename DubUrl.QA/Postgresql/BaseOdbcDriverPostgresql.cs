@@ -2,7 +2,6 @@ using NUnit.Framework;
 
 namespace DubUrl.QA.Postgresql
 {
-    [Category("Postgresql")]
     public abstract class BaseOdbcDriverPostgresql : BaseOdbcDriver
     {
         [Test]

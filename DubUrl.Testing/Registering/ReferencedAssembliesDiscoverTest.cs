@@ -15,7 +15,7 @@ namespace DubUrl.Testing.Registering
     {
         [Test]
 
-        [TestCase(typeof(System.Data.SqlClient.SqlClientFactory))]
+        [TestCase(typeof(Microsoft.Data.SqlClient.SqlClientFactory))]
         [TestCase(typeof(Npgsql.NpgsqlFactory))]
         [TestCase(typeof(Oracle.ManagedDataAccess.Client.OracleClientFactory))]
         [TestCase(typeof(MySqlConnector.MySqlConnectorFactory))]

@@ -4,14 +4,7 @@ using DubUrl.Locating.Options;
 using DubUrl.Rewriting.Implementation;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Npgsql;
 using System.Data.Odbc;
 
 namespace DubUrl.Testing.Rewriting.Implementation
