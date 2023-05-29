@@ -52,8 +52,8 @@ Function Deploy-TestSuite {
             return [PSCustomObject]@{
                 Suite = $name
                 Run = $true
-                Failure = $true
-                Result = if ($null -eq $result) {0}
+                HarnessFailure = $true
+                TestSuiteFailure = if ($null -eq $result) {0}
                 Elapsed = if ($null -eq $result) {New-TimeSpan -Start $startWait}
             }
         }
@@ -90,8 +90,17 @@ $results = @()
 foreach ($s in $suites) {
     $results += Deploy-TestSuite -Name $s -Force:$force
 }
+foreach ($e in $exclude) {
+    $results += [PSCustomObject]@{
+                Suite = $e
+                Run = $false
+                HarnessFailure = $null
+                TestSuiteFailure = $null
+                Elapsed = $null
+            }
+}
 
-$results | Format-Table | Out-String | Write-Host
+$results | Sort-Object -Property "Suite" | Format-Table | Out-String | Write-Host
 
 $failureCount = 0
 $results | ForEach {$failureCount += $_.TestSuiteFailure}
