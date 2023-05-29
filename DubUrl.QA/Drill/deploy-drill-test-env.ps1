@@ -39,8 +39,8 @@ if ($force -or ($filesChanged -like "*drill*")) {
 				-Uri "http://package.mapr.com/tools/MapR-ODBC/MapR_Drill/MapRDrill_odbc_v1.3.22.1055/MapR%20Drill%201.3%2064-bit.msi" `
 				-OutFile "$env:temp\drill-odbc.msi"
 		Write-Host "`t`tInstalling MapR Drill ODBC driver ..."
-		& msiexec /i "$env:temp\drill-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-drill.log" | Out-Host
-		Get-Content "$env:temp\install-drill.log" | Write-Host
+		& msiexec /i "$env:temp\drill-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-drill.log" | Out-Null
+		#Get-Content "$env:temp\install-drill.log" | Write-Host
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*drill*" -Platform "64-bit"
 		Write-Host "`tDeployment of MapR Drill ODBC driver finalized."

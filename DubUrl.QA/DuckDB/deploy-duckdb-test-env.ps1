@@ -60,22 +60,23 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	Write-host "`tDatabase created"
 
 	# Installing ODBC driver
-	Write-host "`tDeploying DuckDB ODBC drivers"
+	Write-host "`tDeploying DuckDB ODBC drivers ..."
 	$drivers = Get-OdbcDriver -Name "*DuckDB*" -Platform "64-bit"
 	If ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading DuckDB ODBC driver ..."
 		Invoke-WebRequest "$rootUrl/duckdb_odbc-windows-amd64.zip" -OutFile "$env:temp\duckdb_odbc.zip"
 		Write-Host "`t`tExtracting from archive DuckDB ODBC driver ..."
-		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y | Null-Out
+		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y | Out-Null
 		Write-Host "`t`tInstalling DuckDB ODBC driver ..."
-		& "$duckPath\odbc_install.exe" "/CI /Install".Split(" ") | Out-Host
+		& "$duckPath\odbc_install.exe" "/CI /Install".Split(" ") | Out-Null
+		Write-Host "`t`tDuckDB ODBC driver installed."
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*DuckDB*"
 		Write-Host "`tDeployment of DuckDB ODBC driver finalized."
 	} else {
 		Write-Host "`t`tDrivers already installed:"
 		Get-OdbcDriver -Name "*DuckDB*" -Platform "64-bit"
-		Write-Host "`t`tSkipping installation of new drivers"
+		Write-Host "`t`tInstallation of new drivers skipped."
 	}
 
 	# Running QA tests
