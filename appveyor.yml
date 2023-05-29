@@ -16,12 +16,9 @@ init:
 - cmd: git config --global core.autocrlf true
 - cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE "1"
 - cmd: RefreshEnv.cmd
-- pwsh: Write-Host "Environment variable IGNORE_NORMALISATION_GIT_HEAD_MOVE set to $($env:IGNORE_NORMALISATION_GIT_HEAD_MOVE)"
-- cmd: echo %IGNORE_NORMALISATION_GIT_HEAD_MOVE%
 - pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
 before_build:
-#- cmd: gitversion /version
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 
@@ -34,10 +31,10 @@ test_script:
 - dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
-      $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid of a PR or a build on main
+      $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
       & .\Duburl.QA\deploy-test-harness.ps1 -force:$force -exclude @("Drill", "Trino")
       if ($lastexitcode -gt 0) {
-        throw "At least one of the test-suite was not successful. Stopping build."
+        throw "At least one of the test-suite was not successful. Build stopped."
       }
 
 after_test:

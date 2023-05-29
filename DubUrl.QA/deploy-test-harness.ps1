@@ -76,7 +76,11 @@ if ($suites.Length -eq 0) {
         $suites = $suites | Where-Object { $exclude -notcontains $_ }
     }
 }
-Write-Host "$suites.Length test-suites to run."
+if ($suites.Length -le 1) {
+    Write-Host "$($suites.Length) test-suite to run."
+} else {
+    Write-Host "$($suites.Length) test-suites to run."
+}
 
 if ($force) {
     Write-Host "Run of these test-suites is enforced."
