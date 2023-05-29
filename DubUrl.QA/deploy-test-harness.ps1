@@ -72,12 +72,13 @@ if ($suites.Length -eq 0) {
         | Select-Object "Name" | ForEach{$_.Name.Substring(7,$_.Name.Substring(7).IndexOf("-"))}
 
     if ($exclude.Length -gt 0) {
-        $suites | Where-Object { $exclude -notcontains $_ }
+        $suites = $suites | Where-Object { $exclude -notcontains $_ }
     }
 }
+Write-Host "$suites.Length test-suites to run."
 
 if ($force) {
-    Write-Host "Enforcing the run of test harnesses ..."
+    Write-Host "Run of these test-suites is enforced."
 }
 
 $results = @()
