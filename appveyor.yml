@@ -13,12 +13,13 @@ environment:
     secure: gtEHCUmmDjYfrp/NEe2qUH3SBedD4Hc7VWVyvOOE5KmyYYQnFmtyH9sQpaD33nU5/dqeijEBdkdPzKQYuIrpmgiIt/OucnY8GoNcL6VR9WSVc1hCkhGMYLBjooeKOvBg
 
 init:
-  - cmd: git config --global core.autocrlf true
-  - ps: $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = 1
+- cmd: git config --global core.autocrlf true
+- pwsh: $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = 1
 
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
+- pwsh: Write-Host "Pull Request Number $($env:APPVEYOR_PULL_REQUEST_NUMBER)"
 
 build_script:
   #- dotnet --info
