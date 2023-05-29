@@ -31,7 +31,7 @@ test_script:
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
       $force = -not(($null -eq $env:APPVEYOR_PULL_REQUEST_NUMBER) -or ("" -eq $env:APPVEYOR_PULL_REQUEST_NUMBER))
-      & .\Duburl.QA\deploy-test-harness.ps1 -force:$force
+      & .\Duburl.QA\deploy-test-harness.ps1 -force:$force -exclude @("Drill", "Trino")
       if ($lastexitcode -gt 0) {
         throw "At least one of the test-suite was not successful. Stopping build."
       }
