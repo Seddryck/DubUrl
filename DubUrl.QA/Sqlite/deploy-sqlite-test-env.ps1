@@ -3,6 +3,8 @@ Param(
 	, $config= "Release"
 	, $extension = "zip"
 )
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
 	Write-Host "Enforcing QA testing for Sqlite"
 }
@@ -71,7 +73,7 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	}
 
 	# Running QA tests
-	Write-Host "Running QA tests related to PostgreSQL"
+	Write-Host "Running QA tests related to Sqlite"
 	$categories = @("Sqlite+AdoProvider")
 	if ($odbcDriverInstalled -eq $true) {
 		$categories += "Sqlite+ODBC"
