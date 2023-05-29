@@ -105,4 +105,15 @@ $results | Sort-Object -Property "Suite" | Format-Table | Out-String | Write-Hos
 $failureCount = 0
 $results | ForEach {$failureCount += $_.TestSuiteFailure}
 $failureCount = if ($failureCount -gt 0) {1} else {0}
-return $failureCount
+
+$elasped = $(New-TimeSpan -Start $startWait)
+$displayElapsed =  if ($elasped.Minutes -gt 0) {"$($elasped.ToString("mm")) minute "}
+$displayElapsed += "$($elasped.ToString("ss")) seconds"
+
+if ($failureCount -eq 0) {
+    Write-Host "Test-harness successfully executed in $displayElapsed." -ForegroundColor black -BackgroundColor -green
+} else {
+    Write-Host "Test-harness has some failures during execution in $displayElapsed." -ForegroundColor black -BackgroundColor -red
+}
+
+exit $failureCount
