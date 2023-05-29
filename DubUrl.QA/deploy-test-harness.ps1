@@ -29,7 +29,7 @@ Function Deploy-TestSuite {
             & .\deploy-$name-test-env.ps1 -force:$force | Out-Null
             $result = $lastexitcode
             $elasped = $(New-TimeSpan -Start $startWait)
-            $displayElapsed =  if ($elasped.Minutes -gt 0) {"$($elasped.ToString("m")) minute "}
+            $displayElapsed =  if ($elasped.Minutes -gt 0) {"$($elasped.ToString("mm")) minute "}
             $displayElapsed += "$($elasped.ToString("ss")) seconds."
             if ($result -eq 0) {
                 Write-Host "Test-suite for $name successfully run in $displayElapsed." -ForegroundColor green
