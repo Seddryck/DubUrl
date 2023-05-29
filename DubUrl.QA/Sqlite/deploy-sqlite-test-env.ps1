@@ -4,9 +4,8 @@ Param(
 	, $extension = "zip"
 )
 if ($force) {
-	Write-Warning "Forcing QA testing for Sqlite"
+	Write-Host "Enforcing QA testing for Sqlite"
 }
-Push-Location $PSScriptRoot
 
 $binPath = "./../bin/$config/net6.0/"
 If (-not($env:PATH -like "*7-zip*")) {
@@ -83,9 +82,7 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Sqlite"
 }
-Pop-Location

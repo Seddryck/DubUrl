@@ -29,18 +29,7 @@ test_script:
 - dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
-      & .\Duburl.QA\MsSqlServer\deploy-mssql-test-env.ps1 -force
-      & .\Duburl.QA\Postgresql\deploy-pgsql-test-env.ps1 -force
-      & .\Duburl.QA\Timescale\deploy-timescale-test-env.ps1 -force
-      & .\Duburl.QA\CockRoach\deploy-cockroach-test-env.ps1 -force
-      & .\Duburl.QA\Mysql\deploy-mysql-test-env.ps1 -force
-      & .\Duburl.QA\Sqlite\deploy-sqlite-test-env.ps1 -force
-      & .\Duburl.QA\FirebirdSQL\deploy-firebirdsql-test-env.ps1 -force
-      & .\Duburl.QA\MsExcel\deploy-msexcel-test-env.ps1 -force
-      & .\Duburl.QA\DuckDB\deploy-duckdb-test-env.ps1 -force
-      & .\Duburl.QA\Text\deploy-text-test-env.ps1 -force
-      & .\Duburl.QA\QuestDB\deploy-questdb-test-env.ps1 -force
-      & .\Duburl.QA\Trino\deploy-trino-test-env.ps1 -force
+      & .\Duburl.QA\deploy-test-harness.ps1 -force
 
 after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 

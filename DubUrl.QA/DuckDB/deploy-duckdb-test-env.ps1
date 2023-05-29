@@ -2,11 +2,10 @@ Param(
 	[switch] $force=$false
 	, $config= "Release"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for DuckDB"
+	Write-Host "Enforcing QA testing for DuckDB"
 }
 
 $binPath = "./../bin/$config/net6.0/"
@@ -67,7 +66,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 		Write-Host "`t`tDownloading DuckDB ODBC driver ..."
 		Invoke-WebRequest "$rootUrl/duckdb_odbc-windows-amd64.zip" -OutFile "$env:temp\duckdb_odbc.zip"
 		Write-Host "`t`tExtracting from archive DuckDB ODBC driver ..."
-		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y
+		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y | Null-Out
 		Write-Host "`t`tInstalling DuckDB ODBC driver ..."
 		& "$duckPath\odbc_install.exe" "/CI /Install".Split(" ") | Out-Host
 		Write-Host "`t`tChecking installation ..."
@@ -84,9 +83,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	$testSuccessful = Run-TestSuite @("DuckDB+AdoProvider", "DuckDB+ODBC")
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for DuckDB"
 }
-Pop-Location

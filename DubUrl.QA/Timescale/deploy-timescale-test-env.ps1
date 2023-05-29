@@ -1,12 +1,11 @@
 Param(
 	[switch] $force=$false
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for TimescaleDB"
+	Write-Host "Enforcing QA testing for TimescaleDB"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -38,9 +37,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for TimescaleDB"
 }
-Pop-Location

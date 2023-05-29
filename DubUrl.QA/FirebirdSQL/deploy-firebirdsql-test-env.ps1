@@ -4,11 +4,10 @@ Param(
 	, $config= "Release"
 	, $extension = "zip"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for FirebirdSQL"
+	Write-Host "Enforcing QA testing for FirebirdSQL"
 }
 
 $binPath = "./../bin/$config/net6.0/"
@@ -157,9 +156,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for FirebirdSQL"
 }
-Pop-Location

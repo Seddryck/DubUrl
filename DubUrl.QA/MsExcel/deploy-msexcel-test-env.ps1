@@ -1,11 +1,10 @@
 Param(
 	[switch] $force=$false
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Microsoft Excel"
+	Write-Host "Enforcing QA testing for Microsoft Excel"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -35,9 +34,7 @@ if ($force -or ($filesChanged -like "*excel*")) {
 	$testSuccessful = Run-TestSuite @("MsExcel")
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Microsoft Excel"
 }
-Pop-Location

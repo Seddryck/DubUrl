@@ -2,9 +2,8 @@ Param(
 	[switch] $force=$false
 )
 if ($force) {
-	Write-Warning "Forcing QA testing for CockRoachDB"
+	Write-Host "Enforcing QA testing for CockRoachDB"
 }
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
@@ -38,9 +37,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
 }
-Pop-Location

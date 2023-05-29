@@ -3,13 +3,12 @@ Param(
 	, [string] $databaseService= "MSSQL`$SQL2019"
 	, [string] $config = "Release"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Windows-Service.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Microsoft SQL Server"
+	Write-Host "Enforcing QA testing for Microsoft SQL Server"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -55,13 +54,15 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 
 	# Stopping database Service
 	if (!$previouslyRunning) {
-		Stop-Windows-Service $databaseService
+		if ($env:APPVEYOR -eq "True") {
+			Stop-Windows-Service $databaseService
+		} else {
+			Remove-Container $running
+		}
 	}
 	
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for mssql"
 }
-Pop-Location

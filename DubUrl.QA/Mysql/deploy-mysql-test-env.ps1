@@ -3,13 +3,12 @@ Param(
 	, $databaseService= "MySQL57"
 	, $odbcDriver= "MariaDB"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for MySQL"
+	Write-Host "Enforcing QA testing for MySQL"
 }
 
 $databaseVersion = $databaseService.Substring($databaseService.Length - 2)
@@ -133,9 +132,7 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for MySQL"
 }
-Pop-Location

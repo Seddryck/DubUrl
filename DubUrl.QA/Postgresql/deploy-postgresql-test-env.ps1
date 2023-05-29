@@ -2,13 +2,12 @@ Param(
 	[switch] $force=$false
 	, $databaseService= "postgresql-x64-13"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for PostgreSQL"
+	Write-Host "Enforcing QA testing for PostgreSQL"
 }
 
 $pgPath = "C:\Program Files\PostgreSQL\$($databaseService.Split('-')[2])\bin"
@@ -61,9 +60,7 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for PostgreSQL"
 }
-Pop-Location

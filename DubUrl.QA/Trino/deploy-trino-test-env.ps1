@@ -3,12 +3,11 @@ Param(
 	, $config = "Release"
 	, $networkName = "trino-network"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Trino"
+	Write-Host "Enforcing QA testing for Trino"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -86,9 +85,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Trino"
 }
-Pop-Location

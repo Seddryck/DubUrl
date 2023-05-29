@@ -2,12 +2,11 @@ Param(
 	[switch] $force=$false
 	, $config = "Release"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for QuestDB"
+	Write-Host "Enforcing QA testing for QuestDB"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -42,9 +41,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for QuestDB"
 }
-Pop-Location
