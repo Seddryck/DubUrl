@@ -21,6 +21,7 @@ init:
 - pwsh: Write-Host "APPVEYOR_REPO_BRANCH $($env:APPVEYOR_REPO_BRANCH)"
 
 before_build:
+- cmd: gitversion /version
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 
