@@ -26,7 +26,13 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	# Starting docker container for Apache Drill
 	$previouslyRunning, $running = Deploy-Container -FullName "drill" -Arguments @("$PSScriptRoot\..\bin\$config\net6.0\.bigdata")
 	if (!$previouslyRunning) {
-		Start-Sleep -s 10
+		$waitForAvailable = 10
+		if ($env:APPVEYOR -eq "True") {
+			$waitForAvailable = 30
+		}
+		Write-host "`tWaiting $waitForAvailable seconds for the server to be available ..."
+		Start-Sleep -s $waitForAvailable
+		Write-host "`tServer is expected to be available."
 	}
 
 	$odbcDriverInstalled = $false
