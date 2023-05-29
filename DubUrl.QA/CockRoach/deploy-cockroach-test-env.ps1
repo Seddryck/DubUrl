@@ -2,9 +2,8 @@ Param(
 	[switch] $force=$false
 )
 if ($force) {
-	Write-Warning "Forcing QA testing for CockRoachDB"
+	Write-Host "Enforcing QA testing for CockRoachDB"
 }
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
@@ -26,7 +25,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	& docker exec -it roach-single sh -c "$cmd"
 
 	# Installing ODBC driver
-	. $PSScriptRoot\..\Postgresql\deploy-pgsql-odbc-driver.ps1
+	. $PSScriptRoot\..\Postgresql\deploy-postgresql-odbc-driver.ps1
 
 	# Running QA tests
 	Write-Host "Running QA tests related to CockRoach"
@@ -38,9 +37,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
+	return -1
 }
-Pop-Location

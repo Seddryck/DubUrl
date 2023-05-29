@@ -18,7 +18,7 @@ namespace DubUrl.QA.Drill
 
         [Test]
         public override void QueryCustomer()
-            => QueryCustomer("select \"FullName\" from \"Customer\" where \"CustomerId\"=1");
+            => QueryCustomer("select FullName from `mnt/Customer` where CustomerId=1");
 
         [Test]
         public override void QueryCustomerWithParams()

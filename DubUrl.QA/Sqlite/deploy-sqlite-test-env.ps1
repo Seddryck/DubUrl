@@ -3,10 +3,11 @@ Param(
 	, $config= "Release"
 	, $extension = "zip"
 )
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
 if ($force) {
-	Write-Warning "Forcing QA testing for Sqlite"
+	Write-Host "Enforcing QA testing for Sqlite"
 }
-Push-Location $PSScriptRoot
 
 $binPath = "./../bin/$config/net6.0/"
 If (-not($env:PATH -like "*7-zip*")) {
@@ -52,9 +53,10 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 
 	Write-host "`tCreating database at $databasePath"
 	Get-Content ".\deploy-sqlite-database.sql" | & sqlite3.exe
+	Write-host "`tDatabase created."
 
 	# Installing ODBC driver
-	Write-host "`tDeploying Sqlite ODBC drivers"
+	Write-host "`tDeploying Sqlite ODBC drivers ..."
 	$odbcDriverInstalled = $false;
 	$drivers = Get-OdbcDriver -Name "*sqlite*" -Platform "64-bit"
 	If ($drivers.Length -eq 0) {
@@ -67,25 +69,20 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 		$odbcDriverInstalled = $true;
 		Write-Host "`t`tDrivers already installed:"
 		Get-OdbcDriver -Name "*sqlite*" -Platform "64-bit"
-		Write-Host "`tSkipping installation of new drivers"
+		Write-Host "`tInstallation of new drivers skipped."
 	}
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Sqlite"
-	& dotnet build "..\..\DubUrl.QA" -c Release --nologo | out-null
-
-	# To avoid to run the two test-suites in parallel
-	& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Sqlite""&""TestCategory=AdoProvider)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-	$testSuccessful = ($lastexitcode -gt 0)
+	$categories = @("Sqlite+AdoProvider")
 	if ($odbcDriverInstalled -eq $true) {
-		& dotnet test "..\..\DubUrl.QA" --filter "(TestCategory=Sqlite""&""TestCategory=ODBC)" -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo
-		$testSuccessful += ($lastexitcode -gt 0)
+		$categories += "Sqlite+ODBC"
 	}
+	$testSuccessful = Run-TestSuite $categories
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Sqlite"
+	return -1
 }
-Pop-Location

@@ -4,11 +4,10 @@ Param(
 	, $config= "Release"
 	, $extension = "zip"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for FirebirdSQL"
+	Write-Host "Enforcing QA testing for FirebirdSQL"
 }
 
 $binPath = "./../bin/$config/net6.0/"
@@ -102,7 +101,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	Write-host "`tCreating database at $databasePath"
-	Get-Content ".\deploy-firebird-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\deploy-firebird-database.sql" -b -e -q
+	Get-Content ".\deploy-firebirdsql-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\deploy-firebirdsql-database.sql" -b -e -q
 
 	# Installing ODBC driver
 	Write-host "`tDeploying FirebirdSQL ODBC drivers"
@@ -113,14 +112,15 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		Invoke-WebRequest "https://downloads.sourceforge.net/project/firebird/firebird-ODBC-driver/2.0.5-Release/Firebird_ODBC_2.0.5.156_x64.exe?ts=gAAAAABkLAh47QYDiggM29OgN08H8hWFCY2_ph5GKLpc0ho-5aHKxXoczAWxsSMuc8MIKS55x8LtD3fAFyAX3Da2O0PDyo-4oA%3D%3D&amp;use_mirror=deac-fra&amp;r=https%3A%2F%2Ffirebirdsql.org%2F" `
 		    -OutFile "$env:temp\firebird_odbc.exe"
 		
-		try { Write-Host "`t`tInstalling FirebirdSQL ODBC driver ..."
+		try { 
+			Write-Host "`t`tInstalling FirebirdSQL ODBC driver ..."
 		    & "$env:temp\firebird_odbc.exe" "/VERYSILENT /NORESTART /NOICONS".Split(" ") | Out-Host
 			$odbcDriverInstalled = $true;
 	    } catch {
 			Write-Host "An exception was caught: $($_.Exception.Message)"
 		}
 
-		if ($odbcDriverInstalled = $true -eq $true) {
+		if ($odbcDriverInstalled -eq $true) {
 			Write-Host "`t`tChecking installation ..."
 			Get-OdbcDriver -Name "*firebird*"
 			Write-Host "`tDeployment of FirebirdSQL ODBC driver finalized."	
@@ -157,9 +157,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for FirebirdSQL"
+	return -1
 }
-Pop-Location

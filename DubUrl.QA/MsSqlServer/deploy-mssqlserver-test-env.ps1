@@ -3,13 +3,12 @@ Param(
 	, [string] $databaseService= "MSSQL`$SQL2019"
 	, [string] $config = "Release"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Windows-Service.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Microsoft SQL Server"
+	Write-Host "Enforcing QA testing for Microsoft SQL Server"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -24,7 +23,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 			exit 1
 		}
 	} else {
-		$previouslyRunning, $running = Deploy-Container -FullName "mssql"
+		$previouslyRunning, $running = Deploy-Container -FullName "mssqlserver" -Nickname "mssql"
 		if (!$previouslyRunning){
 			Start-Sleep -s 10
 		}
@@ -34,13 +33,13 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	Write-host "`tDeploying database ..."
 	if ($env:APPVEYOR -eq "True") {
 		Write-host "`t`tUsing local client ..."
-		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssql-database.sql" | Out-Null
+		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssqlserver-database.sql" | Out-Null
 	} else {
 		Write-host "`t`tCopying deployment script on container ..."
-		& docker cp "./deploy-mssql-database.sql" mssql:"./deploy-mssql-database.sql" 
+		& docker cp "./deploy-mssqlserver-database.sql" mssql:"./deploy-mssqlserver-database.sql" 
 		Write-host "`t`tScript copied"
 		Write-host "`t`tUsing remote client on the docker container ..."
-		& docker exec -it mssql /opt/mssql-tools/bin/sqlcmd "-Usa" "-PPassword12!" "-i./deploy-mssql-database.sql" | Out-Null
+		& docker exec -it mssql /opt/mssql-tools/bin/sqlcmd "-Usa" "-PPassword12!" "-i./deploy-mssqlserver-database.sql" | Out-Null
 	}
 	Write-host "`tDatabase deployed"
 	
@@ -55,13 +54,15 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 
 	# Stopping database Service
 	if (!$previouslyRunning) {
-		Stop-Windows-Service $databaseService
+		if ($env:APPVEYOR -eq "True") {
+			Stop-Windows-Service $databaseService
+		} else {
+			Remove-Container $running
+		}
 	}
 	
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for mssql"
+	return -1
 }
-Pop-Location

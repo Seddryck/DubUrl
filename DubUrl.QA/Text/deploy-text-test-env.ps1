@@ -1,11 +1,10 @@
 Param(
 	[switch] $force=$false
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Text files"
+	Write-Host "Enforcing QA testing for Text files"
 }
 
 
@@ -36,9 +35,7 @@ if ($force -or ($filesChanged -like "*csv*")) {
 	$testSuccessful = Run-TestSuite @("Text")
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Text files"
+	return -1
 }
-Pop-Location

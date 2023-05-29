@@ -2,11 +2,10 @@ Param(
 	[switch] $force=$false
 	, $config= "Release"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for DuckDB"
+	Write-Host "Enforcing QA testing for DuckDB"
 }
 
 $binPath = "./../bin/$config/net6.0/"
@@ -33,7 +32,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 		Write-Host "`tDownloading DuckDB CLI ..."
 		Invoke-WebRequest "$rootUrl/duckdb_cli-windows-amd64.zip" -OutFile "$env:temp\duckdb_cli.zip"
 		Write-Host "`tExtracting from archive DuckDB CLI..."		
-		& 7z e "$env:temp\duckdb_cli.zip" -o"$duckPath" -y
+		& 7z e "$env:temp\duckdb_cli.zip" -o"$duckPath" -y | Out-Null
 	} else {
 		Write-Host "`tDuckDB CLI already installed: skipping installation."
 	}
@@ -61,22 +60,23 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	Write-host "`tDatabase created"
 
 	# Installing ODBC driver
-	Write-host "`tDeploying DuckDB ODBC drivers"
+	Write-host "`tDeploying DuckDB ODBC drivers ..."
 	$drivers = Get-OdbcDriver -Name "*DuckDB*" -Platform "64-bit"
 	If ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading DuckDB ODBC driver ..."
 		Invoke-WebRequest "$rootUrl/duckdb_odbc-windows-amd64.zip" -OutFile "$env:temp\duckdb_odbc.zip"
 		Write-Host "`t`tExtracting from archive DuckDB ODBC driver ..."
-		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y
+		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y | Out-Null
 		Write-Host "`t`tInstalling DuckDB ODBC driver ..."
-		& "$duckPath\odbc_install.exe" "/CI /Install".Split(" ") | Out-Host
+		& "$duckPath\odbc_install.exe" "/CI /Install".Split(" ") | Out-Null
+		Write-Host "`t`tDuckDB ODBC driver installed."
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*DuckDB*"
 		Write-Host "`tDeployment of DuckDB ODBC driver finalized."
 	} else {
 		Write-Host "`t`tDrivers already installed:"
 		Get-OdbcDriver -Name "*DuckDB*" -Platform "64-bit"
-		Write-Host "`t`tSkipping installation of new drivers"
+		Write-Host "`t`tInstallation of new drivers skipped."
 	}
 
 	# Running QA tests
@@ -84,9 +84,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	$testSuccessful = Run-TestSuite @("DuckDB+AdoProvider", "DuckDB+ODBC")
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for DuckDB"
+	return -1
 }
-Pop-Location

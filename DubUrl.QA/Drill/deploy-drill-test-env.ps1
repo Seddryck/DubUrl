@@ -2,12 +2,11 @@ Param(
 	[switch] $force=$false
 	, $config = "Release"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Apache Drill"
+	Write-Host "Enforcing QA testing for Apache Drill"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -27,7 +26,13 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	# Starting docker container for Apache Drill
 	$previouslyRunning, $running = Deploy-Container -FullName "drill" -Arguments @("$PSScriptRoot\..\bin\$config\net6.0\.bigdata")
 	if (!$previouslyRunning) {
-		Start-Sleep -s 10
+		$waitForAvailable = 10
+		if ($env:APPVEYOR -eq "True") {
+			$waitForAvailable = 50
+		}
+		Write-host "`tWaiting $waitForAvailable seconds for the server to be available ..."
+		Start-Sleep -s $waitForAvailable
+		Write-host "`tServer is expected to be available."
 	}
 
 	$odbcDriverInstalled = $false
@@ -40,8 +45,8 @@ if ($force -or ($filesChanged -like "*drill*")) {
 				-Uri "http://package.mapr.com/tools/MapR-ODBC/MapR_Drill/MapRDrill_odbc_v1.3.22.1055/MapR%20Drill%201.3%2064-bit.msi" `
 				-OutFile "$env:temp\drill-odbc.msi"
 		Write-Host "`t`tInstalling MapR Drill ODBC driver ..."
-		& msiexec /i "$env:temp\drill-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-drill.log" | Out-Host
-		Get-Content "$env:temp\install-drill.log" | Write-Host
+		& msiexec /i "$env:temp\drill-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-drill.log" | Out-Null
+		#Get-Content "$env:temp\install-drill.log" | Write-Host
 		Write-Host "`t`tChecking installation ..."
 		Get-OdbcDriver -Name "*drill*" -Platform "64-bit"
 		Write-Host "`tDeployment of MapR Drill ODBC driver finalized."
@@ -67,9 +72,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Apache Drill"
+	return -1
 }
-Pop-Location

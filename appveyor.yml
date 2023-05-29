@@ -13,8 +13,10 @@ environment:
     secure: gtEHCUmmDjYfrp/NEe2qUH3SBedD4Hc7VWVyvOOE5KmyYYQnFmtyH9sQpaD33nU5/dqeijEBdkdPzKQYuIrpmgiIt/OucnY8GoNcL6VR9WSVc1hCkhGMYLBjooeKOvBg
 
 init:
-  - cmd: git config --global core.autocrlf true
-  - ps: $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = 1
+- cmd: git config --global core.autocrlf true
+- cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE "1"
+- cmd: RefreshEnv.cmd
+- pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
@@ -29,18 +31,11 @@ test_script:
 - dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
-      & .\Duburl.QA\MsSqlServer\deploy-mssql-test-env.ps1 -force
-      & .\Duburl.QA\Postgresql\deploy-pgsql-test-env.ps1 -force
-      & .\Duburl.QA\Timescale\deploy-timescale-test-env.ps1 -force
-      & .\Duburl.QA\CockRoach\deploy-cockroach-test-env.ps1 -force
-      & .\Duburl.QA\Mysql\deploy-mysql-test-env.ps1 -force
-      & .\Duburl.QA\Sqlite\deploy-sqlite-test-env.ps1 -force
-      & .\Duburl.QA\FirebirdSQL\deploy-firebirdsql-test-env.ps1 -force
-      & .\Duburl.QA\MsExcel\deploy-msexcel-test-env.ps1 -force
-      & .\Duburl.QA\DuckDB\deploy-duckdb-test-env.ps1 -force
-      & .\Duburl.QA\Text\deploy-text-test-env.ps1 -force
-      & .\Duburl.QA\QuestDB\deploy-questdb-test-env.ps1 -force
-      & .\Duburl.QA\Trino\deploy-trino-test-env.ps1 -force
+      $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
+      & .\Duburl.QA\deploy-test-harness.ps1 -force:$force -exclude @("Drill", "Trino")
+      if ($lastexitcode -gt 0) {
+        throw "At least one of the test-suite was not successful. Build stopped."
+      }
 
 after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 

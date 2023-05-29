@@ -3,12 +3,11 @@ Param(
 	, $config = "Release"
 	, $networkName = "trino-network"
 )
-Push-Location $PSScriptRoot
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
 if ($force) {
-	Write-Warning "Forcing QA testing for Trino"
+	Write-Host "Enforcing QA testing for Trino"
 }
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
@@ -52,7 +51,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -p "5432" -f ".\..\PostgreSQL\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -p "5432" -f ".\..\PostgreSQL\deploy-postgresql-database.sql"
 	Write-host "`tDatabase created"
 
 	#Install ODBC drivers
@@ -86,9 +85,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	}
 
 	# Raise failing tests
-	Pop-Location
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Trino"
+	return -1
 }
-Pop-Location
