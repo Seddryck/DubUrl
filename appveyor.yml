@@ -17,7 +17,7 @@ init:
 - cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE 1
 - pwsh: Write-Host "Environment variable IGNORE_NORMALISATION_GIT_HEAD_MOVE set to $($env:IGNORE_NORMALISATION_GIT_HEAD_MOVE)"
 - cmd: echo %IGNORE_NORMALISATION_GIT_HEAD_MOVE%
-- pwsh: Write-Host "Target branch: $($env:APPVEYOR_REPO_BRANCH)"
+- pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
 before_build:
 #- cmd: gitversion /version
