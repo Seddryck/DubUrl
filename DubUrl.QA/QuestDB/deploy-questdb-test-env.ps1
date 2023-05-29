@@ -16,7 +16,11 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	# Starting docker container
 	$previouslyRunning, $running = Deploy-Container -FullName "questdb" -NickName "quest"
 	if (!$previouslyRunning) {
-		Start-Sleep -s 10
+		if ($env:APPVEYOR -eq "True") {
+			Start-Sleep -s 30
+		} else {
+			Start-Sleep -s 10
+		}
 	}
 
 	# Deploying database based on script
