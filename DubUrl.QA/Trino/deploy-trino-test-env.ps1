@@ -52,7 +52,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -p "5432" -f ".\..\PostgreSQL\deploy-pgsql-database.sql"
+	& psql -U "postgres" -h "localhost" -p "5432" -f ".\..\PostgreSQL\deploy-postgresql-database.sql"
 	Write-host "`tDatabase created"
 
 	#Install ODBC drivers

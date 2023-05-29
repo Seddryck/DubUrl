@@ -18,7 +18,7 @@ If (-not (Test-Path -Path $pgPath)) {
 Write-Host "Using '$pgPath' as PostgreSQL installation folder"
 
 $filesChanged = & git diff --name-only HEAD HEAD~1
-if ($force -or ($filesChanged -like "*pgsql*")) {
+if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgresql*")) {
 	Write-Host "Deploying PostgreSQL testing environment"
 
 	# Starting database service or docker container
@@ -41,11 +41,11 @@ if ($force -or ($filesChanged -like "*pgsql*")) {
 		$env:PATH += ";$pgPath"
 	}
 	$env:PGPASSWORD = "Password12!"
-	& psql -U "postgres" -h "localhost" -p "5432" -f ".\deploy-pgsql-database.sql" | Out-Null
+	& psql -U "postgres" -h "localhost" -p "5432" -f ".\deploy-postgresql-database.sql" | Out-Null
 	Write-host "`tDatabase deployed"
 
 	# Installing ODBC driver
-	. $PSScriptRoot\deploy-pgsql-odbc-driver.ps1
+	. $PSScriptRoot\deploy-postgresql-odbc-driver.ps1
 
 	# Running QA tests
 	Write-Host "Running QA tests related to PostgreSQL"

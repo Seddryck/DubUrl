@@ -26,7 +26,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 	Write-host "`tDatabase deployed"
 
 	# Installing ODBC driver
-	. $PSScriptRoot\..\Postgresql\deploy-pgsql-odbc-driver.ps1
+	. $PSScriptRoot\..\Postgresql\deploy-postgresql-odbc-driver.ps1
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Timescale"

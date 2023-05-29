@@ -30,7 +30,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	Write-host "`tDatabase created"
 
 	# Installing ODBC driver
-	. $PSScriptRoot\..\Postgresql\deploy-pgsql-odbc-driver.ps1
+	. $PSScriptRoot\..\Postgresql\deploy-postgresql-odbc-driver.ps1
 
 	# Running QA tests
 	Write-Host "Running QA tests related to QuestDB"

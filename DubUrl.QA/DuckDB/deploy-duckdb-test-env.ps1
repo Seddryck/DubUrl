@@ -33,7 +33,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 		Write-Host "`tDownloading DuckDB CLI ..."
 		Invoke-WebRequest "$rootUrl/duckdb_cli-windows-amd64.zip" -OutFile "$env:temp\duckdb_cli.zip"
 		Write-Host "`tExtracting from archive DuckDB CLI..."		
-		& 7z e "$env:temp\duckdb_cli.zip" -o"$duckPath" -y
+		& 7z e "$env:temp\duckdb_cli.zip" -o"$duckPath" -y | Out-Null
 	} else {
 		Write-Host "`tDuckDB CLI already installed: skipping installation."
 	}

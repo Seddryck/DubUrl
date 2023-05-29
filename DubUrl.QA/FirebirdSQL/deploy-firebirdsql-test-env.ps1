@@ -102,7 +102,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	}
 
 	Write-host "`tCreating database at $databasePath"
-	Get-Content ".\deploy-firebird-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\deploy-firebird-database.sql" -b -e -q
+	Get-Content ".\deploy-firebirdsql-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\deploy-firebirdsql-database.sql" -b -e -q
 
 	# Installing ODBC driver
 	Write-host "`tDeploying FirebirdSQL ODBC drivers"

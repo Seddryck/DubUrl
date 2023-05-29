@@ -26,7 +26,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	& docker exec -it roach-single sh -c "$cmd"
 
 	# Installing ODBC driver
-	. $PSScriptRoot\..\Postgresql\deploy-pgsql-odbc-driver.ps1
+	. $PSScriptRoot\..\Postgresql\deploy-postgresql-odbc-driver.ps1
 
 	# Running QA tests
 	Write-Host "Running QA tests related to CockRoach"
