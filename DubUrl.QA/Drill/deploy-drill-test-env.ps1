@@ -28,7 +28,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	if (!$previouslyRunning) {
 		$waitForAvailable = 10
 		if ($env:APPVEYOR -eq "True") {
-			$waitForAvailable = 30
+			$waitForAvailable = 50
 		}
 		Write-host "`tWaiting $waitForAvailable seconds for the server to be available ..."
 		Start-Sleep -s $waitForAvailable
