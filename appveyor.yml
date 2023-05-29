@@ -31,6 +31,9 @@ test_script:
 - dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
 - pwsh: |
       & .\Duburl.QA\deploy-test-harness.ps1 -force
+      if ($lastexitcode -gt 0) {
+        throw "At least one of the test-suite was not successful. Stopping build."
+      }
 
 after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 

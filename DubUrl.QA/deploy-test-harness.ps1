@@ -82,3 +82,8 @@ foreach ($s in $suites) {
 }
 
 $results | Format-Table | Out-String | Write-Host
+
+$failureCount = 0
+$results | ForEach {$failureCount += $_.TestSuiteFailure}
+$failureCount = if ($failureCount -gt 0) {1} else {0}
+return $failureCount
