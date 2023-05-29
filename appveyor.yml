@@ -14,11 +14,10 @@ environment:
 
 init:
 - cmd: git config --global core.autocrlf true
-- pwsh: | 
-    $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = "1"
-    Write-Host "Environment variable IGNORE_NORMALISATION_GIT_HEAD_MOVE set to $($env:IGNORE_NORMALISATION_GIT_HEAD_MOVE)"
-
-- pwsh: Write-Host "APPVEYOR_REPO_BRANCH $($env:APPVEYOR_REPO_BRANCH)"
+- cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE 1
+- pwsh: Write-Host "Environment variable IGNORE_NORMALISATION_GIT_HEAD_MOVE set to $($env:IGNORE_NORMALISATION_GIT_HEAD_MOVE)"
+- cmd: echo %IGNORE_NORMALISATION_GIT_HEAD_MOVE%
+- pwsh: Write-Host "Target branch: $($env:APPVEYOR_REPO_BRANCH)"
 
 before_build:
 #- cmd: gitversion /version
