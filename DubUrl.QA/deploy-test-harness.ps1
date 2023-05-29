@@ -62,6 +62,7 @@ Function Deploy-TestSuite {
         }
     }
 }
+$startHarness = Get-Date
 
 if ($suites.Length -eq 0 -and "" -ne $suite -and $null -ne $suite) {
     $suites += $suite
@@ -106,14 +107,18 @@ $failureCount = 0
 $results | ForEach {$failureCount += $_.TestSuiteFailure}
 $failureCount = if ($failureCount -gt 0) {1} else {0}
 
-$elasped = $(New-TimeSpan -Start $startWait)
-$displayElapsed =  if ($elasped.Minutes -gt 0) {"$($elasped.ToString("mm")) minute "}
-$displayElapsed += "$($elasped.ToString("ss")) seconds"
+$elapsed = $(New-TimeSpan -Start $startHarness)
+Write-Host $elapsed
+$displayElapsed =  if ($elapsed.Minutes -gt 0) {"$($elapsed.ToString("mm")) minute "}
+$displayElapsed += "$($elapsed.ToString("ss")) seconds"
 
+$defaultBackgroundColor = [System.Console]::BackgroundColor
+$defaultForegroundColor = [System.Console]::ForegroundColor
 if ($failureCount -eq 0) {
-    Write-Host "Test-harness successfully executed in $displayElapsed." -ForegroundColor black -BackgroundColor -green
+    Write-Host "Test-harness successfully executed in $displayElapsed." -ForegroundColor black -BackgroundColor green
 } else {
-    Write-Host "Test-harness has some failures during execution in $displayElapsed." -ForegroundColor black -BackgroundColor -red
+    Write-Host "Test-harness has some failures during execution in $displayElapsed." -ForegroundColor black -BackgroundColor red
 }
+Write-Host ""  -ForegroundColor $defaultForegroundColor -BackgroundColor $defaultBackgroundColor
 
 exit $failureCount
