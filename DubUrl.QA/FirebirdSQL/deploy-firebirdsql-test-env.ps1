@@ -112,14 +112,15 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		Invoke-WebRequest "https://downloads.sourceforge.net/project/firebird/firebird-ODBC-driver/2.0.5-Release/Firebird_ODBC_2.0.5.156_x64.exe?ts=gAAAAABkLAh47QYDiggM29OgN08H8hWFCY2_ph5GKLpc0ho-5aHKxXoczAWxsSMuc8MIKS55x8LtD3fAFyAX3Da2O0PDyo-4oA%3D%3D&amp;use_mirror=deac-fra&amp;r=https%3A%2F%2Ffirebirdsql.org%2F" `
 		    -OutFile "$env:temp\firebird_odbc.exe"
 		
-		try { Write-Host "`t`tInstalling FirebirdSQL ODBC driver ..."
+		try { 
+			Write-Host "`t`tInstalling FirebirdSQL ODBC driver ..."
 		    & "$env:temp\firebird_odbc.exe" "/VERYSILENT /NORESTART /NOICONS".Split(" ") | Out-Host
 			$odbcDriverInstalled = $true;
 	    } catch {
 			Write-Host "An exception was caught: $($_.Exception.Message)"
 		}
 
-		if ($odbcDriverInstalled = $true -eq $true) {
+		if ($odbcDriverInstalled -eq $true) {
 			Write-Host "`t`tChecking installation ..."
 			Get-OdbcDriver -Name "*firebird*"
 			Write-Host "`tDeployment of FirebirdSQL ODBC driver finalized."	

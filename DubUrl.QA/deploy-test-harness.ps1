@@ -39,7 +39,7 @@ Function Deploy-TestSuite {
             return [PSCustomObject]@{
                 Suite = $name
                 HarnessFailure = $false
-                TestFailure = $result
+                TestSuiteFailure = $result
                 Elapsed = $elasped
             }
         }
