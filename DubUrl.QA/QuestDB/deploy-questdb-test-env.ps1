@@ -16,11 +16,13 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	# Starting docker container
 	$previouslyRunning, $running = Deploy-Container -FullName "questdb" -NickName "quest"
 	if (!$previouslyRunning) {
+		$waitForAvailable = 10
 		if ($env:APPVEYOR -eq "True") {
-			Start-Sleep -s 30
-		} else {
-			Start-Sleep -s 10
+			$waitForAvailable = 30
 		}
+		Write-host "`tWaiting $waitForAvailable seconds for the server to be available ..."
+		Start-Sleep -s $waitForAvailable
+		Write-host "`tServer is expected to be available."
 	}
 
 	# Deploying database based on script

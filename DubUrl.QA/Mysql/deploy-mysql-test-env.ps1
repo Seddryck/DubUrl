@@ -35,21 +35,23 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	} else {
 		$previouslyRunning, $running = Deploy-Container -FullName "mysql"
 		if (!$previouslyRunning){
-			Start-Sleep -s 10
+			$waitForAvailable = 10
+			Write-host "`tWaiting $waitForAvailable seconds for the server to be available ..."
+			Start-Sleep -s $waitForAvailable
+			Write-host "`tServer is expected to be available."
 		}
 	}
 
 	# Deploying database based on script
-	Write-host "`tCreating database"
 	$env:MYSQL_PWD = "Password12!"
 	if (Test-Path -Path $mySqlPath) {
-		Write-host "`tUsing local client"
+		Write-host "`tCreating database using local client"
 		if (-not($env:PATH -like $mySqlPath)) {
 			$env:PATH += ";$mySqlPath"
 		}
 		Get-Content ".\deploy-mysql-database.sql" | & mysql --user=root
 	} else {
-		Write-host "`tUsing remote client on the docker container"
+		Write-host "`tCreating database using remote client on the docker container"
 		& docker exec -it some-mysql mysql "--user=root" "--password=$($env:MYSQL_PWD)" "--execute=$(Get-Content .\deploy-mysql-database.sql)" | Out-Null
 	}
 	Write-host "`tDatabase created"
@@ -64,11 +66,14 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			Invoke-WebRequest `
 					-Uri "https://dlm.mariadb.com/2454057/Connectors/odbc/connector-odbc-3.1.17/mariadb-connector-odbc-3.1.17-win64.msi" `
 					-OutFile "$env:temp\mariadb-connector-odbc.msi"
+			Write-Host "`t`tMariaDB ODBC driver downloaded."
 			Write-Host "`t`tInstalling MariaDB ODBC driver ..."
 			& msiexec /i "$env:temp\mariadb-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mariadb.log" | Out-Host
 			#Get-Content "$env:temp\install-mariadb.log" | Write-Host
+			Write-Host "`t`tMariaDB ODBC driver installed."
 			Write-Host "`t`tChecking installation ..."
 			Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
+			Write-Host "`t`tInstallation checked."
 			Write-Host "`tDeployment of MariaDB ODBC driver finalized."
 			$odbcDriverInstalled = $true
 		} else {
