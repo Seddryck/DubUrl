@@ -14,7 +14,7 @@ environment:
 
 init:
 - cmd: git config --global core.autocrlf true
-- pwsh: $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = 1
+- pwsh: $env:IGNORE_NORMALISATION_GIT_HEAD_MOVE = "1"
 
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
