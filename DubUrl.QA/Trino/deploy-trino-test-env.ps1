@@ -87,5 +87,5 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Trino"
+	return -1
 }

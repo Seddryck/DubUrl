@@ -74,5 +74,5 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Apache Drill"
+	return -1
 }

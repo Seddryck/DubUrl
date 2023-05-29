@@ -159,5 +159,5 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for FirebirdSQL"
+	return -1
 }

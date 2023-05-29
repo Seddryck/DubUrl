@@ -49,5 +49,5 @@ if ($force -or ($filesChanged -like "*quest*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for QuestDB"
+	return -1
 }

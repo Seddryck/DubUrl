@@ -30,16 +30,19 @@ Function Deploy-TestSuite {
             $result = $lastexitcode
             $elasped = $(New-TimeSpan -Start $startWait)
             $displayElapsed =  if ($elasped.Minutes -gt 0) {"$($elasped.ToString("mm")) minute "}
-            $displayElapsed += "$($elasped.ToString("ss")) seconds."
+            $displayElapsed += "$($elasped.ToString("ss")) seconds"
             if ($result -eq 0) {
                 Write-Host "Test-suite for $name successfully run in $displayElapsed." -ForegroundColor green
-            } else {
+            } elseif ($result -eq -1) {
+                Write-Host "Test-suite for $name was skipped." -ForegroundColor gray
+            }  else {
                 Write-Host "Test-suite for $name run in $($elasped.ToString("ss")) seconds but returned some failures." -ForegroundColor red
             }
             return [PSCustomObject]@{
                 Suite = $name
+                Run = -not($result -lt 0)
                 HarnessFailure = $false
-                TestSuiteFailure = $result
+                TestSuiteFailure = if ($result -gt 0) {$result} else {0}
                 Elapsed = $elasped
             }
         }
@@ -47,6 +50,7 @@ Function Deploy-TestSuite {
             Write-Warning $_
             return [PSCustomObject]@{
                 Suite = $name
+                Run = $true
                 Failure = $true
                 Result = if ($null -eq $result) {0}
                 Elapsed = if ($null -eq $result) {New-TimeSpan -Start $startWait}

@@ -62,5 +62,5 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for PostgreSQL"
+	return -1
 }

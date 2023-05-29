@@ -37,5 +37,5 @@ if ($force -or ($filesChanged -like "*csv*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Text files"
+	return -1
 }

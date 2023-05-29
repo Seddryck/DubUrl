@@ -36,5 +36,5 @@ if ($force -or ($filesChanged -like "*excel*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for Microsoft Excel"
+	return -1
 }

@@ -84,4 +84,5 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	exit $testSuccessful
 } else {
 	Write-Host "Skipping the deployment and run of QA testing for Sqlite"
+	return -1
 }

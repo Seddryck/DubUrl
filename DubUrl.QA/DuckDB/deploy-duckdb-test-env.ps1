@@ -86,5 +86,5 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for DuckDB"
+	return -1
 }

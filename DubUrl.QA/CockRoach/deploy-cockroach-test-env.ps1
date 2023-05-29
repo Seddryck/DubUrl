@@ -39,5 +39,5 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	# Raise failing tests
 	exit $testSuccessful
 } else {
-	Write-Host "Skipping the deployment and run of QA testing for CockRoachDB"
+	return -1
 }
