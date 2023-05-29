@@ -4,7 +4,9 @@ Param(
     [Parameter(Position = 0, ParameterSetName='single')]
     [string] $suite=$null,
     [Parameter(ParameterSetName='multiple')]
-    [string[]] $suites = @()	
+    [string[]] $suites = @(),
+    [Parameter(ParameterSetName='exclude')]
+    [string[]] $exclude = @()
 )
 
 Function Deploy-TestSuite {
@@ -27,8 +29,10 @@ Function Deploy-TestSuite {
             & .\deploy-$name-test-env.ps1 -force:$force | Out-Null
             $result = $lastexitcode
             $elasped = $(New-TimeSpan -Start $startWait)
+            $displayElapsed =  if ($elasped.Minutes -gt 0) {"$($elasped.ToString("m")) minute "}
+            $displayElapsed += "$($elasped.ToString("ss")) seconds."
             if ($result -eq 0) {
-                Write-Host "Test-suite for $name successfully run in $($elasped.ToString("ss")) seconds." -ForegroundColor green
+                Write-Host "Test-suite for $name successfully run in $displayElapsed." -ForegroundColor green
             } else {
                 Write-Host "Test-suite for $name run in $($elasped.ToString("ss")) seconds but returned some failures." -ForegroundColor red
             }
@@ -62,6 +66,10 @@ if ($suites.Length -eq 0) {
     Write-Host "Executing test harness for all the test suites ..."
     $suites = Get-ChildItem -Path ".\Duburl.QA" -Filter "deploy-*-test-env.ps1" -Recurse `
         | Select-Object "Name" | ForEach{$_.Name.Substring(7,$_.Name.Substring(7).IndexOf("-"))}
+
+    if ($exclude.Length -gt 0) {
+        $suites | Where-Object { $exclude -notcontains $_ }
+    }
 }
 
 if ($force) {

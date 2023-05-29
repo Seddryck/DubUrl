@@ -51,6 +51,7 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 
 	Write-host "`tCreating database at $databasePath"
 	Get-Content ".\deploy-sqlite-database.sql" | & sqlite3.exe
+	Write-host "`tDatabase created"
 
 	# Installing ODBC driver
 	Write-host "`tDeploying Sqlite ODBC drivers"
