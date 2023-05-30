@@ -45,10 +45,10 @@ Write-Host  "File created at $destinationPath\$destinationFile in $($elapsed.Tot
 ########### Check if it's useful to report a change #############
 
 If ($hash.Hash -eq (Get-FileHash $destinationPath\$destinationFile).Hash) {
-    Write-Host "No change detected in the list of Odbc driver locators."
+    Write-Host "No change detected in the list of OLE DB driver locators."
     Exit 0
 } else {
-    Write-Host "Changes detected in the list of Odbc driver locators."
+    Write-Host "Changes detected in the list of OLE DB driver locators."
     Exit 1
 }
 
