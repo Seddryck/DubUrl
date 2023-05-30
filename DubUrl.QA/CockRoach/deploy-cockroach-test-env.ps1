@@ -13,9 +13,14 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 
 	# Starting docker container
 	$previouslyRunning, $running = Deploy-Container -FullName "cockroach" -NickName "roach" -ScriptBlock {
-			$cmd = "/cockroach/cockroach node status --insecure"
+		$cmd = "/cockroach/cockroach node status --insecure"
+		try {
 			$response = & docker exec -it roach-single sh -c "$cmd"
 			return ($response -join " ") -notlike "ERROR: cannot dial server*"
+		} catch {
+			Write-Warning $_
+			return $false
+		}
 	}
 
 	# Deploying database based on script
@@ -23,6 +28,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 	$statements = Get-Content ".\deploy-cockroach-database.sql"
 	$cmd = "/cockroach/cockroach sql --insecure --database duburl --execute=""$statements"";"
 	& docker exec -it roach-single sh -c "$cmd"
+	Write-host "`tDatabase created."
 
 	# Installing ODBC driver
 	. $PSScriptRoot\..\Postgresql\deploy-postgresql-odbc-driver.ps1
