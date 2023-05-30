@@ -62,7 +62,7 @@ on_success:
       $exitCode = $LastExitCode
       & .\generate-odbc-driver-info.ps1
       $exitCode += $LastExitCode
-      & .\generate-oledb-driver-info.ps1
+      & .\generate-oledb-provider-info.ps1
       $exitCode += $LastExitCode
       if ($exitCode -gt 0) {
         Write-Host "`tUpdating README.md ..."
