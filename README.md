@@ -29,11 +29,17 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 
 **Status:** [![stars badge](https://img.shields.io/github/stars/Seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/stargazers)
 [![Bugs badge](https://img.shields.io/github/issues/Seddryck/DubUrl/bug.svg?color=red&label=Bugs)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:bug+)
-[![Features badge](https://img.shields.io/github/issues/seddryck/DubUrl/new-feature.svg?color=purple&label=Feature%20requests)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:new-feature+)
-[![Features badge](https://img.shields.io/github/issues/seddryck/DubUrl/new-database.svg?color=purple&label=New%20supported%20database)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:new-database+)
-[![Features badge](https://img.shields.io/github/issues/seddryck/DubUrl/ado-net-provider.svg?color=purple&label=New%20ADO.Net%20provider)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:ado-net-provider+)
-[![Features badge](https://img.shields.io/github/issues/seddryck/DubUrl/odbc-driver-locator.svg?color=purple&label=New%20ODBC%20driver%20locator)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:odbc-driver-locator+)
 [![Top language](https://img.shields.io/github/languages/top/seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/search?l=C%23)
+
+<!-- START BADGES -->
+[![Mappers for ADO.Net Provider implemented badge](https://img.shields.io/badge/Mappers%20for%20ADO.Net%20Provider-15%20implemented-green)]
+[![Mappers for ODBC drivers implemented badge](https://img.shields.io/badge/Mappers%20for%20ODBC%20drivers-11%20implemented-green)]
+<!-- END BADGES -->
+
+[![Upcoming features badge](https://img.shields.io/github/issues/seddryck/DubUrl/upcoming-feature.svg?color=purple&label=Feature%20requests)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:new-feature+)
+[![Upcoming databases badge](https://img.shields.io/github/issues/seddryck/DubUrl/new-database.svg?color=purple&label=Upcoming%20supported%20database)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:new-database+)
+[![Upcoming ADO.Net badge](https://img.shields.io/github/issues/seddryck/DubUrl/ado-net-provider.svg?color=purple&label=Upcoming%20ADO.Net%20provider)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:ado-net-provider+)
+[![Upcoming ODBC badge](https://img.shields.io/github/issues/seddryck/DubUrl/odbc-driver-locator.svg?color=purple&label=Upcoming%20ODBC%20driver%20locator)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:odbc-driver-locator+)
 
 ## Database Connection URL Overview
 
@@ -139,5 +145,10 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
 
 
