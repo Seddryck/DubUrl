@@ -32,7 +32,7 @@ dotnet add package System.Data.OleDb
 Registering the factory of the ADO.Net data provider `System.Data.OleDb`. As OLE DB is an extension of DubUrl, the manual registration is a bit more verbose. You first need to specify that you're looking for the assembly containing the class `OleDbRewriter` and that you're looking into the `bin` folder. This give you access to the `Registrator` to register the ADO.Net for OLE DB provider.
 
 ```csharp
-var assemblies = new[] { typeof(OleDbRewriter).Assembly };
+var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
 var discovery = new BinFolderDiscover(assemblies);
 var registrator = new ProviderFactoriesRegistrator(discovery);
 registrator.Register();
