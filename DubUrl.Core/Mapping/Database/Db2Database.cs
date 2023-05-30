@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<Db2Dialect>(
         "IBM DB2"
         , new[] { "db2" }
-        , 3
+        , DatabaseCategory.LargePlayer
     )]
     public class Db2Database : IDatabase
     { }

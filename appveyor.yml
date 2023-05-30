@@ -58,13 +58,16 @@ deploy:
 on_success:
 
   - pwsh: |
-      & .\generate-scheme-info.ps1
+      & .\generate-adonet-info.ps1
       $exitCode = $LastExitCode
       & .\generate-odbc-driver-info.ps1
+      $exitCode += $LastExitCode
+      & .\generate-oledb-provider-info.ps1
       $exitCode += $LastExitCode
       if ($exitCode -gt 0) {
         Write-Host "`tUpdating README.md ..."
         & .\generate-table-scheme.ps1
+        & .\generate-badge.ps1
         Write-Host "`tSetting GitHub credentials ..."
         & git config --global credential.helper store
         Set-Content -Path "$HOME\.git-credentials" -Value "https://Seddryck:$($env:github_access_token)@github.com`n" -NoNewline

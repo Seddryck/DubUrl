@@ -41,16 +41,6 @@
     ]
   },
   {
-    "Class": "DuckdbDriverLocator",
-    "Database": "DuckDB",
-    "Aliases": [
-      "duck",
-      "duckdb"
-    ],
-    "NamePattern": "^\\bDuckDB\\s\\bDriver$",
-    "Options": []
-  },
-  {
     "Class": "MariaDbDriverLocator",
     "Database": "MariaDB",
     "Aliases": [
@@ -63,30 +53,14 @@
     ]
   },
   {
-    "Class": "QuestDbDriverLocator",
-    "Database": "QuestDb",
+    "Class": "DuckdbDriverLocator",
+    "Database": "DuckDB",
     "Aliases": [
-      "quest",
-      "questdb"
+      "duck",
+      "duckdb"
     ],
-    "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
-    "Options": [
-      "DubUrl.Locating.Options.EncodingOption",
-      "DubUrl.Locating.Options.ArchitectureOption"
-    ]
-  },
-  {
-    "Class": "TimescaleDriverLocator",
-    "Database": "Timescale",
-    "Aliases": [
-      "ts",
-      "timescale"
-    ],
-    "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
-    "Options": [
-      "DubUrl.Locating.Options.EncodingOption",
-      "DubUrl.Locating.Options.ArchitectureOption"
-    ]
+    "NamePattern": "^\\bDuckDB\\s\\bDriver$",
+    "Options": []
   },
   {
     "Class": "DrillDriverLocator",
@@ -129,5 +103,31 @@
     ],
     "NamePattern": "^\\bMicrosoft Access Text Driver\\s\\(\\*\\.txt, \\*\\.csv\\)$",
     "Options": []
+  },
+  {
+    "Class": "QuestDbDriverLocator",
+    "Database": "QuestDb",
+    "Aliases": [
+      "quest",
+      "questdb"
+    ],
+    "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
+    "Options": [
+      "DubUrl.Locating.Options.EncodingOption",
+      "DubUrl.Locating.Options.ArchitectureOption"
+    ]
+  },
+  {
+    "Class": "TimescaleDriverLocator",
+    "Database": "Timescale",
+    "Aliases": [
+      "ts",
+      "timescale"
+    ],
+    "NamePattern": "^\\bPostgreSQL\\s(ANSI|Unicode)(\\(x64\\))?$",
+    "Options": [
+      "DubUrl.Locating.Options.EncodingOption",
+      "DubUrl.Locating.Options.ArchitectureOption"
+    ]
   }
 ]

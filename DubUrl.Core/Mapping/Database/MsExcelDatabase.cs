@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<MsExcelDialect>(
         "Microsoft Excel"
         , new[] { "xls", "xlsx", "xlsb", "xlsm" }
-        , 10
+        , DatabaseCategory.FileBased
     )]
     public class MsExcelDatabase : IDatabase
     { }

@@ -36,8 +36,8 @@ $elapsed = Measure-Command -Expression {
     $locator = New-Object  DubUrl.OleDb.ProviderLocatorIntrospector
     $providerLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.ProviderLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, @{label='Options'; expression={$_.Options.Name}}
     Write-Host  "`t$($providerLocators.Count) locators identified"
-    $driverLocators | ForEach-Object {Write-Host "`t`t$($_.Class)"}
-    $driverLocators | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"
+    $providerLocators | ForEach-Object {Write-Host "`t`t$($_.Class)"}
+    $providerLocators | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"
 }
 Write-Host  "File created at $destinationPath\$destinationFile in $($elapsed.TotalSeconds) seconds"
 
@@ -45,10 +45,10 @@ Write-Host  "File created at $destinationPath\$destinationFile in $($elapsed.Tot
 ########### Check if it's useful to report a change #############
 
 If ($hash.Hash -eq (Get-FileHash $destinationPath\$destinationFile).Hash) {
-    Write-Host "No change detected in the list of Odbc driver locators."
+    Write-Host "No change detected in the list of OLE DB driver locators."
     Exit 0
 } else {
-    Write-Host "Changes detected in the list of Odbc driver locators."
+    Write-Host "Changes detected in the list of OLE DB driver locators."
     Exit 1
 }
 

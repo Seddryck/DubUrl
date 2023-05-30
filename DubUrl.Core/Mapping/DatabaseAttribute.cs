@@ -14,19 +14,19 @@ namespace DubUrl.Mapping
         public virtual Type DialectType { get; protected set; } = typeof(AnsiDialect);
         public int ListingPriority { get; protected set; } = 0;
 
-        public DatabaseAttribute(string databaseName, string[] aliases, Type dialectType, int listingPriority)
+        public DatabaseAttribute(string databaseName, string[] aliases, Type dialectType, DatabaseCategory listingPriority)
         {
             DatabaseName = databaseName;
             Aliases = aliases;
             DialectType = dialectType;
-            ListingPriority = listingPriority;
+            ListingPriority = (int)listingPriority;
         }
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     sealed public class DatabaseAttribute<D> : DatabaseAttribute where D : IDialect
     {
-        public DatabaseAttribute(string databaseName, string[] aliases, int listingPriority = 5)
+        public DatabaseAttribute(string databaseName, string[] aliases, DatabaseCategory listingPriority)
             : base(
                   databaseName
                   , aliases
@@ -34,5 +34,16 @@ namespace DubUrl.Mapping
                   , listingPriority
             )
         { }
+    }
+
+    public enum DatabaseCategory
+    {
+        TopPlayer = 0,
+        LargePlayer = 1,
+        InMemory = 2,
+        Warehouse = 3,
+        DistributedQueryEngine = 4,
+        FileBased = 5,
+        TimeSeries = 6,
     }
 }

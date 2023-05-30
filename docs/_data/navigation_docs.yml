@@ -12,7 +12,7 @@
   docs:
   - native-ado-net-providers
   - odbc-driver-locators
-  - OleDb providers
+  - oledb-provider-locators
   - SSL/TLS support
 
 - title: Interfaces with other frameworks

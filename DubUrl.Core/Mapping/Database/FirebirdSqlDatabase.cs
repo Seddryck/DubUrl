@@ -11,6 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<FirebirdSqlDialect>(
         "Firebird SQL"
         , new[] { "fb", "firebird" }
+        , DatabaseCategory.InMemory
     )]
     public class FirebirdSqlDatabase : IDatabase
     { }
