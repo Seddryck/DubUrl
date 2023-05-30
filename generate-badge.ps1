@@ -1,4 +1,5 @@
 ﻿$destinationFile = ".\README.md"
+$rootUrl = "https://seddryck.github.io/DubUrl/docs"
 
 ########### Create a markdown table ##########
 Write-Host "Creating new version of $destinationFile based on $sourceFile ..."
@@ -8,16 +9,18 @@ $elapsed = Measure-Command -Expression {
         Label = "Mappers for ADO.Net Provider"
         Count = (Get-Content -Path ".\Docs\_data\natives.json" | ConvertFrom-Json).Count
         Status = "implemented"
+        Url = "/native-ado-net-providers"
     }
     $badges += [PSCustomObject]@{
         Label = "Mappers for ODBC drivers"
         Count = (Get-Content -Path ".\Docs\_data\odbc.json" | ConvertFrom-Json).Count
         Status = "implemented"
+        Url = "/odbc-driver-locators"
     }
 
     $textBadges = ""
     foreach($badge in $badges) {
-        $textBadges += "[![$($badge.Label) $($badge.Status) badge](https://img.shields.io/badge/$($badge.Label.Replace(" ", "%20"))-$($badge.Count)%20$($badge.Status)-green)]`r`n"
+        $textBadges += "[![$($badge.Label) $($badge.Status) badge](https://img.shields.io/badge/$($badge.Label.Replace(" ", "%20"))-$($badge.Count)%20$($badge.Status)-green)]($rootUrl$($badge.Url))`r`n"
     }
     if ($textBadges.Length -ge 2) {
         $textBadges.Substring(0,$textBadges.Length-2)
