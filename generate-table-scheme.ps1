@@ -118,4 +118,4 @@ $elapsed = Measure-Command -Expression {
     
     $text | Out-File -Path $destinationFile
 }
-Write-Host "New version of $destinationFile created in $($elapsed.TotalSeconds) seconds"
+Write-Host "New version of $destinationFile created in $($elapsed.TotalSeconds) seconds."
