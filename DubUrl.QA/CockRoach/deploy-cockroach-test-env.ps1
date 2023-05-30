@@ -19,6 +19,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 			return ($response -join " ") -notlike "ERROR: cannot dial server*"
 		} catch {
 			Write-Warning $_
+			Start-Sleep -Seconds 1
 			return $false
 		}
 	}
