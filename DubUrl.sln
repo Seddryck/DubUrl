@@ -62,9 +62,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{BAFC00CA-8CE9-4A48-B05B-45982D1F6F0F}"
 	ProjectSection(SolutionItems) = preProject
 		generate-badge.ps1 = generate-badge.ps1
+		generate-adonet-info.ps1 = generate-adonet-info.ps1
 		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
 		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
-		generate-scheme-info.ps1 = generate-scheme-info.ps1
 		generate-table-scheme.ps1 = generate-table-scheme.ps1
 	EndProjectSection
 EndProject
@@ -86,8 +86,8 @@ Global
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AE44749-5793-4138-BC6F-4092A69976C0}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{0AE44749-5793-4138-BC6F-4092A69976C0}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{0AE44749-5793-4138-BC6F-4092A69976C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AE44749-5793-4138-BC6F-4092A69976C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AE44749-5793-4138-BC6F-4092A69976C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AE44749-5793-4138-BC6F-4092A69976C0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

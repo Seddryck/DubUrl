@@ -112,25 +112,60 @@ db2://user:pass@localhost/dbname
 
 The following databases and their associated schemes are supported out of the box:
 
-<!-- START SCHEME TABLE -->
+<!-- START ADONET TABLE -->
 |Database             | Aliases                               | Provider Invariant Name        |
 |-------------------- | ------------------------------------- | -------------------------------|
 |Microsoft SQL Server | mssql, ms, sqlserver                  | Microsoft.Data.SqlClient       |
 |MySQL                | mysql, my                             | MySqlConnector                 |
 |PostgreSQL           | pg, pgsql, postgres, postgresql       | Npgsql                         |
-|Oracle Database      | oracle, or, ora                       | Oracle.ManagedDataAccess       |
-|SQLite3              | sq, sqlite                            | Microsoft.Data.Sqlite          |
 |IBM DB2              | db2                                   | IBM.Data.Db2                   |
-|DuckDB               | duck, duckdb                          | DuckDB.NET.Data                |
 |MariaDB              | maria, mariadb                        | MySqlConnector                 |
+|Oracle Database      | oracle, or, ora                       | Oracle.ManagedDataAccess       |
+|DuckDB               | duck, duckdb                          | DuckDB.NET.Data                |
+|Firebird SQL         | fb, firebird                          | FirebirdSql.Data.FirebirdClient|
+|SQLite3              | sq, sqlite                            | Microsoft.Data.Sqlite          |
+|CockRoachDB          | cr, cockroach, cockroachdb, crdb, cdb | Npgsql                         |
 |Snowflake            | sf, snowflake                         | Snowflake.Data                 |
 |Teradata             | td, teradata, tera                    | Teradata.Client                |
-|CockRoachDB          | cr, cockroach, cockroachdb, crdb, cdb | Npgsql                         |
-|Firebird SQL         | fb, firebird                          | FirebirdSql.Data.FirebirdClient|
+|Trino                | tr, trino                             | NReco.PrestoAdo                |
 |QuestDb              | quest, questdb                        | Npgsql                         |
 |Timescale            | ts, timescale                         | Npgsql                         |
-|Trino                | tr, trino                             | NReco.PrestoAdo                |
-<!-- END SCHEME TABLE -->
+<!-- END ADONET TABLE -->
+
+### ODBC driver locators
+
+The following databases and their associated schemes are supported out of the box:
+
+<!-- START ODBC TABLE -->
+|Database             | Aliases                         | Name Pattern                                                               |
+|-------------------- | ------------------------------- | ---------------------------------------------------------------------------|
+|Microsoft SQL Server | mssql, ms, sqlserver            | ^\bODBC Driver\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s\bfor SQL Server$       |
+|MySQL                | mysql, my                       | ^\bMySQL ODBC\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s(ANSI|Unicode)\s\bDriver$|
+|PostgreSQL           | pg, pgsql, postgres, postgresql | ^\bPostgreSQL\s(ANSI|Unicode)(\(x64\))?$                                   |
+|MariaDB              | maria, mariadb                  | ^\bMariaDB ODBC\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s\bDriver$              |
+|DuckDB               | duck, duckdb                    | ^\bDuckDB\s\bDriver$                                                       |
+|Apache Drill         | drill                           | ^\bMapR Drill ODBC Driver$                                                 |
+|Trino                | tr, trino                       | ^(Simba)\s\bTrino ODBC Driver$                                             |
+|Microsoft Excel      | xls, xlsx, xlsb, xlsm           | ^\bMicrosoft Excel Driver\s\(\*\.xls, \*\.xlsx, \*\.xlsm, \*\.xlsb\)$      |
+|Text files           | txt, csv, tsv                   | ^\bMicrosoft Access Text Driver\s\(\*\.txt, \*\.csv\)$                     |
+|QuestDb              | quest, questdb                  | ^\bPostgreSQL\s(ANSI|Unicode)(\(x64\))?$                                   |
+|Timescale            | ts, timescale                   | ^\bPostgreSQL\s(ANSI|Unicode)(\(x64\))?$                                   |
+<!-- END ODBC TABLE -->
+
+### OLEDB provider locators
+
+The following databases and their associated schemes are supported out of the box:
+
+<!-- START OLEDB TABLE -->
+|Database             | Aliases              | Name Pattern                                                |
+|-------------------- | -------------------- | ------------------------------------------------------------|
+|Microsoft SQL Server | mssql, ms, sqlserver | ^\bMSOLEDBSQL$                                              |
+|MySQL                | mysql, my            | ^\bMySQL Provider$                                          |
+|Microsoft Excel      | xls                  | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|Microsoft Excel      | xlsx                 | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|Microsoft Excel      | xlsm                 | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|Microsoft Excel      | xlsb                 | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+<!-- END OLEDB TABLE -->
 
 ## Installing
 
@@ -145,6 +180,27 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
