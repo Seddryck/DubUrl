@@ -2,7 +2,7 @@
 $rootUrl = "https://seddryck.github.io/DubUrl/docs"
 
 ########### Create a markdown table ##########
-Write-Host "Creating new version of $destinationFile based on $sourceFile ..."
+Write-Host "Creating new version of $destinationFile for badges ..."
 $elapsed = Measure-Command -Expression {
     $badges = @()
     $badges += [PSCustomObject]@{

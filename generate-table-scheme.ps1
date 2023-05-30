@@ -97,7 +97,7 @@ function Write-Table {
 
 ########### MAIN ##########
 
-Write-Host "Creating new version of $destinationFile based on $sourceFile ..."
+Write-Host "Creating new version of $destinationFile for markdown tables ..."
 $elapsed = Measure-Command -Expression {
     $text = (Get-Content -Path $destinationFile) -join "`r`n"
 
