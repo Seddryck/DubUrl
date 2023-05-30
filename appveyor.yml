@@ -58,7 +58,7 @@ deploy:
 on_success:
 
   - pwsh: |
-      & .\generate-scheme-info.ps1
+      & .\generate-adonet-info.ps1
       $exitCode = $LastExitCode
       & .\generate-odbc-driver-info.ps1
       $exitCode += $LastExitCode

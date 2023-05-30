@@ -17,6 +17,12 @@ $elapsed = Measure-Command -Expression {
         Status = "implemented"
         Url = "/odbc-driver-locators"
     }
+    $badges += [PSCustomObject]@{
+        Label = "Mappers for OLE DB providers"
+        Count = (Get-Content -Path ".\Docs\_data\oledb.json" | ConvertFrom-Json).Count
+        Status = "implemented"
+        Url = "/oledb-provider-locators"
+    }
 
     $textBadges = ""
     foreach($badge in $badges) {

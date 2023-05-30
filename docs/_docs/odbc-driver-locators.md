@@ -38,7 +38,7 @@ DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFac
 Open a connection to the database named *dbname* and hosted on a server named *serverName*. Note that the scheme of the URL is set to *pgsql* to specify that the database is a PostgreSQL (other options than *pgsql* such as *pg* or *postgres* could have been used).
 
 ```csharp
-var conn = new ConnectionUrl("odbc:pgsql://{serverName}/{dbName}").Open();
+var conn = new ConnectionUrl("odbc+pgsql://{serverName}/{dbName}").Open();
 ```
 
 ## Additional options for selecting the right driver
@@ -56,7 +56,7 @@ This behaviour can be overriden in multiple ways explained here under.
 Sometimes, you wan to stick to a really specific version of the driver, in that case, you can specify the name by yourself in the scheme. The name of the driver must be specified between curly braces. If this option is selected you cannot combine it with other options.
 
 ```text
-"odbc:mysql:{driver name}//serverName/dbName"
+"odbc+mysql+{driver name}//serverName/dbName"
 ```
 
 ### Enforce architecture
@@ -64,8 +64,8 @@ Sometimes, you wan to stick to a really specific version of the driver, in that 
 If for any reason, you want to enforce the choice of the architecture, you can do it by specifying `x64` or `x86` in the scheme. 
 
 ```text
-"odbc:mysql:x64//serverName/dbName"
-"odbc:mysql:x86//serverName/dbName"
+"odbc+mysql+x64//serverName/dbName"
+"odbc+mysql+x86//serverName/dbName"
 ```
 
 ### Enforce encoding
@@ -73,5 +73,5 @@ If for any reason, you want to enforce the choice of the architecture, you can d
 If for any reason, you want to enforce the choice of the encoding, you can do it by specifying `ANSI` or `Unicode` in the scheme. 
 
 ```text
-"odbc:mysql:ANSI//serverName/dbName"
+"odbc+mysql+ANSI//serverName/dbName"
 ```
