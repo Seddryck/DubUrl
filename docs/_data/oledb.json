@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "Class": "MssqlOleDbProviderLocator",
+    "Database": "Microsoft SQL Server",
+    "Aliases": [
+      "mssql",
+      "ms",
+      "sqlserver"
+    ],
+    "NamePattern": "^\\bMSOLEDBSQL$",
+    "Options": null
+  }
+]

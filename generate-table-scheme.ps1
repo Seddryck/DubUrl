@@ -87,7 +87,7 @@ function Write-Table {
     foreach($item in $items) {
         $values = @()
         foreach($key in $keys) {
-            $values += ('{0,-' + $columns[$key] + '}') -f $item.($key)
+            $values += ('{0,-' + $columns[$key] + '}') -f ($item.($key)).Replace("|", "\|")
         }
         $table += '|' + ($values -join ' | ') + "|`r`n"
     }
