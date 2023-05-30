@@ -1,1 +1,59 @@
-[]
+[
+  {
+    "Class": "MssqlOleDbProviderLocator",
+    "Database": "Microsoft SQL Server",
+    "Aliases": [
+      "mssql",
+      "ms",
+      "sqlserver"
+    ],
+    "NamePattern": "^\\bMSOLEDBSQL$",
+    "Options": null
+  },
+  {
+    "Class": "MySqlProviderLocator",
+    "Database": "MySQL",
+    "Aliases": [
+      "mysql",
+      "my"
+    ],
+    "NamePattern": "^\\bMySQL Provider$",
+    "Options": null
+  },
+  {
+    "Class": "AceXlsProviderLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xls"
+    ],
+    "NamePattern": "^\\bMicrosoft\\.ACE\\.OLEDB\\.([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})$",
+    "Options": "VersionOption"
+  },
+  {
+    "Class": "AceXlsxProviderLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xlsx"
+    ],
+    "NamePattern": "^\\bMicrosoft\\.ACE\\.OLEDB\\.([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})$",
+    "Options": "VersionOption"
+  },
+  {
+    "Class": "AceXlsmProviderLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xlsm"
+    ],
+    "NamePattern": "^\\bMicrosoft\\.ACE\\.OLEDB\\.([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})$",
+    "Options": "VersionOption"
+  },
+  {
+    "Class": "AceXlsbProviderLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "xlsb"
+    ],
+    "NamePattern": "^\\bMicrosoft\\.ACE\\.OLEDB\\.([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})$",
+    "Options": "VersionOption"
+  }
+]

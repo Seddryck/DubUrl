@@ -34,6 +34,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 <!-- START BADGES -->
 [![Mappers for ADO.Net Provider implemented badge](https://img.shields.io/badge/Mappers%20for%20ADO.Net%20Provider-15%20implemented-green)](https://seddryck.github.io/DubUrl/docs/native-ado-net-providers)
 [![Mappers for ODBC drivers implemented badge](https://img.shields.io/badge/Mappers%20for%20ODBC%20drivers-11%20implemented-green)](https://seddryck.github.io/DubUrl/docs/odbc-driver-locators)
+[![Mappers for OLE DB providers implemented badge](https://img.shields.io/badge/Mappers%20for%20OLE%20DB%20providers-6%20implemented-green)](https://seddryck.github.io/DubUrl/docs/oledb-provider-locators)
 <!-- END BADGES -->
 
 [![Upcoming features badge](https://img.shields.io/github/issues/seddryck/DubUrl/upcoming-feature.svg?color=purple&label=Feature%20requests)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:new-feature+)
@@ -180,6 +181,10 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
 
 
 
