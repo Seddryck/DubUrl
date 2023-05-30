@@ -112,18 +112,18 @@ The following databases and their associated schemes are supported out of the bo
 |Microsoft SQL Server | mssql, ms, sqlserver                  | Microsoft.Data.SqlClient       |
 |MySQL                | mysql, my                             | MySqlConnector                 |
 |PostgreSQL           | pg, pgsql, postgres, postgresql       | Npgsql                         |
-|Oracle Database      | oracle, or, ora                       | Oracle.ManagedDataAccess       |
-|SQLite3              | sq, sqlite                            | Microsoft.Data.Sqlite          |
 |IBM DB2              | db2                                   | IBM.Data.Db2                   |
-|DuckDB               | duck, duckdb                          | DuckDB.NET.Data                |
 |MariaDB              | maria, mariadb                        | MySqlConnector                 |
+|Oracle Database      | oracle, or, ora                       | Oracle.ManagedDataAccess       |
+|DuckDB               | duck, duckdb                          | DuckDB.NET.Data                |
+|Firebird SQL         | fb, firebird                          | FirebirdSql.Data.FirebirdClient|
+|SQLite3              | sq, sqlite                            | Microsoft.Data.Sqlite          |
+|CockRoachDB          | cr, cockroach, cockroachdb, crdb, cdb | Npgsql                         |
 |Snowflake            | sf, snowflake                         | Snowflake.Data                 |
 |Teradata             | td, teradata, tera                    | Teradata.Client                |
-|CockRoachDB          | cr, cockroach, cockroachdb, crdb, cdb | Npgsql                         |
-|Firebird SQL         | fb, firebird                          | FirebirdSql.Data.FirebirdClient|
+|Trino                | tr, trino                             | NReco.PrestoAdo                |
 |QuestDb              | quest, questdb                        | Npgsql                         |
 |Timescale            | ts, timescale                         | Npgsql                         |
-|Trino                | tr, trino                             | NReco.PrestoAdo                |
 <!-- END SCHEME TABLE -->
 
 ## Installing
@@ -139,5 +139,6 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
 
 

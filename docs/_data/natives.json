@@ -30,6 +30,23 @@
     "ProviderInvariantName": "Npgsql"
   },
   {
+    "Class": "Db2Mapper",
+    "Database": "IBM DB2",
+    "Aliases": [
+      "db2"
+    ],
+    "ProviderInvariantName": "IBM.Data.Db2"
+  },
+  {
+    "Class": "MariaDbConnectorMapper",
+    "Database": "MariaDB",
+    "Aliases": [
+      "maria",
+      "mariadb"
+    ],
+    "ProviderInvariantName": "MySqlConnector"
+  },
+  {
     "Class": "OracleManagedDataAccessMapper",
     "Database": "Oracle Database",
     "Aliases": [
@@ -38,23 +55,6 @@
       "ora"
     ],
     "ProviderInvariantName": "Oracle.ManagedDataAccess"
-  },
-  {
-    "Class": "SqliteMapper",
-    "Database": "SQLite3",
-    "Aliases": [
-      "sq",
-      "sqlite"
-    ],
-    "ProviderInvariantName": "Microsoft.Data.Sqlite"
-  },
-  {
-    "Class": "Db2Mapper",
-    "Database": "IBM DB2",
-    "Aliases": [
-      "db2"
-    ],
-    "ProviderInvariantName": "IBM.Data.Db2"
   },
   {
     "Class": "DuckdbMapper",
@@ -66,13 +66,34 @@
     "ProviderInvariantName": "DuckDB.NET.Data"
   },
   {
-    "Class": "MariaDbConnectorMapper",
-    "Database": "MariaDB",
+    "Class": "FirebirdSqlMapper",
+    "Database": "Firebird SQL",
     "Aliases": [
-      "maria",
-      "mariadb"
+      "fb",
+      "firebird"
     ],
-    "ProviderInvariantName": "MySqlConnector"
+    "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient"
+  },
+  {
+    "Class": "SqliteMapper",
+    "Database": "SQLite3",
+    "Aliases": [
+      "sq",
+      "sqlite"
+    ],
+    "ProviderInvariantName": "Microsoft.Data.Sqlite"
+  },
+  {
+    "Class": "CockRoachMapper",
+    "Database": "CockRoachDB",
+    "Aliases": [
+      "cr",
+      "cockroach",
+      "cockroachdb",
+      "crdb",
+      "cdb"
+    ],
+    "ProviderInvariantName": "Npgsql"
   },
   {
     "Class": "SnowflakeMapper",
@@ -94,25 +115,13 @@
     "ProviderInvariantName": "Teradata.Client"
   },
   {
-    "Class": "CockRoachMapper",
-    "Database": "CockRoachDB",
+    "Class": "TrinoMapper",
+    "Database": "Trino",
     "Aliases": [
-      "cr",
-      "cockroach",
-      "cockroachdb",
-      "crdb",
-      "cdb"
+      "tr",
+      "trino"
     ],
-    "ProviderInvariantName": "Npgsql"
-  },
-  {
-    "Class": "FirebirdSqlMapper",
-    "Database": "Firebird SQL",
-    "Aliases": [
-      "fb",
-      "firebird"
-    ],
-    "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient"
+    "ProviderInvariantName": "NReco.PrestoAdo"
   },
   {
     "Class": "QuestDbMapper",
@@ -131,14 +140,5 @@
       "timescale"
     ],
     "ProviderInvariantName": "Npgsql"
-  },
-  {
-    "Class": "TrinoMapper",
-    "Database": "Trino",
-    "Aliases": [
-      "tr",
-      "trino"
-    ],
-    "ProviderInvariantName": "NReco.PrestoAdo"
   }
 ]
