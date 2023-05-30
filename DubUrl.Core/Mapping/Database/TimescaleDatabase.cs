@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<PgsqlDialect>(
         "Timescale"
         , new[] { "ts", "timescale" }
-        , 6
+        , DatabaseCategory.TimeSeries
     )]
     public class TimescaleDatabase : IDatabase
     { }

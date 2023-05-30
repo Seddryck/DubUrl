@@ -12,6 +12,7 @@ namespace DubUrl.Mapping.Database
     [Database<CockRoachDialect>(
         "CockRoachDB"
         , new[] { "cr", "cockroach", "cockroachdb", "crdb", "cdb" }
+        , DatabaseCategory.Warehouse
     )]
     public class CockRoachDatabase : IDatabase { }
 }

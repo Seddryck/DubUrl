@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<OracleDialect>(
         "Oracle Database"
         , new[] { "oracle", "or", "ora" }
-        , 2
+        , DatabaseCategory.LargePlayer
     )]
     public class OracleDatabase : IDatabase
     { }

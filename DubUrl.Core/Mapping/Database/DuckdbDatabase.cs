@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<DuckdbDialect>(
         "DuckDB"
         , new[] { "duck", "duckdb" }
-        , 3
+        , DatabaseCategory.InMemory
     )]
     public class DuckdbDatabase : IDatabase
     { }

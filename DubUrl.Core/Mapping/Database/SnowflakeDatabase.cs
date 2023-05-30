@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<SnowflakeDialect>(
         "Snowflake"
         , new[] { "sf", "snowflake" }
-        , 4
+        , DatabaseCategory.Warehouse
     )]
     public class SnowflakeDatabase : IDatabase
     { }

@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<MssqlDialect>(
         "Microsoft SQL Server"
         , new[] { "mssql", "ms", "sqlserver" }
-        , 0
+        , DatabaseCategory.TopPlayer
     )]
     public class MsSqlServerDatabase : IDatabase
     { }

@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<QuestDbDialect>(
         "QuestDb"
         , new[] { "quest", "questdb" }
-        , 6
+        , DatabaseCategory.TimeSeries
     )]
     public class QuestDbDatabase : IDatabase
     { }

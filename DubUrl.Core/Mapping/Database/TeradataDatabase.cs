@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<TeradataDialect>(
         "Teradata"
         , new[] { "td", "teradata", "tera" }
-        , 4
+        , DatabaseCategory.Warehouse
     )]
     public class TeradataDatabase : IDatabase
     { }

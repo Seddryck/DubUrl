@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<PgsqlDialect>(
         "PostgreSQL"
         , new[] { "pg", "pgsql", "postgres", "postgresql" }
-        , 1
+        , DatabaseCategory.TopPlayer
     )]
     public class PostgresqlDatabase : IDatabase
     { }

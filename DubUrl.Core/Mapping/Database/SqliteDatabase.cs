@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<SqliteDialect>(
         "SQLite3"
         , new[] { "sq", "sqlite" }
-        , 2
+        , DatabaseCategory.InMemory
     )]
     public class SqliteDatabase : IDatabase
     { }

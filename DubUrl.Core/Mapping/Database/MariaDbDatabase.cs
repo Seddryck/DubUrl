@@ -12,7 +12,7 @@ namespace DubUrl.Mapping.Database
     [Database<MySqlDialect>(
         "MariaDB"
         , new[] { "maria", "mariadb" }
-        , 3
+        , DatabaseCategory.LargePlayer
     )]
     public class MariaDbDatabase : IDatabase
     { }

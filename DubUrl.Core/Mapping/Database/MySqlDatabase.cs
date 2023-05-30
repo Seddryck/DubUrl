@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<MySqlDialect>(
         "MySQL"
         , new[] { "mysql", "my" }
-        , 1
+        , DatabaseCategory.TopPlayer
     )]
     public class MySqlDatabase : IDatabase
     { }

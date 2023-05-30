@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database
     [Database<DrillDialect>(
         "Apache Drill"
         , new[] { "drill" }
-        , 7
+        , DatabaseCategory.DistributedQueryEngine
     )]
     public class DrillDatabase : IDatabase
     { }
