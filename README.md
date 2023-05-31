@@ -1,5 +1,5 @@
 # DubUrl
-DubUrl provides a standard, URL style mechanism for parsing database connection strings and opening DbConnections for .NET. With DubUrl, you can parse and open URLs for popular databases such as Microsoft SQL Server, PostgreSQL, Mongodb, Neo4j, MySQL, SQLite3, Oracle Database and most of the other SQL databases. This project is inspired from the package [dburl](https://pkg.go.dev/github.com/xo/dburl@v0.10.0/_example) available in the GoLang ecosystem and is trying to match the aliases for portocols.
+DubUrl provides a standard, URL style mechanism for parsing database connection strings and opening DbConnections for .NET. With DubUrl, you can parse and open URLs for popular databases such as Microsoft SQL Server, PostgreSQL, MySQL, SQLite3, Oracle Database and most of the other SQL databases. This project is inspired from the package [dburl](https://pkg.go.dev/github.com/xo/dburl@v0.10.0/_example) available in the GoLang ecosystem and is trying to match the aliases for portocols.
 
 [About][] | [Overview][] | [Quickstart][] | [Examples][] | [Schemes][] | [Installing][] | [Using][]
 
