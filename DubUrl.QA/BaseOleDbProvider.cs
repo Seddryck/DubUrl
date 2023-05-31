@@ -18,7 +18,7 @@ namespace DubUrl.QA
         [OneTimeSetUp]
         public void SetupFixture()
         {
-            var assemblies = new[] { typeof(OleDbRewriter).Assembly };
+            var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
 
             var discovery = new BinFolderDiscover(assemblies);
             var registrator = new ProviderFactoriesRegistrator(discovery);
