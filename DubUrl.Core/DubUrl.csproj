@@ -12,4 +12,8 @@
 		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Domemtech.StringTemplate4" Version="4.2.0" />
+	</ItemGroup>
+
 </Project>

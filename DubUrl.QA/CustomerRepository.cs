@@ -1,9 +1,11 @@
 ﻿using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
+using DubUrl.Querying.Templating;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,6 +64,80 @@ namespace DubUrl.QA
                       , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectYoungestCustomers)}"
                       , new DubUrlParameterCollection()
                             .Add("count", count)
+                )
+            { }
+        }
+
+        public List<Customer> SelectWhereCustomers(IWhereClause[] clauses)
+            => DatabaseUrl.ReadMultiple<Customer>(new SelectWhereCustomersQuery(clauses)).ToList();
+
+        public interface IWhereClause
+        {
+            public string FieldName { get; }
+            public string @Operator { get; }
+            public string Value { get; }
+        }
+
+        public class BasicComparisonWhereClause<T> : IWhereClause
+        {
+
+            protected Expression<Func<Customer, T>> Member { get; }
+            public Func<Expression, Expression, BinaryExpression> BinaryExpression { get; }
+            public T Constant { get; }
+
+            public string FieldName
+            {
+                get => (Member.Body as MemberExpression)?.Member.Name ?? throw new ArgumentException();
+            }
+
+            public string @Operator
+            {
+                get
+                {
+                    return BinaryExpression.GetMethodInfo().Name switch
+                    {
+                        "GreaterThan" => ">",
+                        "LessThan" => "<",
+                        "GreaterThanOrEqual" => ">=",
+                        "LessThanOrEqual" => "<=",
+                        "Equal" => "=",
+                        _ => throw new NotSupportedException(),
+                    };
+                }
+            }
+
+            public string Value
+            {
+                get
+                {
+                    switch (Constant)
+                    {
+                        case string str: return str;
+                        case DateTime dt: return dt.ToString("yyyy-MM-dd");
+                        default: break;
+                    }
+                    throw new NotSupportedException();
+                }
+            }
+
+            public BasicComparisonWhereClause(Expression<Func<Customer, T>> member, Func<Expression, Expression, BinaryExpression> binaryExpression, T constant)
+                => (Member, BinaryExpression, Constant) = (member, binaryExpression, constant);
+        }
+
+        private class SelectWhereCustomersQuery : EmbeddedSqlTemplateCommand
+        {
+            public SelectWhereCustomersQuery(IWhereClause[] clauses)
+                : base(
+                      $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectWhereCustomers)}"
+                      , new Dictionary<string, object>() {
+                          { "fields", new[] { "BirthDate", "CustomerId", "FullName" } },
+                          { "clauses", clauses.Select<IWhereClause, object>(x => new {
+                                            Field = x.FieldName
+                                            , Operator = x.Operator.ToString()
+                                            , x.Value
+                                        }).ToArray()
+                          }
+                      }
                 )
             { }
         }

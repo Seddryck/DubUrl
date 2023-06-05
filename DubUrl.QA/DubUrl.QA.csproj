@@ -1,8 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="SelectWhereCustomers.cockroach.sql.st" />
+    <None Remove="SelectWhereCustomers.pgsql.sql.st" />
+    <None Remove="SelectWhereCustomers.questdb.sql.st" />
+    <None Remove="SelectWhereCustomers.sql.st" />
+    <None Remove="SelectWhereCustomers.timescale.sql.st" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
@@ -14,6 +22,11 @@
     <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
+    <EmbeddedResource Include="SelectWhereCustomers.timescale.sql.st" />
+    <EmbeddedResource Include="SelectWhereCustomers.questdb.sql.st" />
+    <EmbeddedResource Include="SelectWhereCustomers.cockroach.sql.st" />
+    <EmbeddedResource Include="SelectWhereCustomers.sql.st" />
+    <EmbeddedResource Include="SelectWhereCustomers.pgsql.sql.st" />
     
     <EmbeddedResource Include="SelectCustomerById.cockroach.sql" />
     <EmbeddedResource Include="SelectCustomerById.duckdb.sql" />

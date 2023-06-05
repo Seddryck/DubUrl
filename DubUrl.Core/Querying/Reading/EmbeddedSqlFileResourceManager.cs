@@ -35,7 +35,7 @@ namespace DubUrl.Querying.Reading
         public string BestMatch(string id, string[] dialects)
             => ListResourceMathing(id, dialects).OrderByDescending(x => x.Length).First();
 
-        private IEnumerable<string> ListResourceMathing(string id, string[] dialects)
+        protected virtual IEnumerable<string> ListResourceMathing(string id, string[] dialects)
             => dialects.Select(dialect => $"{id}.{dialect}.sql").Append($"{id}.sql")
                 .Where(x => ResourceNames.Any(y => x.Equals(y, StringComparison.InvariantCultureIgnoreCase)));
     }

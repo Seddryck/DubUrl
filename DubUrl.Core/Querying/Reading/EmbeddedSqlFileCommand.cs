@@ -22,7 +22,7 @@ namespace DubUrl.Querying.Reading
         internal EmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath)
             => (BasePath, ResourceManager) = (basePath, resourceManager);
 
-        public string Read(IDialect dialect)
+        public virtual string Read(IDialect dialect)
         {
             if (!ResourceManager.Any(BasePath, dialect.Aliases))
                 throw new MissingCommandForDialectException(this, dialect);

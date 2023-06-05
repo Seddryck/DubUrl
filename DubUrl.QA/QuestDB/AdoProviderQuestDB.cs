@@ -10,5 +10,9 @@ namespace DubUrl.QA.QuestDB
         {
             get => $"questdb://admin:quest@localhost:8812/";
         }
+
+        [Test]
+        public override void QueryCustomerWithWhereClause()
+            => Assert.Ignore("QuestDB doesn't support string and dateTime comparison (except match and not match)");
     }
 }

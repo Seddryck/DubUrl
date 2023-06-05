@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Dapper;
 using DubUrl.QA.Dapper;
+using static DubUrl.QA.MicroOrmCustomerRepository;
+using System.Linq.Expressions;
 
 namespace DubUrl.QA
 {
@@ -153,7 +155,34 @@ namespace DubUrl.QA
             Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
         }
 
-        private static IConfiguration EmptyDubUrlConfiguration
+
+        [Test]
+        [Category("MicroOrm")]
+        [Category("Template")]
+        public virtual void QueryCustomerWithWhereClause()
+        {
+            var options = new DubUrlServiceOptions().WithMicroOrm();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddDubUrlMicroOrm()
+                .AddSingleton<RepositoryFactory>()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<RepositoryFactory>();
+            var repo = factory.Instantiate<MicroOrmCustomerRepository>(
+                            ConnectionString
+                        );
+            var customers = repo.SelectWhereCustomers(new IWhereClause[]
+            {
+                new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan , new DateTime(1920,1,1))
+                , new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper")
+            });
+            Assert.That(customers, Has.Count.EqualTo(2));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("Nikola Tesla"));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("John von Neumann"));
+        }
+
+        protected static IConfiguration EmptyDubUrlConfiguration
         {
             get
             {
@@ -161,7 +190,6 @@ namespace DubUrl.QA
                 return builder.Build();
             }
         }
-
 
         [Test]
         [Category("Dapper")]
@@ -171,7 +199,7 @@ namespace DubUrl.QA
             var connectionUrl = new ConnectionUrl(ConnectionString);
 
             using var conn = connectionUrl.Open();
-            var customers = conn.Query<Customer>(sql).ToList();
+            var customers = conn.Query<Dapper.Customer>(sql).ToList();
             Assert.That(customers, Has.Count.EqualTo(5));
             Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
             Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
