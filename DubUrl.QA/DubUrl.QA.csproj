@@ -22,11 +22,11 @@
     <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
-    <EmbeddedResource Include="SelectWhereCustomers.timescale.sql.st" />
-    <EmbeddedResource Include="SelectWhereCustomers.questdb.sql.st" />
+    
     <EmbeddedResource Include="SelectWhereCustomers.cockroach.sql.st" />
-    <EmbeddedResource Include="SelectWhereCustomers.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.pgsql.sql.st" />
+    <EmbeddedResource Include="SelectWhereCustomers.sql.st" />
+    <EmbeddedResource Include="SelectWhereCustomers.timescale.sql.st" />
     
     <EmbeddedResource Include="SelectCustomerById.cockroach.sql" />
     <EmbeddedResource Include="SelectCustomerById.duckdb.sql" />
