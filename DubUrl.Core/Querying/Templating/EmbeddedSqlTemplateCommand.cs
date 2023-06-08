@@ -27,12 +27,13 @@ namespace DubUrl.Querying.Templating
         {
             var source = base.Read(dialect);
             var template = new Template(source, '$', '$');
-            template.Group.RegisterRenderer(typeof(string), new StringRenderer());
+            template.Group.RegisterRenderer(typeof(object), new SqlRenderer());
+
             foreach (var parameter in Parameters)
                 template.Add(parameter.Key, parameter.Value);
             
             var actual = template.Render();
-            
+            Console.WriteLine(actual);
             return actual;
         }
     }

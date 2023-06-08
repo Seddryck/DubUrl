@@ -4,5 +4,5 @@
 from 
 	"Customer"
 where 
-	$clauses:{clause | "$clause.Field$" $clause.Operator$ '$clause.Value$'}; separator="
+	$clauses:{clause | "$clause.Field; format="s"$" $clause.Operator$ '$clause.Value$'}; separator="
 and "$

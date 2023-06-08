@@ -75,7 +75,7 @@ namespace DubUrl.QA
         {
             public string FieldName { get; }
             public string @Operator { get; }
-            public string Value { get; }
+            public object Value { get; }
         }
 
         public class BasicComparisonWhereClause<T> : IWhereClause
@@ -106,19 +106,7 @@ namespace DubUrl.QA
                 }
             }
 
-            public string Value
-            {
-                get
-                {
-                    switch (Constant)
-                    {
-                        case string str: return str;
-                        case DateTime dt: return dt.ToString("yyyy-MM-dd");
-                        default: break;
-                    }
-                    throw new NotSupportedException();
-                }
-            }
+            public object Value => (object)(Constant ?? throw new ArgumentNullException());
 
             public BasicComparisonWhereClause(Expression<Func<Customer, T>> member, Func<Expression, Expression, BinaryExpression> binaryExpression, T constant)
                 => (Member, BinaryExpression, Constant) = (member, binaryExpression, constant);
