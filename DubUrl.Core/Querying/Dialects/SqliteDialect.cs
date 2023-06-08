@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class AnsiDialect : BaseDialect
+    internal class SqliteDialect : BaseDialect
     {
-        public AnsiDialect(string[] aliases)
+        public SqliteDialect(string[] aliases)
             : base(aliases) { }
     }
 }

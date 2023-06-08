@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    public class MssqlDialect : BaseDialect
+    internal class MsExcelDialect : BaseDialect
     {
-        public MssqlDialect(string[] aliases)
+        public MsExcelDialect(string[] aliases)
             : base(aliases) { }
     }
 }

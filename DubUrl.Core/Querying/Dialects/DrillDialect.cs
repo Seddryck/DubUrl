@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class PgsqlDialect : BaseDialect
+    internal class DrillDialect : BaseDialect
     {
-        public PgsqlDialect(string[] aliases)
+        public DrillDialect(string[] aliases)
             : base(aliases) { }
     }
 }

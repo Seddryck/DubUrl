@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class DuckdbDialect : BaseDialect
+    internal class SnowflakeDialect : BaseDialect
     {
-        public DuckdbDialect(string[] aliases)
+        public SnowflakeDialect(string[] aliases)
             : base(aliases) { }
     }
 }

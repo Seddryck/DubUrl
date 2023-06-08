@@ -9,7 +9,7 @@ using DubUrl;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
-using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Reading;
 using Moq;
 using NUnit.Framework;

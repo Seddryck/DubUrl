@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class OracleDialect : BaseDialect
+    internal class QuestDbDialect : BaseDialect
     {
-        public OracleDialect(string[] aliases)
+        public QuestDbDialect(string[] aliases)
             : base(aliases) { }
     }
 }

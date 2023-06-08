@@ -1,5 +1,5 @@
 ﻿using DubUrl.Parsing;
-using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Dialects;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;

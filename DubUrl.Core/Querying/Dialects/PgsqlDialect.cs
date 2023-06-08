@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class TeradataDialect : BaseDialect
+    internal class PgsqlDialect : BaseDialect
     {
-        public TeradataDialect(string[] aliases)
+        public PgsqlDialect(string[] aliases)
             : base(aliases) { }
     }
 }

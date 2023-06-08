@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Querying.Dialects;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Querying.Dialecting
+namespace DubUrl.Testing.Querying.Dialects
 {
     public class DialectBuilderTest
     {

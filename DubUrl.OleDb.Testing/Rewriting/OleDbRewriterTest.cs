@@ -7,7 +7,7 @@ using System.Data.Common;
 using System.Data.OleDb;
 using Moq;
 using System.Runtime.InteropServices;
-using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Dialects;
 using DubUrl.OleDb.Mapping;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Testing.Rewriting;

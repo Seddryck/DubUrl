@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class SqliteDialect : BaseDialect
+    internal class FirebirdSqlDialect : BaseDialect
     {
-        public SqliteDialect(string[] aliases)
+        public FirebirdSqlDialect(string[] aliases)
             : base(aliases) { }
     }
 }

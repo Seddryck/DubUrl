@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
 using System;

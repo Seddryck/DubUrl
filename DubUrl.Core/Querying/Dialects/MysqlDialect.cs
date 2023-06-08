@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class DrillDialect : BaseDialect
+    internal class MySqlDialect : BaseDialect
     {
-        public DrillDialect(string[] aliases)
+        public MySqlDialect(string[] aliases)
             : base(aliases) { }
     }
 }

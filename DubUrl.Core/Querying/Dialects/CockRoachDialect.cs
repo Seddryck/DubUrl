@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class FirebirdSqlDialect : BaseDialect
+    internal class CockRoachDialect : BaseDialect
     {
-        public FirebirdSqlDialect(string[] aliases)
+        public CockRoachDialect(string[] aliases)
             : base(aliases) { }
     }
 }

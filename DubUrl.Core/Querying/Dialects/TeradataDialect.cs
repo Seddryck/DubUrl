@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialecting
+namespace DubUrl.Querying.Dialects
 {
-    internal class SnowflakeDialect : BaseDialect
+    internal class TeradataDialect : BaseDialect
     {
-        public SnowflakeDialect(string[] aliases)
+        public TeradataDialect(string[] aliases)
             : base(aliases) { }
     }
 }
