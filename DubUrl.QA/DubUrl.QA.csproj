@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <None Remove="SelectWhereCustomers.cockroach.sql.st" />
-    <None Remove="SelectWhereCustomers.pgsql.sql.st" />
     <None Remove="SelectWhereCustomers.questdb.sql.st" />
     <None Remove="SelectWhereCustomers.sql.st" />
     <None Remove="SelectWhereCustomers.timescale.sql.st" />
@@ -24,7 +23,6 @@
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
     
     <EmbeddedResource Include="SelectWhereCustomers.cockroach.sql.st" />
-    <EmbeddedResource Include="SelectWhereCustomers.pgsql.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.timescale.sql.st" />
     

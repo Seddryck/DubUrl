@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Database
 {
-    [Database<MssqlDialect>(
+    [Database<TSqlDialect>(
         "Microsoft SQL Server"
         , new[] { "mssql", "ms", "sqlserver" }
         , DatabaseCategory.TopPlayer

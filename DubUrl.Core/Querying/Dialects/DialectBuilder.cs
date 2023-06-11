@@ -1,6 +1,8 @@
-﻿using System;
+﻿using DubUrl.Querying.Dialects.Renderers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -45,12 +47,21 @@ namespace DubUrl.Querying.Dialects
         {
             Dialects.Clear();
             foreach (var dialectInfo in DialectAliases)
+            {
+                var renderer = Activator.CreateInstance(
+                                    dialectInfo.Key.GetCustomAttribute<RendererAttribute>()?.RendererType
+                                        ?? throw new ArgumentNullException()
+                                    , Array.Empty<object>());
+            
                 Dialects.Add(dialectInfo.Key, 
                     (IDialect)(
-                        Activator.CreateInstance(dialectInfo.Key, new object[] { dialectInfo.Value.ToArray() }) 
+                        Activator.CreateInstance(dialectInfo.Key
+                            , new[] { dialectInfo.Value.ToArray(), renderer }
+                        ) 
                         ?? throw new ArgumentException()
                      )
                 );
+            }
             IsBuilt = true;
         }
 

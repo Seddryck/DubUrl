@@ -119,6 +119,7 @@ namespace DubUrl.QA
                       $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectWhereCustomers)}"
                       , new Dictionary<string, object>() {
                           { "fields", new[] { "BirthDate", "CustomerId", "FullName" } },
+                          { "table", "Customer" },
                           { "clauses", clauses.Select<IWhereClause, object>(x => new {
                                             Field = x.FieldName
                                             , Operator = x.Operator.ToString()

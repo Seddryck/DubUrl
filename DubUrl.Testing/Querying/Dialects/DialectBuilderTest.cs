@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Renderers;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -15,11 +16,11 @@ namespace DubUrl.Testing.Querying.Dialects
         public void Get_DefinedDialect_GetDialect()
         {
             var builder = new DialectBuilder();
-            builder.AddAliases<MssqlDialect>(new[] { "ms", "mssql" });
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
             builder.Build();
-            var dialect = builder.Get<MssqlDialect>();
+            var dialect = builder.Get<TSqlDialect>();
             Assert.That(dialect, Is.Not.Null);
-            Assert.That(dialect, Is.TypeOf<MssqlDialect>());
+            Assert.That(dialect, Is.TypeOf<TSqlDialect>());
             Assert.That(dialect.Aliases, Does.Contain("ms"));
             Assert.That(dialect.Aliases, Does.Contain("mssql"));
         }
@@ -43,11 +44,11 @@ namespace DubUrl.Testing.Querying.Dialects
         public void Get_UndefinedDialect_ThrowsException()
         {
             var builder = new DialectBuilder();
-            builder.AddAliases<MssqlDialect>(new[] { "ms", "mssql" });
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
             builder.AddAliases<MySqlDialect>(new[] { "maria" });
             builder.Build();
             var ex = Assert.Throws<DialectNotFoundException>(() => builder.Get<PgsqlDialect>());
-            Assert.That(ex?.Message, Does.Contain("'MssqlDialect'"));
+            Assert.That(ex?.Message, Does.Contain("'TSqlDialect'"));
             Assert.That(ex?.Message, Does.Contain("'MySqlDialect'"));
         }
 
@@ -55,31 +56,31 @@ namespace DubUrl.Testing.Querying.Dialects
         public void Get_WithoutBuild_ThrowsException()
         {
             var builder = new DialectBuilder();
-            builder.AddAliases<MssqlDialect>(new[] { "ms", "mssql" });
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
             builder.AddAliases<MySqlDialect>(new[] { "maria" });
-            var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<MssqlDialect>());
+            var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<TSqlDialect>());
         }
 
         [Test]
         public void Get_WithBuildButFollowedByAddAlias_ThrowsException()
         {
             var builder = new DialectBuilder();
-            builder.AddAliases<MssqlDialect>(new[] { "ms", "mssql" });
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
             builder.Build();
             builder.AddAliases<MySqlDialect>(new[] { "maria" });
-            var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<MssqlDialect>());
+            var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<TSqlDialect>());
         }
 
         [Test]
         public void GetByScheme_WithValidScheme_ThrowsException()
         {
             var builder = new DialectBuilder();
-            builder.AddAliases<MssqlDialect>(new[] { "ms", "mssql" });
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
             builder.AddAliases<MySqlDialect>(new[] { "my", "mysql" });
             builder.Build();
             var dialect = builder.Get("ms");
             Assert.That(dialect, Is.Not.Null);
-            Assert.That(dialect, Is.TypeOf<MssqlDialect>());
+            Assert.That(dialect, Is.TypeOf<TSqlDialect>());
             Assert.That(dialect.Aliases, Does.Contain("ms"));
             Assert.That(dialect.Aliases, Does.Contain("mssql"));
         }
@@ -88,14 +89,26 @@ namespace DubUrl.Testing.Querying.Dialects
         public void Get_TwiceTheSameDialect_AreEqual()
         {
             var builder = new DialectBuilder();
-            builder.AddAliases<MssqlDialect>(new[] { "ms", "mssql" });
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
             builder.AddAliases<MySqlDialect>(new[] { "my", "mysql" });
             builder.Build();
             var firstDialect = builder.Get("ms");
-            var secondDialect = builder.Get<MssqlDialect>();
+            var secondDialect = builder.Get<TSqlDialect>();
             Assert.That(firstDialect, Is.Not.Null);
             Assert.That(secondDialect, Is.Not.Null);
             Assert.That(firstDialect, Is.EqualTo(secondDialect));
+        }
+
+        [Test]
+        public void Get_RendererDialect_CorrectlySet()
+        {
+            var builder = new DialectBuilder();
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
+            builder.Build();
+            var tsqlDialect = builder.Get("ms");
+            Assert.That(tsqlDialect, Is.Not.Null);
+            Assert.That(tsqlDialect.Renderer, Is.Not.Null);
+            Assert.That(tsqlDialect.Renderer, Is.TypeOf<TSqlRenderer>());
         }
     }
 }

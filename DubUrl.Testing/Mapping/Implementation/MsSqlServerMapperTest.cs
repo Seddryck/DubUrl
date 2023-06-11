@@ -10,6 +10,7 @@ using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Querying.Dialects.Renderers;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -25,11 +26,11 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new MssqlDialect(new[] { "mssql", "ms" }), new NamedParametrizer());
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new[] { "mssql", "ms" }, new TSqlRenderer()), new NamedParametrizer());
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);
-            Assert.That(result, Is.InstanceOf<MssqlDialect>());
+            Assert.That(result, Is.InstanceOf<TSqlDialect>());
             Assert.Multiple(() =>
             {
                 Assert.That(result.Aliases, Does.Contain("mssql"));

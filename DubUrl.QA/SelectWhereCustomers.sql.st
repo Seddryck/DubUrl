@@ -1,8 +1,8 @@
 ﻿select 
-	$fields:{field | $field$}; separator="
+	$fields:{field | $field; format="identity"$}; separator="
 , "$
 from 
-	Customer
+	$table; format="identity"$
 where 
 	$clauses:{clause | $clause.Field$ $clause.Operator$ $clause.Value; format="value"$}; separator="
 and "$

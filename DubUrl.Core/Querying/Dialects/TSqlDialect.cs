@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects
 {
-    [Renderer<AnsiRenderer>()]
-    internal class Db2Dialect : BaseDialect
+    [Renderer<TSqlRenderer>()]
+    public class TSqlDialect : BaseDialect
     {
-        public Db2Dialect(string[] aliases, IRenderer renderer)
+        public TSqlDialect(string[] aliases, IRenderer renderer)
             : base(aliases, renderer) { }
     }
 }

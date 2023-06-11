@@ -27,7 +27,7 @@ namespace DubUrl.Querying.Templating
         {
             var source = base.Read(dialect);
             var template = new Template(source, '$', '$');
-            template.Group.RegisterRenderer(typeof(object), new SqlRenderer());
+            template.Group.RegisterRenderer(typeof(object), new SqlRendererWrapper(dialect.Renderer));
 
             foreach (var parameter in Parameters)
                 template.Add(parameter.Key, parameter.Value);
