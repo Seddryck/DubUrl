@@ -22,9 +22,13 @@ namespace DubUrl.Querying.Dialects.Renderers
 
         public string Render(object? obj, string format)
         {
+            if (string.IsNullOrWhiteSpace(format))
+                return obj?.ToString() ?? "<empty>";
+
             if (format.ToLowerInvariant() == "identity")
                 return Identity.Format(obj ?? throw new ArgumentNullException());
-            else if (format.ToLowerInvariant() == "value")
+
+            if (format.ToLowerInvariant() == "value")
             {
                 if (obj is null)
                     return Null.Format();
@@ -34,7 +38,7 @@ namespace DubUrl.Querying.Dialects.Renderers
                     throw new ArgumentException();
             }
             else
-                    throw new ArgumentException();
+                throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.");
         }
     }
 }
