@@ -7,6 +7,11 @@
 		<Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
 	</PropertyGroup>
 
+  <PropertyGroup>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Testing" />
 		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
