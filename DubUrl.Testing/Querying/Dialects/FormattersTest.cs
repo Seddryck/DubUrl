@@ -45,9 +45,14 @@ namespace DubUrl.Testing.Querying.Dialects
         [Test]
         [TestCase(true, "true")]
         [TestCase(false, "false")]
-        public void BoolAsValue_Render_Quoted(bool value, string expected)
+        public void BooleanLowerFormatter_Render_Quoted(bool value, string expected)
             => Assert.That(new BooleanLowerFormatter().Format(value), Is.EqualTo(expected));
 
+        [Test]
+        [TestCase(true, "1")]
+        [TestCase(false, "0")]
+        public void BooleanBitFormatter_Render_Quoted(bool value, string expected)
+            => Assert.That(new BooleanBitFormatter().Format(value), Is.EqualTo(expected));
 
         [Test]
         [TestCase("2023-04-07 17:12:23", "'2023-04-07 17:12:23'")]
@@ -88,5 +93,11 @@ namespace DubUrl.Testing.Querying.Dialects
         [TestCase("2023-04-07", "DATE('2023-04-07')")]
         public void FunctionFormatter_Format_Quoted(string value, string expected)
             => Assert.That(new FunctionFormatter<DateOnly>("DATE", new DateFormatter()).Format(DateOnly.Parse(value)), Is.EqualTo(expected));
+
+
+        [Test]
+        [TestCase("2023-04-07", "CAST ('2023-04-07' AS DATE)")]
+        public void CastFormatter_Format_Quoted(string value, string expected)
+            => Assert.That(new CastFormatter<DateOnly>("DATE", new DateFormatter()).Format(DateOnly.Parse(value)), Is.EqualTo(expected));
     }
 }
