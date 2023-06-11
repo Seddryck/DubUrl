@@ -24,17 +24,6 @@ namespace DubUrl.Querying.Templating
             : base(resourceManager, basePath) => Parameters = parameters;
 
         public override string Read(IDialect dialect)
-        {
-            var source = base.Read(dialect);
-            var template = new Template(source, '$', '$');
-            template.Group.RegisterRenderer(typeof(object), new SqlRendererWrapper(dialect.Renderer));
-
-            foreach (var parameter in Parameters)
-                template.Add(parameter.Key, parameter.Value);
-            
-            var actual = template.Render();
-            Console.WriteLine(actual);
-            return actual;
-        }
+            => new StringTemplateEngine().Render(base.Read(dialect), Parameters, dialect.Renderer);
     }
 }

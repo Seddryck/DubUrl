@@ -3,6 +3,7 @@ using DubUrl.MicroOrm;
 using DubUrl.Querying;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
+using DubUrl.Querying.Templating;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -68,6 +69,9 @@ namespace DubUrl
         public T? ReadScalar<T>(string query)
           => ReadScalar<T>(new InlineCommand(query));
 
+        public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
+           => ReadScalar<T>(new InlineTemplateCommand(template, parameters));
+
         public T? ReadScalar<T>(ICommandProvider query)
         {
             var result = ReadScalar(query);
@@ -77,9 +81,11 @@ namespace DubUrl
         public T ReadScalarNonNull<T>(string query)
            => ReadScalarNonNull<T>(new InlineCommand(query));
 
+        public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
+           => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters));
+
         public T ReadScalarNonNull<T>(ICommandProvider query)
             => (T)ReadScalarNonNull(query);
-
 
         #endregion
 
