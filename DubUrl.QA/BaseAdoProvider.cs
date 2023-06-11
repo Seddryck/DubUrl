@@ -21,6 +21,8 @@ namespace DubUrl.QA
 
         public abstract string ConnectionString { get; }
 
+        public virtual string SelectPrimitiveTemplate { get => "select $value; format=\"value\"$"; }
+
         [Test]
         [Category("ConnectionUrl")]
         public void Connect()
@@ -91,6 +93,7 @@ namespace DubUrl.QA
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
         }
 
+
         [Test]
         [Category("DatabaseUrl")]
         public virtual void QueryCustomerWithDatabaseUrlAndQueryClass()
@@ -98,6 +101,78 @@ namespace DubUrl.QA
             var db = new DatabaseUrl(ConnectionString);
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryStringWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<string>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", "Grace Hopper" } });
+            Assert.That(value, Is.EqualTo("Grace Hopper"));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryBooleanWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<bool>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", true } });
+            Assert.That(value, Is.EqualTo(true));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryNumericWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<decimal>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", 17.505m } });
+            Assert.That(value, Is.EqualTo(17.505m));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryTimestampWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<DateTime>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new DateTime(2023,6,10,17,52,12) } });
+            Assert.That(value, Is.EqualTo(new DateTime(2023, 6, 10, 17, 52, 12)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryDateWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<DateOnly>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new DateOnly(2023, 6, 10) } });
+            Assert.That(value, Is.EqualTo(new DateOnly(2023, 6, 10)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryTimeWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<TimeOnly>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new TimeOnly(17, 52, 12) } });
+            Assert.That(value, Is.EqualTo(new TimeOnly(17, 52, 12)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryIntervalWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<TimeSpan>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new TimeSpan(17, 52, 12) } });
+            Assert.That(value, Is.EqualTo(new TimeSpan(17, 52, 12)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryNullWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalar<string>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", null } });
+            Assert.That(value, Is.Null);
         }
 
         [Test]
