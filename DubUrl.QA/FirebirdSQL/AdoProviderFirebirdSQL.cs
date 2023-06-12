@@ -16,6 +16,11 @@ namespace DubUrl.QA.FirebirdSQL
             get => $"firebird://fbUser:Password12!@localhost/{CurrentDirectory}\\Customer.fdb?wire crypt=Enabled";
         }
 
+        public override string SelectPrimitiveTemplate
+        {
+            get => $"{base.SelectPrimitiveTemplate} FROM RDB$DATABASE";
+        }
+
         [Test]
         public override void QueryCustomer()
             => QueryCustomer("select FullName from Customer where CustomerId=1");

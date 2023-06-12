@@ -12,7 +12,7 @@ namespace DubUrl.Querying.Dialects.Renderers
         public TSqlRenderer()
             : base(new ValueFormatter()
                         .With(new IntervalTimeFormatter())
-                        .With(new BooleanBitFormatter())
+                        .With(new CastFormatter<bool>("BIT", new BooleanBitFormatter()))
                         .With(new CastFormatter<DateOnly>("DATE", new DateFormatter()))
                         .With(new CastFormatter<TimeOnly>("TIME", new TimeFormatter()))
                         .With(new CastFormatter<DateTime>("DATETIME", new TimestampFormatter()))

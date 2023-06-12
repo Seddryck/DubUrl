@@ -153,7 +153,7 @@ namespace DubUrl.QA
         public virtual void QueryTimeWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<TimeOnly>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new TimeOnly(17, 52, 12) } });
+            var value = db.ReadScalarNonNull<TimeOnly>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new TimeOnly(17, 52, 12) } });
             Assert.That(value, Is.EqualTo(new TimeOnly(17, 52, 12)));
         }
 
@@ -162,7 +162,7 @@ namespace DubUrl.QA
         public virtual void QueryIntervalWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<TimeSpan>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new TimeSpan(17, 52, 12) } });
+            var value = db.ReadScalarNonNull<TimeSpan>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new TimeSpan(17, 52, 12) } });
             Assert.That(value, Is.EqualTo(new TimeSpan(17, 52, 12)));
         }
 
@@ -171,7 +171,7 @@ namespace DubUrl.QA
         public virtual void QueryNullWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalar<string>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", null } });
+            var value = db.ReadScalar<string>($"SelectPrimitiveTemplate AS $columnId;format=\"identifier\"$", new Dictionary<string, object?>() { { "value", null }, { "identifier", "ColumnName"} });
             Assert.That(value, Is.Null);
         }
 

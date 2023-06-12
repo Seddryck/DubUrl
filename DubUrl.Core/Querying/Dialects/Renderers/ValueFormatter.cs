@@ -22,9 +22,9 @@ namespace DubUrl.Querying.Dialects.Renderers
         {
             With(new BooleanFormatter());
             With(new SimpleQuotedValueFormatter());
-            With(new DateFormatter());
-            With(new TimeFormatter());
-            With(new TimestampFormatter());
+            With(new PrefixFormatter<DateOnly>("DATE", new DateFormatter()));
+            With(new PrefixFormatter<TimeOnly>("TIME", new TimeFormatter()));
+            With(new PrefixFormatter<DateTime>("TIMESTAMP", new TimestampFormatter()));
             With(new IntervalFormatter());
             var numericTypes = new Type[] {
                 typeof(byte), typeof(short), typeof(int), typeof(long)

@@ -14,5 +14,9 @@ namespace DubUrl.QA.QuestDB
         [Test]
         public override void QueryCustomerWithWhereClause()
             => Assert.Ignore("QuestDB doesn't support string and dateTime comparison (except match and not match)");
+
+        [Test]
+        public override void QueryTimeWithDatabaseUrl()
+            => Assert.Ignore("QuestDB doesn't support Time type");
     }
 }
