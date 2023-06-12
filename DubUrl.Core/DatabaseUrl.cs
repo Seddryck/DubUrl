@@ -85,7 +85,13 @@ namespace DubUrl
            => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters));
 
         public T ReadScalarNonNull<T>(ICommandProvider query)
-            => (T)ReadScalarNonNull(query);
+        {
+            var result = ReadScalarNonNull(query);
+            if (result is T)
+                return (T)result;
+
+            return NormalizeReturnType<T>(result);
+        }
 
         #endregion
 
@@ -159,6 +165,57 @@ namespace DubUrl
             => PrepareCommand(commandProvider).ExecuteReader();
 
         #endregion
+
+
+        private T NormalizeReturnType<T>(object obj)
+        {
+            if (typeof(T) == typeof(decimal))
+                return (T)(object)Convert.ToDecimal(obj);
+
+            return obj switch
+            {
+                string str => Parse<T>(str),
+                DateTime dt => TruncateDateTime<T>(dt),
+                TimeSpan ts => TimeSpanToTime<T>(ts),
+                _ => throw new NotImplementedException($"Cannot normalize value from '{obj.GetType().Name}' to '{typeof(T).Name}'")
+            };
+        }
+
+        private T Parse<T>(string value)
+        {
+#if NET7_0_OR_GREATER
+                if (!(typeof(T).GetInterfaces().Any(c => c.IsGenericType && c.GetGenericTypeDefinition() == typeof(IParsable<>))))
+                    throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}'");
+#endif
+            var parse = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                    .FirstOrDefault(c => c.Name == "Parse"
+                                        && c.GetParameters().Length == 2
+                                        && c.GetParameters()[0].ParameterType == typeof(string)
+                                        && c.GetParameters()[1].ParameterType == typeof(IFormatProvider)
+                    );
+            return parse == null
+                ? throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}'")
+                : (T)(parse.Invoke(null, new[] { value, null }) ?? throw new ArgumentOutOfRangeException(nameof(value)));
+        }
+
+        private T TruncateDateTime<T>(DateTime dt)
+        {
+            if (typeof(T) == typeof(DateOnly))
+                return (T)(object)DateOnly.FromDateTime(dt);
+
+            if (typeof(T) == typeof(TimeOnly))
+                return (T)(object)TimeOnly.FromDateTime(dt);
+
+            throw new InvalidCastException();
+        }
+
+        private T TimeSpanToTime<T>(TimeSpan ts)
+        {
+            if (typeof(T) == typeof(TimeOnly))
+                return (T)(object)TimeOnly.FromTimeSpan(ts);
+
+            throw new InvalidCastException();
+        }
     }
 }
 
