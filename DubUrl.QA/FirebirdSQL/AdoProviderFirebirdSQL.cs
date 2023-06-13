@@ -18,7 +18,7 @@ namespace DubUrl.QA.FirebirdSQL
 
         public override string SelectPrimitiveTemplate
         {
-            get => $"{base.SelectPrimitiveTemplate} FROM RDB\$DATABASE";
+            get => $"{base.SelectPrimitiveTemplate} FROM RDB\\$DATABASE";
         }
 
         [Test]
