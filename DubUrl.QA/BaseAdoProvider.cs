@@ -171,7 +171,7 @@ namespace DubUrl.QA
         public virtual void QueryNullWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalar<string>($"{SelectPrimitiveTemplate} AS $columnId;format=\"identifier\"$", new Dictionary<string, object?>() { { "value", null }, { "identifier", "ColumnName"} });
+            var value = db.ReadScalar<string>($"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$", new Dictionary<string, object?>() { { "value", DBNull.Value }, { "columnId", "ColumnName"} });
             Assert.That(value, Is.Null);
         }
 

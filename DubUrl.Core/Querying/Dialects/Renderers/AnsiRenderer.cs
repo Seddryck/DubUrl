@@ -30,7 +30,7 @@ namespace DubUrl.Querying.Dialects.Renderers
 
             if (format.ToLowerInvariant() == "value")
             {
-                if (obj is null)
+                if (obj is null || obj==DBNull.Value)
                     return Null.Format();
                 if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
                     return formatter.Format(obj);
