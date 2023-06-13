@@ -13,6 +13,10 @@ namespace DubUrl.Querying.Templating
     {
         public string Render(string source, IDictionary<string, object?> parameters, IRenderer renderer)
         {
+            foreach (var parameter in parameters)
+                if (parameter.Value is null)
+                    parameters[parameter.Key] = DBNull.Value;
+
             var template = new Template(source, '$', '$');
             template.Group.RegisterRenderer(typeof(object), new SqlRendererWrapper(renderer));
 
