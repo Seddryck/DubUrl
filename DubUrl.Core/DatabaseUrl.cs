@@ -172,6 +172,9 @@ namespace DubUrl
             if (typeof(T) == typeof(decimal))
                 return (T)(object)Convert.ToDecimal(obj);
 
+            if (typeof(T) == typeof(bool))
+                return (T)(object)Convert.ToBoolean(obj);
+
             return obj switch
             {
                 string str => Parse<T>(str),
@@ -185,7 +188,7 @@ namespace DubUrl
         {
 #if NET7_0_OR_GREATER
                 if (!(typeof(T).GetInterfaces().Any(c => c.IsGenericType && c.GetGenericTypeDefinition() == typeof(IParsable<>))))
-                    throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}'");
+                    throw new ArgumentOutOfRangeException($"Cannot normalize by parsing the string to type '{typeof(T).Name}' because it doesn't implement IParsable");
 #endif
             var parse = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public)
                     .FirstOrDefault(c => c.Name == "Parse"
@@ -194,7 +197,7 @@ namespace DubUrl
                                         && c.GetParameters()[1].ParameterType == typeof(IFormatProvider)
                     );
             return parse == null
-                ? throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}'")
+                ? throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}' because we can't find a method named Parse accepting two parameters.")
                 : (T)(parse.Invoke(null, new[] { value, null }) ?? throw new ArgumentOutOfRangeException(nameof(value)));
         }
 
