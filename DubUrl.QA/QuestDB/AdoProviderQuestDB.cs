@@ -23,6 +23,9 @@ namespace DubUrl.QA.QuestDB
         public override void QueryIntervalWithDatabaseUrl()
             => Assert.Ignore("QuestDB doesn't support 'Interval' type");
 
+        [Test]
+        public override void QueryDateWithDatabaseUrl()
+            => Assert.Ignore("QuestDB doesn't support 'Date' type");
 
         [Test]
         public override void QueryNullWithDatabaseUrl()

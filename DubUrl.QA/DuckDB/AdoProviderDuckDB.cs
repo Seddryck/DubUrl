@@ -1,4 +1,6 @@
 using NUnit.Framework;
+using DuckDB.NET.Data;
+using DuckDB.NET;
 
 namespace DubUrl.QA.DuckDB
 {
@@ -35,5 +37,14 @@ namespace DubUrl.QA.DuckDB
         [Test]
         public override void QueryCustomerWithWhereClause()
             => Assert.Ignore("Object of type 'DuckDB.NET.DuckDBDateOnly' cannot be converted to type 'System.DateTime'");
+
+        [Test]
+        public void XXX()
+        {
+            var x = new DuckDBDateOnly(2012, 10, 10);
+            DateOnly y = (DateOnly)x;
+            Assert.Pass();
+        }
+
     }
 }

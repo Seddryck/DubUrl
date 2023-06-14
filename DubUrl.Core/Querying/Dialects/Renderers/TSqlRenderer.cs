@@ -16,7 +16,7 @@ namespace DubUrl.Querying.Dialects.Renderers
                         .With(new CastFormatter<DateOnly>("DATE", new DateFormatter()))
                         .With(new CastFormatter<TimeOnly>("TIME", new TimeFormatter()))
                         .With(new CastFormatter<DateTime>("DATETIME", new TimestampFormatter()))
-                        .With(new FunctionFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
+                        .With(new CastFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
                     , new NullFormatter()
                     , new SquareBracketIdentifierFormatter()) { }
     }

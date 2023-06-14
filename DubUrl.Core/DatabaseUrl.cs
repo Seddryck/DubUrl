@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.MicroOrm;
 using DubUrl.Querying;
+using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
 using DubUrl.Querying.Templating;
@@ -175,6 +176,9 @@ namespace DubUrl
             if (typeof(T) == typeof(bool))
                 return (T)(object)Convert.ToBoolean(obj);
 
+            if (HasImplicitConversion(obj.GetType(), typeof(T)))
+                return (T)(dynamic)obj;   
+
             return obj switch
             {
                 string str => Parse<T>(str),
@@ -217,6 +221,17 @@ namespace DubUrl
                 return (T)(object)TimeOnly.FromTimeSpan(ts);
 
             throw new InvalidCastException();
+        }
+
+        //https://stackoverflow.com/questions/32025201/how-can-i-determine-if-an-implicit-cast-exists-in-c
+        public static bool HasImplicitConversion(Type baseType, Type targetType)
+        {
+            return baseType.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Where(mi => mi.Name == "op_Implicit" && mi.ReturnType == targetType)
+                .Any(mi => {
+                    var pi = mi.GetParameters().FirstOrDefault();
+                    return pi != null && pi.ParameterType == baseType;
+                });
         }
     }
 }

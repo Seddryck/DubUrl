@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects
 {
-    [Renderer<AnsiRenderer>()]
+    [Renderer<FirebirdSqlRenderer>()]
     internal class FirebirdSqlDialect : BaseDialect
     {
         public FirebirdSqlDialect(string[] aliases, IRenderer renderer)
