@@ -39,12 +39,8 @@ namespace DubUrl.QA.DuckDB
             => Assert.Ignore("Object of type 'DuckDB.NET.DuckDBDateOnly' cannot be converted to type 'System.DateTime'");
 
         [Test]
-        public void XXX()
-        {
-            var x = new DuckDBDateOnly(2012, 10, 10);
-            DateOnly y = (DateOnly)x;
-            Assert.Pass();
-        }
+        public override void QueryIntervalWithDatabaseUrl()
+            => Assert.Ignore("Awaiting resolution of https://github.com/Giorgi/DuckDB.NET/issues/111");
 
     }
 }
