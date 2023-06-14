@@ -11,7 +11,6 @@ namespace DubUrl.Querying.Dialects.Formatters
         public string Format(TimeSpan value)
         {
             var sb = new StringBuilder();
-            sb.Append("INTERVAL ");
             sb.Append('\'');
             if (value.TotalDays >= 1)
                 sb.Append(value.Days).Append(" DAYS ");

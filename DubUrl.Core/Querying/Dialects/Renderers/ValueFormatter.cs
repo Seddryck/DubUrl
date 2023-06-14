@@ -25,7 +25,7 @@ namespace DubUrl.Querying.Dialects.Renderers
             With(new PrefixFormatter<DateOnly>("DATE", new DateFormatter()));
             With(new PrefixFormatter<TimeOnly>("TIME", new TimeFormatter()));
             With(new PrefixFormatter<DateTime>("TIMESTAMP", new TimestampFormatter()));
-            With(new IntervalFormatter());
+            With(new PrefixFormatter<TimeSpan>("INTERVAL", new IntervalFormatter()));
             var numericTypes = new Type[] {
                 typeof(byte), typeof(short), typeof(int), typeof(long)
                 , typeof(float), typeof(double)

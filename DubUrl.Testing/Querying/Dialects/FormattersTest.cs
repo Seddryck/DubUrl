@@ -70,7 +70,7 @@ namespace DubUrl.Testing.Querying.Dialects
             => Assert.That(new TimeFormatter().Format(TimeOnly.Parse(value)), Is.EqualTo(expected));
 
         [Test]
-        [TestCase("2.17:12:23", "INTERVAL '2 DAYS 17 HOURS 12 MINUTES 23 SECONDS'")]
+        [TestCase("2.17:12:23", "'2 DAYS 17 HOURS 12 MINUTES 23 SECONDS'")]
         public void Interval_Format_Quoted(string value, string expected)
             => Assert.That(new IntervalFormatter().Format(TimeSpan.Parse(value)), Is.EqualTo(expected));
 

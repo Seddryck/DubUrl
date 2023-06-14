@@ -11,7 +11,7 @@ namespace DubUrl.Querying.Dialects.Renderers
     {
         public FirebirdSqlRenderer()
             : base(new ValueFormatter()
-                        .With(new FunctionFormatter<TimeSpan>("time", new IntervalAsTimeFormatter()))
+                        .With(new PrefixFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
                   , new NullFormatter()
                   , new QuotedIdentifierFormatter())
         { }
