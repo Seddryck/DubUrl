@@ -192,13 +192,12 @@ namespace DubUrl
 #endif
             var parse = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public)
                     .FirstOrDefault(c => c.Name == "Parse"
-                                        && c.GetParameters().Length == 2
+                                        && c.GetParameters().Length == 1
                                         && c.GetParameters()[0].ParameterType == typeof(string)
-                                        && c.GetParameters()[1].ParameterType == typeof(IFormatProvider)
                     );
             return parse == null
                 ? throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}' because we can't find a method named Parse accepting two parameters.")
-                : (T)(parse.Invoke(null, new[] { value, null }) ?? throw new ArgumentOutOfRangeException(nameof(value)));
+                : (T)(parse.Invoke(null, new[] { value }) ?? throw new ArgumentOutOfRangeException(nameof(value)));
         }
 
         private T TruncateDateTime<T>(DateTime dt)

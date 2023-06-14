@@ -10,9 +10,9 @@ namespace DubUrl.Querying.Dialects.Renderers
     internal class PgsqlRenderer : AnsiRenderer
     {
         public PgsqlRenderer()
-            : base(new ValueFormatter()
-                  , new NullFormatter()
-                  , new QuotedIdentifierFormatter()) 
-        { }
+            : this(new ValueFormatter()) { }
+
+        protected PgsqlRenderer(ValueFormatter value)
+            : base(value, new NullFormatter(), new QuotedIdentifierFormatter()) { }
     }
 }

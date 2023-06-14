@@ -15,6 +15,7 @@ namespace DubUrl.Querying.Dialects.Renderers
                         .With(new FunctionFormatter<DateOnly>("date", new DateFormatter()))
                         .With(new FunctionFormatter<TimeOnly>("time", new TimeFormatter()))
                         .With(new FunctionFormatter<DateTime>("datetime", new TimestampFormatter()))
+                        .With(new FunctionFormatter<TimeSpan>("time", new IntervalAsTimeFormatter()))
                   , new NullFormatter()
                   , new UnquotedIdentifierFormatter())
         { }

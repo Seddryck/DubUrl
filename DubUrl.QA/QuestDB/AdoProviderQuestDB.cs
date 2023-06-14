@@ -17,6 +17,15 @@ namespace DubUrl.QA.QuestDB
 
         [Test]
         public override void QueryTimeWithDatabaseUrl()
-            => Assert.Ignore("QuestDB doesn't support Time type");
+            => Assert.Ignore("QuestDB doesn't support 'Time' type");
+
+        [Test]
+        public override void QueryIntervalWithDatabaseUrl()
+            => Assert.Ignore("QuestDB doesn't support 'Interval' type");
+
+
+        [Test]
+        public override void QueryNullWithDatabaseUrl()
+            => Assert.Ignore("QuestDB has a really personnal implementation of NULL value.");
     }
 }

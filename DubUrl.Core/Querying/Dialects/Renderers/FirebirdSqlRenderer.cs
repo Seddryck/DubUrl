@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Renderers
 {
-    internal class MySqlRenderer : AnsiRenderer
+    internal class FirebirdSqlRenderer : AnsiRenderer
     {
-        public MySqlRenderer()
+        public FirebirdSqlRenderer()
             : base(new ValueFormatter()
-                        .With(new FunctionFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
+                        .With(new FunctionFormatter<TimeSpan>("time", new IntervalAsTimeFormatter()))
                   , new NullFormatter()
-                  , new BacktickIdentifierFormatter()) { }
+                  , new QuotedIdentifierFormatter())
+        { }
     }
 }
