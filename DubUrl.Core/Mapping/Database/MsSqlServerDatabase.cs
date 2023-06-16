@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Querying.Dialects;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Database
 {
-    [Database<MssqlDialect>(
+    [Database<TSqlDialect>(
         "Microsoft SQL Server"
         , new[] { "mssql", "ms", "sqlserver" }
         , DatabaseCategory.TopPlayer

@@ -1,4 +1,9 @@
+using DubUrl.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using System.Linq.Expressions;
+using System.Security.Cryptography.X509Certificates;
+using static DubUrl.QA.MicroOrmCustomerRepository;
 
 namespace DubUrl.QA.MsSqlServer
 {
@@ -31,5 +36,6 @@ namespace DubUrl.QA.MsSqlServer
         [Test]
         public override void QueryCustomerWithDapper()
             => QueryCustomerWithDapper("select * from Customer");
+
     }
 }

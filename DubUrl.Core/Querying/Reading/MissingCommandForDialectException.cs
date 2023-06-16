@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Querying.Dialects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,6 @@ namespace DubUrl.Querying.Reading
     public class MissingCommandForDialectException : DubUrlException
     {
         public MissingCommandForDialectException(ICommandProvider provider, IDialect dialect)
-            : base($"The '{provider.ToString()}' matching with the dialect '{dialect}' wasn't found.") { }
+            : base($"The '{provider}' matching with the dialect '{dialect.Aliases[0]}' wasn't found.") { }
     }
 }

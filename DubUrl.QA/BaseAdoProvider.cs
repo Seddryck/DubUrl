@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Dapper;
 using DubUrl.QA.Dapper;
+using static DubUrl.QA.MicroOrmCustomerRepository;
+using System.Linq.Expressions;
 
 namespace DubUrl.QA
 {
@@ -18,6 +20,8 @@ namespace DubUrl.QA
             => new ProviderFactoriesRegistrator().Register();
 
         public abstract string ConnectionString { get; }
+
+        public virtual string SelectPrimitiveTemplate { get => "select $value; format=\"value\"$"; }
 
         [Test]
         [Category("ConnectionUrl")]
@@ -89,6 +93,7 @@ namespace DubUrl.QA
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
         }
 
+
         [Test]
         [Category("DatabaseUrl")]
         public virtual void QueryCustomerWithDatabaseUrlAndQueryClass()
@@ -96,6 +101,78 @@ namespace DubUrl.QA
             var db = new DatabaseUrl(ConnectionString);
             var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
             Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryStringWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<string>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", "Grace Hopper" } });
+            Assert.That(value, Is.EqualTo("Grace Hopper"));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryBooleanWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<bool>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", true } });
+            Assert.That(value, Is.EqualTo(true));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryNumericWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<decimal>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", 17.505m } });
+            Assert.That(value, Is.EqualTo(17.505m));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryTimestampWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<DateTime>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new DateTime(2023,6,10,17,52,12) } });
+            Assert.That(value, Is.EqualTo(new DateTime(2023, 6, 10, 17, 52, 12)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryDateWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<DateOnly>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new DateOnly(2023, 6, 10) } });
+            Assert.That(value, Is.EqualTo(new DateOnly(2023, 6, 10)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryTimeWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<TimeOnly>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new TimeOnly(17, 52, 12) } });
+            Assert.That(value, Is.EqualTo(new TimeOnly(17, 52, 12)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryIntervalWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalarNonNull<TimeSpan>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new TimeSpan(17, 52, 12) } });
+            Assert.That(value, Is.EqualTo(new TimeSpan(17, 52, 12)));
+        }
+
+        [Test]
+        [Category("DatabaseUrl")]
+        public virtual void QueryNullWithDatabaseUrl()
+        {
+            var db = new DatabaseUrl(ConnectionString);
+            var value = db.ReadScalar<string>($"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$", new Dictionary<string, object?>() { { "value", null }, { "columnId", "ColumnName"} });
+            Assert.That(value, Is.Null);
         }
 
         [Test]
@@ -153,7 +230,34 @@ namespace DubUrl.QA
             Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
         }
 
-        private static IConfiguration EmptyDubUrlConfiguration
+
+        [Test]
+        [Category("MicroOrm")]
+        [Category("Template")]
+        public virtual void QueryCustomerWithWhereClause()
+        {
+            var options = new DubUrlServiceOptions().WithMicroOrm();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyDubUrlConfiguration)
+                .AddDubUrl(options)
+                .AddDubUrlMicroOrm()
+                .AddSingleton<RepositoryFactory>()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<RepositoryFactory>();
+            var repo = factory.Instantiate<MicroOrmCustomerRepository>(
+                            ConnectionString
+                        );
+            var customers = repo.SelectWhereCustomers(new IWhereClause[]
+            {
+                new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan , new DateTime(1920,1,1))
+                , new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper")
+            });
+            Assert.That(customers, Has.Count.EqualTo(2));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("Nikola Tesla"));
+            Assert.That(customers.Select(x => x.FullName), Has.Member("John von Neumann"));
+        }
+
+        protected static IConfiguration EmptyDubUrlConfiguration
         {
             get
             {
@@ -161,7 +265,6 @@ namespace DubUrl.QA
                 return builder.Build();
             }
         }
-
 
         [Test]
         [Category("Dapper")]
@@ -171,7 +274,7 @@ namespace DubUrl.QA
             var connectionUrl = new ConnectionUrl(ConnectionString);
 
             using var conn = connectionUrl.Open();
-            var customers = conn.Query<Customer>(sql).ToList();
+            var customers = conn.Query<Dapper.Customer>(sql).ToList();
             Assert.That(customers, Has.Count.EqualTo(5));
             Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
             Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);

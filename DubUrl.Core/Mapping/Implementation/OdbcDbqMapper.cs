@@ -1,6 +1,6 @@
 ﻿using DubUrl.Locating.OdbcDriver;
 using DubUrl.Mapping.Connectivity;
-using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Implementation;
 using System;

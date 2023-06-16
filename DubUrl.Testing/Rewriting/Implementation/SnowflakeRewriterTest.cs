@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping.Implementation;
-using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Implementation;
 

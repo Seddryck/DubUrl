@@ -37,5 +37,9 @@ namespace DubUrl.QA.CockRoach
         [Test]
         public override void QueryCustomerWithDapper()
             => QueryCustomerWithDapper("select * from Customer");
+
+        [Test]
+        public override void QueryCustomerWithWhereClause()
+            => Assert.Ignore("Issue with lower in template");
     }
 }

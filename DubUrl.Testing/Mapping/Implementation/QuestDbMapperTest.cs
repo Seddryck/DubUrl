@@ -1,5 +1,7 @@
 ﻿using DubUrl.Mapping.Implementation;
-using DubUrl.Querying.Dialecting;
+using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Testing.Rewriting;
 using Npgsql;
@@ -25,7 +27,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new QuestDbMapper(ConnectionStringBuilder, new QuestDbDialect(new[] { "quest", "questdb" }), new PositionalParametrizer());
+            var mapper = new QuestDbMapper(ConnectionStringBuilder, new QuestDbDialect(new[] { "quest", "questdb" }, new PgsqlRenderer(), Array.Empty<ICaster>()), new PositionalParametrizer());
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);

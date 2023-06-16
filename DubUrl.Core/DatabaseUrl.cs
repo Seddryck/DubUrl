@@ -1,8 +1,11 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.MicroOrm;
 using DubUrl.Querying;
+using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
+using DubUrl.Querying.Templating;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +22,9 @@ namespace DubUrl
     public partial class DatabaseUrl
     {
         protected ConnectionUrl ConnectionUrl { get; }
-        private CommandProvisionerFactory CommandProvisionerFactory { get; }
+        protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+
+        protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
 
         public DatabaseUrl(string url)
         : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
@@ -68,6 +73,9 @@ namespace DubUrl
         public T? ReadScalar<T>(string query)
           => ReadScalar<T>(new InlineCommand(query));
 
+        public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
+           => ReadScalar<T>(new InlineTemplateCommand(template, parameters));
+
         public T? ReadScalar<T>(ICommandProvider query)
         {
             var result = ReadScalar(query);
@@ -77,9 +85,17 @@ namespace DubUrl
         public T ReadScalarNonNull<T>(string query)
            => ReadScalarNonNull<T>(new InlineCommand(query));
 
-        public T ReadScalarNonNull<T>(ICommandProvider query)
-            => (T)ReadScalarNonNull(query);
+        public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
+           => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters));
 
+        public T ReadScalarNonNull<T>(ICommandProvider query)
+        {
+            var result = ReadScalarNonNull(query);
+            if (result is T)
+                return (T)result;
+
+            return NormalizeReturnType<T>(result);
+        }
 
         #endregion
 
@@ -153,6 +169,16 @@ namespace DubUrl
             => PrepareCommand(commandProvider).ExecuteReader();
 
         #endregion
+
+
+        private T? NormalizeReturnType<T>(object obj)
+        {
+            var caster = ConnectionUrl.Dialect.Casters
+                            .FirstOrDefault(x => x.CanCast(obj.GetType(), typeof(T)))
+                            ?? throw new InvalidOperationException($"Cannot find any caster to transform from type '{obj.GetType().Name}' to the type '{typeof(T).Name}'");
+            return (T?)caster.Cast(obj);
+        }
+
     }
 }
 

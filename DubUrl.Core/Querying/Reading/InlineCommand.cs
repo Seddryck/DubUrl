@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialecting;
+﻿using DubUrl.Querying.Dialects;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,7 +14,7 @@ namespace DubUrl.Querying.Reading
 
         public InlineCommand(string text) => Text = text;
 
-        public string Read(IDialect dialect) => Text;
+        public virtual string Read(IDialect dialect) => Text;
         public bool Exists(IDialect dialect, bool includeDefault = false) => true;
 
         public virtual IDbCommand CreateCommand(IDialect dialect, IDbConnection conn)
