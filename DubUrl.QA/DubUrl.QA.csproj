@@ -3,15 +3,9 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <None Remove="SelectWhereCustomers.cockroach.sql.st" />
-    <None Remove="SelectWhereCustomers.questdb.sql.st" />
-    <None Remove="SelectWhereCustomers.sql.st" />
-    <None Remove="SelectWhereCustomers.timescale.sql.st" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <EmbeddedResource Include="SelectAllCustomer.trino.sql" />
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectAllCustomer.duckdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.fb.sql" />

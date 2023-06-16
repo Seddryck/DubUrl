@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialects.Renderers;
+﻿using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Renderers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace DubUrl.Querying.Dialects
     [Renderer<AnsiRenderer>()]
     internal class TeradataDialect : BaseDialect
     {
-        public TeradataDialect(string[] aliases, IRenderer renderer)
-            : base(aliases, renderer) { }
+        public TeradataDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+            : base(aliases, renderer, casters) { }
     }
 }

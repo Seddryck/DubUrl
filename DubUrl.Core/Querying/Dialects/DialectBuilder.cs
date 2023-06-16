@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialects.Renderers;
+﻿using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Renderers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,11 +53,15 @@ namespace DubUrl.Querying.Dialects
                                     dialectInfo.Key.GetCustomAttribute<RendererAttribute>()?.RendererType
                                         ?? throw new ArgumentNullException()
                                     , Array.Empty<object>());
-            
+
+                var casters = (dialectInfo.Key.GetCustomAttributes<ReturnCasterAttribute>().Select(
+                                        x => (ICaster)Activator.CreateInstance(x.CasterType)!)
+                                ?? Array.Empty<ICaster>()).ToArray();
+
                 Dialects.Add(dialectInfo.Key, 
                     (IDialect)(
                         Activator.CreateInstance(dialectInfo.Key
-                            , new[] { dialectInfo.Value.ToArray(), renderer }
+                            , new[] { dialectInfo.Value.ToArray(), renderer, casters! }
                         ) 
                         ?? throw new ArgumentException()
                      )

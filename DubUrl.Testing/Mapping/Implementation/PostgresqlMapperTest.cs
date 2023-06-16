@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Testing.Rewriting;
@@ -26,7 +27,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new[] { "pgsql", "pg" }, new PgsqlRenderer()), new PositionalParametrizer());
+            var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new[] { "pgsql", "pg" }, new PgsqlRenderer(), Array.Empty<ICaster>()), new PositionalParametrizer());
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);

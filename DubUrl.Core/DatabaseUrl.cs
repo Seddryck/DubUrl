@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.MicroOrm;
 using DubUrl.Querying;
+using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
@@ -21,7 +22,9 @@ namespace DubUrl
     public partial class DatabaseUrl
     {
         protected ConnectionUrl ConnectionUrl { get; }
-        private CommandProvisionerFactory CommandProvisionerFactory { get; }
+        protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+
+        protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
 
         public DatabaseUrl(string url)
         : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
@@ -168,71 +171,14 @@ namespace DubUrl
         #endregion
 
 
-        private T NormalizeReturnType<T>(object obj)
+        private T? NormalizeReturnType<T>(object obj)
         {
-            if (typeof(T) == typeof(decimal))
-                return (T)(object)Convert.ToDecimal(obj);
-
-            if (typeof(T) == typeof(bool))
-                return (T)(object)Convert.ToBoolean(obj);
-
-            if (HasImplicitConversion(obj.GetType(), typeof(T)))
-                return (T)(dynamic)obj;   
-
-            return obj switch
-            {
-                string str => Parse<T>(str),
-                DateTime dt => TruncateDateTime<T>(dt),
-                TimeSpan ts => TimeSpanToTime<T>(ts),
-                _ => throw new NotImplementedException($"Cannot normalize value from '{obj.GetType().Name}' to '{typeof(T).Name}'")
-            };
+            var caster = ConnectionUrl.Dialect.Casters
+                            .FirstOrDefault(x => x.CanCast(obj.GetType(), typeof(T)))
+                            ?? throw new InvalidOperationException($"Cannot find any caster to transform from type '{obj.GetType().Name}' to the type '{typeof(T).Name}'");
+            return (T?)caster.Cast(obj);
         }
 
-        private T Parse<T>(string value)
-        {
-#if NET7_0_OR_GREATER
-                if (!(typeof(T).GetInterfaces().Any(c => c.IsGenericType && c.GetGenericTypeDefinition() == typeof(IParsable<>))))
-                    throw new ArgumentOutOfRangeException($"Cannot normalize by parsing the string to type '{typeof(T).Name}' because it doesn't implement IParsable");
-#endif
-            var parse = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                    .FirstOrDefault(c => c.Name == "Parse"
-                                        && c.GetParameters().Length == 1
-                                        && c.GetParameters()[0].ParameterType == typeof(string)
-                    );
-            return parse == null
-                ? throw new ArgumentOutOfRangeException($"Cannot normalize, by parsing the string to type '{typeof(T).Name}' because we can't find a method named Parse accepting two parameters.")
-                : (T)(parse.Invoke(null, new[] { value }) ?? throw new ArgumentOutOfRangeException(nameof(value)));
-        }
-
-        private T TruncateDateTime<T>(DateTime dt)
-        {
-            if (typeof(T) == typeof(DateOnly))
-                return (T)(object)DateOnly.FromDateTime(dt);
-
-            if (typeof(T) == typeof(TimeOnly))
-                return (T)(object)TimeOnly.FromDateTime(dt);
-
-            throw new InvalidCastException();
-        }
-
-        private T TimeSpanToTime<T>(TimeSpan ts)
-        {
-            if (typeof(T) == typeof(TimeOnly))
-                return (T)(object)TimeOnly.FromTimeSpan(ts);
-
-            throw new InvalidCastException();
-        }
-
-        //https://stackoverflow.com/questions/32025201/how-can-i-determine-if-an-implicit-cast-exists-in-c
-        public static bool HasImplicitConversion(Type baseType, Type targetType)
-        {
-            return baseType.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Where(mi => mi.Name == "op_Implicit" && mi.ReturnType == targetType)
-                .Any(mi => {
-                    var pi = mi.GetParameters().FirstOrDefault();
-                    return pi != null && pi.ParameterType == baseType;
-                });
-        }
     }
 }
 

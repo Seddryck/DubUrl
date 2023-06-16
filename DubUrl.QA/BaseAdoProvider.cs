@@ -108,7 +108,7 @@ namespace DubUrl.QA
         public virtual void QueryStringWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<string>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", "Grace Hopper" } });
+            var value = db.ReadScalarNonNull<string>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", "Grace Hopper" } });
             Assert.That(value, Is.EqualTo("Grace Hopper"));
         }
 
@@ -117,7 +117,7 @@ namespace DubUrl.QA
         public virtual void QueryBooleanWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<bool>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", true } });
+            var value = db.ReadScalarNonNull<bool>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", true } });
             Assert.That(value, Is.EqualTo(true));
         }
 
@@ -126,7 +126,7 @@ namespace DubUrl.QA
         public virtual void QueryNumericWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<decimal>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", 17.505m } });
+            var value = db.ReadScalarNonNull<decimal>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", 17.505m } });
             Assert.That(value, Is.EqualTo(17.505m));
         }
 
@@ -135,7 +135,7 @@ namespace DubUrl.QA
         public virtual void QueryTimestampWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<DateTime>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new DateTime(2023,6,10,17,52,12) } });
+            var value = db.ReadScalarNonNull<DateTime>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new DateTime(2023,6,10,17,52,12) } });
             Assert.That(value, Is.EqualTo(new DateTime(2023, 6, 10, 17, 52, 12)));
         }
 
@@ -144,7 +144,7 @@ namespace DubUrl.QA
         public virtual void QueryDateWithDatabaseUrl()
         {
             var db = new DatabaseUrl(ConnectionString);
-            var value = db.ReadScalarNonNull<DateOnly>(SelectPrimitiveTemplate, new Dictionary<string, object>() { { "value", new DateOnly(2023, 6, 10) } });
+            var value = db.ReadScalarNonNull<DateOnly>(SelectPrimitiveTemplate, new Dictionary<string, object?>() { { "value", new DateOnly(2023, 6, 10) } });
             Assert.That(value, Is.EqualTo(new DateOnly(2023, 6, 10)));
         }
 

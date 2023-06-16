@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Renderers;
+using DubUrl.Querying.Dialects.Casters;
 
 namespace DubUrl.Testing.Mapping.Implementation
 {
@@ -26,7 +27,7 @@ namespace DubUrl.Testing.Mapping.Implementation
         [Test]
         public void GetDialect_None_DialectReturned()
         {
-            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new[] { "mssql", "ms" }, new TSqlRenderer()), new NamedParametrizer());
+            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new[] { "mssql", "ms" }, new TSqlRenderer(), Array.Empty<ICaster>()), new NamedParametrizer());
             var result = mapper.GetDialect();
 
             Assert.That(result, Is.Not.Null.Or.Empty);
