@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialects.Renderers;
+﻿using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Renderers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +8,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects
 {
-    [Renderer<AnsiRenderer>()]
+    [Renderer<TrinoRenderer>()]
+    [ReturnCaster<Parser<DateOnly>>]
+    [ReturnCaster<Parser<TimeOnly>>]
+    [ReturnCaster<Parser<DateTime>>]
+    [ReturnCaster<TrinoTimeSpanParser>]
+    [ReturnCaster<NumericParser<decimal>>]
     public class TrinoDialect : BaseDialect
     {
-        public TrinoDialect(string[] aliases, IRenderer renderer)
-            : base(aliases, renderer) { }
+        public TrinoDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+            : base(aliases, renderer, casters) { }
     }
 }
