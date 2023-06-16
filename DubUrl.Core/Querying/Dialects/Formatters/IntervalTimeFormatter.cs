@@ -14,9 +14,9 @@ namespace DubUrl.Querying.Dialects.Formatters
             sb.Append('\'');
             if (value.TotalDays >= 1)
                 throw new ArgumentOutOfRangeException();
-            sb.AppendFormat("00", value.Hours).Append(':');
-            sb.AppendFormat("00", value.Minutes).Append(':');
-            sb.AppendFormat("00", value.Seconds);
+            sb.Append($"{value.Hours:00}").Append(':');
+            sb.Append($"{value.Minutes:00}").Append(':');
+            sb.Append($"{value.Seconds:00}");
             sb.Append('\'');
             return sb.ToString();
         }

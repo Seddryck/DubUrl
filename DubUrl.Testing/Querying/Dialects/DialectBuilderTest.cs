@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using Moq;
 using NUnit.Framework;
@@ -72,7 +73,7 @@ namespace DubUrl.Testing.Querying.Dialects
         }
 
         [Test]
-        public void GetByScheme_WithValidScheme_ThrowsException()
+        public void GetByScheme_WithValidScheme_CorrectDialect()
         {
             var builder = new DialectBuilder();
             builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
@@ -109,6 +110,20 @@ namespace DubUrl.Testing.Querying.Dialects
             Assert.That(tsqlDialect, Is.Not.Null);
             Assert.That(tsqlDialect.Renderer, Is.Not.Null);
             Assert.That(tsqlDialect.Renderer, Is.TypeOf<TSqlRenderer>());
+        }
+
+
+        [Test]
+        public void Get_ReturnCasterDialect_CorrectlySet()
+        {
+            var builder = new DialectBuilder();
+            builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
+            builder.Build();
+            var tsqlDialect = builder.Get("ms");
+            Assert.That(tsqlDialect, Is.Not.Null);
+            Assert.That(tsqlDialect.Casters, Is.Not.Null);
+            Assert.That(tsqlDialect.Casters.Count, Is.GreaterThan(0));
+            Assert.That(tsqlDialect.Casters.Any(x => x is DecimalConverter), Is.True);
         }
     }
 }
