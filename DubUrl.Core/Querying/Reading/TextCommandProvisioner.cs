@@ -18,11 +18,20 @@ namespace DubUrl.Querying.Reading
 
         public void Execute(IDbCommand command)
         {
-            if (!Provider.Exists(Dialect, true))
+            var connectivity = DeductConnectivity(command);
+            if (!Provider.Exists(Dialect, connectivity, true))
                 throw new MissingCommandForDialectException(Provider, Dialect);
 
             command.CommandType = CommandType.Text;
-            command.CommandText = Provider.Read(Dialect);
+            command.CommandText = Provider.Read(Dialect, connectivity);
         }
+        
+        protected string? DeductConnectivity(object conn)
+            => (conn.GetType().Namespace) switch
+            {
+                "System.Data.Odbc" => "odbc",
+                "System.Data.OleDb" => "oledb",
+                _ => null,
+            };
     }
 }

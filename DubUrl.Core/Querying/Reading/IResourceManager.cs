@@ -10,7 +10,7 @@ namespace DubUrl.Querying.Reading
     {
         string ReadCommandText(string fullResourceName);
         ParameterInfo[] ReadParameters(string fullResourceName);
-        bool Any(string id, string[] dialects);
-        string BestMatch(string id, string[] dialects);
+        bool Any(string id, string[] dialects, string? connectivity);
+        string BestMatch(string id, string[] dialects, string? connectivity);
     }
 }

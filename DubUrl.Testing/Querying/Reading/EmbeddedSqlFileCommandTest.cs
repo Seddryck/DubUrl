@@ -31,14 +31,14 @@ namespace DubUrl.Testing.Querying.Reading
         public void ExistsWithFallback_ListOfResources_Value(bool hasCandidates, string bestCandidate, string id, string[] dialects, bool expected = true)
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup( x=> x.Any(id, dialects)).Returns(hasCandidates);
-            resourceManager.Setup(x => x.BestMatch(id, dialects)).Returns(bestCandidate);
+            resourceManager.Setup( x=> x.Any(id, dialects, null)).Returns(hasCandidates);
+            resourceManager.Setup(x => x.BestMatch(id, dialects, null)).Returns(bestCandidate);
 
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
 
             var query = new EmbeddedSqlFileCommand(resourceManager.Object, id);
-            var result = query.Exists(dialectMock.Object, true);
+            var result = query.Exists(dialectMock.Object, null, true);
             Assert.That(result, Is.EqualTo(expected));
         }
 
@@ -49,14 +49,14 @@ namespace DubUrl.Testing.Querying.Reading
         public void ExistsWithoutFallback_ListOfResources_Value(string bestCandidate, string id, string[] dialects, bool expected = true)
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>())).Returns(!string.IsNullOrEmpty(bestCandidate));
-            resourceManager.Setup(x => x.BestMatch(id, dialects)).Returns(bestCandidate);
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(!string.IsNullOrEmpty(bestCandidate));
+            resourceManager.Setup(x => x.BestMatch(id, dialects, null)).Returns(bestCandidate);
 
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
 
             var query = new EmbeddedSqlFileCommand(resourceManager.Object, id);
-            var result = query.Exists(dialectMock.Object, false);
+            var result = query.Exists(dialectMock.Object, null, false);
             Assert.That(result, Is.EqualTo(expected));
         }
 

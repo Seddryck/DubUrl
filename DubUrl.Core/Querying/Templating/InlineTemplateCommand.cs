@@ -20,7 +20,7 @@ namespace DubUrl.Querying.Templating
         public InlineTemplateCommand(string sql, IDictionary<string, object?> parameters)
             : base(sql) { Parameters = parameters; }
 
-        public override string Read(IDialect dialect)
-            =>  new StringTemplateEngine().Render(base.Read(dialect), Parameters, dialect.Renderer);
+        public override string Read(IDialect dialect, string? connectivity)
+            =>  new StringTemplateEngine().Render(base.Read(dialect, connectivity), Parameters, dialect.Renderer);
     }
 }

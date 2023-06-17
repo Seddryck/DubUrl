@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Testing.Querying.Reading
 {
     
-    public class EmbeddedSqlFileResourceManagerCommand
+    public class EmbeddedSqlFileResourceManagerTest
     {
         private class FakeEmbeddedSqlFileResourceManager : EmbeddedSqlFileResourceManager
         {
@@ -33,7 +33,7 @@ namespace DubUrl.Testing.Querying.Reading
         public void BestMatch_ListOfResources_BestMatch(string[] candidates, string id, string[] dialects, int expectedId)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-            var resourceName = resourceManager.BestMatch(id, dialects);
+            var resourceName = resourceManager.BestMatch(id, dialects, null);
             Assert.That(resourceName, Is.EqualTo(candidates[expectedId]));
         }
 
@@ -48,8 +48,20 @@ namespace DubUrl.Testing.Querying.Reading
         public void GetAllResourceNames_ListOfResources_BestMatch(string[] candidates, bool expected = true)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-            var resourceName = resourceManager.Any("QueryId", new[] { "mssql" });
+            var resourceName = resourceManager.Any("QueryId", new[] { "mssql" }, null);
             Assert.That(resourceName, Is.EqualTo(expected));
+        }
+
+        [Test]
+        [TestCase(new[] { "QueryId.odbc.mssql.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
+        [TestCase(new[] { "QueryId.odbc.mssql.sql", "QueryId.odbc.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
+        [TestCase(new[] { "QueryId.odbc.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
+        [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
+        public void BestMatch_ListOfResourcesWithOdbc_BestMatch(string[] candidates, string id, string[] dialects, string? connectivity, int expectedId)
+        {
+            var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
+            var resourceName = resourceManager.BestMatch(id, dialects, connectivity);
+            Assert.That(resourceName, Is.EqualTo(candidates[expectedId]));
         }
     }
 }

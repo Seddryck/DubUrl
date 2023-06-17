@@ -23,7 +23,7 @@ namespace DubUrl.Querying.Templating
         internal EmbeddedSqlTemplateCommand(IResourceManager resourceManager, string basePath, IDictionary<string, object?> parameters)
             : base(resourceManager, basePath) => Parameters = parameters;
 
-        public override string Read(IDialect dialect)
-            => new StringTemplateEngine().Render(base.Read(dialect), Parameters, dialect.Renderer);
+        public override string Read(IDialect dialect, string? connectivity)
+            => new StringTemplateEngine().Render(base.Read(dialect, connectivity), Parameters, dialect.Renderer);
     }
 }

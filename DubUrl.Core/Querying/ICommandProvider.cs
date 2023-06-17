@@ -11,7 +11,7 @@ namespace DubUrl.Querying
 {
     public interface ICommandProvider
     {
-        string Read(IDialect dialect);
-        bool Exists(IDialect dialect, bool includeDefault = false);
+        string Read(IDialect dialect, string? connectivity);
+        bool Exists(IDialect dialect, string? connectivity, bool includeDefault = false);
     }
 }
