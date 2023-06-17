@@ -20,5 +20,4 @@ namespace DubUrl.Mapping
     }
 
     public interface IOdbcMapper : IMapper { }
-    public interface IOleDbMapper : IMapper { }
 }
