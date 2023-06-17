@@ -117,7 +117,7 @@ namespace DubUrl.QA
             public SelectWhereCustomersQuery(IWhereClause[] clauses)
                 : base(
                       $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectWhereCustomers)}"
-                      , new Dictionary<string, object>() {
+                      , new Dictionary<string, object?>() {
                           { "fields", new[] { "BirthDate", "CustomerId", "FullName" } },
                           { "table", "Customer" },
                           { "clauses", clauses.Select<IWhereClause, object>(x => new {

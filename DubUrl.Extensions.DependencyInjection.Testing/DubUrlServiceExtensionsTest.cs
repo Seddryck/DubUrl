@@ -56,7 +56,7 @@ namespace DubUrl.Extensions.DependencyInjection.Testing
         {
             get
             {
-                var configuration = new Dictionary<string, string>
+                var configuration = new Dictionary<string, string?>
                 {
                     
                 };
