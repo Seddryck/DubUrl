@@ -15,6 +15,7 @@ namespace DubUrl.Testing.Locating.OdbcDriver
         [Test]
         [TestCase("mssql", typeof(MssqlDriverLocator))]
         [TestCase("pgsql", typeof(PostgresqlDriverLocator))]
+        [TestCase("cr", typeof(CockRoachDriverLocator))]
         [TestCase("mysql", typeof(MySqlConnectorDriverLocator))]
         [TestCase("maria", typeof(MariaDbDriverLocator))]
         [TestCase("xlsx", typeof(MsExcelDriverLocator))]

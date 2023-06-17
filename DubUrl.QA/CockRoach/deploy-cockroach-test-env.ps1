@@ -36,7 +36,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to CockRoach"
-	$testSuccessful = Run-TestSuite @("CockRoach")
+	$testSuccessful = Run-TestSuite @("CockRoach+AdoProvider", "CockRoach+ODBC")
 
 	# Stop the docker container if not previously running
 	if (!$previouslyRunning){
