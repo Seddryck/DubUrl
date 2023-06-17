@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying;
+﻿using DubUrl.Mapping;
+using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Reading;
 using Moq;
@@ -31,14 +32,17 @@ namespace DubUrl.Testing.Querying.Reading
         public void ExistsWithFallback_ListOfResources_Value(bool hasCandidates, string bestCandidate, string id, string[] dialects, bool expected = true)
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup( x=> x.Any(id, dialects, null)).Returns(hasCandidates);
-            resourceManager.Setup(x => x.BestMatch(id, dialects, null)).Returns(bestCandidate);
+            resourceManager.Setup( x=> x.Any(id, dialects, string.Empty)).Returns(hasCandidates);
+            resourceManager.Setup(x => x.BestMatch(id, dialects, string.Empty)).Returns(bestCandidate);
 
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
 
+            var connectivityMock = new Mock<IConnectivity>();
+            connectivityMock.SetupGet(x => x.Alias).Returns(string.Empty);
+
             var query = new EmbeddedSqlFileCommand(resourceManager.Object, id);
-            var result = query.Exists(dialectMock.Object, null, true);
+            var result = query.Exists(dialectMock.Object, connectivityMock.Object, true);
             Assert.That(result, Is.EqualTo(expected));
         }
 
@@ -50,13 +54,16 @@ namespace DubUrl.Testing.Querying.Reading
         {
             var resourceManager = new Mock<IResourceManager>();
             resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(!string.IsNullOrEmpty(bestCandidate));
-            resourceManager.Setup(x => x.BestMatch(id, dialects, null)).Returns(bestCandidate);
+            resourceManager.Setup(x => x.BestMatch(id, dialects, string.Empty)).Returns(bestCandidate);
 
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
 
+            var connectivityMock = new Mock<IConnectivity>();
+            connectivityMock.SetupGet(x => x.Alias).Returns(string.Empty);
+
             var query = new EmbeddedSqlFileCommand(resourceManager.Object, id);
-            var result = query.Exists(dialectMock.Object, null, false);
+            var result = query.Exists(dialectMock.Object, connectivityMock.Object, false);
             Assert.That(result, Is.EqualTo(expected));
         }
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,9 @@ namespace DubUrl.OleDb.Mapping
     )]
     internal class OleDbConnectivity : IWrapperConnectivity 
     {
+        public string Alias
+            => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;
+
         public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
             => CartesianProduct(connectivity.Aliases, 
                 (locator as ProviderSpecializationAttribute)?.Aliases ?? database.Aliases);

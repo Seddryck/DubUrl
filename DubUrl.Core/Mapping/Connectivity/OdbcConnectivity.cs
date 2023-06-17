@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,9 @@ namespace DubUrl.Mapping.Connectivity
         , new[] { "odbc" }
     )]
     public class OdbcConnectivity : IWrapperConnectivity {
+
+        public string Alias
+            => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;
 
         public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
             => CartesianProduct(connectivity.Aliases, database.Aliases);
