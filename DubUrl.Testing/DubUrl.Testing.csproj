@@ -2,6 +2,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Domemtech.StringTemplate4" Version="4.2.0" />
+		<PackageReference Include="DuckDB.NET.Bindings" Version="0.8.0" />
+		<PackageReference Include="DuckDB.NET.Data" Version="0.8.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
 		<PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
@@ -32,14 +34,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Reference Include="DuckDB.NET.Bindings">
-	    <HintPath>..\.lib\DuckDB.NET.Bindings.dll</HintPath>
-	  </Reference>
-	  <Reference Include="DuckDB.NET.Data">
-	    <HintPath>..\.lib\DuckDB.NET.Data.dll</HintPath>
-	  </Reference>
-	</ItemGroup>
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
 
 </Project>

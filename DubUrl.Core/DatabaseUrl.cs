@@ -94,7 +94,7 @@ namespace DubUrl
             if (result is T)
                 return (T)result;
 
-            return NormalizeReturnType<T>(result);
+            return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
         }
 
         #endregion

@@ -15,12 +15,12 @@ namespace DubUrl.Querying.Templating
 {
     public class EmbeddedSqlTemplateCommand : EmbeddedSqlFileCommand
     {
-        public IDictionary<string, object> Parameters { get; }
+        public IDictionary<string, object?> Parameters { get; }
 
-        public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object> parameters)
+        public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object?> parameters)
             : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, parameters) { }
 
-        internal EmbeddedSqlTemplateCommand(IResourceManager resourceManager, string basePath, IDictionary<string, object> parameters)
+        internal EmbeddedSqlTemplateCommand(IResourceManager resourceManager, string basePath, IDictionary<string, object?> parameters)
             : base(resourceManager, basePath) => Parameters = parameters;
 
         public override string Read(IDialect dialect)
