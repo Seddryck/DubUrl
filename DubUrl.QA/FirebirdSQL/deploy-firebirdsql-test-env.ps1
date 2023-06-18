@@ -104,7 +104,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 		}
 
 		Write-host "`tCreating database at '$databasePath' ..."
-		Set-Content -Path "$binPath\Customer.sql" -Value ((Get-Content ".\deploy-firebirdsql-database.sql") -replace '<path>', $databasePath)
+		((Get-Content ".\deploy-firebirdsql-database.sql") -replace '<path>', $databasePath) | Set-Content -Path "$binPath\Customer.sql" -NoNewline -Force		 
 		& isql.exe -u SYSADMIN -p masterkey -i "$binPath\Customer.sql" -b -e -q
 		Write-host "`tDatabase created."
 	}
