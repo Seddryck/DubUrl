@@ -25,7 +25,10 @@ namespace DubUrl.Querying.Dialects.Casters
         {
 #if NET7_0_OR_GREATER
             if (!(typeof(T).GetInterfaces().Any(c => c.IsGenericType && c.GetGenericTypeDefinition() == typeof(IParsable<>))))
+            {
+                result = default;
                 return false;
+            }
 #endif
             var parse = GetMethod();
             result = (T?)(parse?.Invoke(null, new object?[] { value, CultureInfo.InvariantCulture.NumberFormat }));

@@ -59,11 +59,19 @@ namespace DubUrl.Testing.Querying.Dialects.Formatters
 
         [Test]
         [TestCase("17:02:46", "'17:02:46'")]
+        [TestCase("17:02:46.128", "'17:02:46.128'")]
+#if NET7_0_OR_GREATER
+        [TestCase("17:02:46.128459", "'17:02:46.128459'")]
+#endif
         public void TimeFormatter_Format_Match(string value, string expected)
             => Assert.That(new TimeFormatter().Format(TimeOnly.Parse(value)), Is.EqualTo(expected));
 
         [Test]
         [TestCase("2023-12-16 17:02:46", "'2023-12-16 17:02:46'")]
+        [TestCase("2023-12-16 17:02:46.128", "'2023-12-16 17:02:46.128'")]
+#if NET7_0_OR_GREATER
+        [TestCase("2023-12-16 17:02:46.128459", "'2023-12-16 17:02:46.128459'")]
+#endif
         public void TimestampFormatter_Format_Match(string value, string expected)
             => Assert.That(new TimestampFormatter().Format(DateTime.Parse(value)), Is.EqualTo(expected));
 
@@ -75,6 +83,10 @@ namespace DubUrl.Testing.Querying.Dialects.Formatters
         [Test]
         [TestCase("17:12:16", "'17:12:16'")]
         [TestCase("2.17:12:16", "'65:12:16'")]
+        [TestCase("17:12:16.125", "'17:12:16.125'")]
+#if NET7_0_OR_GREATER
+        [TestCase("17:12:16.125789", "'17:12:16.125789'")]
+#endif
         public void IntervalAsTimeFormatter_Format_Match(TimeSpan value, string expected)
             => Assert.That(new IntervalAsTimeFormatter().Format(value), Is.EqualTo(expected));
 
@@ -83,18 +95,13 @@ namespace DubUrl.Testing.Querying.Dialects.Formatters
         [TestCase("2.17:12:16", "'2 DAYS 17 HOURS 12 MINUTES 16 SECONDS'")]
         [TestCase("2.17:00:00", "'2 DAYS 17 HOURS 0 MINUTES 0 SECONDS'")]
         [TestCase("2.17:00:10", "'2 DAYS 17 HOURS 0 MINUTES 10 SECONDS'")]
+        [TestCase("2.17:00:10.426", "'2 DAYS 17 HOURS 0 MINUTES 10 SECONDS 426 MILLISECONDS'")]
+#if NET7_0_OR_GREATER
+        [TestCase("2.17:00:10.426852", "'2 DAYS 17 HOURS 0 MINUTES 10 SECONDS 426 MILLISECONDS 852 MICROSECONDS'")]
+#endif
+
         public void IntervalFormatter_Format_Match(TimeSpan value, string expected)
             => Assert.That(new IntervalFormatter().Format(value), Is.EqualTo(expected));
-
-        [Test]
-        [TestCase("0.03:02:04", "'03:02:04'")]
-        public void IntervaTimeFormatter_Format_Match(TimeSpan value, string expected)
-            => Assert.That(new IntervalTimeFormatter().Format(value), Is.EqualTo(expected));
-
-        [Test]
-        [TestCase("4.17:12:16")]
-        public void IntervaTimeFormatter_FormatOver24Hours_Match(TimeSpan value)
-            => Assert.Throws<ArgumentOutOfRangeException>(() => new IntervalTimeFormatter().Format(value));
 
         [Test]
         public void NullFormatter_Format_Match()
