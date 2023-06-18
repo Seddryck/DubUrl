@@ -16,7 +16,7 @@ namespace DubUrl.QA.Dapper
         public DapperCustomerRepository(ConnectionUrlFactory factory, IDapperConfiguration configuration)
         {
             ConnectionUrl = factory.Instantiate(configuration.GetConnectionString());
-            Provider = new DapperQueryProvider(ConnectionUrl.Dialect);
+            Provider = new DapperQueryProvider(ConnectionUrl.Dialect, ConnectionUrl.Connectivity);
         }
 
         public async Task<IReadOnlyList<Customer>> GetAllAsync()

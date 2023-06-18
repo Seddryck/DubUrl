@@ -12,6 +12,7 @@ using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Tokening;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Implementation;
+using System.Reflection;
 
 namespace DubUrl.Mapping.Implementation
 {
@@ -29,5 +30,6 @@ namespace DubUrl.Mapping.Implementation
                   parametrizer
             )
         { }
+        
     }
 }

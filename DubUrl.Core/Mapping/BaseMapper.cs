@@ -1,4 +1,5 @@
-﻿using DubUrl.Parsing;
+﻿using DubUrl.Mapping.Connectivity;
+using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting;
@@ -19,6 +20,7 @@ namespace DubUrl.Mapping
         
         protected IDialect Dialect { get; }
         protected IParametrizer Parametrizer { get; }
+
         public BaseMapper(IConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
             => (Rewriter, Dialect, Parametrizer) = (rewriter, dialect, parametrizer);
 
@@ -31,7 +33,12 @@ namespace DubUrl.Mapping
         
         public IDialect GetDialect()
             => Dialect;
-        
+
+        public IConnectivity GetConnectivity()
+            => (IConnectivity)(Activator.CreateInstance(
+                    GetType().GetCustomAttribute<WrapperMapperAttribute>()?.Connectivity ?? typeof(NativeConnectivity)
+               ) ?? throw new ArgumentException());
+            
         public IParametrizer GetParametrizer()
             => Parametrizer;
         public IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo)

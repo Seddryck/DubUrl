@@ -29,14 +29,19 @@ namespace DubUrl.Querying.Reading
 
         public ParameterInfo[] ReadParameters(string resourceName) => Array.Empty<ParameterInfo>();
 
-        public bool Any(string id, string[] dialects)
-            => ListResourceMathing(id, dialects).Any();
+        public bool Any(string id, string[] dialects, string? connectivity)
+            => ListResourceMathing(id, dialects, connectivity).Any();
 
-        public string BestMatch(string id, string[] dialects)
-            => ListResourceMathing(id, dialects).OrderByDescending(x => x.Length).First();
-
-        protected virtual IEnumerable<string> ListResourceMathing(string id, string[] dialects)
-            => dialects.Select(dialect => $"{id}.{dialect}.sql").Append($"{id}.sql")
-                .Where(x => ResourceNames.Any(y => x.Equals(y, StringComparison.InvariantCultureIgnoreCase)));
+        public string BestMatch(string id, string[] dialects, string? connectivity)
+            => ListResourceMathing(id, dialects, connectivity).OrderBy(x => x.Score).Select(x => x.Path).First();
+        
+        protected record struct ResourceMatch(string Path, byte Score) { }
+        protected virtual IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
+            => dialects
+                    .Select(dialect => new ResourceMatch($"{id}.{connectivity}.{dialect}.{extension}", 0)).Where(x => !string.IsNullOrEmpty(connectivity))
+                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{connectivity}.{extension}", 1)).Where(x => !string.IsNullOrEmpty(connectivity)))
+                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{dialect}.{extension}", 2)))
+                    .Append(new ResourceMatch($"{id}.{extension}", 3))
+                    .Where(x => ResourceNames.Any(y => x.Path.Equals(y, StringComparison.InvariantCultureIgnoreCase)));
     }
 }

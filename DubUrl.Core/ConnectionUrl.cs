@@ -16,7 +16,7 @@ namespace DubUrl
 {
     public class ConnectionUrl
     {
-        private record ParseResult(string ConnectionString, UrlInfo UrlInfo, IDialect Dialect, IParametrizer Parametrizer) { }
+        private record ParseResult(string ConnectionString, UrlInfo UrlInfo, IDialect Dialect, IConnectivity Connectivity, IParametrizer Parametrizer) { }
         private ParseResult? _result;
         private ParseResult Result { get => _result ??= ParseDetail(); }
         private SchemeMapperBuilder SchemeMapperBuilder { get; }
@@ -40,7 +40,7 @@ namespace DubUrl
             SchemeMapperBuilder.Build();
             Mapper = SchemeMapperBuilder.GetMapper(urlInfo.Schemes);
             Mapper.Rewrite(urlInfo);
-            return new ParseResult(Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect(), Mapper.GetParametrizer());
+            return new ParseResult(Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect(), Mapper.GetConnectivity(), Mapper.GetParametrizer());
         }
 
         public string Parse() => Result.ConnectionString;
@@ -61,6 +61,7 @@ namespace DubUrl
         }
                     
         public virtual IDialect Dialect { get => Result.Dialect; }
+        public virtual IConnectivity Connectivity { get => Result.Connectivity; }
         public virtual IParametrizer Parametrizer { get => Result.Parametrizer; }
     }
 }

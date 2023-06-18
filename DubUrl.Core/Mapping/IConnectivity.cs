@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping
 {
     public interface IConnectivity
-    { }
+    { 
+        string Alias { get; }
+    }
 
     public interface IDirectConnectivity : IConnectivity
     { }

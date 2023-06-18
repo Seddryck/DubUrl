@@ -1,7 +1,6 @@
 ﻿using DubUrl.OleDb;
 using DubUrl.Locating;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Rewriting;
+using Duburl.OleDb.Mapping;
 
 namespace DubUrl.OleDb
 {

@@ -13,8 +13,7 @@ namespace DubUrl.Querying.Templating
         public EmbeddedSqlTemplateResourceManager(Assembly assembly)
             : base(assembly) { }
 
-        protected override IEnumerable<string> ListResourceMathing(string id, string[] dialects)
-            => dialects.Select(dialect => $"{id}.{dialect}.sql.st").Append($"{id}.sql.st")
-                .Where(x => ResourceNames.Any(y => x.Equals(y, StringComparison.InvariantCultureIgnoreCase)));
+        protected override IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
+            => base.ListResourceMathing(id, dialects, connectivity, "sql.st");
     }
 }
