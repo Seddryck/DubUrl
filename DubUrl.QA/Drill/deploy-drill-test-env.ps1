@@ -1,6 +1,7 @@
 Param(
 	[switch] $force=$false
 	, $config = "Release"
+	, [string[]] $frameworks = @("net6.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -14,15 +15,18 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	Write-Host "Deploying Apache Drill testing environment"
 
 	# Deploying mounted folder
-	Write-host "`tCopying file to mounted folder"
-	$mountedFolder = ".\..\bin\$config\net6.0\.bigdata"
-	if (Test-Path -Path $mountedFolder) {
-		Remove-Item -Path $mountedFolder -Force -Recurse
+	foreach ($framework in $frameworks)
+	{
+		$mountedFolder = ".\..\bin\$config\$framework\.bigdata"
+		Write-host "`tCopying file to mounted folder '$mountedFolder' ..."
+		if (Test-Path -Path $mountedFolder) {
+			Remove-Item -Path $mountedFolder -Force -Recurse
+		}
+		New-Item -Path $mountedFolder -Type Directory | out-null 
+		Copy-Item -Path ".\..\.bigdata\*" -Destination $mountedFolder -Recurse
+		Write-Host "`tFiles copied to mounted folder."
 	}
-	New-Item -Path $mountedFolder -Type Directory | out-null 
-	Copy-Item -Path ".\..\.bigdata\*" -Destination $mountedFolder -Recurse
-	Write-Host "`tFiles copied to mounted folder"
-
+	
 	# Starting docker container for Apache Drill
 	$previouslyRunning, $running = Deploy-Container -FullName "drill" -Arguments @("$PSScriptRoot\..\bin\$config\net6.0\.bigdata")
 	if (!$previouslyRunning) {

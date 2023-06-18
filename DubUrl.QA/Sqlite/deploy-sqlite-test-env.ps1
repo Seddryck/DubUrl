@@ -1,6 +1,7 @@
 Param(
 	[switch] $force=$false
 	, $config= "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 	, $extension = "zip"
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
@@ -9,13 +10,12 @@ if ($force) {
 	Write-Host "Enforcing QA testing for Sqlite"
 }
 
-$binPath = "./../bin/$config/net6.0/"
-If (-not($env:PATH -like "*7-zip*")) {
+if (-not($env:PATH -like "*7-zip*")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
 }
 
 $sqlitePath = "C:\Program Files\Sqlite"
-If (-not (Test-Path -Path $sqlitePath)) {
+if (-not (Test-Path -Path $sqlitePath)) {
 	$sqlitePath = $sqlitePath -replace "C:", "E:"
 	If (-not (Test-Path -Path $sqlitePath)) {
 		$sqlitePath = $sqlitePath -replace "E:", "C:"
@@ -46,24 +46,29 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	}
 
 	# Deploying database based on script
-	$databasePath = "$binPath\Customer.db"
-	If (Test-Path -Path $databasePath) {
-		Remove-Item -Path $databasePath
-	}
+	foreach ($framework in $frameworks)
+	{
+		$binPath = "./../bin/$config/$framework"
+		$databasePath = "$binPath\Customer.db"
+		if (Test-Path -Path $databasePath) {
+			Remove-Item -Path $databasePath
+		}
 
-	Write-host "`tCreating database at $databasePath"
-	Get-Content ".\deploy-sqlite-database.sql" | & sqlite3.exe
-	Write-host "`tDatabase created."
+		Write-host "`tCreating database at '$databasePath' ..."
+		$databasePath = $databasePath -replace '[\\/]', "\\"
+		(Get-Content ".\deploy-sqlite-database.sql") -replace "<path>", $databasePath | & sqlite3.exe
+		Write-host "`tDatabase created."
+	}
 
 	# Installing ODBC driver
 	Write-host "`tDeploying Sqlite ODBC drivers ..."
 	$odbcDriverInstalled = $false;
 	$drivers = Get-OdbcDriver -Name "*sqlite*" -Platform "64-bit"
-	If ($drivers.Length -eq 0) {
+	if ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading Sqlite ODBC driver ..."
 		Invoke-WebRequest "http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe" `
 		    -OutFile "$env:temp\sqlite_odbc.exe"
-		
+
 		Write-Warning "Cannot silently install Sqlite ODBC driver. Proceed to manual installation."
 	} else {
 		$odbcDriverInstalled = $true;
@@ -78,7 +83,7 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	if ($odbcDriverInstalled -eq $true) {
 		$categories += "Sqlite+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $categories
+	$testSuccessful = Run-TestSuite $categories -frameworks $frameworks
 
 	# Raise failing tests
 	exit $testSuccessful

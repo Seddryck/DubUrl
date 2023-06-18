@@ -1,4 +1,4 @@
-.open ".\\..\\bin\\Release\\net6.0\\Customer.db"
+.open "<path>"
 
 CREATE TABLE Customer(
     CustomerId INTEGER PRIMARY KEY,

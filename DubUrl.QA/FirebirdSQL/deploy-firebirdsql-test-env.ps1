@@ -1,8 +1,9 @@
 Param(
 	[switch] $force=$false
 	, $package= "Firebird-4.0.2.2816-0-x64"
-	, $config= "Release"
-	, $extension = "zip"
+	, [string] $config= "Release"
+	, [string] $extension = "zip"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
@@ -10,7 +11,6 @@ if ($force) {
 	Write-Host "Enforcing QA testing for FirebirdSQL"
 }
 
-$binPath = "./../bin/$config/net6.0/"
 $rootUrl = "https://github.com/FirebirdSQL/firebird/releases/download/"
 If (-not($env:PATH -like "*7-zip*")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
@@ -95,13 +95,19 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	
 
 	# Deploying database based on script
-	$databasePath = "$binPath\Customer.fdb"
-	If (Test-Path -Path $databasePath) {
-		Remove-Item -Path $databasePath
-	}
+	foreach ($framework in $frameworks) 
+	{
+		$binPath = ".\..\bin\$config\$framework"
+		$databasePath = "$binPath\Customer.fdb"
+		if (Test-Path -Path $databasePath) {
+			Remove-Item -Path $databasePath
+		}
 
-	Write-host "`tCreating database at $databasePath"
-	Get-Content ".\deploy-firebirdsql-database.sql" | & isql.exe -u SYSADMIN -p masterkey -i ".\deploy-firebirdsql-database.sql" -b -e -q
+		Write-host "`tCreating database at '$databasePath' ..."
+		Set-Content -Path "$binPath\Customer.sql" -Value ((Get-Content ".\deploy-firebirdsql-database.sql") -replace '<path>', $databasePath)
+		& isql.exe -u SYSADMIN -p masterkey -i "$binPath\Customer.sql" -b -e -q
+		Write-host "`tDatabase created."
+	}
 
 	# Installing ODBC driver
 	Write-host "`tDeploying FirebirdSQL ODBC drivers"
@@ -138,7 +144,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	if ($odbcDriverInstalled) {
 		$suites += "FirebirdSQL+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $suites
+	$testSuccessful = Run-TestSuite $suites -frameworks $frameworks
 
 	# Stoping service
 	if ($extension -eq "zip") {
