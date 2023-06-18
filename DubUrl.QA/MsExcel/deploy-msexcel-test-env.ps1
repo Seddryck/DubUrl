@@ -1,5 +1,7 @@
 Param(
 	[switch] $force=$false
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
@@ -31,7 +33,7 @@ if ($force -or ($filesChanged -like "*excel*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Microsoft Excel"
-	$testSuccessful = Run-TestSuite @("MsExcel")
+	$testSuccessful = Run-TestSuite @("MsExcel") -config $config -frameworks $frameworks
 
 	# Raise failing tests
 	exit $testSuccessful

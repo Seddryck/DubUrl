@@ -1,5 +1,7 @@
 Param(
 	[switch] $force=$false
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 if ($force) {
 	Write-Host "Enforcing QA testing for CockRoachDB"
@@ -36,7 +38,7 @@ if ($force -or ($filesChanged -like "*cockroach*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to CockRoach"
-	$testSuccessful = Run-TestSuite @("CockRoach")
+	$testSuccessful = Run-TestSuite @("CockRoach") -config $config -frameworks $frameworks 
 
 	# Stop the docker container if not previously running
 	if (!$previouslyRunning){

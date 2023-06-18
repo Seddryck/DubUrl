@@ -83,7 +83,7 @@ if ($force -or ($filesChanged -like "*sqlite*")) {
 	if ($odbcDriverInstalled -eq $true) {
 		$categories += "Sqlite+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $categories -frameworks $frameworks
+	$testSuccessful = Run-TestSuite $categories -config $config -frameworks $frameworks
 
 	# Raise failing tests
 	exit $testSuccessful

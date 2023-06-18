@@ -1,6 +1,8 @@
 Param(
 	[switch] $force=$false
 	, $databaseService= "postgresql-x64-13"
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
@@ -48,7 +50,7 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 
 	# Running QA tests
 	Write-Host "Running QA tests related to PostgreSQL"
-	$testSuccessful = Run-TestSuite @("Postgresql")
+	$testSuccessful = Run-TestSuite @("Postgresql") -config $config -frameworks $frameworks
 
 	# Stopping database Service
 	if (!$previouslyRunning) {

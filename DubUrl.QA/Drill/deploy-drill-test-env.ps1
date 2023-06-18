@@ -1,7 +1,7 @@
 Param(
 	[switch] $force=$false
-	, $config = "Release"
-	, [string[]] $frameworks = @("net6.0")
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -68,7 +68,7 @@ if ($force -or ($filesChanged -like "*drill*")) {
 	if ($odbcDriverInstalled) {
 		$suites += "Drill+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $suites
+	$testSuccessful = Run-TestSuite $suites -config $config -frameworks $frameworks
 
 	# Stop the docker container if not previously running
 	if (!$previouslyRunning){

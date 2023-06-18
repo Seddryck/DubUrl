@@ -144,7 +144,7 @@ if ($force -or ($filesChanged -like "*firebird*")) {
 	if ($odbcDriverInstalled) {
 		$suites += "FirebirdSQL+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $suites -frameworks $frameworks
+	$testSuccessful = Run-TestSuite $suites -config $config -frameworks $frameworks
 
 	# Stoping service
 	if ($extension -eq "zip") {

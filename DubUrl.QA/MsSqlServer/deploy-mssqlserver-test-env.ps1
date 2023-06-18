@@ -57,7 +57,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	
 
 	# Running QA tests
-	$testSuccessful = Run-TestSuite @("MsSqlServer") $config -frameworks $frameworks
+	$testSuccessful = Run-TestSuite @("MsSqlServer") -config $config -frameworks $frameworks
 
 	# Stopping database Service
 	if (!$previouslyRunning) {

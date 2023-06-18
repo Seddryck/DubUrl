@@ -98,7 +98,7 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to DuckDB"
-	$testSuccessful = Run-TestSuite @("DuckDB+AdoProvider", "DuckDB+ODBC") -frameworks $frameworks
+	$testSuccessful = Run-TestSuite @("DuckDB+AdoProvider", "DuckDB+ODBC") -config $config -frameworks $frameworks
 
 	# Raise failing tests
 	exit $testSuccessful
