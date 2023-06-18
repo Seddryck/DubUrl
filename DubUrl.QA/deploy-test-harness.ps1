@@ -1,6 +1,8 @@
 [CmdletBinding(DefaultParametersetName="default")]
 Param(
     [switch] $force=$false,
+    [string] $config = "Release",
+    [string[]] $frameworks = @("net6.0", "net7.0"),
     [Parameter(Position = 0, ParameterSetName='single')]
     [string] $suite=$null,
     [Parameter(ParameterSetName='multiple')]
@@ -26,7 +28,7 @@ Function Deploy-TestSuite {
         Push-Location $PSScriptRoot\$name
         try {
             Write-Host "Running test-suite for $name"
-            & .\deploy-$name-test-env.ps1 -force:$force | Out-Null
+            & .\deploy-$name-test-env.ps1 -force:$force -config $config -frameworks $frameworks | Out-Null
             $result = $lastexitcode
             Write-Host $lastexitcode
             $elasped = $(New-TimeSpan -Start $startWait)

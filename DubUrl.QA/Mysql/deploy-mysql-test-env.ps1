@@ -2,6 +2,8 @@ Param(
 	[switch] $force=$false
 	, $databaseService= "MySQL57"
 	, $odbcDriver= "MariaDB"
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -123,7 +125,7 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	if ($odbcDriverInstalled) {
 		$suites += "MySQL+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $suites
+	$testSuccessful = Run-TestSuite $suites -config $config -frameworks $frameworks
 
 	# Stopping DB Service
 	if (!$previouslyRunning)

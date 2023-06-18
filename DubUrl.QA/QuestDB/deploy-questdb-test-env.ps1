@@ -1,6 +1,7 @@
 Param(
 	[switch] $force=$false
-	, $config = "Release"
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -39,7 +40,7 @@ if ($force -or ($filesChanged -like "*quest*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to QuestDB"
-	$testSuccessful = Run-TestSuite @("QuestDB")
+	$testSuccessful = Run-TestSuite @("QuestDB") -config $config -frameworks $frameworks
 
 	# Stop the docker container if not previously running
 	if (!$previouslyRunning){

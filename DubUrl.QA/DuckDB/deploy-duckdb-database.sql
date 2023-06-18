@@ -1,4 +1,4 @@
-.open ./../bin/Release/net6.0/Customer.duckdb
+.open <path>
 
 CREATE SEQUENCE CustomerIdSeq 
 	INCREMENT BY 1 

@@ -1,5 +1,7 @@
 Param(
 	[switch] $force=$false
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -29,7 +31,7 @@ if ($force -or ($filesChanged -like "*timescale*")) {
 
 	# Running QA tests
 	Write-Host "Running QA tests related to Timescale"
-	$testSuccessful = Run-TestSuite @("Timescale")
+	$testSuccessful = Run-TestSuite @("Timescale") -config $config -frameworks $frameworks
 
 	# Stop the docker container if not previously running
 	if (!$previouslyRunning){

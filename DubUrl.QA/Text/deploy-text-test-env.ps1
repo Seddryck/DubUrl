@@ -1,5 +1,7 @@
 Param(
 	[switch] $force=$false
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
@@ -32,7 +34,7 @@ if ($force -or ($filesChanged -like "*csv*")) {
 
 	# Running test-suite
 	Write-Host "Running QA tests related to Text files"
-	$testSuccessful = Run-TestSuite @("Text")
+	$testSuccessful = Run-TestSuite @("Text") -config $config -frameworks $frameworks
 
 	# Raise failing tests
 	exit $testSuccessful

@@ -1,7 +1,8 @@
 Param(
 	[switch] $force=$false
-	, $config = "Release"
-	, $networkName = "trino-network"
+	, [string] $networkName = "trino-network"
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -73,7 +74,7 @@ if ($force -or ($filesChanged -like "*trino*")) {
 	if ($odbcDriverInstalled) {
 		$suites += "Trino+ODBC"
 	}
-	$testSuccessful = Run-TestSuite $suites
+	$testSuccessful = Run-TestSuite $suites -config $config -frameworks $frameworks
 
 	#Remove the docker containers, if not previously running
 	if (!$previouslyRunning){

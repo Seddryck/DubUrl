@@ -5,6 +5,7 @@ Function Run-TestSuite {
         [ValidateNotNullOrEmpty()]
         [string[]] $categories
 		, [string] $config = "Release"
+		, [string[]] $frameworks = @("net6.0")
 	)
 
 	Begin {
@@ -15,19 +16,22 @@ Function Run-TestSuite {
 	}
 
 	Process {
-        $buildMsg = & dotnet build "..\..\DubUrl.QA" -c $config --nologo
-		if ($lastexitcode -ne 0) {
-			Write-Warning "Cannot build the Test assembly! `r`n$($buildMsg -join "`r`n")"
-		} else {
-			foreach ($category in $categories) {
-				Write-Host "`tRunning test-suite for $category"
-				$args  = @("test", "..\..\DubUrl.QA")
-				$args += @("--filter", "`"TestCategory=$($category.Split("+") -join "`"`"&`"`"TestCategory=")`"")
-				$args += @("-c", $config)
-				$args += @("--no-build", "--nologo")
-				$args += $adapters
-				& dotnet $args | Out-Host
-				$testSuccessful += $lastexitcode
+		foreach ($framework in $frameworks) {
+			$buildMsg = & dotnet build "..\..\DubUrl.QA" -c $config -f $framework --nologo
+			if ($lastexitcode -ne 0) {
+				Write-Warning "Cannot build the Test assembly! `r`n$($buildMsg -join "`r`n")"
+			} else {
+				foreach ($category in $categories) {
+					Write-Host "`tRunning test-suite for $category ($framework)"
+					$args  = @("test", "..\..\DubUrl.QA")
+					$args += @("--filter", "`"TestCategory=$($category.Split("+") -join "`"`"&`"`"TestCategory=")`"")
+					$args += @("-c", $config)
+					$args += @("-f", $framework)
+					$args += @("--no-build", "--nologo")
+					$args += $adapters
+					& dotnet $args | Out-Host
+					$testSuccessful += $lastexitcode
+				}
 			}
 		}
     }

@@ -9,7 +9,11 @@ namespace DubUrl.Querying.Dialects.Formatters
     internal class TimeFormatter : IValueFormatter<TimeOnly>
     {
         public string Format(TimeOnly value)
-            => $"'{value:HH:mm:ss}'";
+#if NET7_0_OR_GREATER
+            => $"'{value:HH:mm:ss.FFFFFF}'";
+#else
+            => $"'{value:HH:mm:ss.FFF}'";
+#endif
 
         public string Format(object obj)
             => obj is TimeOnly value ? Format(value) : throw new Exception();

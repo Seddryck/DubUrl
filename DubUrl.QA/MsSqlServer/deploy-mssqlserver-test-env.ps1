@@ -2,6 +2,7 @@ Param(
 	[switch] $force=$false
 	, [string] $databaseService= "MSSQL`$SQL2019"
 	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
 . $PSScriptRoot\..\Windows-Service.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
@@ -44,13 +45,19 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	Write-host "`tDatabase deployed"
 	
 	# Copying correct config
-	$filePath = "$PSScriptRoot\..\bin\$config\net6.0\Instance.txt"
-	$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2019" } else { "localhost" }
-	$serverUrl | Set-Content -NoNewline -Force $filePath
-	Write-Host "`tConfigure value '$serverUrl' into $filePath"
+	Write-Host "`t`tConfiguring URI for instance ..."
+	foreach ($framework in $frameworks)
+	{
+		$filePath = "$PSScriptRoot\..\bin\$config\$framework\Instance.txt"
+		$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2019" } else { "localhost" }
+		$serverUrl | Set-Content -NoNewline -Force $filePath
+		Write-Host "`t`tConfigure value '$serverUrl' into $filePath"
+	}
+	Write-Host "`t`tInstance URI configured."
+	
 
 	# Running QA tests
-	$testSuccessful = Run-TestSuite @("MsSqlServer") $config
+	$testSuccessful = Run-TestSuite @("MsSqlServer") -config $config -frameworks $frameworks
 
 	# Stopping database Service
 	if (!$previouslyRunning) {
