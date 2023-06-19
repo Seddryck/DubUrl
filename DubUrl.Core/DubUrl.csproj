@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<PackageId>DubUrl</PackageId>
@@ -18,7 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Domemtech.StringTemplate4" Version="4.2.0" />
+	  <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
 	</ItemGroup>
 
 </Project>
