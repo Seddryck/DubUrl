@@ -8,7 +8,7 @@ namespace DubUrl.Querying.Reading
 {
     public interface IResourceManager
     {
-        string ReadCommandText(string fullResourceName);
+        string ReadResource(string fullResourceName);
         ParameterInfo[] ReadParameters(string fullResourceName);
         bool Any(string id, string[] dialects, string? connectivity);
         string BestMatch(string id, string[] dialects, string? connectivity);

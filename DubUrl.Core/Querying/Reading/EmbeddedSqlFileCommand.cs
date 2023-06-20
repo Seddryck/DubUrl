@@ -15,7 +15,7 @@ namespace DubUrl.Querying.Reading
     public class EmbeddedSqlFileCommand: ICommandProvider
     {
         protected internal string BasePath { get; }
-        private IResourceManager ResourceManager { get; }
+        protected IResourceManager ResourceManager { get; }
 
         public EmbeddedSqlFileCommand(string basePath)
             : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath) { }
@@ -28,7 +28,7 @@ namespace DubUrl.Querying.Reading
             if (!ResourceManager.Any(BasePath, dialect.Aliases, connectivity.Alias))
                 throw new MissingCommandForDialectException(this, dialect);
 
-            return ResourceManager.ReadCommandText(ResourceManager.BestMatch(BasePath, dialect.Aliases, connectivity.Alias));
+            return ResourceManager.ReadResource(ResourceManager.BestMatch(BasePath, dialect.Aliases, connectivity.Alias));
         }
 
         public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false)
