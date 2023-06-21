@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Querying.Templating;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +19,7 @@ namespace DubUrl.Querying.Reading
             ResourceNames = assembly.GetManifestResourceNames();
         }
 
-        public string ReadCommandText(string resourceName)
+        public string ReadResource(string resourceName)
         {
             using var stream =
                 ResouceAssembly.GetManifestResourceStream(resourceName)
@@ -43,5 +44,6 @@ namespace DubUrl.Querying.Reading
                     .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{dialect}.{extension}", 2)))
                     .Append(new ResourceMatch($"{id}.{extension}", 3))
                     .Where(x => ResourceNames.Any(y => x.Path.Equals(y, StringComparison.InvariantCultureIgnoreCase)));
+
     }
 }
