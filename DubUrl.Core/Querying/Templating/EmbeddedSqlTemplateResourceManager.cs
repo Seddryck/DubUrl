@@ -17,27 +17,31 @@ namespace DubUrl.Querying.Templating
             => base.ListResourceMathing(id, dialects, connectivity, "sql.st");
 
 
+        private record struct PartialResourceMatch(string End, byte Score) { }
         public IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension = "sql.st")
         {
             var dico = new Dictionary<string, string>();
 
-            var resources = ResourceNames
-                .Where(x => x.StartsWith(directory))
-                .Where(x => x.EndsWith(".sql.st"))
-                .Select(x => x.Split(".")[..^2].Last())
-                .Distinct();
+            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(".sql.st"));
+            var ids = resources.Select(x => x.Split(".")[..^2].Last()).Distinct();
 
-            foreach (var resource in resources)
+            foreach (var id in ids)
             {
-                var path = dialects
-                     .Select(dialect => new ResourceMatch($"{directory}.{connectivity}.{dialect}.{resource}.{extension}", 0)).Where(x => !string.IsNullOrEmpty(connectivity))
-                     .Union(dialects.Select(dialect => new ResourceMatch($"{directory}.{connectivity}.{resource}.{extension}", 1)).Where(x => !string.IsNullOrEmpty(connectivity)))
-                     .Union(dialects.Select(dialect => new ResourceMatch($"{directory}.{dialect}.{resource}.{extension}", 2)))
-                     .Append(new ResourceMatch($"{directory}.{resource}.{extension}", 3))
-                     .Where(x => ResourceNames.Any(y => x.Path.Equals(y, StringComparison.InvariantCultureIgnoreCase)))
-                     .OrderBy(x => x.Score).Select(x => x.Path).First();
+                var candidates = resources.Where(x => x.Split(".")[..^2].Last() == id);
 
-                dico.Add(resource, path);
+                var bestScore = dialects
+                     .Select(dialect => new PartialResourceMatch($".{connectivity}.{dialect}.{id}.{extension}", 0)).Where(x => !string.IsNullOrEmpty(connectivity))
+                     .Union(dialects.Select(dialect => new PartialResourceMatch($".{connectivity}.{id}.{extension}", 1)).Where(x => !string.IsNullOrEmpty(connectivity)))
+                     .Union(dialects.Select(dialect => new PartialResourceMatch($".{dialect}.{id}.{extension}", 2)))
+                     .Append(new PartialResourceMatch($".{id}.{extension}", 3))
+                     .Where(x => candidates.Any(y => y.EndsWith(x.End, StringComparison.InvariantCultureIgnoreCase)))
+                     .MinBy(x => x.Score);
+                
+                var path = candidates.Where(x => x.EndsWith(bestScore.End, StringComparison.InvariantCultureIgnoreCase))
+                    .OrderBy(x => x.Split('.').Length)
+                    .First();
+
+                dico.Add(id, path);
             }
             return dico;
         }

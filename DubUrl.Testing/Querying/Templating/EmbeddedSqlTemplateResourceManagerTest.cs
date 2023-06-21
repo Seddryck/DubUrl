@@ -54,5 +54,41 @@ namespace DubUrl.Testing.Querying.Reading
             Assert.That(resources, Does.ContainKey("T2"));
             Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
         }
+
+        [Test]
+        public void ListResources_MultipleTemplatesWithSubFolders_MultipleResults()
+        {
+            var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
+            {
+                "Foo.QueryId.sql.st",
+                "Foo.Bar.Qrz.DuckDb.T0.sql.st",
+                "Foo.Bar.Qrz.MsSQL.T0.sql.st",
+                "Foo.Bar.DuckDb.T1.sql.st",
+                "Foo.Bar.T1.sql.st",
+                "Foo.Bar.Baz.Bob.T2.sql.st"
+            });
+            var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty);
+            Assert.That(resources, Has.Count.EqualTo(3));
+            Assert.That(resources, Does.ContainKey("T0"));
+            Assert.That(resources["T0"], Is.EqualTo("Foo.Bar.Qrz.DuckDb.T0.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+            Assert.That(resources, Does.ContainKey("T1"));
+            Assert.That(resources["T1"], Is.EqualTo("Foo.Bar.DuckDb.T1.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+            Assert.That(resources, Does.ContainKey("T2"));
+            Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+        }
+
+        [Test]
+        public void ListResources_TemplateWithSubFoldersNoMatchingDialect_MultipleResults()
+        {
+            var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
+            {
+                "Foo.Bar.Baz.Bob.MsSQL.T2.sql.st",
+                "Foo.Bar.Baz.Bob.T2.sql.st",
+            });
+            var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty);
+            Assert.That(resources, Has.Count.EqualTo(1));
+            Assert.That(resources, Does.ContainKey("T2"));
+            Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+        }
     }
 }
