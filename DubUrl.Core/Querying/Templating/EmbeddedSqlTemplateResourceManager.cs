@@ -21,7 +21,7 @@ namespace DubUrl.Querying.Templating
         {
             var dico = new Dictionary<string, string>();
 
-            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(".sql.st"));
+            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(extension));
             var ids = resources.Select(x => x.Split(".")[..^2].Last()).Distinct();
 
             foreach (var id in ids)
@@ -52,6 +52,46 @@ namespace DubUrl.Querying.Templating
                 dico.Add(id, bestScore.Path);
             }
             return dico;
+        }
+
+        public virtual IDictionary<string, object?> ReadDictionary(string resourceName)
+        {
+            var dico = new Dictionary<string, object?>();
+            using var reader = GetResourceReader(resourceName);
+            while (reader.Peek() >= 0)
+            {
+                (var key, var value) = ParseDictionaryEntry(reader.ReadLine());
+                if (!string.IsNullOrEmpty(key))
+                    dico.Add(key, value);
+            }
+            return dico;
+        }
+
+        protected virtual TextReader GetResourceReader(string resourceName)
+            => new StreamReader(ResouceAssembly.GetManifestResourceStream(resourceName) ?? throw new ArgumentException());
+
+        protected virtual (string?, object?) ParseDictionaryEntry(string? entry)
+        {
+            if (string.IsNullOrEmpty(entry))
+                return (null, null);
+            var separator = entry.IndexOf(':');
+            if (separator == -1)
+                return (null, null);
+            var key = entry[..separator].Trim();
+            if (key[0]== '\"' && key[^1]=='\"')
+                key = key.Trim('\"');
+
+            var rawValue = entry[(separator+1)..].Trim();
+            if (rawValue[0] == '\"' && rawValue[^1] == '\"')
+                return (key, rawValue.Trim('\"'));
+            else if (rawValue.All(c => char.IsDigit(c)))
+                return (key, int.Parse(rawValue));
+            else if (rawValue.All(c => char.IsDigit(c) || c == '.'))
+                return (key, decimal.Parse(rawValue));
+            else if (rawValue.Equals("true", StringComparison.InvariantCultureIgnoreCase) || rawValue.Equals("false", StringComparison.InvariantCultureIgnoreCase))
+                return (key, bool.Parse(rawValue));
+            else
+                throw new ArgumentOutOfRangeException();
         }
     }
 }

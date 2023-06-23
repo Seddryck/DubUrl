@@ -1,4 +1,6 @@
-﻿using DubUrl.Querying.Reading;
+using DubUrl.Mapping;
+using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +12,6 @@ namespace DubUrl.Querying.Templating
     public interface IResourceTemplateManager : IResourceManager
     {
         IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension);
+        IDictionary<string, object?> ReadDictionary(string resourceName);
     }
 }
