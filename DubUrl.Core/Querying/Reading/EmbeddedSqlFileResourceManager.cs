@@ -10,7 +10,7 @@ namespace DubUrl.Querying.Reading
 {
     public class EmbeddedSqlFileResourceManager : IResourceManager
     {
-        private Assembly ResouceAssembly { get; }
+        protected Assembly ResouceAssembly { get; }
         public virtual string[] ResourceNames { get; }
 
         public EmbeddedSqlFileResourceManager(Assembly assembly)

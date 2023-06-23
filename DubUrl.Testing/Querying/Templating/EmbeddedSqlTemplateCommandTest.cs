@@ -41,7 +41,7 @@ namespace DubUrl.Testing.Querying.Reading
             resourceManager.Setup(x => x.ReadResource("Foo.Bar.print_name.sql.st")).Returns("$name$$print_end()$");
             resourceManager.Setup(x => x.ReadResource("Foo.Bar.DuckDB.print_end.sql.st")).Returns("!");
 
-            var query = new EmbeddedSqlTemplateCommand(resourceManager.Object, "queryId", "Foo.Bar", new Dictionary<string, object?>() { { "name", "Cédric" } });
+            var query = new EmbeddedSqlTemplateCommand(resourceManager.Object, "queryId", "Foo.Bar", "Foo.Bar", new Dictionary<string, object?>() { { "name", "Cédric" } });
             var response = query.Read(dialect, connectivity);
             Assert.That(response, Is.EqualTo("Hi Cédric!"));
 

@@ -47,7 +47,6 @@ namespace DubUrl.Testing.Querying.Templating
             Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
         }
 
-
         [Test]
         public void Render_WithChainingSubTemplate_Correct()
         {
@@ -60,6 +59,20 @@ namespace DubUrl.Testing.Querying.Templating
             };
             var response = engine.Render("Hello $print_name()$", subTemplates, parameters, null);
             Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
+        }
+
+        [Test]
+        public void Render_WithDictionary_Correct()
+        {
+            var engine = new StringTemplateEngine();
+            var parameters = new Dictionary<string, object?>() { { "name", "Cédric" }, { "symbol", "LessThan" } };
+            var dictionary = new Dictionary<string, object?>()
+            {
+                { "LessThan", "<" },
+                { "GreaterThan", ">" }
+            };
+            var response = engine.Render("Hello $name$ $comparison.GreaterThan$$comparison.(symbol)$", new Dictionary<string, string>(), new Dictionary<string, IDictionary<string, object?>>() { { "comparison", dictionary } }, parameters, null);
+            Assert.That(response, Is.EqualTo("Hello Cédric ><"));
         }
     }
 }
