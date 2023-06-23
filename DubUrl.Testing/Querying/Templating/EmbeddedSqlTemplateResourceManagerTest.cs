@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Templating;
 using Moq;
 using NUnit.Framework;
@@ -148,7 +148,7 @@ namespace DubUrl.Testing.Querying.Reading
         }
 
         [Test]
-        public void ReadDict_MultipleDictionaries_MultipleResults()
+        public void ReadDict_SingleDictionary_MultipleResults()
         {
             var resourceManager = new FakeEmbeddedSqlTemplateResourceManagerForDictionary("firstName:\"Cédric\"\r\nage:44");
             var resources = resourceManager.ReadDictionary("resourceName");

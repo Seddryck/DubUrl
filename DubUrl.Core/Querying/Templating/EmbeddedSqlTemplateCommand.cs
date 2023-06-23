@@ -21,6 +21,7 @@ namespace DubUrl.Querying.Templating
         public string SubTemplatesPath { get; }
         public string DictionariesPath { get; }
 
+
         protected new IResourceTemplateManager ResourceManager { get => (IResourceTemplateManager)base.ResourceManager; }
 
         public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object?> parameters)

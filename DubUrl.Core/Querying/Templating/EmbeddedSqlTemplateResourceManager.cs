@@ -17,12 +17,11 @@ namespace DubUrl.Querying.Templating
         protected override IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
             => base.ListResourceMathing(id, dialects, connectivity, "sql.st");
 
-
         public IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension = "sql.st")
         {
             var dico = new Dictionary<string, string>();
 
-            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(extension));
+            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(".sql.st"));
             var ids = resources.Select(x => x.Split(".")[..^2].Last()).Distinct();
 
             foreach (var id in ids)
@@ -94,6 +93,5 @@ namespace DubUrl.Querying.Templating
             else
                 throw new ArgumentOutOfRangeException();
         }
-
     }
 }
