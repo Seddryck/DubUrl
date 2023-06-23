@@ -17,7 +17,6 @@ namespace DubUrl.Querying.Templating
         protected override IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
             => base.ListResourceMathing(id, dialects, connectivity, "sql.st");
 
-
         public IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension = "sql.st")
         {
             var dico = new Dictionary<string, string>();

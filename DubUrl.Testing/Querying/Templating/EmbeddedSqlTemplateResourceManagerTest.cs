@@ -91,6 +91,7 @@ namespace DubUrl.Testing.Querying.Reading
             Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
         }
 
+
         [Test]
         public void ListResources_MultipleTemplatesWithSubFoldersNotEndingByDialect_MultipleResults()
         {
