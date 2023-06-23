@@ -137,7 +137,7 @@ namespace DubUrl.Testing.Querying.Reading
                 "Foo.Bar.Qrz.T1.dic.st",
                 "Foo.Bar.DuckDb.Baz.T2.dic.st"
             });
-            var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, ".dic.st");
+            var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "dic.st");
             Assert.That(resources, Has.Count.EqualTo(3));
             Assert.That(resources, Does.ContainKey("T0"));
             Assert.That(resources["T0"], Is.EqualTo("Foo.Bar.DuckDb.Qrz.T0.dic.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));

@@ -21,7 +21,7 @@ namespace DubUrl.Querying.Templating
         {
             var dico = new Dictionary<string, string>();
 
-            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(".sql.st"));
+            var resources = ResourceNames.Where(x => x.StartsWith(directory) && x.EndsWith(extension));
             var ids = resources.Select(x => x.Split(".")[..^2].Last()).Distinct();
 
             foreach (var id in ids)

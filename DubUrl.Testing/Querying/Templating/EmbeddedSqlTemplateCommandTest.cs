@@ -38,6 +38,8 @@ namespace DubUrl.Testing.Querying.Reading
             resourceManager.Setup(x => x.ReadResource("queryId.duckdb.sql.st")).Returns("Hi $print_name()$");
             resourceManager.Setup(x => x.ListResources("Foo.Bar", dialect.Aliases, connectivity.Alias, "sql.st"))
                                 .Returns(new Dictionary<string, string>() { { "print_name", "Foo.Bar.print_name.sql.st" }, { "print_end", "Foo.Bar.DuckDB.print_end.sql.st" } });
+            resourceManager.Setup(x => x.ListResources("Foo.Bar", dialect.Aliases, connectivity.Alias, "dic.st"))
+                                .Returns(new Dictionary<string, string>());
             resourceManager.Setup(x => x.ReadResource("Foo.Bar.print_name.sql.st")).Returns("$name$$print_end()$");
             resourceManager.Setup(x => x.ReadResource("Foo.Bar.DuckDB.print_end.sql.st")).Returns("!");
 
