@@ -90,5 +90,27 @@ namespace DubUrl.Testing.Querying.Reading
             Assert.That(resources, Does.ContainKey("T2"));
             Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
         }
+
+        [Test]
+        public void ListResources_MultipleTemplatesWithSubFoldersNotEndingByDialect_MultipleResults()
+        {
+            var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
+            {
+                "Foo.QueryId.sql.st",
+                "Foo.Bar.DuckDb.Qrz.T0.sql.st",
+                "Foo.Bar.MsSQL.Qrz.T0.sql.st",
+                "Foo.Bar.DuckDb.Qrz.T1.sql.st",
+                "Foo.Bar.Qrz.T1.sql.st",
+                "Foo.Bar.DuckDb.Baz.T2.sql.st"
+            });
+            var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty);
+            Assert.That(resources, Has.Count.EqualTo(3));
+            Assert.That(resources, Does.ContainKey("T0"));
+            Assert.That(resources["T0"], Is.EqualTo("Foo.Bar.DuckDb.Qrz.T0.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+            Assert.That(resources, Does.ContainKey("T1"));
+            Assert.That(resources["T1"], Is.EqualTo("Foo.Bar.DuckDb.Qrz.T1.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+            Assert.That(resources, Does.ContainKey("T2"));
+            Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.DuckDb.Baz.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
+        }
     }
 }
