@@ -4,6 +4,7 @@ using DubUrl.Querying.Dialects.Renderers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,7 +33,17 @@ namespace DubUrl.Querying.Templating
                 template.Group.RegisterRenderer(typeof(object), new SqlRendererWrapper(renderer));
 
             foreach (var subTemplate in subTemplates)
-                template.Group.DefineTemplate(subTemplate.Key, subTemplate.Value);
+            {
+                if(TryParseTemplate(subTemplate.Value, out var name, out var arguments, out var text))
+                {
+                    template.Group.DefineTemplate(subTemplate.Key, text, arguments);
+                    if (name != subTemplate.Key)
+                        template.Group.DefineTemplate(name, text, arguments);
+                }
+                else
+                    template.Group.DefineTemplate(subTemplate.Key, subTemplate.Value);
+            }
+                
 
             foreach (var @dictionary in @dictionaries)
                 template.Group.DefineDictionary(@dictionary.Key, @dictionary.Value);
@@ -42,6 +53,22 @@ namespace DubUrl.Querying.Templating
 
             var actual = template.Render();
             return actual;
+        }
+
+        private bool TryParseTemplate(string value, out string? name, out string[]? arguments, out string? template)
+        {
+            var end = value.IndexOf("::=");
+            if (end < 0)
+            {
+                (name, arguments, template) = (null, null, value);
+                return false;
+            }
+
+            var tokens = value[..end].Split('(');
+            (name, arguments, template) = (tokens[0].Trim()
+                , tokens[1].Trim()[..^1].Split(',').Select(x => x.Trim()).ToArray()
+                , value[(end+3)..]);
+            return true;
         }
     }
 }
