@@ -12,7 +12,7 @@ namespace DubUrl.Querying.Dialects.Renderers
         public DuckDBRenderer()
             : base(new ValueFormatter()
                   , new NullFormatter()
-                  , new UnquotedIdentifierFormatter()) 
+                  , new QuotedIdentifierFormatter()) 
         { }
     }
 }
