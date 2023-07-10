@@ -60,7 +60,7 @@
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
     <PackageReference Include="Dapper" Version="2.0.143" />
     <PackageReference Include="DuckDB.NET.Bindings" Version="0.8.0" />
-    <PackageReference Include="DuckDB.NET.Data" Version="0.8.0" />
+    <PackageReference Include="DuckDB.NET.Data" Version="0.8.1" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.8" />
