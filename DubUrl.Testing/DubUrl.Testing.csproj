@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
 		<PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
-		<PackageReference Include="DuckDB.NET.Bindings" Version="0.8.0" />
-		<PackageReference Include="DuckDB.NET.Data" Version="0.8.0" />
+		<PackageReference Include="DuckDB.NET.Bindings" Version="0.8.1" />
+		<PackageReference Include="DuckDB.NET.Data" Version="0.8.1" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
 		<PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
@@ -20,7 +20,7 @@
 	<ItemGroup>
 		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
 		<PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.200" />
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.8" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.9" />
 		<PackageReference Include="MySql.Data" Version="8.0.33" />
 		<PackageReference Include="MySqlConnector" Version="2.2.6" />
 		<PackageReference Include="Npgsql" Version="7.0.4" />
