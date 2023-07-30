@@ -7,12 +7,12 @@ using DubUrl.Registering;
 namespace DubUrl.QA.Mysql
 {
     [Category("MySQL")]
-    [Category("MySQLDriver")]
-    public class OdbcDriverMySQL : BaseOdbcDriver
+    [Category("MariaDBDriver")]
+    public class OdbcDriverMariaDb : BaseOdbcDriver
     {
         public override string ConnectionString
         {
-            get => $"odbc+mysql://root:Password12!@localhost/DubUrl";
+            get => $"odbc+mariadb://root:Password12!@localhost/DubUrl";
         }
 
         [Test]

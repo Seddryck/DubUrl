@@ -1,7 +1,7 @@
 Param(
 	[switch] $force=$false
-	, $databaseService= "MySQL57"
-	, $odbcDriver= "MariaDB"
+	, [string] $databaseService= "MySQL57"
+	, [string[]] $odbcDrivers = @("MariaDB", "MySQL")
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
@@ -58,9 +58,9 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	}
 	Write-host "`tDatabase created"
 	
-	$odbcDriverInstalled = $false
+	$odbcDriversInstalled = @()
 	# Installing ODBC driver
-	if ($odbcDriver -eq "MariaDB") {
+	if ($odbcDrivers -contains "MariaDB") {
 		Write-host "`tDeploying MariaDB ODBC drivers"
 		$drivers = Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
 		if ($drivers.Length -eq 0) {
@@ -77,28 +77,30 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
 			Write-Host "`t`tInstallation checked."
 			Write-Host "`tDeployment of MariaDB ODBC driver finalized."
-			$odbcDriverInstalled = $true
+			$odbcDriversInstalled += "MariaDB"
 		} else {
-			$odbcDriverInstalled = $true
+			$odbcDriversInstalled += "MariaDB"
 			Write-Host "`t`tDrivers already installed:"
 			Get-OdbcDriver -Name "*mariadb*" -Platform "64-bit"
 			Write-Host "`t`tSkipping installation of new drivers"
 		}
-	} else {
+	} 
+	if ($odbcDrivers -contains "MySQL") {
 		Write-host "`tDeploying MySQL ODBC drivers"
 		$drivers = Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
 		if ($drivers.Length -eq 0) {
 			Write-Host "`t`tDownloading MySQL ODBC driver ..."
 			$response = try { 
 				(Invoke-WebRequest `
-					-Uri "https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.32-winx64.msi" `
+					-Uri "https://cdn.mysql.com//Downloads/Connector-ODBC/8.1/mysql-connector-odbc-8.1.0-winx64.msi" `
 					-OutFile "$env:temp\mysql-connector-odbc.msi" `
+					-PassThru `
 				).BaseResponse
 			} catch { 
 				Write-Host "An exception was caught: $($_.Exception.Message)"
 				$_.Exception.Response 
 			} 
-			$statusCodeInt = [int]$response.BaseResponse.StatusCode
+			$statusCodeInt = [int]$response.StatusCode
 
 			If ($statusCodeInt -eq 200) {
 				Write-Host "`t`tInstalling MySQL ODBC driver ..."
@@ -107,12 +109,12 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 				Write-Host "`t`tChecking installation ..."
 				Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
 				Write-Host "`tDeployment of MySQL ODBC driver finalized."
-				$odbcDriverInstalled = $true
+				$odbcDriversInstalled += "MySQL"
 			} else {
 				Write-Host "`t`tInstalling MySQL ODBC driver was interrupted."
 			}
 		} else {
-			$odbcDriverInstalled = $true
+			$odbcDriversInstalled += "MySQL"
 			Write-Host "`t`tDrivers already installed:"
 			Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
 			Write-Host "`t`tSkipping installation of new drivers"
@@ -122,8 +124,8 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 	# Running QA tests
 	Write-Host "Running QA tests related to MySQL"
 	$suites = @("MySQL+AdoProvider")
-	if ($odbcDriverInstalled) {
-		$suites += "MySQL+ODBC"
+	foreach ($odbcDriverInstalled in $odbcDriversInstalled) {
+		$suites += "MySQL+ODBC+" + $odbcDriverInstalled + "Driver"
 	}
 	$testSuccessful = Run-TestSuite $suites -config $config -frameworks $frameworks
 
