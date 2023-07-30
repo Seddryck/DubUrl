@@ -103,15 +103,19 @@ if ($force -or ($filesChanged -like "*mysql*")) {
 			$statusCodeInt = [int]$response.StatusCode
 
 			If ($statusCodeInt -eq 200) {
+				Write-Host "`t`tMySQL ODBC driver downloaded."
 				Write-Host "`t`tInstalling MySQL ODBC driver ..."
 				& msiexec /i "$env:temp\mysql-connector-odbc.msi" /quiet /qn /norestart /log "$env:temp\install-mysql.log" | Out-Host
 				#Get-Content "$env:temp\install-mysql.log"
+				Write-Host "`t`tMySQL ODBC driver installed."
 				Write-Host "`t`tChecking installation ..."
 				Get-OdbcDriver -Name "*mysql*" -Platform "64-bit"
+				Write-Host "`t`tInstallation checked."
 				Write-Host "`tDeployment of MySQL ODBC driver finalized."
 				$odbcDriversInstalled += "MySQL"
 			} else {
-				Write-Host "`t`tInstalling MySQL ODBC driver was interrupted."
+				Write-Host "`t`tFailed to download MySQL ODBC driver."
+				Write-Host "`tInstalling MySQL ODBC driver was interrupted."
 			}
 		} else {
 			$odbcDriversInstalled += "MySQL"
