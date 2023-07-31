@@ -8,8 +8,12 @@ namespace DubUrl.Querying.Dialects.Formatters
 {
     internal class QuotedIdentifierFormatter : IIdentifierFormatter
     {
-        public string Format(string value)
+        public virtual string Format(string value)
+            => SurroundByQuotes(value);
+
+        protected string SurroundByQuotes(string value)
             => $"\"{value}\"";
+
         public string Format(object obj)
              => obj is string value ? Format(value) : throw new Exception();
     }

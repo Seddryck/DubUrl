@@ -12,6 +12,18 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-function_name.txt" />
+    <None Remove="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-reserved.txt" />
+    <None Remove="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-type_name.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-reserved.txt" />
+    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-function_name.txt" />
+    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-type_name.txt" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Testing" />
 		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
