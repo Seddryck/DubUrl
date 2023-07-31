@@ -25,7 +25,7 @@
 		<PackageReference Include="MySqlConnector" Version="2.2.7" />
 		<PackageReference Include="Npgsql" Version="7.0.4" />
 		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.110" />
-		<PackageReference Include="Snowflake.Data" Version="2.0.25" />
+		<PackageReference Include="Snowflake.Data" Version="2.1.0" />
 		<PackageReference Include="System.Data.Odbc" Version="7.0.0" />
 		<PackageReference Include="System.Data.OleDb" Version="7.0.0" />
 		<PackageReference Include="Teradata.Client.Provider" Version="17.20.7" />
