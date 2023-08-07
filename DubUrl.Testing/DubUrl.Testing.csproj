@@ -5,7 +5,7 @@
 		<PackageReference Include="DuckDB.NET.Bindings" Version="0.8.1" />
 		<PackageReference Include="DuckDB.NET.Data" Version="0.8.1" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.0" />
 		<PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
 		<PackageReference Include="NUnit" Version="3.13.3" />
 		<PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
