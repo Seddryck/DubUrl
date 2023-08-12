@@ -42,7 +42,7 @@ test_script:
     Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
     .\codecov.exe --dir "./DubUrl.Testing"
     .\codecov.exe --dir "./DubUrl.OleDb.Testing"
-    .\codecov.exe --dir "./DubUrl.Extensions.DependencyInjection"
+    .\codecov.exe --dir "./DubUrl.Extensions.DependencyInjection.Testing"
 
 - pwsh: |
       $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
