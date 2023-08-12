@@ -32,17 +32,15 @@ build_script:
 test_script:
 - pwsh: |
     $ErrorActionPreference = "Stop"
-    dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line --test-adapter-path:. --logger:Appveyor --no-build --nologo
-    dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* --test-adapter-path:. --logger:Appveyor --no-build --nologo
-    dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/DubUrl.Extensions.DependencyInjection.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
 
 - pwsh: |
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
-    .\codecov.exe --dir "./DubUrl.Testing"
-    .\codecov.exe --dir "./DubUrl.OleDb.Testing"
-    .\codecov.exe --dir "./DubUrl.Extensions.DependencyInjection.Testing"
+    .\codecov.exe --dir "./coverage"
 
 - pwsh: |
       $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
