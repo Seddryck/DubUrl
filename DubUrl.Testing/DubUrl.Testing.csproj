@@ -1,41 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-	<ItemGroup>
-		<PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
-		<PackageReference Include="DuckDB.NET.Bindings" Version="0.8.1" />
-		<PackageReference Include="DuckDB.NET.Data" Version="0.8.1" />
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.0" />
-		<PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
-		<PackageReference Include="NUnit" Version="3.13.3" />
-		<PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
-		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-		<PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
-		<PackageReference Include="Moq" Version="4.18.4" />
-		<PackageReference Include="coverlet.collector" Version="6.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
-		<PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.200" />
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.9" />
-		<PackageReference Include="MySql.Data" Version="8.1.0" />
-		<PackageReference Include="MySqlConnector" Version="2.2.7" />
-		<PackageReference Include="Npgsql" Version="7.0.4" />
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.110" />
-		<PackageReference Include="Snowflake.Data" Version="2.1.0" />
-		<PackageReference Include="System.Data.Odbc" Version="7.0.0" />
-		<PackageReference Include="System.Data.OleDb" Version="7.0.0" />
-		<PackageReference Include="Teradata.Client.Provider" Version="17.20.7" />
-	</ItemGroup>
-
-	<ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
+    <PackageReference Include="DuckDB.NET.Bindings" Version="0.8.1" />
+    <PackageReference Include="DuckDB.NET.Data" Version="0.8.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+    <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.200" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.9" />
+    <PackageReference Include="MySql.Data" Version="8.1.0" />
+    <PackageReference Include="MySqlConnector" Version="2.2.7" />
+    <PackageReference Include="Npgsql" Version="7.0.4" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.110" />
+    <PackageReference Include="Snowflake.Data" Version="2.1.0" />
+    <PackageReference Include="System.Data.Odbc" Version="7.0.0" />
+    <PackageReference Include="System.Data.OleDb" Version="7.0.0" />
+    <PackageReference Include="Teradata.Client.Provider" Version="17.20.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
+    <PackageReference Include="Moq" Version="4.18.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
 		<ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
 	</ItemGroup>
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
-
 </Project>

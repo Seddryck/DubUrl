@@ -7,6 +7,9 @@ skip_commits:
     - misc/
     - README.md
     - LICENSE
+    - CODE_OF_CONDUCT.md
+    - CONTRIBUTING.md
+    - SECURITY.md
 
 environment:
   github_access_token:
@@ -27,9 +30,18 @@ build_script:
   - dotnet build DubUrl.sln -p:version="%GitVersion_SemVer%" -c Release /p:ContinuousIntegrationBuild=true --nologo 
 
 test_script:
-- dotnet test DubUrl.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
-- dotnet test DubUrl.OleDb.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
-- dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release --test-adapter-path:. --logger:Appveyor --no-build --nologo 
+- pwsh: |
+    $ErrorActionPreference = "Stop"
+    dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.DependencyInjection.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
+
+- pwsh: |
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
+    .\codecov.exe --dir "./.coverage/"
+
 - pwsh: |
       $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
       & .\Duburl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net6.0") -exclude @("CockRoach", "Drill", "Trino")
