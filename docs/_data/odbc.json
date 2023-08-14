@@ -10,7 +10,10 @@
     "NamePattern": "^\\bODBC Driver\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s\\bfor SQL Server$",
     "Options": [
       "DubUrl.Locating.Options.VersionOption"
-    ]
+    ],
+    "Slug": "microsoftsqlserver",
+    "MainColor": "#CC2927",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "MySqlConnectorDriverLocator",
@@ -23,7 +26,10 @@
     "Options": [
       "DubUrl.Locating.Options.VersionOption",
       "DubUrl.Locating.Options.EncodingOption"
-    ]
+    ],
+    "Slug": "mysql",
+    "MainColor": "#4479A1",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "PostgresqlDriverLocator",
@@ -38,7 +44,10 @@
     "Options": [
       "DubUrl.Locating.Options.EncodingOption",
       "DubUrl.Locating.Options.ArchitectureOption"
-    ]
+    ],
+    "Slug": "postgresql",
+    "MainColor": "#4169E1",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "MariaDbDriverLocator",
@@ -50,7 +59,10 @@
     "NamePattern": "^\\bMariaDB ODBC\\s([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})\\s\\bDriver$",
     "Options": [
       "DubUrl.Locating.Options.VersionOption"
-    ]
+    ],
+    "Slug": "mariadb",
+    "MainColor": "#003545",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "DuckdbDriverLocator",
@@ -60,7 +72,10 @@
       "duckdb"
     ],
     "NamePattern": "^\\bDuckDB\\s\\bDriver$",
-    "Options": []
+    "Options": [],
+    "Slug": "duckdb",
+    "MainColor": "#FFF000",
+    "SecondaryColor": "#000000"
   },
   {
     "Class": "DrillDriverLocator",
@@ -69,7 +84,10 @@
       "drill"
     ],
     "NamePattern": "^\\bMapR Drill ODBC Driver$",
-    "Options": []
+    "Options": [],
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "TrinoDriverLocator",
@@ -79,7 +97,10 @@
       "trino"
     ],
     "NamePattern": "^(Simba)\\s\\bTrino ODBC Driver$",
-    "Options": []
+    "Options": [],
+    "Slug": "trino",
+    "MainColor": "#DD00A1",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "MsExcelDriverLocator",
@@ -91,7 +112,10 @@
       "xlsm"
     ],
     "NamePattern": "^\\bMicrosoft Excel Driver\\s\\(\\*\\.xls, \\*\\.xlsx, \\*\\.xlsm, \\*\\.xlsb\\)$",
-    "Options": []
+    "Options": [],
+    "Slug": "microsoftexcel",
+    "MainColor": "#217346",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "TextDriverLocator",
@@ -102,7 +126,10 @@
       "tsv"
     ],
     "NamePattern": "^\\bMicrosoft Access Text Driver\\s\\(\\*\\.txt, \\*\\.csv\\)$",
-    "Options": []
+    "Options": [],
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "QuestDbDriverLocator",
@@ -115,7 +142,10 @@
     "Options": [
       "DubUrl.Locating.Options.EncodingOption",
       "DubUrl.Locating.Options.ArchitectureOption"
-    ]
+    ],
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "TimescaleDriverLocator",
@@ -128,6 +158,9 @@
     "Options": [
       "DubUrl.Locating.Options.EncodingOption",
       "DubUrl.Locating.Options.ArchitectureOption"
-    ]
+    ],
+    "Slug": "timescale",
+    "MainColor": "#FDB515",
+    "SecondaryColor": "#000000"
   }
 ]
