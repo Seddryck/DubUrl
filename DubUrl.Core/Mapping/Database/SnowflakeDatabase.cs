@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "sf", "snowflake" }
         , DatabaseCategory.Warehouse
     )]
+    [Brand("snowflake", "#29B5E8")]
     public class SnowflakeDatabase : IDatabase
     { }
 }

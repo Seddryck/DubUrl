@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "oracle", "or", "ora" }
         , DatabaseCategory.LargePlayer
     )]
+    [Brand("oracle", "#F80000")]
     public class OracleDatabase : IDatabase
     { }
 }

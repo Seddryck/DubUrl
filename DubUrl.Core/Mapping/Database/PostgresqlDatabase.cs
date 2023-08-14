@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "pg", "pgsql", "postgres", "postgresql" }
         , DatabaseCategory.TopPlayer
     )]
+    [Brand("postgresql", "#4169E1")]
     public class PostgresqlDatabase : IDatabase
     { }
 }

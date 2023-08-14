@@ -36,6 +36,20 @@ namespace DubUrl.Testing.Mapping
         }
 
         [Test]
+        public void Locate_OneMapperClassWithBrand_ClassReturned()
+        {
+            var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MsSqlServerDatabase) });
+            var introspector = new NativeMapperIntrospector(types);
+            var result = introspector.Locate();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).Slug, Is.EqualTo("microsoftsqlserver"));
+            Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
+            Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+        }
+
+        [Test]
         public void Locate_TwoMapperClasses_ClassesReturned()
         {
             var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(PostgresqlMapper), typeof(MsSqlServerDatabase), typeof(PostgresqlDatabase) });

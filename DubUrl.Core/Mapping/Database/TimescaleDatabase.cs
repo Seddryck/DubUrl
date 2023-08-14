@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "ts", "timescale" }
         , DatabaseCategory.TimeSeries
     )]
+    [Brand("timescale", "#FDB515", "#000000")]
     public class TimescaleDatabase : IDatabase
     { }
 }

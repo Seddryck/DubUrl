@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "tr", "trino" }
         , DatabaseCategory.DistributedQueryEngine
     )]
+    [Brand("trino", "#DD00A1")]
     public class TrinoDatabase : IDatabase
     { }
 }

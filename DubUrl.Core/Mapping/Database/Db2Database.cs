@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "db2" }
         , DatabaseCategory.LargePlayer
     )]
+    [Brand("ibm", "#052FAD")]
     public class Db2Database : IDatabase
     { }
 }

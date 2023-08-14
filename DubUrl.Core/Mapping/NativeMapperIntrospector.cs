@@ -17,21 +17,22 @@ namespace DubUrl.Mapping
         public NativeMapperIntrospector(ITypesProbe probe)
             : base(probe) { }
 
-        public override IEnumerable<MapperInfo> Locate()
-            => Locate<MapperAttribute>();
+        public override MapperInfo[] Locate()
+            => Locate<MapperAttribute>().ToArray();
 
-        public IEnumerable<MapperInfo> LocateAlternative()
-            => Locate<AlternativeMapperAttribute>();
-
+        public MapperInfo[] LocateAlternative()
+            => Locate<AlternativeMapperAttribute>().ToArray();
 
         protected IEnumerable<MapperInfo> Locate<T>() where T : BaseMapperAttribute
         {
             var mappers = LocateAttribute<T>();
             var databases = LocateAttribute<DatabaseAttribute>();
+            var brands = LocateAttribute<BrandAttribute>();
 
             foreach (var mapper in mappers)
             {
                 var db = databases.Single(x => x.Type == mapper.Attribute.Connectivity);
+                var brand = brands.SingleOrDefault(x => x.Type == mapper.Attribute.Connectivity);
                 yield return new MapperInfo(
                         mapper.Type
                         , db.Attribute.DatabaseName
@@ -40,6 +41,9 @@ namespace DubUrl.Mapping
                         , db.Attribute.ListingPriority
                         , mapper.Attribute.ProviderInvariantName
                         , mapper.Attribute.Parametrizer
+                        , brand?.Attribute.Slug ?? string.Empty
+                        , brand?.Attribute.MainColor ?? BrandAttribute.DefaultMainColor
+                        , brand?.Attribute.SecondaryColor ?? BrandAttribute.DefaultSecondaryColor
                     );
             }
         }

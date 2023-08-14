@@ -7,7 +7,10 @@
       "ms",
       "sqlserver"
     ],
-    "ProviderInvariantName": "Microsoft.Data.SqlClient"
+    "ProviderInvariantName": "Microsoft.Data.SqlClient",
+    "Slug": "microsoftsqlserver",
+    "MainColor": "#CC2927",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "MySqlConnectorMapper",
@@ -16,7 +19,10 @@
       "mysql",
       "my"
     ],
-    "ProviderInvariantName": "MySqlConnector"
+    "ProviderInvariantName": "MySqlConnector",
+    "Slug": "mysql",
+    "MainColor": "#4479A1",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "PostgresqlMapper",
@@ -27,7 +33,10 @@
       "postgres",
       "postgresql"
     ],
-    "ProviderInvariantName": "Npgsql"
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "postgresql",
+    "MainColor": "#4169E1",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "Db2Mapper",
@@ -35,7 +44,10 @@
     "Aliases": [
       "db2"
     ],
-    "ProviderInvariantName": "IBM.Data.Db2"
+    "ProviderInvariantName": "IBM.Data.Db2",
+    "Slug": "ibm",
+    "MainColor": "#052FAD",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "MariaDbConnectorMapper",
@@ -44,7 +56,10 @@
       "maria",
       "mariadb"
     ],
-    "ProviderInvariantName": "MySqlConnector"
+    "ProviderInvariantName": "MySqlConnector",
+    "Slug": "mariadb",
+    "MainColor": "#003545",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "OracleManagedDataAccessMapper",
@@ -54,7 +69,10 @@
       "or",
       "ora"
     ],
-    "ProviderInvariantName": "Oracle.ManagedDataAccess"
+    "ProviderInvariantName": "Oracle.ManagedDataAccess",
+    "Slug": "oracle",
+    "MainColor": "#F80000",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "DuckdbMapper",
@@ -63,7 +81,10 @@
       "duck",
       "duckdb"
     ],
-    "ProviderInvariantName": "DuckDB.NET.Data"
+    "ProviderInvariantName": "DuckDB.NET.Data",
+    "Slug": "duckdb",
+    "MainColor": "#FFF000",
+    "SecondaryColor": "#000000"
   },
   {
     "Class": "FirebirdSqlMapper",
@@ -72,7 +93,10 @@
       "fb",
       "firebird"
     ],
-    "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient"
+    "ProviderInvariantName": "FirebirdSql.Data.FirebirdClient",
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "SqliteMapper",
@@ -81,7 +105,10 @@
       "sq",
       "sqlite"
     ],
-    "ProviderInvariantName": "Microsoft.Data.Sqlite"
+    "ProviderInvariantName": "Microsoft.Data.Sqlite",
+    "Slug": "sqlite",
+    "MainColor": "#003B57",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "CockRoachMapper",
@@ -93,7 +120,10 @@
       "crdb",
       "cdb"
     ],
-    "ProviderInvariantName": "Npgsql"
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "cockroachlabs",
+    "MainColor": "#6933FF",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "SnowflakeMapper",
@@ -102,7 +132,10 @@
       "sf",
       "snowflake"
     ],
-    "ProviderInvariantName": "Snowflake.Data"
+    "ProviderInvariantName": "Snowflake.Data",
+    "Slug": "snowflake",
+    "MainColor": "#29B5E8",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "TeradataMapper",
@@ -112,7 +145,10 @@
       "teradata",
       "tera"
     ],
-    "ProviderInvariantName": "Teradata.Client"
+    "ProviderInvariantName": "Teradata.Client",
+    "Slug": "Teradata",
+    "MainColor": "#F37440",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "TrinoMapper",
@@ -121,7 +157,10 @@
       "tr",
       "trino"
     ],
-    "ProviderInvariantName": "NReco.PrestoAdo"
+    "ProviderInvariantName": "NReco.PrestoAdo",
+    "Slug": "trino",
+    "MainColor": "#DD00A1",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "QuestDbMapper",
@@ -130,7 +169,10 @@
       "quest",
       "questdb"
     ],
-    "ProviderInvariantName": "Npgsql"
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
   },
   {
     "Class": "TimescaleMapper",
@@ -139,6 +181,9 @@
       "ts",
       "timescale"
     ],
-    "ProviderInvariantName": "Npgsql"
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "timescale",
+    "MainColor": "#FDB515",
+    "SecondaryColor": "#000000"
   }
 ]

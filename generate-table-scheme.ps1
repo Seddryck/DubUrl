@@ -56,10 +56,27 @@ function Write-Table {
     $columns = @{}
 
     foreach($mapper in $mappers) {
-        $mapper.Aliases = $mapper.Aliases -Join ", "
-        $items += $mapper
+        $dbName = "![$($mapper.Database)]"
+        $dbName += "(https://img.shields.io/badge/"
+        $dbName += [URI]::EscapeUriString($mapper.Database)
+        $dbName += "-" + $mapper.MainColor -replace '#', ''
+        $dbName += "?logo=$($mapper.Slug)"
+        $dbName += "&logoColor=$($mapper.SecondaryColor -replace '#', '')"
+        $dbName += "&style=flat-square"
+        $dbName += ")"
+        
+        foreach ($prop in $mapper.PSObject.Properties)
+        {
+            if (-not($keys -Contains $prop)) {
+                $mapper.PSObject.Properties.Remove($prop)
+            }
+        }
+        $item = $mapper
+        $item.Database = $dbName
+        $item.Aliases = $mapper.Aliases -join ', '
 
-        $mapper.PSObject.Properties | %{
+        $items += $item
+        $item.PSObject.Properties | %{
             if((-not $columns.ContainsKey($_.Name) -or $columns[$_.Name] -lt $_.Value.ToString().Length) -and ($null -ne $_.Value)) {
                 $columns[$_.Name] = $_.Value.ToString().Length
             }

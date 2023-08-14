@@ -58,6 +58,6 @@ namespace DubUrl.Mapping
         protected BaseMapperIntrospector(ITypesProbe probe)
             : base(probe) { }
 
-        public abstract IEnumerable<MapperInfo> Locate();
+        public abstract MapperInfo[] Locate();
     }
 }

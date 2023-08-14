@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "td", "teradata", "tera" }
         , DatabaseCategory.Warehouse
     )]
+    [Brand("Teradata", "#F37440")]
     public class TeradataDatabase : IDatabase
     { }
 }

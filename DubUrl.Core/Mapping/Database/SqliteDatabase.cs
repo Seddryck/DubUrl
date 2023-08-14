@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "sq", "sqlite" }
         , DatabaseCategory.InMemory
     )]
+    [Brand("sqlite", "#003B57")]
     public class SqliteDatabase : IDatabase
     { }
 }

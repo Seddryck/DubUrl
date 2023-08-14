@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "mssql", "ms", "sqlserver" }
         , DatabaseCategory.TopPlayer
     )]
+    [Brand("microsoftsqlserver", "#CC2927")]
     public class MsSqlServerDatabase : IDatabase
     { }
 }
