@@ -14,5 +14,6 @@ namespace DubUrl.Mapping.Database
         , new[] { "cr", "cockroach", "cockroachdb", "crdb", "cdb" }
         , DatabaseCategory.Warehouse
     )]
+    [Brand("cockroachlabs", "#6933FF")]
     public class CockRoachDatabase : IDatabase { }
 }

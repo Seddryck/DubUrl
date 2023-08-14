@@ -14,6 +14,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "maria", "mariadb" }
         , DatabaseCategory.LargePlayer
     )]
+    [Brand("mariadb", "#003545")]
     public class MariaDbDatabase : IDatabase
     { }
 }

@@ -32,7 +32,7 @@ Set-Location "..\..\"
 Write-Host "Generating JSON for Odbc driver locators based on $assemblyPath\$directory\$dllfile"
 $elapsed = Measure-Command -Expression {
     $locator = New-Object  DubUrl.Locating.OdbcDriver.DriverLocatorIntrospector
-    $driverLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.DriverLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, Options
+    $driverLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.DriverLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, Options, Slug, MainColor, SecondaryColor
     Write-Host  "`t$($driverLocators.Count) mappers identified"
     $driverLocators | ForEach-Object {Write-Host "`t`t$($_.Class)"}
     $driverLocators | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"

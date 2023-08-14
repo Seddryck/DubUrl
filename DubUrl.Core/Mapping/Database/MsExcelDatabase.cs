@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "xls", "xlsx", "xlsb", "xlsm" }
         , DatabaseCategory.FileBased
     )]
+    [Brand("microsoftexcel", "#217346")]
     public class MsExcelDatabase : IDatabase
     { }
 }

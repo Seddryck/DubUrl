@@ -3,6 +3,7 @@ using DubUrl.Mapping;
 using DubUrl.Mapping.Connectivity;
 using DubUrl.Mapping.Database;
 using DubUrl.Mapping.Implementation;
+using Microsoft.IdentityModel.Tokens;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,35 @@ namespace DubUrl.Testing.Mapping
             Assert.That(result.Count(), Is.EqualTo(2));
             Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
             Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        }
+
+        [Test]
+        public void Locate_OneMapperClassWithBrand_ClassReturned()
+        {
+            var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
+                , typeof(TrinoOdbcMapper), typeof(TrinoDriverLocator), typeof(TrinoDatabase) 
+            });
+            var introspector = new WrapperMapperIntrospector(types);
+            var result = introspector.Locate();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.ElementAt(0).Slug, Is.EqualTo("trino"));
+                Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
+                Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+            });
+        }
+
+        [Test]
+        public void Locate_RealTypes_BrandsAssociated()
+        {
+            var introspector = new WrapperMapperIntrospector();
+            var result = introspector.Locate();
+            Assert.That(result.Any(x => !string.IsNullOrEmpty(x.Slug)), Is.True);
+            Assert.That(result.All(x => !string.IsNullOrEmpty(x.MainColor)), Is.True);
+            Assert.That(result.All(x => !string.IsNullOrEmpty(x.SecondaryColor)), Is.True);
         }
     }
 }

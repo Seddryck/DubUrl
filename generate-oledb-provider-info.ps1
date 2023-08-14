@@ -13,7 +13,6 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
     Write-Debug "Previous hash for $destinationPath\$destinationFile is $($hash.Hash)"
 }
 
-
 ########### Generate JSON file #############
 
 $assemblyPath = "DubUrl.OleDb\bin"
@@ -34,7 +33,7 @@ Set-Location "..\..\"
 Write-Host "Generating JSON for Oledb provider locators based on $assemblyPath\$directory\$dllfile"
 $elapsed = Measure-Command -Expression {
     $locator = New-Object  DubUrl.OleDb.ProviderLocatorIntrospector
-    $providerLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.ProviderLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, @{label='Options'; expression={$_.Options.Name}}
+    $providerLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.ProviderLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, Slug, MainColor, SecondaryColor, @{label='Options'; expression={$_.Options.Name}}
     Write-Host  "`t$($providerLocators.Count) locators identified"
     $providerLocators | ForEach-Object {Write-Host "`t`t$($_.Class)"}
     $providerLocators | ConvertTo-Json | Out-File "$destinationPath\$destinationFile"

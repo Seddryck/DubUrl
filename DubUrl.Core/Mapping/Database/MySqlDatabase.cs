@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "mysql", "my" }
         , DatabaseCategory.TopPlayer
     )]
+    [Brand("mysql", "#4479A1")]
     public class MySqlDatabase : IDatabase
     { }
 }

@@ -164,7 +164,7 @@ namespace DubUrl.Mapping
             where M : IMapper
             where D : IDialect
             where P : IParametrizer
-            => AddMapping(new MapperInfo(typeof(M), databaseName, aliases, typeof(D), 9, providerName, typeof(P)));
+            => AddMapping(new MapperInfo(typeof(M), databaseName, aliases, typeof(D), 9, providerName, typeof(P), string.Empty, BrandAttribute.DefaultMainColor, BrandAttribute.DefaultSecondaryColor));
 
         public void AddMapping(MapperInfo mapperInfo)
         {

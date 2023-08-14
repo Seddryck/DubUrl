@@ -13,6 +13,7 @@ namespace DubUrl.Mapping.Database
         , new[] { "duck", "duckdb" }
         , DatabaseCategory.InMemory
     )]
+    [Brand("duckdb", "#FFF000", "#000000")]
     public class DuckdbDatabase : IDatabase
     { }
 }

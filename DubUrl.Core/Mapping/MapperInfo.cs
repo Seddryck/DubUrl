@@ -14,5 +14,8 @@ namespace DubUrl.Mapping
         , int ListingPriority
         , string ProviderInvariantName
         , Type ParametrizerType
+        , string Slug
+        , string MainColor
+        , string SecondaryColor
     ) { }
 }
