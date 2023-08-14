@@ -15,7 +15,7 @@ To embrace the world of DubUrl, you need to follow some conventions regarding th
 | Database | Aliases | <nobr>Package name</nobr> / <nobr>Provider invariant name<nobr> | | | | |
 |----------|---------|--------------------------------------|-|-|-|-|
 {% for provider in site.data.natives -%}
-| {{- provider.Database -}}
+| <img src="https://img.shields.io/badge/{{- provider.Database -}}-{{- provider.MainColor | replace: "#", "" -}}?logo={{- provider.Slug -}}&logoColor={{- provider.SecondaryColor | replace: "#", "" -}}&style=flat-square" alt="{{- provider.Database -}}" style="max-width: fit-content;"/> {{- -}}
 | {{- provider.Aliases | join: ", " -}}
 | {{- provider.ProviderInvariantName -}}
 | <a href="https://nuget.org/packages/{{- provider.ProviderInvariantName -}}" style="border: 0px;"><img src="{{ '/assets/img/nuget.png' | relative_url }}" alt="Go to Nuget repository" width="24" style="max-width: fit-content;"/></a>|

@@ -13,7 +13,7 @@ On Windows, DubUrl is fixing these troubles by analyzing the ODBC drivers regist
 | Database | Aliases | Driver name pattern | | | | |
 |----------|---------|--------------------------------------|-|-|-|-|
 {% for driver in site.data.odbc -%}
-| {{- driver.Database -}}
+| <img src="https://img.shields.io/badge/{{- driver.Database -}}-{{- driver.MainColor | replace: "#", "" -}}?logo={{- driver.Slug -}}&logoColor={{- driver.SecondaryColor | replace: "#", "" -}}&style=flat-square" alt="{{- driver.Database -}}" style="max-width: fit-content;"/> {{- -}}
 | {{- driver.Aliases | join: ", " -}}
 | `{{- driver.NamePattern | replace: "*", "\*" | replace: "|", "\|" -}}`
 |
