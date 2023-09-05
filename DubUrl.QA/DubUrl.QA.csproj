@@ -64,7 +64,7 @@
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.10" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
     <PackageReference Include="MySqlConnector" Version="2.2.7" />
     <PackageReference Include="Npgsql" Version="7.0.4" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
