@@ -1,6 +1,4 @@
-using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Templating;
-using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections;

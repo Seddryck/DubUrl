@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Parametrizing;
+﻿using DubUrl.Querying;
+using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
 using DubUrl.Querying.Templating;
 using NUnit.Framework;
@@ -26,7 +27,7 @@ namespace DubUrl.QA
         private class SelectFirstCustomerQuery : EmbeddedSqlFileCommand
         {
             public SelectFirstCustomerQuery()
-                : base($"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}")
+                : base($"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)
             { }
         }
 
@@ -41,6 +42,7 @@ namespace DubUrl.QA
                       , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectCustomerById)}"
                       , new DubUrlParameterCollection()
                             .Add("Id", id)
+                      , NullQueryLogger.Instance
                 )
             { }
         }
@@ -64,6 +66,7 @@ namespace DubUrl.QA
                       , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectYoungestCustomers)}"
                       , new DubUrlParameterCollection()
                             .Add("count", count)
+                      , NullQueryLogger.Instance
                 )
             { }
         }
@@ -127,6 +130,7 @@ namespace DubUrl.QA
                                         }).ToArray()
                           }
                       }
+                      , NullQueryLogger.Instance
                 )
             { }
         }

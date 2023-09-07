@@ -25,6 +25,7 @@ namespace DubUrl
         protected CommandProvisionerFactory CommandProvisionerFactory { get; }
 
         protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
+        private IQueryLogger QueryLogger = NullQueryLogger.Instance;
 
         public DatabaseUrl(string url)
         : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
@@ -40,6 +41,12 @@ namespace DubUrl
 
         internal DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory)
             => (ConnectionUrl, CommandProvisionerFactory) = (connectionUrl, commandProvisionerFactory);
+
+        public DatabaseUrl WithLogger(IQueryLogger queryLogger)
+        {
+            QueryLogger = queryLogger;
+            return this;
+        }
 
         protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
         {
@@ -74,7 +81,7 @@ namespace DubUrl
           => ReadScalar<T>(new InlineCommand(query));
 
         public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
-           => ReadScalar<T>(new InlineTemplateCommand(template, parameters));
+           => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
 
         public T? ReadScalar<T>(ICommandProvider query)
         {
@@ -86,7 +93,7 @@ namespace DubUrl
            => ReadScalarNonNull<T>(new InlineCommand(query));
 
         public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
-           => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters));
+           => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
 
         public T ReadScalarNonNull<T>(ICommandProvider query)
         {

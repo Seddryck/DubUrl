@@ -11,11 +11,23 @@ namespace DubUrl.Querying.Reading
 {
     internal class InlineCommand : ICommandProvider
     {
-        private string Text { get; }
+        protected string Text { get; }
+        private IQueryLogger QueryLogger = NullQueryLogger.Instance;
 
         public InlineCommand(string text) => Text = text;
+        public InlineCommand(string text, IQueryLogger queryLogger) 
+            => (Text, QueryLogger) = (text, queryLogger);
 
-        public virtual string Read(IDialect dialect, IConnectivity connectivity) => Text;
+        public virtual string Read(IDialect dialect, IConnectivity connectivity)
+        {
+            var text = Render(dialect, connectivity);
+            QueryLogger?.Log(text);
+            return text;
+        }
+
+        protected virtual string Render(IDialect dialect, IConnectivity connectivity)
+            => Text;
+
         public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false) => true;
 
         public virtual IDbCommand CreateCommand(IDialect dialect, IConnectivity connectivity, IDbConnection conn)

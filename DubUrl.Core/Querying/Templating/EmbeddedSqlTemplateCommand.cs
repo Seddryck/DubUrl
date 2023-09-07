@@ -21,17 +21,16 @@ namespace DubUrl.Querying.Templating
         public string SubTemplatesPath { get; }
         public string DictionariesPath { get; }
 
-
         protected new IResourceTemplateManager ResourceManager { get => (IResourceTemplateManager)base.ResourceManager; }
 
-        public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object?> parameters)
-            : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, string.Empty, string.Empty, parameters) { }
+        public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+            : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, string.Empty, string.Empty, parameters, queryLogger) { }
 
-        public EmbeddedSqlTemplateCommand(string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters)
-            : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, subTemplatesPath, dictionariesPath, parameters) { }
+        public EmbeddedSqlTemplateCommand(string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+            : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, subTemplatesPath, dictionariesPath, parameters, queryLogger) { }
 
-        internal EmbeddedSqlTemplateCommand(IResourceManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters)
-            : base(resourceManager, basePath)
+        internal EmbeddedSqlTemplateCommand(IResourceManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+            : base(resourceManager, basePath, queryLogger)
         {
             Parameters = parameters;
             SubTemplatesPath = subTemplatesPath;
@@ -66,9 +65,9 @@ namespace DubUrl.Querying.Templating
             return dico;
         }
 
-        public override string Read(IDialect dialect, IConnectivity connectivity)
+        protected override string Render(IDialect dialect, IConnectivity connectivity)
             => new StringTemplateEngine().Render(
-                    base.Read(dialect, connectivity)
+                    ReadResource(dialect, connectivity)
                     , ReadSubTemplates(dialect, connectivity)
                     , ReadDictionaries(dialect, connectivity)
                     , Parameters
