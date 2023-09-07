@@ -18,10 +18,10 @@ namespace DubUrl.Querying.Templating
     {
         public IDictionary<string, object?> Parameters { get; }
 
-        public InlineTemplateCommand(string sql, IDictionary<string, object?> parameters)
-            : base(sql) { Parameters = parameters; }
+        public InlineTemplateCommand(string sql, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+            : base(sql, queryLogger) { Parameters = parameters; }
 
-        public override string Read(IDialect dialect, IConnectivity connectivity)
-            =>  new StringTemplateEngine().Render(base.Read(dialect, connectivity), Parameters, dialect.Renderer);
+        protected override string Render(IDialect dialect, IConnectivity connectivity)
+            =>  new StringTemplateEngine().Render(Text, Parameters, dialect.Renderer);
     }
 }

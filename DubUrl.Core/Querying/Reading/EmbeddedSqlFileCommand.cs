@@ -16,14 +16,25 @@ namespace DubUrl.Querying.Reading
     {
         protected internal string BasePath { get; }
         protected IResourceManager ResourceManager { get; }
+        private IQueryLogger QueryLogger { get; }
 
-        public EmbeddedSqlFileCommand(string basePath)
-            : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath) { }
+        public EmbeddedSqlFileCommand(string basePath, IQueryLogger queryLogger)
+            : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
 
-        internal EmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath)
-            => (BasePath, ResourceManager) = (basePath, resourceManager);
+        internal EmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
+            => (BasePath, ResourceManager, QueryLogger) = (basePath, resourceManager, queryLogger);
 
-        public virtual string Read(IDialect dialect, IConnectivity connectivity)
+        public string Read(IDialect dialect, IConnectivity connectivity)
+        {
+            var text = Render(dialect, connectivity);
+            QueryLogger?.Log(text);
+            return text;
+        }
+
+        protected virtual string Render(IDialect dialect, IConnectivity connectivity)
+            => ReadResource(dialect, connectivity);
+
+        protected string ReadResource(IDialect dialect, IConnectivity connectivity)
         {
             if (!ResourceManager.Any(BasePath, dialect.Aliases, connectivity.Alias))
                 throw new MissingCommandForDialectException(this, dialect);

@@ -15,17 +15,17 @@ namespace DubUrl.Querying.Reading
     {
         public ImmutableArray<DubUrlParameter> Parameters { get; }
 
-        public ParametrizedEmbeddedSqlFileCommand(string basePath, DubUrlParameterCollection parameters)
-            : this(basePath, parameters.ToArray()) { }
+        public ParametrizedEmbeddedSqlFileCommand(string basePath, DubUrlParameterCollection parameters, IQueryLogger queryLogger)
+            : this(basePath, parameters.ToArray(), queryLogger) { }
 
-        public ParametrizedEmbeddedSqlFileCommand(string basePath, DubUrlParameter[] parameters)
-            : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, parameters) { }
+        public ParametrizedEmbeddedSqlFileCommand(string basePath, DubUrlParameter[] parameters, IQueryLogger queryLogger)
+            : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, parameters, queryLogger) { }
 
-        public ParametrizedEmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, DubUrlParameterCollection parameters)
-            : this(resourceManager, basePath, parameters.ToArray()) { }
+        public ParametrizedEmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, DubUrlParameterCollection parameters, IQueryLogger queryLogger)
+            : this(resourceManager, basePath, parameters.ToArray(), queryLogger) { }
 
-        public ParametrizedEmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, DubUrlParameter[] parameters)
-            : base(resourceManager, basePath)
+        public ParametrizedEmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, DubUrlParameter[] parameters, IQueryLogger queryLogger)
+            : base(resourceManager, basePath, queryLogger)
             => Parameters = parameters.ToImmutableArray();
     }
 }

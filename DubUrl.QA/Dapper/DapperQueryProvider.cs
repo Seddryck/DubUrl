@@ -1,4 +1,5 @@
 ﻿using DubUrl.Mapping;
+using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Reading;
 using System;
@@ -18,6 +19,6 @@ namespace DubUrl.QA.Dapper
             => (Dialect, Connectivity) = (dialect, connectivity);
 
         public string SelectAllCustomer()
-            => new EmbeddedSqlFileCommand("DubUrl.QA.SelectAllCustomer").Read(Dialect, Connectivity);
+            => new EmbeddedSqlFileCommand("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
     }
 }

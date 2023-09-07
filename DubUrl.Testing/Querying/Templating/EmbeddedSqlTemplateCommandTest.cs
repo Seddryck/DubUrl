@@ -43,12 +43,32 @@ namespace DubUrl.Testing.Querying.Reading
             resourceManager.Setup(x => x.ReadResource("Foo.Bar.print_name.sql.st")).Returns("$name$$print_end()$");
             resourceManager.Setup(x => x.ReadResource("Foo.Bar.DuckDB.print_end.sql.st")).Returns("!");
 
-            var query = new EmbeddedSqlTemplateCommand(resourceManager.Object, "queryId", "Foo.Bar", "Foo.Bar", new Dictionary<string, object?>() { { "name", "Cédric" } });
+            var query = new EmbeddedSqlTemplateCommand(resourceManager.Object, "queryId", "Foo.Bar", "Foo.Bar", new Dictionary<string, object?>() { { "name", "Cédric" } }, NullQueryLogger.Instance);
 
             var response = query.Read(dialect, connectivity);
             Assert.That(response, Is.EqualTo("Hi Cédric!"));
 
             resourceManager.VerifyAll();
+        }
+
+        [Test]
+        public void Read_AnyExistingResources_InvokeLog()
+        {
+            var dialect = Mock.Of<IDialect>(d => d.Aliases == new[] { "duck", "duckdb" });
+            var connectivity = Mock.Of<IConnectivity>(c => c.Alias == string.Empty);
+
+            var resourceManager = new Mock<IResourceTemplateManager>();
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>(), string.Empty)).Returns("foo");
+            resourceManager.Setup(x => x.ListResources(It.IsAny<string>(), dialect.Aliases, connectivity.Alias, It.IsAny<string>())).Returns(new Dictionary<string, string>());
+            resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("bar");
+
+            var queryLoggerMock = new Mock<IQueryLogger>();
+
+            var query = new EmbeddedSqlTemplateCommand(resourceManager.Object, "queryId", "Foo.Bar", "Foo.Bar", new Dictionary<string, object?>() { { "name", "Cédric" } }, queryLoggerMock.Object);
+            var result = query.Read(dialect, connectivity);
+
+            queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));
         }
     }
 }
