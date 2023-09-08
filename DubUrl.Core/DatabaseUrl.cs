@@ -25,7 +25,7 @@ namespace DubUrl
         protected CommandProvisionerFactory CommandProvisionerFactory { get; }
 
         protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
-        private IQueryLogger QueryLogger = NullQueryLogger.Instance;
+        public IQueryLogger QueryLogger { get; private set; } = NullQueryLogger.Instance;
 
         public DatabaseUrl(string url)
         : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
