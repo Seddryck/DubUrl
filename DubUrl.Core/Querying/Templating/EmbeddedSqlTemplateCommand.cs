@@ -29,7 +29,7 @@ namespace DubUrl.Querying.Templating
         public EmbeddedSqlTemplateCommand(string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
             : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, subTemplatesPath, dictionariesPath, parameters, queryLogger) { }
 
-        internal EmbeddedSqlTemplateCommand(IResourceManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+        internal EmbeddedSqlTemplateCommand(IResourceTemplateManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
             : base(resourceManager, basePath, queryLogger)
         {
             Parameters = parameters;
