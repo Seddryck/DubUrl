@@ -11,6 +11,7 @@ namespace DubUrl.Querying.Reading
     public class EmbeddedSqlFileResourceManager : IResourceManager
     {
         protected Assembly ResouceAssembly { get; }
+        protected string FallbackPath { get; } = "Common";
         public virtual string[] ResourceNames { get; }
 
         public EmbeddedSqlFileResourceManager(Assembly assembly)
@@ -40,10 +41,11 @@ namespace DubUrl.Querying.Reading
         protected virtual IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
             => dialects
                     .Select(dialect => new ResourceMatch($"{id}.{connectivity}.{dialect}.{extension}", 0)).Where(x => !string.IsNullOrEmpty(connectivity))
-                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{connectivity}.{extension}", 1)).Where(x => !string.IsNullOrEmpty(connectivity)))
-                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{dialect}.{extension}", 2)))
-                    .Append(new ResourceMatch($"{id}.{extension}", 3))
+                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{connectivity}.{FallbackPath}.{extension}", 10)).Where(x => !string.IsNullOrEmpty(connectivity)))
+                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{connectivity}.{extension}", 20)).Where(x => !string.IsNullOrEmpty(connectivity)))
+                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{dialect}.{extension}", 30)))
+                    .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{FallbackPath}.{extension}", 40)))
+                    .Append(new ResourceMatch($"{id}.{extension}", 50))
                     .Where(x => ResourceNames.Any(y => x.Path.Equals(y, StringComparison.InvariantCultureIgnoreCase)));
-
     }
 }
