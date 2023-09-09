@@ -29,14 +29,15 @@ namespace DubUrl.Testing.Querying.Reading
         [TestCase(new[] { "QueryId.pgsql.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mssql" }, 1)]
         [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mssql" }, 2)]
         [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "ms", "mssql" }, 2)]
+        [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql", "QueryId.mssql.sql", "QueryId.common.sql" }, "QueryId", new[] { "ms", "mssql" }, 2)]
         [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mysql" }, 0)]
+        [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql", "QueryId.mssql.sql", "QueryId.common.sql" }, "QueryId", new[] { "mysql" }, 3)]
         public void BestMatch_ListOfResources_BestMatch(string[] candidates, string id, string[] dialects, int expectedId)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
             var resourceName = resourceManager.BestMatch(id, dialects, null);
-            Assert.That(resourceName, Is.EqualTo(candidates[expectedId]));
+            Assert.That(resourceName, Is.EqualTo(candidates[expectedId]).IgnoreCase);
         }
-
 
         [Test]
         [TestCase(new[] { "QueryId.sql", "OtherQueryId.sql" }, true)]
@@ -56,12 +57,13 @@ namespace DubUrl.Testing.Querying.Reading
         [TestCase(new[] { "QueryId.odbc.mssql.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
         [TestCase(new[] { "QueryId.odbc.mssql.sql", "QueryId.odbc.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
         [TestCase(new[] { "QueryId.odbc.sql", "QueryId.mssql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
+        [TestCase(new[] { "QueryId.odbc.common.sql", "QueryId.pgsql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
         [TestCase(new[] { "QueryId.sql", "QueryId.pgsql.sql" }, "QueryId", new[] { "mssql" }, "odbc", 0)]
         public void BestMatch_ListOfResourcesWithOdbc_BestMatch(string[] candidates, string id, string[] dialects, string? connectivity, int expectedId)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
             var resourceName = resourceManager.BestMatch(id, dialects, connectivity);
-            Assert.That(resourceName, Is.EqualTo(candidates[expectedId]));
+            Assert.That(resourceName, Is.EqualTo(candidates[expectedId]).IgnoreCase);
         }
     }
 }
