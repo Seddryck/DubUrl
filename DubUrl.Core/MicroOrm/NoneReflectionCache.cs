@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.MicroOrm
 {
-    internal class NoneReflectionCache : IReflectionCache
+    public class NoneReflectionCache : IReflectionCache
     {
         public void Add<T>(PropertyInfo[] properties, FieldInfo[] fields) { }
         public void Clear() { }

@@ -26,28 +26,18 @@ namespace DubUrl
 
         protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
 
-        public IQueryLogger QueryLogger { get; private set; } = NullQueryLogger.Instance;
+        public IQueryLogger QueryLogger { get; }
 
         public DatabaseUrl(string url)
-        : this(new ConnectionUrlFactory(new SchemeMapperBuilder()), url)
+            : this(new ConnectionUrlFactory(new SchemeMapperBuilder()).Instantiate(url), new(), NullQueryLogger.Instance)
         { }
 
-        public DatabaseUrl(ConnectionUrlFactory factory, string url)
-            : this(factory.Instantiate(url), new CommandProvisionerFactory())
+        internal DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
+            : this(factory.Instantiate(url), commandProvisionerFactory, NullQueryLogger.Instance)
         { }
 
-        public DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
-            : this(factory.Instantiate(url), commandProvisionerFactory)
-        { }
-
-        internal DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory)
-            => (ConnectionUrl, CommandProvisionerFactory) = (connectionUrl, commandProvisionerFactory);
-
-        public DatabaseUrl WithLogger(IQueryLogger queryLogger)
-        {
-            QueryLogger = queryLogger;
-            return this;
-        }
+        public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
+            => (ConnectionUrl, CommandProvisionerFactory, QueryLogger) = (connectionUrl, commandProvisionerFactory, logger);
 
         protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
         {
@@ -59,17 +49,16 @@ namespace DubUrl
             return cmd;
         }
 
-
         #region Scalar
 
         public object? ReadScalar(string query)
-            => ReadScalar(new InlineCommand(query));
+            => ReadScalar(new InlineCommand(query, QueryLogger));
 
         public object? ReadScalar(ICommandProvider commandProvider)
             => PrepareCommand(commandProvider).ExecuteScalar();
 
         public object ReadScalarNonNull(string query)
-            => ReadScalarNonNull(new InlineCommand(query));
+            => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
 
         public object ReadScalarNonNull(ICommandProvider commandProvider)
         {
@@ -79,7 +68,7 @@ namespace DubUrl
         }
 
         public T? ReadScalar<T>(string query)
-          => ReadScalar<T>(new InlineCommand(query));
+          => ReadScalar<T>(new InlineCommand(query, QueryLogger));
 
         public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
            => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
@@ -91,7 +80,7 @@ namespace DubUrl
         }
 
         public T ReadScalarNonNull<T>(string query)
-           => ReadScalarNonNull<T>(new InlineCommand(query));
+           => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
 
         public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
            => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
@@ -99,8 +88,8 @@ namespace DubUrl
         public T ReadScalarNonNull<T>(ICommandProvider query)
         {
             var result = ReadScalarNonNull(query);
-            if (result is T)
-                return (T)result;
+            if (result is T t)
+                return t;
 
             return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
         }
@@ -118,7 +107,7 @@ namespace DubUrl
         }
 
         public object? ReadSingle(string query)
-            => ReadSingle(new InlineCommand(query));
+            => ReadSingle(new InlineCommand(query, QueryLogger));
 
         public object? ReadSingle(ICommandProvider commandProvider)
         {
@@ -127,7 +116,7 @@ namespace DubUrl
         }
 
         public object ReadSingleNonNull(string query)
-            => ReadSingleNonNull(new InlineCommand(query));
+            => ReadSingleNonNull(new InlineCommand(query, QueryLogger));
 
         public object ReadSingleNonNull(ICommandProvider commandProvider)
             => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
@@ -137,7 +126,7 @@ namespace DubUrl
         #region First 
 
         public object? ReadFirst(string query)
-            => ReadFirst(new InlineCommand(query));
+            => ReadFirst(new InlineCommand(query, QueryLogger));
 
         public object? ReadFirst(ICommandProvider commandProvider)
         {
@@ -146,7 +135,7 @@ namespace DubUrl
         }
 
         public object ReadFirstNonNull(string query)
-            => ReadFirstNonNull(new InlineCommand(query));
+            => ReadFirstNonNull(new InlineCommand(query, QueryLogger));
 
         public object ReadFirstNonNull(ICommandProvider commandProvider)
             => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
@@ -156,7 +145,7 @@ namespace DubUrl
         #region Multiple
 
         public IEnumerable<object> ReadMultiple(string query)
-            => ReadMultiple(new InlineCommand(query));
+            => ReadMultiple(new InlineCommand(query, QueryLogger));
 
         public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
         {
@@ -171,13 +160,12 @@ namespace DubUrl
         #region ExecuteReader
 
         public IDataReader ExecuteReader(string query)
-           => ExecuteReader(new InlineCommand(query));
+           => ExecuteReader(new InlineCommand(query, QueryLogger));
 
         public IDataReader ExecuteReader(ICommandProvider commandProvider)
             => PrepareCommand(commandProvider).ExecuteReader();
 
         #endregion
-
 
         private T? NormalizeReturnType<T>(object obj)
         {
@@ -186,7 +174,6 @@ namespace DubUrl
                             ?? throw new InvalidOperationException($"Cannot find any caster to transform from type '{obj.GetType().Name}' to the type '{typeof(T).Name}'");
             return (T?)caster.Cast(obj);
         }
-
     }
 }
 

@@ -30,7 +30,7 @@ namespace DubUrl.Testing.MicroOrm
         protected override DatabaseUrl CreateDbUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory cpf)
         {
             var reflectionCache = new Mock<IReflectionCache>();
-            return new DubUrl.MicroOrm.DatabaseUrl(connectionUrl, cpf, reflectionCache.Object);
+            return new DubUrl.MicroOrm.DatabaseUrl(connectionUrl, cpf, reflectionCache.Object, NullQueryLogger.Instance);
         }
 
         protected new DubUrl.MicroOrm.DatabaseUrl GetDatabaseUrl(Mock<IDataReader> dr)

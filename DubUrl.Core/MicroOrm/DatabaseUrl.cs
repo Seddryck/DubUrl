@@ -20,17 +20,8 @@ namespace DubUrl.MicroOrm
     {
         private IReflectionCache ReflectionCache { get; set; } = new ReflectionCache();
 
-        public DatabaseUrl(string url)
-            : base(url) { }
-
-        public DatabaseUrl(ConnectionUrlFactory factory, string url)
-            : base(factory, url) { }
-
-        public DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
-            : base(factory, commandProvisionerFactory, url) { }
-
-        internal DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache)
-            : base(connectionUrl, commandProvisionerFactory)
+        public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
+            : base(connectionUrl, commandProvisionerFactory, logger)
         { ReflectionCache = reflectionCache; }
 
         public DatabaseUrl WithoutCache()
@@ -47,7 +38,7 @@ namespace DubUrl.MicroOrm
         #region Single
 
         public T? ReadSingle<T>(string query) where T : new()
-            => ReadSingle<T>(new InlineCommand(query));
+            => ReadSingle<T>(new InlineCommand(query, QueryLogger));
 
         public T? ReadSingle<T>(ICommandProvider commandProvider) where T : new()
         {
@@ -70,7 +61,7 @@ namespace DubUrl.MicroOrm
         #region First 
 
         public T? ReadFirst<T>(string query) where T : new()
-            => ReadFirst<T>(new InlineCommand(query));
+            => ReadFirst<T>(new InlineCommand(query, QueryLogger));
 
         public T? ReadFirst<T>(ICommandProvider commandProvider) where T : new()
         {
@@ -89,7 +80,7 @@ namespace DubUrl.MicroOrm
         #region Multiple
 
         public IEnumerable<T> ReadMultiple<T>(string query) where T : new()
-            => ReadMultiple<T>(new InlineCommand(query));
+            => ReadMultiple<T>(new InlineCommand(query, QueryLogger));
 
         public IEnumerable<T> ReadMultiple<T>(ICommandProvider commandProvider) where T : new()
         {
