@@ -26,12 +26,15 @@ namespace DubUrl.Querying.Templating
         public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
             : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, string.Empty, string.Empty, parameters, queryLogger) { }
 
+        public EmbeddedSqlTemplateCommand(string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+            : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, subTemplatesPath, dictionariesPath, parameters, queryLogger) { }
+
         internal EmbeddedSqlTemplateCommand(IResourceTemplateManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
            : base(resourceManager, basePath, queryLogger)
         {
             Parameters = parameters;
-            SubTemplatesPath = subTemplatesPath;
-            DictionariesPath = dictionariesPath;
+            SubTemplatesPath = string.IsNullOrEmpty(subTemplatesPath) ? basePath : subTemplatesPath;
+            DictionariesPath = string.IsNullOrEmpty(dictionariesPath) ? basePath : dictionariesPath;
         }
 
         protected IDictionary<string, string> ReadSubTemplates(IDialect dialect, IConnectivity connectivity)
