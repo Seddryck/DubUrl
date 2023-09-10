@@ -217,7 +217,7 @@ namespace DubUrl.QA
             using var provider = new ServiceCollection()
                 .AddSingleton(EmptyDubUrlConfiguration)
                 .AddDubUrl(options)
-                .AddDubUrlMicroOrm()
+                .WithMicroOrm()
                 .AddSingleton<RepositoryFactory>()
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();
@@ -240,7 +240,7 @@ namespace DubUrl.QA
             using var provider = new ServiceCollection()
                 .AddSingleton(EmptyDubUrlConfiguration)
                 .AddDubUrl(options)
-                .AddDubUrlMicroOrm()
+                .WithMicroOrm()
                 .AddSingleton<RepositoryFactory>()
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<RepositoryFactory>();

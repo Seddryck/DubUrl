@@ -27,7 +27,7 @@ namespace DubUrl.Querying.Reading
         public string Read(IDialect dialect, IConnectivity connectivity)
         {
             var text = Render(dialect, connectivity);
-            QueryLogger?.Log(text);
+            QueryLogger.Log(text);
             return text;
         }
 

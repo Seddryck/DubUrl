@@ -15,7 +15,7 @@ namespace DubUrl.Testing.Querying.Reading
     {
         private class FakeEmbeddedSqlFileResourceManager : EmbeddedSqlFileResourceManager
         {
-            private string[] resourceNames;
+            private readonly string[] resourceNames;
             public override string[] ResourceNames { get => resourceNames; }
             public FakeEmbeddedSqlFileResourceManager(string[] resourceNames)
                 : base(Assembly.GetCallingAssembly())

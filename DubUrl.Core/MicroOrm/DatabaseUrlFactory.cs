@@ -16,16 +16,16 @@ namespace DubUrl.MicroOrm
 {
     public class DatabaseUrlFactory : DubUrl.DatabaseUrlFactory
     {
-        private IReflectionCache ReflectionCache { get; }
+        public IReflectionCache ReflectionCache { get; }
 
-        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache)
-            : base(connectionUrlFactory, commandProvisionerFactory)
+        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
+            : base(connectionUrlFactory, commandProvisionerFactory, logger)
         { ReflectionCache = reflectionCache; }
 
         public override DatabaseUrl Instantiate(string url)
         {
             var connectionUrl = ConnectionUrlFactory.Instantiate(url);
-            return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, ReflectionCache);
+            return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, ReflectionCache, QueryLogger);
         }
     }
 }

@@ -46,7 +46,7 @@ namespace DubUrl.Testing
         }
 
         protected virtual DatabaseUrl CreateDbUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory cpf)
-            => new(connectionUrl, cpf);
+            => new(connectionUrl, cpf, NullQueryLogger.Instance);
 
         protected static Mock<IDataReader> DefineTwoRows()
         {

@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Moq;
+using DubUrl.Querying;
+using DubUrl.MicroOrm;
 
 namespace DubUrl.Extensions.DependencyInjection.Testing
 {
@@ -51,15 +54,79 @@ namespace DubUrl.Extensions.DependencyInjection.Testing
             SchemeMapperBuilder? mapper = null;
             Assert.DoesNotThrow(() => mapper = provider.GetRequiredService<SchemeMapperBuilder>());
         }
+        
+        [Test]
+        public void AddDubUrlTest_WithoutQueryLogger_ReturnsNullQuerLoggerInDatabaseUrlFactory()
+        {
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyConfiguration)
+                .AddDubUrl(options)
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<IDatabaseUrlFactory>();
+            Assert.That(factory.QueryLogger, Is.EqualTo(NullQueryLogger.Instance));
+        }
+
+        [Test]
+        public void WithQueryLogger_StubQueryLogger_ReturnsStubQuerLoggerInDatabaseUrlFactory()
+        {
+            var logger = Mock.Of<IQueryLogger>();
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyConfiguration)
+                .AddDubUrl(options)
+                .WithQueryLogger(logger)
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<IDatabaseUrlFactory>();
+            Assert.That(factory.QueryLogger, Is.EqualTo(logger));
+            Assert.That(factory.QueryLogger, Is.Not.EqualTo(NullQueryLogger.Instance));
+        }
+
+        [Test]
+        public void WithoutCache_None_ReturnsWithoutCacheForOrmDatabaseUrl()
+        {
+            var logger = Mock.Of<IQueryLogger>();
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyConfiguration)
+                .AddDubUrl()
+                .WithMicroOrm()
+                .WithQueryLogger(logger)
+                .WithoutReflectionCache()
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<IDatabaseUrlFactory>();
+            Assert.That(factory, Is.TypeOf<MicroOrm.DatabaseUrlFactory>());
+            Assert.That(factory.QueryLogger, Is.EqualTo(logger));
+            var microOrm = (factory as MicroOrm.DatabaseUrlFactory)!;
+            Assert.That(microOrm.ReflectionCache, Is.TypeOf<NoneReflectionCache>());
+        }
+
+        [Test]
+        public void WithCache_Stub_ReturnsStubCacheForOrmDatabaseUrl()
+        {
+            var logger = Mock.Of<IQueryLogger>();
+            var cache = Mock.Of<IReflectionCache>();
+            var options = new DubUrlServiceOptions();
+            using var provider = new ServiceCollection()
+                .AddSingleton(EmptyConfiguration)
+                .AddDubUrl()
+                .WithMicroOrm()
+                .WithQueryLogger(logger)
+                .WithReflectionCache(cache)
+                .BuildServiceProvider();
+            var factory = provider.GetRequiredService<IDatabaseUrlFactory>();
+            Assert.That(factory, Is.TypeOf<MicroOrm.DatabaseUrlFactory>());
+            Assert.That(factory.QueryLogger, Is.EqualTo(logger)); 
+            var microOrm = (factory as MicroOrm.DatabaseUrlFactory)!;
+            Assert.That(microOrm.ReflectionCache, Is.EqualTo(cache));
+        }
 
         private static IConfiguration Configuration
         {
             get
             {
                 var configuration = new Dictionary<string, string?>
-                {
-                    
-                };
+                { };
                 var builder = new ConfigurationBuilder().AddInMemoryCollection(configuration);
                 return builder.Build();
             }

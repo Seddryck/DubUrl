@@ -1,11 +1,13 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.MicroOrm;
+using DubUrl.Querying;
 using DubUrl.Querying.Reading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.Tracing;
 using System.Reflection;
 
 namespace DubUrl.Extensions.DependencyInjection
@@ -91,14 +93,33 @@ namespace DubUrl.Extensions.DependencyInjection
             services.AddSingleton<SchemeMapperBuilder>();
             services.AddSingleton<ConnectionUrlFactory>();
             services.AddSingleton(typeof(IDatabaseUrlFactory), typeof(DatabaseUrlFactory));
+            services.AddSingleton(typeof(IQueryLogger), NullQueryLogger.Instance);
             services.AddSingleton<CommandProvisionerFactory>();
             services.AddSingleton(typeof(IReflectionCache), typeof(ReflectionCache));
             return services;
         }
 
-        public static IServiceCollection AddDubUrlMicroOrm(this IServiceCollection services)
+        public static IServiceCollection WithQueryLogger(this IServiceCollection services, IQueryLogger logger)
         {
-            services.AddSingleton(typeof(IDatabaseUrlFactory), typeof(MicroOrm.DatabaseUrlFactory));
+            services.Replace(new ServiceDescriptor(typeof(IQueryLogger), logger));
+            return services;
+        }
+
+        public static IServiceCollection WithoutReflectionCache(this IServiceCollection services)
+        {
+            services.Replace(new ServiceDescriptor(typeof(IReflectionCache), typeof(NoneReflectionCache), ServiceLifetime.Singleton));
+            return services;
+        }
+
+        public static IServiceCollection WithReflectionCache(this IServiceCollection services, IReflectionCache cache)
+        {
+            services.Replace(new ServiceDescriptor(typeof(IReflectionCache), cache));
+            return services;
+        }
+
+        public static IServiceCollection WithMicroOrm(this IServiceCollection services)
+        {
+            services.Replace(new ServiceDescriptor(typeof(IDatabaseUrlFactory), typeof(MicroOrm.DatabaseUrlFactory), ServiceLifetime.Singleton));
             return services;
         }
     }

@@ -19,7 +19,7 @@ namespace DubUrl.Testing.Querying.Reading
     {
         private class FakeEmbeddedTemplateFileResourceManager : EmbeddedSqlTemplateResourceManager
         {
-            private string[] resourceNames;
+            private readonly string[] resourceNames;
             public override string[] ResourceNames { get => resourceNames; }
             public FakeEmbeddedTemplateFileResourceManager(string[] resourceNames)
                 : base(Assembly.GetCallingAssembly())
