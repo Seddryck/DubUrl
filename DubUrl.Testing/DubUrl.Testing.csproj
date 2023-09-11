@@ -15,7 +15,7 @@
     <PackageReference Include="Snowflake.Data" Version="2.1.1" />
     <PackageReference Include="System.Data.Odbc" Version="7.0.0" />
     <PackageReference Include="System.Data.OleDb" Version="7.0.0" />
-    <PackageReference Include="Teradata.Client.Provider" Version="17.20.7" />
+    <PackageReference Include="Teradata.Client.Provider" Version="17.20.8" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
