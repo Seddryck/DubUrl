@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects
 {
     [Renderer<AnsiRenderer>()]
-    internal class SnowflakeDialect : BaseDialect
+    public class SnowflakeDialect : BaseDialect
     {
-        public SnowflakeDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal SnowflakeDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

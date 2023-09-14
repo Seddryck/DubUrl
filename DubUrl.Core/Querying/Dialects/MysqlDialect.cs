@@ -12,9 +12,9 @@ namespace DubUrl.Querying.Dialects
     [ReturnCaster<BooleanConverter>]
     [ReturnCaster<DateTimeCaster<DateOnly>>]
     [ReturnCaster<TimeSpanCaster<TimeOnly>>]
-    internal class MySqlDialect : BaseDialect
+    public class MySqlDialect : BaseDialect
     {
-        public MySqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+         internal MySqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

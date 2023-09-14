@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects
 {
     [Renderer<AnsiRenderer>()]
-    internal class OracleDialect : BaseDialect
+    public class OracleDialect : BaseDialect
     {
-        public OracleDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal OracleDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

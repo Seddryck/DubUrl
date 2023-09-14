@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects
 {
     [Renderer<AnsiRenderer>()]
-    internal class MsExcelDialect : BaseDialect
+    public class MsExcelDialect : BaseDialect
     {
-        public MsExcelDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal MsExcelDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }
