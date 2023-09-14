@@ -16,7 +16,7 @@ namespace DubUrl.Querying.Dialects
     [ReturnCaster<NumericParser<decimal>>]
     public class TrinoDialect : BaseDialect
     {
-        public TrinoDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal TrinoDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

@@ -11,9 +11,9 @@ namespace DubUrl.Querying.Dialects
     [Renderer<PgsqlRenderer>()]
     [ReturnCaster<DateTimeCaster<DateOnly>>]
     [ReturnCaster<TimeSpanCaster<TimeOnly>>]
-    internal class PgsqlDialect : BaseDialect
+    public class PgsqlDialect : BaseDialect
     {
-        public PgsqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal PgsqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

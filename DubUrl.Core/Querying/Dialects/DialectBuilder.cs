@@ -60,8 +60,8 @@ namespace DubUrl.Querying.Dialects
 
                 Dialects.Add(dialectInfo.Key, 
                     (IDialect)(
-                        Activator.CreateInstance(dialectInfo.Key
-                            , new[] { dialectInfo.Value.ToArray(), renderer, casters! }
+                        Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
+                            , new[] { dialectInfo.Value.ToArray(), renderer, casters! }, null
                         ) 
                         ?? throw new ArgumentException()
                      )

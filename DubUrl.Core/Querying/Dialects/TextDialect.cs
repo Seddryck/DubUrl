@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects
 {
     [Renderer<AnsiRenderer>()]
-    internal class TextDialect : BaseDialect
+    public class TextDialect : BaseDialect
     {
-        public TextDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal TextDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

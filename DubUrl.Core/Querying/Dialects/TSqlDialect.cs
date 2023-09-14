@@ -15,7 +15,7 @@ namespace DubUrl.Querying.Dialects
     [ReturnCaster<TimeSpanCaster<TimeOnly>>]
     public class TSqlDialect : BaseDialect
     {
-        public TSqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal TSqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

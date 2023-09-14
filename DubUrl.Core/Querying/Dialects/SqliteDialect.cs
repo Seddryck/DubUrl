@@ -15,9 +15,9 @@ namespace DubUrl.Querying.Dialects
     [ReturnCaster<Parser<TimeOnly>>]
     [ReturnCaster<Parser<DateTime>>]
     [ReturnCaster<Parser<TimeSpan>>]
-    internal class SqliteDialect : BaseDialect
+    public class SqliteDialect : BaseDialect
     {
-        public SqliteDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal SqliteDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects
 {
     [Renderer<AnsiRenderer>()]
-    internal class DrillDialect : BaseDialect
+    public class DrillDialect : BaseDialect
     {
-        public DrillDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        internal DrillDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
             : base(aliases, renderer, casters) { }
     }
 }
