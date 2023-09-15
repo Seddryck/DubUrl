@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.MicroOrm;
 using DubUrl.Querying;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
@@ -27,6 +28,8 @@ namespace DubUrl
         protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
 
         public IQueryLogger QueryLogger { get; }
+
+        public IDialect Dialect { get => ConnectionUrl.Dialect; }
 
         public DatabaseUrl(string url)
             : this(new ConnectionUrlFactory(new SchemeMapperBuilder()).Instantiate(url), new(), NullQueryLogger.Instance)
