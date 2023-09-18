@@ -5,7 +5,8 @@
     "Aliases": [
       "mssql",
       "ms",
-      "sqlserver"
+      "sqlserver",
+      "mssqlserver"
     ],
     "ProviderInvariantName": "Microsoft.Data.SqlClient",
     "Slug": "microsoftsqlserver",

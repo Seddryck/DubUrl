@@ -5,7 +5,8 @@
     "Aliases": [
       "mssql",
       "ms",
-      "sqlserver"
+      "sqlserver",
+      "mssqlserver"
     ],
     "NamePattern": "^\\bMSOLEDBSQL$",
     "Slug": "microsoftsqlserver",
