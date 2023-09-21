@@ -76,27 +76,6 @@ namespace DubUrl.Testing.Querying.Dialects.Formatters
         public void TimestampFormatter_Format_Match(string value, string expected)
             => Assert.That(new TimestampFormatter().Format(DateTime.Parse(value)), Is.EqualTo(expected));
 
-
-        [Test]
-        [TestCase("2023-12-16 17:02:46+00:00", "'2023-12-16 17:02:46+00:00'")]
-        [TestCase("2023-12-16 17:02:46+02:00", "'2023-12-16 17:02:46+02:00'")]
-        [TestCase("2023-12-16 17:02:46.128+02:00", "'2023-12-16 17:02:46.128+02:00'")]
-#if NET7_0_OR_GREATER
-        [TestCase("2023-12-16 17:02:46.128459+02:00", "'2023-12-16 17:02:46.128459+02:00'")]
-#endif
-        public void TimestampTimeZoneFormatter_Format_Match(string value, string expected)
-            => Assert.That(new TimestampTimeZoneFormatter().Format(DateTimeOffset.Parse(value)), Is.EqualTo(expected));
-
-        [Test]
-        [TestCase("2023-12-16 17:02:46+00:00", "'2023-12-16 17:02:46+00:00'")]
-        [TestCase("2023-12-16 17:02:46+02:00", "'2023-12-16 17:02:46+02:00'")]
-        [TestCase("2023-12-16 17:02:46.128+02:00", "'2023-12-16 17:02:46.128+02:00'")]
-#if NET7_0_OR_GREATER
-        [TestCase("2023-12-16 17:02:46.128459+02:00", "'2023-12-16 17:02:46.128459+02:00'")]
-#endif
-        public void TimestampTimeZoneFormatter_Format_Match(string value, string expected)
-            => Assert.That(new TimestampTimeZoneFormatter().Format(DateTimeOffset.Parse(value)), Is.EqualTo(expected));
-
         [Test]
         [TestCase("2023-12-16 17:02:46+00:00", "'2023-12-16 17:02:46+00:00'")]
         [TestCase("2023-12-16 17:02:46+02:00", "'2023-12-16 17:02:46+02:00'")]
