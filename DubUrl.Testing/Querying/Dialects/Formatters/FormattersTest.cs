@@ -66,7 +66,6 @@ namespace DubUrl.Testing.Querying.Dialects.Formatters
         public void TimeFormatter_Format_Match(string value, string expected)
             => Assert.That(new TimeFormatter().Format(TimeOnly.Parse(value)), Is.EqualTo(expected));
 
-
         [Test]
         [TestCase("2023-12-16 17:02:46", "'2023-12-16 17:02:46'")]
         [TestCase("2023-12-16 17:02:46.128", "'2023-12-16 17:02:46.128'")]
@@ -75,7 +74,6 @@ namespace DubUrl.Testing.Querying.Dialects.Formatters
 #endif
         public void TimestampFormatter_Format_Match(string value, string expected)
             => Assert.That(new TimestampFormatter().Format(DateTime.Parse(value)), Is.EqualTo(expected));
-
 
         [Test]
         [TestCase("2023-12-16 17:02:46+00:00", "'2023-12-16 17:02:46+00:00'")]
