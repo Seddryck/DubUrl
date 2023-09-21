@@ -118,7 +118,7 @@ The following databases and their associated schemes are supported out of the bo
 <!-- START ADONET TABLE -->
 |Database                                                                                                                                         | Aliases                               | Provider Invariant Name        |
 |------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- | -------------------------------|
-|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver                  | Microsoft.Data.SqlClient       |
+|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver     | Microsoft.Data.SqlClient       |
 |![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                             | MySqlConnector                 |
 |![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=ffffff&style=flat-square)                                 | pg, pgsql, postgres, postgresql       | Npgsql                         |
 |![IBM DB2](https://img.shields.io/badge/IBM%20DB2-052FAD?logo=ibm&logoColor=ffffff&style=flat-square)                                            | db2                                   | IBM.Data.Db2                   |
@@ -140,19 +140,19 @@ The following databases and their associated schemes are supported out of the bo
 The following databases and their associated schemes are supported out of the box:
 
 <!-- START ODBC TABLE -->
-|Database                                                                                                                                         | Aliases                         | Name Pattern                                                               |
-|------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- | ---------------------------------------------------------------------------|
-|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver            | ^\bODBC Driver\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s\bfor SQL Server$       |
-|![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                       | ^\bMySQL ODBC\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s(ANSI\|Unicode)\s\bDriver$|
-|![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=ffffff&style=flat-square)                                 | pg, pgsql, postgres, postgresql | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
-|![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=ffffff&style=flat-square)                                          | maria, mariadb                  | ^\bMariaDB ODBC\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s\bDriver$              |
-|![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=000000&style=flat-square)                                             | duck, duckdb                    | ^\bDuckDB\s\bDriver$                                                       |
-|![Apache Drill](https://img.shields.io/badge/Apache%20Drill-333333?logo=&logoColor=ffffff&style=flat-square)                                     | drill                           | ^\bMapR Drill ODBC Driver$                                                 |
-|![Trino](https://img.shields.io/badge/Trino-DD00A1?logo=trino&logoColor=ffffff&style=flat-square)                                                | tr, trino                       | ^(Simba)\s\bTrino ODBC Driver$                                             |
-|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls, xlsx, xlsb, xlsm           | ^\bMicrosoft Excel Driver\s\(\*\.xls, \*\.xlsx, \*\.xlsm, \*\.xlsb\)$      |
-|![Text files](https://img.shields.io/badge/Text%20files-333333?logo=&logoColor=ffffff&style=flat-square)                                         | txt, csv, tsv                   | ^\bMicrosoft Access Text Driver\s\(\*\.txt, \*\.csv\)$                     |
-|![QuestDb](https://img.shields.io/badge/QuestDb-333333?logo=&logoColor=ffffff&style=flat-square)                                                 | quest, questdb                  | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
-|![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                   | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
+|Database                                                                                                                                         | Aliases                           | Name Pattern                                                               |
+|------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------|
+|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver | ^\bODBC Driver\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s\bfor SQL Server$       |
+|![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                         | ^\bMySQL ODBC\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s(ANSI\|Unicode)\s\bDriver$|
+|![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=ffffff&style=flat-square)                                 | pg, pgsql, postgres, postgresql   | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
+|![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=ffffff&style=flat-square)                                          | maria, mariadb                    | ^\bMariaDB ODBC\s([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\s\bDriver$              |
+|![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=000000&style=flat-square)                                             | duck, duckdb                      | ^\bDuckDB\s\bDriver$                                                       |
+|![Apache Drill](https://img.shields.io/badge/Apache%20Drill-333333?logo=&logoColor=ffffff&style=flat-square)                                     | drill                             | ^\bMapR Drill ODBC Driver$                                                 |
+|![Trino](https://img.shields.io/badge/Trino-DD00A1?logo=trino&logoColor=ffffff&style=flat-square)                                                | tr, trino                         | ^(Simba)\s\bTrino ODBC Driver$                                             |
+|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls, xlsx, xlsb, xlsm             | ^\bMicrosoft Excel Driver\s\(\*\.xls, \*\.xlsx, \*\.xlsm, \*\.xlsb\)$      |
+|![Text files](https://img.shields.io/badge/Text%20files-333333?logo=&logoColor=ffffff&style=flat-square)                                         | txt, csv, tsv                     | ^\bMicrosoft Access Text Driver\s\(\*\.txt, \*\.csv\)$                     |
+|![QuestDb](https://img.shields.io/badge/QuestDb-333333?logo=&logoColor=ffffff&style=flat-square)                                                 | quest, questdb                    | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
+|![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                     | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
 <!-- END ODBC TABLE -->
 
 ### OLEDB provider locators
@@ -160,14 +160,14 @@ The following databases and their associated schemes are supported out of the bo
 The following databases and their associated schemes are supported out of the box:
 
 <!-- START OLEDB TABLE -->
-|Database                                                                                                                                         | Aliases              | Name Pattern                                                |
-|------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | ------------------------------------------------------------|
-|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver | ^\bMSOLEDBSQL$                                              |
-|![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my            | ^\bMySQL Provider$                                          |
-|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls                  | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
-|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsx                 | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
-|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsm                 | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
-|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsb                 | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|Database                                                                                                                                         | Aliases                           | Name Pattern                                                |
+|------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------------|
+|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver | ^\bMSOLEDBSQL$                                              |
+|![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                         | ^\bMySQL Provider$                                          |
+|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls                               | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsx                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsm                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsb                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 <!-- END OLEDB TABLE -->
 
 ## Installing
@@ -183,6 +183,10 @@ Install-Package DubUrl
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
 
 
 
