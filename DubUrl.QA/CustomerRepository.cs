@@ -16,7 +16,7 @@ namespace DubUrl.QA
 {
     internal class CustomerRepository
     {
-        private DatabaseUrl DatabaseUrl { get; }
+        private IDatabaseUrl DatabaseUrl { get; }
 
         public CustomerRepository(IDatabaseUrlFactory factory, string url)
             => DatabaseUrl = factory.Instantiate(url);

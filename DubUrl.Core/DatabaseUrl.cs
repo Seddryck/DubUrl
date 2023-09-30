@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl
 {
-    public partial class DatabaseUrl
+    public partial class DatabaseUrl : IDatabaseUrl
     {
         protected ConnectionUrl ConnectionUrl { get; }
         protected CommandProvisionerFactory CommandProvisionerFactory { get; }

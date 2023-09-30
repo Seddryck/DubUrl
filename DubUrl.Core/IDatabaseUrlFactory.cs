@@ -16,7 +16,7 @@ namespace DubUrl
 {
     public interface IDatabaseUrlFactory
     {
-        DatabaseUrl Instantiate(string url);
+        IDatabaseUrl Instantiate(string url);
         IQueryLogger QueryLogger { get; }
     }
 }
