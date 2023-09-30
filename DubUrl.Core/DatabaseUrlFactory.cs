@@ -24,7 +24,7 @@ namespace DubUrl
         public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
             => (ConnectionUrlFactory, CommandProvisionerFactory, QueryLogger) = (connectionUrlFactory, commandProvisionerFactory, logger);
 
-        public virtual DatabaseUrl Instantiate(string url)
+        public virtual IDatabaseUrl Instantiate(string url)
         {
             var connectionUrl = ConnectionUrlFactory.Instantiate(url);
             return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, QueryLogger);
