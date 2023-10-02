@@ -1057,14 +1057,14 @@
     }
 
     .uk-navbar-toggle {
-        color: $inverse-navbar-toggle-color;
+        color: $global-primary-background;
         @if(mixin-exists(hook-inverse-navbar-toggle)) {@include hook-inverse-navbar-toggle();}
     }
 
     .uk-navbar-toggle:hover,
     .uk-navbar-toggle:focus,
     .uk-navbar-toggle.uk-open {
-        color: $inverse-navbar-toggle-hover-color;
+        color: $global-primary-background;
         @if(mixin-exists(hook-inverse-navbar-toggle-hover)) {@include hook-inverse-navbar-toggle-hover();}
     }
 
