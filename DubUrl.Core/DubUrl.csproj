@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<PackageId>DubUrl</PackageId>
-		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
-		<PackageTags>connection-string;database;sql;odbc;ado-net;adonet</PackageTags>
-		<Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
-	</PropertyGroup>
+  <PropertyGroup>
+    <PackageId>DubUrl</PackageId>
+    <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+    <PackageTags>connection-string;database;sql;odbc;ado-net;adonet</PackageTags>
+    <Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
+  </PropertyGroup>
 
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
@@ -24,13 +24,12 @@
     <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-type_name.txt" />
   </ItemGroup>
 
-	<ItemGroup>
-		<InternalsVisibleTo Include="$(AssemblyName).Testing" />
-		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
-	</ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Testing" />
+    <InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
-	</ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
+  </ItemGroup>
 </Project>
