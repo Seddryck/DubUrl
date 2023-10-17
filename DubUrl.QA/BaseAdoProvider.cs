@@ -16,7 +16,7 @@ namespace DubUrl.QA
     public abstract class BaseAdoProvider
     {
         [OneTimeSetUp]
-        public void SetupFixture()
+        public virtual void SetupFixture()
             => new ProviderFactoriesRegistrator().Register();
 
         public abstract string ConnectionString { get; }
