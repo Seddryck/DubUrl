@@ -155,7 +155,7 @@ The following databases and their associated schemes are supported out of the bo
 |![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                     | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
 <!-- END ODBC TABLE -->
 
-### OLEDB provider locators
+### Extension for OLEDB provider locators
 
 The following databases and their associated schemes are supported through the OLE DB data provider extension:
 
@@ -170,7 +170,7 @@ The following databases and their associated schemes are supported through the O
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsb                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 <!-- END OLEDB TABLE -->
 
-### OLEDB provider locators
+### Extension for ADOMD.NET data provider
 
 The following databases and their associated schemes are supported through the ADOMD.NET data provider extension:
 
@@ -187,6 +187,18 @@ Install in the usual .NET fashion:
 
 ```sh
 Install-Package DubUrl
+```
+
+To install the extension for OLEDB provider locators
+
+```sh
+Install-Package DubUrl.OleDb
+```
+
+To install the extension for ADOMD.NET data provider
+
+```sh
+Install-Package DubUrl.Adomd
 ```
 
 ## Using
