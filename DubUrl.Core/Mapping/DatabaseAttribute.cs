@@ -42,8 +42,9 @@ namespace DubUrl.Mapping
         LargePlayer = 1,
         InMemory = 2,
         Warehouse = 3,
-        DistributedQueryEngine = 4,
-        FileBased = 5,
-        TimeSeries = 6,
+        Analytics = 4,
+        DistributedQueryEngine = 5,
+        FileBased = 6,
+        TimeSeries = 7,
     }
 }
