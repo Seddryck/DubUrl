@@ -61,7 +61,7 @@ namespace DubUrl.Registering
                 var asmName = Path.GetFileNameWithoutExtension(asmPath) ?? throw new ArgumentNullException();
                 Debug.WriteLine($"Analyzing assembly {asmName}");
 
-                if (!listCandidates.Contains(asmName))
+                if (!listCandidates.Contains(asmName) && !asmName.StartsWith(typeof(BinFolderDiscover).Namespace!.Split('.')[0]))
                     continue;
                 Debug.WriteLine($"Mapper found for assembly {asmName}");
 

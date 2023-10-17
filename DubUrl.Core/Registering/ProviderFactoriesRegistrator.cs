@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DubUrl.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -27,11 +28,15 @@ namespace DubUrl.Registering
 
             foreach (var type in types)
             {
-                var assemblyName = type.Assembly.GetName().Name ?? throw new ArgumentNullException();
-                if (!DbProviderFactories.GetProviderInvariantNames().Contains(assemblyName))
+                string providerInvariantName = 
+                    type.GetCustomAttribute<ProviderInvariantNameAttribute>()?.Value
+                    ?? type.Assembly.GetName().Name
+                    ?? throw new ArgumentNullException();
+                
+                if (!DbProviderFactories.GetProviderInvariantNames().Contains(providerInvariantName))
                 {
                     var instance = (DbProviderFactory)(type.GetField("Instance")?.GetValue(null) ?? throw new ArgumentNullException());
-                    DbProviderFactories.RegisterFactory(type.Assembly.GetName().Name ?? throw new ArgumentNullException(), instance);
+                    DbProviderFactories.RegisterFactory(providerInvariantName, instance);
                 }
             }
         }
