@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>DubUrl</PackageId>
@@ -24,10 +24,11 @@
     <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-type_name.txt" />
   </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Testing" />
-    <InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
-  </ItemGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Testing" />
+		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
+    <InternalsVisibleTo Include="$(AssemblyName).Adomd.Testing" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
