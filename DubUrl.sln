@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA", "DubUrl.QA\DubU
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QA", "QA", "{0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Duburl.OleDb", "Duburl.OleDb\Duburl.OleDb.csproj", "{0AE44749-5793-4138-BC6F-4092A69976C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.OleDb", "Duburl.OleDb\DubUrl.OleDb.csproj", "{0AE44749-5793-4138-BC6F-4092A69976C0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.OleDb.Testing", "DubUrl.OleDb.Testing\DubUrl.OleDb.Testing.csproj", "{0532D8EA-CFF6-48EA-9843-E6B19D66F997}"
 EndProject
