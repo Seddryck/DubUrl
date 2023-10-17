@@ -1,4 +1,5 @@
 ﻿using DubUrl.Adomd.Mapping;
+using DubUrl.Adomd.Wrappers;
 using DubUrl.Mapping;
 using NUnit.Framework;
 using System;
@@ -26,7 +27,7 @@ namespace DubUrl.Adomd.Testing
             var connectionUrl = new ConnectionUrl(url, schemeMapperBuilder);
             var conn = connectionUrl.Connect();
             Assert.That(conn, Is.Not.Null);
-            Assert.That(conn, Is.TypeOf<Microsoft.AnalysisServices.AdomdClient.AdomdConnection>());
+            Assert.That(conn, Is.TypeOf<AdomdConnectionWrapper>());
         }
     }
 }
