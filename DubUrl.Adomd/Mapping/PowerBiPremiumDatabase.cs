@@ -14,7 +14,7 @@ namespace DubUrl.Adomd.Mapping
         , new[] { "powerbi", "pbi", "pbiazure", "pbipremium", "powerbipremium" }
         , DatabaseCategory.Analytics
     )]
-    [Brand("powerbi", "#F2C811")]
+    [Brand("powerbi", "#F2C811", "#000000")]
     public class PowerBiPremiumDatabase : IDatabase
     { }
 }

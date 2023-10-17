@@ -77,6 +77,8 @@ on_success:
       $exitCode += $LastExitCode
       & .\generate-oledb-provider-info.ps1
       $exitCode += $LastExitCode
+      & .\generate-adomd-info.ps1
+      $exitCode += $LastExitCode
       if ($exitCode -gt 0) {
         Write-Host "`tUpdating README.md ..."
         & .\generate-table-scheme.ps1
