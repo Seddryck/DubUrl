@@ -6,6 +6,7 @@ using DubUrl.Adomd.Wrappers;
 using DubUrl.Adomd.Rewriting;
 using DubUrl.Adomd.Discovery;
 using Moq;
+using DubUrl.Rewriting;
 
 namespace DubUrl.Adomd.Testing.Rewriting.Implementation
 {
@@ -37,6 +38,21 @@ namespace DubUrl.Adomd.Testing.Rewriting.Implementation
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey(PowerBiDesktopRewriter.SERVER_KEYWORD));
             Assert.That(result[PowerBiDesktopRewriter.SERVER_KEYWORD], Is.EqualTo($"localhost:12345"));
+        }
+
+        [Test]
+        [TestCase("foo/bar")]
+        [TestCase("./foo/bar")]
+        [TestCase("./foo?bar=brz")]
+        public void Map_InvalidUrlInfo_DataSource(string input)
+        {
+            var discoverer = new Mock<IPowerBiDiscoverer>();
+            discoverer.Setup(x => x.GetPowerBiProcesses(false))
+                                    .Returns(new[] { new PowerBiProcess("foo", 12345, PowerBiType.PowerBI) });
+
+            var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+            var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
+            Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
         }
 
         [Test]

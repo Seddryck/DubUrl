@@ -43,7 +43,7 @@ namespace DubUrl.Adomd.Rewriting
             public override void Execute(UrlInfo urlInfo)
             {
                 if (!VALID_HOSTS.Any(x => x.Equals(urlInfo.Host, StringComparison.InvariantCultureIgnoreCase)))
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidConnectionUrlException("Host must be 'localhost' or equivalent when using a Power BI Desktop connection-url");
 
                 var port = urlInfo.Port != 0 ? urlInfo.Port : GetPortFromSegments(urlInfo.Segments);
 
@@ -53,13 +53,13 @@ namespace DubUrl.Adomd.Rewriting
             public int GetPortFromSegments(string[] segments)
             {
                 var pbiName = segments.Length == 1
-                                ? segments[0] 
-                                : throw new ArgumentException();
+                                ? segments[0]
+                                : throw new InvalidConnectionUrlException("A single segment is expected when using a Power BI Desktop connection-url");
 
                 var processes = Discoverer.GetPowerBiProcesses();
                 if (processes.Any(x => x.Name == pbiName))
                     return processes.Single(x => x.Name == pbiName).Port;
-                throw new ArgumentException();
+                throw new InvalidConnectionUrlException($"Cannot find any process where the window title is '{pbiName}'.");
             }
         }
     }

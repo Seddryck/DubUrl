@@ -42,14 +42,16 @@ namespace DubUrl.Adomd.Rewriting
                     || urlInfo.Host.Equals(string.Empty))
                     segments.Insert(0, DEFAULT_POWERBI_HOST);
                 else
-                    throw new ArgumentException($"The host of a Power BI uri must be '{DEFAULT_POWERBI_HOST}' or empty.");
+                    throw new InvalidConnectionUrlException($"The host of a Power BI Premium url must be '{DEFAULT_POWERBI_HOST}' or empty.");
 
+                if (urlInfo.Segments.Length == 0)
+                    throw new InvalidConnectionUrlException($"Missing, at least, the name of the dataset for a Power BI Premium connection-url.");
                 if (!urlInfo.Segments[0].Equals(DEFAULT_POWERBI_VERSION, StringComparison.InvariantCultureIgnoreCase))
                     segments.Insert(1, DEFAULT_POWERBI_VERSION);
                 if (segments.Count==3)
                     segments.Insert(2, DEFAULT_POWERBI_TENANT);
                 if (segments.Count != 4)
-                    throw new ArgumentException($"Cannot map the uri '{string.Join('/', segments)}' to a Power BI data source");
+                    throw new InvalidConnectionUrlException($"Cannot map the url '{string.Join('/', segments)}' to a Power BI data source");
                 for (int i = 0; i < segments.Count; i++)
                     segments[i] = Encode(segments[i]);
 

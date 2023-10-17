@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting
 {
-    public class UsernameNotFoundException : DubUrlException
+    public class UsernameNotFoundException : InvalidConnectionUrlException
     {
         public UsernameNotFoundException()
             : base($"The url must contain a username.")
