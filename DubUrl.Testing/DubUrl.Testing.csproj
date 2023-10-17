@@ -38,7 +38,6 @@
   </ItemGroup>
   <ItemGroup>
 		<ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
-		<ProjectReference Include="..\DubUrl.Adomd\DubUrl.Adomd.csproj" />
 	</ItemGroup>
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
