@@ -45,7 +45,11 @@ namespace DubUrl.Adomd.Rewriting
                 if (!VALID_HOSTS.Any(x => x.Equals(urlInfo.Host, StringComparison.InvariantCultureIgnoreCase)))
                     throw new InvalidConnectionUrlException("Host must be 'localhost' or equivalent when using a Power BI Desktop connection-url");
 
-                var port = urlInfo.Port != 0 ? urlInfo.Port : GetPortFromSegments(urlInfo.Segments);
+                var port = urlInfo.Port == 0 
+                    ? GetPortFromSegments(urlInfo.Segments) 
+                    : urlInfo.Segments.Length==0
+                        ? urlInfo.Port
+                        : throw new InvalidConnectionUrlException("You cannot define the port and a segment in a Power BI Desktop connection-url");
 
                 Specificator.Execute(SERVER_KEYWORD, $"{DEFAULT_LOCALHOST}:{port}");
             }

@@ -41,6 +41,31 @@ namespace DubUrl.Adomd.Testing.Rewriting.Implementation
         }
 
         [Test]
+        [TestCase(":54321")]
+        [TestCase("127.0.0.1:54321")]
+        [TestCase(".:54321")]
+        [TestCase("localhost:54321")]
+        [TestCase("LocalHost:54321")]
+        public void Map_UrlInfoWithPort_DataSource(string input)
+        {
+            var urlInfo = new UrlInfo() { Host = input.Split(':')[0], Port = Convert.ToInt32(input.Split(':')[1]), Segments=Array.Empty<string>() };
+            var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder);
+            var result = Rewriter.Execute(urlInfo);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Does.ContainKey(PowerBiDesktopRewriter.SERVER_KEYWORD));
+            Assert.That(result[PowerBiDesktopRewriter.SERVER_KEYWORD], Is.EqualTo($"localhost:54321"));
+        }
+
+        [TestCase("localhost:54321/foo")]
+        public void Map_UrlInfoWithPortAndSegment_DataSource(string input)
+        {
+            var urlInfo = new UrlInfo() { Host = input.Split('/')[0].Split(':')[0], Port = Convert.ToInt32(input.Split('/')[0].Split(':')[1]), Segments = input.Split('/').Skip(1).ToArray() };
+            var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder);
+            Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
+        }
+
+        [Test]
         [TestCase("foo/bar")]
         [TestCase("./foo/bar")]
         [TestCase("./foo?bar=brz")]
