@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters
 {
-    internal abstract class BaseCaster<T, U> : ICaster<T, U>
+    public abstract class BaseCaster<T, U> : ICaster<T, U>
     {
         protected string MethodName { get; }
         protected Type[] MethodTypeArgs { get; }

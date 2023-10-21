@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters
 {
-    public class NullFormatter : INullFormatter
+    public class SingleQuotedIdentifierFormatter : QuotedIdentifierFormatter
     {
-        public string Format()
-            => "NULL";
+        protected override string SurroundByQuotes(string value)
+            => $"'{value}'";
     }
 }

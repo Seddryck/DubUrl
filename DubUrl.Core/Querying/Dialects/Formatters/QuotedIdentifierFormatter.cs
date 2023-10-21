@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters
 {
-    internal class QuotedIdentifierFormatter : IIdentifierFormatter
+    public class QuotedIdentifierFormatter : IIdentifierFormatter
     {
         public virtual string Format(string value)
             => SurroundByQuotes(value);
 
-        protected string SurroundByQuotes(string value)
+        protected virtual string SurroundByQuotes(string value)
             => $"\"{value}\"";
 
         public string Format(object obj)

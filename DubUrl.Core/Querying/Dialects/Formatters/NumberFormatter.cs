@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters
 {
-    internal class NumberFormatter : IValueFormatter<object>
+    public class NumberFormatter : IValueFormatter<object>
     {
         public string Format(object value)
             => Convert.ToString(value, CultureInfo.InvariantCulture)!;

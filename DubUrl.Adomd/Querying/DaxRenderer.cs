@@ -5,20 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Formatters;
+using DubUrl.Querying.Dialects.Renderers;
 
-namespace DubUrl.Querying.Dialects.Renderers
+namespace DubUrl.Adomd.Querying
 {
-    internal class AnsiRenderer : IRenderer
+    internal class DaxRenderer : IRenderer
     {
         protected NullFormatter Null { get; }
         protected BaseValueFormatter Value { get; }
         protected IIdentifierFormatter Identity { get; }
 
-        protected AnsiRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
+        protected DaxRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
             => (Value, Null, Identity) = (value, @null, identity);
 
-        public AnsiRenderer()
-            : this(new ValueFormatter(), new NullFormatter(), new QuotedIdentifierFormatter()) { }
+        public DaxRenderer()
+            : this(new DaxValueFormatter(), new NullFormatter(), new SingleQuotedIdentifierFormatter()) { }
 
         public string Render(object? obj, string format)
         {

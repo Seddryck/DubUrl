@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters
 {
-    internal class FunctionFormatter<T> : IValueFormatter<T>
+    public class FunctionFormatter<T> : IValueFormatter<T>
     {
         protected string FunctionName { get; }
         protected IValueFormatter<T> Formatter { get; }

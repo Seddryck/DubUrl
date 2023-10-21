@@ -1,5 +1,5 @@
-﻿using DubUrl.Mapping;
-using DubUrl.Querying.Dialects;
+﻿using DubUrl.Adomd.Querying;
+using DubUrl.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;

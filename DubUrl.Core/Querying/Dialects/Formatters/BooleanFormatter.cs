@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters
 {
-    internal class BooleanFormatter : IValueFormatter<bool>
+    public class BooleanFormatter : IValueFormatter<bool>
     {
         public virtual string Format(bool value)
             => value ? "TRUE" : "FALSE";

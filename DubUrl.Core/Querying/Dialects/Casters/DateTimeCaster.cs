@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters
 {
-    internal class DateTimeCaster<T> : BaseCaster<T, DateTime>
+    public class DateTimeCaster<T> : BaseCaster<T, DateTime>
     {
         public DateTimeCaster()
             : base("FromDateTime", new[] { typeof(DateTime) }) { }

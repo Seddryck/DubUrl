@@ -9,15 +9,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Renderers
 {
-    internal class ValueFormatter
+    public class ValueFormatter : BaseValueFormatter
     {
-        protected IDictionary<Type, IValueFormatter> TypeFormatters { get; } = new Dictionary<Type, IValueFormatter>();
-
-        public IReadOnlyDictionary<Type, IValueFormatter> Values
-        {
-            get => new ReadOnlyDictionary<Type, IValueFormatter>(TypeFormatters);
-        }
-
         public ValueFormatter()
         {
             With(new BooleanFormatter());
@@ -34,16 +27,6 @@ namespace DubUrl.Querying.Dialects.Renderers
             };
             foreach (var num in numericTypes)
                 TypeFormatters.Add(num, new NumberFormatter());
-        }
-
-        public ValueFormatter With<T>(IValueFormatter<T> formatter)
-        {
-            if (TypeFormatters.ContainsKey(typeof(T)))
-                TypeFormatters[typeof(T)] = formatter;
-            else
-                TypeFormatters.Add(typeof(T), formatter);
-
-            return this;
         }
     }
 }
