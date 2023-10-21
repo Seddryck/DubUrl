@@ -35,6 +35,10 @@ namespace DubUrl
             : this(new ConnectionUrlFactory(new SchemeMapperBuilder()).Instantiate(url), new(), NullQueryLogger.Instance)
         { }
 
+        public DatabaseUrl(ConnectionUrlFactory factory, string url)
+            : this(factory.Instantiate(url), new(), NullQueryLogger.Instance)
+        { }
+
         internal DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
             : this(factory.Instantiate(url), commandProvisionerFactory, NullQueryLogger.Instance)
         { }
