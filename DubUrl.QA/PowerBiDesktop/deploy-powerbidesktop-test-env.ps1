@@ -33,7 +33,7 @@ if ($force -or ($filesChanged -like "*powerbi*") -or ($filesChanged -like "*Powe
 		Write-Host "`t`tPower BI Desktop downloaded."
 		Write-Host "`t`tRunning setup of Power BI Desktop ..."		
 		& "$env:temp\PBISetup_x64.zip" "-quiet -norestart INSTALLLOCATION=""$pbiDesktopPath"" ACCEPT_EULA=1 -log ""$env:TEMP\PBIDesktop.Install.log""" # | Out-Null
-		Write-Host Get-Content "$env:TEMP\PBIDesktop.Install.log"
+		Write-Host $(Get-Content "$env:TEMP\PBIDesktop.Install.log")
 		Write-Host "`t`tSetup executed."
 		Write-host "`tPower BI Desktop installed."
 	} else {
@@ -48,7 +48,7 @@ if ($force -or ($filesChanged -like "*powerbi*") -or ($filesChanged -like "*Powe
 		foreach ($framework in $frameworks) {
 		Write-host "`t`tCopying Power BI Model to ..\bin\$config\$framework\"
 			Copy-Item ".\Customer.pbix" -Destination "..\bin\$config\$framework\"
-			Get-ChildItem "..\bin\$config\$framework\"
+			Write-Host $(Get-ChildItem "..\bin\$config\$framework\")
 		}
 		Write-host "`tPower BI Model deployed."
 	}
