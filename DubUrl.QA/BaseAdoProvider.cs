@@ -93,7 +93,6 @@ namespace DubUrl.QA
             Assert.That(cmd.ExecuteScalar(), Is.EqualTo("Albert Einstein"));
         }
 
-
         [Test]
         [Category("DatabaseUrl")]
         public virtual void QueryCustomerWithDatabaseUrlAndQueryClass()

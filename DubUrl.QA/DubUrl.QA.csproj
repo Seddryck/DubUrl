@@ -3,8 +3,16 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="SelectAllCustomer.pbix.sql" />
+    <None Remove="SelectFirstCustomer.pbix.sql" />
+    <None Remove="SelectWhereCustomers.pbix.sql.st" />
+    <None Remove="SelectYoungestCustomers.pbix.sql" />
+  </ItemGroup>
   
   <ItemGroup>
+    <EmbeddedResource Include="SelectAllCustomer.pbix.sql" />
     <EmbeddedResource Include="SelectAllCustomer.trino.sql" />
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectAllCustomer.duckdb.sql" />
@@ -15,6 +23,8 @@
     <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.pbix.sql" />
+    <EmbeddedResource Include="SelectWhereCustomers.pbix.sql.st" />
     
     <EmbeddedResource Include="SelectWhereCustomers.cockroach.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.sql.st" />
@@ -43,6 +53,7 @@
     <EmbeddedResource Include="SelectFirstCustomer.timescale.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.pbix.sql" />
 
     <EmbeddedResource Include="SelectYoungestCustomers.cockroach.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.duckdb.sql" />

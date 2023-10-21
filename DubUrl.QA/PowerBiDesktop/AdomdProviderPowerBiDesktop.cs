@@ -19,17 +19,18 @@ namespace DubUrl.QA.PowerBiDesktop
         public override void QueryCustomerScalarValueWithReader()
             => QueryCustomerScalarValueWithReader("EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = 1 ), \"CustomerId\" , Customer[CustomerId], \"FullName\" , Customer[FullName], \"BirthDate\" , Customer[BirthDate])");
 
-        //[Test]
-        //public override void QueryCustomerWithDatabase()
-        //    => QueryCustomerWithDatabase("EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = 1 ), Customer[FullName])");
+        [Test]
+        public override void QueryCustomerWithDatabase()
+            => QueryCustomerWithDatabase("EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = 1 ), \"FullName\", Customer[FullName])");
 
-        //[Test]
-        //public override void QueryCustomerWithParams()
-        //    => QueryCustomerWithParams("EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = @CustId ), Customer[FullName])");
+        [Test]
+        public override void QueryCustomerWithParams()
+            => QueryCustomerWithParams("EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = @CustId ), \"FullName\", Customer[FullName])");
 
-        //[Test]
-        //public override void QueryCustomerWithPositionalParameter()
-        //    => Assert.Ignore("Positional parameters not supported by FirebirdSQL");
+        [Test]
+        public override void QueryCustomerWithPositionalParameter()
+            //=> QueryCustomerWithPositionalParameter("EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = $1 ), \"FullName\", Customer[FullName])");
+            => Assert.Ignore("Positional parameters not supported by DAX language");
 
         [Test]
         public override void QueryCustomerWithDapper()
