@@ -35,7 +35,7 @@ namespace DubUrl.Adomd.Wrappers
             => throw new NotSupportedException();
 
         public override object this[string name]
-            => InnerDataReader[name];
+            => InnerDataReader[$"[{name}]"];
 
         public override object this[int ordinal]
             => InnerDataReader[ordinal];

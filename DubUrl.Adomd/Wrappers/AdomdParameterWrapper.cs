@@ -14,14 +14,16 @@ namespace DubUrl.Adomd.Wrappers
     internal class AdomdParameterWrapper : DbParameter, IDbDataParameter, IDataParameter
     {
         internal AdomdParameter InnerParameter { get; }
-        
+        private DbType dbType = DbType.Object;
+        private int size = 0;
+
         public AdomdParameterWrapper()
             => InnerParameter = new AdomdParameter();
 
         public override DbType DbType 
         { 
-            get => InnerParameter.DbType; 
-            set => InnerParameter.DbType =  value; 
+            get => dbType; 
+            set => dbType = value; 
         }
         public override ParameterDirection Direction 
         {
@@ -41,8 +43,8 @@ namespace DubUrl.Adomd.Wrappers
         }
         public override int Size
         {
-            get => InnerParameter.Size;
-            set => InnerParameter.Size = value;
+            get => size;
+            set => size = value;
         }
         [AllowNull]
         public override string SourceColumn
