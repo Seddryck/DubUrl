@@ -31,10 +31,14 @@ if ($force -or ($filesChanged -like "*powerbi*") -or ($filesChanged -like "*Powe
 		Invoke-WebRequest "$downloadUrl" -OutFile "$env:temp\PBISetup_x64.exe"
 		Unblock-File "$env:temp\PBISetup_x64.exe"
 		Write-Host "`t`tPower BI Desktop downloaded."
-		Write-Host "`t`tRunning setup of Power BI Desktop ..."		
-		& "$env:temp\PBISetup_x64.exe" "-quiet -norestart INSTALLLOCATION=""$pbiDesktopPath"" ACCEPT_EULA=1 -log ""$env:TEMP\PBIDesktop.Install.log""" | Out-Host
+		Write-Host "`t`tRunning setup of Power BI Desktop ..."	
+		if (!(Test-Path $pbiDesktopPath -PathType Container)) {
+		    New-Item -ItemType Directory -Force -Path $pbiDesktopPath
+		}
+		& "$env:temp\PBISetup_x64.exe" @("-quiet", "-norestart", "INSTALLLOCATION=""$pbiDesktopPath""", "ACCEPT_EULA=1", "-log", "$env:TEMP\PBIDesktop.Install.log") | Out-Host
 		Write-Host "`t`tSetup executed."
 		Write-Host $(Get-ChildItem $pbiDesktopPath)
+		Get-Content "$env:temp\PBIDesktop.Install.log" | Write-Host
 		Write-host "`tPower BI Desktop installed."
 	} else {
 		Write-host "`tAssuming that Power BI Desktop is already installed."
