@@ -35,9 +35,13 @@ if ($force -or ($filesChanged -like "*powerbi*") -or ($filesChanged -like "*Powe
 		if (!(Test-Path $pbiDesktopPath -PathType Container)) {
 		    New-Item -ItemType Directory -Force -Path $pbiDesktopPath
 		}
+		Write-Host "`t`t`tContent of folder before installation:"	
+		Write-Host $(Get-ChildItem $pbiDesktopPath)
 		& "$env:temp\PBISetup_x64.exe" @("-quiet", "-norestart", "INSTALLLOCATION=""$pbiDesktopPath""", "ACCEPT_EULA=1", "-log", "$env:TEMP\PBIDesktop.Install.log") | Out-Host
 		Write-Host "`t`tSetup executed."
+		Write-Host "`t`t`tContent of folder after installation:"	
 		Write-Host $(Get-ChildItem $pbiDesktopPath)
+		Write-Host "`t`t`tContent of installation log:"	
 		Get-Content "$env:temp\PBIDesktop.Install.log" | Write-Host
 		Write-host "`tPower BI Desktop installed."
 	} else {
