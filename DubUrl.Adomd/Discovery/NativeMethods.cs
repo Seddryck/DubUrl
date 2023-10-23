@@ -22,7 +22,6 @@ namespace DubUrl.Adomd.Discovery
         [DllImport("user32.dll")]
         internal static extern bool IsWindowVisible(IntPtr hWnd);
 
-
         [DllImport("user32.dll")]
         internal static extern bool EnumThreadWindows(int dwThreadId, EnumThreadDelegate lpfn,
             IntPtr lParam);

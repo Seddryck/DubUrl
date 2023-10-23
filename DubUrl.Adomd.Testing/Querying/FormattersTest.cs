@@ -32,6 +32,5 @@ namespace DubUrl.Adomd.Testing.Querying.Formatters
         [TestCase("foo bar", "\"foo bar\"")]
         public void SimpleQuotedValueFormatter_Format_Match(string value, string expected)
             => Assert.That(new DoubleQuotedValueFormatter().Format(value), Is.EqualTo(expected));
-
     }
 }

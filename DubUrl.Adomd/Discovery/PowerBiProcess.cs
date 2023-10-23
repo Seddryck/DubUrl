@@ -58,6 +58,5 @@ namespace DubUrl.Adomd.Discovery
             //    Name = windowTitle;
             //}
         }
-        
     }
 }

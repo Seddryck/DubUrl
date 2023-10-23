@@ -23,7 +23,6 @@ namespace DubUrl.Adomd.Discovery
             return handles;
         }
 
-
         public static string GetWindowTitle(int procId)
         {
             foreach (var handle in EnumerateProcessWindowHandles(procId))
@@ -35,7 +34,6 @@ namespace DubUrl.Adomd.Discovery
                     var title = GetCaptionOfWindow(handle);
                     if (title.Length > 0) return title;
                 }
-
             }
             return "-";
         }
@@ -62,7 +60,6 @@ namespace DubUrl.Adomd.Discovery
             }
             return title;
         }
-
 
         private static unsafe string? GetWindowTextTimeout(IntPtr hWnd, uint timeout)
         {

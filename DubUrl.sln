@@ -28,21 +28,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Edit", "Edit", "{210C887C-6
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74}"
-	ProjectSection(SolutionItems) = preProject
-		deploy-drill-test-env.ps1 = deploy-drill-test-env.ps1
-		deploy-duckdb-test-env.ps1 = deploy-duckdb-test-env.ps1
-		deploy-firebirdsql-test-env.ps1 = deploy-firebirdsql-test-env.ps1
-		deploy-msexcel-test-env.ps1 = deploy-msexcel-test-env.ps1
-		deploy-mssql-test-env.ps1 = deploy-mssql-test-env.ps1
-		deploy-mysql-test-env.ps1 = deploy-mysql-test-env.ps1
-		deploy-pgsql-test-env.ps1 = deploy-pgsql-test-env.ps1
-		deploy-questdb-test-env.ps1 = deploy-questdb-test-env.ps1
-		deploy-sqlite-test-env.ps1 = deploy-sqlite-test-env.ps1
-		deploy-text-test-env.ps1 = deploy-text-test-env.ps1
-		deploy-trino-test-env.ps1 = deploy-trino-test-env.ps1
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA", "DubUrl.QA\DubUrl.QA.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QA", "QA", "{0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}"
@@ -61,8 +46,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.Dependenc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{BAFC00CA-8CE9-4A48-B05B-45982D1F6F0F}"
 	ProjectSection(SolutionItems) = preProject
-		generate-adonet-info.ps1 = generate-adonet-info.ps1
 		generate-adomd-info.ps1 = generate-adomd-info.ps1
+		generate-adonet-info.ps1 = generate-adonet-info.ps1
 		generate-badge.ps1 = generate-badge.ps1
 		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
 		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
@@ -125,7 +110,6 @@ Global
 		{95E83BA6-B535-4D56-B06A-D00249A4EF00} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
 		{09BDFA96-353F-419D-890A-D9B9045E66DD} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
 		{210C887C-6FF3-4D1B-9A7B-894E2F286FF4} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
-		{FD180A2C-BE47-4F68-8EA9-F98CAFFD9F74} = {95E83BA6-B535-4D56-B06A-D00249A4EF00}
 		{64B6AA4F-BFD2-40EB-B04A-8FE795272653} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
 		{0AE44749-5793-4138-BC6F-4092A69976C0} = {C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}
 		{0532D8EA-CFF6-48EA-9843-E6B19D66F997} = {C63A5E14-59D8-4D05-8557-2E27DE7FD0FB}

@@ -37,7 +37,6 @@ namespace DubUrl.Adomd.Rewriting
 
                 fullHost.Append(POWERBI_SCHEME).Append(Uri.SchemeDelimiter);
 
-
                 if (urlInfo.Host.Equals(DEFAULT_POWERBI_HOST, StringComparison.InvariantCultureIgnoreCase)
                     || urlInfo.Host.Equals(string.Empty))
                     segments.Insert(0, DEFAULT_POWERBI_HOST);

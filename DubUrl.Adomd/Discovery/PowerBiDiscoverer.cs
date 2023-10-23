@@ -71,7 +71,6 @@ namespace DubUrl.Adomd.Discovery
                 //{
                 //    Log.Error("{class} {Method} {Error} {StackTrace}", nameof(PowerBIHelper), nameof(GetLocalInstances), ex.Message, ex.StackTrace);
                 //}
-
             }
             return results.ToArray();
         }
