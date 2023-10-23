@@ -122,6 +122,11 @@ $elapsed = Measure-Command -Expression {
         | ConvertFrom-Json -NoEnumerate `
         | Write-Table -Keys @("Database", "Aliases", "ProviderInvariantName")
     $text = $text | Substitute-Table -Identifier "ADONET" -Table $table
+
+    $table = Get-Content -Path ".\Docs\_data\adomd.json" `
+        | ConvertFrom-Json -NoEnumerate `
+        | Write-Table -Keys @("Database", "Aliases", "ProviderInvariantName")
+    $text = $text | Substitute-Table -Identifier "ADOMD" -Table $table
     
     $table = Get-Content -Path ".\Docs\_data\odbc.json" `
         | ConvertFrom-Json -NoEnumerate `

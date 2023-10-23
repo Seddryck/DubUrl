@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters
 {
-    internal class DecimalConverter : Converter<decimal>
+    public class DecimalConverter : Converter<decimal>
     {
         public override decimal Cast(object value)
             => Convert.ToDecimal(value);

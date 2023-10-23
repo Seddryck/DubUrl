@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Tokening
 {
-    internal class SpecificatorUnchecked : Specificator
+    public class SpecificatorUnchecked : Specificator
     {
         public SpecificatorUnchecked(DbConnectionStringBuilder csb)
             : base(csb) { }

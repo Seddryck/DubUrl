@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Duburl.OleDb
+namespace DubUrl.OleDb
 {
     internal class AssemblyTypesProbeOleDb : AssemblyTypesProbe
     {

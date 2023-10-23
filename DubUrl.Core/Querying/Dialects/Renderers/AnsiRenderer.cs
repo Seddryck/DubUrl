@@ -11,10 +11,10 @@ namespace DubUrl.Querying.Dialects.Renderers
     internal class AnsiRenderer : IRenderer
     {
         protected NullFormatter Null { get; }
-        protected ValueFormatter Value { get; }
+        protected BaseValueFormatter Value { get; }
         protected IIdentifierFormatter Identity { get; }
 
-        protected AnsiRenderer(ValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
+        protected AnsiRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
             => (Value, Null, Identity) = (value, @null, identity);
 
         public AnsiRenderer()

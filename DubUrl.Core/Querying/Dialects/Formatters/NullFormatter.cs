@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters
 {
-    internal class NullFormatter : INullFormatter
+    public class NullFormatter : INullFormatter
     {
         public string Format()
             => "NULL";

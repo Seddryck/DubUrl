@@ -13,6 +13,7 @@
   - native-ado-net-providers
   - odbc-driver-locators
   - oledb-provider-locators
+  - adomd-providers
   - SSL/TLS support
 
 - title: Interfaces with other frameworks

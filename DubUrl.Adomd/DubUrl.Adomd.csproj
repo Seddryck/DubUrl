@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.69.2.1" />
+    <PackageReference Include="System.Management" Version="7.0.2" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+	</ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Testing" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<PackageId>DubUrl.Adomd</PackageId>
+		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+		<PackageTags>connection-string;database;dax;adomd-net;powerbi</PackageTags>
+		<Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
+	</PropertyGroup>
+	
+</Project>

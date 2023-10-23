@@ -1,0 +1,30 @@
+[
+  {
+    "Class": "PowerBiDesktopMapper",
+    "Database": "Power BI Desktop",
+    "Aliases": [
+      "pbidesktop",
+      "pbix",
+      "powerbidesktop"
+    ],
+    "ProviderInvariantName": "Microsoft.AnalysisServices.AdomdClient",
+    "Slug": "powerbi",
+    "MainColor": "#F2C811",
+    "SecondaryColor": "#000000"
+  },
+  {
+    "Class": "PowerBiPremiumMapper",
+    "Database": "Power BI Premium",
+    "Aliases": [
+      "powerbi",
+      "pbi",
+      "pbiazure",
+      "pbipremium",
+      "powerbipremium"
+    ],
+    "ProviderInvariantName": "Microsoft.AnalysisServices.AdomdClient",
+    "Slug": "powerbi",
+    "MainColor": "#F2C811",
+    "SecondaryColor": "#000000"
+  }
+]

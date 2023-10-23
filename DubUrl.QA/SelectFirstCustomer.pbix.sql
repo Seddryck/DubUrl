@@ -1,0 +1,1 @@
+﻿EVALUATE SELECTCOLUMNS(FILTER (Customer, Customer[CustomerId] = 1 ), "FullName", Customer[FullName])

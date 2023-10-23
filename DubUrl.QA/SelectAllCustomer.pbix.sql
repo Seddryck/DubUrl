@@ -1,0 +1,1 @@
+﻿EVALUATE SELECTCOLUMNS(Customer, "CustomerId" , Customer[CustomerId], "FullName" , Customer[FullName], "BirthDate" , Customer[BirthDate])

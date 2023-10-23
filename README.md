@@ -155,9 +155,9 @@ The following databases and their associated schemes are supported out of the bo
 |![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                     | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
 <!-- END ODBC TABLE -->
 
-### OLEDB provider locators
+### Extension for OLEDB provider locators
 
-The following databases and their associated schemes are supported out of the box:
+The following databases and their associated schemes are supported through the OLE DB data provider extension:
 
 <!-- START OLEDB TABLE -->
 |Database                                                                                                                                         | Aliases                           | Name Pattern                                                |
@@ -170,6 +170,17 @@ The following databases and their associated schemes are supported out of the bo
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsb                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 <!-- END OLEDB TABLE -->
 
+### Extension for ADOMD.NET data provider
+
+The following databases and their associated schemes are supported through the ADOMD.NET data provider extension:
+
+<!-- START ADOMD TABLE -->
+|Database                                                                                                                      | Aliases                                            | Provider Invariant Name               |
+|----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------|
+|![Power BI Desktop](https://img.shields.io/badge/Power%20BI%20Desktop-F2C811?logo=powerbi&logoColor=000000&style=flat-square) | pbidesktop, pbix, powerbidesktop                   | Microsoft.AnalysisServices.AdomdClient|
+|![Power BI Premium](https://img.shields.io/badge/Power%20BI%20Premium-F2C811?logo=powerbi&logoColor=000000&style=flat-square) | powerbi, pbi, pbiazure, pbipremium, powerbipremium | Microsoft.AnalysisServices.AdomdClient|
+<!-- END ADOMD TABLE -->
+
 ## Installing
 
 Install in the usual .NET fashion:
@@ -178,11 +189,35 @@ Install in the usual .NET fashion:
 Install-Package DubUrl
 ```
 
+To install the extension for OLEDB provider locators
+
+```sh
+Install-Package DubUrl.OleDb
+```
+
+To install the extension for ADOMD.NET data provider
+
+```sh
+Install-Package DubUrl.Adomd
+```
+
 ## Using
 
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

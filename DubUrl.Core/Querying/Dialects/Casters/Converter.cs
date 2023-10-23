@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters
 {
-    internal class Converter<T> : ICaster<T, object>
+    public class Converter<T> : ICaster<T, object>
     {
         public virtual T? ThrowCastException(object value)
             => throw new ArgumentOutOfRangeException($"Cannot cast returned value to type '{typeof(T).Name}' by converting from the type '{value.GetType().Name}' because we can't find an implicit or explicit operator in this type.");

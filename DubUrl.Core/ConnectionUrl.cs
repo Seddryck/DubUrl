@@ -1,4 +1,5 @@
-﻿using DubUrl.Mapping;
+﻿using DubUrl.Extensions;
+using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
@@ -48,7 +49,8 @@ namespace DubUrl
         public virtual IDbConnection Connect()
         {
             var provider = SchemeMapperBuilder.GetProviderFactory(Result.UrlInfo.Schemes);
-            var connection = provider.CreateConnection() ?? throw new ArgumentNullException();
+            var connectionWrapper = provider.CreateConnection() ?? throw new ArgumentNullException();
+            var connection = connectionWrapper;
             connection.ConnectionString = Result.ConnectionString;
             return connection;
         }

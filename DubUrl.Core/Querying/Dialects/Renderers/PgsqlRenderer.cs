@@ -12,7 +12,7 @@ namespace DubUrl.Querying.Dialects.Renderers
         public PgsqlRenderer()
             : this(new ValueFormatter()) { }
 
-        protected PgsqlRenderer(ValueFormatter value)
+        protected PgsqlRenderer(BaseValueFormatter value)
             : base(value, new NullFormatter(), new QuotedIdentifierFormatter()) { }
     }
 }

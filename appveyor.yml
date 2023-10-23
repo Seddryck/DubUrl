@@ -34,6 +34,7 @@ test_script:
     $ErrorActionPreference = "Stop"
     dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.DependencyInjection.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
 
@@ -44,7 +45,7 @@ test_script:
 
 - pwsh: |
       $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
-      & .\Duburl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net6.0") -exclude @("CockRoach", "Drill", "Trino")
+      & .\Duburl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net6.0") -exclude @("CockRoach", "Drill", "Trino", "PowerBIDesktop")
       if ($lastexitcode -gt 0) {
         throw "At least one of the test-suite was not successful. Build stopped."
       }
@@ -75,6 +76,8 @@ on_success:
       & .\generate-odbc-driver-info.ps1
       $exitCode += $LastExitCode
       & .\generate-oledb-provider-info.ps1
+      $exitCode += $LastExitCode
+      & .\generate-adomd-info.ps1
       $exitCode += $LastExitCode
       if ($exitCode -gt 0) {
         Write-Host "`tUpdating README.md ..."
