@@ -32,17 +32,21 @@ if ($force -or ($filesChanged -like "*powerbi*") -or ($filesChanged -like "*Powe
 		Unblock-File "$env:temp\PBISetup_x64.exe"
 		Write-Host "`t`tPower BI Desktop downloaded."
 		Write-Host "`t`tRunning setup of Power BI Desktop ..."	
+		Write-Host "`t`t`tCreating installation folder for Power BI Desktop ..."	
 		if (!(Test-Path $pbiDesktopPath -PathType Container)) {
 		    New-Item -ItemType Directory -Force -Path $pbiDesktopPath
+			Write-Host "`t`t`tInstallation folder for Power BI Desktop created"
+		} else {
+			Write-Host "`t`t`tInstallation folder for Power BI Desktop already existing"
 		}
-		Write-Host "`t`t`tContent of folder before installation:"	
-		Write-Host $(Get-ChildItem $pbiDesktopPath)
 		& "$env:temp\PBISetup_x64.exe" @("-quiet", "-norestart", "INSTALLLOCATION=""$pbiDesktopPath""", "ACCEPT_EULA=1", "-log", "$env:TEMP\PBIDesktop.Install.log") | Out-Host
 		Write-Host "`t`tSetup executed."
 		Write-Host "`t`t`tContent of folder after installation:"	
 		Write-Host $(Get-ChildItem $pbiDesktopPath)
+		Write-Host "----------------------------------"
 		Write-Host "`t`t`tContent of installation log:"	
 		Get-Content "$env:temp\PBIDesktop.Install.log" | Write-Host
+		Write-Host "----------------------------------"
 		Write-host "`tPower BI Desktop installed."
 	} else {
 		Write-host "`tAssuming that Power BI Desktop is already installed."
@@ -56,7 +60,6 @@ if ($force -or ($filesChanged -like "*powerbi*") -or ($filesChanged -like "*Powe
 		foreach ($framework in $frameworks) {
 		Write-host "`t`tCopying Power BI Model to ..\bin\$config\$framework\"
 			Copy-Item ".\Customer.pbix" -Destination "..\bin\$config\$framework\"
-			Write-Host $(Get-ChildItem "..\bin\$config\$framework\")
 		}
 		Write-host "`tPower BI Model deployed."
 	}
