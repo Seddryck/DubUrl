@@ -13,7 +13,7 @@ skip_commits:
 
 environment:
   github_access_token:
-    secure: gtEHCUmmDjYfrp/NEe2qUH3SBedD4Hc7VWVyvOOE5KmyYYQnFmtyH9sQpaD33nU5/dqeijEBdkdPzKQYuIrpmgiIt/OucnY8GoNcL6VR9WSVc1hCkhGMYLBjooeKOvBg
+    secure: gtEHCUmmDjYfrp/NEe2qUBR/t07Z9Mk2JJPm9L64xQb/Qbn2xYDB+WEWokiR382rXajnuQ5HEq1a4WOQQ8+SPlChEs6t25QAUYQ3SWxNovut3zlujgs6EABt3TuwsTBq
 
 init:
 - cmd: git config --global core.autocrlf true
@@ -24,6 +24,18 @@ init:
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
+- pwsh: |
+    . "$env:APPVEYOR_BUILD_FOLDER\Set-Pull-Request-Expected-Labels.ps1"
+    if (($env:APPVEYOR -eq "True") -and ($null -ne $env:APPVEYOR_PULL_REQUEST_NUMBER)) {
+      $context = [PSCustomObject] @{
+        Id = $env:APPVEYOR_PULL_REQUEST_NUMBER
+        Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
+        Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
+        SecretToken = $env:github_access_token
+      } | Set-Pull-Request-Expected-Labels
+    } else {
+        Write-Host 'Not a pull request on appveyor. Skipping mapping conventional commits and labels.'
+    }
 
 build_script:
   #- dotnet --info
