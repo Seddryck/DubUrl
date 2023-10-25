@@ -113,7 +113,7 @@ function Get-Expected-Labels {
 	Param(
 		[Parameter(Mandatory=$true, ValueFromPipeline = $true)]
         [string] $title,
-		[System.Collections.IDictionary] $matches
+		[System.Collections.IDictionary] $mapping
 	)
 	$labels = @()
 	$tokens = $title -Split ':'
@@ -127,16 +127,16 @@ function Get-Expected-Labels {
 	}
 
 	if ($conventional.EndsWith('!')) {
-		if($matches.ContainsKey('!')) {
-			$labels += $matches['!']
+		if($mapping.ContainsKey('!')) {
+			$labels += $mapping['!']
 		}
 	}
 
 	$conventional = $conventional.TrimEnd('!').Trim()
-	if(-not $matches.ContainsKey($conventional)) {
+	if(-not $mapping.ContainsKey($conventional)) {
 		return @()
 	} else {
-		$labels += $matches[$conventional]
+		$labels += $mapping[$conventional]
 	}
 	return $labels
 }
@@ -148,23 +148,23 @@ function Set-Pull-Request-Expected-Labels {
 		[object] $context
 	)
 
-	$matches = @{}
-	$matches.Add('!', 'breaking-change')
-	$matches.Add('build', 'build')
-	$matches.Add('ci', 'build')
-	$matches.Add('chore', 'dependency-update')
-	$matches.Add('docs', 'docs')
-	$matches.Add('feat', 'new-feature')
-	$matches.Add('fix', 'bug')
-	$matches.Add('perf', 'enhancement')
-	$matches.Add('refactor', 'none')
-	$matches.Add('revert', 'none')
-	$matches.Add('style', 'none')
-	$matches.Add('test', 'none')
+	$mapping = @{}
+	$mapping.Add('!', 'breaking-change')
+	$mapping.Add('build', 'build')
+	$mapping.Add('ci', 'build')
+	$mapping.Add('chore', 'dependency-update')
+	$mapping.Add('docs', 'docs')
+	$mapping.Add('feat', 'new-feature')
+	$mapping.Add('fix', 'bug')
+	$mapping.Add('perf', 'enhancement')
+	$mapping.Add('refactor', 'none')
+	$mapping.Add('revert', 'none')
+	$mapping.Add('style', 'none')
+	$mapping.Add('test', 'none')
 
 	$title = $context | Get-Pull-Request-Title
 	$existing = $context | Get-Pull-Request-Labels
-	$expected = $title | Get-Expected-Labels -Matches $matches
+	$expected = $title | Get-Expected-Labels -Mapping $mapping
 	if ($expected.Length -eq 0) {
 		throw "Pull Request title is not a valid conventional commit"
 	}
