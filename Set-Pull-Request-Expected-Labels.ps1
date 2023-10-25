@@ -77,6 +77,20 @@ function Get-Pull-Request-Labels {
 	return $response.Content | ConvertFrom-Json | Select-Object -ExpandProperty name 
 }
 
+function Get-Commit-Associated-Pull-Requests {
+    [CmdletBinding()]
+	Param(
+        [Parameter(Mandatory=$true, ValueFromPipeline = $true, Position=0 )]
+        [object] $context
+	)
+	$response = Send-GitHub-Get-Request `
+					-Owner $context.Owner `
+					-Repository $context.Repository `
+					-Segments @('commits', $context.Id, 'pulls') `
+					-Headers $($context.SecretToken | Get-GitHub-Headers)
+	return ($response.Content | ConvertFrom-Json).number 
+}
+
 function Post-Pull-Request-Labels {
     [CmdletBinding()]
 	Param(

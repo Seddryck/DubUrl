@@ -26,13 +26,15 @@ before_build:
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 - pwsh: |
     . "$env:APPVEYOR_BUILD_FOLDER\Set-Pull-Request-Expected-Labels.ps1"
-    if (($env:APPVEYOR -eq "True") -and ($null -ne $env:APPVEYOR_PULL_REQUEST_NUMBER)) {
+    if (($env:APPVEYOR_REPO_BRANCH -eq "main") -and ($null -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)) {
       $context = [PSCustomObject] @{
-        Id = $env:APPVEYOR_PULL_REQUEST_NUMBER
+        Id = $env:APPVEYOR_REPO_COMMIT
         Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
         Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
         SecretToken = $env:github_access_token
-      } | Set-Pull-Request-Expected-Labels
+      } 
+      $context.Id = $context | Get-Commit-Associated-Pull-Requests 
+      $context | Set-Pull-Request-Expected-Labels
     } else {
         Write-Host 'Not a pull request on appveyor. Skipping mapping conventional commits and labels.'
     }
