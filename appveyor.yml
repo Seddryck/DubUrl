@@ -13,7 +13,7 @@ skip_commits:
 
 environment:
   github_access_token:
-    secure: gtEHCUmmDjYfrp/NEe2qUH3SBedD4Hc7VWVyvOOE5KmyYYQnFmtyH9sQpaD33nU5/dqeijEBdkdPzKQYuIrpmgiIt/OucnY8GoNcL6VR9WSVc1hCkhGMYLBjooeKOvBg
+    secure: gtEHCUmmDjYfrp/NEe2qUBR/t07Z9Mk2JJPm9L64xQb/Qbn2xYDB+WEWokiR382rXajnuQ5HEq1a4WOQQ8+SPlChEs6t25QAUYQ3SWxNovut3zlujgs6EABt3TuwsTBq
 
 init:
 - cmd: git config --global core.autocrlf true
@@ -24,6 +24,20 @@ init:
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
+- pwsh: |
+    . "$env:APPVEYOR_BUILD_FOLDER\github.ps1"
+    if (($env:APPVEYOR_REPO_BRANCH -eq "main") -and ($null -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)) {
+      $context = [PSCustomObject] @{
+        Id = $env:APPVEYOR_REPO_COMMIT
+        Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
+        Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
+        SecretToken = $env:github_access_token
+      } 
+      $context.Id = $context | Get-Commit-Associated-Pull-Requests 
+      $context | Set-Pull-Request-Expected-Labels
+    } else {
+        Write-Host 'Not a merge on main built on appveyor. Skipping mapping conventional commits and labels.'
+    }
 
 build_script:
   #- dotnet --info
@@ -69,8 +83,23 @@ deploy:
     branch: main
 
 on_success:
+- pwsh: |
+    . "$env:APPVEYOR_BUILD_FOLDER\github.ps1"
+    if (($env:APPVEYOR_REPO_BRANCH -eq "main") -and ($null -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)) {
+        $context = [PSCustomObject] @{
+        Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
+        Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
+        SecretToken = $env:github_access_token
+      } | Publish-Release `
+            -Tag "v$($env:GitVersion_SemVer)" `
+            -Name "$(($env:APPVEYOR_REPO_NAME -Split '/')[1]) $($env:GitVersion_SemVer)" `
+            -ReleaseNotes `
+            -DiscussionCategory 'Announcements'
+    } else {
+        Write-Host "No release published on GitHub."
+    }
 
-  - pwsh: |
+- pwsh: |
       & .\generate-adonet-info.ps1
       $exitCode = $LastExitCode
       & .\generate-odbc-driver-info.ps1
