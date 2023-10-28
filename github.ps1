@@ -108,6 +108,32 @@ function Post-Pull-Request-Labels {
 					-Body $body
 }
 
+function Publish-Release {
+    [CmdletBinding()]
+	Param(
+		[Parameter(Mandatory=$true, ValueFromPipeline = $true, Position=0)]
+		[object] $context,
+		[string] $tag,
+		[string] $name,
+        [switch] $releaseNotes,
+		[string] $discussionCategory
+	)
+	$body = [PSCustomObject]@{
+				tag_name=$tag
+				name=$name
+				generate_release_notes=$($releaseNotes.IsPresent)
+	}
+	if ($discussionCategory) {
+		$body | Add-Member -MemberType NoteProperty -Name 'discussion_category_name' -Value $discussionCategory
+	}
+	$response = Send-GitHub-Post-Request `
+					-Owner $context.Owner `
+					-Repository $context.Repository `
+					-Segments @('releases') `
+					-Headers $($context.SecretToken | Get-GitHub-Headers) `
+					-Body $body
+}
+
 function Get-Expected-Labels {
 	[CmdletBinding()]
 	Param(
