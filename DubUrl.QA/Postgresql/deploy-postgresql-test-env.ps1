@@ -1,6 +1,6 @@
 Param(
 	[switch] $force=$false
-	, $databaseService= "postgresql-x64-13"
+	, $databaseService= "postgresql-x64-15"
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net6.0", "net7.0")
 )
