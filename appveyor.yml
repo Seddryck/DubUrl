@@ -90,11 +90,14 @@ on_success:
         Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
         Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
         SecretToken = $env:github_access_token
-      } | Publish-Release `
+      } 
+      if ( -not ($context | Check-Release-Published -Tag "v$($env:GitVersion_SemVer)")) {
+        $context | Publish-Release `
             -Tag "v$($env:GitVersion_SemVer)" `
             -Name "$(($env:APPVEYOR_REPO_NAME -Split '/')[1]) $($env:GitVersion_SemVer)" `
             -ReleaseNotes `
             -DiscussionCategory 'Announcements'
+      }
     } else {
         Write-Host "No release published on GitHub."
     }

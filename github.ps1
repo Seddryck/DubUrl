@@ -91,6 +91,29 @@ function Get-Commit-Associated-Pull-Requests {
 	return ($response.Content | ConvertFrom-Json).number 
 }
 
+function Check-Release-Published {
+    [CmdletBinding()]
+	Param(
+        [Parameter(Mandatory=$true, ValueFromPipeline = $true, Position=0 )]
+        [object] $context,
+		[Parameter(Mandatory=$true)]
+		[string] $tag
+	)
+	$response = Send-GitHub-Get-Request `
+					-Owner $context.Owner `
+					-Repository $context.Repository `
+					-Segments @('releases') `
+					-Headers $($context.SecretToken | Get-GitHub-Headers)
+	$existing = ($response.Content | ConvertFrom-Json) `
+					| ? {$_.tag_name -eq $tag}`
+					| Select-Object -Unique -ExpandProperty 'published_at'
+	if ($existing) {
+		Write-Host "Release already published at $existing"
+		return $true
+	}
+    return $false
+}
+
 function Post-Pull-Request-Labels {
     [CmdletBinding()]
 	Param(
