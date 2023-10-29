@@ -200,7 +200,7 @@ function Set-Pull-Request-Expected-Labels {
 
 	if ($config) {
 		WRite-Host "Reading mapping from $config"
-		$mapping = (Get-Content $config | ConvertFrom-Json)
+		$mapping = (Get-Content $config | ConvertFrom-Json -AsHashtable)
 	} else {
 		$mapping = @{}
 		$mapping.Add('!', 'breaking-change')
