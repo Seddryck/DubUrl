@@ -87,10 +87,11 @@ namespace DubUrl.QA
             protected Expression<Func<Customer, T>> Member { get; }
             public Func<Expression, Expression, BinaryExpression> BinaryExpression { get; }
             public T Constant { get; }
+            protected Func<string, string> MemberAdapter { get; }
 
             public string FieldName
             {
-                get => (Member.Body as MemberExpression)?.Member.Name ?? throw new ArgumentException();
+                get => MemberAdapter((Member.Body as MemberExpression)?.Member.Name!) ?? throw new ArgumentException();
             }
 
             public string @Operator
@@ -112,7 +113,10 @@ namespace DubUrl.QA
             public object Value => (object)(Constant ?? throw new ArgumentNullException());
 
             public BasicComparisonWhereClause(Expression<Func<Customer, T>> member, Func<Expression, Expression, BinaryExpression> binaryExpression, T constant)
-                => (Member, BinaryExpression, Constant) = (member, binaryExpression, constant);
+                => (Member, BinaryExpression, Constant, MemberAdapter) = (member, binaryExpression, constant, (string input) => input);
+            public BasicComparisonWhereClause(Expression<Func<Customer, T>> member, Func<Expression, Expression, BinaryExpression> binaryExpression, T constant, Func<string, string> memberAdapter)
+                => (Member, BinaryExpression, Constant, MemberAdapter) = (member, binaryExpression, constant, memberAdapter);
+
         }
 
         private class SelectWhereCustomersQuery : EmbeddedSqlTemplateCommand

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,7 +24,7 @@ namespace DubUrl
         private SchemeMapperBuilder SchemeMapperBuilder { get; }
         private IMapper? Mapper { get; set; }
         private IParser Parser { get; }
-        
+
         private string Url { get; }
 
         public ConnectionUrl(string url)
@@ -61,7 +62,7 @@ namespace DubUrl
             connection.Open();
             return connection;
         }
-                    
+
         public virtual IDialect Dialect { get => Result.Dialect; }
         public virtual IConnectivity Connectivity { get => Result.Connectivity; }
         public virtual IParametrizer Parametrizer { get => Result.Parametrizer; }

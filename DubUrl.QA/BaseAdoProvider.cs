@@ -229,7 +229,6 @@ namespace DubUrl.QA
             Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
         }
 
-
         [Test]
         [Category("MicroOrm")]
         [Category("Template")]
@@ -248,8 +247,8 @@ namespace DubUrl.QA
                         );
             var customers = repo.SelectWhereCustomers(new IWhereClause[]
             {
-                new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan , new DateTime(1920,1,1))
-                , new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper")
+                new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan , new DateTime(1920,1,1), (string input) => $"\"{input}\"")
+                , new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper", (string input) => $"\"{input}\"")
             });
             Assert.That(customers, Has.Count.EqualTo(2));
             Assert.That(customers.Select(x => x.FullName), Has.Member("Nikola Tesla"));
