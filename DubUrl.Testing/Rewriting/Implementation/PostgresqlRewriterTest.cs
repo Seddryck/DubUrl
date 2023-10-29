@@ -25,8 +25,8 @@ namespace DubUrl.Testing.Rewriting.Implementation
             var result = Rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.SERVER_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.SERVER_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.SERVER_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.SERVER_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -39,8 +39,8 @@ namespace DubUrl.Testing.Rewriting.Implementation
             var result = Rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.PORT_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.PORT_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.PORT_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.PORT_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -52,8 +52,8 @@ namespace DubUrl.Testing.Rewriting.Implementation
             var result = Rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.DATABASE_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.DATABASE_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
         }
 
         [Test]
@@ -64,12 +64,12 @@ namespace DubUrl.Testing.Rewriting.Implementation
             var result = Rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo(false));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo(false));
         }
 
         [Test]
@@ -80,10 +80,10 @@ namespace DubUrl.Testing.Rewriting.Implementation
             var result = Rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.Not.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.Not.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
-            Assert.That((object)result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
+            Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
+            Assert.That(result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
         }
 
         [Test]
@@ -102,7 +102,5 @@ namespace DubUrl.Testing.Rewriting.Implementation
             Assert.That(result, Does.ContainKey("Persist Security Info"));
             Assert.That(result["Persist Security Info"], Is.True);
         }
-
-
     }
 }
