@@ -194,22 +194,28 @@ function Set-Pull-Request-Expected-Labels {
 	[CmdletBinding()]
 	Param(
 		[Parameter(Mandatory=$true, ValueFromPipeline = $true)]
-		[object] $context
+		[object] $context,
+		[string] $config
 	)
 
-	$mapping = @{}
-	$mapping.Add('!', 'breaking-change')
-	$mapping.Add('build', 'build')
-	$mapping.Add('ci', 'build')
-	$mapping.Add('chore', 'dependency-update')
-	$mapping.Add('docs', 'docs')
-	$mapping.Add('feat', 'new-feature')
-	$mapping.Add('fix', 'bug')
-	$mapping.Add('perf', 'enhancement')
-	$mapping.Add('refactor', 'none')
-	$mapping.Add('revert', 'none')
-	$mapping.Add('style', 'none')
-	$mapping.Add('test', 'none')
+	if ($config) {
+		WRite-Host "Reading mapping from $config"
+		$mapping = (Get-Content $config | ConvertFrom-Json)
+	} else {
+		$mapping = @{}
+		$mapping.Add('!', 'breaking-change')
+		$mapping.Add('build', 'build')
+		$mapping.Add('ci', 'build')
+		$mapping.Add('chore', 'dependency-update')
+		$mapping.Add('docs', 'docs')
+		$mapping.Add('feat', 'new-feature')
+		$mapping.Add('fix', 'bug')
+		$mapping.Add('perf', 'enhancement')
+		$mapping.Add('refactor', 'none')
+		$mapping.Add('revert', 'none')
+		$mapping.Add('style', 'none')
+		$mapping.Add('test', 'none')
+	}
 
 	$title = $context | Get-Pull-Request-Title
 	$existing = $context | Get-Pull-Request-Labels

@@ -34,7 +34,7 @@ before_build:
         SecretToken = $env:github_access_token
       } 
       $context.Id = $context | Get-Commit-Associated-Pull-Requests 
-      $context | Set-Pull-Request-Expected-Labels
+      $context | Set-Pull-Request-Expected-Labels -Config '.github\conventional_commits_labels.json'
     } else {
         Write-Host 'Not a merge on main built on appveyor. Skipping mapping conventional commits and labels.'
     }
