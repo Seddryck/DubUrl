@@ -3,7 +3,7 @@
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
     <PackageReference Include="DuckDB.NET.Bindings" Version="0.9.1" />
     <PackageReference Include="DuckDB.NET.Data" Version="0.9.1" />
-    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.69.2.1" />
+    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.69.2.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
