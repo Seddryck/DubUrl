@@ -23,7 +23,12 @@ $elapsed = Measure-Command -Expression {
         Status = "implemented"
         Url = "/oledb-provider-locators"
     }
-
+    $badges += [PSCustomObject]@{
+        Label = "Mappers for ADOMD.NET providers"
+        Count = (Get-Content -Path ".\Docs\_data\adomd.json" | ConvertFrom-Json).Count
+        Status = "implemented"
+        Url = "/adomd-providers"
+    }
     $textBadges = ""
     foreach($badge in $badges) {
         $textBadges += "[![$($badge.Label) $($badge.Status) badge](https://img.shields.io/badge/$($badge.Label.Replace(" ", "%20"))-$($badge.Count)%20$($badge.Status)-green)]($rootUrl$($badge.Url))`r`n"

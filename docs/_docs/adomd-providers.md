@@ -12,7 +12,7 @@ ADOMD.NET data provider connects to an analytics data source such as Power BI Pr
 
 | Database | Aliases | <nobr>Package name</nobr> / <nobr>Provider invariant name<nobr> | | | | |
 |----------|---------|--------------------------------------|-|-|-|-|
-{% for provider in site.data.natives -%}
+{% for provider in site.data.adomd -%}
 | <img src="https://img.shields.io/badge/{{- provider.Database -}}-{{- provider.MainColor | replace: "#", "" -}}?logo={{- provider.Slug -}}&logoColor={{- provider.SecondaryColor | replace: "#", "" -}}&style=flat-square" alt="{{- provider.Database -}}" style="max-width: fit-content;"/> {{- -}}
 | {{- provider.Aliases | join: ", " -}}
 | {{- provider.ProviderInvariantName -}}
