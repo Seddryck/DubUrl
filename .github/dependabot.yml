@@ -24,6 +24,12 @@ updates:
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
+    directory: "/DubUrl.Adomd/" 
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependency-update"
+  - package-ecosystem: "nuget" 
     directory: "/DubUrl.Testing/"
     schedule:
       interval: "weekly"
@@ -40,7 +46,13 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependency-update"
+      - "dependency-update"      
+  - package-ecosystem: "nuget" 
+    directory: "/DubUrl.Adomd.Testing/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependency-update"     
   - package-ecosystem: "nuget" 
     directory: "/DubUrl.QA/"
     schedule:
