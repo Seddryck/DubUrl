@@ -92,20 +92,24 @@ on_success:
 - pwsh: |
     . "$env:APPVEYOR_BUILD_FOLDER\github.ps1"
     if (($env:APPVEYOR_REPO_BRANCH -eq "main") -and ($null -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)) {
-        $context = [PSCustomObject] @{
-        Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
-        Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
-        SecretToken = $env:github_access_token
-      } 
-      if ( -not ($context | Check-Release-Published -Tag "v$($env:GitVersion_SemVer)")) {
-        $context | Publish-Release `
-            -Tag "v$($env:GitVersion_SemVer)" `
-            -Name "$(($env:APPVEYOR_REPO_NAME -Split '/')[1]) $($env:GitVersion_SemVer)" `
-            -ReleaseNotes `
-            -DiscussionCategory 'Announcements'
-      }
+        if ($env:GitVersion_Patch -eq '0' -or $env:GitVersion_Patch -eq 0) {
+            $context = [PSCustomObject] @{
+                Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
+                Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
+                SecretToken = $env:github_access_token
+            }
+            if (-not ($context | Check-Release-Published -Tag "v$($env:GitVersion_SemVer)")) {
+                $context | Publish-Release `
+                    -Tag "v$($env:GitVersion_SemVer)" `
+                    -Name "$(($env:APPVEYOR_REPO_NAME -Split '/')[1]) $($env:GitVersion_SemVer)" `
+                    -ReleaseNotes `
+                    -DiscussionCategory 'Announcements'
+            }
+        } else {
+            Write-Host "No release published on GitHub when patch is not set to zero."
+        }
     } else {
-        Write-Host "No release published on GitHub."
+        Write-Host "No release published on GitHub when not on branch main."
     }
 
 - pwsh: |
