@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database
 {
     [Database<PgsqlDialect>(
         "PostgreSQL"
-        , new[] { "pg", "pgsql", "postgres", "postgresql" }
+        , new[] { "pg", "pgx", "pgsql", "postgres", "postgresql" }
         , DatabaseCategory.TopPlayer
     )]
     [Brand("postgresql", "#4169E1")]
