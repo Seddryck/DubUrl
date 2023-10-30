@@ -37,6 +37,7 @@
     "Database": "PostgreSQL",
     "Aliases": [
       "pg",
+      "pgx",
       "pgsql",
       "postgres",
       "postgresql"
