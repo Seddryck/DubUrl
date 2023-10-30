@@ -88,7 +88,8 @@ function Get-Commit-Associated-Pull-Requests {
 					-Repository $context.Repository `
 					-Segments @('commits', $context.Id, 'pulls') `
 					-Headers $($context.SecretToken | Get-GitHub-Headers)
-	return ($response.Content | ConvertFrom-Json).number 
+	[array]$prs = ($response.Content | ConvertFrom-Json).number 
+	return $prs
 }
 
 function Check-Release-Published {
@@ -199,7 +200,7 @@ function Set-Pull-Request-Expected-Labels {
 	)
 
 	if ($config) {
-		WRite-Host "Reading mapping from $config"
+		Write-Host "Reading mapping from $config"
 		$mapping = (Get-Content $config | ConvertFrom-Json -AsHashtable)
 	} else {
 		$mapping = @{}
@@ -224,12 +225,12 @@ function Set-Pull-Request-Expected-Labels {
 		throw "Pull Request title is not a valid conventional commit"
 	}
 
-	$expected = $expected | ? {$_ -ne 'none'}
-	$missing = $expected | ? {-not($existing -contains $_)}
+	[array]$expected = $expected | ? {$_ -ne 'none'}
+	[array]$missing = $expected | ? {-not($existing -contains $_)}
 	if ($missing.Length -gt 0) {
 		$context | Post-Pull-Request-Labels -Labels $missing
-		Write-Host "Added labels: $($missing -Join ',')"
+		Write-Host "Pull request #$($context.Id): added following labels: $($missing -Join ',')"
 	} else {
-		Write-Host "Labels already up-to-date."
+		Write-Host "Pull request #$($context.Id): labels already up-to-date."
 	}
 }

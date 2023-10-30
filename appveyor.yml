@@ -32,9 +32,11 @@ before_build:
         Owner = ($env:APPVEYOR_REPO_NAME -Split '/')[0]
         Repository = ($env:APPVEYOR_REPO_NAME -Split '/')[1]
         SecretToken = $env:github_access_token
-      } 
-      $context.Id = $context | Get-Commit-Associated-Pull-Requests 
-      $context | Set-Pull-Request-Expected-Labels -Config '.github\conventional_commits_labels.json'
+      }
+      foreach($id in ($context | Get-Commit-Associated-Pull-Requests)) {
+        $context.Id = $id
+        $context | Set-Pull-Request-Expected-Labels -Config '.github\conventional_commits_labels.json'
+      }
     } else {
         Write-Host 'Not a merge on main built on appveyor. Skipping mapping conventional commits and labels.'
     }
