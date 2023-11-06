@@ -11,6 +11,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     internal class TeradataRewriter : ConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "Teradata";
         internal const string SERVER_KEYWORD = "Data Source";
         internal const string PORT_KEYWORD = "Port Number";
         internal const string DATABASE_KEYWORD = "Database";
@@ -55,7 +56,7 @@ namespace DubUrl.Rewriting.Implementation
                 else if (urlInfo.Segments.Length == 1)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
                 else
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
 

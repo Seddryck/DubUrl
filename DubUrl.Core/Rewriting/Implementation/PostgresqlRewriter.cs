@@ -11,6 +11,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     internal class PostgresqlRewriter : ConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "Postgresql";
         protected internal const string SERVER_KEYWORD = "Host";
         protected internal const string PORT_KEYWORD = "Port";
         protected internal const string DATABASE_KEYWORD = "Database";
@@ -68,10 +69,12 @@ namespace DubUrl.Rewriting.Implementation
         {
             public override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
+                if (urlInfo.Segments==null || !urlInfo.Segments.Any())
+                    throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
+                else if (urlInfo.Segments.Length == 1)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
                 else
-                    throw new ArgumentOutOfRangeException($"Expecting a single segment in the connectionUrl but found {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments.ToArray())}'");
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
     }

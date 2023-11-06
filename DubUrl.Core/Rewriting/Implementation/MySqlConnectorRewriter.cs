@@ -11,6 +11,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     internal class MySqlConnectorRewriter : ConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "MySQL";
         protected internal const string SERVER_KEYWORD = "Server";
         protected internal const string PORT_KEYWORD = "Port";
         protected internal const string DATABASE_KEYWORD = "Database";
@@ -59,12 +60,12 @@ namespace DubUrl.Rewriting.Implementation
         {
             public override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
+                if (urlInfo.Segments==null || !urlInfo.Segments.Any())
+                    throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
+                else if (urlInfo.Segments.Length == 1)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
                 else if (urlInfo.Segments.Length > 1)
-                    throw new ArgumentOutOfRangeException(nameof(urlInfo), $"The connection-url contains more than one segment '{string.Join("', '", urlInfo.Segments)}'. For MySQL, exactly one segment is expected.");
-                else
-                    throw new ArgumentOutOfRangeException(nameof(urlInfo), $"The connection-url contains no segment. For MySQL, exactly one segment is expected.");
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
     }

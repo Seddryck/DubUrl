@@ -11,6 +11,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     internal class OracleManagedDataAccessRewriter : ConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "Oracle Managed Data Access";
         protected internal const string DATASOURCE_KEYWORD = "DATA SOURCE";
         protected internal const string SERVER_KEYWORD = "HOST";
         protected internal const string PORT_KEYWORD = "PORT";
@@ -61,7 +62,7 @@ namespace DubUrl.Rewriting.Implementation
                         $"({SERVER_KEYWORD}={urlInfo.Host})({PORT_KEYWORD}={(urlInfo.Port > 0 ? urlInfo.Port : 1521)}))(CONNECT_DATA=" +
                         $"({DATABASE_KEYWORD}={urlInfo.Segments.First()})))");
                 else
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
     }

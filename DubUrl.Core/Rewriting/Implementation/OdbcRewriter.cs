@@ -14,6 +14,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "ODBC";
         protected internal const string SERVER_KEYWORD = "Server";
         protected internal const string DATABASE_KEYWORD = "Database";
         protected internal const string USERNAME_KEYWORD = "Uid";
@@ -39,7 +40,7 @@ namespace DubUrl.Rewriting.Implementation
 
         internal DriverLocatorFactory DriverLocatorFactory
             => (TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
-                ?? throw new ArgumentNullException();
+                ?? throw new NullReferenceException();
 
         protected internal class HostMapper : BaseTokenMapper
         {
@@ -99,8 +100,7 @@ namespace DubUrl.Rewriting.Implementation
                     }
                     else
                     {
-                        if (AvailableOptions == null)
-                            AvailableOptions = InitializeOptions();
+                        AvailableOptions ??= InitializeOptions();
                         var options = new Dictionary<Type, object>();
                         foreach (var scheme in remainingSchemes)
                         {
@@ -108,7 +108,7 @@ namespace DubUrl.Rewriting.Implementation
                             foreach (var remainingOption in remainingOptions)
                             {
                                 if (Enum.TryParse(remainingOption, scheme, out var value))
-                                    options.Add(remainingOption, value ?? throw new ArgumentNullException());
+                                    options.Add(remainingOption, value ?? throw new InvalidConnectionUrlException($"Connection Url for ODBC is specifying an unexpected value 'null' for option '{remainingOption.Name}'"));
                             }
                         }
                         var driverLocator = DriverLocatorFactory.Instantiate(secondScheme, options);
@@ -147,7 +147,7 @@ namespace DubUrl.Rewriting.Implementation
                 if (urlInfo.Segments.Length <= 2)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
                 else
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
 
@@ -161,7 +161,7 @@ namespace DubUrl.Rewriting.Implementation
                     {
                         if (!option.Value.StartsWith("{") || !option.Value.EndsWith("}"))
                             if (option.Value.StartsWith("{") ^ option.Value.EndsWith("}"))
-                                throw new ArgumentOutOfRangeException($"The value of the option '{DRIVER_KEYWORD}' must start with a '{{' and end with '}}' or both should be missing. The value was '{option.Value}'");
+                                throw new InvalidConnectionUrlException($"The value of the option '{DRIVER_KEYWORD}' must start with a '{{' and end with '}}' or both should be missing. The value was '{option.Value}'");
                             else
                                 Specificator.Execute(option.Key, $"{{{option.Value}}}");
                         else

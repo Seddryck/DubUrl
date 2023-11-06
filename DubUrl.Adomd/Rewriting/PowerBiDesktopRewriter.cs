@@ -58,7 +58,7 @@ namespace DubUrl.Adomd.Rewriting
             {
                 var pbiName = segments.Length == 1
                                 ? segments[0]
-                                : throw new InvalidConnectionUrlException("A single segment is expected when using a Power BI Desktop connection-url");
+                                : throw new InvalidConnectionUrlTooManySegmentsException("Power BI Desktop");
 
                 var processes = Discoverer.GetPowerBiProcesses();
                 if (processes.Any(x => x.Name == pbiName))
