@@ -51,7 +51,7 @@ namespace DubUrl.Rewriting.Implementation
             private static string BuildPath(IEnumerable<string> segments)
             {
                 if (segments == null || !segments.Any())
-                    throw new ArgumentException();
+                    throw new InvalidConnectionUrlMissingSegmentsException("ODBC DBQ");
 
                 var path = new StringBuilder();
                 foreach (var segment in segments)
@@ -72,7 +72,6 @@ namespace DubUrl.Rewriting.Implementation
 
             public override void Execute(UrlInfo urlInfo)
             {
-
                 if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
                 {
                     var otherSchemes = urlInfo.Schemes.Where(x => x != "odbc");
@@ -112,7 +111,7 @@ namespace DubUrl.Rewriting.Implementation
                             foreach (var remainingOption in remainingOptions)
                             {
                                 if (Enum.TryParse(remainingOption, scheme, out var value))
-                                    options.Add(remainingOption, value ?? throw new ArgumentNullException());
+                                    options.Add(remainingOption, value ?? throw new InvalidConnectionUrlException($"Connection Url for ODBC DBQ is specifying an unexpected value 'null' for option '{remainingOption.Name}'"));
                             }
                         }
                         var driverLocator = DriverLocatorFactory.Instantiate(secondScheme, options);

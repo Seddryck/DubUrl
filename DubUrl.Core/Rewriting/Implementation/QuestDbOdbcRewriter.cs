@@ -47,7 +47,7 @@ namespace DubUrl.Rewriting.Implementation
             public override void Execute(UrlInfo urlInfo)
             {
                 if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
-                    throw new ArgumentOutOfRangeException($"Username and Password are mandatory for QuestDb.");
+                    throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");
 
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
                 Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);

@@ -45,9 +45,9 @@ namespace DubUrl.Rewriting.Implementation
                     if (urlInfo.Segments[0] == DEFAULT_DATABASE || urlInfo.Segments[0] == string.Empty)
                         Specificator.Execute(DATABASE_KEYWORD, DEFAULT_DATABASE);
                     else
-                        throw new ArgumentOutOfRangeException($"One a segment is provided in the connectionUrl it must be '{DEFAULT_DATABASE}'. The segment was '{urlInfo.Segments[0]}'");
+                        throw new InvalidConnectionUrlException($"One a segment is provided in the connectionUrl it must be '{DEFAULT_DATABASE}'. The segment was '{urlInfo.Segments[0]}'");
                 else
-                    throw new ArgumentOutOfRangeException($"QuestDb is expecting a maximum of 1 segment and it should be '{DEFAULT_DATABASE}'. The connectionUrl has {urlInfo.Segments.Length} segments: '{string.Join(", ", urlInfo.Segments)}'");
+                    throw new InvalidConnectionUrlException($"QuestDb is expecting a maximum of 1 segment and it should be '{DEFAULT_DATABASE}'. The connectionUrl has {urlInfo.Segments.Length} segments: '{string.Join(", ", urlInfo.Segments)}'");
             }
         }
 
@@ -56,7 +56,7 @@ namespace DubUrl.Rewriting.Implementation
             public override void Execute(UrlInfo urlInfo)
             {
                 if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
-                    throw new ArgumentOutOfRangeException($"Username and Password are mandatory for QuestDb.");
+                    throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");
              
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
                 Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
@@ -69,15 +69,16 @@ namespace DubUrl.Rewriting.Implementation
             {
                 var unexpected = urlInfo.Options.Keys.Except(new[] { STATEMENT_TIMEOUT, COMMAND_TIMEOUT, SERVER_COMPATIBILITY_MODE });
                 if (unexpected.Any())
-                    throw new ArgumentOutOfRangeException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' (or its alias '{COMMAND_TIMEOUT}') and also an option named '{SERVER_COMPATIBILITY_MODE}'. The options '{string.Join("', '", unexpected)}' are not supported.");
+                    throw new InvalidConnectionUrlException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' (or its alias '{COMMAND_TIMEOUT}') and also an option named '{SERVER_COMPATIBILITY_MODE}'. The options '{string.Join("', '", unexpected)}' are not supported.");
                 else if (urlInfo.Options.ContainsKey(STATEMENT_TIMEOUT) && urlInfo.Options.ContainsKey(COMMAND_TIMEOUT))
-                    throw new ArgumentOutOfRangeException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' or its alias '{COMMAND_TIMEOUT}' and also an option named '{SERVER_COMPATIBILITY_MODE}'. You cannot specify both of '{COMMAND_TIMEOUT}' and '{STATEMENT_TIMEOUT}'.");
+                    throw new InvalidConnectionUrlException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' or its alias '{COMMAND_TIMEOUT}' and also an option named '{SERVER_COMPATIBILITY_MODE}'. You cannot specify both of '{COMMAND_TIMEOUT}' and '{STATEMENT_TIMEOUT}'.");
                 else
                 {
                     if (!urlInfo.Options.ContainsKey(SERVER_COMPATIBILITY_MODE))
                         urlInfo.Options.Add(SERVER_COMPATIBILITY_MODE, NO_TYPE_LOADING);
                     else if (urlInfo.Options[SERVER_COMPATIBILITY_MODE] != NO_TYPE_LOADING)
-                        throw new ArgumentOutOfRangeException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{urlInfo.Options[SERVER_COMPATIBILITY_MODE]}' is not supported.");
+                        throw new InvalidConnectionUrlException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{urlInfo.Options[SERVER_COMPATIBILITY_MODE]}' is not supported.");
+                    
                     if (urlInfo.Options.TryGetValue(STATEMENT_TIMEOUT, out string? timeout))
                     {
                         urlInfo.Options.Add(COMMAND_TIMEOUT, timeout);

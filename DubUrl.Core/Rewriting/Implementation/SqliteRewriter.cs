@@ -42,7 +42,7 @@ namespace DubUrl.Rewriting.Implementation
             private static string BuildPath(IEnumerable<string> segments)
             {
                 if (segments == null || !segments.Any())
-                    throw new ArgumentException();
+                    throw new InvalidConnectionUrlMissingSegmentsException("Sqlite");
 
                 var path = new StringBuilder();
                 foreach (var segment in segments)

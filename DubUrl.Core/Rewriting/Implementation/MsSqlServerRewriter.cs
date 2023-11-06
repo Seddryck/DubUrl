@@ -66,7 +66,7 @@ namespace DubUrl.Rewriting.Implementation
                 if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Length <= 2)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
                 else
-                    throw new ArgumentOutOfRangeException($"Expecting one or two segments in the connectionUrl but was {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments.ToArray())}'");
+                    throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments.ToArray())}'");
             }
         }
     }

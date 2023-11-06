@@ -15,8 +15,8 @@ namespace DubUrl.Adomd.Rewriting
 {
     internal class PowerBiDesktopRewriter : ConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "Power BI Desktop";
         protected internal const string SERVER_KEYWORD = "Data Source";
-
         protected internal const string DEFAULT_LOCALHOST = "localhost";
         protected internal static readonly string[] VALID_HOSTS =
             new[] { "127.0.0.1", ".", string.Empty, DEFAULT_LOCALHOST };
@@ -56,9 +56,12 @@ namespace DubUrl.Adomd.Rewriting
 
             public int GetPortFromSegments(string[] segments)
             {
+                if(segments==null || !segments.Any())
+                    throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
+
                 var pbiName = segments.Length == 1
                                 ? segments[0]
-                                : throw new ArgumentOutOfRangeException(nameof(segments));
+                                : throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, segments);
 
                 var processes = Discoverer.GetPowerBiProcesses();
                 if (processes.Any(x => x.Name == pbiName))

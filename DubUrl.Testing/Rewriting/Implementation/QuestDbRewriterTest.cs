@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System.Data.Common;
 using Npgsql;
 using DubUrl.Rewriting.Implementation;
+using DubUrl.Rewriting;
 
 namespace DubUrl.Testing.Rewriting.Implementation
 {
@@ -62,7 +63,7 @@ namespace DubUrl.Testing.Rewriting.Implementation
         {
             var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
             var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => Rewriter.Execute(urlInfo));
+            var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
         }
 
         [Test]
@@ -87,7 +88,7 @@ namespace DubUrl.Testing.Rewriting.Implementation
         {
             var urlInfo = new UrlInfo() { Username = username, Password = password };
             var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => Rewriter.Execute(urlInfo));
+            var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
         }
 
         [Test]
@@ -140,7 +141,7 @@ namespace DubUrl.Testing.Rewriting.Implementation
             urlInfo.Options.Add("ServerCompatibilityMode", "ANY VALUE");
 
             var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => Rewriter.Execute(urlInfo));
+            var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
         }
 
         [Test]
@@ -150,7 +151,7 @@ namespace DubUrl.Testing.Rewriting.Implementation
             urlInfo.Options.Add("any_other_option", "value");
 
             var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => Rewriter.Execute(urlInfo));
+            var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
         }
     }
 }

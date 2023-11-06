@@ -34,7 +34,7 @@ namespace DubUrl.Rewriting.Implementation
                     if (!urlInfo.Segments.Any())
                         segments.Add(":memory:");
                     else
-                        throw new ArgumentOutOfRangeException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments.ToArray())}'");
+                        throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments.ToArray())}'");
                 }
                 else if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
                     segments = urlInfo.Segments.Skip(1).ToList();
@@ -52,7 +52,7 @@ namespace DubUrl.Rewriting.Implementation
             private static string BuildPath(IEnumerable<string> segments)
             {
                 if (segments == null || !segments.Any())
-                    throw new ArgumentException();
+                    throw new InvalidConnectionUrlMissingSegmentsException("DuckDB");
 
                 var path = new StringBuilder();
                 foreach (var segment in segments)
