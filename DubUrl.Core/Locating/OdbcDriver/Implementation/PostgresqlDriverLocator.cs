@@ -29,7 +29,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
 
         private record struct CandidateInfo(string Driver, EncodingOption Encoding, ArchitectureOption Architecture);
 
-        private readonly List<CandidateInfo> Candidates = new();
+        private List<CandidateInfo> Candidates { get; } = new();
         internal EncodingOption Encoding { get; }
         internal ArchitectureOption Architecture { get; }
 
