@@ -46,10 +46,10 @@ namespace DubUrl.OleDb
 
         public ProviderSpecializationAttribute(Type P, string[] aliases)
             : base(
-                P.GetCustomAttribute<ProviderAttribute>()?.RegexPattern ?? throw new ArgumentException()
-                , P.GetCustomAttribute<ProviderAttribute>()?.Options ?? throw new ArgumentException()
-                , P.GetCustomAttribute<ProviderAttribute>()?.Mapper ?? throw new ArgumentException()
-                , P.GetCustomAttribute<ProviderAttribute>()?.Database ?? throw new ArgumentException()
+                P.GetCustomAttribute<ProviderAttribute>()?.RegexPattern ?? throw new NullReferenceException($"Missing attribute 'Provider' for type '{P.Name}'.")
+                , P.GetCustomAttribute<ProviderAttribute>()?.Options ?? throw new NullReferenceException($"Missing attribute 'Provider' for type '{P.Name}'.")
+                , P.GetCustomAttribute<ProviderAttribute>()?.Mapper ?? throw new NullReferenceException($"Missing attribute 'Provider' for type '{P.Name}'.")
+                , P.GetCustomAttribute<ProviderAttribute>()?.Database ?? throw new NullReferenceException($"Missing attribute 'Provider' for type '{P.Name}'.")
             )
         { Aliases = aliases; }
     }

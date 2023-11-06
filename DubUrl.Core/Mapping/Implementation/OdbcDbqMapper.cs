@@ -19,9 +19,6 @@ namespace DubUrl.Mapping.Implementation
     internal class OdbcDbqMapper : BaseMapper, IOdbcMapper
     { 
         public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : this(csb, dialect, parametrizer, new DriverLocatorFactory()) { }
-
-        public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
             : base(new OdbcDbqRewriter(csb),
                   dialect,
                   parametrizer

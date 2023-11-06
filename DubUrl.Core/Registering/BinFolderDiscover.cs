@@ -17,10 +17,10 @@ namespace DubUrl.Registering
         private BaseMapperIntrospector[] MapperIntrospectors { get; }
 
         public BinFolderDiscover()
-            : this(new[] { Assembly.GetEntryAssembly() ?? throw new ArgumentNullException() }) { }
+            : this(new[] { Assembly.GetEntryAssembly() ?? throw new InvalidOperationException() }) { }
 
         internal BinFolderDiscover(BaseMapperIntrospector[] mapperIntrospectors)
-            : this(new[] { Assembly.GetEntryAssembly() ?? throw new ArgumentNullException() } , mapperIntrospectors) { }
+            : this(new[] { Assembly.GetEntryAssembly() ?? throw new InvalidOperationException() } , mapperIntrospectors) { }
 
         public BinFolderDiscover(Assembly[] assemblies)
             : this(assemblies, new BaseMapperIntrospector[] 

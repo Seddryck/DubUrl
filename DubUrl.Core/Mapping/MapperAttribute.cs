@@ -10,7 +10,7 @@ namespace DubUrl.Mapping
 {
     
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class MapperAttribute<T, P> : MapperAttribute where T : IDatabase where P : IParametrizer
+    public sealed class MapperAttribute<T, P> : MapperAttribute where T : IDatabase where P : IParametrizer
     {
         public MapperAttribute(string providerInvariantName)
             : base(

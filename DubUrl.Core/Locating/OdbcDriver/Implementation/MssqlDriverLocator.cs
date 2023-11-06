@@ -28,7 +28,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
             { }
         }
 
-        private readonly Dictionary<string, int> Candidates = new();
+        private Dictionary<string, int> Candidates { get; } = new();
         public MssqlDriverLocator()
             : base(GetRegexPattern<MssqlDriverLocator>()) { }
         internal MssqlDriverLocator(DriverLister driverLister)

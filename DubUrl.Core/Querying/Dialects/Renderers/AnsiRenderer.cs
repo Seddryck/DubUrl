@@ -26,7 +26,7 @@ namespace DubUrl.Querying.Dialects.Renderers
                 return obj?.ToString() ?? "<empty>";
 
             if (format.ToLowerInvariant() == "identity")
-                return Identity.Format(obj ?? throw new ArgumentNullException());
+                return Identity.Format(obj ?? throw new ArgumentNullException(nameof(obj)));
 
             if (format.ToLowerInvariant() == "value")
             {
@@ -35,10 +35,10 @@ namespace DubUrl.Querying.Dialects.Renderers
                 if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
                     return formatter.Format(obj);
                 else
-                    throw new ArgumentException();
+                    throw new ArgumentException($"No value formatter was found for the type '{obj.GetType().Name}'", nameof(format));
             }
             else
-                throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.");
+                throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.", nameof(format));
         }
     }
 }

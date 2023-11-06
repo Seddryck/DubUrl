@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class WrapperConnectivityAttribute : Attribute
     {
         public virtual string ConnectivityName { get; protected set; } = string.Empty;

@@ -18,7 +18,7 @@ namespace DubUrl.Adomd.Rewriting
         protected internal const string SERVER_KEYWORD = "Data Source";
 
         protected internal const string DEFAULT_LOCALHOST = "localhost";
-        protected internal readonly static string[] VALID_HOSTS =
+        protected internal static readonly string[] VALID_HOSTS =
             new[] { "127.0.0.1", ".", string.Empty, DEFAULT_LOCALHOST };
 
         public PowerBiDesktopRewriter(DbConnectionStringBuilder csb)

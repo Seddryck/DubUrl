@@ -9,10 +9,10 @@ namespace DubUrl.Querying.Parametrizing
 {
     public class ParametrizerFactory
     {
-        public IParametrizer Instantiate(Type ParametrizerType)
+        public static IParametrizer Instantiate(Type ParametrizerType)
             => (IParametrizer)Activator.CreateInstance(ParametrizerType)!;
 
-        public IParametrizer Instantiate<T>() where T : IParametrizer
+        public static IParametrizer Instantiate<T>() where T : IParametrizer
             => Instantiate(typeof(T));
     }
 }

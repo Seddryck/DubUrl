@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class ReturnCasterAttribute : Attribute
     {
         public virtual Type CasterType { get; protected set; }
@@ -18,7 +19,7 @@ namespace DubUrl.Querying.Dialects.Casters
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
-    sealed public class ReturnCasterAttribute<R> : ReturnCasterAttribute where R : ICaster
+    public sealed class ReturnCasterAttribute<R> : ReturnCasterAttribute where R : ICaster
     {
         public ReturnCasterAttribute()
             : base(typeof(R))

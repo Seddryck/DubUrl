@@ -24,7 +24,7 @@ namespace DubUrl.Locating.OdbcDriver
                 })
             { }
         }
-        private readonly List<string> Candidates = new();
+        private List<string> Candidates { get; } = new();
 
         public TextDriverLocator()
             : base(GetRegexPattern<TextDriverLocator>()) { }
