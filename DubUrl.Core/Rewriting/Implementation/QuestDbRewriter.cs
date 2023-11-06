@@ -78,9 +78,9 @@ namespace DubUrl.Rewriting.Implementation
                         urlInfo.Options.Add(SERVER_COMPATIBILITY_MODE, NO_TYPE_LOADING);
                     else if (urlInfo.Options[SERVER_COMPATIBILITY_MODE] != NO_TYPE_LOADING)
                         throw new ArgumentOutOfRangeException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{urlInfo.Options[SERVER_COMPATIBILITY_MODE]}' is not supported.");
-                    if (urlInfo.Options.ContainsKey(STATEMENT_TIMEOUT))
+                    if (urlInfo.Options.TryGetValue(STATEMENT_TIMEOUT, out string? timeout))
                     {
-                        urlInfo.Options.Add(COMMAND_TIMEOUT, urlInfo.Options[STATEMENT_TIMEOUT]);
+                        urlInfo.Options.Add(COMMAND_TIMEOUT, timeout);
                         urlInfo.Options.Remove(STATEMENT_TIMEOUT);
                     } 
                     base.Execute(urlInfo);

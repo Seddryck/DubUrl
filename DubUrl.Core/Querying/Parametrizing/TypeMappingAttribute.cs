@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Parametrizing
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class TypeMappingAttribute : Attribute
     {
         public DbType DbType { get; }

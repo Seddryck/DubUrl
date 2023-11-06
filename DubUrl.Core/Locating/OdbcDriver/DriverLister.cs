@@ -15,16 +15,14 @@ namespace DubUrl.Locating.OdbcDriver
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var drivers = new List<string>();
-#pragma warning disable CA1416 // Validate platform compatibility
                 drivers.AddRange(ListFromRegistry(Registry.LocalMachine));
                 drivers.AddRange(ListFromRegistry(Registry.CurrentUser));
-#pragma warning restore CA1416 // Validate platform compatibility
                 return drivers.ToArray();
             }
             return Array.Empty<string>();
         }
 
-        private List<string> ListFromRegistry(RegistryKey registryKey)
+        private static List<string> ListFromRegistry(RegistryKey registryKey)
         {
 #pragma warning disable CA1416 // Validate platform compatibility
             var drivers = new List<string>();

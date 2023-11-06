@@ -17,10 +17,10 @@ namespace DubUrl.Locating
         public void AddAlias(string alias, string original)
         {
             if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
+                throw new ArgumentException($"There is already a scheme registered with the alias '{alias}'. You cannot add a second scheme with the same alias.", nameof(alias));
 
             if (!Schemes.ContainsKey(original))
-                throw new ArgumentException();
+                throw new ArgumentException($"There is no scheme registered with the alias '{original}'. You cannot add an alias if the scheme is not already registered.", nameof(original));
 
             Schemes.Add(alias, Schemes[original]);
         }
@@ -28,7 +28,7 @@ namespace DubUrl.Locating
         protected void AddElement(string alias, Type locator)
         {
             if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
+                throw new ArgumentException($"There is already a locator registered for the alias '{alias}'. You cannot register two locators with the same alias", nameof(alias));
 
             Schemes.Add(alias, locator);
         }

@@ -18,7 +18,7 @@ namespace DubUrl.Adomd.Rewriting
         protected internal const string SERVER_KEYWORD = "Data Source";
 
         protected internal const string DEFAULT_LOCALHOST = "localhost";
-        protected internal readonly static string[] VALID_HOSTS =
+        protected internal static readonly string[] VALID_HOSTS =
             new[] { "127.0.0.1", ".", string.Empty, DEFAULT_LOCALHOST };
 
         public PowerBiDesktopRewriter(DbConnectionStringBuilder csb)
@@ -58,7 +58,7 @@ namespace DubUrl.Adomd.Rewriting
             {
                 var pbiName = segments.Length == 1
                                 ? segments[0]
-                                : throw new InvalidConnectionUrlException("A single segment is expected when using a Power BI Desktop connection-url");
+                                : throw new ArgumentOutOfRangeException(nameof(segments));
 
                 var processes = Discoverer.GetPowerBiProcesses();
                 if (processes.Any(x => x.Name == pbiName))

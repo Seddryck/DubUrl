@@ -25,13 +25,14 @@ namespace DubUrl.Adomd.Discovery
                     if (UnmanagedTcpDiscoverer.GetExtendedTcpTable(tcpTable, ref tcpTableLength, true, UnmanagedTcpDiscoverer.AfInet, UnmanagedTcpDiscoverer.TcpTableType.OwnerPidAll, 0) == 0)
                     {
                         var table = (UnmanagedTcpDiscoverer.TcpTable)(Marshal.PtrToStructure(tcpTable, typeof(UnmanagedTcpDiscoverer.TcpTable)) ?? throw new NullReferenceException());
-
+#pragma warning disable CA2020
                         var rowPtr = (IntPtr)((long)tcpTable + Marshal.SizeOf(table.length));
                         for (int i = 0; i < table.length; ++i)
                         {
                             tcpRows.Add(new TcpRow((UnmanagedTcpDiscoverer.TcpRow)(Marshal.PtrToStructure(rowPtr, typeof(UnmanagedTcpDiscoverer.TcpRow)) ?? throw new NullReferenceException())));
                             rowPtr = (IntPtr)((long)rowPtr + Marshal.SizeOf(typeof(UnmanagedTcpDiscoverer.TcpRow)));
                         }
+#pragma warning restore CA2020
                     }
                 }
                 finally
@@ -58,12 +59,13 @@ namespace DubUrl.Adomd.Discovery
                     tcpTable = Marshal.AllocHGlobal(tcpTableLength);
                     if (UnmanagedTcpDiscoverer.GetExtendedTcpTable(tcpTable, ref tcpTableLength, true, UnmanagedTcpDiscoverer.AfInet, UnmanagedTcpDiscoverer.TcpTableType.OwnerPidAll, 0) == 0)
                     {
-                        UnmanagedTcpDiscoverer.TcpTable table = (UnmanagedTcpDiscoverer.TcpTable)(Marshal.PtrToStructure(tcpTable, typeof(UnmanagedTcpDiscoverer.TcpTable)) ?? throw new NullReferenceException());
-
+                        var table = (UnmanagedTcpDiscoverer.TcpTable)(Marshal.PtrToStructure(tcpTable, typeof(UnmanagedTcpDiscoverer.TcpTable)) ?? throw new NullReferenceException());
+#pragma warning disable CA2020
                         var rowPtr = (IntPtr)((long)tcpTable + Marshal.SizeOf(table.length));
+#pragma warning restore CA2020
                         for (int i = 0; i < table.length; ++i)
                         {
-                            TcpRow row = new TcpRow((UnmanagedTcpDiscoverer.TcpRow)(Marshal.PtrToStructure(rowPtr, typeof(UnmanagedTcpDiscoverer.TcpRow)) ?? throw new NullReferenceException()));
+                            var row = new TcpRow((UnmanagedTcpDiscoverer.TcpRow)(Marshal.PtrToStructure(rowPtr, typeof(UnmanagedTcpDiscoverer.TcpRow)) ?? throw new NullReferenceException()));
                             // HACK: only add first row that is in a Listening state
                             if (row.State == TcpState.Listen)
                             {

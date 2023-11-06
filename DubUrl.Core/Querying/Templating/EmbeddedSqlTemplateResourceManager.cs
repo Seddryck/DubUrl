@@ -75,7 +75,8 @@ namespace DubUrl.Querying.Templating
         }
 
         protected virtual TextReader GetResourceReader(string resourceName)
-            => new StreamReader(ResouceAssembly.GetManifestResourceStream(resourceName) ?? throw new ArgumentException());
+            => new StreamReader(ResouceAssembly.GetManifestResourceStream(resourceName)
+                ?? throw new FileNotFoundException(resourceName));
 
         protected virtual (string?, object?) ParseDictionaryEntry(string? entry)
         {
@@ -91,14 +92,14 @@ namespace DubUrl.Querying.Templating
             var rawValue = entry[(separator+1)..].Trim();
             if (rawValue[0] == '\"' && rawValue[^1] == '\"')
                 return (key, rawValue.Trim('\"'));
-            else if (rawValue.All(c => char.IsDigit(c)))
+            else if (rawValue.All(char.IsDigit))
                 return (key, int.Parse(rawValue));
             else if (rawValue.All(c => char.IsDigit(c) || c == '.'))
                 return (key, decimal.Parse(rawValue));
             else if (rawValue.Equals("true", StringComparison.InvariantCultureIgnoreCase) || rawValue.Equals("false", StringComparison.InvariantCultureIgnoreCase))
                 return (key, bool.Parse(rawValue));
             else
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(entry));
         }
     }
 }

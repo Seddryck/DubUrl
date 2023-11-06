@@ -15,7 +15,7 @@ namespace DubUrl.Testing.Querying.Templating
         public void Render_WithoutSubTemplate_Correct()
         {
             var engine = new StringTemplateEngine();
-            var response = engine.Render("Hello $name$!", new Dictionary<string, object?>() { { "name", "Cédric" } });
+            var response = engine.Render("Hello $name$!", new Dictionary<string, string>(), new Dictionary<string, object?>() { { "name", "Cédric" } }, null);
             Assert.That(response, Is.EqualTo("Hello Cédric!"));
         }
 

@@ -28,7 +28,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
             { }
         }
 
-        private readonly Dictionary<string, decimal> Candidates = new();
+        private Dictionary<string, decimal> Candidates { get; } = new();
         internal EncodingOption Encoding { get; }
 
         public MariaDbDriverLocator()

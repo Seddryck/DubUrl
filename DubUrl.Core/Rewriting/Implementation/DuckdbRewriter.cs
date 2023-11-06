@@ -49,9 +49,9 @@ namespace DubUrl.Rewriting.Implementation
                 Specificator.Execute(DATABASE_KEYWORD, BuildPath(segments));
             }
 
-            private string BuildPath(IEnumerable<string> segments)
+            private static string BuildPath(IEnumerable<string> segments)
             {
-                if (segments == null || segments.Count() == 0)
+                if (segments == null || !segments.Any())
                     throw new ArgumentException();
 
                 var path = new StringBuilder();
