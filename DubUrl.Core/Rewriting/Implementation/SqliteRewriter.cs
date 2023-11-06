@@ -41,7 +41,7 @@ namespace DubUrl.Rewriting.Implementation
 
             private string BuildPath(IEnumerable<string> segments)
             {
-                if (segments == null || segments.Count() == 0)
+                if (segments == null || !segments.Any())
                     throw new ArgumentException();
 
                 var path = new StringBuilder();
