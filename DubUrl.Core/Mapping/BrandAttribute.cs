@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class BrandAttribute : Attribute
     {
         public const string DefaultMainColor = "#333333";

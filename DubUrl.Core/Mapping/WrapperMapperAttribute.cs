@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class WrapperMapperAttribute<T, P> : WrapperMapperAttribute
+    public sealed class WrapperMapperAttribute<T, P> : WrapperMapperAttribute
         where T : IWrapperConnectivity
         where P : IParametrizer
     {
