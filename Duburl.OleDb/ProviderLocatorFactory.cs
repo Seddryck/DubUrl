@@ -39,7 +39,7 @@ namespace DubUrl.OleDb
         public virtual IProviderLocator Instantiate(string scheme, IDictionary<Type, object> options)
         {
             if (!Schemes.ContainsKey(scheme))
-                throw new ArgumentException();
+                throw new ArgumentException($"No ProviderLocator registered with the alias '{scheme}'.", nameof(scheme));
 
             var providerLocatorType = Schemes[scheme];
             var ctors = providerLocatorType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
