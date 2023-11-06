@@ -24,8 +24,8 @@ namespace DubUrl.Querying.Dialects
             if (DialectAliases.Values.Any(x => x.Any(d => aliases.Contains(d))))
                 return;
 
-            if (DialectAliases.ContainsKey(dialectType))
-                DialectAliases[dialectType].AddRange(aliases);
+            if (DialectAliases.TryGetValue(dialectType, out var existingAliases))
+                existingAliases.AddRange(aliases);
             else
                 DialectAliases.Add(dialectType, aliases.ToList());
         }
