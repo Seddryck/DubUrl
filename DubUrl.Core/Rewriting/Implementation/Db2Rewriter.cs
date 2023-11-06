@@ -12,6 +12,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     internal class Db2Rewriter : ConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "DB2";
         internal const string SERVER_KEYWORD = "Server";
         internal const string DATABASE_KEYWORD = "Database";
         internal const string USERNAME_KEYWORD = "User ID";
@@ -42,10 +43,12 @@ namespace DubUrl.Rewriting.Implementation
         {
             public override void Execute(UrlInfo urlInfo)
             {
-                if (urlInfo.Segments.Length == 1)
+                if (urlInfo.Segments == null || !urlInfo.Segments.Any())
+                    throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
+                else if (urlInfo.Segments.Length == 1)
                     Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
                 else
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
 

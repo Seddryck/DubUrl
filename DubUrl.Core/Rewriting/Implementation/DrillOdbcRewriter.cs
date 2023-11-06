@@ -1,5 +1,7 @@
 ﻿using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.Options;
+using DubUrl.Mapping;
+using DubUrl.Mapping.Database;
 using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
@@ -15,6 +17,7 @@ namespace DubUrl.Rewriting.Implementation
 {
     public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     {
+        private const string EXCEPTION_DATABASE_NAME = "ODBC for Apache Drill";
         protected internal const string PORT_KEYWORD = "Port";
         protected internal const string SCHEMA_KEYWORD = "Schema";
         protected internal const string AUTHENTICATION_KEYWORD = "AuthenticationType";
@@ -80,7 +83,7 @@ namespace DubUrl.Rewriting.Implementation
                 if (urlInfo.Segments.Length == 1 || (urlInfo.Segments.Length == 2 && urlInfo.Segments.First() == "DRILL"))
                     Specificator.Execute(SCHEMA_KEYWORD, urlInfo.Segments.Last());
                 else if (urlInfo.Segments.Length > 1)
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
             }
         }
 

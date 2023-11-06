@@ -39,10 +39,10 @@ namespace DubUrl.Rewriting.Implementation
                 Specificator.Execute(DATABASE_KEYWORD, BuildPath(segments));
             }
 
-            private string BuildPath(IEnumerable<string> segments)
+            private static string BuildPath(IEnumerable<string> segments)
             {
-                if (segments == null || segments.Count() == 0)
-                    throw new ArgumentException();
+                if (segments == null || !segments.Any())
+                    throw new InvalidConnectionUrlMissingSegmentsException("Sqlite");
 
                 var path = new StringBuilder();
                 foreach (var segment in segments)

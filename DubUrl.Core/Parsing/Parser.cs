@@ -1,4 +1,5 @@
 ﻿using DubUrl.Mapping;
+using DubUrl.Rewriting;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -52,7 +53,7 @@ namespace DubUrl.Parsing
                     if (key != null)
                     {
                         if (options.ContainsKey(key))
-                            throw new ArgumentException();
+                            throw new InvalidConnectionUrlException("The query string cannot contains twice the same keyword.");
                         var value = nameValues[key];
                         if (value != null)
                             options.Add(key, value);
