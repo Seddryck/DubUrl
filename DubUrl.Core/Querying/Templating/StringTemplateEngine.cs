@@ -11,14 +11,8 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Templating
 {
-    public class StringTemplateEngine
+    public class StringTemplateEngine : IRenderingEngine
     {
-        public string Render(string source, IDictionary<string, object?> parameters)
-            => Render(source, new Dictionary<string, string>(), new Dictionary<string, IDictionary<string, object?>>(), parameters, null);
-
-        public string Render(string source, IDictionary<string, object?> parameters, IRenderer? renderer)
-            => Render(source, new Dictionary<string, string>(), new Dictionary<string, IDictionary<string, object?>>(), parameters, renderer);
-
         public string Render(string source, IDictionary<string, string> subTemplates, IDictionary<string, object?> parameters, IRenderer? renderer)
             => Render(source, subTemplates, new Dictionary<string, IDictionary<string, object?>>(), parameters, renderer);
 
