@@ -72,7 +72,6 @@ namespace DubUrl.Rewriting.Implementation
 
             public override void Execute(UrlInfo urlInfo)
             {
-
                 if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
                 {
                     var otherSchemes = urlInfo.Schemes.Where(x => x != "odbc");

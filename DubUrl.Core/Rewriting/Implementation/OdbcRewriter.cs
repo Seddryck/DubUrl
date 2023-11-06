@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace DubUrl.Rewriting.Implementation
 {
     public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewriter
@@ -68,7 +67,6 @@ namespace DubUrl.Rewriting.Implementation
 
             public override void Execute(UrlInfo urlInfo)
             {
-
                 if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
                 {
                     var otherSchemes = urlInfo.Schemes.Where(x => x != "odbc");
