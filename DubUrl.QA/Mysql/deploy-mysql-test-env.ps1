@@ -1,6 +1,6 @@
 Param(
 	[switch] $force=$false
-	, [string] $databaseService= "MySQL57"
+	, [string] $databaseService= "MySQL80"
 	, [string[]] $odbcDrivers = @("MariaDB", "MySQL")
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net6.0", "net7.0")
@@ -19,6 +19,7 @@ if (-not (Test-Path -Path $mySqlPath)) {
 	$mySqlPath = $mySqlPath -replace "C:", "E:"
 	If (-not (Test-Path -Path $mySqlPath)) {
 		$mySqlPath = $mySqlPath -replace "E:", "C:"
+		Write-Warning "MySQL installation folder '$mySqlPath' doesn't exist'"
 	}
 }
 Write-Host "Using '$mySqlPath' as MySQL installation folder"
