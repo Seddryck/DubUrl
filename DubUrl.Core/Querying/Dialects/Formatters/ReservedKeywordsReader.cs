@@ -33,7 +33,7 @@ namespace DubUrl.Querying.Dialects.Formatters
             }
         }
 
-        protected internal IEnumerable<string> ReadAll(Stream stream)
+        protected internal static IEnumerable<string> ReadAll(Stream stream)
         {
             using var reader = new StreamReader(stream);
             while (reader.Peek() >= 0)

@@ -26,7 +26,7 @@ namespace DubUrl.OleDb.Providers
                 })
             { }
         }
-        private readonly Dictionary<string, decimal> Candidates = new();
+        private Dictionary<string, decimal> Candidates { get; } = new();
 
         public AceProviderLocator()
             : base(GetRegexPattern<AceProviderLocator>()) { }

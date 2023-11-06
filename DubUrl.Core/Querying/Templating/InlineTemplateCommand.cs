@@ -22,6 +22,6 @@ namespace DubUrl.Querying.Templating
             : base(sql, queryLogger) { Parameters = parameters; }
 
         protected override string Render(IDialect dialect, IConnectivity connectivity)
-            =>  new StringTemplateEngine().Render(Text, Parameters, dialect.Renderer);
+            =>  new StringTemplateEngine().Render(Text, new Dictionary<string, string>(), Parameters, dialect.Renderer);
     }
 }

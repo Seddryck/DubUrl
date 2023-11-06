@@ -49,9 +49,7 @@ namespace DubUrl.Adomd.Discovery
                     // ignore it and skip to the next one in the collection
                     title = GetWindowTextTimeout(handle, timeout);
                 }
-#pragma warning disable CA1031
-                catch (Exception)
-#pragma warning restore CA1031
+                catch 
                 {
                     title = string.Empty;
                 }
@@ -94,9 +92,7 @@ namespace DubUrl.Adomd.Discovery
                 if (!string.IsNullOrWhiteSpace(windowText.ToString()))
                     caption = windowText.ToString();
             }
-#pragma warning disable CA1031
             catch (Exception ex)
-#pragma warning restore CA1031
             {
                 caption = ex.Message;
             }

@@ -24,7 +24,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
             { }
         }
 
-        private readonly List<string> Candidates = new();
+        private List<string> Candidates { get; } = new();
         internal EncodingOption Encoding { get; }
 
         public DrillDriverLocator()

@@ -26,7 +26,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
             { }
         }
 
-        private readonly List<string> Candidates = new();
+        private List<string> Candidates { get; } = new();
         public TrinoDriverLocator()
             : base(GetRegexPattern<TrinoDriverLocator>()) { }
         internal TrinoDriverLocator(DriverLister driverLister)

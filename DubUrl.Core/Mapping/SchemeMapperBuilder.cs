@@ -18,12 +18,11 @@ namespace DubUrl.Mapping
         private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
         private bool IsBuilt { get; set; } = false;
 
-        private readonly List<MapperInfo> MapperData = new();
+        private List<MapperInfo> MapperData { get; } = new();
 
         protected Dictionary<string, IMapper> Mappers { get; set; } = new();
         private BaseMapperIntrospector[] MapperIntrospectors { get; } = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new WrapperMapperIntrospector() };
         private DialectBuilder DialectBuilder { get; } = new();
-        private ParametrizerFactory ParametrizerFactory { get; } = new();
 
         public SchemeMapperBuilder()
          : this(new[] { typeof(SchemeMapperBuilder).Assembly }) { }

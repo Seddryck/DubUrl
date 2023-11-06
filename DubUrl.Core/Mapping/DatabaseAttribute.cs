@@ -24,7 +24,7 @@ namespace DubUrl.Mapping
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class DatabaseAttribute<D> : DatabaseAttribute where D : IDialect
+    public sealed class DatabaseAttribute<D> : DatabaseAttribute where D : IDialect
     {
         public DatabaseAttribute(string databaseName, string[] aliases, DatabaseCategory listingPriority)
             : base(

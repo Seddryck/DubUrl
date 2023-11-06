@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class AlternativeMapperAttribute<T, P> : AlternativeMapperAttribute 
+    public sealed class AlternativeMapperAttribute<T, P> : AlternativeMapperAttribute 
         where T : IDatabase
         where P : IParametrizer
     {

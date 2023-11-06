@@ -10,11 +10,11 @@ namespace DubUrl.Rewriting.Tokening
 {
     public abstract class BaseTokenMapper : ITokenMapper
     {
-        private ISpecificator? _specificator;
+        private ISpecificator? specificator;
         protected ISpecificator Specificator
         {
-            get { return _specificator ?? throw new ArgumentNullException(); }
-            set { _specificator = value; }
+            get { return specificator ?? throw new ArgumentNullException(); }
+            set { specificator = value; }
         }
 
         public BaseTokenMapper() { }

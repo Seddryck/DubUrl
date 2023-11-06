@@ -44,6 +44,6 @@ namespace DubUrl.Locating.OdbcDriver
         =>
             (typeof(T).GetCustomAttributes(typeof(LocatorAttribute), false).FirstOrDefault() as LocatorAttribute)
             ?.Options.ToList().IndexOf(optionType)
-            ?? throw new ArgumentOutOfRangeException();
+            ?? throw new ArgumentOutOfRangeException(optionType.Name);
     }
 }

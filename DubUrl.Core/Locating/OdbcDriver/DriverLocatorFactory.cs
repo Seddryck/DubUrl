@@ -33,7 +33,7 @@ namespace DubUrl.Locating.OdbcDriver
         public virtual IDriverLocator Instantiate(string scheme, IDictionary<Type, object> options)
         {
             if (!Schemes.ContainsKey(scheme))
-                throw new ArgumentException();
+                throw new ArgumentException($"There is no scheme registered with the alias '{scheme}'.", nameof(scheme));
 
             var driverLocatorType = Schemes[scheme];
             var ctors = driverLocatorType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);

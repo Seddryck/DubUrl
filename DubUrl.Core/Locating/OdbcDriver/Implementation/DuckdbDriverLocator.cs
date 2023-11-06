@@ -25,7 +25,7 @@ namespace DubUrl.Locating.OdbcDriver.Implementation
                 })
             { }
         }
-        private readonly List<string> Candidates = new();
+        private List<string> Candidates { get; } = new();
         public DuckdbDriverLocator()
             : base(GetRegexPattern<DuckdbDriverLocator>()) { }
         internal DuckdbDriverLocator(DriverLister driverLister)

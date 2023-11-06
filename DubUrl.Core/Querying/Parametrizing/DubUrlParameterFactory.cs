@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Extensions;
 
 namespace DubUrl.Querying.Parametrizing
 {
-    public class DubUrlParameterFactory
+    internal class DubUrlParameterFactory : IDubUrlParameterFactory
     {
         public enum Encoding
         {
@@ -43,7 +44,7 @@ namespace DubUrl.Querying.Parametrizing
             };
         }
 
-        public DubUrlParameter Instantiate(string name, DateTime? value, bool isHighPrecision)
+        protected virtual DubUrlParameter Instantiate(string name, DateTime? value, bool isHighPrecision)
         {
             return isHighPrecision switch
             {
@@ -52,13 +53,10 @@ namespace DubUrl.Querying.Parametrizing
             };
         }
 
-        public DubUrlParameter Instantiate(string name, decimal? value, byte precision, byte scale)
+        protected virtual DubUrlParameter Instantiate(string name, decimal? value, byte precision, byte scale)
             => new DubUrlParameterDecimal(name, precision, scale, value);
 
-        public DubUrlParameter Instantiate(string name, string? value, Encoding encoding)
-            => Instantiate(name, value, encoding, null);
-
-        public DubUrlParameter Instantiate(string name, string? value, Encoding encoding, int? fixedLength)
+        protected virtual DubUrlParameter Instantiate(string name, string? value, Encoding encoding, int? fixedLength)
         {
             return encoding switch
             {

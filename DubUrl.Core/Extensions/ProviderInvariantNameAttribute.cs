@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Extensions
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class ProviderInvariantNameAttribute : Attribute
     {
         public string Value { get; set; }

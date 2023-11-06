@@ -18,7 +18,7 @@ namespace DubUrl.Querying.Dialects.Renderers
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed public class RendererAttribute<R> : RendererAttribute where R : IRenderer
+    public sealed class RendererAttribute<R> : RendererAttribute where R : IRenderer
     {
         public RendererAttribute()
             : base(typeof(R))

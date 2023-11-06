@@ -28,7 +28,7 @@ namespace DubUrl.Adomd.Discovery
 
 #pragma warning disable CA1838 // Avoid 'StringBuilder' parameters for P/Invokes
         [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal unsafe static extern int SendMessageTimeout(
+        internal static extern unsafe int SendMessageTimeout(
             IntPtr hWnd,
             uint uMsg,
             uint wParam,
@@ -36,6 +36,7 @@ namespace DubUrl.Adomd.Discovery
             uint fuFlags,
             uint uTimeout,
             void* lpdwResult);
+#pragma warning restore CA1838 // Avoid 'StringBuilder' parameters for P/Invokes
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam,
@@ -44,14 +45,9 @@ namespace DubUrl.Adomd.Discovery
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         internal static extern int GetWindowTextLength(IntPtr hWnd);
 
+#pragma warning disable CA1838 // Avoid 'StringBuilder' parameters for P/Invokes
         [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern long GetWindowText(IntPtr hwnd, StringBuilder lpString, long cch);
 #pragma warning restore CA1838 // Avoid 'StringBuilder' parameters for P/Invokes
-
-        public const int WM_COPYDATA = 0x4A;
-
-        [DllImport("user32", CharSet = CharSet.Auto)]
-        public extern static int SendMessage(IntPtr hwnd, int wMsg,
-            int wParam, ref COPYDATASTRUCT lParam);
     }
 }
