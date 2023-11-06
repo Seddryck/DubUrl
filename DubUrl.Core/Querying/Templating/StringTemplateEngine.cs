@@ -55,7 +55,7 @@ namespace DubUrl.Querying.Templating
             return actual;
         }
 
-        private bool TryParseTemplate(string value, out string? name, out string[]? arguments, out string? template)
+        private static bool TryParseTemplate(string value, out string? name, out string[]? arguments, out string? template)
         {
             var end = value.IndexOf("::=");
             if (end < 0)
