@@ -38,14 +38,6 @@ namespace DubUrl.OleDb.Providers
         internal MssqlOleDbProviderLocator(ProviderLister providerLister)
             : base(GetRegexPattern<MssqlOleDbProviderLocator>(), providerLister) { }
 
-        internal MssqlOleDbProviderLocator(string value)
-            : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
-                { new OptionsMapper()
-                    , new OleDbRewriter.InitialCatalogMapper()
-                    , new OleDbRewriter.ServerMapper()
-                }
-            ) { }
-
         protected override void AddCandidate(string provider, string[] matches)
             => Candidates.Add(provider);
         protected override List<string> RankCandidates()

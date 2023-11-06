@@ -37,15 +37,6 @@ namespace DubUrl.OleDb.Providers
         internal MySqlProviderLocator(ProviderLister providerLister)
             : base(GetRegexPattern<MySqlProviderLocator>(), providerLister) { }
 
-        internal MySqlProviderLocator(string value)
-            : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]
-                { new OptionsMapper()
-                    , new OleDbRewriter.InitialCatalogMapper()
-                    , new OleDbRewriter.ServerMapper()
-                }
-            )
-        { }
-
         protected override void AddCandidate(string provider, string[] matches)
             => Candidates.Add(provider);
         protected override List<string> RankCandidates()
