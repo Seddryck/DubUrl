@@ -18,8 +18,8 @@ namespace DubUrl
     public class ConnectionUrl
     {
         private record ParseResult(string ConnectionString, UrlInfo UrlInfo, IDialect Dialect, IConnectivity Connectivity, IParametrizer Parametrizer) { }
-        private ParseResult? _result;
-        private ParseResult Result { get => _result ??= ParseDetail(); }
+        private ParseResult? result;
+        private ParseResult Result { get => result ??= ParseDetail(); }
         private SchemeMapperBuilder SchemeMapperBuilder { get; }
         private IMapper? Mapper { get; set; }
         private IParser Parser { get; }

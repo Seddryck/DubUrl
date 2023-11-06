@@ -8,13 +8,13 @@ namespace DubUrl.Locating.RegexUtils
 {
     internal static class StringBuilderExtensions
     {
-        private static char[] EscapedChars = new[] { '[', ']', '(', ')', '{', '}', '*', '+', '?', '|', '^', '$', '.', '\\', '-' };
+        private static readonly char[] escapedChars = new[] { '[', ']', '(', ')', '{', '}', '*', '+', '?', '|', '^', '$', '.', '\\', '-' };
 
         public static StringBuilder AppendEscaped(this StringBuilder stringBuilder, string text)
         {
             foreach (var c in text.ToArray())
             {
-                if (EscapedChars.Contains(c))
+                if (escapedChars.Contains(c))
                     stringBuilder.Append('\\');
                 stringBuilder.Append(c);
             }

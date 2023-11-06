@@ -12,7 +12,7 @@ namespace DubUrl.Querying.Reading
     internal class InlineCommand : ICommandProvider
     {
         protected string Text { get; }
-        private readonly IQueryLogger QueryLogger;
+        private IQueryLogger QueryLogger { get; }
 
         public InlineCommand(string text, IQueryLogger queryLogger) 
             => (Text, QueryLogger) = (text, queryLogger);
