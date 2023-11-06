@@ -23,7 +23,7 @@ namespace DubUrl.OleDb.Providers
                 })
             { }
         }
-        private readonly List<string> Candidates = new();
+        private List<string> Candidates { get; } = new();
 
         public MySqlProviderLocator()
             : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]

@@ -24,7 +24,7 @@ namespace DubUrl.OleDb.Providers
                 })
             { }
         }
-        private readonly List<string> Candidates = new();
+        private List<string> Candidates { get; } = new();
 
         public MssqlOleDbProviderLocator()
             : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]

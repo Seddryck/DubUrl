@@ -27,7 +27,7 @@ namespace DubUrl.OleDb.Providers
             { }
         }
 
-        private readonly Dictionary<string, int> Candidates = new();
+        private Dictionary<string, int> Candidates { get; } = new();
 
         public MssqlNCliProviderLocator()
             : base(GetRegexPattern<MssqlNCliProviderLocator>(), new BaseTokenMapper[]
