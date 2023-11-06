@@ -99,8 +99,7 @@ namespace DubUrl.Rewriting.Implementation
                     }
                     else
                     {
-                        if (AvailableOptions == null)
-                            AvailableOptions = InitializeOptions();
+                        AvailableOptions ??= InitializeOptions();
                         var options = new Dictionary<Type, object>();
                         foreach (var scheme in remainingSchemes)
                         {
