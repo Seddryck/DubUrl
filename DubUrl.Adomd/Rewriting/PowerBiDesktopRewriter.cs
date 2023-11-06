@@ -58,7 +58,7 @@ namespace DubUrl.Adomd.Rewriting
             {
                 var pbiName = segments.Length == 1
                                 ? segments[0]
-                                : throw new InvalidConnectionUrlTooManySegmentsException("Power BI Desktop");
+                                : throw new ArgumentOutOfRangeException(nameof(segments));
 
                 var processes = Discoverer.GetPowerBiProcesses();
                 if (processes.Any(x => x.Name == pbiName))

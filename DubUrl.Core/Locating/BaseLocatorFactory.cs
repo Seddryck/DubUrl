@@ -17,10 +17,10 @@ namespace DubUrl.Locating
         public void AddAlias(string alias, string original)
         {
             if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
+                throw new ArgumentException(nameof(alias));
 
             if (!Schemes.ContainsKey(original))
-                throw new ArgumentException();
+                throw new ArgumentException(nameof(original));
 
             Schemes.Add(alias, Schemes[original]);
         }
@@ -28,7 +28,7 @@ namespace DubUrl.Locating
         protected void AddElement(string alias, Type locator)
         {
             if (Schemes.ContainsKey(alias))
-                throw new ArgumentException();
+                throw new ArgumentException(nameof(alias));
 
             Schemes.Add(alias, locator);
         }

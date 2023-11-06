@@ -24,7 +24,7 @@ namespace DubUrl.Querying.Reading
         {
             using var stream =
                 ResouceAssembly.GetManifestResourceStream(resourceName)
-                ?? throw new ArgumentException();
+                    ?? throw new ArgumentException(nameof(resourceName));
             using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }

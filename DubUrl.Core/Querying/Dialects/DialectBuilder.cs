@@ -35,10 +35,10 @@ namespace DubUrl.Querying.Dialects
             IsBuilt = false;
 
             if (DialectAliases.Values.Any(x => x.Contains(alias)))
-                throw new ArgumentException();
+                throw new ArgumentOutOfRangeException(nameof(alias));
 
             if (!DialectAliases.Values.Any(x => x.Contains(original)))
-                throw new ArgumentException();
+                throw new ArgumentOutOfRangeException(nameof(original));
 
             var dialect = DialectAliases.First(x => x.Value.Contains(original));
             dialect.Value.Add(alias);
