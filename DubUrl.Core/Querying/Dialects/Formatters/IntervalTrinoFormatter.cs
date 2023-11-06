@@ -23,7 +23,7 @@ namespace DubUrl.Querying.Dialects.Formatters
                 sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Milliseconds).Append("\' MILLISECOND");
 #if NET7_0_OR_GREATER
             if (value.Microseconds >= 1)
-                throw new ArgumentOutOfRangeException("Trino doesn't support microseconds.");
+                throw new ArgumentOutOfRangeException(nameof(value), "Trino doesn't support microseconds.");
 #endif
             return sb.ToString().TrimEnd();
         }

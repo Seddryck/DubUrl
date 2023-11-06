@@ -35,10 +35,10 @@ namespace DubUrl.Querying.Dialects.Renderers
                 if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
                     return formatter.Format(obj);
                 else
-                    throw new ArgumentException(nameof(format));
+                    throw new ArgumentException($"No value formatter was found for the type '{obj.GetType().Name}'", nameof(format));
             }
             else
-                throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.");
+                throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.", nameof(format));
         }
     }
 }

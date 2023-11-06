@@ -76,7 +76,7 @@ namespace DubUrl.Querying.Templating
 
         protected virtual TextReader GetResourceReader(string resourceName)
             => new StreamReader(ResouceAssembly.GetManifestResourceStream(resourceName)
-                ?? throw new ArgumentException(nameof(resourceName)));
+                ?? throw new FileNotFoundException(resourceName));
 
         protected virtual (string?, object?) ParseDictionaryEntry(string? entry)
         {
