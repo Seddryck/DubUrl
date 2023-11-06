@@ -275,10 +275,13 @@ namespace DubUrl.QA
             using var conn = connectionUrl.Open();
             var customers = conn.Query<Dapper.Customer>(sql).ToList();
             Assert.That(customers, Has.Count.EqualTo(5));
-            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
-            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+                Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+                Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+                Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            });
         }
 
         [Test]
@@ -298,10 +301,13 @@ namespace DubUrl.QA
             var repo = provider.GetRequiredService<ICustomerRepository>();
             var customers = repo.GetAllAsync().Result;
             Assert.That(customers, Has.Count.EqualTo(5));
-            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
-            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+                Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+                Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+                Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            });
         }
     }
 }
