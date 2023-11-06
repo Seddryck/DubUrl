@@ -67,7 +67,6 @@ namespace DubUrl.Adomd.Testing.Rewriting.Implementation
 
         [Test]
         [TestCase("foo/bar")]
-        [TestCase("./foo/bar")]
         [TestCase("./foo?bar=brz")]
         public void Map_InvalidUrlInfo_DataSource(string input)
         {
@@ -78,6 +77,19 @@ namespace DubUrl.Adomd.Testing.Rewriting.Implementation
             var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
             var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
             Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
+        }
+
+        [Test]
+        [TestCase("./foo/bar")]
+        public void Map_InvalidUrlInfo_TooManySegments(string input)
+        {
+            var discoverer = new Mock<IPowerBiDiscoverer>();
+            discoverer.Setup(x => x.GetPowerBiProcesses(false))
+                                    .Returns(new[] { new PowerBiProcess("foo", 12345, PowerBiType.PowerBI) });
+
+            var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+            var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
+            Assert.Throws<InvalidConnectionUrlTooManySegmentsException>(() => Rewriter.Execute(urlInfo));
         }
 
         [Test]
