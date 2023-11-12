@@ -66,8 +66,8 @@ namespace DubUrl.Testing.Querying.Reading
         public void Read_AnyExistingResources_InvokeLog()
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(true);
-            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>(), string.Empty)).Returns("foo");
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns("foo");
             resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("bar");
 
             var dialectMock = new Mock<IDialect>();

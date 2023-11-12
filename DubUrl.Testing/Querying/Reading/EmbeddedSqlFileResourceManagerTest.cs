@@ -35,7 +35,7 @@ namespace DubUrl.Testing.Querying.Reading
         public void BestMatch_ListOfResources_BestMatch(string[] candidates, string id, string[] dialects, int expectedId)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-            var resourceName = resourceManager.BestMatch(id, dialects, null);
+            var resourceName = resourceManager.BestMatch(id, new DirectCommandMatchingOption(dialects, null));
             Assert.That(resourceName, Is.EqualTo(candidates[expectedId]).IgnoreCase);
         }
 
@@ -49,7 +49,7 @@ namespace DubUrl.Testing.Querying.Reading
         public void GetAllResourceNames_ListOfResources_BestMatch(string[] candidates, bool expected = true)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-            var resourceName = resourceManager.Any("QueryId", new[] { "mssql" }, null);
+            var resourceName = resourceManager.Any("QueryId", new DirectCommandMatchingOption(new[] { "mssql" }, null));
             Assert.That(resourceName, Is.EqualTo(expected));
         }
 
@@ -62,7 +62,7 @@ namespace DubUrl.Testing.Querying.Reading
         public void BestMatch_ListOfResourcesWithOdbc_BestMatch(string[] candidates, string id, string[] dialects, string? connectivity, int expectedId)
         {
             var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-            var resourceName = resourceManager.BestMatch(id, dialects, connectivity);
+            var resourceName = resourceManager.BestMatch(id, new DirectCommandMatchingOption(dialects, connectivity));
             Assert.That(resourceName, Is.EqualTo(candidates[expectedId]).IgnoreCase);
         }
     }

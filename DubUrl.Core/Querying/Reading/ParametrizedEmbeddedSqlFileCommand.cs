@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading
 {
-    public class ParametrizedEmbeddedSqlFileCommand : EmbeddedSqlFileCommand, IParametrizedCommand
+    public class ParametrizedEmbeddedSqlFileCommand : EmbeddedSqlFileProvider, IParametrizedCommand
     {
         public ImmutableArray<DubUrlParameter> Parameters { get; }
 

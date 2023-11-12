@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.QA
 {
-    internal class SelectFirstCustomer : EmbeddedSqlFileCommand
+    internal class SelectFirstCustomer : EmbeddedSqlFileProvider
     {
         public SelectFirstCustomer()
             : base($"{typeof(SelectFirstCustomer).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)

@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Querying.Reading
 {
-    public class EmbeddedSqlFileCommandTest
+    public class EmbeddedSqlFileProviderTest
     {
         private class FakeEmbeddedSqlFileResourceManager : EmbeddedSqlFileResourceManager
         {
@@ -32,8 +32,9 @@ namespace DubUrl.Testing.Querying.Reading
         public void ExistsWithFallback_ListOfResources_Value(bool hasCandidates, string bestCandidate, string id, string[] dialects, bool expected = true)
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup( x=> x.Any(id, dialects, string.Empty)).Returns(hasCandidates);
-            resourceManager.Setup(x => x.BestMatch(id, dialects, string.Empty)).Returns(bestCandidate);
+            var option = new DirectCommandMatchingOption(dialects, string.Empty);
+            resourceManager.Setup( x=> x.Any(id, It.IsAny<DirectCommandMatchingOption>())).Returns(hasCandidates);
+            resourceManager.Setup(x => x.BestMatch(id, It.IsAny<DirectCommandMatchingOption>())).Returns(bestCandidate);
 
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
@@ -41,7 +42,7 @@ namespace DubUrl.Testing.Querying.Reading
             var connectivityMock = new Mock<IConnectivity>();
             connectivityMock.SetupGet(x => x.Alias).Returns(string.Empty);
 
-            var query = new EmbeddedSqlFileCommand(resourceManager.Object, id, NullQueryLogger.Instance);
+            var query = new EmbeddedSqlFileProvider(resourceManager.Object, id, NullQueryLogger.Instance);
             var result = query.Exists(dialectMock.Object, connectivityMock.Object, true);
             Assert.That(result, Is.EqualTo(expected));
         }
@@ -53,8 +54,8 @@ namespace DubUrl.Testing.Querying.Reading
         public void ExistsWithoutFallback_ListOfResources_Value(string bestCandidate, string id, string[] dialects, bool expected = true)
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(!string.IsNullOrEmpty(bestCandidate));
-            resourceManager.Setup(x => x.BestMatch(id, dialects, string.Empty)).Returns(bestCandidate);
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns(!string.IsNullOrEmpty(bestCandidate));
+            resourceManager.Setup(x => x.BestMatch(id, It.IsAny<DirectCommandMatchingOption>())).Returns(bestCandidate);
 
             var dialectMock = new Mock<IDialect>();
             dialectMock.SetupGet(x => x.Aliases).Returns(dialects);
@@ -62,7 +63,7 @@ namespace DubUrl.Testing.Querying.Reading
             var connectivityMock = new Mock<IConnectivity>();
             connectivityMock.SetupGet(x => x.Alias).Returns(string.Empty);
 
-            var query = new EmbeddedSqlFileCommand(resourceManager.Object, id, NullQueryLogger.Instance);
+            var query = new EmbeddedSqlFileProvider(resourceManager.Object, id, NullQueryLogger.Instance);
             var result = query.Exists(dialectMock.Object, connectivityMock.Object, false);
             Assert.That(result, Is.EqualTo(expected));
         }
@@ -71,8 +72,8 @@ namespace DubUrl.Testing.Querying.Reading
         public void Read_Existing_BestMatchIsRead()
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(true);
-            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>(), string.Empty)).Returns("foo");
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns("foo");
             resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("bar");
 
             var dialectMock = new Mock<IDialect>();
@@ -81,7 +82,7 @@ namespace DubUrl.Testing.Querying.Reading
             var connectivityMock = new Mock<IConnectivity>();
             connectivityMock.SetupGet(x => x.Alias).Returns(string.Empty);
 
-            var query = new EmbeddedSqlFileCommand(resourceManager.Object, "foo", NullQueryLogger.Instance);
+            var query = new EmbeddedSqlFileProvider(resourceManager.Object, "foo", NullQueryLogger.Instance);
             var result = query.Read(dialectMock.Object, connectivityMock.Object);
 
             resourceManager.Verify(x => x.ReadResource("foo"));
@@ -91,8 +92,8 @@ namespace DubUrl.Testing.Querying.Reading
         public void Read_AnyExistingResources_InvokeLog()
         {
             var resourceManager = new Mock<IResourceManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(true);
-            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>(), string.Empty)).Returns("foo");
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns("foo");
             resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("bar");
 
             var dialectMock = new Mock<IDialect>();
@@ -103,7 +104,7 @@ namespace DubUrl.Testing.Querying.Reading
 
             var queryLoggerMock = new Mock<IQueryLogger>();
 
-            var query = new EmbeddedSqlFileCommand(resourceManager.Object, "foo", queryLoggerMock.Object);
+            var query = new EmbeddedSqlFileProvider(resourceManager.Object, "foo", queryLoggerMock.Object);
             var result = query.Read(dialectMock.Object, connectivityMock.Object);
 
             queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));

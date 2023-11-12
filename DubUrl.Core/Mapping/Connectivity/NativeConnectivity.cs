@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Connectivity
 {
-    internal class NativeConnectivity : IDirectConnectivity
+    public class NativeConnectivity : IDirectConnectivity
     {
         public string Alias => string.Empty;
     }

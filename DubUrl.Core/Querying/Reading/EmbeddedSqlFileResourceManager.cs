@@ -31,11 +31,17 @@ namespace DubUrl.Querying.Reading
 
         public ParameterInfo[] ReadParameters(string resourceName) => Array.Empty<ParameterInfo>();
 
-        public bool Any(string id, string[] dialects, string? connectivity)
-            => ListResourceMathing(id, dialects, connectivity).Any();
+        public virtual bool Any(string id, IResourceMatchingOption option)
+        {
+            var matchingOption = (option as DirectCommandMatchingOption) ?? throw new InvalidCastException(nameof(option));
+            return ListResourceMathing(id, matchingOption.Dialects, matchingOption.Connectivity).Any();
+        }
 
-        public string BestMatch(string id, string[] dialects, string? connectivity)
-            => ListResourceMathing(id, dialects, connectivity).OrderBy(x => x.Score).Select(x => x.Path).First();
+        public virtual string BestMatch(string id, IResourceMatchingOption option)
+        {
+            var matchingOption = (option as DirectCommandMatchingOption) ?? throw new InvalidCastException(nameof(option));
+            return ListResourceMathing(id, matchingOption.Dialects, matchingOption.Connectivity).OrderBy(x => x.Score).Select(x => x.Path).First();
+        }
         
         protected record struct ResourceMatch(string Path, byte Score) { }
         protected virtual IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")

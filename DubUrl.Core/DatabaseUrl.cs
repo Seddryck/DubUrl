@@ -59,13 +59,13 @@ namespace DubUrl
         #region Scalar
 
         public object? ReadScalar(string query)
-            => ReadScalar(new InlineCommand(query, QueryLogger));
+            => ReadScalar(new InlineSqlProvider(query, QueryLogger));
 
         public object? ReadScalar(ICommandProvider commandProvider)
             => PrepareCommand(commandProvider).ExecuteScalar();
 
         public object ReadScalarNonNull(string query)
-            => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
+            => ReadScalarNonNull(new InlineSqlProvider(query, QueryLogger));
 
         public object ReadScalarNonNull(ICommandProvider commandProvider)
         {
@@ -75,7 +75,7 @@ namespace DubUrl
         }
 
         public T? ReadScalar<T>(string query)
-          => ReadScalar<T>(new InlineCommand(query, QueryLogger));
+          => ReadScalar<T>(new InlineSqlProvider(query, QueryLogger));
 
         public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
            => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
@@ -87,7 +87,7 @@ namespace DubUrl
         }
 
         public T ReadScalarNonNull<T>(string query)
-           => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
+           => ReadScalarNonNull<T>(new InlineSqlProvider(query, QueryLogger));
 
         public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
            => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
@@ -114,7 +114,7 @@ namespace DubUrl
         }
 
         public object? ReadSingle(string query)
-            => ReadSingle(new InlineCommand(query, QueryLogger));
+            => ReadSingle(new InlineSqlProvider(query, QueryLogger));
 
         public object? ReadSingle(ICommandProvider commandProvider)
         {
@@ -123,7 +123,7 @@ namespace DubUrl
         }
 
         public object ReadSingleNonNull(string query)
-            => ReadSingleNonNull(new InlineCommand(query, QueryLogger));
+            => ReadSingleNonNull(new InlineSqlProvider(query, QueryLogger));
 
         public object ReadSingleNonNull(ICommandProvider commandProvider)
             => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
@@ -133,7 +133,7 @@ namespace DubUrl
         #region First 
 
         public object? ReadFirst(string query)
-            => ReadFirst(new InlineCommand(query, QueryLogger));
+            => ReadFirst(new InlineSqlProvider(query, QueryLogger));
 
         public object? ReadFirst(ICommandProvider commandProvider)
         {
@@ -142,7 +142,7 @@ namespace DubUrl
         }
 
         public object ReadFirstNonNull(string query)
-            => ReadFirstNonNull(new InlineCommand(query, QueryLogger));
+            => ReadFirstNonNull(new InlineSqlProvider(query, QueryLogger));
 
         public object ReadFirstNonNull(ICommandProvider commandProvider)
             => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
@@ -152,7 +152,7 @@ namespace DubUrl
         #region Multiple
 
         public IEnumerable<object> ReadMultiple(string query)
-            => ReadMultiple(new InlineCommand(query, QueryLogger));
+            => ReadMultiple(new InlineSqlProvider(query, QueryLogger));
 
         public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
         {
@@ -167,7 +167,7 @@ namespace DubUrl
         #region ExecuteReader
 
         public IDataReader ExecuteReader(string query)
-           => ExecuteReader(new InlineCommand(query, QueryLogger));
+           => ExecuteReader(new InlineSqlProvider(query, QueryLogger));
 
         public IDataReader ExecuteReader(ICommandProvider commandProvider)
             => PrepareCommand(commandProvider).ExecuteReader();
