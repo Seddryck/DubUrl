@@ -18,11 +18,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Duburl.OleDb\DubUrl.OleDb.csproj" />
+    <ProjectReference Include="..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
     <ProjectReference Include="..\DubUrl.Testing\DubUrl.Testing.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Mapping\" />
   </ItemGroup>
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>

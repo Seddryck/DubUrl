@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Rewriting;
-using Duburl.OleDb.Mapping;
+using DubUrl.OleDb.Mapping;
 
 namespace DubUrl.OleDb
 {

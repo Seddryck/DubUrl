@@ -15,7 +15,7 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
 
 ########### Generate JSON file #############
 
-$assemblyPath = "DubUrl.OleDb\bin"
+$assemblyPath = "DubUrl.QA\bin"
 Set-Location $assemblyPath
 $dllfile = "net6.0\DubUrl.OleDb.dll"
 
@@ -25,6 +25,7 @@ If ((-not (Test-Path -Path "Release\$dllfile")) -or ("Release\$dllfile".Creation
     $directory = "Release"   
 }
 
+Add-Type -Path "$directory\net6.0\Antlr4.StringTemplate.dll"
 Add-Type -Path "$directory\$dllfile"
 
 
