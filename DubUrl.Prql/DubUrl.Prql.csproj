@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Testing" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(OS)' == 'WINDOWS_NT'">
+    <Content Include="$(MSBuildThisFileDirectory)..\runtimes\win\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(FileName)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PrqlCompiler" Version="0.10.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageId>DubUrl.Prql</PackageId>
+    <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+    <PackageTags>connection-string;database;prql</PackageTags>
+    <Description>Duburl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
+  </PropertyGroup>
+	
+</Project>

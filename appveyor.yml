@@ -23,6 +23,8 @@ init:
 - cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE "1"
 - cmd: RefreshEnv.cmd
 - pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
+- cmd: dotnet nuget add source "%cd%.\.packages" --name Local.DubUrl
+- cmd: dotnet nuget list source
 
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
@@ -53,7 +55,8 @@ test_script:
     $ErrorActionPreference = "Stop"
     dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
-    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Adomd.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Prql.Testing --runtime win-x64 -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Prql.xml --test-adapter-path:. --logger:Appveyor --nologo
     dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.DependencyInjection.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
 
@@ -73,7 +76,8 @@ after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.OleDb -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.Extensions.DependencyInjection -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
-- dotnet pack DubUrl.Adomd -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
+- dotnet pack DubUrl.Adomd -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo
+- dotnet pack DubUrl.Prql -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 
 artifacts:
 - path: '**\*.nupkg'
