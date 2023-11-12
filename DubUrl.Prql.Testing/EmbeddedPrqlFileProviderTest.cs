@@ -86,5 +86,30 @@ namespace DubUrl.Prql.Testing
 
             queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));
         }
+
+        [Test]
+        public void Read_AnyExistingResources_InvokeCompiler()
+        {
+            var resourceManager = new Mock<IResourceManager>();
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<NoneMatchingOption>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<NoneMatchingOption>())).Returns("foo");
+            resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("select 'bar'");
+
+            var dialectMock = new Mock<IDialect>();
+            dialectMock.SetupGet(x => x.Aliases).Returns(new[] { "mssql" });
+
+            var connectivityMock = new Mock<IConnectivity>();
+            connectivityMock.SetupGet(x => x.Alias).Returns(string.Empty);
+
+            var queryLoggerMock = new Mock<IQueryLogger>();
+
+            var compilerMock = new Mock<IPrqlCompiler>();
+            compilerMock.Setup(x => x.ToSql(It.IsAny<string>(), It.IsAny<IDialect>())).Returns("select foo.bar");
+
+            var query = new EmbeddedPrqlFileProvider(resourceManager.Object, "foo", queryLoggerMock.Object, compilerMock.Object);
+            var result = query.Read(dialectMock.Object, connectivityMock.Object);
+
+            compilerMock.Verify(c => c.ToSql("select 'bar'", dialectMock.Object));
+        }
     }
 }

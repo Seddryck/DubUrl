@@ -18,15 +18,28 @@ namespace DubUrl.Prql
     public class EmbeddedPrqlFileProvider : EmbeddedSqlFileProvider
     {
         public NoneMatchingOption Option { get; } = new();
+        private IPrqlCompiler PrqlCompiler { get; }
 
         public EmbeddedPrqlFileProvider(string basePath, IQueryLogger queryLogger)
-            : base(new EmbeddedPrqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
+            : this(new EmbeddedPrqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
 
         internal EmbeddedPrqlFileProvider(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
-            : base(resourceManager, basePath, queryLogger) {}
+            : this(resourceManager, basePath, queryLogger, true, false) { }
+        
+        public EmbeddedPrqlFileProvider(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger, bool format, bool signatureComment)
+            : base(resourceManager, basePath, queryLogger)
+        {
+            PrqlCompiler = new PrqlCompilerWrapper(queryLogger, format, signatureComment);
+        }
+
+        internal EmbeddedPrqlFileProvider(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger, IPrqlCompiler compiler)
+            : base(resourceManager, basePath, queryLogger)
+        {
+            PrqlCompiler= compiler;
+        }
 
         protected override string Render(IDialect dialect, IConnectivity connectivity)
-            => PrqlCompiler.Compile(ReadResource()).Output;
+            => PrqlCompiler.ToSql(ReadResource(), dialect);
 
         protected string ReadResource()
         {
