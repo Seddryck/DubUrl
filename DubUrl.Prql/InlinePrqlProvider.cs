@@ -16,7 +16,7 @@ namespace DubUrl.Prql
 {
     internal class InlinePrqlProvider : InlineSqlProvider
     {
-        private PrqlCompilerOptions Options { get; }
+        private IPrqlCompiler PrqlCompiler { get; }
 
         public InlinePrqlProvider(string text, IQueryLogger queryLogger)
             : this(text, queryLogger, true, false)
@@ -25,31 +25,16 @@ namespace DubUrl.Prql
         public InlinePrqlProvider(string text, IQueryLogger queryLogger, bool format, bool signatureComment)
             : base(text, queryLogger)
         {
-            Options = new PrqlCompilerOptions() { Format = format, SignatureComment = signatureComment };
+            PrqlCompiler = new PrqlCompilerWrapper(queryLogger, format, signatureComment);
+        }
+
+        internal InlinePrqlProvider(string text, IQueryLogger queryLogger, IPrqlCompiler compiler)
+            : base(text, queryLogger)
+        {
+            PrqlCompiler = compiler;
         }
 
         protected override string Render(IDialect dialect, IConnectivity connectivity)
-        {
-            var compilerOptions = Options with { Target = MatchPrqlDialect(dialect) };
-            var result = PrqlCompiler.Compile(Text, compilerOptions);
-            return result.Output;
-        }
-
-        protected virtual string MatchPrqlDialect(IDialect dialect)
-            => dialect switch
-            {
-                AnsiDialect => "sql.ansi",
-                //BigQueryDialect => "sql.bigquery",
-                //ClickHouseDialect => "sql.clickhouse",
-                DuckdbDialect => "sql.duckdb",
-                //GlareDbDialect => "sql.glaredb",
-                //HiveDialect => "sql.hive",
-                MySqlDialect => "sql.mysql",
-                PgsqlDialect => "sql.postgres",
-                SqliteDialect => "sql.sqlite",
-                SnowflakeDialect => "sql.snowflake",
-                TSqlDialect => "sql.mssql",
-                _ => "sql.generic",
-            };
+            => PrqlCompiler.ToSql(Text, dialect);
     }
 }
