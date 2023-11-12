@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading
 {
-    internal class InlineCommand : ICommandProvider
+    public class InlineSqlProvider : ICommandProvider
     {
         protected string Text { get; }
         private IQueryLogger QueryLogger { get; }
 
-        public InlineCommand(string text, IQueryLogger queryLogger) 
+        public InlineSqlProvider(string text, IQueryLogger queryLogger) 
             => (Text, QueryLogger) = (text, queryLogger);
 
         public string Read(IDialect dialect, IConnectivity connectivity)
@@ -28,13 +28,5 @@ namespace DubUrl.Querying.Reading
             => Text;
 
         public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false) => true;
-
-        public virtual IDbCommand CreateCommand(IDialect dialect, IConnectivity connectivity, IDbConnection conn)
-        {
-            var cmd = conn.CreateCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = Read(dialect, connectivity);
-            return cmd;
-        }
     }
 }

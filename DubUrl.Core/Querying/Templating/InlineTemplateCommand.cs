@@ -14,7 +14,7 @@ using DubUrl.Mapping;
 
 namespace DubUrl.Querying.Templating
 {
-    internal class InlineTemplateCommand : InlineCommand
+    internal class InlineTemplateCommand : InlineSqlProvider
     {
         public IDictionary<string, object?> Parameters { get; }
 

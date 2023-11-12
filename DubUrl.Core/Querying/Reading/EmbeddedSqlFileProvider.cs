@@ -12,16 +12,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading
 {
-    public class EmbeddedSqlFileCommand: ICommandProvider
+    public class EmbeddedSqlFileProvider: ICommandProvider
     {
         protected internal string BasePath { get; }
         protected IResourceManager ResourceManager { get; }
         private IQueryLogger QueryLogger { get; }
 
-        public EmbeddedSqlFileCommand(string basePath, IQueryLogger queryLogger)
+        public EmbeddedSqlFileProvider(string basePath, IQueryLogger queryLogger)
             : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
 
-        internal EmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
+        protected internal EmbeddedSqlFileProvider(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
             => (BasePath, ResourceManager, QueryLogger) = (basePath, resourceManager, queryLogger);
 
         public string Read(IDialect dialect, IConnectivity connectivity)
@@ -34,19 +34,21 @@ namespace DubUrl.Querying.Reading
         protected virtual string Render(IDialect dialect, IConnectivity connectivity)
             => ReadResource(dialect, connectivity);
 
-        protected string ReadResource(IDialect dialect, IConnectivity connectivity)
+        protected virtual string ReadResource(IDialect dialect, IConnectivity connectivity)
         {
-            if (!ResourceManager.Any(BasePath, dialect.Aliases, connectivity.Alias))
-                throw new MissingCommandForDialectException(this, dialect);
+            var option = new DirectCommandMatchingOption(dialect.Aliases, connectivity.Alias);
+            if (!ResourceManager.Any(BasePath, option))
+                throw new MissingCommandForDialectException(BasePath, dialect);
 
-            return ResourceManager.ReadResource(ResourceManager.BestMatch(BasePath, dialect.Aliases, connectivity.Alias));
+            return ResourceManager.ReadResource(ResourceManager.BestMatch(BasePath, option));
         }
 
-        public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false)
+        public virtual bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false)
         {
-            if (!ResourceManager.Any(BasePath, dialect.Aliases, connectivity.Alias))
+            var option = new DirectCommandMatchingOption(dialect.Aliases, connectivity.Alias);
+            if (!ResourceManager.Any(BasePath, option))
                 return false;
-            var bestMatch = ResourceManager.BestMatch(BasePath, dialect.Aliases, connectivity.Alias);
+            var bestMatch = ResourceManager.BestMatch(BasePath, option);
             return includeDefault || dialect.Aliases.Any(x => bestMatch.EndsWith($".{x}.sql"));
         }
     }

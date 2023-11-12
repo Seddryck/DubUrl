@@ -15,7 +15,7 @@ using System.Resources;
 
 namespace DubUrl.Querying.Templating
 {
-    public class EmbeddedSqlTemplateCommand : EmbeddedSqlFileCommand
+    public class EmbeddedSqlTemplateCommand : EmbeddedSqlFileProvider
     {
         public IDictionary<string, object?> Parameters { get; }
         public string SubTemplatesPath { get; }

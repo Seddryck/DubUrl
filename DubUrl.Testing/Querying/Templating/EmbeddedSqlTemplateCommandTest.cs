@@ -2,6 +2,7 @@
 using DubUrl.Mapping.Connectivity;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Reading;
 using DubUrl.Querying.Templating;
 using Moq;
 using NUnit.Framework;
@@ -33,8 +34,8 @@ namespace DubUrl.Testing.Querying.Reading
             var connectivity = Mock.Of<IConnectivity>(c => c.Alias == string.Empty);
 
             var resourceManager = new Mock<IResourceTemplateManager>();
-            resourceManager.Setup(x => x.Any("queryId", dialect.Aliases, connectivity.Alias)).Returns(true);
-            resourceManager.Setup(x => x.BestMatch("queryId", dialect.Aliases, connectivity.Alias)).Returns("queryId.duckdb.sql.st");
+            resourceManager.Setup(x => x.Any("queryId", It.IsAny<DirectCommandMatchingOption>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch("queryId", It.IsAny<DirectCommandMatchingOption>())).Returns("queryId.duckdb.sql.st");
             resourceManager.Setup(x => x.ReadResource("queryId.duckdb.sql.st")).Returns("Hi $print_name()$");
             resourceManager.Setup(x => x.ListResources("Foo.Bar", dialect.Aliases, connectivity.Alias, "sql.st"))
                                 .Returns(new Dictionary<string, string>() { { "print_name", "Foo.Bar.print_name.sql.st" }, { "print_end", "Foo.Bar.DuckDB.print_end.sql.st" } });
@@ -58,8 +59,8 @@ namespace DubUrl.Testing.Querying.Reading
             var connectivity = Mock.Of<IConnectivity>(c => c.Alias == string.Empty);
 
             var resourceManager = new Mock<IResourceTemplateManager>();
-            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(true);
-            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>(), string.Empty)).Returns("foo");
+            resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<DirectCommandMatchingOption>())).Returns(true);
+            resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny< DirectCommandMatchingOption>())).Returns("foo");
             resourceManager.Setup(x => x.ListResources(It.IsAny<string>(), dialect.Aliases, connectivity.Alias, It.IsAny<string>())).Returns(new Dictionary<string, string>());
             resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("bar");
 

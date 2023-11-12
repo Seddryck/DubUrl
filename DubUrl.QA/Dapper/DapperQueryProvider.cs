@@ -19,6 +19,6 @@ namespace DubUrl.QA.Dapper
             => (Dialect, Connectivity) = (dialect, connectivity);
 
         public string SelectAllCustomer()
-            => new EmbeddedSqlFileCommand("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
+            => new EmbeddedSqlFileProvider("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
     }
 }
