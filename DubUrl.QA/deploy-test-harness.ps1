@@ -72,7 +72,7 @@ if ($suites.Length -eq 0 -and "" -ne $suite -and $null -ne $suite) {
 
 if ($suites.Length -eq 0) {
     Write-Host "Executing test harness for all the test suites ..."
-    $suites = Get-ChildItem -Path ".\Duburl.QA" -Filter "deploy-*-test-env.ps1" -Recurse `
+    $suites = Get-ChildItem -Path ".\DubUrl.QA" -Filter "deploy-*-test-env.ps1" -Recurse `
         | Select-Object "Name" | ForEach{$_.Name.Substring(7,$_.Name.Substring(7).IndexOf("-"))}
 
     if ($exclude.Length -gt 0) {

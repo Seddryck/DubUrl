@@ -12,7 +12,7 @@ using DubUrl.Mapping;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Tokening;
 using DubUrl.Rewriting;
-using Duburl.OleDb.Mapping;
+using DubUrl.OleDb.Mapping;
 
 namespace DubUrl.OleDb.Mapping
 {
