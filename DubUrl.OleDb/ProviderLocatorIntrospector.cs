@@ -1,4 +1,4 @@
-﻿using Duburl.OleDb;
+﻿using DubUrl.OleDb;
 using DubUrl.Mapping;
 using System;
 using System.Collections.Generic;
