@@ -50,6 +50,17 @@ build_script:
   #- dotnet --info
   - dotnet build DubUrl.sln -p:version="%GitVersion_SemVer%" -c Release /p:ContinuousIntegrationBuild=true --nologo 
 
+after_build:
+- pwsh: |
+    & .\generate-adonet-info.ps1
+    $docUpdateCode = $LastExitCode
+    & .\generate-odbc-driver-info.ps1
+    $docUpdateCode += $LastExitCode
+    & .\generate-oledb-provider-info.ps1
+    $docUpdateCode += $LastExitCode
+    & .\generate-adomd-info.ps1
+    $docUpdateCode += $LastExitCode
+
 test_script:
 - pwsh: |
     $ErrorActionPreference = "Stop"
@@ -76,7 +87,7 @@ after_test:
 - dotnet pack DubUrl.Core -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.OleDb -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.Extensions.DependencyInjection -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
-- dotnet pack DubUrl.Adomd -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
+- dotnet pack DubUrl.Adomd -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo
 - dotnet pack DubUrl.Prql -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 
 artifacts:
@@ -117,15 +128,7 @@ on_success:
     }
 
 - pwsh: |
-      & .\generate-adonet-info.ps1
-      $exitCode = $LastExitCode
-      & .\generate-odbc-driver-info.ps1
-      $exitCode += $LastExitCode
-      & .\generate-oledb-provider-info.ps1
-      $exitCode += $LastExitCode
-      & .\generate-adomd-info.ps1
-      $exitCode += $LastExitCode
-      if ($exitCode -gt 0) {
+      if ($docUpdateCode -gt 0) {
         Write-Host "`tUpdating README.md ..."
         & .\generate-table-scheme.ps1
         & .\generate-badge.ps1
@@ -142,4 +145,6 @@ on_success:
         Write-Host "`tPushing commit ..."
         & git push origin
         Write-Host "`tNew commit uploaded."
+      } else {
+        Write-Host "`tNo automated update to documentation."
       }
