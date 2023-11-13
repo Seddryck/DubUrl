@@ -11,5 +11,7 @@ namespace DubUrl.Querying.Reading
     {
         public MissingCommandForDialectException(ICommandProvider provider, IDialect dialect)
             : base($"The '{provider}' matching with the dialect '{dialect.Aliases[0]}' wasn't found.") { }
+        public MissingCommandForDialectException(string basePath, IDialect dialect)
+            : base($"The command '{basePath}' matching with the dialect '{dialect.Aliases[0]}' wasn't found.") { }
     }
 }

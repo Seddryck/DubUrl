@@ -24,7 +24,7 @@ namespace DubUrl.QA
         public string SelectFirstCustomer()
             => DatabaseUrl.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
 
-        private class SelectFirstCustomerQuery : EmbeddedSqlFileCommand
+        private class SelectFirstCustomerQuery : EmbeddedSqlFileProvider
         {
             public SelectFirstCustomerQuery()
                 : base($"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)

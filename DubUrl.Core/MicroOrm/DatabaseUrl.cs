@@ -38,7 +38,7 @@ namespace DubUrl.MicroOrm
         #region Single
 
         public T? ReadSingle<T>(string query) where T : new()
-            => ReadSingle<T>(new InlineCommand(query, QueryLogger));
+            => ReadSingle<T>(new InlineSqlProvider(query, QueryLogger));
 
         public T? ReadSingle<T>(ICommandProvider commandProvider) where T : new()
         {
@@ -61,7 +61,7 @@ namespace DubUrl.MicroOrm
         #region First 
 
         public T? ReadFirst<T>(string query) where T : new()
-            => ReadFirst<T>(new InlineCommand(query, QueryLogger));
+            => ReadFirst<T>(new InlineSqlProvider(query, QueryLogger));
 
         public T? ReadFirst<T>(ICommandProvider commandProvider) where T : new()
         {
@@ -80,7 +80,7 @@ namespace DubUrl.MicroOrm
         #region Multiple
 
         public IEnumerable<T> ReadMultiple<T>(string query) where T : new()
-            => ReadMultiple<T>(new InlineCommand(query, QueryLogger));
+            => ReadMultiple<T>(new InlineSqlProvider(query, QueryLogger));
 
         public IEnumerable<T> ReadMultiple<T>(ICommandProvider commandProvider) where T : new()
         {
