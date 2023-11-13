@@ -56,6 +56,7 @@ test_script:
     dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Adomd.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Prql.Testing --runtime win-x64 -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Prql.xml --test-adapter-path:. --logger:Appveyor --nologo
     dotnet test DubUrl.Extensions.DependencyInjection.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.DependencyInjection.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
 
