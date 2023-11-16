@@ -43,7 +43,7 @@ namespace DubUrl.Registering
                 Debug.WriteLine($"Analyzing assembly {asm.FullName}");
 
                 //Check if assembly contains a DbProviderFactory
-                var types = asm.DefinedTypes;
+                var types = asm.ExportedTypes;
                 var providerFactories = types.Where(t =>
                         t.IsClass
                         && t.IsVisible

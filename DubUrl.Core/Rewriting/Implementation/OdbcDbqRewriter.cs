@@ -124,7 +124,11 @@ namespace DubUrl.Rewriting.Implementation
             {
                 var types = new List<Type>();
                 AppDomain.CurrentDomain.GetAssemblies()
+#if NET7_0_OR_GREATER
+                    .SelectMany(assembly => assembly.GetExportedTypes())
+#else
                     .SelectMany(assembly => assembly.GetTypes())
+#endif
                     .Where(x => x.IsEnum && x.GetCustomAttributes(typeof(LocatorOptionAttribute), true).Length > 0)
                     .ToList()
                     .ForEach(x => types.Add(x));
