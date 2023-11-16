@@ -5,12 +5,8 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
-using DubUrl.Querying;
-using DubUrl.Querying.Dialects;
-using DubUrl.Querying.Reading;
 using Moq;
 using NUnit.Framework;
 
