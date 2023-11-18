@@ -23,6 +23,7 @@ namespace DubUrl
         internal ConnectionUrlFactory(IParser parser, SchemeMapperBuilder builder)
             => (Parser, SchemeMapperBuilder) = (parser, builder);
 
-        public ConnectionUrl Instantiate(string url) => new (url, Parser, SchemeMapperBuilder);
+        public ConnectionUrl Instantiate(string url)
+            => new(url, Parser, SchemeMapperBuilder);
     }
 }
