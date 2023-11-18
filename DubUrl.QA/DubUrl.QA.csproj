@@ -91,7 +91,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Adomd\DubUrl.Adomd.csproj" />
     <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
-    <ProjectReference Include="..\DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
     <ProjectReference Include="..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
   </ItemGroup>
 

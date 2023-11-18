@@ -8,8 +8,9 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using DubUrl.Querying;
 using DubUrl.MicroOrm;
+using DubUrl.Extensions.DependencyInjection;
 
-namespace DubUrl.Extensions.DependencyInjection.Testing
+namespace DubUrl.Extensions.Testing.DependencyInjection
 {
     [TestFixture]
     public class DubUrlServiceExtensionsTest
@@ -54,7 +55,7 @@ namespace DubUrl.Extensions.DependencyInjection.Testing
             SchemeMapperBuilder? mapper = null;
             Assert.DoesNotThrow(() => mapper = provider.GetRequiredService<SchemeMapperBuilder>());
         }
-        
+
         [Test]
         public void AddDubUrlTest_WithoutQueryLogger_ReturnsNullQuerLoggerInDatabaseUrlFactory()
         {
@@ -86,7 +87,6 @@ namespace DubUrl.Extensions.DependencyInjection.Testing
         public void WithoutCache_None_ReturnsWithoutCacheForOrmDatabaseUrl()
         {
             var logger = Mock.Of<IQueryLogger>();
-            var options = new DubUrlServiceOptions();
             using var provider = new ServiceCollection()
                 .AddSingleton(EmptyConfiguration)
                 .AddDubUrl()
@@ -106,7 +106,6 @@ namespace DubUrl.Extensions.DependencyInjection.Testing
         {
             var logger = Mock.Of<IQueryLogger>();
             var cache = Mock.Of<IReflectionCache>();
-            var options = new DubUrlServiceOptions();
             using var provider = new ServiceCollection()
                 .AddSingleton(EmptyConfiguration)
                 .AddDubUrl()
@@ -116,7 +115,7 @@ namespace DubUrl.Extensions.DependencyInjection.Testing
                 .BuildServiceProvider();
             var factory = provider.GetRequiredService<IDatabaseUrlFactory>();
             Assert.That(factory, Is.TypeOf<MicroOrm.DatabaseUrlFactory>());
-            Assert.That(factory.QueryLogger, Is.EqualTo(logger)); 
+            Assert.That(factory.QueryLogger, Is.EqualTo(logger));
             var microOrm = (factory as MicroOrm.DatabaseUrlFactory)!;
             Assert.That(microOrm.ReflectionCache, Is.EqualTo(cache));
         }
