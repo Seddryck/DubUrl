@@ -46,9 +46,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OleDb", "OleDb", "{C63A5E14
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{AD94AAB8-523D-44E3-AAB6-29FA38611B8F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection", "DubUrl.Extensions.DependencyInjection\DubUrl.Extensions.DependencyInjection.csproj", "{E89F60EE-4A74-4159-B340-95BBA7507F46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions", "DubUrl.Extensions\DubUrl.Extensions.csproj", "{E89F60EE-4A74-4159-B340-95BBA7507F46}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.DependencyInjection.Testing", "DubUrl.Extensions.DependencyInjection.Testing\DubUrl.Extensions.DependencyInjection.Testing.csproj", "{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Extensions.Testing", "DubUrl.Extensions.Testing\DubUrl.Extensions.Testing.csproj", "{B609EAA1-2443-4F75-9C31-AE048B3CB1DF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{BAFC00CA-8CE9-4A48-B05B-45982D1F6F0F}"
 	ProjectSection(SolutionItems) = preProject
