@@ -24,7 +24,7 @@ namespace DubUrl
         private IMapper? Mapper { get; set; }
         private IParser Parser { get; }
         
-        private string Url { get; }
+        public string Url { get; }
 
         public ConnectionUrl(string url)
             : this(url, new Parser(), new SchemeMapperBuilder()) { }

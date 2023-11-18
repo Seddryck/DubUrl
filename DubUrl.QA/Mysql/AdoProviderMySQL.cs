@@ -5,10 +5,6 @@ using System.Data.Common;
 using DubUrl.Querying;
 using DubUrl.Querying.Reading;
 using DubUrl.Registering;
-using DubUrl.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace DubUrl.QA.Mysql
