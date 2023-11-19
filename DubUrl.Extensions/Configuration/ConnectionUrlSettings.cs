@@ -57,10 +57,11 @@ namespace DubUrl.Extensions.Configuration
                 builder.Path = string.Join('/', Segments.Select(encoder.Encode));
             else if (!string.IsNullOrEmpty(Segment))
                 builder.Path = string.Join('/', Segment.Split('/').Select(encoder.Encode));
+            if (Segments is not null && Segments.Any())
+                builder.Path = string.Join('/', Segments.Select(encoder.Encode));
             if (parameters.Any())
                 builder.Query = string.Join("&", parameters.Select(x => $"{encoder.Encode(x.Key)}={encoder.Encode(x.Value)}"));
             return builder.ToString();
         }
-
     }
 }

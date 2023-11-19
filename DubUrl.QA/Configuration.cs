@@ -21,6 +21,10 @@ namespace DubUrl.QA
             new ProviderFactoriesRegistrator().Register();
             IniConfig = new ConfigurationBuilder().AddIniFile("appsettings.ini").Build();
         }
+      
+        [OneTimeSetUp]
+        public virtual void SetupFixture()
+            => new ProviderFactoriesRegistrator().Register();
 
         [Test]
         public void ReadFromAppSettingsJson_ConnectionStrings()

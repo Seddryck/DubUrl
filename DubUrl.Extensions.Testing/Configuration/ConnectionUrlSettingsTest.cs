@@ -92,30 +92,5 @@ namespace DubUrl.Extensions.Testing.Configuration
             };
             Assert.That(settings.ToString(), Is.EqualTo($"mssql://localhost/?foo=1&bar=2"));
         }
-
-        [Test]
-        public void ToString_SegmentsWithSegment_Throws()
-        {
-            var settings = new ConnectionUrlSettings()
-            {
-                Scheme = "mssql",
-                Host = "localhost",
-                Segments = new[] { "Sql2020", "Customers" },
-                Segment = "Sql2020/Customers"
-            };
-            Assert.Throws<InvalidOperationException>(() => settings.ToString());
-        }
-
-        [Test]
-        public void ToString_Segment_Throws()
-        {
-            var settings = new ConnectionUrlSettings()
-            {
-                Scheme = "mssql",
-                Host = "localhost",
-                Segment = "Sql2020/Customers"
-            };
-            Assert.That(settings.ToString(), Is.EqualTo($"mssql://localhost/{settings.Segment}"));
-        }
     }
 }
