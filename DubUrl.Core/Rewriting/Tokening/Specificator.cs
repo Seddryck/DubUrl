@@ -17,9 +17,6 @@ namespace DubUrl.Rewriting.Tokening
         {
             if (!AcceptKey(keyword))
                 throw new InvalidOperationException($"The keyword '{keyword}' is not valid for this type of connection string.");
-            if (value == null)
-                throw new ArgumentNullException(nameof(value), $"The value for the keyword '{keyword}' cannot be null.");
-
             AddToken(keyword, value);
         }
 
