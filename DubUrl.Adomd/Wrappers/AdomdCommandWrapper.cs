@@ -1,5 +1,4 @@
-﻿using Microsoft.AnalysisServices.AdomdClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,12 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.AnalysisServices.AdomdClient;
 
 namespace DubUrl.Adomd.Wrappers
 {
     internal class AdomdCommandWrapper : DbCommand
     {
-        public AdomdCommand InnerCommand { get; }
+        public IDbCommand InnerCommand { get; }
         private new AdomdParameterCollectionWrapper Parameters { get; }
 
         public AdomdCommandWrapper()
@@ -23,7 +23,7 @@ namespace DubUrl.Adomd.Wrappers
             Parameters = new AdomdParameterCollectionWrapper(InnerCommand);
         }
 
-        public AdomdCommandWrapper(AdomdConnection connection)
+        public AdomdCommandWrapper(IDbConnection connection)
             : this() { InnerCommand.Connection = connection; }
 
         public override void Cancel()
