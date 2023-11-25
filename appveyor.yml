@@ -16,7 +16,7 @@ skip_commits:
 
 environment:
   github_access_token:
-    secure: gtEHCUmmDjYfrp/NEe2qUBR/t07Z9Mk2JJPm9L64xQb/Qbn2xYDB+WEWokiR382rXajnuQ5HEq1a4WOQQ8+SPlChEs6t25QAUYQ3SWxNovut3zlujgs6EABt3TuwsTBq
+    secure: gtEHCUmmDjYfrp/NEe2qUPjZi9gXoSgzYTNEmN99fCWp7qp4tXhVSPhzutj2WATjNqlFChFx1vcvFZtiq9C9vVjJ/lcmp/b0paF+W9V0xqScKMrkYQmCrA/glUq4XOae
 
 init:
 - cmd: git config --global core.autocrlf true
