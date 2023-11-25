@@ -23,7 +23,7 @@ namespace DubUrl.OleDb.Mapping
             : this(csb, new ProviderLocatorFactory()) { }
         public OleDbRewriter(DbConnectionStringBuilder csb, ProviderLocatorFactory providerLocatorFactory)
             : base(
-                  new SpecificatorStraight(csb),
+                  new StraightSpecificator(csb),
                   new BaseTokenMapper[] {
                     new AuthentificationMapper(),
                     new ProviderMapper(providerLocatorFactory),

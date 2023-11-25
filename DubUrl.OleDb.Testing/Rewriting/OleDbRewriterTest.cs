@@ -40,7 +40,7 @@ namespace DubUrl.OleDb.Testing.Rewriting
             else
             {
                 var csb = new OleDbConnectionStringBuilder();
-                var specificator = new SpecificatorStraight(csb);
+                var specificator = new StraightSpecificator(csb);
                 var mapper = new OleDbRewriter.ServerMapper();
                 mapper.Accept(specificator);
 
@@ -63,7 +63,7 @@ namespace DubUrl.OleDb.Testing.Rewriting
             else
             {
                 var csb = new OleDbConnectionStringBuilder();
-                var specificator = new SpecificatorStraight(csb);
+                var specificator = new StraightSpecificator(csb);
                 var mapper = new OleDbRewriter.DataSourceMapper();
                 mapper.Accept(specificator);
 
@@ -85,7 +85,7 @@ namespace DubUrl.OleDb.Testing.Rewriting
             else
             {
                 var csb = new OleDbConnectionStringBuilder();
-                var specificator = new SpecificatorStraight(csb);
+                var specificator = new StraightSpecificator(csb);
                 var mapper = new OleDbRewriter.InitialCatalogMapper();
                 mapper.Accept(specificator);
 

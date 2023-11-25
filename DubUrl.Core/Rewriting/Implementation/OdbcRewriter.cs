@@ -23,7 +23,7 @@ namespace DubUrl.Rewriting.Implementation
         public OdbcRewriter(DbConnectionStringBuilder csb)
             : this (csb, new DriverLocatorFactory()) { }
         public OdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
-            : base(new SpecificatorStraight(csb),
+            : base(new StraightSpecificator(csb),
                   new BaseTokenMapper[] {
                     new HostMapper(),
                     new AuthentificationMapper(),
@@ -35,7 +35,7 @@ namespace DubUrl.Rewriting.Implementation
         { }
 
         protected OdbcRewriter(DbConnectionStringBuilder csb, BaseTokenMapper[] tokenMappers)
-            : base(new SpecificatorStraight(csb), tokenMappers) { }
+            : base(new StraightSpecificator(csb), tokenMappers) { }
 
         internal DriverLocatorFactory DriverLocatorFactory
             => (TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory

@@ -23,7 +23,7 @@ namespace DubUrl.Rewriting.Implementation
         protected internal const int HEADERS_DEFAULT_VALUE = 1;
 
         public TrinoRewriter(DbConnectionStringBuilder csb)
-            : base(new SpecificatorUnchecked(csb),
+            : base(new UniqueAssignmentSpecificator(csb),
                   new BaseTokenMapper[] {
                     new HostMapper(),
                     new PortMapper(),

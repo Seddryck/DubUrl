@@ -21,7 +21,7 @@ namespace DubUrl.Adomd.Rewriting
         protected internal const string DEFAULT_POWERBI_TENANT = "myorg";
 
         public PowerBiPremiumRewriter(DbConnectionStringBuilder csb)
-            : base(new SpecificatorUnchecked(csb),
+            : base(new UniqueAssignmentSpecificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper()
                   }

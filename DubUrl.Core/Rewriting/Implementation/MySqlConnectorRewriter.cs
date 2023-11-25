@@ -19,7 +19,7 @@ namespace DubUrl.Rewriting.Implementation
         protected internal const string PASSWORD_KEYWORD = "Password";
 
         public MySqlConnectorRewriter(DbConnectionStringBuilder csb)
-            : base(new SpecificatorUnchecked(csb),
+            : base(new UniqueAssignmentSpecificator(csb),
                   new BaseTokenMapper[] {
                     new ServerMapper(),
                     new AuthentificationMapper(),

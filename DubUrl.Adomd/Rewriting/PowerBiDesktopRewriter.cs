@@ -26,7 +26,7 @@ namespace DubUrl.Adomd.Rewriting
         { }
 
         protected internal PowerBiDesktopRewriter(DbConnectionStringBuilder csb, IPowerBiDiscoverer discoverer)
-            : base(new SpecificatorUnchecked(csb),
+            : base(new UniqueAssignmentSpecificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(discoverer)
                   }
