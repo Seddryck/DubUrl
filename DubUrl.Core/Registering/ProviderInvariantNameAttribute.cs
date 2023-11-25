@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Extensions
+namespace DubUrl.Registering
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class ProviderInvariantNameAttribute : Attribute
