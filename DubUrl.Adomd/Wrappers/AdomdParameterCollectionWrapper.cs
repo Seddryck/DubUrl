@@ -1,5 +1,4 @@
-﻿using Microsoft.AnalysisServices.AdomdClient;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -13,8 +12,8 @@ namespace DubUrl.Adomd.Wrappers
 {
     internal class AdomdParameterCollectionWrapper : DbParameterCollection
     {
-        protected AdomdCommand Command { get; }
-        protected AdomdParameterCollection InnerCollection { get => Command.Parameters; }
+        protected IDbCommand Command { get; }
+        protected IDataParameterCollection InnerCollection { get => Command.Parameters; }
 
         public override int Count
             => InnerCollection.Count;
@@ -22,7 +21,7 @@ namespace DubUrl.Adomd.Wrappers
         public override object SyncRoot
             => throw new NotImplementedException();
 
-        public AdomdParameterCollectionWrapper(AdomdCommand command)
+        public AdomdParameterCollectionWrapper(IDbCommand command)
             => Command = command;
 
         public override int Add(object value)

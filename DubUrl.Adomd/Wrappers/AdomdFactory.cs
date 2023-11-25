@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Extensions;
-using Microsoft.AnalysisServices.AdomdClient;
+using DubUrl.Registering;
 
 namespace DubUrl.Adomd.Wrappers
 {
