@@ -21,7 +21,7 @@ namespace DubUrl.Rewriting.Implementation
         public OdbcDbqRewriter(DbConnectionStringBuilder csb)
             : this(csb, new DriverLocatorFactory()) { }
         public OdbcDbqRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
-            : base(new SpecificatorStraight(csb),
+            : base(new StraightSpecificator(csb),
                   new BaseTokenMapper[] {
                     new DbqMapper(),
                     new AuthentificationMapper(),

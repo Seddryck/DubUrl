@@ -14,7 +14,7 @@ namespace DubUrl.Rewriting.Implementation
         protected internal const string DATABASE_KEYWORD = "Data Source";
 
         public DuckdbRewriter(DbConnectionStringBuilder csb)
-            : base(   new SpecificatorUnchecked(csb),
+            : base(   new UniqueAssignmentSpecificator(csb),
                       new BaseTokenMapper[] {
                         new DataSourceMapper(),
                         new OptionsMapper(),

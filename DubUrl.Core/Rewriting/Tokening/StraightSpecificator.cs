@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Tokening
 {
-    public class SpecificatorUnchecked : Specificator
+    public class StraightSpecificator : Specificator
     {
-        public SpecificatorUnchecked(DbConnectionStringBuilder csb)
+        public StraightSpecificator(DbConnectionStringBuilder csb)
             : base(csb) { }
 
         public override void Execute(string keyword, object value)
         {
-            if (AcceptKey(keyword))
-                throw new InvalidOperationException($"The keyword '{keyword}' is already specified for this connection string.");
             if (value == null)
                 throw new ArgumentNullException(nameof(value), $"The value for the keyword '{keyword}' cannot be null.");
 
             AddToken(keyword, value);
         }
+
+        public override bool AcceptKey(string keyword) => true;
     }
 }
