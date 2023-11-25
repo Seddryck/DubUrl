@@ -78,30 +78,40 @@ namespace DubUrl.Testing.Rewriting.Implementation
         public void Map_UrlInfoWithUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
-            var mapper = new CockRoachRewriter(ConnectionStringBuilder);
-            var result = mapper.Execute(urlInfo);
+            var rewriter = new CockRoachRewriter(ConnectionStringBuilder);
+            var result = rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
             Assert.That(result[PostgresqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
             Assert.That(result, Does.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
             Assert.That(result[PostgresqlRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That(result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
-            Assert.That(result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo(false));
+            if (rewriter.IsIntegratedSecurityAllowed)
+            {
+                Assert.That(result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
+                Assert.That(result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo(false));
+            }
+            else
+                Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
         }
 
         [Test]
         public void Map_UrlInfoWithoutUsernamePassword_Authentication()
         {
             var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
-            var mapper = new CockRoachRewriter(ConnectionStringBuilder);
-            var result = mapper.Execute(urlInfo);
+            var rewriter = new CockRoachRewriter(ConnectionStringBuilder);
+            var result = rewriter.Execute(urlInfo);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
             Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
-            Assert.That(result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
-            Assert.That(result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            if (rewriter.IsIntegratedSecurityAllowed)
+            {
+                Assert.That(result, Does.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
+                Assert.That(result[PostgresqlRewriter.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            }
+            else
+                Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.SSPI_KEYWORD));
         }
 
         [Test]
