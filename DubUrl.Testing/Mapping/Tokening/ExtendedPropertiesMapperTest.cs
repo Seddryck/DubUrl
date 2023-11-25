@@ -18,6 +18,7 @@ namespace DubUrl.Testing.Mapping.Tokening
 
             public string ConnectionString => throw new NotImplementedException();
 
+            public bool AcceptKey(string keyword) => true;
             public void Execute(string keyword, object value)
                 => Properties.Add(keyword, value);
             public IReadOnlyDictionary<string, object> ToReadOnlyDictionary() => throw new NotImplementedException();

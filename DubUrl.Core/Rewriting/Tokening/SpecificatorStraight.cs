@@ -19,5 +19,7 @@ namespace DubUrl.Rewriting.Tokening
 
             AddToken(keyword, value);
         }
+
+        public override bool AcceptKey(string keyword) => true;
     }
 }

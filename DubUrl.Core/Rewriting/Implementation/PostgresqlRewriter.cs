@@ -58,10 +58,13 @@ namespace DubUrl.Rewriting.Implementation
                 if (!string.IsNullOrEmpty(urlInfo.Password))
                     Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
 
-                if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
-                    Specificator.Execute(SSPI_KEYWORD, true);
-                else
-                    Specificator.Execute(SSPI_KEYWORD, false);
+                if (Specificator.AcceptKey(SSPI_KEYWORD))
+                {
+                    if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
+                        Specificator.Execute(SSPI_KEYWORD, true);
+                    else
+                        Specificator.Execute(SSPI_KEYWORD, false);
+                }
             }
         }
 
