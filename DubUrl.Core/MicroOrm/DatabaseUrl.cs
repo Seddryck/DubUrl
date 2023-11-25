@@ -51,7 +51,7 @@ namespace DubUrl.MicroOrm
         }
 
         public T? ReadSingleNonNull<T>(string query) where T : new()
-            => ReadSingle<T>(query);
+            => ReadSingleNonNull<T>(new InlineCommand(query, QueryLogger));
 
         public T? ReadSingleNonNull<T>(ICommandProvider commandProvider) where T : new()
             => ReadSingle<T>(commandProvider) ?? throw new InvalidOperationException();
@@ -71,6 +71,9 @@ namespace DubUrl.MicroOrm
 
             return dr.ToEntity<T>(ReflectionCache);
         }
+
+        public T ReadFirstNonNull<T>(string query) where T : new()
+            => ReadFirstNonNull<T>(new InlineCommand(query, QueryLogger));
 
         public T ReadFirstNonNull<T>(ICommandProvider commandProvider) where T : new()
             => ReadFirst<T>(commandProvider) ?? throw new InvalidOperationException();
