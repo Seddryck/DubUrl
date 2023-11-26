@@ -32,7 +32,7 @@ namespace DubUrl.Testing.Registering
         [Test]
         public void Register_FakeDbProviderFactory_CorrectProviderInvariantName()
         {
-            var discoverMock = new Mock<IProviderFactoriesDiscover>();
+            var discoverMock = new Mock<IProviderFactoriesDiscoverer>();
             discoverMock.Setup(x => x.Execute()).Returns(new[] { typeof(FakeDbProviderFactory) });
 
             var registrator = new ProviderFactoriesRegistrator(discoverMock.Object);
@@ -45,7 +45,7 @@ namespace DubUrl.Testing.Registering
         [Test]
         public void Register_FakeDbProviderFactory_Registered()
         {
-            var discoverMock = new Mock<IProviderFactoriesDiscover>();
+            var discoverMock = new Mock<IProviderFactoriesDiscoverer>();
             discoverMock.Setup(x => x.Execute()).Returns(new[] { typeof(FakeDbProviderFactory) });
 
             var registrator = new ProviderFactoriesRegistrator(discoverMock.Object);

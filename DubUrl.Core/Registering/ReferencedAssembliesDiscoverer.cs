@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Registering
 {
-    public class ReferencedAssembliesDiscover : IProviderFactoriesDiscover
+    public class ReferencedAssembliesDiscoverer : IProviderFactoriesDiscoverer
     {
         private Assembly? EntryAssembly { get; } = null;
         private List<Func<AssemblyName, bool>> Exclusions { get; } = new();
 
-        public ReferencedAssembliesDiscover()
+        public ReferencedAssembliesDiscoverer()
             : this(Assembly.GetEntryAssembly()) { }
 
-        public ReferencedAssembliesDiscover(Assembly? assembly)
+        public ReferencedAssembliesDiscoverer(Assembly? assembly)
         {
             EntryAssembly = assembly;
             Exclusions.Add((AssemblyName reference)

@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Registering
 {
-    public class BinFolderDiscover : IProviderFactoriesDiscover
+    public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
     {
         private Assembly[] Assemblies { get; }
         private BaseMapperIntrospector[] MapperIntrospectors { get; }
 
-        public BinFolderDiscover()
+        public BinFolderDiscoverer()
             : this(new[] { Assembly.GetEntryAssembly() ?? throw new InvalidOperationException() }) { }
 
-        internal BinFolderDiscover(BaseMapperIntrospector[] mapperIntrospectors)
+        internal BinFolderDiscoverer(BaseMapperIntrospector[] mapperIntrospectors)
             : this(new[] { Assembly.GetEntryAssembly() ?? throw new InvalidOperationException() } , mapperIntrospectors) { }
 
-        public BinFolderDiscover(Assembly[] assemblies)
+        public BinFolderDiscoverer(Assembly[] assemblies)
             : this(assemblies, new BaseMapperIntrospector[] 
                 {
                     new NativeMapperIntrospector(assemblies.Concat(new[] {typeof(NativeMapperIntrospector).Assembly }).ToArray())
@@ -30,7 +30,7 @@ namespace DubUrl.Registering
                 }
             ) { }
 
-        internal BinFolderDiscover(Assembly[] assemblies, BaseMapperIntrospector[] mapperIntrospectors)
+        internal BinFolderDiscoverer(Assembly[] assemblies, BaseMapperIntrospector[] mapperIntrospectors)
             => (Assemblies, MapperIntrospectors) = (assemblies, mapperIntrospectors);
 
         public virtual IEnumerable<Type> Execute()
@@ -61,7 +61,7 @@ namespace DubUrl.Registering
                 var asmName = Path.GetFileNameWithoutExtension(asmPath) ?? throw new ArgumentNullException();
                 Debug.WriteLine($"Analyzing assembly {asmName}");
 
-                if (!listCandidates.Contains(asmName) && !asmName.StartsWith(typeof(BinFolderDiscover).Namespace!.Split('.')[0]))
+                if (!listCandidates.Contains(asmName) && !asmName.StartsWith(typeof(BinFolderDiscoverer).Namespace!.Split('.')[0]))
                     continue;
                 Debug.WriteLine($"Mapper found for assembly {asmName}");
 
