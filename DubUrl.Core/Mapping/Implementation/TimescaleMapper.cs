@@ -9,15 +9,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<TimescaleDatabase, PositionalParametrizer>(
+    "Npgsql"
+)]
+internal class TimescaleMapper : PostgresqlMapper
 {
-    [Mapper<TimescaleDatabase, PositionalParametrizer>(
-        "Npgsql"
-    )]
-    internal class TimescaleMapper : PostgresqlMapper
-    {
-        public TimescaleMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new TimescaleRewriter(csb), dialect, parametrizer)
-        { }
-    }
+    public TimescaleMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new TimescaleRewriter(csb), dialect, parametrizer)
+    { }
 }

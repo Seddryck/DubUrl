@@ -9,15 +9,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<QuestDbDatabase, PositionalParametrizer>(
+    "Npgsql"
+)]
+internal class QuestDbMapper : PostgresqlMapper
 {
-    [Mapper<QuestDbDatabase, PositionalParametrizer>(
-        "Npgsql"
-    )]
-    internal class QuestDbMapper : PostgresqlMapper
-    {
-        public QuestDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new QuestDbRewriter(csb), dialect, parametrizer)
-        { }
-    }
+    public QuestDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new QuestDbRewriter(csb), dialect, parametrizer)
+    { }
 }

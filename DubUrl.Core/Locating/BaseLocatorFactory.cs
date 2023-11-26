@@ -4,41 +4,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating
+namespace DubUrl.Locating;
+
+public abstract class BaseLocatorFactory
 {
-    public abstract class BaseLocatorFactory
+    protected readonly Dictionary<string, Type> Schemes = new();
+
+    protected internal virtual string[] GetValidAliases() => Schemes.Keys.ToArray();
+
+    #region Add, remove aliases and mappings
+
+    public void AddAlias(string alias, string original)
     {
-        protected readonly Dictionary<string, Type> Schemes = new();
+        if (Schemes.ContainsKey(alias))
+            throw new ArgumentException($"There is already a scheme registered with the alias '{alias}'. You cannot add a second scheme with the same alias.", nameof(alias));
 
-        protected internal virtual string[] GetValidAliases() => Schemes.Keys.ToArray();
+        if (!Schemes.ContainsKey(original))
+            throw new ArgumentException($"There is no scheme registered with the alias '{original}'. You cannot add an alias if the scheme is not already registered.", nameof(original));
 
-        #region Add, remove aliases and mappings
-
-        public void AddAlias(string alias, string original)
-        {
-            if (Schemes.ContainsKey(alias))
-                throw new ArgumentException($"There is already a scheme registered with the alias '{alias}'. You cannot add a second scheme with the same alias.", nameof(alias));
-
-            if (!Schemes.ContainsKey(original))
-                throw new ArgumentException($"There is no scheme registered with the alias '{original}'. You cannot add an alias if the scheme is not already registered.", nameof(original));
-
-            Schemes.Add(alias, Schemes[original]);
-        }
-
-        protected void AddElement(string alias, Type locator)
-        {
-            if (Schemes.ContainsKey(alias))
-                throw new ArgumentException($"There is already a locator registered for the alias '{alias}'. You cannot register two locators with the same alias", nameof(alias));
-
-            Schemes.Add(alias, locator);
-        }
-
-        public void ReplaceMapping(Type oldDriverLocator, Type newDriverLocator)
-        {
-            foreach (var scheme in Schemes.Where(x => x.Value == oldDriverLocator))
-                Schemes[scheme.Key] = newDriverLocator;
-        }
-
-        #endregion
+        Schemes.Add(alias, Schemes[original]);
     }
+
+    protected void AddElement(string alias, Type locator)
+    {
+        if (Schemes.ContainsKey(alias))
+            throw new ArgumentException($"There is already a locator registered for the alias '{alias}'. You cannot register two locators with the same alias", nameof(alias));
+
+        Schemes.Add(alias, locator);
+    }
+
+    public void ReplaceMapping(Type oldDriverLocator, Type newDriverLocator)
+    {
+        foreach (var scheme in Schemes.Where(x => x.Value == oldDriverLocator))
+            Schemes[scheme.Key] = newDriverLocator;
+    }
+
+    #endregion
 }

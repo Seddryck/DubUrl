@@ -7,58 +7,57 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl
+namespace DubUrl;
+
+public interface IDatabaseUrl
 {
-    public interface IDatabaseUrl
-    {
-        IQueryLogger QueryLogger { get; }
-        IDialect Dialect { get; }
+    IQueryLogger QueryLogger { get; }
+    IDialect Dialect { get; }
 
-        #region Scalar
+    #region Scalar
 
-        object? ReadScalar(string query);
-        object? ReadScalar(ICommandProvider commandProvider);
-        object ReadScalarNonNull(string query);
-        object ReadScalarNonNull(ICommandProvider commandProvider);
-        T? ReadScalar<T>(string query);
-        T? ReadScalar<T>(string template, IDictionary<string, object?> parameters);
-        T? ReadScalar<T>(ICommandProvider query);
-        T ReadScalarNonNull<T>(string query);
-        T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters);
-        T ReadScalarNonNull<T>(ICommandProvider query);
+    object? ReadScalar(string query);
+    object? ReadScalar(ICommandProvider commandProvider);
+    object ReadScalarNonNull(string query);
+    object ReadScalarNonNull(ICommandProvider commandProvider);
+    T? ReadScalar<T>(string query);
+    T? ReadScalar<T>(string template, IDictionary<string, object?> parameters);
+    T? ReadScalar<T>(ICommandProvider query);
+    T ReadScalarNonNull<T>(string query);
+    T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters);
+    T ReadScalarNonNull<T>(ICommandProvider query);
 
-        #endregion
+    #endregion
 
-        #region Single
+    #region Single
 
-        object? ReadSingle(string query);
-        object? ReadSingle(ICommandProvider commandProvider);
-        object ReadSingleNonNull(string query);
-        object ReadSingleNonNull(ICommandProvider commandProvider);
+    object? ReadSingle(string query);
+    object? ReadSingle(ICommandProvider commandProvider);
+    object ReadSingleNonNull(string query);
+    object ReadSingleNonNull(ICommandProvider commandProvider);
 
-        #endregion
+    #endregion
 
-        #region First 
+    #region First 
 
-        object? ReadFirst(string query);
-        object? ReadFirst(ICommandProvider commandProvider);
-        object ReadFirstNonNull(string query);
-        object ReadFirstNonNull(ICommandProvider commandProvider);
+    object? ReadFirst(string query);
+    object? ReadFirst(ICommandProvider commandProvider);
+    object ReadFirstNonNull(string query);
+    object ReadFirstNonNull(ICommandProvider commandProvider);
 
-        #endregion
+    #endregion
 
-        #region Multiple
+    #region Multiple
 
-        IEnumerable<object> ReadMultiple(string query);
-        IEnumerable<object> ReadMultiple(ICommandProvider commandProvider);
+    IEnumerable<object> ReadMultiple(string query);
+    IEnumerable<object> ReadMultiple(ICommandProvider commandProvider);
 
-        #endregion
+    #endregion
 
-        #region ExecuteReader
+    #region ExecuteReader
 
-        IDataReader ExecuteReader(string query);
-        IDataReader ExecuteReader(ICommandProvider commandProvider);
+    IDataReader ExecuteReader(string query);
+    IDataReader ExecuteReader(ICommandProvider commandProvider);
 
-        #endregion
-    }
+    #endregion
 }

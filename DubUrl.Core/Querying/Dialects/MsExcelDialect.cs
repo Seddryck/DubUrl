@@ -6,12 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects
+namespace DubUrl.Querying.Dialects;
+
+[Renderer<AnsiRenderer>()]
+public class MsExcelDialect : BaseDialect
 {
-    [Renderer<AnsiRenderer>()]
-    public class MsExcelDialect : BaseDialect
-    {
-        internal MsExcelDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+    internal MsExcelDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

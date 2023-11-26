@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb
-{
-    internal record struct ProviderInfo(string NickName, string FullName);
-}
+namespace DubUrl.OleDb;
+
+internal record struct ProviderInfo(string NickName, string FullName);

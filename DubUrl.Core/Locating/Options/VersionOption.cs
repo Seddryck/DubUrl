@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.Options
-{
-    [LocatorOption]
-    public enum VersionOption
-    {
+namespace DubUrl.Locating.Options;
 
-    }
+[LocatorOption]
+public enum VersionOption
+{
+
 }

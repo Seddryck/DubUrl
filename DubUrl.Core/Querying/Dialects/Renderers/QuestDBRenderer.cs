@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Renderers
+namespace DubUrl.Querying.Dialects.Renderers;
+
+internal class QuestDBRenderer : PgsqlRenderer
 {
-    internal class QuestDBRenderer : PgsqlRenderer
-    {
-        public QuestDBRenderer()
-            : base(new ValueFormatter()
-                        .With(new FunctionFormatter<DateOnly>("TIMESTAMP", new DateFormatter())))
-        { }
-    }
+    public QuestDBRenderer()
+        : base(new ValueFormatter()
+                    .With(new FunctionFormatter<DateOnly>("TIMESTAMP", new DateFormatter())))
+    { }
 }

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb.Mapping
-{
-    public interface IOleDbMapper : IMapper { }
-}
+namespace DubUrl.OleDb.Mapping;
+
+public interface IOleDbMapper : IMapper { }

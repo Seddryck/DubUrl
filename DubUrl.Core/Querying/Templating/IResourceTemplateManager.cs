@@ -7,11 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Templating
+namespace DubUrl.Querying.Templating;
+
+public interface IResourceTemplateManager : IResourceManager
 {
-    public interface IResourceTemplateManager : IResourceManager
-    {
-        IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension);
-        IDictionary<string, object?> ReadDictionary(string resourceName);
-    }
+    IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension);
+    IDictionary<string, object?> ReadDictionary(string resourceName);
 }

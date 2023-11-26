@@ -7,34 +7,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Reading
+namespace DubUrl.Querying.Reading;
+
+internal class InlineCommand : ICommandProvider
 {
-    internal class InlineCommand : ICommandProvider
+    protected string Text { get; }
+    private IQueryLogger QueryLogger { get; }
+
+    public InlineCommand(string text, IQueryLogger queryLogger) 
+        => (Text, QueryLogger) = (text, queryLogger);
+
+    public string Read(IDialect dialect, IConnectivity connectivity)
     {
-        protected string Text { get; }
-        private IQueryLogger QueryLogger { get; }
+        var text = Render(dialect, connectivity);
+        QueryLogger.Log(text);
+        return text;
+    }
 
-        public InlineCommand(string text, IQueryLogger queryLogger) 
-            => (Text, QueryLogger) = (text, queryLogger);
+    protected virtual string Render(IDialect dialect, IConnectivity connectivity)
+        => Text;
 
-        public string Read(IDialect dialect, IConnectivity connectivity)
-        {
-            var text = Render(dialect, connectivity);
-            QueryLogger.Log(text);
-            return text;
-        }
+    public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false) => true;
 
-        protected virtual string Render(IDialect dialect, IConnectivity connectivity)
-            => Text;
-
-        public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false) => true;
-
-        public virtual IDbCommand CreateCommand(IDialect dialect, IConnectivity connectivity, IDbConnection conn)
-        {
-            var cmd = conn.CreateCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = Read(dialect, connectivity);
-            return cmd;
-        }
+    public virtual IDbCommand CreateCommand(IDialect dialect, IConnectivity connectivity, IDbConnection conn)
+    {
+        var cmd = conn.CreateCommand();
+        cmd.CommandType = CommandType.Text;
+        cmd.CommandText = Read(dialect, connectivity);
+        return cmd;
     }
 }

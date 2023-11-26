@@ -8,19 +8,18 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.QA
+namespace DubUrl.QA;
+
+internal class RepositoryFactory
 {
-    internal class RepositoryFactory
-    {
-        private IDatabaseUrlFactory DatabaseUrlFactory { get; }
+    private IDatabaseUrlFactory DatabaseUrlFactory { get; }
 
-        public RepositoryFactory(IDatabaseUrlFactory databaseUrlFactory)
-            => DatabaseUrlFactory = databaseUrlFactory;
+    public RepositoryFactory(IDatabaseUrlFactory databaseUrlFactory)
+        => DatabaseUrlFactory = databaseUrlFactory;
 
-        public T Instantiate<T>(string url)
-            => (T)(
-                    Activator.CreateInstance(typeof(T), new object[] { DatabaseUrlFactory, url})
-                    ?? throw new InvalidCastException()
-                );
-    }
+    public T Instantiate<T>(string url)
+        => (T)(
+                Activator.CreateInstance(typeof(T), new object[] { DatabaseUrlFactory, url})
+                ?? throw new InvalidCastException()
+            );
 }

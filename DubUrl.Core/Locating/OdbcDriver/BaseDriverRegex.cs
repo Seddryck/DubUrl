@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver;
+
+internal class BaseDriverRegex : BaseLocatorRegex, ILocatorRegex
 {
-    internal class BaseDriverRegex : BaseLocatorRegex, ILocatorRegex
-    {
-        public BaseDriverRegex(BaseRegex[] regexes)
-            : base(regexes) { }
-    }
+    public BaseDriverRegex(BaseRegex[] regexes)
+        : base(regexes) { }
 }

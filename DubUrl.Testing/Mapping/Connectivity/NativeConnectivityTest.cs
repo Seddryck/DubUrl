@@ -7,12 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Mapping.Connectivity
+namespace DubUrl.Testing.Mapping.Connectivity;
+
+public class NativeConnectivityTest
 {
-    public class NativeConnectivityTest
-    {
-        [Test]
-        public void Alias_Get_Empty()
-            => Assert.That(new NativeConnectivity().Alias, Is.EqualTo(string.Empty));
-    }
+    [Test]
+    public void Alias_Get_Empty()
+        => Assert.That(new NativeConnectivity().Alias, Is.EqualTo(string.Empty));
 }

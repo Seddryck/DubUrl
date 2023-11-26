@@ -7,15 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Querying
+namespace DubUrl.Adomd.Querying;
+
+[Renderer<DaxRenderer>()]
+[ReturnCaster<DecimalConverter>()]
+[ReturnCaster<DateTimeCaster<DateOnly>>()]
+[ReturnCaster<DateTimeCaster<TimeOnly>>()]
+public class DaxDialect : BaseDialect
 {
-    [Renderer<DaxRenderer>()]
-    [ReturnCaster<DecimalConverter>()]
-    [ReturnCaster<DateTimeCaster<DateOnly>>()]
-    [ReturnCaster<DateTimeCaster<TimeOnly>>()]
-    public class DaxDialect : BaseDialect
-    {
-        internal DaxDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+    internal DaxDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

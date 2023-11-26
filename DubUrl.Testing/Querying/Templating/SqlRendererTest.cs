@@ -7,10 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Querying.Templating
+namespace DubUrl.Testing.Querying.Templating;
+
+public class SqlRendererTest
 {
-    public class SqlRendererTest
-    {
-        
-    }
+    
 }

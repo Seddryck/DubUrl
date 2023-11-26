@@ -11,47 +11,46 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace DubUrl.Rewriting.Implementation
+namespace DubUrl.Rewriting.Implementation;
+
+public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 {
-    public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
+    protected internal const string PORT_KEYWORD = "Port";
+
+    public QuestDbOdbcRewriter(DbConnectionStringBuilder csb)
+        : this(csb, new DriverLocatorFactory()) { }
+    public QuestDbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
+        : base(csb,
+              new BaseTokenMapper[] {
+                new HostMapper(),
+                new PortMapper(),
+                new AuthentificationMapper(),
+                new DriverMapper(driverLocatorFactory),
+                new OptionsMapper(),
+              }
+        )
+    { }
+
+    protected internal new class HostMapper : BaseTokenMapper
     {
-        protected internal const string PORT_KEYWORD = "Port";
+        public override void Execute(UrlInfo urlInfo)
+            => Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
+    }
+    internal class PortMapper : BaseTokenMapper
+    {
+        public override void Execute(UrlInfo urlInfo)
+            => Specificator.Execute(PORT_KEYWORD, urlInfo.Port > 0 ? urlInfo.Port : 8812);
+    }
 
-        public QuestDbOdbcRewriter(DbConnectionStringBuilder csb)
-            : this(csb, new DriverLocatorFactory()) { }
-        public QuestDbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
-            : base(csb,
-                  new BaseTokenMapper[] {
-                    new HostMapper(),
-                    new PortMapper(),
-                    new AuthentificationMapper(),
-                    new DriverMapper(driverLocatorFactory),
-                    new OptionsMapper(),
-                  }
-            )
-        { }
-
-        protected internal new class HostMapper : BaseTokenMapper
+    protected internal new class AuthentificationMapper : BaseTokenMapper
+    {
+        public override void Execute(UrlInfo urlInfo)
         {
-            public override void Execute(UrlInfo urlInfo)
-                => Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
-        }
-        internal class PortMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-                => Specificator.Execute(PORT_KEYWORD, urlInfo.Port > 0 ? urlInfo.Port : 8812);
-        }
+            if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
+                throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");
 
-        protected internal new class AuthentificationMapper : BaseTokenMapper
-        {
-            public override void Execute(UrlInfo urlInfo)
-            {
-                if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
-                    throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");
-
-                Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
-                Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
-            }
+            Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+            Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
         }
     }
 }

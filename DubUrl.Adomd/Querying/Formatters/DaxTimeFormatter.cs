@@ -5,18 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Querying.Formatters
+namespace DubUrl.Adomd.Querying.Formatters;
+
+internal class DaxTimeFormatter : IValueFormatter<TimeOnly>
 {
-    internal class DaxTimeFormatter : IValueFormatter<TimeOnly>
-    {
-        public string Format(TimeOnly value)
+    public string Format(TimeOnly value)
 #if NET7_0_OR_GREATER
-            => $"\"{value:HH:mm:ss.FFFFFF}\"";
+        => $"\"{value:HH:mm:ss.FFFFFF}\"";
 #else
-            => $"\"{value:HH:mm:ss.FFF}\"";
+        => $"\"{value:HH:mm:ss.FFF}\"";
 #endif
 
-        public string Format(object obj)
-            => obj is TimeOnly value ? Format(value) : throw new Exception();
-    }
+    public string Format(object obj)
+        => obj is TimeOnly value ? Format(value) : throw new Exception();
 }

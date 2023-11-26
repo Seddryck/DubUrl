@@ -13,30 +13,29 @@ using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Dialects.Casters;
 
-namespace DubUrl.Testing.Mapping.Implementation
+namespace DubUrl.Testing.Mapping.Implementation;
+
+public class MsSqlServerMapperTest
 {
-    public class MsSqlServerMapperTest
+    private const string PROVIDER_NAME = "System.Data.SqlClient";
+    
+    private static DbConnectionStringBuilder ConnectionStringBuilder
     {
-        private const string PROVIDER_NAME = "System.Data.SqlClient";
-        
-        private static DbConnectionStringBuilder ConnectionStringBuilder
-        {
-            get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, SqlClientFactory.Instance);
-        }
+        get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, SqlClientFactory.Instance);
+    }
 
-        [Test]
-        public void GetDialect_None_DialectReturned()
-        {
-            var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new[] { "mssql", "ms" }, new TSqlRenderer(), Array.Empty<ICaster>()), new NamedParametrizer());
-            var result = mapper.GetDialect();
+    [Test]
+    public void GetDialect_None_DialectReturned()
+    {
+        var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new[] { "mssql", "ms" }, new TSqlRenderer(), Array.Empty<ICaster>()), new NamedParametrizer());
+        var result = mapper.GetDialect();
 
-            Assert.That(result, Is.Not.Null.Or.Empty);
-            Assert.That(result, Is.InstanceOf<TSqlDialect>());
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.Aliases, Does.Contain("mssql"));
-                Assert.That(result.Aliases, Does.Contain("ms"));
-            });
-        }
+        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.InstanceOf<TSqlDialect>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Aliases, Does.Contain("mssql"));
+            Assert.That(result.Aliases, Does.Contain("ms"));
+        });
     }
 }

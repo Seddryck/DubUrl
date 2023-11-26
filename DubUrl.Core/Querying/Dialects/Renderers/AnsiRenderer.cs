@@ -6,39 +6,38 @@ using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Formatters;
 
-namespace DubUrl.Querying.Dialects.Renderers
+namespace DubUrl.Querying.Dialects.Renderers;
+
+internal class AnsiRenderer : IRenderer
 {
-    internal class AnsiRenderer : IRenderer
+    protected NullFormatter Null { get; }
+    protected BaseValueFormatter Value { get; }
+    protected IIdentifierFormatter Identity { get; }
+
+    protected AnsiRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
+        => (Value, Null, Identity) = (value, @null, identity);
+
+    public AnsiRenderer()
+        : this(new ValueFormatter(), new NullFormatter(), new QuotedIdentifierFormatter()) { }
+
+    public string Render(object? obj, string format)
     {
-        protected NullFormatter Null { get; }
-        protected BaseValueFormatter Value { get; }
-        protected IIdentifierFormatter Identity { get; }
+        if (string.IsNullOrWhiteSpace(format))
+            return obj?.ToString() ?? "<empty>";
 
-        protected AnsiRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
-            => (Value, Null, Identity) = (value, @null, identity);
+        if (format.ToLowerInvariant() == "identity")
+            return Identity.Format(obj ?? throw new ArgumentNullException(nameof(obj)));
 
-        public AnsiRenderer()
-            : this(new ValueFormatter(), new NullFormatter(), new QuotedIdentifierFormatter()) { }
-
-        public string Render(object? obj, string format)
+        if (format.ToLowerInvariant() == "value")
         {
-            if (string.IsNullOrWhiteSpace(format))
-                return obj?.ToString() ?? "<empty>";
-
-            if (format.ToLowerInvariant() == "identity")
-                return Identity.Format(obj ?? throw new ArgumentNullException(nameof(obj)));
-
-            if (format.ToLowerInvariant() == "value")
-            {
-                if (obj is null || obj==DBNull.Value)
-                    return Null.Format();
-                if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
-                    return formatter.Format(obj);
-                else
-                    throw new ArgumentException($"No value formatter was found for the type '{obj.GetType().Name}'", nameof(format));
-            }
+            if (obj is null || obj==DBNull.Value)
+                return Null.Format();
+            if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
+                return formatter.Format(obj);
             else
-                throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.", nameof(format));
+                throw new ArgumentException($"No value formatter was found for the type '{obj.GetType().Name}'", nameof(format));
         }
+        else
+            throw new ArgumentException($"The format '{format}' is not a supported format. Only 'identifty' and 'value' are supported.", nameof(format));
     }
 }

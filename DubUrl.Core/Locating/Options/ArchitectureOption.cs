@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.Options
+namespace DubUrl.Locating.Options;
+
+[LocatorOption]
+public enum ArchitectureOption
 {
-    [LocatorOption]
-    public enum ArchitectureOption
-    {
-        Unspecified,
-        x86,
-        x64,
-    }
+    Unspecified,
+    x86,
+    x64,
 }

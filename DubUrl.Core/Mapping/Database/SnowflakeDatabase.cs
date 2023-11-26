@@ -6,14 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<SnowflakeDialect>(
-        "Snowflake"
-        , new[] { "sf", "snowflake" }
-        , DatabaseCategory.Warehouse
-    )]
-    [Brand("snowflake", "#29B5E8")]
-    public class SnowflakeDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<SnowflakeDialect>(
+    "Snowflake"
+    , new[] { "sf", "snowflake" }
+    , DatabaseCategory.Warehouse
+)]
+[Brand("snowflake", "#29B5E8")]
+public class SnowflakeDatabase : IDatabase
+{ }

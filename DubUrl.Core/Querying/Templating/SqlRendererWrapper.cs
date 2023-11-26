@@ -8,16 +8,15 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Templating
+namespace DubUrl.Querying.Templating;
+
+internal class SqlRendererWrapper : StringRenderer
 {
-    internal class SqlRendererWrapper : StringRenderer
-    {
-        protected IRenderer Renderer { get; }
+    protected IRenderer Renderer { get; }
 
-        public SqlRendererWrapper(IRenderer renderer)
-            => Renderer = renderer;
+    public SqlRendererWrapper(IRenderer renderer)
+        => Renderer = renderer;
 
-        public override string ToString(object? obj, string formatString, CultureInfo culture)
-            => Renderer.Render(obj, formatString);
-    }
+    public override string ToString(object? obj, string formatString, CultureInfo culture)
+        => Renderer.Render(obj, formatString);
 }

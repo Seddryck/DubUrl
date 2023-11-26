@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Discovery
+namespace DubUrl.Adomd.Discovery;
+
+internal enum PowerBiType
 {
-    internal enum PowerBiType
-    {
-        PowerBI,
-        Devenv,
-        PowerBIReportServer,
-        Loading,
-        None
-    }
+    PowerBI,
+    Devenv,
+    PowerBIReportServer,
+    Loading,
+    None
 }

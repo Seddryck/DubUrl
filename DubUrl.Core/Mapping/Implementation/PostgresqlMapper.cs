@@ -10,25 +10,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
-{
-    [MapperAttribute<PostgresqlDatabase, PositionalParametrizer>(
-        "Npgsql"
-    )]
-    internal class PostgresqlMapper : BaseMapper
-    {
-        public PostgresqlMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new PostgresqlRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
+namespace DubUrl.Mapping.Implementation;
 
-        protected PostgresqlMapper(ConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
-            : base(rewriter,
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+[MapperAttribute<PostgresqlDatabase, PositionalParametrizer>(
+    "Npgsql"
+)]
+internal class PostgresqlMapper : BaseMapper
+{
+    public PostgresqlMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new PostgresqlRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
+
+    protected PostgresqlMapper(ConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
+        : base(rewriter,
+              dialect,
+              parametrizer
+        )
+    { }
 }

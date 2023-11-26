@@ -6,22 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.OleDb;
 
-namespace DubUrl.OleDb
+namespace DubUrl.OleDb;
+
+internal class ProviderLister
 {
-    internal class ProviderLister
+    internal virtual ProviderInfo[] List()
     {
-        internal virtual ProviderInfo[] List()
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var providers = new List<ProviderInfo>();
-                using var dr = OleDbEnumerator.GetRootEnumerator();
-                while (dr.Read())
-                    if (dr.GetInt32(3) != 3)
-                        providers.Add(new ProviderInfo(dr.GetString(0), dr.GetString(1)));
-                return providers.ToArray();
-            }
-            return Array.Empty<ProviderInfo>();
+            var providers = new List<ProviderInfo>();
+            using var dr = OleDbEnumerator.GetRootEnumerator();
+            while (dr.Read())
+                if (dr.GetInt32(3) != 3)
+                    providers.Add(new ProviderInfo(dr.GetString(0), dr.GetString(1)));
+            return providers.ToArray();
         }
+        return Array.Empty<ProviderInfo>();
     }
 }

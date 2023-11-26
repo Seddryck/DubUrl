@@ -6,14 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<TeradataDialect>(
-        "Teradata"
-        , new[] { "td", "teradata", "tera" }
-        , DatabaseCategory.Warehouse
-    )]
-    [Brand("Teradata", "#F37440")]
-    public class TeradataDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<TeradataDialect>(
+    "Teradata"
+    , new[] { "td", "teradata", "tera" }
+    , DatabaseCategory.Warehouse
+)]
+[Brand("Teradata", "#F37440")]
+public class TeradataDatabase : IDatabase
+{ }

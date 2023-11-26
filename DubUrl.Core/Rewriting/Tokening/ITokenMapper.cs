@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Rewriting.Tokening
+namespace DubUrl.Rewriting.Tokening;
+
+public interface ITokenMapper
 {
-    public interface ITokenMapper
-    {
-        void Accept(ISpecificator specificator);
-        void Execute(UrlInfo urlInfo);
-    }
+    void Accept(ISpecificator specificator);
+    void Execute(UrlInfo urlInfo);
 }

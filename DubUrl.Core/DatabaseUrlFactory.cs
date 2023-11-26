@@ -12,22 +12,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl
+namespace DubUrl;
+
+public class DatabaseUrlFactory : IDatabaseUrlFactory
 {
-    public class DatabaseUrlFactory : IDatabaseUrlFactory
+    protected ConnectionUrlFactory ConnectionUrlFactory { get; }
+    protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+
+    public IQueryLogger QueryLogger { get; }
+
+    public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
+        => (ConnectionUrlFactory, CommandProvisionerFactory, QueryLogger) = (connectionUrlFactory, commandProvisionerFactory, logger);
+
+    public virtual IDatabaseUrl Instantiate(string url)
     {
-        protected ConnectionUrlFactory ConnectionUrlFactory { get; }
-        protected CommandProvisionerFactory CommandProvisionerFactory { get; }
-
-        public IQueryLogger QueryLogger { get; }
-
-        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
-            => (ConnectionUrlFactory, CommandProvisionerFactory, QueryLogger) = (connectionUrlFactory, commandProvisionerFactory, logger);
-
-        public virtual IDatabaseUrl Instantiate(string url)
-        {
-            var connectionUrl = ConnectionUrlFactory.Instantiate(url);
-            return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, QueryLogger);
-        }
+        var connectionUrl = ConnectionUrlFactory.Instantiate(url);
+        return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, QueryLogger);
     }
 }

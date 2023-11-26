@@ -6,11 +6,10 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Casters
+namespace DubUrl.Querying.Dialects.Casters;
+
+public class DecimalConverter : Converter<decimal>
 {
-    public class DecimalConverter : Converter<decimal>
-    {
-        public override decimal Cast(object value)
-            => Convert.ToDecimal(value);
-    }
+    public override decimal Cast(object value)
+        => Convert.ToDecimal(value);
 }

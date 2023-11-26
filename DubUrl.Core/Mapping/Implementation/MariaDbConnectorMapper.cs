@@ -9,13 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
+internal class MariaDbConnectorMapper : MySqlConnectorMapper
 {
-    [Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
-    internal class MariaDbConnectorMapper : MySqlConnectorMapper
-    {
-        public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(csb, dialect, parametrizer)
-        { }
-    }
+    public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(csb, dialect, parametrizer)
+    { }
 }

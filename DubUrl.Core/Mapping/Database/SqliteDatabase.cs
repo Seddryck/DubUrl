@@ -6,14 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<SqliteDialect>(
-        "SQLite3"
-        , new[] { "sq", "sqlite" }
-        , DatabaseCategory.InMemory
-    )]
-    [Brand("sqlite", "#003B57")]
-    public class SqliteDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<SqliteDialect>(
+    "SQLite3"
+    , new[] { "sq", "sqlite" }
+    , DatabaseCategory.InMemory
+)]
+[Brand("sqlite", "#003B57")]
+public class SqliteDatabase : IDatabase
+{ }

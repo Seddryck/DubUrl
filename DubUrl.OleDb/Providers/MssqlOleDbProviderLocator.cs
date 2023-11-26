@@ -10,37 +10,36 @@ using System.Threading.Tasks;
 using DubUrl.Mapping;
 using DubUrl.Rewriting.Tokening;
 
-namespace DubUrl.OleDb.Providers
+namespace DubUrl.OleDb.Providers;
+
+[Provider<MssqlOleDbProviderRegex, OleDbMapper, MsSqlServerDatabase>()]
+internal class MssqlOleDbProviderLocator : BaseProviderLocator
 {
-    [Provider<MssqlOleDbProviderRegex, OleDbMapper, MsSqlServerDatabase>()]
-    internal class MssqlOleDbProviderLocator : BaseProviderLocator
+    internal class MssqlOleDbProviderRegex : BaseProviderRegex
     {
-        internal class MssqlOleDbProviderRegex : BaseProviderRegex
-        {
-            public MssqlOleDbProviderRegex()
-                : base(new BaseRegex[]
-                {
-                    new WordMatch("MSOLEDBSQL"),
-                })
-            { }
-        }
-        private List<string> Candidates { get; } = new();
-
-        public MssqlOleDbProviderLocator()
-            : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
-                { new OptionsMapper()
-                    , new OleDbRewriter.InitialCatalogMapper()
-                    , new OleDbRewriter.ServerMapper()
-                }
-            )
+        public MssqlOleDbProviderRegex()
+            : base(new BaseRegex[]
+            {
+                new WordMatch("MSOLEDBSQL"),
+            })
         { }
-
-        internal MssqlOleDbProviderLocator(ProviderLister providerLister)
-            : base(GetRegexPattern<MssqlOleDbProviderLocator>(), providerLister) { }
-
-        protected override void AddCandidate(string provider, string[] matches)
-            => Candidates.Add(provider);
-        protected override List<string> RankCandidates()
-            => Candidates;
     }
+    private List<string> Candidates { get; } = new();
+
+    public MssqlOleDbProviderLocator()
+        : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
+            { new OptionsMapper()
+                , new OleDbRewriter.InitialCatalogMapper()
+                , new OleDbRewriter.ServerMapper()
+            }
+        )
+    { }
+
+    internal MssqlOleDbProviderLocator(ProviderLister providerLister)
+        : base(GetRegexPattern<MssqlOleDbProviderLocator>(), providerLister) { }
+
+    protected override void AddCandidate(string provider, string[] matches)
+        => Candidates.Add(provider);
+    protected override List<string> RankCandidates()
+        => Candidates;
 }

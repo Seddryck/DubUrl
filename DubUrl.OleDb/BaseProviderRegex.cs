@@ -6,11 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb
+namespace DubUrl.OleDb;
+
+internal class BaseProviderRegex : BaseLocatorRegex, IProviderRegex
 {
-    internal class BaseProviderRegex : BaseLocatorRegex, IProviderRegex
-    {
-        public BaseProviderRegex(BaseRegex[] regexes)
-            : base(regexes) { }
-    }
+    public BaseProviderRegex(BaseRegex[] regexes)
+        : base(regexes) { }
 }

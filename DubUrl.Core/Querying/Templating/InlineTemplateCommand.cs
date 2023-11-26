@@ -12,16 +12,15 @@ using System.Threading.Tasks;
 using Antlr4.StringTemplate;
 using DubUrl.Mapping;
 
-namespace DubUrl.Querying.Templating
+namespace DubUrl.Querying.Templating;
+
+internal class InlineTemplateCommand : InlineCommand
 {
-    internal class InlineTemplateCommand : InlineCommand
-    {
-        public IDictionary<string, object?> Parameters { get; }
+    public IDictionary<string, object?> Parameters { get; }
 
-        public InlineTemplateCommand(string sql, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
-            : base(sql, queryLogger) { Parameters = parameters; }
+    public InlineTemplateCommand(string sql, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+        : base(sql, queryLogger) { Parameters = parameters; }
 
-        protected override string Render(IDialect dialect, IConnectivity connectivity)
-            =>  new StringTemplateEngine().Render(Text, new Dictionary<string, string>(), Parameters, dialect.Renderer);
-    }
+    protected override string Render(IDialect dialect, IConnectivity connectivity)
+        =>  new StringTemplateEngine().Render(Text, new Dictionary<string, string>(), Parameters, dialect.Renderer);
 }

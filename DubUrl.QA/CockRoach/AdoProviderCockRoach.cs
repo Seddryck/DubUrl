@@ -7,39 +7,38 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 
-namespace DubUrl.QA.CockRoach
+namespace DubUrl.QA.CockRoach;
+
+[Category("CockRoach")]
+[Category("AdoProvider")]
+public class AdoProviderCockRoach : BaseAdoProvider
 {
-    [Category("CockRoach")]
-    [Category("AdoProvider")]
-    public class AdoProviderCockRoach : BaseAdoProvider
+    public override string ConnectionString
     {
-        public override string ConnectionString
-        {
-            get => $"cr://root@localhost/duburl?sslmode=disable&Timeout=5";
-        }
-
-        [Test]
-        public override void QueryCustomer()
-            => QueryCustomer("select FullName from Customer where CustomerId=1");
-
-        [Test]
-        public override void QueryCustomerWithDatabase()
-            => QueryCustomerWithDatabase("select FullName from Customer where CustomerId=1");
-
-        [Test]
-        public override void QueryCustomerWithParams()
-            => QueryCustomerWithParams("select FullName from Customer where CustomerId=@CustId");
-
-        [Test]
-        public override void QueryCustomerWithPositionalParameter()
-            => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=($1)");
-
-        [Test]
-        public override void QueryCustomerWithDapper()
-            => QueryCustomerWithDapper("select * from Customer");
-
-        [Test]
-        public override void QueryCustomerWithWhereClause()
-            => Assert.Ignore("Issue with lower in template");
+        get => $"cr://root@localhost/duburl?sslmode=disable&Timeout=5";
     }
+
+    [Test]
+    public override void QueryCustomer()
+        => QueryCustomer("select FullName from Customer where CustomerId=1");
+
+    [Test]
+    public override void QueryCustomerWithDatabase()
+        => QueryCustomerWithDatabase("select FullName from Customer where CustomerId=1");
+
+    [Test]
+    public override void QueryCustomerWithParams()
+        => QueryCustomerWithParams("select FullName from Customer where CustomerId=@CustId");
+
+    [Test]
+    public override void QueryCustomerWithPositionalParameter()
+        => QueryCustomerWithPositionalParameter("select FullName from Customer where CustomerId=($1)");
+
+    [Test]
+    public override void QueryCustomerWithDapper()
+        => QueryCustomerWithDapper("select * from Customer");
+
+    [Test]
+    public override void QueryCustomerWithWhereClause()
+        => Assert.Ignore("Issue with lower in template");
 }

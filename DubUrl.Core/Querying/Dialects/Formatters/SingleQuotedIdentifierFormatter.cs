@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Formatters
+namespace DubUrl.Querying.Dialects.Formatters;
+
+public class SingleQuotedIdentifierFormatter : QuotedIdentifierFormatter
 {
-    public class SingleQuotedIdentifierFormatter : QuotedIdentifierFormatter
-    {
-        protected override string SurroundByQuotes(string value)
-            => $"'{value}'";
-    }
+    protected override string SurroundByQuotes(string value)
+        => $"'{value}'";
 }

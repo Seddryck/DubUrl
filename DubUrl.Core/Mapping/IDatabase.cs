@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping
-{
-    public interface IDatabase
-    { }
-}
+namespace DubUrl.Mapping;
+
+public interface IDatabase
+{ }

@@ -12,11 +12,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl
+namespace DubUrl;
+
+public interface IDatabaseUrlFactory
 {
-    public interface IDatabaseUrlFactory
-    {
-        IDatabaseUrl Instantiate(string url);
-        IQueryLogger QueryLogger { get; }
-    }
+    IDatabaseUrl Instantiate(string url);
+    IQueryLogger QueryLogger { get; }
 }

@@ -7,23 +7,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Reading
+namespace DubUrl.Querying.Reading;
+
+internal class ParametersCommandProvisioner : ICommandProvisioner
 {
-    internal class ParametersCommandProvisioner : ICommandProvisioner
+    private IParametrizedCommand Provider { get; }
+    private IParametrizer Parametrizer { get; }
+
+    public ParametersCommandProvisioner(IParametrizedCommand provider, IParametrizer parametrizer)
+        => (Provider, Parametrizer) = (provider, parametrizer);
+
+    public void Execute(IDbCommand command)
     {
-        private IParametrizedCommand Provider { get; }
-        private IParametrizer Parametrizer { get; }
-
-        public ParametersCommandProvisioner(IParametrizedCommand provider, IParametrizer parametrizer)
-            => (Provider, Parametrizer) = (provider, parametrizer);
-
-        public void Execute(IDbCommand command)
+        foreach (var parameter in Provider.Parameters)
         {
-            foreach (var parameter in Provider.Parameters)
-            {
-                var param = Parametrizer.CreateParameter(command, parameter);
-                command.Parameters.Add(param);
-            }
+            var param = Parametrizer.CreateParameter(command, parameter);
+            command.Parameters.Add(param);
         }
     }
 }

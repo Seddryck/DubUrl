@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Reading
+namespace DubUrl.Querying.Reading;
+
+public interface ICommandProvisioner
 {
-    public interface ICommandProvisioner
-    {
-        void Execute(IDbCommand command);
-    }
+    void Execute(IDbCommand command);
 }

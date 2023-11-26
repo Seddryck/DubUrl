@@ -5,18 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping
+namespace DubUrl.Mapping;
+
+public interface IConnectivity
+{ 
+    string Alias { get; }
+}
+
+public interface IDirectConnectivity : IConnectivity
+{ }
+
+public interface IWrapperConnectivity : IConnectivity
 {
-    public interface IConnectivity
-    { 
-        string Alias { get; }
-    }
-
-    public interface IDirectConnectivity : IConnectivity
-    { }
-
-    public interface IWrapperConnectivity : IConnectivity
-    {
-        IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator);
-    }
+    IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator);
 }

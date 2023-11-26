@@ -9,18 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<OracleDatabase, NamedParametrizer>(
+    "Oracle.ManagedDataAccess"
+)]
+internal class OracleManagedDataAccessMapper : BaseMapper
 {
-    [Mapper<OracleDatabase, NamedParametrizer>(
-        "Oracle.ManagedDataAccess"
-    )]
-    internal class OracleManagedDataAccessMapper : BaseMapper
-    {
-        public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new OracleManagedDataAccessRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new OracleManagedDataAccessRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

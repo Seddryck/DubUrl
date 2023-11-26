@@ -7,17 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace DubUrl.Testing.Locating.RegexUtils
+namespace DubUrl.Testing.Locating.RegexUtils;
+
+public class LiteralMatchTest
 {
-    public class LiteralMatchTest
+    [Test]
+    [TestCase("(*.xls, *.xlsx, *.xlsm, *.xlsb)")]
+    [TestCase("[](){}+-*\\^$")]
+    public void ToRegex_String_Matching(string text)
     {
-        [Test]
-        [TestCase("(*.xls, *.xlsx, *.xlsm, *.xlsb)")]
-        [TestCase("[](){}+-*\\^$")]
-        public void ToRegex_String_Matching(string text)
-        {
-            var regex = new LiteralMatch(text);
-            Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.True);
-        }
+        var regex = new LiteralMatch(text);
+        Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.True);
     }
 }

@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Extensions
+namespace DubUrl.Extensions;
+
+public interface IDubUrlConnectionWrapper
 {
-    public interface IDubUrlConnectionWrapper
-    {
-        IDbConnection Connection { get; }
-    }
+    IDbConnection Connection { get; }
 }

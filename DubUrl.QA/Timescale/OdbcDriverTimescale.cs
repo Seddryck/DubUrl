@@ -1,13 +1,12 @@
 using NUnit.Framework;
 
-namespace DubUrl.QA.Timescale
+namespace DubUrl.QA.Timescale;
+
+[Category("Timescale")]
+public class OdbcDriverTimescale : Postgresql.BaseOdbcDriverPostgresql
 {
-    [Category("Timescale")]
-    public class OdbcDriverTimescale : Postgresql.BaseOdbcDriverPostgresql
+    public override string ConnectionString
     {
-        public override string ConnectionString
-        {
-            get => $"odbc+ts://postgres:Password12!@localhost/DubUrl";
-        }
+        get => $"odbc+ts://postgres:Password12!@localhost/DubUrl";
     }
 }

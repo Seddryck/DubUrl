@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.RegexUtils
+namespace DubUrl.Locating.RegexUtils;
+
+public abstract class BaseRegex
 {
-    public abstract class BaseRegex
-    {
-        protected internal abstract StringBuilder ToRegex(StringBuilder stringBuilder);
-        public string ToRegex()
-            => ToRegex(new StringBuilder()).ToString();
-    }
+    protected internal abstract StringBuilder ToRegex(StringBuilder stringBuilder);
+    public string ToRegex()
+        => ToRegex(new StringBuilder()).ToString();
 }

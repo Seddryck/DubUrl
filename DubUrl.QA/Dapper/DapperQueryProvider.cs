@@ -8,17 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.QA.Dapper
+namespace DubUrl.QA.Dapper;
+
+internal class DapperQueryProvider
 {
-    internal class DapperQueryProvider
-    {
-        private IDialect Dialect { get; }
-        private IConnectivity Connectivity { get; }
+    private IDialect Dialect { get; }
+    private IConnectivity Connectivity { get; }
 
-        public DapperQueryProvider(IDialect dialect, IConnectivity connectivity)
-            => (Dialect, Connectivity) = (dialect, connectivity);
+    public DapperQueryProvider(IDialect dialect, IConnectivity connectivity)
+        => (Dialect, Connectivity) = (dialect, connectivity);
 
-        public string SelectAllCustomer()
-            => new EmbeddedSqlFileCommand("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
-    }
+    public string SelectAllCustomer()
+        => new EmbeddedSqlFileCommand("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
 }

@@ -7,12 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Mapping.Connectivity
+namespace DubUrl.Testing.Mapping.Connectivity;
+
+public class OdbcConnectivityTest
 {
-    public class OdbcConnectivityTest
-    {
-        [Test]
-        public void Alias_Get_Odbc()
-            => Assert.That(new OdbcConnectivity().Alias, Is.EqualTo("odbc"));
-    }
+    [Test]
+    public void Alias_Get_Odbc()
+        => Assert.That(new OdbcConnectivity().Alias, Is.EqualTo("odbc"));
 }

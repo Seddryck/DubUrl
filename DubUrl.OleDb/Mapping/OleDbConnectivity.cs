@@ -10,26 +10,25 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb.Mapping
+namespace DubUrl.OleDb.Mapping;
+
+[WrapperConnectivity(
+    "OLE DB"
+    , new[] { "oledb" }
+)]
+internal class OleDbConnectivity : IWrapperConnectivity 
 {
-    [WrapperConnectivity(
-        "OLE DB"
-        , new[] { "oledb" }
-    )]
-    internal class OleDbConnectivity : IWrapperConnectivity 
+    public string Alias
+        => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;
+
+    public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
+        => CartesianProduct(connectivity.Aliases, 
+            (locator as ProviderSpecializationAttribute)?.Aliases ?? database.Aliases);
+
+    private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)
     {
-        public string Alias
-            => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;
-
-        public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
-            => CartesianProduct(connectivity.Aliases, 
-                (locator as ProviderSpecializationAttribute)?.Aliases ?? database.Aliases);
-
-        private static IEnumerable<string> CartesianProduct(string[] firstArray, string[] secondArray)
-        {
-            foreach (var item1 in firstArray)
-                foreach (var item2 in secondArray)
-                    yield return $"{item1}+{item2}";
-        }
+        foreach (var item1 in firstArray)
+            foreach (var item2 in secondArray)
+                yield return $"{item1}+{item2}";
     }
 }

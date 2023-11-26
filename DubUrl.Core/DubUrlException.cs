@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl
+namespace DubUrl;
+
+public abstract class DubUrlException : Exception
 {
-    public abstract class DubUrlException : Exception
-    {
-        public DubUrlException(string message) : base(message) { }
-    }
+    public DubUrlException(string message) : base(message) { }
 }

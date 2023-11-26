@@ -4,29 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Formatters
+namespace DubUrl.Querying.Dialects.Formatters;
+
+public interface IFormatter
 {
-    public interface IFormatter
-    {
-        string Format(object obj);
-    }
+    string Format(object obj);
+}
 
-    public interface IFormatter<T> : IFormatter
-    {
-        string Format(T obj);
-    }
+public interface IFormatter<T> : IFormatter
+{
+    string Format(T obj);
+}
 
-    public interface IValueFormatter : IFormatter
-    { }
+public interface IValueFormatter : IFormatter
+{ }
 
-    public interface IValueFormatter<T> : IFormatter<T>, IValueFormatter
-    { }
+public interface IValueFormatter<T> : IFormatter<T>, IValueFormatter
+{ }
 
-    public interface IIdentifierFormatter : IFormatter<string>
-    { }
+public interface IIdentifierFormatter : IFormatter<string>
+{ }
 
-    public interface INullFormatter
-    {
-        string Format();
-    }
+public interface INullFormatter
+{
+    string Format();
 }

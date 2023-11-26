@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Parametrizing
+namespace DubUrl.Querying.Parametrizing;
+
+public interface IParameterPrecisionable
 {
-    public interface IParameterPrecisionable
-    {
-        public byte Precision { get; }
-        public byte Scale { get; }
-    }
+    public byte Precision { get; }
+    public byte Scale { get; }
 }

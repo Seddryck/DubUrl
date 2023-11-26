@@ -1,14 +1,13 @@
 using NUnit.Framework;
 
-namespace DubUrl.QA.Timescale
+namespace DubUrl.QA.Timescale;
+
+[Category("Timescale")]
+[Category("AdoProvider")]
+public class AdoProviderTimescale : Postgresql.BaseAdoProviderPostgresql
 {
-    [Category("Timescale")]
-    [Category("AdoProvider")]
-    public class AdoProviderTimescale : Postgresql.BaseAdoProviderPostgresql
+    public override string ConnectionString
     {
-        public override string ConnectionString
-        {
-            get => $"ts://postgres:Password12!@localhost/DubUrl";
-        }
+        get => $"ts://postgres:Password12!@localhost/DubUrl";
     }
 }

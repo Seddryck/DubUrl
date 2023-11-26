@@ -12,20 +12,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.MicroOrm
+namespace DubUrl.MicroOrm;
+
+public class DatabaseUrlFactory : DubUrl.DatabaseUrlFactory
 {
-    public class DatabaseUrlFactory : DubUrl.DatabaseUrlFactory
+    public IReflectionCache ReflectionCache { get; }
+
+    public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
+        : base(connectionUrlFactory, commandProvisionerFactory, logger)
+    { ReflectionCache = reflectionCache; }
+
+    public override DatabaseUrl Instantiate(string url)
     {
-        public IReflectionCache ReflectionCache { get; }
-
-        public DatabaseUrlFactory(ConnectionUrlFactory connectionUrlFactory, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
-            : base(connectionUrlFactory, commandProvisionerFactory, logger)
-        { ReflectionCache = reflectionCache; }
-
-        public override DatabaseUrl Instantiate(string url)
-        {
-            var connectionUrl = ConnectionUrlFactory.Instantiate(url);
-            return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, ReflectionCache, QueryLogger);
-        }
+        var connectionUrl = ConnectionUrlFactory.Instantiate(url);
+        return new DatabaseUrl(connectionUrl, CommandProvisionerFactory, ReflectionCache, QueryLogger);
     }
 }

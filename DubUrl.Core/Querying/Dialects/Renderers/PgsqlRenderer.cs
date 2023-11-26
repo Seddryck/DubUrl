@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Renderers
-{
-    internal class PgsqlRenderer : AnsiRenderer
-    {
-        public PgsqlRenderer()
-            : this(new ValueFormatter()) { }
+namespace DubUrl.Querying.Dialects.Renderers;
 
-        protected PgsqlRenderer(BaseValueFormatter value)
-            : base(value, new NullFormatter(), new QuotedIdentifierFormatter()) { }
-    }
+internal class PgsqlRenderer : AnsiRenderer
+{
+    public PgsqlRenderer()
+        : this(new ValueFormatter()) { }
+
+    protected PgsqlRenderer(BaseValueFormatter value)
+        : base(value, new NullFormatter(), new QuotedIdentifierFormatter()) { }
 }

@@ -9,21 +9,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl
+namespace DubUrl;
+
+public class ConnectionUrlFactory
 {
-    public class ConnectionUrlFactory
-    {
-        private SchemeMapperBuilder SchemeMapperBuilder { get; }
-        private IParser Parser { get; }
+    private SchemeMapperBuilder SchemeMapperBuilder { get; }
+    private IParser Parser { get; }
 
 
-        public ConnectionUrlFactory(SchemeMapperBuilder builder)
-            : this(new Parser(), builder) { }
+    public ConnectionUrlFactory(SchemeMapperBuilder builder)
+        : this(new Parser(), builder) { }
 
-        internal ConnectionUrlFactory(IParser parser, SchemeMapperBuilder builder)
-            => (Parser, SchemeMapperBuilder) = (parser, builder);
+    internal ConnectionUrlFactory(IParser parser, SchemeMapperBuilder builder)
+        => (Parser, SchemeMapperBuilder) = (parser, builder);
 
-        public virtual ConnectionUrl Instantiate(string url) 
-            => new (url, Parser, SchemeMapperBuilder);
-    }
+    public virtual ConnectionUrl Instantiate(string url) => new (url, Parser, SchemeMapperBuilder);
 }

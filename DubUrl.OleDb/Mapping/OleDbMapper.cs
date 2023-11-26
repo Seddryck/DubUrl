@@ -14,20 +14,19 @@ using DubUrl.Rewriting.Tokening;
 using DubUrl.Rewriting;
 using DubUrl.OleDb.Mapping;
 
-namespace DubUrl.OleDb.Mapping
+namespace DubUrl.OleDb.Mapping;
+
+[WrapperMapper<OleDbConnectivity, PositionalParametrizer>(
+    "System.Data.OleDb"
+)]
+public class OleDbMapper : BaseMapper, IOleDbMapper
 {
-    [WrapperMapper<OleDbConnectivity, PositionalParametrizer>(
-        "System.Data.OleDb"
-    )]
-    public class OleDbMapper : BaseMapper, IOleDbMapper
-    {
-        public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
-            : this(csb, dialect, parametrizer, new ProviderLocatorFactory()) { }
-        public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, ProviderLocatorFactory providerLocatorFactory)
-            : base(new OleDbRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
+        : this(csb, dialect, parametrizer, new ProviderLocatorFactory()) { }
+    public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, ProviderLocatorFactory providerLocatorFactory)
+        : base(new OleDbRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

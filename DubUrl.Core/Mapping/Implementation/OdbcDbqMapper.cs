@@ -11,18 +11,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace DubUrl.Mapping.Implementation
-{
-    [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
-        "System.Data.Odbc"
-    )]
-    internal class OdbcDbqMapper : BaseMapper, IOdbcMapper
-    { 
-        public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new OdbcDbqRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+namespace DubUrl.Mapping.Implementation;
+
+[WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
+    "System.Data.Odbc"
+)]
+internal class OdbcDbqMapper : BaseMapper, IOdbcMapper
+{ 
+    public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new OdbcDbqRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

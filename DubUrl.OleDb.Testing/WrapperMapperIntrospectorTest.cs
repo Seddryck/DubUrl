@@ -13,53 +13,52 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb.Testing
+namespace DubUrl.OleDb.Testing;
+
+public class WrapperMapperIntrospectorTest
 {
-    public class WrapperMapperIntrospectorTest
+    internal class FakeMappersIntrospector : AssemblyTypesProbe
     {
-        internal class FakeMappersIntrospector : AssemblyTypesProbe
-        {
-            private Type[] Types { get; }
+        private Type[] Types { get; }
 
-            public FakeMappersIntrospector(Type[] types)
-                => Types = types;
+        public FakeMappersIntrospector(Type[] types)
+            => Types = types;
 
-            public override IEnumerable<Type> Locate()
-                => Types;
-        }
-
-        [Test]
-        public void LocateWrapper_TwoGenericMappersClassesForOneDatabase_WrapperReturned()
-        {
-            var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
-                , typeof(OleDbConnectivity), typeof(OleDbMapper)
-                , typeof(MssqlDriverLocator), typeof(MssqlOleDbProviderLocator)
-                , typeof(MsSqlServerDatabase)
-            });
-            var introspector = new WrapperMapperIntrospector(types);
-            var result = introspector.Locate();
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(2));
-            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
-            Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OleDbMapper)));
-        }
-
-        [Test]
-        public void LocateWrapper_TwoGenericMappersClassesForOneDatabaseButAlternative_WrapperReturned()
-        {
-            var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
-                , typeof(OleDbConnectivity), typeof(OleDbMapper)
-                , typeof(MssqlDriverLocator), typeof(MssqlNCliProviderLocator)
-                , typeof(MsSqlServerDatabase)
-            });
-            var introspector = new WrapperMapperIntrospector(types);
-            var result = introspector.Locate();
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(1));
-            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
-        }
-
+        public override IEnumerable<Type> Locate()
+            => Types;
     }
+
+    [Test]
+    public void LocateWrapper_TwoGenericMappersClassesForOneDatabase_WrapperReturned()
+    {
+        var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
+            , typeof(OleDbConnectivity), typeof(OleDbMapper)
+            , typeof(MssqlDriverLocator), typeof(MssqlOleDbProviderLocator)
+            , typeof(MsSqlServerDatabase)
+        });
+        var introspector = new WrapperMapperIntrospector(types);
+        var result = introspector.Locate();
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count(), Is.EqualTo(2));
+        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OleDbMapper)));
+    }
+
+    [Test]
+    public void LocateWrapper_TwoGenericMappersClassesForOneDatabaseButAlternative_WrapperReturned()
+    {
+        var types = new FakeMappersIntrospector(new[] { typeof(OdbcConnectivity), typeof(OdbcMapper)
+            , typeof(OleDbConnectivity), typeof(OleDbMapper)
+            , typeof(MssqlDriverLocator), typeof(MssqlNCliProviderLocator)
+            , typeof(MsSqlServerDatabase)
+        });
+        var introspector = new WrapperMapperIntrospector(types);
+        var result = introspector.Locate();
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count(), Is.EqualTo(1));
+        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+    }
+
 }

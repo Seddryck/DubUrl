@@ -6,12 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects
+namespace DubUrl.Querying.Dialects;
+
+[Renderer<AnsiRenderer>()]
+public class Db2Dialect : BaseDialect
 {
-    [Renderer<AnsiRenderer>()]
-    public class Db2Dialect : BaseDialect
-    {
-        internal Db2Dialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+    internal Db2Dialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

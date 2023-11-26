@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb
+namespace DubUrl.OleDb;
+
+internal class AssemblyTypesProbeOleDb : AssemblyTypesProbe
 {
-    internal class AssemblyTypesProbeOleDb : AssemblyTypesProbe
-    {
-        public AssemblyTypesProbeOleDb()
-            : base(new[] {
-                typeof(AssemblyTypesProbeOleDb).Assembly 
-                , typeof(AssemblyTypesProbe).Assembly
-            }) { }
-    }
+    public AssemblyTypesProbeOleDb()
+        : base(new[] {
+            typeof(AssemblyTypesProbeOleDb).Assembly 
+            , typeof(AssemblyTypesProbe).Assembly
+        }) { }
 }

@@ -13,23 +13,22 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Querying.Parametrizing
+namespace DubUrl.Testing.Querying.Parametrizing;
+
+public class PositionalParametrizerTest
 {
-    public class PositionalParametrizerTest
+
+    [Test]
+    public void CreateParameter_DubUrlParameterBoolean_NoNameAssigned()
     {
+        var paramMock = new Mock<IDbDataParameter>();
+        paramMock.SetupSet(x => x.ParameterName = It.IsAny<string>());
+        var cmdMock = new Mock<IDbCommand>();
+        cmdMock.Setup(x => x.CreateParameter()).Returns(paramMock.Object);
 
-        [Test]
-        public void CreateParameter_DubUrlParameterBoolean_NoNameAssigned()
-        {
-            var paramMock = new Mock<IDbDataParameter>();
-            paramMock.SetupSet(x => x.ParameterName = It.IsAny<string>());
-            var cmdMock = new Mock<IDbCommand>();
-            cmdMock.Setup(x => x.CreateParameter()).Returns(paramMock.Object);
+        var parametrizer = new PositionalParametrizer();
+        var param = parametrizer.CreateParameter(cmdMock.Object, new DubUrlParameterBoolean("IsValid", true));
 
-            var parametrizer = new PositionalParametrizer();
-            var param = parametrizer.CreateParameter(cmdMock.Object, new DubUrlParameterBoolean("IsValid", true));
-
-            paramMock.VerifySet(x => x.ParameterName = It.IsAny<string>(), Times.Never);
-        }
+        paramMock.VerifySet(x => x.ParameterName = It.IsAny<string>(), Times.Never);
     }
 }

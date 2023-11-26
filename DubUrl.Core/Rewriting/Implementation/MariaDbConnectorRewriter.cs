@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Rewriting.Implementation
+namespace DubUrl.Rewriting.Implementation;
+
+internal class MariaDbConnectorRewriter : MySqlConnectorRewriter
 {
-    internal class MariaDbConnectorRewriter : MySqlConnectorRewriter
-    {
-        public MariaDbConnectorRewriter(DbConnectionStringBuilder csb)
-            : base(csb)
-        { }
-    }
+    public MariaDbConnectorRewriter(DbConnectionStringBuilder csb)
+        : base(csb)
+    { }
 }

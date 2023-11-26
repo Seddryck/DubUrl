@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Discovery
+namespace DubUrl.Adomd.Discovery;
+
+internal interface IPowerBiDiscoverer
 {
-    internal interface IPowerBiDiscoverer
-    {
-        PowerBiProcess[] GetPowerBiProcesses(bool includePBIRS = false);
-    }
+    PowerBiProcess[] GetPowerBiProcesses(bool includePBIRS = false);
 }

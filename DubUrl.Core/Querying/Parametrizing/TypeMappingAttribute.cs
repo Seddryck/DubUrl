@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Parametrizing
+namespace DubUrl.Querying.Parametrizing;
+
+[AttributeUsage(AttributeTargets.Class)]
+public class TypeMappingAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class TypeMappingAttribute : Attribute
-    {
-        public DbType DbType { get; }
-        public TypeMappingAttribute(DbType dbType)
-            => DbType = dbType;
-    }
+    public DbType DbType { get; }
+    public TypeMappingAttribute(DbType dbType)
+        => DbType = dbType;
 }

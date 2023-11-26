@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying
+namespace DubUrl.Querying;
+
+public interface IQueryLogger
 {
-    public interface IQueryLogger
-    {
-        void Log(string message);
-    }
+    void Log(string message);
 }

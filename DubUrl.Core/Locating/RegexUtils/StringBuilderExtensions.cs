@@ -4,21 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.RegexUtils
-{
-    internal static class StringBuilderExtensions
-    {
-        private static readonly char[] escapedChars = new[] { '[', ']', '(', ')', '{', '}', '*', '+', '?', '|', '^', '$', '.', '\\', '-' };
+namespace DubUrl.Locating.RegexUtils;
 
-        public static StringBuilder AppendEscaped(this StringBuilder stringBuilder, string text)
+internal static class StringBuilderExtensions
+{
+    private static readonly char[] escapedChars = new[] { '[', ']', '(', ')', '{', '}', '*', '+', '?', '|', '^', '$', '.', '\\', '-' };
+
+    public static StringBuilder AppendEscaped(this StringBuilder stringBuilder, string text)
+    {
+        foreach (var c in text.ToArray())
         {
-            foreach (var c in text.ToArray())
-            {
-                if (escapedChars.Contains(c))
-                    stringBuilder.Append('\\');
-                stringBuilder.Append(c);
-            }
-            return stringBuilder;
+            if (escapedChars.Contains(c))
+                stringBuilder.Append('\\');
+            stringBuilder.Append(c);
         }
+        return stringBuilder;
     }
 }

@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Rewriting
+namespace DubUrl.Rewriting;
+
+public interface IConnectionStringRewriter
 {
-    public interface IConnectionStringRewriter
-    {
-        IReadOnlyDictionary<string, object> Execute(UrlInfo urlInfo);
-        string ConnectionString { get; }
-    }
+    IReadOnlyDictionary<string, object> Execute(UrlInfo urlInfo);
+    string ConnectionString { get; }
 }
