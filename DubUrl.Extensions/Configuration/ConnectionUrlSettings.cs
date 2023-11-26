@@ -15,11 +15,12 @@ namespace DubUrl.Extensions.Configuration
         string? Username,
         string? Password,
         string[]? Segments,
+        string? Segment,
         string[]? Keys,
         string[]? Values
     )
     {
-        public override string ToString()
+        public override readonly string ToString()
         {
             IDictionary<string, string> parameters;
             if (Keys is not null || Values is not null)
@@ -50,12 +51,17 @@ namespace DubUrl.Extensions.Configuration
                 builder.UserName = encoder.Encode(Username);
             if (!string.IsNullOrEmpty(Password))
                 builder.Password = encoder.Encode(Password);
+            if (Segments is not null && Segments.Any() && !string.IsNullOrEmpty(Segment))
+                throw new InvalidOperationException("Cannot define both an array of segments and a segment.");
+            if (Segments is not null && Segments.Any())
+                builder.Path = string.Join('/', Segments.Select(encoder.Encode));
+            else if (!string.IsNullOrEmpty(Segment))
+                builder.Path = string.Join('/', Segment.Split('/').Select(encoder.Encode));
             if (Segments is not null && Segments.Any())
                 builder.Path = string.Join('/', Segments.Select(encoder.Encode));
             if (parameters.Any())
                 builder.Query = string.Join("&", parameters.Select(x => $"{encoder.Encode(x.Key)}={encoder.Encode(x.Value)}"));
             return builder.ToString();
         }
-
     }
 }
