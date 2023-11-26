@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Registering
 {
-    public class ReferencedAssembliesDiscoverTest
+    public class ReferencedAssembliesDiscovererTest
     {
         [Test]
 
@@ -29,7 +29,7 @@ namespace DubUrl.Testing.Registering
         [TestCase(typeof(System.Data.Odbc.OdbcFactory))]
         public void Execute_CurrentAssembly_IncludesType(Type type)
         {
-            var discover = new ReferencedAssembliesDiscover(GetType().Assembly);
+            var discover = new ReferencedAssembliesDiscoverer(GetType().Assembly);
             var types = discover.Execute();
             Assert.That(types.Select(t => t.FullName), Does.Contain(type.FullName));
         }
@@ -39,7 +39,7 @@ namespace DubUrl.Testing.Registering
         [TestCase(typeof(System.Data.Common.DbProviderFactory))]
         public void Execute_CurrentAssembly_ExcludeType(Type type)
         {
-            var discover = new ReferencedAssembliesDiscover(GetType().Assembly);
+            var discover = new ReferencedAssembliesDiscoverer(GetType().Assembly);
             var types = discover.Execute();
             Assert.That(types.Select(t => t.FullName), Does.Not.Contain(type.FullName));
         }
@@ -48,7 +48,7 @@ namespace DubUrl.Testing.Registering
         public void Execute_CurrentAssembly_DoesntLoadMoreAssemblies()
         {
             var countLoaded = AppDomain.CurrentDomain.GetAssemblies().Count();
-            var discover = new ReferencedAssembliesDiscover(GetType().Assembly);
+            var discover = new ReferencedAssembliesDiscoverer(GetType().Assembly);
             var types = discover.Execute();
             Assert.That(countLoaded, Is.EqualTo(AppDomain.CurrentDomain.GetAssemblies().Count()));
         }

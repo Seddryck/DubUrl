@@ -20,7 +20,7 @@ namespace DubUrl.QA
         {
             var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
 
-            var discovery = new BinFolderDiscover(assemblies);
+            var discovery = new BinFolderDiscoverer(assemblies);
             var registrator = new ProviderFactoriesRegistrator(discovery);
             registrator.Register();
 
