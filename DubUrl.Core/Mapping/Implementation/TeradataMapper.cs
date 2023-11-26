@@ -9,18 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<TeradataDatabase, PositionalParametrizer>(
+    "Teradata.Client"
+)]
+internal class TeradataMapper : BaseMapper
 {
-    [Mapper<TeradataDatabase, PositionalParametrizer>(
-        "Teradata.Client"
-    )]
-    internal class TeradataMapper : BaseMapper
-    {
-        public TeradataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new TeradataRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public TeradataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new TeradataRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

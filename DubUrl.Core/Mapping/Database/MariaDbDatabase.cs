@@ -7,14 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<MySqlDialect>(
-        "MariaDB"
-        , new[] { "maria", "mariadb" }
-        , DatabaseCategory.LargePlayer
-    )]
-    [Brand("mariadb", "#003545")]
-    public class MariaDbDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<MySqlDialect>(
+    "MariaDB"
+    , new[] { "maria", "mariadb" }
+    , DatabaseCategory.LargePlayer
+)]
+[Brand("mariadb", "#003545")]
+public class MariaDbDatabase : IDatabase
+{ }

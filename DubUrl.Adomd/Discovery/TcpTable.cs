@@ -8,19 +8,18 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Discovery
+namespace DubUrl.Adomd.Discovery;
+
+internal class TcpTable : IEnumerable<TcpRow>
 {
-    internal class TcpTable : IEnumerable<TcpRow>
-    {
-        public IEnumerable<TcpRow> TcpRows { get; }
+    public IEnumerable<TcpRow> TcpRows { get; }
 
-        public TcpTable(IEnumerable<TcpRow> tcpRows)
-            => TcpRows = tcpRows;
+    public TcpTable(IEnumerable<TcpRow> tcpRows)
+        => TcpRows = tcpRows;
 
-        public IEnumerator<TcpRow> GetEnumerator()
-            => TcpRows.GetEnumerator();
+    public IEnumerator<TcpRow> GetEnumerator()
+        => TcpRows.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => TcpRows.GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator()
+        => TcpRows.GetEnumerator();
 }

@@ -6,14 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<MySqlDialect>(
-        "MySQL"
-        , new[] { "mysql", "my" }
-        , DatabaseCategory.TopPlayer
-    )]
-    [Brand("mysql", "#4479A1")]
-    public class MySqlDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<MySqlDialect>(
+    "MySQL"
+    , new[] { "mysql", "my" }
+    , DatabaseCategory.TopPlayer
+)]
+[Brand("mysql", "#4479A1")]
+public class MySqlDatabase : IDatabase
+{ }

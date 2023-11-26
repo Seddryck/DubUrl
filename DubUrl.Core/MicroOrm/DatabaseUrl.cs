@@ -14,88 +14,87 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.MicroOrm
+namespace DubUrl.MicroOrm;
+
+public class DatabaseUrl : DubUrl.DatabaseUrl
 {
-    public class DatabaseUrl : DubUrl.DatabaseUrl
+    private IReflectionCache ReflectionCache { get; set; } = new ReflectionCache();
+
+    public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
+        : base(connectionUrl, commandProvisionerFactory, logger)
+    { ReflectionCache = reflectionCache; }
+
+    public DatabaseUrl WithoutCache()
     {
-        private IReflectionCache ReflectionCache { get; set; } = new ReflectionCache();
-
-        public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
-            : base(connectionUrl, commandProvisionerFactory, logger)
-        { ReflectionCache = reflectionCache; }
-
-        public DatabaseUrl WithoutCache()
-        {
-            ReflectionCache = new NoneReflectionCache();
-            return this;
-        }
-
-        #region Scalar
-
-       
-        #endregion
-
-        #region Single
-
-        public T? ReadSingle<T>(string query) where T : new()
-            => ReadSingle<T>(new InlineCommand(query, QueryLogger));
-
-        public T? ReadSingle<T>(ICommandProvider commandProvider) where T : new()
-        {
-            using var dr = PrepareCommand(commandProvider).ExecuteReader();
-            if (!dr.Read())
-                return (T?)(object?)null;
-
-            var entity = dr.ToEntity<T>(ReflectionCache);
-            return !dr.Read() ? entity : throw new InvalidOperationException();
-        }
-
-        public T? ReadSingleNonNull<T>(string query) where T : new()
-            => ReadSingleNonNull<T>(new InlineCommand(query, QueryLogger));
-
-        public T? ReadSingleNonNull<T>(ICommandProvider commandProvider) where T : new()
-            => ReadSingle<T>(commandProvider) ?? throw new InvalidOperationException();
-
-        #endregion
-
-        #region First 
-
-        public T? ReadFirst<T>(string query) where T : new()
-            => ReadFirst<T>(new InlineCommand(query, QueryLogger));
-
-        public T? ReadFirst<T>(ICommandProvider commandProvider) where T : new()
-        {
-            using var dr = PrepareCommand(commandProvider).ExecuteReader();
-            if (!dr.Read())
-                return (T?)(object?)null;
-
-            return dr.ToEntity<T>(ReflectionCache);
-        }
-
-        public T ReadFirstNonNull<T>(string query) where T : new()
-            => ReadFirstNonNull<T>(new InlineCommand(query, QueryLogger));
-
-        public T ReadFirstNonNull<T>(ICommandProvider commandProvider) where T : new()
-            => ReadFirst<T>(commandProvider) ?? throw new InvalidOperationException();
-
-        #endregion
-
-        #region Multiple
-
-        public IEnumerable<T> ReadMultiple<T>(string query) where T : new()
-            => ReadMultiple<T>(new InlineCommand(query, QueryLogger));
-
-        public IEnumerable<T> ReadMultiple<T>(ICommandProvider commandProvider) where T : new()
-        {
-            using var cmd = PrepareCommand(commandProvider);
-            var dr = cmd.ExecuteReader();
-            while (dr.Read())
-                yield return dr.ToEntity<T>(ReflectionCache);
-            dr?.Close();
-        }
-
-        #endregion
-
+        ReflectionCache = new NoneReflectionCache();
+        return this;
     }
+
+    #region Scalar
+
+   
+    #endregion
+
+    #region Single
+
+    public T? ReadSingle<T>(string query) where T : new()
+        => ReadSingle<T>(new InlineCommand(query, QueryLogger));
+
+    public T? ReadSingle<T>(ICommandProvider commandProvider) where T : new()
+    {
+        using var dr = PrepareCommand(commandProvider).ExecuteReader();
+        if (!dr.Read())
+            return (T?)(object?)null;
+
+        var entity = dr.ToEntity<T>(ReflectionCache);
+        return !dr.Read() ? entity : throw new InvalidOperationException();
+    }
+
+    public T? ReadSingleNonNull<T>(string query) where T : new()
+        => ReadSingleNonNull<T>(new InlineCommand(query, QueryLogger));
+
+    public T? ReadSingleNonNull<T>(ICommandProvider commandProvider) where T : new()
+        => ReadSingle<T>(commandProvider) ?? throw new InvalidOperationException();
+
+    #endregion
+
+    #region First 
+
+    public T? ReadFirst<T>(string query) where T : new()
+        => ReadFirst<T>(new InlineCommand(query, QueryLogger));
+
+    public T? ReadFirst<T>(ICommandProvider commandProvider) where T : new()
+    {
+        using var dr = PrepareCommand(commandProvider).ExecuteReader();
+        if (!dr.Read())
+            return (T?)(object?)null;
+
+        return dr.ToEntity<T>(ReflectionCache);
+    }
+
+    public T ReadFirstNonNull<T>(string query) where T : new()
+        => ReadFirstNonNull<T>(new InlineCommand(query, QueryLogger));
+
+    public T ReadFirstNonNull<T>(ICommandProvider commandProvider) where T : new()
+        => ReadFirst<T>(commandProvider) ?? throw new InvalidOperationException();
+
+    #endregion
+
+    #region Multiple
+
+    public IEnumerable<T> ReadMultiple<T>(string query) where T : new()
+        => ReadMultiple<T>(new InlineCommand(query, QueryLogger));
+
+    public IEnumerable<T> ReadMultiple<T>(ICommandProvider commandProvider) where T : new()
+    {
+        using var cmd = PrepareCommand(commandProvider);
+        var dr = cmd.ExecuteReader();
+        while (dr.Read())
+            yield return dr.ToEntity<T>(ReflectionCache);
+        dr?.Close();
+    }
+
+    #endregion
+
 }
 

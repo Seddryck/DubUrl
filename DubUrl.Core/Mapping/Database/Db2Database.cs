@@ -6,14 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<Db2Dialect>(
-        "IBM DB2"
-        , new[] { "db2" }
-        , DatabaseCategory.LargePlayer
-    )]
-    [Brand("ibm", "#052FAD")]
-    public class Db2Database : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<Db2Dialect>(
+    "IBM DB2"
+    , new[] { "db2" }
+    , DatabaseCategory.LargePlayer
+)]
+[Brand("ibm", "#052FAD")]
+public class Db2Database : IDatabase
+{ }

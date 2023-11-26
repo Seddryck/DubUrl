@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Parametrizing
+namespace DubUrl.Querying.Parametrizing;
+
+public interface IDubUrlParameterFactory
 {
-    public interface IDubUrlParameterFactory
-    {
-        DubUrlParameter Instantiate<T>(string name, T? value);
-    }
+    DubUrlParameter Instantiate<T>(string name, T? value);
 }

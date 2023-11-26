@@ -9,18 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<SnowflakeDatabase, PositionalNamedParametrizer>(
+    "Snowflake.Data"
+)]
+internal class SnowflakeMapper : BaseMapper
 {
-    [Mapper<SnowflakeDatabase, PositionalNamedParametrizer>(
-        "Snowflake.Data"
-    )]
-    internal class SnowflakeMapper : BaseMapper
-    {
-        public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new SnowflakeRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new SnowflakeRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

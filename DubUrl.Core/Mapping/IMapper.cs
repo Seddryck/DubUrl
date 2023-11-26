@@ -8,17 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping
-{
-    public interface IMapper
-    {
-        IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo);
-        string GetConnectionString();
-        IDialect GetDialect();
-        IConnectivity GetConnectivity();
-        string GetProviderName();
-        IParametrizer GetParametrizer();
-    }
+namespace DubUrl.Mapping;
 
-    public interface IOdbcMapper : IMapper { }
+public interface IMapper
+{
+    IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo);
+    string GetConnectionString();
+    IDialect GetDialect();
+    IConnectivity GetConnectivity();
+    string GetProviderName();
+    IParametrizer GetParametrizer();
 }
+
+public interface IOdbcMapper : IMapper { }

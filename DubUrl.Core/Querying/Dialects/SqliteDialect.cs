@@ -6,18 +6,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects
+namespace DubUrl.Querying.Dialects;
+
+[Renderer<SqliteRenderer>()]
+[ReturnCaster<BooleanConverter>]
+[ReturnCaster<DecimalConverter>]
+[ReturnCaster<Parser<DateOnly>>]
+[ReturnCaster<Parser<TimeOnly>>]
+[ReturnCaster<Parser<DateTime>>]
+[ReturnCaster<Parser<TimeSpan>>]
+public class SqliteDialect : BaseDialect
 {
-    [Renderer<SqliteRenderer>()]
-    [ReturnCaster<BooleanConverter>]
-    [ReturnCaster<DecimalConverter>]
-    [ReturnCaster<Parser<DateOnly>>]
-    [ReturnCaster<Parser<TimeOnly>>]
-    [ReturnCaster<Parser<DateTime>>]
-    [ReturnCaster<Parser<TimeSpan>>]
-    public class SqliteDialect : BaseDialect
-    {
-        internal SqliteDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+    internal SqliteDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

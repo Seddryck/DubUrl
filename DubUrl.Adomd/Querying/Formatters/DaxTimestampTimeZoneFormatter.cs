@@ -5,18 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Querying.Formatters
+namespace DubUrl.Adomd.Querying.Formatters;
+
+internal class DaxTimestampTimeZoneFormatter : IValueFormatter<DateTimeOffset>
 {
-    internal class DaxTimestampTimeZoneFormatter : IValueFormatter<DateTimeOffset>
-    {
-        public string Format(DateTimeOffset value)
+    public string Format(DateTimeOffset value)
 #if NET7_0_OR_GREATER
-            => $"\"{value:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}\"";
+        => $"\"{value:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}\"";
 #else
-            => $"\"{value:yyyy-MM-dd HH:mm:ss.FFFzzz}\"";
+        => $"\"{value:yyyy-MM-dd HH:mm:ss.FFFzzz}\"";
 #endif
 
-        public string Format(object obj)
-            => obj is DateTimeOffset value ? Format(value) : throw new Exception();
-    }
+    public string Format(object obj)
+        => obj is DateTimeOffset value ? Format(value) : throw new Exception();
 }

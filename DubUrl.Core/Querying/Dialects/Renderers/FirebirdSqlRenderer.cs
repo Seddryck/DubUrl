@@ -5,15 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Renderers
+namespace DubUrl.Querying.Dialects.Renderers;
+
+internal class FirebirdSqlRenderer : AnsiRenderer
 {
-    internal class FirebirdSqlRenderer : AnsiRenderer
-    {
-        public FirebirdSqlRenderer()
-            : base(new ValueFormatter()
-                        .With(new PrefixFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
-                  , new NullFormatter()
-                  , new QuotedIdentifierFormatter())
-        { }
-    }
+    public FirebirdSqlRenderer()
+        : base(new ValueFormatter()
+                    .With(new PrefixFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
+              , new NullFormatter()
+              , new QuotedIdentifierFormatter())
+    { }
 }

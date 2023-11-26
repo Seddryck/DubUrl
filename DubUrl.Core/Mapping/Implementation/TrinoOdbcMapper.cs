@@ -13,21 +13,20 @@ using DubUrl.Rewriting.Tokening;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Implementation;
 
-namespace DubUrl.Mapping.Implementation
-{
-    [WrapperMapper<OdbcConnectivity, NamedParametrizer>(
-        "System.Data.Odbc"
-    )]
-    public class TrinoOdbcMapper : BaseMapper, IOdbcMapper
-    {
-        public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+namespace DubUrl.Mapping.Implementation;
 
-        public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-            : base(new TrinoOdbcRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+[WrapperMapper<OdbcConnectivity, NamedParametrizer>(
+    "System.Data.Odbc"
+)]
+public class TrinoOdbcMapper : BaseMapper, IOdbcMapper
+{
+    public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+
+    public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
+        : base(new TrinoOdbcRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

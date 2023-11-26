@@ -6,15 +6,14 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Mapping
+namespace DubUrl.Adomd.Mapping;
+
+public class AdomdMapperIntrospector : NativeMapperIntrospector
 {
-    public class AdomdMapperIntrospector : NativeMapperIntrospector
-    {
-        public AdomdMapperIntrospector()
-            : this(new[] { typeof(AdomdMapperIntrospector).Assembly }) { }
-        public AdomdMapperIntrospector(Assembly[] assemblies)
-            : base(assemblies) { }
-        public AdomdMapperIntrospector(ITypesProbe probe)
-            : base(probe) { }
-    }
+    public AdomdMapperIntrospector()
+        : this(new[] { typeof(AdomdMapperIntrospector).Assembly }) { }
+    public AdomdMapperIntrospector(Assembly[] assemblies)
+        : base(assemblies) { }
+    public AdomdMapperIntrospector(ITypesProbe probe)
+        : base(probe) { }
 }

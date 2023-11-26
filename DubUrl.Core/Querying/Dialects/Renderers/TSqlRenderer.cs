@@ -5,20 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Renderers
+namespace DubUrl.Querying.Dialects.Renderers;
+
+internal class TSqlRenderer : AnsiRenderer
 {
-    internal class TSqlRenderer : AnsiRenderer
-    {
-        public TSqlRenderer()
-            : base(new ValueFormatter()
-                        .With(new IntervalAsTimeFormatter())
-                        .With(new CastFormatter<bool>("BIT", new BooleanBitFormatter()))
-                        .With(new CastFormatter<DateOnly>("DATE", new DateFormatter()))
-                        .With(new CastFormatter<TimeOnly>("TIME", new TimeFormatter()))
-                        .With(new CastFormatter<DateTime>("DATETIME", new TimestampFormatter()))
-                        .With(new CastFormatter<DateTimeOffset>("DATETIMEOFFSET", new TimestampTimeZoneFormatter()))
-                        .With(new CastFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
-                    , new NullFormatter()
-                    , new SquareBracketIdentifierFormatter()) { }
-    }
+    public TSqlRenderer()
+        : base(new ValueFormatter()
+                    .With(new IntervalAsTimeFormatter())
+                    .With(new CastFormatter<bool>("BIT", new BooleanBitFormatter()))
+                    .With(new CastFormatter<DateOnly>("DATE", new DateFormatter()))
+                    .With(new CastFormatter<TimeOnly>("TIME", new TimeFormatter()))
+                    .With(new CastFormatter<DateTime>("DATETIME", new TimestampFormatter()))
+                    .With(new CastFormatter<DateTimeOffset>("DATETIMEOFFSET", new TimestampTimeZoneFormatter()))
+                    .With(new CastFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
+                , new NullFormatter()
+                , new SquareBracketIdentifierFormatter()) { }
 }

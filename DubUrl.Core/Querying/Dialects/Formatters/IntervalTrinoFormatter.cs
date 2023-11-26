@@ -4,30 +4,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Formatters
+namespace DubUrl.Querying.Dialects.Formatters;
+
+internal class IntervalTrinoFormatter : IValueFormatter<TimeSpan>
 {
-    internal class IntervalTrinoFormatter : IValueFormatter<TimeSpan>
+    public string Format(TimeSpan value)
     {
-        public string Format(TimeSpan value)
-        {
-            var sb = new StringBuilder();
-            if (value.Days >= 1)
-                sb.Append("INTERVAL \'").Append(value.Days).Append("\' DAY");
-            if (value.Hours >= 1)
-                sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Hours).Append("\' HOUR");
-            if (value.Minutes >= 1)                                               
-                sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Minutes).Append("\' MINUTE");
-            if (value.Seconds >= 1)                                               
-                sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Seconds).Append("\' SECOND");
-            if (value.Milliseconds >= 1)
-                sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Milliseconds).Append("\' MILLISECOND");
+        var sb = new StringBuilder();
+        if (value.Days >= 1)
+            sb.Append("INTERVAL \'").Append(value.Days).Append("\' DAY");
+        if (value.Hours >= 1)
+            sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Hours).Append("\' HOUR");
+        if (value.Minutes >= 1)                                               
+            sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Minutes).Append("\' MINUTE");
+        if (value.Seconds >= 1)                                               
+            sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Seconds).Append("\' SECOND");
+        if (value.Milliseconds >= 1)
+            sb.Append(" + INTERVAL \'", Convert.ToInt16(sb.Length == 0) * 3, 13 - Convert.ToInt16(sb.Length == 0) * 3).Append(value.Milliseconds).Append("\' MILLISECOND");
 #if NET7_0_OR_GREATER
-            if (value.Microseconds >= 1)
-                throw new ArgumentOutOfRangeException(nameof(value), "Trino doesn't support microseconds.");
+        if (value.Microseconds >= 1)
+            throw new ArgumentOutOfRangeException(nameof(value), "Trino doesn't support microseconds.");
 #endif
-            return sb.ToString().TrimEnd();
-        }
-        public string Format(object obj)
-            => obj is TimeSpan value ? Format(value) : throw new Exception();
+        return sb.ToString().TrimEnd();
     }
+    public string Format(object obj)
+        => obj is TimeSpan value ? Format(value) : throw new Exception();
 }

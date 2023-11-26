@@ -4,14 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.QA.Dapper
+namespace DubUrl.QA.Dapper;
+
+internal class Customer
 {
-    internal class Customer
-    {
-        public int CustomerId { get; set; }
-        public string FullName { get; set; } = "";
-        public DateTime BirthDate { get; set; }
-    }
-
-
+    public int CustomerId { get; set; }
+    public string FullName { get; set; } = "";
+    public DateTime BirthDate { get; set; }
 }

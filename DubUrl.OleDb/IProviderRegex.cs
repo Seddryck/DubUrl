@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb
+namespace DubUrl.OleDb;
+
+public interface IProviderRegex
 {
-    public interface IProviderRegex
-    {
-        string ToString();
-        Type[] Options { get; }
-    }
+    string ToString();
+    Type[] Options { get; }
 }

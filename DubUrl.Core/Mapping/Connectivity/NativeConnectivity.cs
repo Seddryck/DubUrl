@@ -7,10 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Connectivity
+namespace DubUrl.Mapping.Connectivity;
+
+internal class NativeConnectivity : IDirectConnectivity
 {
-    internal class NativeConnectivity : IDirectConnectivity
-    {
-        public string Alias => string.Empty;
-    }
+    public string Alias => string.Empty;
 }

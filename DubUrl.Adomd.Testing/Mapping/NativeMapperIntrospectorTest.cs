@@ -7,56 +7,55 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Testing.Mapping
+namespace DubUrl.Adomd.Testing.Mapping;
+
+public class NativeMapperIntrospectorTest
 {
-    public class NativeMapperIntrospectorTest
+    internal class FakeMappersIntrospector : AssemblyTypesProbe
     {
-        internal class FakeMappersIntrospector : AssemblyTypesProbe
-        {
-            private Type[] Types { get; }
+        private Type[] Types { get; }
 
-            public FakeMappersIntrospector(Type[] types)
-                => Types = types;
+        public FakeMappersIntrospector(Type[] types)
+            => Types = types;
 
-            public override IEnumerable<Type> Locate()
-                => Types;
-        }
+        public override IEnumerable<Type> Locate()
+            => Types;
+    }
 
-        [Test]
-        public void Locate_OneMapperClass_ClassReturned()
-        {
-            var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase) });
-            var introspector = new AdomdMapperIntrospector(types);
-            var result = introspector.Locate();
+    [Test]
+    public void Locate_OneMapperClass_ClassReturned()
+    {
+        var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase) });
+        var introspector = new AdomdMapperIntrospector(types);
+        var result = introspector.Locate();
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(1));
-            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(PowerBiDesktopMapper)));
-        }
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count(), Is.EqualTo(1));
+        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(PowerBiDesktopMapper)));
+    }
 
-        [Test]
-        public void Locate_OneMapperClassWithBrand_ClassReturned()
-        {
-            var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase) });
-            var introspector = new AdomdMapperIntrospector(types);
-            var result = introspector.Locate();
+    [Test]
+    public void Locate_OneMapperClassWithBrand_ClassReturned()
+    {
+        var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase) });
+        var introspector = new AdomdMapperIntrospector(types);
+        var result = introspector.Locate();
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(1));
-            Assert.That(result.ElementAt(0).Slug, Is.EqualTo("powerbi"));
-            Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
-            Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
-        }
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count(), Is.EqualTo(1));
+        Assert.That(result.ElementAt(0).Slug, Is.EqualTo("powerbi"));
+        Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
+        Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+    }
 
-        [Test]
-        public void Locate_TwoMapperClasses_ClassesReturned()
-        {
-            var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiPremiumMapper), typeof(PowerBiDesktopDatabase), typeof(PowerBiPremiumDatabase) });
-            var introspector = new AdomdMapperIntrospector(types);
-            var result = introspector.Locate();
+    [Test]
+    public void Locate_TwoMapperClasses_ClassesReturned()
+    {
+        var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiPremiumMapper), typeof(PowerBiDesktopDatabase), typeof(PowerBiPremiumDatabase) });
+        var introspector = new AdomdMapperIntrospector(types);
+        var result = introspector.Locate();
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(2));
-        }
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count(), Is.EqualTo(2));
     }
 }

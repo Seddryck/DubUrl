@@ -9,27 +9,26 @@ using System.Threading.Tasks;
 using DubUrl.Rewriting;
 using DubUrl.OleDb.Mapping;
 
-namespace DubUrl.OleDb
-{
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class AlternativeProviderAttribute : BaseLocatorAttribute
-    {
-        public AlternativeProviderAttribute(IProviderRegex providerRegex, Type mapper, Type database)
-            : base(providerRegex.ToString(), providerRegex.Options, mapper, database) { }
-    }
+namespace DubUrl.OleDb;
 
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class AlternativeProviderAttribute<R, O, D> : AlternativeProviderAttribute
-        where R : IProviderRegex
-        where O : IOleDbMapper
-        where D : IDatabase
-    {
-        public AlternativeProviderAttribute()
-            : base(
-                  Activator.CreateInstance<R>()
-                  , typeof(O)
-                  , typeof(D)
-            )
-        { }
-    }
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public class AlternativeProviderAttribute : BaseLocatorAttribute
+{
+    public AlternativeProviderAttribute(IProviderRegex providerRegex, Type mapper, Type database)
+        : base(providerRegex.ToString(), providerRegex.Options, mapper, database) { }
+}
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public class AlternativeProviderAttribute<R, O, D> : AlternativeProviderAttribute
+    where R : IProviderRegex
+    where O : IOleDbMapper
+    where D : IDatabase
+{
+    public AlternativeProviderAttribute()
+        : base(
+              Activator.CreateInstance<R>()
+              , typeof(O)
+              , typeof(D)
+        )
+    { }
 }

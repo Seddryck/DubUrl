@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Registering
+namespace DubUrl.Registering;
+
+public interface IProviderFactoriesDiscoverer
 {
-    public interface IProviderFactoriesDiscoverer
-    {
-        IEnumerable<Type> Execute();
-    }
+    IEnumerable<Type> Execute();
 }

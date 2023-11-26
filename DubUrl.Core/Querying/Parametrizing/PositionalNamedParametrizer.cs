@@ -6,20 +6,19 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Parametrizing
+namespace DubUrl.Querying.Parametrizing;
+
+public class PositionalNamedParametrizer : PositionalParametrizer
 {
-    public class PositionalNamedParametrizer : PositionalParametrizer
+    public PositionalNamedParametrizer()
+    { }
+
+    public override IDbDataParameter CreateParameter(IDbCommand command, DubUrlParameter parameter)
     {
-        public PositionalNamedParametrizer()
-        { }
-
-        public override IDbDataParameter CreateParameter(IDbCommand command, DubUrlParameter parameter)
-        {
-            var position = command.Parameters.Count + 1;
-            var param = base.CreateParameter(command, parameter);
-            param.ParameterName = position.ToString();
-            return param;
-        }
-
+        var position = command.Parameters.Count + 1;
+        var param = base.CreateParameter(command, parameter);
+        param.ParameterName = position.ToString();
+        return param;
     }
+
 }

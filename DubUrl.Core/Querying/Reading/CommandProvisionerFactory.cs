@@ -5,19 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Reading
+namespace DubUrl.Querying.Reading;
+
+public class CommandProvisionerFactory
 {
-    public class CommandProvisionerFactory
+    public virtual ICommandProvisioner[] Instantiate(ICommandProvider provider, ConnectionUrl connectionUrl)
     {
-        public virtual ICommandProvisioner[] Instantiate(ICommandProvider provider, ConnectionUrl connectionUrl)
+        var list = new List<ICommandProvisioner>
         {
-            var list = new List<ICommandProvisioner>
-            {
-                new TextCommandProvisioner(provider, connectionUrl.Dialect, connectionUrl.Connectivity)
-            };
-            if (provider is IParametrizedCommand parametrizedProvider)
-                list.Add(new ParametersCommandProvisioner(parametrizedProvider, connectionUrl.Parametrizer));
-            return list.ToArray();
-        }
+            new TextCommandProvisioner(provider, connectionUrl.Dialect, connectionUrl.Connectivity)
+        };
+        if (provider is IParametrizedCommand parametrizedProvider)
+            list.Add(new ParametersCommandProvisioner(parametrizedProvider, connectionUrl.Parametrizer));
+        return list.ToArray();
     }
 }

@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.OleDb
+namespace DubUrl.OleDb;
+
+public interface IProviderLocator
 {
-    public interface IProviderLocator
-    {
-        BaseTokenMapper[] AdditionalMappers { get; }
-        string Locate();
-    }
+    BaseTokenMapper[] AdditionalMappers { get; }
+    string Locate();
 }

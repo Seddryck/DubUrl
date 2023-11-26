@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Formatters
+namespace DubUrl.Querying.Dialects.Formatters;
+
+public class NullFormatter : INullFormatter
 {
-    public class NullFormatter : INullFormatter
-    {
-        public string Format()
-            => "NULL";
-    }
+    public string Format()
+        => "NULL";
 }

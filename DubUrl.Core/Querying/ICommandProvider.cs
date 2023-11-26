@@ -8,11 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying
+namespace DubUrl.Querying;
+
+public interface ICommandProvider
 {
-    public interface ICommandProvider
-    {
-        string Read(IDialect dialect, IConnectivity connectivity);
-        bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false);
-    }
+    string Read(IDialect dialect, IConnectivity connectivity);
+    bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false);
 }

@@ -6,14 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects
+namespace DubUrl.Querying.Dialects;
+
+[Renderer<PgsqlRenderer>()]
+[ReturnCaster<DateTimeCaster<DateOnly>>]
+[ReturnCaster<TimeSpanCaster<TimeOnly>>]
+public class CockRoachDialect : BaseDialect
 {
-    [Renderer<PgsqlRenderer>()]
-    [ReturnCaster<DateTimeCaster<DateOnly>>]
-    [ReturnCaster<TimeSpanCaster<TimeOnly>>]
-    public class CockRoachDialect : BaseDialect
-    {
-        internal CockRoachDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+    internal CockRoachDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

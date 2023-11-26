@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Parametrizing
+namespace DubUrl.Querying.Parametrizing;
+
+internal interface IParametrizedCommand
 {
-    internal interface IParametrizedCommand
-    {
-        ImmutableArray<DubUrlParameter> Parameters { get; }
-    }
+    ImmutableArray<DubUrlParameter> Parameters { get; }
 }

@@ -6,16 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects
+namespace DubUrl.Querying.Dialects;
+
+[Renderer<TSqlRenderer>()]
+[ReturnCaster<BooleanConverter>]
+[ReturnCaster<DecimalConverter>]
+[ReturnCaster<DateTimeCaster<DateOnly>>]
+[ReturnCaster<TimeSpanCaster<TimeOnly>>]
+public class TSqlDialect : BaseDialect
 {
-    [Renderer<TSqlRenderer>()]
-    [ReturnCaster<BooleanConverter>]
-    [ReturnCaster<DecimalConverter>]
-    [ReturnCaster<DateTimeCaster<DateOnly>>]
-    [ReturnCaster<TimeSpanCaster<TimeOnly>>]
-    public class TSqlDialect : BaseDialect
-    {
-        internal TSqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+    internal TSqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

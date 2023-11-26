@@ -11,13 +11,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
-{
-    [Mapper<CockRoachDatabase, PositionalParametrizer>("Npgsql")]
-    internal class CockRoachMapper : PostgresqlMapper
-    {
-        public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new CockRoachRewriter(csb), dialect, parametrizer) { }
+namespace DubUrl.Mapping.Implementation;
 
-    }
+[Mapper<CockRoachDatabase, PositionalParametrizer>("Npgsql")]
+internal class CockRoachMapper : PostgresqlMapper
+{
+    public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new CockRoachRewriter(csb), dialect, parametrizer) { }
+
 }

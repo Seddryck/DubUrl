@@ -9,18 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[AlternativeMapper<MySqlDatabase, NamedParametrizer>(
+    "MySql.Data"
+)]
+internal class MySqlDataMapper : MySqlConnectorMapper
 {
-    [AlternativeMapper<MySqlDatabase, NamedParametrizer>(
-        "MySql.Data"
-    )]
-    internal class MySqlDataMapper : MySqlConnectorMapper
-    {
-        public MySqlDataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new MySqlDataRewriter(csb), 
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public MySqlDataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new MySqlDataRewriter(csb), 
+              dialect,
+              parametrizer
+        )
+    { }
 }

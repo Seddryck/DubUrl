@@ -9,18 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[Mapper<SqliteDatabase, NamedParametrizer>(
+    "Microsoft.Data.Sqlite"
+)]
+internal class SqliteMapper : BaseMapper
 {
-    [Mapper<SqliteDatabase, NamedParametrizer>(
-        "Microsoft.Data.Sqlite"
-    )]
-    internal class SqliteMapper : BaseMapper
-    {
-        public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new SqliteRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new SqliteRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

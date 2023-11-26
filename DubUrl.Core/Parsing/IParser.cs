@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Parsing
+namespace DubUrl.Parsing;
+
+public interface IParser
 {
-    public interface IParser
-    {
-        UrlInfo Parse(string url);
-    }
+    UrlInfo Parse(string url);
 }

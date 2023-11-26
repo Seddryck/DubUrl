@@ -6,13 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<DrillDialect>(
-        "Apache Drill"
-        , new[] { "drill" }
-        , DatabaseCategory.DistributedQueryEngine
-    )]
-    public class DrillDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<DrillDialect>(
+    "Apache Drill"
+    , new[] { "drill" }
+    , DatabaseCategory.DistributedQueryEngine
+)]
+public class DrillDatabase : IDatabase
+{ }

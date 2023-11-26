@@ -15,161 +15,160 @@ using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Rewriting.Implementation;
 
-namespace DubUrl.Testing.Mapping
+namespace DubUrl.Testing.Mapping;
+
+public class SchemeMapperBuilderTest
 {
-    public class SchemeMapperBuilderTest
+    [SetUp]
+    public void DefaultRegistration()
     {
-        [SetUp]
-        public void DefaultRegistration()
-        {
-            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-            DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-            DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance);
-            DbProviderFactories.RegisterFactory("Oracle.ManagedDataAccess", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
-            DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
-            DbProviderFactories.RegisterFactory("IBM.Data.Db2", IBM.Data.Db2.DB2Factory.Instance);
-            DbProviderFactories.RegisterFactory("Snowflake.Data", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
-            DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
-            DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-            DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
+        DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+        DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
+        DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance);
+        DbProviderFactories.RegisterFactory("Oracle.ManagedDataAccess", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
+        DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
+        DbProviderFactories.RegisterFactory("IBM.Data.Db2", IBM.Data.Db2.DB2Factory.Instance);
+        DbProviderFactories.RegisterFactory("Snowflake.Data", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
+        DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
+        DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
+        DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
+        DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
 #pragma warning disable CA1416 // Validate platform compatibility
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
 #pragma warning restore CA1416 // Validate platform compatibility
-        }
+    }
 
-        private class StubMapper : BaseMapper
+    private class StubMapper : BaseMapper
+    {
+        public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
+            : base(new StubRewriter(csb), dialect, parametrizer) { }
+
+        private class StubRewriter : ConnectionStringRewriter 
         {
-            public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
-                : base(new StubRewriter(csb), dialect, parametrizer) { }
-
-            private class StubRewriter : ConnectionStringRewriter 
-            {
-                public StubRewriter(DbConnectionStringBuilder csb)
-                    : base(new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
-            }
-
+            public StubRewriter(DbConnectionStringBuilder csb)
+                : base(new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
         }
 
-        [Test]
-        [TestCase("oracle", typeof(OracleManagedDataAccessMapper))]
-        [TestCase("mysql", typeof(MySqlConnectorMapper))]
-        [TestCase("mssql", typeof(MsSqlServerMapper))]
-        [TestCase("pgsql", typeof(PostgresqlMapper))]
-        [TestCase("db2", typeof(Db2Mapper))]
-        [TestCase("sqlite", typeof(SqliteMapper))]
-        [TestCase("maria", typeof(MariaDbConnectorMapper))]
-        [TestCase("sf", typeof(SnowflakeMapper))]
-        [TestCase("td", typeof(TeradataMapper))]
-        [TestCase("fb", typeof(FirebirdSqlMapper))]
-        [TestCase("cr", typeof(CockRoachMapper))]
-        [TestCase("ts", typeof(TimescaleMapper))]
-        [TestCase("quest", typeof(QuestDbMapper))]
-        [TestCase("tr", typeof(TrinoMapper))]
-        //[TestCase("odbc", typeof(OdbcMapper))]
-        [TestCase("odbc+mssql", typeof(OdbcMapper))]
-        [TestCase("mssql+odbc", typeof(OdbcMapper))]
-        public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
-        {
-            var builder = new SchemeMapperBuilder();
-            builder.Build();
-            var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
+    }
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf(expected));
-        }
+    [Test]
+    [TestCase("oracle", typeof(OracleManagedDataAccessMapper))]
+    [TestCase("mysql", typeof(MySqlConnectorMapper))]
+    [TestCase("mssql", typeof(MsSqlServerMapper))]
+    [TestCase("pgsql", typeof(PostgresqlMapper))]
+    [TestCase("db2", typeof(Db2Mapper))]
+    [TestCase("sqlite", typeof(SqliteMapper))]
+    [TestCase("maria", typeof(MariaDbConnectorMapper))]
+    [TestCase("sf", typeof(SnowflakeMapper))]
+    [TestCase("td", typeof(TeradataMapper))]
+    [TestCase("fb", typeof(FirebirdSqlMapper))]
+    [TestCase("cr", typeof(CockRoachMapper))]
+    [TestCase("ts", typeof(TimescaleMapper))]
+    [TestCase("quest", typeof(QuestDbMapper))]
+    [TestCase("tr", typeof(TrinoMapper))]
+    //[TestCase("odbc", typeof(OdbcMapper))]
+    [TestCase("odbc+mssql", typeof(OdbcMapper))]
+    [TestCase("mssql+odbc", typeof(OdbcMapper))]
+    public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
+    {
+        var builder = new SchemeMapperBuilder();
+        builder.Build();
+        var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
 
-        [Test]
-        [Ignore ("To be re-implemented")]
-        public void AddAlias_NewScheme_CorrectType()
-        {
-            var weirdScheme = "xyz";
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.TypeOf(expected));
+    }
 
-            var builder = new SchemeMapperBuilder();
-            builder.Build();
-            Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
+    [Test]
+    [Ignore ("To be re-implemented")]
+    public void AddAlias_NewScheme_CorrectType()
+    {
+        var weirdScheme = "xyz";
 
-            builder.AddAlias(weirdScheme, "mssql");
-            builder.Build();
-            var result = builder.GetMapper(weirdScheme); //Should exists
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<MsSqlServerRewriter>());
-        }
+        var builder = new SchemeMapperBuilder();
+        builder.Build();
+        Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
 
-        [Test]
-        public void AddMapping_NewScheme_CorrectType()
-        {
-            (var databaseName, var weirdScheme, var invariantName) = ("XY for Z", "xyz", "x.y.z");
+        builder.AddAlias(weirdScheme, "mssql");
+        builder.Build();
+        var result = builder.GetMapper(weirdScheme); //Should exists
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.TypeOf<MsSqlServerRewriter>());
+    }
 
-            var builder = new SchemeMapperBuilder();
-            builder.Build();
-            Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
+    [Test]
+    public void AddMapping_NewScheme_CorrectType()
+    {
+        (var databaseName, var weirdScheme, var invariantName) = ("XY for Z", "xyz", "x.y.z");
 
-            DbProviderFactories.RegisterFactory(invariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-            builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer> (databaseName, new[] { weirdScheme }, invariantName);
+        var builder = new SchemeMapperBuilder();
+        builder.Build();
+        Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
 
-            builder.Build();
-            var result = builder.GetMapper(weirdScheme); //Should exists
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<StubMapper>());
-        }
+        DbProviderFactories.RegisterFactory(invariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer> (databaseName, new[] { weirdScheme }, invariantName);
 
-        [Test]
-        public void RemoveMapping_ExistingScheme_NotFound()
-        {
-            var oracleScheme = "ora";
+        builder.Build();
+        var result = builder.GetMapper(weirdScheme); //Should exists
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.TypeOf<StubMapper>());
+    }
 
-            var builder = new SchemeMapperBuilder();
-            builder.Build();
-            var result = builder.GetMapper(oracleScheme); //should be found
-            Assert.That(result, Is.Not.Null);
+    [Test]
+    public void RemoveMapping_ExistingScheme_NotFound()
+    {
+        var oracleScheme = "ora";
 
-            builder.RemoveMapping(oracleScheme);
-            builder.Build();
-            Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(oracleScheme)); //Should not exist
-        }
+        var builder = new SchemeMapperBuilder();
+        builder.Build();
+        var result = builder.GetMapper(oracleScheme); //should be found
+        Assert.That(result, Is.Not.Null);
 
-        [Test]
-        [Ignore("To be re-implemented")]
-        public void ReplaceMapper_NewScheme_CorrectType()
-        {
-            var mysqlScheme = "mysql";
+        builder.RemoveMapping(oracleScheme);
+        builder.Build();
+        Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(oracleScheme)); //Should not exist
+    }
 
-            var builder = new SchemeMapperBuilder();
-            if(!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
-                DbProviderFactories.RegisterFactory("MySql.Data", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
-            builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
+    [Test]
+    [Ignore("To be re-implemented")]
+    public void ReplaceMapper_NewScheme_CorrectType()
+    {
+        var mysqlScheme = "mysql";
 
-            builder.Build();
-            var result = builder.GetMapper(mysqlScheme);
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<MySqlDataMapper>());
-        }
+        var builder = new SchemeMapperBuilder();
+        if(!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
+            DbProviderFactories.RegisterFactory("MySql.Data", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
+        builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
-        private class FakeDriverLocator : IDriverLocator
-        {
-            public FakeDriverLocator() { }
+        builder.Build();
+        var result = builder.GetMapper(mysqlScheme);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.TypeOf<MySqlDataMapper>());
+    }
 
-            public string Locate() => "ODBC Driver for fooBar";
-        }
+    private class FakeDriverLocator : IDriverLocator
+    {
+        public FakeDriverLocator() { }
 
-        [Test]
-        [Ignore("To be re-implemented")]
-        public void ReplaceDriverLocationFactory_NewDriverLocationFactory_CorrectType()
-        {
-            var factory = new DriverLocatorFactory();
-            factory.AddDriver("foobar", typeof(FakeDriverLocator));
+        public string Locate() => "ODBC Driver for fooBar";
+    }
 
-            var builder = new SchemeMapperBuilder();
-            DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-            builder.ReplaceDriverLocatorFactory(typeof(OdbcRewriter), factory);
+    [Test]
+    [Ignore("To be re-implemented")]
+    public void ReplaceDriverLocationFactory_NewDriverLocationFactory_CorrectType()
+    {
+        var factory = new DriverLocatorFactory();
+        factory.AddDriver("foobar", typeof(FakeDriverLocator));
 
-            builder.Build();
-            var result = builder.GetMapper(new[] { "odbc", "foobar" });
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<OdbcRewriter>());
-            Assert.That(((OdbcRewriter)result).DriverLocatorFactory, Is.EqualTo(factory));
-        }
+        var builder = new SchemeMapperBuilder();
+        DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
+        builder.ReplaceDriverLocatorFactory(typeof(OdbcRewriter), factory);
+
+        builder.Build();
+        var result = builder.GetMapper(new[] { "odbc", "foobar" });
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.TypeOf<OdbcRewriter>());
+        Assert.That(((OdbcRewriter)result).DriverLocatorFactory, Is.EqualTo(factory));
     }
 }

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.QA.Dapper
+namespace DubUrl.QA.Dapper;
+
+internal interface IDapperConfiguration
 {
-    internal interface IDapperConfiguration
-    {
-        string GetConnectionString();
-    }
+    string GetConnectionString();
 }

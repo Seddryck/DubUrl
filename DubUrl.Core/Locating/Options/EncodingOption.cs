@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.Options
+namespace DubUrl.Locating.Options;
+
+[LocatorOption]
+public enum EncodingOption
 {
-    [LocatorOption]
-    public enum EncodingOption
-    {
-        Unspecified,
-        ANSI,
-        Unicode
-    }
+    Unspecified,
+    ANSI,
+    Unicode
 }

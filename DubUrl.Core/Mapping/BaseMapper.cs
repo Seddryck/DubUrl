@@ -12,36 +12,35 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping
+namespace DubUrl.Mapping;
+
+public abstract class BaseMapper : IMapper
 {
-    public abstract class BaseMapper : IMapper
-    {
-        private IConnectionStringRewriter Rewriter { get; }
+    private IConnectionStringRewriter Rewriter { get; }
+    
+    protected IDialect Dialect { get; }
+    protected IParametrizer Parametrizer { get; }
+
+    public BaseMapper(IConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
+        => (Rewriter, Dialect, Parametrizer) = (rewriter, dialect, parametrizer);
+
+    public string GetConnectionString()
+        => Rewriter.ConnectionString;
+
+    public string GetProviderName()
+        => GetType().GetCustomAttribute<BaseMapperAttribute>()?.ProviderInvariantName
+            ?? throw new InvalidDataException();
+    
+    public IDialect GetDialect()
+        => Dialect;
+
+    public IConnectivity GetConnectivity()
+        => (IConnectivity)(Activator.CreateInstance(
+                GetType().GetCustomAttribute<WrapperMapperAttribute>()?.Connectivity ?? typeof(NativeConnectivity)
+           ) ?? throw new ArgumentException());
         
-        protected IDialect Dialect { get; }
-        protected IParametrizer Parametrizer { get; }
-
-        public BaseMapper(IConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
-            => (Rewriter, Dialect, Parametrizer) = (rewriter, dialect, parametrizer);
-
-        public string GetConnectionString()
-            => Rewriter.ConnectionString;
-
-        public string GetProviderName()
-            => GetType().GetCustomAttribute<BaseMapperAttribute>()?.ProviderInvariantName
-                ?? throw new InvalidDataException();
-        
-        public IDialect GetDialect()
-            => Dialect;
-
-        public IConnectivity GetConnectivity()
-            => (IConnectivity)(Activator.CreateInstance(
-                    GetType().GetCustomAttribute<WrapperMapperAttribute>()?.Connectivity ?? typeof(NativeConnectivity)
-               ) ?? throw new ArgumentException());
-            
-        public IParametrizer GetParametrizer()
-            => Parametrizer;
-        public IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo)
-            => Rewriter.Execute(urlInfo);
-    }
+    public IParametrizer GetParametrizer()
+        => Parametrizer;
+    public IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo)
+        => Rewriter.Execute(urlInfo);
 }

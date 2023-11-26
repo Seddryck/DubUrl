@@ -9,37 +9,36 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DubUrl.Rewriting.Tokening;
 
-namespace DubUrl.OleDb.Providers
+namespace DubUrl.OleDb.Providers;
+
+[Provider<MySqlProviderRegex, OleDbMapper, MySqlDatabase>()]
+internal class MySqlProviderLocator : BaseProviderLocator
 {
-    [Provider<MySqlProviderRegex, OleDbMapper, MySqlDatabase>()]
-    internal class MySqlProviderLocator : BaseProviderLocator
+    internal class MySqlProviderRegex : BaseProviderRegex
     {
-        internal class MySqlProviderRegex : BaseProviderRegex
-        {
-            public MySqlProviderRegex()
-                : base(new BaseRegex[]
-                {
-                    new WordMatch("MySQL Provider"),
-                })
-            { }
-        }
-        private List<string> Candidates { get; } = new();
-
-        public MySqlProviderLocator()
-            : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]
-                { new OptionsMapper()
-                    , new OleDbRewriter.InitialCatalogMapper()
-                    , new OleDbRewriter.ServerMapper()
-                }
-            )
+        public MySqlProviderRegex()
+            : base(new BaseRegex[]
+            {
+                new WordMatch("MySQL Provider"),
+            })
         { }
-
-        internal MySqlProviderLocator(ProviderLister providerLister)
-            : base(GetRegexPattern<MySqlProviderLocator>(), providerLister) { }
-
-        protected override void AddCandidate(string provider, string[] matches)
-            => Candidates.Add(provider);
-        protected override List<string> RankCandidates()
-            => Candidates;
     }
+    private List<string> Candidates { get; } = new();
+
+    public MySqlProviderLocator()
+        : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]
+            { new OptionsMapper()
+                , new OleDbRewriter.InitialCatalogMapper()
+                , new OleDbRewriter.ServerMapper()
+            }
+        )
+    { }
+
+    internal MySqlProviderLocator(ProviderLister providerLister)
+        : base(GetRegexPattern<MySqlProviderLocator>(), providerLister) { }
+
+    protected override void AddCandidate(string provider, string[] matches)
+        => Candidates.Add(provider);
+    protected override List<string> RankCandidates()
+        => Candidates;
 }

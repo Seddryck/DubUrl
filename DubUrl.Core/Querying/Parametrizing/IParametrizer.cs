@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Parametrizing
+namespace DubUrl.Querying.Parametrizing;
+
+public interface IParametrizer
 {
-    public interface IParametrizer
-    {
-        IDbDataParameter CreateParameter(IDbCommand command, DubUrlParameter parameter);
-    }
+    IDbDataParameter CreateParameter(IDbCommand command, DubUrlParameter parameter);
 }

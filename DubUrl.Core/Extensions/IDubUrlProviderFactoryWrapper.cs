@@ -6,11 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Extensions
+namespace DubUrl.Extensions;
+
+public interface IDubUrlProviderFactoryWrapper
 {
-    public interface IDubUrlProviderFactoryWrapper
-    {
-        DbConnection CreateConnection();
-        DbConnectionStringBuilder CreateConnectionStringBuilder();
-    }
+    DbConnection CreateConnection();
+    DbConnectionStringBuilder CreateConnectionStringBuilder();
 }

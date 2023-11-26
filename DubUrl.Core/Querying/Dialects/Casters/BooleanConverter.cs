@@ -6,11 +6,10 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Casters
+namespace DubUrl.Querying.Dialects.Casters;
+
+internal class BooleanConverter : Converter<bool>
 {
-    internal class BooleanConverter : Converter<bool>
-    {
-        public override bool Cast(object value)
-            => Convert.ToBoolean(value);
-    }
+    public override bool Cast(object value)
+        => Convert.ToBoolean(value);
 }

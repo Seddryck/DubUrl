@@ -9,12 +9,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Rewriting.Implementation
+namespace DubUrl.Rewriting.Implementation;
+
+internal class MariaDbDataRewriter : MySqlDataRewriter
 {
-    internal class MariaDbDataRewriter : MySqlDataRewriter
-    {
-        public MariaDbDataRewriter(DbConnectionStringBuilder csb)
-            : base(csb)
-        { }
-    }
+    public MariaDbDataRewriter(DbConnectionStringBuilder csb)
+        : base(csb)
+    { }
 }

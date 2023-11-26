@@ -6,12 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.QA
+namespace DubUrl.QA;
+
+internal class SelectFirstCustomer : EmbeddedSqlFileCommand
 {
-    internal class SelectFirstCustomer : EmbeddedSqlFileCommand
-    {
-        public SelectFirstCustomer()
-            : base($"{typeof(SelectFirstCustomer).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)
-        { }
-    }
+    public SelectFirstCustomer()
+        : base($"{typeof(SelectFirstCustomer).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)
+    { }
 }

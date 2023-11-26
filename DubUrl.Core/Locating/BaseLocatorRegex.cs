@@ -6,26 +6,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating
-{
-    public class BaseLocatorRegex : CompositeRegex
-    {
-        public BaseLocatorRegex(BaseRegex[] regexes)
-            : base(regexes) { }
+namespace DubUrl.Locating;
 
-        public Type[] Options 
+public class BaseLocatorRegex : CompositeRegex
+{
+    public BaseLocatorRegex(BaseRegex[] regexes)
+        : base(regexes) { }
+
+    public Type[] Options 
+    {
+        get
         {
-            get
+            var types = new List<Type>();
+            foreach (var regex in Regexes)
             {
-                var types = new List<Type>();
-                foreach (var regex in Regexes)
-                {
-                    var regexType = regex.GetType();
-                    if (regexType.IsGenericType)
-                        types.Add(regexType.GetGenericArguments()[0]);
-                }
-                return types.ToArray();
-            } 
-        }
+                var regexType = regex.GetType();
+                if (regexType.IsGenericType)
+                    types.Add(regexType.GetGenericArguments()[0]);
+            }
+            return types.ToArray();
+        } 
     }
 }

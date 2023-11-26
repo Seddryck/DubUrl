@@ -6,13 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Database
-{
-    [Database<FirebirdSqlDialect>(
-        "Firebird SQL"
-        , new[] { "fb", "firebird" }
-        , DatabaseCategory.InMemory
-    )]
-    public class FirebirdSqlDatabase : IDatabase
-    { }
-}
+namespace DubUrl.Mapping.Database;
+
+[Database<FirebirdSqlDialect>(
+    "Firebird SQL"
+    , new[] { "fb", "firebird" }
+    , DatabaseCategory.InMemory
+)]
+public class FirebirdSqlDatabase : IDatabase
+{ }

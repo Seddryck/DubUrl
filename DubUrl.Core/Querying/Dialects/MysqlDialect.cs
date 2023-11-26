@@ -6,15 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects
+namespace DubUrl.Querying.Dialects;
+
+[Renderer<MySqlRenderer>()]
+[ReturnCaster<BooleanConverter>]
+[ReturnCaster<DateTimeCaster<DateOnly>>]
+[ReturnCaster<TimeSpanCaster<TimeOnly>>]
+public class MySqlDialect : BaseDialect
 {
-    [Renderer<MySqlRenderer>()]
-    [ReturnCaster<BooleanConverter>]
-    [ReturnCaster<DateTimeCaster<DateOnly>>]
-    [ReturnCaster<TimeSpanCaster<TimeOnly>>]
-    public class MySqlDialect : BaseDialect
-    {
-         internal MySqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-            : base(aliases, renderer, casters) { }
-    }
+     internal MySqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(aliases, renderer, casters) { }
 }

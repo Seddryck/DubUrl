@@ -10,63 +10,62 @@ using Moq;
 using DubUrl.Mapping.Database;
 using DubUrl.Rewriting.Tokening;
 
-namespace DubUrl.OleDb.Testing
+namespace DubUrl.OleDb.Testing;
+
+public class ProviderLocatorFactoryTest
 {
-    public class ProviderLocatorFactoryTest
+    [Test]
+    [TestCase("mssql", typeof(MssqlOleDbProviderLocator))]
+    //[TestCase("mssqlncli", typeof(MssqlNCliProviderLocator))]
+    [TestCase("mysql", typeof(MySqlProviderLocator))]
+    [TestCase("xls", typeof(AceXlsProviderLocator))]
+    [TestCase("xlsx", typeof(AceXlsxProviderLocator))]
+    [TestCase("xlsm", typeof(AceXlsmProviderLocator))]
+    [TestCase("xlsb", typeof(AceXlsbProviderLocator))]
+    public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
     {
-        [Test]
-        [TestCase("mssql", typeof(MssqlOleDbProviderLocator))]
-        //[TestCase("mssqlncli", typeof(MssqlNCliProviderLocator))]
-        [TestCase("mysql", typeof(MySqlProviderLocator))]
-        [TestCase("xls", typeof(AceXlsProviderLocator))]
-        [TestCase("xlsx", typeof(AceXlsxProviderLocator))]
-        [TestCase("xlsm", typeof(AceXlsmProviderLocator))]
-        [TestCase("xlsb", typeof(AceXlsbProviderLocator))]
-        public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
-        {
-            var probeMock = new Mock<ITypesProbe>();
-            probeMock.Setup(x => x.Locate()).Returns(
-                new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
-                , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
-                , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
-                , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
-                }
-            );
-            var introspector = new ProviderLocatorIntrospector(probeMock.Object);
-            var factory = new ProviderLocatorFactory(introspector);
-            var result = factory.Instantiate(scheme);
+        var probeMock = new Mock<ITypesProbe>();
+        probeMock.Setup(x => x.Locate()).Returns(
+            new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
+            , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
+            , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
+            , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
+            }
+        );
+        var introspector = new ProviderLocatorIntrospector(probeMock.Object);
+        var factory = new ProviderLocatorFactory(introspector);
+        var result = factory.Instantiate(scheme);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.InstanceOf<IProviderLocator>());
-            Assert.That(result, Is.TypeOf(expected));
-        }
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.InstanceOf<IProviderLocator>());
+        Assert.That(result, Is.TypeOf(expected));
+    }
 
-        [Test]
-        [TestCase("mssql", typeof(OptionsMapper))]
-        //[TestCase("mssqlncli", typeof(BaseMapper.OptionsMapper))]
-        [TestCase("mysql", typeof(OptionsMapper))]
-        [TestCase("xls", typeof(ExtendedPropertiesMapper))]
-        [TestCase("xlsx", typeof(ExtendedPropertiesMapper))]
-        [TestCase("xlsm", typeof(ExtendedPropertiesMapper))]
-        [TestCase("xlsb", typeof(ExtendedPropertiesMapper))]
-        public void Instantiate_SchemeWithoutOptions_CorrectOptionsMapper(string scheme, Type expected)
-        {
-            var probeMock = new Mock<ITypesProbe>();
-            probeMock.Setup(x => x.Locate()).Returns(
-                new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
-                , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
-                , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator) 
-                , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
-                }
-            );
-            var introspector = new ProviderLocatorIntrospector(probeMock.Object);
-            var factory = new ProviderLocatorFactory(introspector);
-            var result = factory.Instantiate(scheme).AdditionalMappers;
+    [Test]
+    [TestCase("mssql", typeof(OptionsMapper))]
+    //[TestCase("mssqlncli", typeof(BaseMapper.OptionsMapper))]
+    [TestCase("mysql", typeof(OptionsMapper))]
+    [TestCase("xls", typeof(ExtendedPropertiesMapper))]
+    [TestCase("xlsx", typeof(ExtendedPropertiesMapper))]
+    [TestCase("xlsm", typeof(ExtendedPropertiesMapper))]
+    [TestCase("xlsb", typeof(ExtendedPropertiesMapper))]
+    public void Instantiate_SchemeWithoutOptions_CorrectOptionsMapper(string scheme, Type expected)
+    {
+        var probeMock = new Mock<ITypesProbe>();
+        probeMock.Setup(x => x.Locate()).Returns(
+            new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
+            , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
+            , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator) 
+            , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
+            }
+        );
+        var introspector = new ProviderLocatorIntrospector(probeMock.Object);
+        var factory = new ProviderLocatorFactory(introspector);
+        var result = factory.Instantiate(scheme).AdditionalMappers;
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count, Is.GreaterThanOrEqualTo(1));
-            Assert.That(result[0], Is.InstanceOf<BaseTokenMapper>());
-            Assert.That(result[0], Is.TypeOf(expected));
-        }
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.GreaterThanOrEqualTo(1));
+        Assert.That(result[0], Is.InstanceOf<BaseTokenMapper>());
+        Assert.That(result[0], Is.TypeOf(expected));
     }
 }

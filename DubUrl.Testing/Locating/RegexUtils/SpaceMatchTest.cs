@@ -7,24 +7,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace DubUrl.Testing.Locating.RegexUtils
-{
-    public class SpaceMatchTest
-    {
-        [Test]
-        [TestCase(" ")]
-        public void ToRegex_String_Matching(string text)
-        {
-            var regex = new SpaceMatch();
-            Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.True);
-        }
+namespace DubUrl.Testing.Locating.RegexUtils;
 
-        [Test]
-        [TestCase("MariaDB")]
-        public void ToRegex_String_NotMatching(string text)
-        {
-            var regex = new SpaceMatch();
-            Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.False);
-        }
+public class SpaceMatchTest
+{
+    [Test]
+    [TestCase(" ")]
+    public void ToRegex_String_Matching(string text)
+    {
+        var regex = new SpaceMatch();
+        Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.True);
+    }
+
+    [Test]
+    [TestCase("MariaDB")]
+    public void ToRegex_String_NotMatching(string text)
+    {
+        var regex = new SpaceMatch();
+        Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.False);
     }
 }

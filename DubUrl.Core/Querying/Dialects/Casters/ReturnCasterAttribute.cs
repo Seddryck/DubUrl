@@ -5,24 +5,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Casters
+namespace DubUrl.Querying.Dialects.Casters;
+
+[AttributeUsage(AttributeTargets.Class)]
+public class ReturnCasterAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class ReturnCasterAttribute : Attribute
-    {
-        public virtual Type CasterType { get; protected set; }
+    public virtual Type CasterType { get; protected set; }
 
-        public ReturnCasterAttribute(Type casterType)
-        {
-            CasterType = casterType;
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
-    public sealed class ReturnCasterAttribute<R> : ReturnCasterAttribute where R : ICaster
+    public ReturnCasterAttribute(Type casterType)
     {
-        public ReturnCasterAttribute()
-            : base(typeof(R))
-        { }
+        CasterType = casterType;
     }
+}
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
+public sealed class ReturnCasterAttribute<R> : ReturnCasterAttribute where R : ICaster
+{
+    public ReturnCasterAttribute()
+        : base(typeof(R))
+    { }
 }

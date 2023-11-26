@@ -6,14 +6,13 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.MicroOrm
+namespace DubUrl.MicroOrm;
+
+public interface IReflectionCache
 {
-    public interface IReflectionCache
-    {
-        bool Exists<T>();
-        (PropertyInfo[] properties, FieldInfo[] fields) Get<T>();
-        void Add<T>(PropertyInfo[] properties, FieldInfo[] fields);
-        void Remove<T>();
-        void Clear();
-    }
+    bool Exists<T>();
+    (PropertyInfo[] properties, FieldInfo[] fields) Get<T>();
+    void Add<T>(PropertyInfo[] properties, FieldInfo[] fields);
+    void Remove<T>();
+    void Clear();
 }

@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Querying.Dialects.Renderers
+namespace DubUrl.Querying.Dialects.Renderers;
+
+internal class MySqlRenderer : AnsiRenderer
 {
-    internal class MySqlRenderer : AnsiRenderer
-    {
-        public MySqlRenderer()
-            : base(new ValueFormatter()
-                        .With(new FunctionFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
-                  , new NullFormatter()
-                  , new BacktickIdentifierFormatter()) { }
-    }
+    public MySqlRenderer()
+        : base(new ValueFormatter()
+                    .With(new FunctionFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
+              , new NullFormatter()
+              , new BacktickIdentifierFormatter()) { }
 }

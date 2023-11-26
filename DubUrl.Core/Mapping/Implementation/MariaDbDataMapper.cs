@@ -9,13 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Mapping.Implementation
+namespace DubUrl.Mapping.Implementation;
+
+[AlternativeMapper<MariaDbDatabase, NamedParametrizer>("MySql.Data")]
+internal class MariaDbDataRewriter : MySqlDataMapper
 {
-    [AlternativeMapper<MariaDbDatabase, NamedParametrizer>("MySql.Data")]
-    internal class MariaDbDataRewriter : MySqlDataMapper
-    {
-        public MariaDbDataRewriter(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(csb, dialect, parametrizer)
-        { }
-    }
+    public MariaDbDataRewriter(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(csb, dialect, parametrizer)
+    { }
 }

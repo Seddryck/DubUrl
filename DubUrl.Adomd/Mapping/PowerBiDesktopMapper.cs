@@ -9,18 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Mapping
+namespace DubUrl.Adomd.Mapping;
+
+[Mapper<PowerBiDesktopDatabase, NamedParametrizer>(
+    "Microsoft.AnalysisServices.AdomdClient"
+)]
+internal class PowerBiDesktopMapper : PowerBiPremiumMapper
 {
-    [Mapper<PowerBiDesktopDatabase, NamedParametrizer>(
-        "Microsoft.AnalysisServices.AdomdClient"
-    )]
-    internal class PowerBiDesktopMapper : PowerBiPremiumMapper
-    {
-        public PowerBiDesktopMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : base(new PowerBiDesktopRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+    public PowerBiDesktopMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(new PowerBiDesktopRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

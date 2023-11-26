@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.RegexUtils
+namespace DubUrl.Locating.RegexUtils;
+
+internal class OptionalCapture : BaseRegex
 {
-    internal class OptionalCapture : BaseRegex
-    {
-        private string Option { get; }
-        public OptionalCapture(string option)
-            => Option = option;
+    private string Option { get; }
+    public OptionalCapture(string option)
+        => Option = option;
 
-        protected internal override StringBuilder ToRegex(StringBuilder stringBuilder)
-            => stringBuilder.Append('(').AppendEscaped(Option).Append(@")?");
-    }
+    protected internal override StringBuilder ToRegex(StringBuilder stringBuilder)
+        => stringBuilder.Append('(').AppendEscaped(Option).Append(@")?");
+}
 
-    internal class OptionalCapture<T> : OptionalCapture
-    {
-        public OptionalCapture(string option) : base(option) { }
-    }
+internal class OptionalCapture<T> : OptionalCapture
+{
+    public OptionalCapture(string option) : base(option) { }
 }

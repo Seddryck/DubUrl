@@ -13,21 +13,20 @@ using DubUrl.Rewriting.Tokening;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Implementation;
 
-namespace DubUrl.Mapping.Implementation
-{
-    [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
-        "System.Data.Odbc"
-    )]
-    public class QuestDbOdbcMapper : BaseMapper, IOdbcMapper
-    {
-        public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-            : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+namespace DubUrl.Mapping.Implementation;
 
-        public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-            : base(new QuestDbOdbcRewriter(csb),
-                  dialect,
-                  parametrizer
-            )
-        { }
-    }
+[WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
+    "System.Data.Odbc"
+)]
+public class QuestDbOdbcMapper : BaseMapper, IOdbcMapper
+{
+    public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+
+    public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
+        : base(new QuestDbOdbcRewriter(csb),
+              dialect,
+              parametrizer
+        )
+    { }
 }

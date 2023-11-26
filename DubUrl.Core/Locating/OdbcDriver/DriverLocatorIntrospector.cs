@@ -6,44 +6,43 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Locating.OdbcDriver
+namespace DubUrl.Locating.OdbcDriver;
+
+public class DriverLocatorIntrospector : BaseIntrospector
 {
-    public class DriverLocatorIntrospector : BaseIntrospector
+    public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority, Type[] Options, string Slug, string MainColor, string SecondaryColor) { }
+
+    public DriverLocatorIntrospector()
+        : this(new AssemblyTypesProbe()) { }
+
+    internal DriverLocatorIntrospector(AssemblyTypesProbe introspector)
+        : base(introspector) { }
+
+    public DriverLocatorInfo[] Locate()
+        => LocateDrivers().ToArray();
+
+    protected virtual IEnumerable<DriverLocatorInfo> LocateDrivers()
     {
-        public record struct DriverLocatorInfo(Type DriverLocatorType, string DatabaseName, string[] Aliases, string NamePattern, int ListingPriority, Type[] Options, string Slug, string MainColor, string SecondaryColor) { }
+        var databases = LocateAttribute<DatabaseAttribute>();
+        var drivers = LocateAttribute<DriverAttribute>();
+        var brands = LocateAttribute<BrandAttribute>();
 
-        public DriverLocatorIntrospector()
-            : this(new AssemblyTypesProbe()) { }
-
-        internal DriverLocatorIntrospector(AssemblyTypesProbe introspector)
-            : base(introspector) { }
-
-        public DriverLocatorInfo[] Locate()
-            => LocateDrivers().ToArray();
-
-        protected virtual IEnumerable<DriverLocatorInfo> LocateDrivers()
+        foreach (var driver in drivers)
         {
-            var databases = LocateAttribute<DatabaseAttribute>();
-            var drivers = LocateAttribute<DriverAttribute>();
-            var brands = LocateAttribute<BrandAttribute>();
+            var db = databases.Single(x => x.Type == driver.Attribute.Database);
+            var brand = brands.SingleOrDefault(x => x.Type == driver.Attribute.Database);
 
-            foreach (var driver in drivers)
-            {
-                var db = databases.Single(x => x.Type == driver.Attribute.Database);
-                var brand = brands.SingleOrDefault(x => x.Type == driver.Attribute.Database);
-
-                yield return new DriverLocatorInfo(
-                        driver.Type
-                        , db.Attribute.DatabaseName
-                        , db.Attribute.Aliases
-                        , driver.Attribute.RegexPattern
-                        , db.Attribute.ListingPriority
-                        , driver.Attribute.Options
-                        , brand?.Attribute.Slug ?? string.Empty
-                        , brand?.Attribute.MainColor ?? BrandAttribute.DefaultMainColor
-                        , brand?.Attribute.SecondaryColor ?? BrandAttribute.DefaultSecondaryColor
-                    );
-            }
+            yield return new DriverLocatorInfo(
+                    driver.Type
+                    , db.Attribute.DatabaseName
+                    , db.Attribute.Aliases
+                    , driver.Attribute.RegexPattern
+                    , db.Attribute.ListingPriority
+                    , driver.Attribute.Options
+                    , brand?.Attribute.Slug ?? string.Empty
+                    , brand?.Attribute.MainColor ?? BrandAttribute.DefaultMainColor
+                    , brand?.Attribute.SecondaryColor ?? BrandAttribute.DefaultSecondaryColor
+                );
         }
     }
 }

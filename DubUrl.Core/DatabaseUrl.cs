@@ -18,169 +18,168 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl
+namespace DubUrl;
+
+public partial class DatabaseUrl : IDatabaseUrl
 {
-    public partial class DatabaseUrl : IDatabaseUrl
+    protected ConnectionUrl ConnectionUrl { get; }
+    protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+
+    protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
+
+    public IQueryLogger QueryLogger { get; }
+
+    public IDialect Dialect { get => ConnectionUrl.Dialect; }
+
+    public DatabaseUrl(string url)
+        : this(new ConnectionUrlFactory(new SchemeMapperBuilder()).Instantiate(url), new(), NullQueryLogger.Instance)
+    { }
+
+    public DatabaseUrl(ConnectionUrlFactory factory, string url)
+        : this(factory.Instantiate(url), new(), NullQueryLogger.Instance)
+    { }
+
+    internal DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
+        : this(factory.Instantiate(url), commandProvisionerFactory, NullQueryLogger.Instance)
+    { }
+
+    public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
+        => (ConnectionUrl, CommandProvisionerFactory, QueryLogger) = (connectionUrl, commandProvisionerFactory, logger);
+
+    protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
     {
-        protected ConnectionUrl ConnectionUrl { get; }
-        protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+        var conn = ConnectionUrl.Open();
+        var cmd = conn.CreateCommand();
+        var provisioners = CommandProvisionerFactory.Instantiate(commandProvider, ConnectionUrl);
+        foreach (var provisioner in provisioners)
+            provisioner.Execute(cmd);
+        return cmd;
+    }
 
-        protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
+    #region Scalar
 
-        public IQueryLogger QueryLogger { get; }
+    public object? ReadScalar(string query)
+        => ReadScalar(new InlineCommand(query, QueryLogger));
 
-        public IDialect Dialect { get => ConnectionUrl.Dialect; }
+    public object? ReadScalar(ICommandProvider commandProvider)
+        => PrepareCommand(commandProvider).ExecuteScalar();
 
-        public DatabaseUrl(string url)
-            : this(new ConnectionUrlFactory(new SchemeMapperBuilder()).Instantiate(url), new(), NullQueryLogger.Instance)
-        { }
+    public object ReadScalarNonNull(string query)
+        => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
 
-        public DatabaseUrl(ConnectionUrlFactory factory, string url)
-            : this(factory.Instantiate(url), new(), NullQueryLogger.Instance)
-        { }
+    public object ReadScalarNonNull(ICommandProvider commandProvider)
+    {
+        var result = ReadScalar(commandProvider);
+        var typedResult = result == DBNull.Value ? null : result;
+        return typedResult ?? throw new NullReferenceException();
+    }
 
-        internal DatabaseUrl(ConnectionUrlFactory factory, CommandProvisionerFactory commandProvisionerFactory, string url)
-            : this(factory.Instantiate(url), commandProvisionerFactory, NullQueryLogger.Instance)
-        { }
+    public T? ReadScalar<T>(string query)
+      => ReadScalar<T>(new InlineCommand(query, QueryLogger));
 
-        public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
-            => (ConnectionUrl, CommandProvisionerFactory, QueryLogger) = (connectionUrl, commandProvisionerFactory, logger);
+    public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
+       => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
 
-        protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
-        {
-            var conn = ConnectionUrl.Open();
-            var cmd = conn.CreateCommand();
-            var provisioners = CommandProvisionerFactory.Instantiate(commandProvider, ConnectionUrl);
-            foreach (var provisioner in provisioners)
-                provisioner.Execute(cmd);
-            return cmd;
-        }
+    public T? ReadScalar<T>(ICommandProvider query)
+    {
+        var result = ReadScalar(query);
+        return (T?)(result == DBNull.Value ? null : result);
+    }
 
-        #region Scalar
+    public T ReadScalarNonNull<T>(string query)
+       => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
 
-        public object? ReadScalar(string query)
-            => ReadScalar(new InlineCommand(query, QueryLogger));
+    public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
 
-        public object? ReadScalar(ICommandProvider commandProvider)
-            => PrepareCommand(commandProvider).ExecuteScalar();
+    public T ReadScalarNonNull<T>(ICommandProvider query)
+    {
+        var result = ReadScalarNonNull(query);
+        if (result is T t)
+            return t;
 
-        public object ReadScalarNonNull(string query)
-            => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
+        return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
+    }
 
-        public object ReadScalarNonNull(ICommandProvider commandProvider)
-        {
-            var result = ReadScalar(commandProvider);
-            var typedResult = result == DBNull.Value ? null : result;
-            return typedResult ?? throw new NullReferenceException();
-        }
+    #endregion
 
-        public T? ReadScalar<T>(string query)
-          => ReadScalar<T>(new InlineCommand(query, QueryLogger));
+    #region Single
 
-        public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
-           => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
+    protected (object?, IDataReader) ReadInternal(ICommandProvider commandProvider)
+    {
+        using var dr = PrepareCommand(commandProvider).ExecuteReader();
+        if (!dr.Read())
+            return (null, dr);
+        return (dr.ToExpandoObject(), dr);
+    }
 
-        public T? ReadScalar<T>(ICommandProvider query)
-        {
-            var result = ReadScalar(query);
-            return (T?)(result == DBNull.Value ? null : result);
-        }
+    public object? ReadSingle(string query)
+        => ReadSingle(new InlineCommand(query, QueryLogger));
 
-        public T ReadScalarNonNull<T>(string query)
-           => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
+    public object? ReadSingle(ICommandProvider commandProvider)
+    {
+        (var dyn, var dr) = ReadInternal(commandProvider);
+        return !dr.Read() ? dyn : throw new InvalidOperationException();
+    }
 
-        public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
-           => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
+    public object ReadSingleNonNull(string query)
+        => ReadSingleNonNull(new InlineCommand(query, QueryLogger));
 
-        public T ReadScalarNonNull<T>(ICommandProvider query)
-        {
-            var result = ReadScalarNonNull(query);
-            if (result is T t)
-                return t;
+    public object ReadSingleNonNull(ICommandProvider commandProvider)
+        => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
 
-            return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
-        }
+    #endregion
 
-        #endregion
+    #region First 
 
-        #region Single
+    public object? ReadFirst(string query)
+        => ReadFirst(new InlineCommand(query, QueryLogger));
 
-        protected (object?, IDataReader) ReadInternal(ICommandProvider commandProvider)
-        {
-            using var dr = PrepareCommand(commandProvider).ExecuteReader();
-            if (!dr.Read())
-                return (null, dr);
-            return (dr.ToExpandoObject(), dr);
-        }
+    public object? ReadFirst(ICommandProvider commandProvider)
+    {
+        (var dyn, _) = ReadInternal(commandProvider);
+        return dyn;
+    }
 
-        public object? ReadSingle(string query)
-            => ReadSingle(new InlineCommand(query, QueryLogger));
+    public object ReadFirstNonNull(string query)
+        => ReadFirstNonNull(new InlineCommand(query, QueryLogger));
 
-        public object? ReadSingle(ICommandProvider commandProvider)
-        {
-            (var dyn, var dr) = ReadInternal(commandProvider);
-            return !dr.Read() ? dyn : throw new InvalidOperationException();
-        }
+    public object ReadFirstNonNull(ICommandProvider commandProvider)
+        => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
 
-        public object ReadSingleNonNull(string query)
-            => ReadSingleNonNull(new InlineCommand(query, QueryLogger));
+    #endregion
 
-        public object ReadSingleNonNull(ICommandProvider commandProvider)
-            => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
+    #region Multiple
 
-        #endregion
+    public IEnumerable<object> ReadMultiple(string query)
+        => ReadMultiple(new InlineCommand(query, QueryLogger));
 
-        #region First 
+    public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
+    {
+        using var dr = PrepareCommand(commandProvider).ExecuteReader();
+        while (dr.Read())
+            yield return dr.ToExpandoObject();
+        dr?.Close();
+    }
 
-        public object? ReadFirst(string query)
-            => ReadFirst(new InlineCommand(query, QueryLogger));
+    #endregion
 
-        public object? ReadFirst(ICommandProvider commandProvider)
-        {
-            (var dyn, _) = ReadInternal(commandProvider);
-            return dyn;
-        }
+    #region ExecuteReader
 
-        public object ReadFirstNonNull(string query)
-            => ReadFirstNonNull(new InlineCommand(query, QueryLogger));
+    public IDataReader ExecuteReader(string query)
+       => ExecuteReader(new InlineCommand(query, QueryLogger));
 
-        public object ReadFirstNonNull(ICommandProvider commandProvider)
-            => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
+    public IDataReader ExecuteReader(ICommandProvider commandProvider)
+        => PrepareCommand(commandProvider).ExecuteReader();
 
-        #endregion
+    #endregion
 
-        #region Multiple
-
-        public IEnumerable<object> ReadMultiple(string query)
-            => ReadMultiple(new InlineCommand(query, QueryLogger));
-
-        public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
-        {
-            using var dr = PrepareCommand(commandProvider).ExecuteReader();
-            while (dr.Read())
-                yield return dr.ToExpandoObject();
-            dr?.Close();
-        }
-
-        #endregion
-
-        #region ExecuteReader
-
-        public IDataReader ExecuteReader(string query)
-           => ExecuteReader(new InlineCommand(query, QueryLogger));
-
-        public IDataReader ExecuteReader(ICommandProvider commandProvider)
-            => PrepareCommand(commandProvider).ExecuteReader();
-
-        #endregion
-
-        private T? NormalizeReturnType<T>(object obj)
-        {
-            var caster = ConnectionUrl.Dialect.Casters
-                            .FirstOrDefault(x => x.CanCast(obj.GetType(), typeof(T)))
-                            ?? throw new InvalidOperationException($"Cannot find any caster to transform from type '{obj.GetType().Name}' to the type '{typeof(T).Name}'");
-            return (T?)caster.Cast(obj);
-        }
+    private T? NormalizeReturnType<T>(object obj)
+    {
+        var caster = ConnectionUrl.Dialect.Casters
+                        .FirstOrDefault(x => x.CanCast(obj.GetType(), typeof(T)))
+                        ?? throw new InvalidOperationException($"Cannot find any caster to transform from type '{obj.GetType().Name}' to the type '{typeof(T).Name}'");
+        return (T?)caster.Cast(obj);
     }
 }
 

@@ -7,69 +7,68 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Registering
+namespace DubUrl.Registering;
+
+public class ReferencedAssembliesDiscoverer : IProviderFactoriesDiscoverer
 {
-    public class ReferencedAssembliesDiscoverer : IProviderFactoriesDiscoverer
+    private Assembly? EntryAssembly { get; } = null;
+    private List<Func<AssemblyName, bool>> Exclusions { get; } = new();
+
+    public ReferencedAssembliesDiscoverer()
+        : this(Assembly.GetEntryAssembly()) { }
+
+    public ReferencedAssembliesDiscoverer(Assembly? assembly)
     {
-        private Assembly? EntryAssembly { get; } = null;
-        private List<Func<AssemblyName, bool>> Exclusions { get; } = new();
+        EntryAssembly = assembly;
+        Exclusions.Add((AssemblyName reference)
+            => !reference.FullName.Contains("System.") || reference.FullName.Contains("System.Data")
+        );
+        Exclusions.Add((AssemblyName reference)
+            => !reference.FullName.Contains("Microsoft.") || reference.FullName.Contains("Microsoft.Data")
+        );
+    }
 
-        public ReferencedAssembliesDiscoverer()
-            : this(Assembly.GetEntryAssembly()) { }
+    public virtual IEnumerable<Type> Execute()
+    {
+        if (EntryAssembly == null)
+            yield break;
 
-        public ReferencedAssembliesDiscoverer(Assembly? assembly)
+        var list = new List<string>();
+        var stack = new Stack<Assembly>();
+
+        stack.Push(EntryAssembly);
+        do
         {
-            EntryAssembly = assembly;
-            Exclusions.Add((AssemblyName reference)
-                => !reference.FullName.Contains("System.") || reference.FullName.Contains("System.Data")
-            );
-            Exclusions.Add((AssemblyName reference)
-                => !reference.FullName.Contains("Microsoft.") || reference.FullName.Contains("Microsoft.Data")
-            );
-        }
+            var asm = stack.Pop();
+            Debug.WriteLine($"Analyzing assembly {asm.FullName}");
 
-        public virtual IEnumerable<Type> Execute()
-        {
-            if (EntryAssembly == null)
-                yield break;
-
-            var list = new List<string>();
-            var stack = new Stack<Assembly>();
-
-            stack.Push(EntryAssembly);
-            do
+            //Check if assembly contains a DbProviderFactory
+            var types = asm.DefinedTypes;
+            var providerFactories = types.Where(t =>
+                    t.IsClass
+                    && t.IsVisible
+                    && !t.IsAbstract
+                    && typeof(DbProviderFactory).IsAssignableFrom(t)
+                );
+            foreach (var providerFactory in providerFactories)
             {
-                var asm = stack.Pop();
-                Debug.WriteLine($"Analyzing assembly {asm.FullName}");
-
-                //Check if assembly contains a DbProviderFactory
-                var types = asm.DefinedTypes;
-                var providerFactories = types.Where(t =>
-                        t.IsClass
-                        && t.IsVisible
-                        && !t.IsAbstract
-                        && typeof(DbProviderFactory).IsAssignableFrom(t)
-                    );
-                foreach (var providerFactory in providerFactories)
-                {
-                    yield return providerFactory;
-                    Debug.WriteLine($"Provider factory found {providerFactory.Name}");
-                }
-
-                //Check referenced assemblies of this assembly
-                foreach (var reference in asm.GetReferencedAssemblies())
-                    if (!list.Contains(reference.FullName) 
-                        && (Exclusions.All(x => x.Invoke(reference)))
-                    )
-                    {
-                        try { 
-                            stack.Push(Assembly.Load(reference));
-                            list.Add(reference.FullName);
-                        }
-                        catch { }
-                    }
+                yield return providerFactory;
+                Debug.WriteLine($"Provider factory found {providerFactory.Name}");
             }
-            while (stack.Count > 0);
+
+            //Check referenced assemblies of this assembly
+            foreach (var reference in asm.GetReferencedAssemblies())
+                if (!list.Contains(reference.FullName) 
+                    && (Exclusions.All(x => x.Invoke(reference)))
+                )
+                {
+                    try { 
+                        stack.Push(Assembly.Load(reference));
+                        list.Add(reference.FullName);
+                    }
+                    catch { }
+                }
         }
+        while (stack.Count > 0);
     }
 }

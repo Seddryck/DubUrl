@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping;
 
-namespace DubUrl.Rewriting
-{
-    public interface IOdbcConnectionStringRewriter : IConnectionStringRewriter
-    { }
+namespace DubUrl.Rewriting;
 
-    public interface IOleDbConnectionStringRewriter : IConnectionStringRewriter
-    { }
-}
+public interface IOdbcConnectionStringRewriter : IConnectionStringRewriter
+{ }
+
+public interface IOleDbConnectionStringRewriter : IConnectionStringRewriter
+{ }
