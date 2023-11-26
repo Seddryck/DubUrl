@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Registering
 {
-    public interface IProviderFactoriesDiscover
+    public interface IProviderFactoriesDiscoverer
     {
         IEnumerable<Type> Execute();
     }

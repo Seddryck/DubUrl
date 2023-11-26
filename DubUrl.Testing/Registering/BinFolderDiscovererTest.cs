@@ -8,12 +8,12 @@ using NUnit.Framework;
 
 namespace DubUrl.Testing.Registering
 {
-    public class BinFolderDiscoverTest
+    public class BinFolderDiscovererTest
     {
         [Test]
         public void Execute_CurrentAssembly_ExpectedMembers()
         {
-            var discoverer = new BinFolderDiscover();
+            var discoverer = new BinFolderDiscoverer();
             var types = discoverer.Execute();
             Assert.That(types, Is.Not.Null);
             Assert.That(types, Is.Not.Empty);

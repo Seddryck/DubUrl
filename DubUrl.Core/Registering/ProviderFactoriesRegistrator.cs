@@ -11,15 +11,15 @@ namespace DubUrl.Registering
 {
     public class ProviderFactoriesRegistrator
     {
-        private IProviderFactoriesDiscover Discover { get; }
+        private IProviderFactoriesDiscoverer Discover { get; }
 
         public ProviderFactoriesRegistrator()
             : this(Assembly.GetCallingAssembly()) { }
 
         public ProviderFactoriesRegistrator(Assembly asm)
-            : this(new BinFolderDiscover(new[] { asm })) { }
+            : this(new BinFolderDiscoverer(new[] { asm })) { }
 
-        public ProviderFactoriesRegistrator(IProviderFactoriesDiscover discover)
+        public ProviderFactoriesRegistrator(IProviderFactoriesDiscoverer discover)
             => Discover = discover;
 
         public void Register()
