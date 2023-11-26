@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Testing.Parametrizing
+namespace DubUrl.Testing.Querying.Parametrizing
 {
     public class PositionalParametrizerTest
     {
