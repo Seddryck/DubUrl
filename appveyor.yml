@@ -16,7 +16,7 @@ skip_commits:
 
 environment:
   github_access_token:
-    secure: gtEHCUmmDjYfrp/NEe2qUBR/t07Z9Mk2JJPm9L64xQb/Qbn2xYDB+WEWokiR382rXajnuQ5HEq1a4WOQQ8+SPlChEs6t25QAUYQ3SWxNovut3zlujgs6EABt3TuwsTBq
+    secure: gtEHCUmmDjYfrp/NEe2qUPjZi9gXoSgzYTNEmN99fCWp7qp4tXhVSPhzutj2WATjNqlFChFx1vcvFZtiq9C9vVjJ/lcmp/b0paF+W9V0xqScKMrkYQmCrA/glUq4XOae
 
 init:
 - cmd: git config --global core.autocrlf true
@@ -52,10 +52,14 @@ test_script:
 - pwsh: |
     $ErrorActionPreference = "Stop"
     dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    $globalTestResult = $LastExitCode
     dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
-    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    $globalTestResult += $LastExitCode
+    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Adomd.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    $globalTestResult += $LastExitCode
     dotnet test DubUrl.Extensions.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
-    if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
+    $globalTestResult += $LastExitCode
+    if($globalTestResult -ne 0) { $host.SetShouldExit($globalTestResult) }
 
 - pwsh: |
     $ProgressPreference = 'SilentlyContinue'

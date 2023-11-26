@@ -34,6 +34,11 @@ namespace DubUrl.Rewriting.Implementation
         protected PostgresqlRewriter(ISpecificator specificator, BaseTokenMapper[] tokenMappers)
             : base(specificator, tokenMappers) { }
 
+        internal bool IsIntegratedSecurityAllowed
+            => (TokenMappers.Single(x => x is AuthentificationMapper) as AuthentificationMapper)
+                    ?.IsIntegratedSecurityAllowed
+                    ?? throw new InvalidOperationException();
+
         internal class HostMapper : BaseTokenMapper
         {
             public override void Execute(UrlInfo urlInfo)
@@ -58,11 +63,17 @@ namespace DubUrl.Rewriting.Implementation
                 if (!string.IsNullOrEmpty(urlInfo.Password))
                     Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
 
-                if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
-                    Specificator.Execute(SSPI_KEYWORD, true);
-                else
-                    Specificator.Execute(SSPI_KEYWORD, false);
+                if (IsIntegratedSecurityAllowed)
+                {
+                    if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
+                        Specificator.Execute(SSPI_KEYWORD, true);
+                    else
+                        Specificator.Execute(SSPI_KEYWORD, false);
+                }
             }
+
+            public virtual bool IsIntegratedSecurityAllowed
+                => Specificator.AcceptKey(SSPI_KEYWORD);
         }
 
         internal class DatabaseMapper : BaseTokenMapper

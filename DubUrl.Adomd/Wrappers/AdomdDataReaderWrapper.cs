@@ -1,5 +1,5 @@
-﻿using Microsoft.AnalysisServices.AdomdClient;
-using System;
+﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -12,9 +12,9 @@ namespace DubUrl.Adomd.Wrappers
 {
     internal class AdomdDataReaderWrapper : DbDataReader, IDataReader
     {
-        protected AdomdDataReader InnerDataReader { get; }
+        protected IDataReader InnerDataReader { get; }
 
-        public AdomdDataReaderWrapper(AdomdDataReader innerDataReader)
+        public AdomdDataReaderWrapper(IDataReader innerDataReader)
             => InnerDataReader = innerDataReader;
 
         public override void Close()
@@ -59,7 +59,7 @@ namespace DubUrl.Adomd.Wrappers
         public override double GetDouble(int ordinal)
             => InnerDataReader.GetDouble(ordinal);
         public override IEnumerator GetEnumerator()
-            => InnerDataReader.GetEnumerator();
+            => throw new NotSupportedException();
         public override Type GetFieldType(int ordinal)
             => InnerDataReader.GetFieldType(ordinal);
         public override float GetFloat(int ordinal)

@@ -15,15 +15,12 @@ namespace DubUrl.Rewriting.Tokening
 
         public virtual void Execute(string keyword, object value)
         {
-            if (!ContainsKey(keyword))
+            if (!AcceptKey(keyword))
                 throw new InvalidOperationException($"The keyword '{keyword}' is not valid for this type of connection string.");
-            if (value == null)
-                throw new ArgumentNullException(nameof(value), $"The value for the keyword '{keyword}' cannot be null.");
-
             AddToken(keyword, value);
         }
 
-        protected bool ContainsKey(string keyword) => Csb.ContainsKey(keyword);
+        public virtual bool AcceptKey(string keyword) => Csb.ContainsKey(keyword);
         protected void AddToken(string keyword, object value) => Csb.Add(keyword, value);
         public string ConnectionString
         { get => Csb.ConnectionString; }

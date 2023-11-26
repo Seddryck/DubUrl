@@ -14,9 +14,9 @@ namespace DubUrl.Adomd.Wrappers
 {
     internal class AdomdConnectionWrapper : DbConnection, IDbConnection, IDubUrlConnectionWrapper
     {
-        protected AdomdConnection InnerConnection { get; }
+        protected IDbConnection InnerConnection { get; }
         public AdomdConnectionWrapper()
-            => InnerConnection = new();
+            => InnerConnection = new AdomdConnection();
 
         public IDbConnection Connection => InnerConnection;
 
@@ -32,7 +32,9 @@ namespace DubUrl.Adomd.Wrappers
 
         public override string DataSource => throw new NotImplementedException();
 
-        public override string ServerVersion => InnerConnection.ServerVersion;
+        public override string ServerVersion
+            => (InnerConnection as AdomdConnection)?.ServerVersion
+                    ?? throw new NotSupportedException();
 
         public override ConnectionState State => Connection.State;
 

@@ -33,8 +33,6 @@ namespace DubUrl.Testing
             return commandMock;
         }
 
-        
-
         protected static Mock<IDataReader> DefineDataReader()
         {
             var dataReaderMock = new Mock<IDataReader>();
@@ -65,6 +63,34 @@ namespace DubUrl.Testing
                 .Returns("Linus Torvalds").Returns("Alan Turing");
             dataReaderMock.SetupSequence(x => x["BirthDate"])
                 .Returns(new DateTime(1969, 12, 28)).Returns(new DateTime(1912, 6, 23));
+
+            return dataReaderMock;
+        }
+
+        protected static Mock<IDataReader> DefineSingleRow()
+        {
+            var dataReaderMock = new Mock<IDataReader>();
+            dataReaderMock.SetupGet(x => x.FieldCount).Returns(3);
+            dataReaderMock.SetupSequence(x => x.Read()).Returns(true).Returns(false);
+            dataReaderMock.SetupSequence(x => x.GetName(It.IsAny<int>()))
+                .Returns("CustomerId").Returns("FullName").Returns("BirthDate");
+            dataReaderMock.SetupSequence(x => x.GetValue(It.IsAny<int>()))
+                .Returns(5).Returns("Linus Torvalds").Returns(new DateTime(1969, 12, 28));
+            dataReaderMock.SetupSequence(x => x["CustomerId"])
+                .Returns(5);
+            dataReaderMock.SetupSequence(x => x["FullName"])
+                .Returns("Linus Torvalds");
+            dataReaderMock.SetupSequence(x => x["BirthDate"])
+                .Returns(new DateTime(1969, 12, 28));
+
+            return dataReaderMock;
+        }
+
+        protected static Mock<IDataReader> DefineNoRow()
+        {
+            var dataReaderMock = new Mock<IDataReader>();
+            dataReaderMock.SetupGet(x => x.FieldCount).Returns(3);
+            dataReaderMock.SetupSequence(x => x.Read()).Returns(false);
 
             return dataReaderMock;
         }
@@ -185,7 +211,6 @@ namespace DubUrl.Testing
             });
             
         }
-
 
         [Test]
         public void ReadFirstNonNull_ZeroRowsReturned_ThrowsException()

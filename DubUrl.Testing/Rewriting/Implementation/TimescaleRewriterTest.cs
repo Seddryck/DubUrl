@@ -68,8 +68,13 @@ namespace DubUrl.Testing.Rewriting.Implementation
             Assert.That(result[TimescaleRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
             Assert.That(result, Does.ContainKey(TimescaleRewriter.PASSWORD_KEYWORD));
             Assert.That(result[TimescaleRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-            Assert.That(result, Does.ContainKey(TimescaleRewriter.SSPI_KEYWORD));
-            Assert.That(result[TimescaleRewriter.SSPI_KEYWORD], Is.EqualTo(false));
+            if (Rewriter.IsIntegratedSecurityAllowed)
+            {
+                Assert.That(result, Does.ContainKey(TimescaleRewriter.SSPI_KEYWORD));
+                Assert.That(result[TimescaleRewriter.SSPI_KEYWORD], Is.EqualTo(false));
+            }
+            else
+                Assert.That(result, Does.Not.ContainKey(TimescaleRewriter.SSPI_KEYWORD));
         }
 
         [Test]
@@ -82,8 +87,13 @@ namespace DubUrl.Testing.Rewriting.Implementation
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Does.Not.ContainKey(TimescaleRewriter.USERNAME_KEYWORD));
             Assert.That(result, Does.Not.ContainKey(TimescaleRewriter.PASSWORD_KEYWORD));
-            Assert.That(result, Does.ContainKey(TimescaleRewriter.SSPI_KEYWORD));
-            Assert.That(result[TimescaleRewriter.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            if (Rewriter.IsIntegratedSecurityAllowed)
+            {
+                Assert.That(result, Does.ContainKey(TimescaleRewriter.SSPI_KEYWORD));
+                Assert.That(result[TimescaleRewriter.SSPI_KEYWORD], Is.EqualTo("sspi").Or.True);
+            }
+            else
+                Assert.That(result, Does.Not.ContainKey(TimescaleRewriter.SSPI_KEYWORD));
         }
 
         [Test]

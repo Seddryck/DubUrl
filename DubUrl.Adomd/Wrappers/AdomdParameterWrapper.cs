@@ -1,5 +1,4 @@
-﻿using Microsoft.AnalysisServices.AdomdClient;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -8,14 +7,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AnalysisServices.AdomdClient;
 
 namespace DubUrl.Adomd.Wrappers
 {
     internal class AdomdParameterWrapper : DbParameter, IDbDataParameter, IDataParameter
     {
-        internal AdomdParameter InnerParameter { get; }
+        internal IDbDataParameter InnerParameter { get; }
         private DbType dbType = DbType.Object;
         private int size = 0;
+        private bool isNullable = false;
 
         public AdomdParameterWrapper()
             => InnerParameter = new AdomdParameter();
@@ -32,8 +33,8 @@ namespace DubUrl.Adomd.Wrappers
         }
         public override bool IsNullable
         {
-            get => InnerParameter.IsNullable;
-            set => InnerParameter.IsNullable = value;
+            get => isNullable;
+            set => isNullable = value;
         }
         [AllowNull]
         public override string ParameterName

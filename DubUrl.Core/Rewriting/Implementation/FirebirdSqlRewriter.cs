@@ -18,7 +18,7 @@ namespace DubUrl.Rewriting.Implementation
         internal const string PASSWORD_KEYWORD = "Password";
 
         public FirebirdSqlRewriter(DbConnectionStringBuilder csb)
-            : base(new SpecificatorUnchecked(csb),
+            : base(new UniqueAssignmentSpecificator(csb),
                   new BaseTokenMapper[] {
                     new DataSourceMapper(),
                     new PortMapper(),

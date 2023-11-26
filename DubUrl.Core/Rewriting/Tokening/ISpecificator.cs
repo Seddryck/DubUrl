@@ -10,6 +10,7 @@ namespace DubUrl.Rewriting.Tokening
     {
         string ConnectionString { get; }
         void Execute(string keyword, object value);
+        bool AcceptKey(string keyword);
         IReadOnlyDictionary<string, object> ToReadOnlyDictionary();
     }
 }
