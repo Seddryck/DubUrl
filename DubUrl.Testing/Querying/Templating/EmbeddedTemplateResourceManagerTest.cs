@@ -1,3 +1,4 @@
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Templating;
 using NUnit.Framework;
 using System;
@@ -11,9 +12,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Testing.Querying.Reading;
 
 
-public class EmbeddedSqlTemplateResourceManagerTest
+public class EmbeddedTemplateResourceManagerTest
 {
-    private class FakeEmbeddedSqlTemplateResourceManager : EmbeddedSqlTemplateResourceManager
+    private class FakeEmbeddedSqlTemplateResourceManager : EmbeddedTemplateResourceManager
     {
         private readonly string[] resourceNames;
         public override string[] ResourceNames { get => resourceNames; }
@@ -22,15 +23,15 @@ public class EmbeddedSqlTemplateResourceManagerTest
             => this.resourceNames = resourceNames;
     }
 
-    private class FakeEmbeddedSqlTemplateResourceManagerForDictionary : EmbeddedSqlTemplateResourceManager
+    private class FakeEmbeddedSqlTemplateResourceManagerForDictionary : EmbeddedTemplateResourceManager
     {
-        private readonly string Content;
+        private string Content { get; }
         protected override TextReader GetResourceReader(string resourceName)
             => new StringReader(Content);
 
         public FakeEmbeddedSqlTemplateResourceManagerForDictionary(string content)
             : base(Assembly.GetCallingAssembly())
-            => this.Content = content;
+            => Content = content;
     }
 
     [Test]

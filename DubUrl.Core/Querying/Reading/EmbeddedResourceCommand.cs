@@ -12,16 +12,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading;
 
-public class EmbeddedSqlFileCommand: ICommandProvider
+public class EmbeddedResourceCommand: ICommandProvider
 {
     protected internal string BasePath { get; }
     protected IResourceManager ResourceManager { get; }
     private IQueryLogger QueryLogger { get; }
 
-    public EmbeddedSqlFileCommand(string basePath, IQueryLogger queryLogger)
-        : this(new EmbeddedSqlFileResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
+    public EmbeddedResourceCommand(string basePath, IQueryLogger queryLogger)
+        : this(new EmbeddedResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
 
-    internal EmbeddedSqlFileCommand(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
+    internal EmbeddedResourceCommand(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
         => (BasePath, ResourceManager, QueryLogger) = (basePath, resourceManager, queryLogger);
 
     public string Read(IDialect dialect, IConnectivity connectivity)
@@ -36,17 +36,17 @@ public class EmbeddedSqlFileCommand: ICommandProvider
 
     protected string ReadResource(IDialect dialect, IConnectivity connectivity)
     {
-        if (!ResourceManager.Any(BasePath, dialect.Aliases, connectivity.Alias))
+        if (!ResourceManager.Any(BasePath, dialect, connectivity.Alias))
             throw new MissingCommandForDialectException(this, dialect);
 
-        return ResourceManager.ReadResource(ResourceManager.BestMatch(BasePath, dialect.Aliases, connectivity.Alias));
+        return ResourceManager.ReadResource(ResourceManager.BestMatch(BasePath, dialect, connectivity.Alias));
     }
 
     public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false)
     {
-        if (!ResourceManager.Any(BasePath, dialect.Aliases, connectivity.Alias))
+        if (!ResourceManager.Any(BasePath, dialect, connectivity.Alias))
             return false;
-        var bestMatch = ResourceManager.BestMatch(BasePath, dialect.Aliases, connectivity.Alias);
+        var bestMatch = ResourceManager.BestMatch(BasePath, dialect, connectivity.Alias);
         return includeDefault || dialect.Aliases.Any(x => bestMatch.EndsWith($".{x}.sql"));
     }
 }

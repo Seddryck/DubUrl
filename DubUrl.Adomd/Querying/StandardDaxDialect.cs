@@ -16,6 +16,6 @@ namespace DubUrl.Adomd.Querying;
 [ParentLanguage<DaxLanguage>()]
 public class StandardDaxDialect : BaseDialect
 {
-    internal StandardDaxDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal StandardDaxDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

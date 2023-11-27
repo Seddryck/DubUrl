@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Querying.Reading;
 
-public class ParametrizedEmbeddedSqlFileCommandTest
+public class ParametrizedEmbeddedResourceCommandTest
 {
 
     [Test]
@@ -66,8 +66,8 @@ public class ParametrizedEmbeddedSqlFileCommandTest
     public void Read_AnyExistingResources_InvokeLog()
     {
         var resourceManager = new Mock<IResourceManager>();
-        resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<string?>())).Returns(true);
-        resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>(), string.Empty)).Returns("foo");
+        resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<IDialect>(), It.IsAny<string?>())).Returns(true);
+        resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<IDialect>(), string.Empty)).Returns("foo");
         resourceManager.Setup(x => x.ReadResource(It.IsAny<string>())).Returns("bar");
 
         var dialectMock = new Mock<IDialect>();
@@ -78,7 +78,7 @@ public class ParametrizedEmbeddedSqlFileCommandTest
 
         var queryLoggerMock = new Mock<IQueryLogger>();
 
-        var query = new ParametrizedEmbeddedSqlFileCommand(resourceManager.Object, "foo", Array.Empty<DubUrlParameter>(), queryLoggerMock.Object);
+        var query = new ParametrizedEmbeddedResourceCommand(resourceManager.Object, "foo", Array.Empty<DubUrlParameter>(), queryLoggerMock.Object);
         var result = query.Read(dialectMock.Object, connectivityMock.Object);
 
         queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));

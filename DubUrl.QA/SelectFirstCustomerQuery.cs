@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.QA;
 
-internal class SelectFirstCustomer : EmbeddedSqlFileCommand
+internal class SelectFirstCustomer : EmbeddedResourceCommand
 {
     public SelectFirstCustomer()
-        : base($"{typeof(SelectFirstCustomer).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)
+        : base($"{typeof(SelectFirstCustomer).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}"
+            , NullQueryLogger.Instance)
     { }
 }

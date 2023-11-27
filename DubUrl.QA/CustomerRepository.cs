@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
 using DubUrl.Querying.Templating;
@@ -24,7 +25,7 @@ internal class CustomerRepository
     public string SelectFirstCustomer()
         => DatabaseUrl.ReadScalarNonNull<string>(new SelectFirstCustomerQuery());
 
-    private class SelectFirstCustomerQuery : EmbeddedSqlFileCommand
+    private class SelectFirstCustomerQuery : EmbeddedResourceCommand
     {
         public SelectFirstCustomerQuery()
             : base($"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectFirstCustomer)}", NullQueryLogger.Instance)
@@ -34,11 +35,11 @@ internal class CustomerRepository
     public string SelectCustomerById(int id)
         => DatabaseUrl.ReadScalarNonNull<string>(new SelectCustomerByIdQuery(id));
 
-    private class SelectCustomerByIdQuery : ParametrizedEmbeddedSqlFileCommand
+    private class SelectCustomerByIdQuery : ParametrizedEmbeddedResourceCommand
     {
         public SelectCustomerByIdQuery(int id)
             : base(
-                  new EmbeddedSqlFileResourceManager(Assembly.GetExecutingAssembly())
+                  new EmbeddedResourceManager(Assembly.GetExecutingAssembly())
                   , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectCustomerById)}"
                   , new DubUrlParameterCollection()
                         .Add("Id", id)
@@ -58,11 +59,11 @@ internal class MicroOrmCustomerRepository
     public List<Customer> SelectYoungestCustomers(int count)
         => DatabaseUrl.ReadMultiple<Customer>(new SelectYoungestCustomersQuery(count)).ToList();
 
-    private class SelectYoungestCustomersQuery : ParametrizedEmbeddedSqlFileCommand
+    private class SelectYoungestCustomersQuery : ParametrizedEmbeddedResourceCommand
     {
         public SelectYoungestCustomersQuery(int count)
             : base(
-                  new EmbeddedSqlFileResourceManager(Assembly.GetExecutingAssembly())
+                  new EmbeddedResourceManager(Assembly.GetExecutingAssembly())
                   , $"{typeof(CustomerRepository).Assembly.GetName().Name}.{nameof(SelectYoungestCustomers)}"
                   , new DubUrlParameterCollection()
                         .Add("count", count)
@@ -115,7 +116,7 @@ internal class MicroOrmCustomerRepository
             => (Member, BinaryExpression, Constant) = (member, binaryExpression, constant);
     }
 
-    private class SelectWhereCustomersQuery : EmbeddedSqlTemplateCommand
+    private class SelectWhereCustomersQuery : EmbeddedTemplateCommand
     {
         public SelectWhereCustomersQuery(IWhereClause[] clauses)
             : base(
