@@ -23,8 +23,11 @@ public class VersionCaptureTest
     {
         var regex = new VersionCapture();
         var result = Regex.Match(text, regex.ToRegex());
-        Assert.That(result.Success, Is.True);
-        Assert.That(result.Groups[0].Captures[0].Value, Is.EqualTo(text));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Groups[0].Captures[0].Value, Is.EqualTo(text));
+        });
     }
 
     [Test]

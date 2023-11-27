@@ -28,9 +28,12 @@ public class OracleManagedDataAccessRewriterTest
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.DATASOURCE_KEYWORD));
-        Assert.That((object)result[OracleManagedDataAccessRewriter.DATASOURCE_KEYWORD], Is.EqualTo(expected));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.Not.Null);
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.DATASOURCE_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessRewriter.DATASOURCE_KEYWORD], Is.EqualTo(expected));
+        });
     }
 
     [Test]
@@ -40,9 +43,12 @@ public class OracleManagedDataAccessRewriterTest
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
-        Assert.That((object)result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.Not.Null);
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+        });
         Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.PASSWORD_KEYWORD));
         Assert.That((object)result[OracleManagedDataAccessRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
         Assert.That(result, Does.Not.ContainKey("INTEGRATED SECURITY"));
@@ -55,9 +61,12 @@ public class OracleManagedDataAccessRewriterTest
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
-        Assert.That((object)result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("/"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.Not.Null);
+            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
+            Assert.That((object)result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("/"));
+        });
         Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.PASSWORD_KEYWORD));
         Assert.That((object)result[OracleManagedDataAccessRewriter.PASSWORD_KEYWORD], Is.Empty);
     }
@@ -74,8 +83,11 @@ public class OracleManagedDataAccessRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("STATEMENT CACHE SIZE"));
-        Assert.That(result["STATEMENT CACHE SIZE"], Is.EqualTo(100));
-        Assert.That(result, Does.ContainKey("PERSIST SECURITY INFO"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["STATEMENT CACHE SIZE"], Is.EqualTo(100));
+            Assert.That(result, Does.ContainKey("PERSIST SECURITY INFO"));
+        });
         Assert.That(result["PERSIST SECURITY INFO"], Is.True);
     }
 }

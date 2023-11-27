@@ -20,7 +20,7 @@ namespace DubUrl.QA;
 public abstract class BaseAdomdProvider
 {
     protected SchemeMapperBuilder SchemeMapperBuilder { get; set; }
-    public virtual string SelectPrimitiveTemplate(string type) => "EVALUATE DATATABLE(\"value\", " + type + ", {{$value; format=\"value\"$}})";
+    protected virtual string SelectPrimitiveTemplate(string type) => "EVALUATE DATATABLE(\"value\", " + type + ", {{$value; format=\"value\"$}})";
 
     [OneTimeSetUp]
     public void SetupFixture()
@@ -68,10 +68,13 @@ public abstract class BaseAdomdProvider
         using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
         var reader = cmd.ExecuteReader();
-        Assert.That(reader.Read(), Is.True);
-        Assert.That(reader.GetInt32(0), Is.EqualTo(1));
-        Assert.That(reader.GetString(1), Is.EqualTo("Nikola Tesla"));
-        Assert.That(reader.GetDateTime(2), Is.EqualTo(new DateTime(1856, 10, 7)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.Read(), Is.True);
+            Assert.That(reader.GetInt32(0), Is.EqualTo(1));
+            Assert.That(reader.GetString(1), Is.EqualTo("Nikola Tesla"));
+            Assert.That(reader.GetDateTime(2), Is.EqualTo(new DateTime(1856, 10, 7)));
+        });
         Assert.That(reader.Read(), Is.False);
     }
 
@@ -316,10 +319,13 @@ public abstract class BaseAdomdProvider
         using var conn = connectionUrl.Open();
         var customers = conn.Query<Dapper.Customer>(sql).ToList();
         Assert.That(customers, Has.Count.EqualTo(5));
-        Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
-        Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
-        Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-        Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        Assert.Multiple(() =>
+        {
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        });
     }
 
     [Test]
@@ -340,9 +346,12 @@ public abstract class BaseAdomdProvider
         var repo = provider.GetRequiredService<ICustomerRepository>();
         var customers = repo.GetAllAsync().Result;
         Assert.That(customers, Has.Count.EqualTo(5));
-        Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
-        Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
-        Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-        Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        Assert.Multiple(() =>
+        {
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        });
     }
 }

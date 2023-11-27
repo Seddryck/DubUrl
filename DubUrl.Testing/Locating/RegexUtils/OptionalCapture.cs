@@ -19,7 +19,10 @@ public class OptionalCaptureTest
     {
         var regex = new OptionalCapture(optional);
         var result = Regex.Match(text, regex.ToRegex());
-        Assert.That(result.Success, Is.True);
-        Assert.That(result.Groups[0].Captures[0].Value, Is.EqualTo(capture));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Groups[0].Captures[0].Value, Is.EqualTo(capture));
+        });
     }
 }

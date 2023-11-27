@@ -69,8 +69,11 @@ public class SnowflakeRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(SnowflakeRewriter.DATABASE_KEYWORD));
-        Assert.That(result[SnowflakeRewriter.DATABASE_KEYWORD], Is.EqualTo("db"));
-        Assert.That(result, Does.ContainKey(SnowflakeRewriter.SCHEMA_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[SnowflakeRewriter.DATABASE_KEYWORD], Is.EqualTo("db"));
+            Assert.That(result, Does.ContainKey(SnowflakeRewriter.SCHEMA_KEYWORD));
+        });
         Assert.That(result[SnowflakeRewriter.SCHEMA_KEYWORD], Is.EqualTo("schema"));
     }
 
@@ -94,8 +97,11 @@ public class SnowflakeRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(SnowflakeRewriter.USERNAME_KEYWORD));
-        Assert.That(result[SnowflakeRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(SnowflakeRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[SnowflakeRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(SnowflakeRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[SnowflakeRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 }

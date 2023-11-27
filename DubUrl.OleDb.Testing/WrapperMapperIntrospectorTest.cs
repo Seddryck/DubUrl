@@ -40,9 +40,12 @@ public class WrapperMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(2));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
-        Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OleDbMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(2));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+            Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OleDbMapper)));
+        });
     }
 
     [Test]
@@ -57,8 +60,11 @@ public class WrapperMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        });
     }
 
 }

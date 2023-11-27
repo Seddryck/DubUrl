@@ -33,10 +33,8 @@ public class SchemeMapperBuilderTest
         DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
         DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
-#pragma warning disable CA1416 // Validate platform compatibility
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
-#pragma warning restore CA1416 // Validate platform compatibility
     }
 
     private class StubMapper : BaseMapper
@@ -168,7 +166,10 @@ public class SchemeMapperBuilderTest
         builder.Build();
         var result = builder.GetMapper(new[] { "odbc", "foobar" });
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Is.TypeOf<OdbcRewriter>());
-        Assert.That(((OdbcRewriter)result).DriverLocatorFactory, Is.EqualTo(factory));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.TypeOf<OdbcRewriter>());
+            Assert.That(((OdbcRewriter)result).DriverLocatorFactory, Is.EqualTo(factory));
+        });
     }
 }

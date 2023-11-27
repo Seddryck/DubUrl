@@ -36,8 +36,11 @@ public class WrapperMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        });
     }
 
     [Test]
@@ -51,9 +54,12 @@ public class WrapperMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(2));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
-        Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(2));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+            Assert.That(result.ElementAt(1).MapperType, Is.EqualTo(typeof(OdbcMapper)));
+        });
     }
 
     [Test]
@@ -80,8 +86,11 @@ public class WrapperMapperIntrospectorTest
     {
         var introspector = new WrapperMapperIntrospector();
         var result = introspector.Locate();
-        Assert.That(result.Any(x => !string.IsNullOrEmpty(x.Slug)), Is.True);
-        Assert.That(result.All(x => !string.IsNullOrEmpty(x.MainColor)), Is.True);
-        Assert.That(result.All(x => !string.IsNullOrEmpty(x.SecondaryColor)), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Any(x => !string.IsNullOrEmpty(x.Slug)), Is.True);
+            Assert.That(result.All(x => !string.IsNullOrEmpty(x.MainColor)), Is.True);
+            Assert.That(result.All(x => !string.IsNullOrEmpty(x.SecondaryColor)), Is.True);
+        });
     }
 }

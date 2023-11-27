@@ -37,11 +37,17 @@ public class ReflectionCacheTest
     public void Exists_Any_False()
     {
         var cache = new ReflectionCache();
-        Assert.That(cache.Exists<Customer>(), Is.False);
-        Assert.That(cache.Exists<Product>(), Is.False);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cache.Exists<Customer>(), Is.False);
+            Assert.That(cache.Exists<Product>(), Is.False);
+        });
         cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
-        Assert.That(cache.Exists<Customer>(), Is.True);
-        Assert.That(cache.Exists<Product>(), Is.False);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cache.Exists<Customer>(), Is.True);
+            Assert.That(cache.Exists<Product>(), Is.False);
+        });
     }
 
     [Test]
@@ -51,8 +57,11 @@ public class ReflectionCacheTest
         cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
         cache.Add<Product>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
         var (x, y) = cache.Get<Customer>();
-        Assert.That(x, Is.Not.Null);
-        Assert.That(y, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(x, Is.Not.Null);
+            Assert.That(y, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -62,7 +71,10 @@ public class ReflectionCacheTest
         cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
         cache.Add<Product>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
         cache.Remove<Customer>();
-        Assert.That(cache.Exists<Customer>(), Is.False);
-        Assert.That(cache.Exists<Product>(), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cache.Exists<Customer>(), Is.False);
+            Assert.That(cache.Exists<Product>(), Is.True);
+        });
     }
 }

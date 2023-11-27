@@ -68,10 +68,16 @@ public class TeradataRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(TeradataRewriter.USERNAME_KEYWORD));
-        Assert.That(result[TeradataRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(TeradataRewriter.PASSWORD_KEYWORD));
-        Assert.That(result[TeradataRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-        Assert.That(result, Does.ContainKey(TeradataRewriter.SSPI_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[TeradataRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(TeradataRewriter.PASSWORD_KEYWORD));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[TeradataRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(TeradataRewriter.SSPI_KEYWORD));
+        });
         Assert.That(result[TeradataRewriter.SSPI_KEYWORD], Is.EqualTo(false));
     }
 
@@ -83,9 +89,12 @@ public class TeradataRewriterTest
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result[TeradataRewriter.USERNAME_KEYWORD], Is.Null.Or.Empty);
-        Assert.That(result[TeradataRewriter.PASSWORD_KEYWORD], Is.Null.Or.Empty);
-        Assert.That(result, Does.ContainKey(TeradataRewriter.SSPI_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[TeradataRewriter.USERNAME_KEYWORD], Is.Null.Or.Empty);
+            Assert.That(result[TeradataRewriter.PASSWORD_KEYWORD], Is.Null.Or.Empty);
+            Assert.That(result, Does.ContainKey(TeradataRewriter.SSPI_KEYWORD));
+        });
         Assert.That(result[TeradataRewriter.SSPI_KEYWORD], Is.EqualTo(true));
     }
 }

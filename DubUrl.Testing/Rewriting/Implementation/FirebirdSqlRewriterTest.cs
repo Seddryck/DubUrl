@@ -49,8 +49,11 @@ public class FirebirdSqlRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.SERVER_KEYWORD));
-        Assert.That(result[FirebirdSqlRewriter.SERVER_KEYWORD], Is.EqualTo("localhost"));
-        Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.DATABASE_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[FirebirdSqlRewriter.SERVER_KEYWORD], Is.EqualTo("localhost"));
+            Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.DATABASE_KEYWORD));
+        });
         Assert.That(result[FirebirdSqlRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
@@ -93,8 +96,11 @@ public class FirebirdSqlRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.USERNAME_KEYWORD));
-        Assert.That(result[FirebirdSqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[FirebirdSqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[FirebirdSqlRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 

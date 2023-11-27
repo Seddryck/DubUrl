@@ -18,8 +18,11 @@ public class BinFolderDiscovererTest
         Assert.That(types, Is.Not.Null);
         Assert.That(types, Is.Not.Empty);
         Assert.That(types.Select(x => x.Name), Does.Contain("NpgsqlFactory"));
-        Assert.That(types.Select(x => x.Name), Does.Contain("SqlClientFactory"));
-        Assert.That(types.Select(x => x.FullName), Does.Contain("Npgsql.NpgsqlFactory"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(types.Select(x => x.Name), Does.Contain("SqlClientFactory"));
+            Assert.That(types.Select(x => x.FullName), Does.Contain("Npgsql.NpgsqlFactory"));
+        });
         Assert.That(types.Select(x => x.FullName), Does.Contain("Microsoft.Data.SqlClient.SqlClientFactory"));
     }
 }

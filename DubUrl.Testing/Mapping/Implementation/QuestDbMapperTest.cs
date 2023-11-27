@@ -31,7 +31,7 @@ public class QuestDbMapperTest
         var result = mapper.GetDialect();
 
         Assert.That(result, Is.Not.Null.Or.Empty);
-        Assert.IsInstanceOf<QuestDbDialect>(result);
+        Assert.That(result, Is.InstanceOf<QuestDbDialect>());
         Assert.That(result.Aliases, Does.Contain("quest"));
         Assert.That(result.Aliases, Does.Contain("questdb"));
     }

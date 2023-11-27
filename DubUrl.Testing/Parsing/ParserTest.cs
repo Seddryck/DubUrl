@@ -83,8 +83,11 @@ public class ParserTest
         var parser = new Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Username, Is.EqualTo(username));
-        Assert.That(result.Password, Is.EqualTo(password));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Username, Is.EqualTo(username));
+            Assert.That(result.Password, Is.EqualTo(password));
+        });
     }
 
     [Test]
@@ -95,8 +98,11 @@ public class ParserTest
         var parser = new Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Username, Is.Null.Or.Empty);
-        Assert.That(result.Password, Is.Null.Or.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Username, Is.Null.Or.Empty);
+            Assert.That(result.Password, Is.Null.Or.Empty);
+        });
     }
 
     [Test]
@@ -121,8 +127,11 @@ public class ParserTest
         var parser = new Parser();
         var result = parser.Parse("sqlite://data.db");
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Host, Is.EqualTo("data.db"));
-        Assert.That(result.Segments.Length, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Host, Is.EqualTo("data.db"));
+            Assert.That(result.Segments.Length, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -131,8 +140,11 @@ public class ParserTest
         var parser = new Parser();
         var result = parser.Parse("sqlite:///data.db");
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Host, Is.Null.Or.Empty);
-        Assert.That(result.Segments.Length, Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Host, Is.Null.Or.Empty);
+            Assert.That(result.Segments.Length, Is.EqualTo(1));
+        });
         Assert.That(result.Segments[0], Is.EqualTo("data.db"));
     }
 
@@ -142,10 +154,16 @@ public class ParserTest
         var parser = new Parser();
         var result = parser.Parse("sqlite:////c:/data.db");
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Host, Is.Null.Or.Empty);
-        Assert.That(result.Segments.Length, Is.EqualTo(3));
-        Assert.That(result.Segments[0], Is.Null.Or.Empty);
-        Assert.That(result.Segments[1], Is.EqualTo("c:"));
-        Assert.That(result.Segments[2], Is.EqualTo("data.db"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Host, Is.Null.Or.Empty);
+            Assert.That(result.Segments.Length, Is.EqualTo(3));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Segments[0], Is.Null.Or.Empty);
+            Assert.That(result.Segments[1], Is.EqualTo("c:"));
+            Assert.That(result.Segments[2], Is.EqualTo("data.db"));
+        });
     }
 }

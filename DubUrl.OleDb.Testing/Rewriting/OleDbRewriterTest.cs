@@ -108,8 +108,11 @@ public class OleDbRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(OleDbRewriter.USERNAME_KEYWORD));
-        Assert.That(result[OleDbRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(OleDbRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[OleDbRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(OleDbRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[OleDbRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 

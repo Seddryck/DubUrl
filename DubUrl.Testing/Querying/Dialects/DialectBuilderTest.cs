@@ -95,8 +95,11 @@ public class DialectBuilderTest
         builder.Build();
         var firstDialect = builder.Get("ms");
         var secondDialect = builder.Get<TSqlDialect>();
-        Assert.That(firstDialect, Is.Not.Null);
-        Assert.That(secondDialect, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstDialect, Is.Not.Null);
+            Assert.That(secondDialect, Is.Not.Null);
+        });
         Assert.That(firstDialect, Is.EqualTo(secondDialect));
     }
 
