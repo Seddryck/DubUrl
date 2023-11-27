@@ -16,7 +16,6 @@ namespace DubUrl.Testing.Querying.Reading;
 
 public class ParametrizedEmbeddedResourceCommandTest
 {
-
     [Test]
     public void Execute_ExistingQueryWithManyParameterss_CreateParemetersAndAddThemCalled()
     {

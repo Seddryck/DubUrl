@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Querying.Reading;
 
-
 public class EmbeddedTemplateResourceManagerTest
 {
     private class FakeEmbeddedSqlTemplateResourceManager : EmbeddedTemplateResourceManager

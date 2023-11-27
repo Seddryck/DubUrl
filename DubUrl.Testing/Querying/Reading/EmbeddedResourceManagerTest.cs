@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Querying.Reading;
 
-
 public class EmbeddedResourceManagerTest
 {
     private class FakeEmbeddedSqlFileResourceManager : EmbeddedResourceManager
