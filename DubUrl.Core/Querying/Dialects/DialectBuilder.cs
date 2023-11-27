@@ -46,6 +46,15 @@ public class DialectBuilder
 
     public void Build()
     {
+        var languages = new Dictionary<string, ILanguage>
+        (
+            DialectAliases.Select
+            (
+                x => x.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language ?? throw new NullReferenceException()
+            ).Distinct(new LanguageComparer())
+            .Select(x => new KeyValuePair<string, ILanguage>(x.Extension, x))
+        );
+
         Dialects.Clear();
         foreach (var dialectInfo in DialectAliases)
         {
@@ -58,11 +67,14 @@ public class DialectBuilder
                                     x => (ICaster)Activator.CreateInstance(x.CasterType)!)
                             ?? Array.Empty<ICaster>()).ToArray();
 
-            Dialects.Add(dialectInfo.Key, 
+            var language = dialectInfo.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language.Extension
+                ?? throw new NullReferenceException();
+
+            Dialects.Add(dialectInfo.Key,
                 (IDialect)(
                     Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
-                        , new[] { dialectInfo.Value.ToArray(), renderer, casters! }, null
-                    ) 
+                        , new[] { languages[language], dialectInfo.Value.ToArray(), renderer, casters! }, null
+                    )
                     ?? throw new ArgumentException()
                  )
             );

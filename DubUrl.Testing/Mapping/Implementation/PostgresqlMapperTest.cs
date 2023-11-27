@@ -27,7 +27,7 @@ public class PostgresqlMapperTest
     [Test]
     public void GetDialect_None_DialectReturned()
     {
-        var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new[] { "pgsql", "pg" }, new PgsqlRenderer(), Array.Empty<ICaster>()), new PositionalParametrizer());
+        var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new SqlLanguage(), new[] { "pgsql", "pg" }, new PgsqlRenderer(), Array.Empty<ICaster>()), new PositionalParametrizer());
         var result = mapper.GetDialect();
 
         Assert.That(result, Is.Not.Null.Or.Empty);

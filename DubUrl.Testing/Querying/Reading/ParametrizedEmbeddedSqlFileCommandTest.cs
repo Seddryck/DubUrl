@@ -25,7 +25,7 @@ public class ParametrizedEmbeddedSqlFileCommandTest
         //resourceManager.Setup(x => x.BestMatch(It.IsAny<string>(), It.IsAny<string[]>())).Returns("");
 
         //var dialectMock = new Mock<IDialect>();
-        //dialectMock.SetupGet(x => x.Aliases).Returns(new[] { "mssql" });
+        //dialectMock.SetupGet(x => x.Extension).Returns(new[] { "mssql" });
 
         //var queryMock = new Mock<ICommandProvider>();
         //queryMock.Setup(x => x.Exists(It.IsAny<IDialect>(), It.IsAny<bool>())).Returns(true);

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Adomd.Mapping;
 
-[Database<DaxDialect>(
+[Database<StandardDaxDialect>(
     "Power BI Premium"
     , new[] { "powerbi", "pbi", "pbiazure", "pbipremium", "powerbipremium" }
     , DatabaseCategory.Analytics

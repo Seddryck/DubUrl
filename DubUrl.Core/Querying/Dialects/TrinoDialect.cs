@@ -14,8 +14,9 @@ namespace DubUrl.Querying.Dialects;
 [ReturnCaster<Parser<DateTime>>]
 [ReturnCaster<TrinoTimeSpanParser>]
 [ReturnCaster<NumericParser<decimal>>]
+[ParentLanguage<SqlLanguage>]
 public class TrinoDialect : BaseDialect
 {
-    internal TrinoDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal TrinoDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

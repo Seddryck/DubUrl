@@ -13,8 +13,9 @@ namespace DubUrl.Querying.Dialects;
 [ReturnCaster<DecimalConverter>]
 [ReturnCaster<DateTimeCaster<DateOnly>>]
 [ReturnCaster<TimeSpanCaster<TimeOnly>>]
+[ParentLanguage<SqlLanguage>]
 public class TSqlDialect : BaseDialect
 {
-    internal TSqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal TSqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

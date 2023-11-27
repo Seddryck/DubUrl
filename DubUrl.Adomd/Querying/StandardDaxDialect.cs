@@ -13,8 +13,9 @@ namespace DubUrl.Adomd.Querying;
 [ReturnCaster<DecimalConverter>()]
 [ReturnCaster<DateTimeCaster<DateOnly>>()]
 [ReturnCaster<DateTimeCaster<TimeOnly>>()]
-public class DaxDialect : BaseDialect
+[ParentLanguage<DaxLanguage>()]
+public class StandardDaxDialect : BaseDialect
 {
-    internal DaxDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
+    internal StandardDaxDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
         : base(aliases, renderer, casters) { }
 }

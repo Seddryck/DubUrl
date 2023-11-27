@@ -27,7 +27,7 @@ public class QuestDbMapperTest
     [Test]
     public void GetDialect_None_DialectReturned()
     {
-        var mapper = new QuestDbMapper(ConnectionStringBuilder, new QuestDbDialect(new[] { "quest", "questdb" }, new PgsqlRenderer(), Array.Empty<ICaster>()), new PositionalParametrizer());
+        var mapper = new QuestDbMapper(ConnectionStringBuilder, new QuestDbDialect(new SqlLanguage(), new[] { "quest", "questdb" }, new PgsqlRenderer(), Array.Empty<ICaster>()), new PositionalParametrizer());
         var result = mapper.GetDialect();
 
         Assert.That(result, Is.Not.Null.Or.Empty);
