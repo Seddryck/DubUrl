@@ -27,7 +27,7 @@ public class MsSqlServerMapperTest
     [Test]
     public void GetDialect_None_DialectReturned()
     {
-        var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new[] { "mssql", "ms" }, new TSqlRenderer(), Array.Empty<ICaster>()), new NamedParametrizer());
+        var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new SqlLanguage(), new[] { "mssql", "ms" }, new TSqlRenderer(), Array.Empty<ICaster>()), new NamedParametrizer());
         var result = mapper.GetDialect();
 
         Assert.That(result, Is.Not.Null.Or.Empty);

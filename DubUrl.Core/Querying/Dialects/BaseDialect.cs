@@ -13,10 +13,11 @@ public abstract class BaseDialect : IDialect
     public IRenderer Renderer { get; }
     public ICaster[] Casters { get; }
     public virtual string[] Aliases { get; }
-
-    public BaseDialect(string[] aliases, IRenderer renderer)
-        : this(aliases, renderer, Array.Empty<ICaster>()) {}
+    public virtual ILanguage Language { get; }
 
     public BaseDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        => (Aliases, Renderer, Casters) = (aliases, renderer, casters);
+        => (Language, Aliases, Renderer, Casters) = (new SqlLanguage(), aliases, renderer, casters);
+
+    public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        => (Language, Aliases, Renderer, Casters) = (language, aliases, renderer, casters);
 }

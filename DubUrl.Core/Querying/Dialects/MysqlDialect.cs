@@ -12,8 +12,9 @@ namespace DubUrl.Querying.Dialects;
 [ReturnCaster<BooleanConverter>]
 [ReturnCaster<DateTimeCaster<DateOnly>>]
 [ReturnCaster<TimeSpanCaster<TimeOnly>>]
+[ParentLanguage<SqlLanguage>]
 public class MySqlDialect : BaseDialect
 {
-     internal MySqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+     internal MySqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

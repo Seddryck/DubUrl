@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Adomd.Mapping;
 
-[Database<DaxDialect>(
+[Database<StandardDaxDialect>(
     "Power BI Desktop"
     , new[] { "pbidesktop", "pbix", "powerbidesktop" }
     , DatabaseCategory.Analytics

@@ -19,5 +19,5 @@ internal class DapperQueryProvider
         => (Dialect, Connectivity) = (dialect, connectivity);
 
     public string SelectAllCustomer()
-        => new EmbeddedSqlFileCommand("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
+        => new EmbeddedResourceCommand("DubUrl.QA.SelectAllCustomer", NullQueryLogger.Instance).Read(Dialect, Connectivity);
 }

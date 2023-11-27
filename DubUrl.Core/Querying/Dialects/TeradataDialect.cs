@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects;
 
 [Renderer<AnsiRenderer>()]
+[ParentLanguage<SqlLanguage>]
 public class TeradataDialect : BaseDialect
 {
-    internal TeradataDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal TeradataDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

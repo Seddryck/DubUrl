@@ -15,4 +15,5 @@ public interface IDialect
     public ICaster[] Casters { get; }
 
     string[] Aliases { get; }
+    ILanguage Language { get; }
 }

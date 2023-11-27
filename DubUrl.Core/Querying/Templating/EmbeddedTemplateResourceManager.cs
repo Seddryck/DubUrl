@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Reading;
+﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Reading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,15 +10,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Templating;
 
-public class EmbeddedSqlTemplateResourceManager : EmbeddedSqlFileResourceManager, IResourceTemplateManager
+public class EmbeddedTemplateResourceManager : EmbeddedResourceManager, IResourceTemplateManager
 {
-    public EmbeddedSqlTemplateResourceManager(Assembly assembly)
+    public EmbeddedTemplateResourceManager(Assembly assembly)
         : base(assembly) { }
 
-    protected override IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
-        => base.ListResourceMathing(id, dialects, connectivity, "sql.st");
+    protected override IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension)
+        => base.ListResourceMathing(id, dialects, connectivity, $"{extension}.st");
 
-    public IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension = "sql.st")
+    public IDictionary<string, string> ListResources(string directory, string[] dialects, string? connectivity, string extension)
     {
         var dico = new Dictionary<string, string>();
 

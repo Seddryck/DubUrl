@@ -13,8 +13,9 @@ namespace DubUrl.Querying.Dialects;
 [ReturnCaster<Converter<TimeOnly>>]
 [ReturnCaster<Converter<DateTime>>]
 [ReturnCaster<Converter<TimeSpan>>]
+[ParentLanguage<SqlLanguage>]
 public class DuckdbDialect : BaseDialect
 {
-    internal DuckdbDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal DuckdbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

@@ -15,9 +15,8 @@ public class ConnectionUrlTest
 {
     [SetUp]
     public void DefaultRegistration()
-    {
-        DbProviderFactories.RegisterFactory("Microsoft.AnalysisServices.AdomdClient", Wrappers.AdomdFactory.Instance);
-    }
+        => DbProviderFactories.RegisterFactory("Microsoft.AnalysisServices.AdomdClient"
+            , AdomdFactory.Instance);
 
     [Test]
     public void Connect_ValidUrl_AdomdConnection()

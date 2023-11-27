@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Templating;
+﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Templating;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Reading;
 
-public class EmbeddedSqlFileResourceManager : IResourceManager
+public class EmbeddedResourceManager : IResourceManager
 {
     protected Assembly ResouceAssembly { get; }
     protected string FallbackPath { get; } = "Common";
     public virtual string[] ResourceNames { get; }
 
-    public EmbeddedSqlFileResourceManager(Assembly assembly)
+    public EmbeddedResourceManager(Assembly assembly)
     {
         ResouceAssembly = assembly;
         ResourceNames = assembly.GetManifestResourceNames();
@@ -31,14 +32,14 @@ public class EmbeddedSqlFileResourceManager : IResourceManager
 
     public ParameterInfo[] ReadParameters(string resourceName) => Array.Empty<ParameterInfo>();
 
-    public bool Any(string id, string[] dialects, string? connectivity)
-        => ListResourceMathing(id, dialects, connectivity).Any();
+    public bool Any(string id, IDialect dialect, string? connectivity)
+        => ListResourceMathing(id, dialect.Aliases, connectivity, dialect.Language.Extension[1..]).Any();
 
-    public string BestMatch(string id, string[] dialects, string? connectivity)
-        => ListResourceMathing(id, dialects, connectivity).OrderBy(x => x.Score).Select(x => x.Path).First();
+    public string BestMatch(string id, IDialect dialect, string? connectivity)
+        => ListResourceMathing(id, dialect.Aliases, connectivity, dialect.Language.Extension[1..]).OrderBy(x => x.Score).Select(x => x.Path).First();
     
     protected record struct ResourceMatch(string Path, byte Score) { }
-    protected virtual IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension = "sql")
+    protected virtual IEnumerable<ResourceMatch> ListResourceMathing(string id, string[] dialects, string? connectivity, string extension)
         => dialects
                 .Select(dialect => new ResourceMatch($"{id}.{connectivity}.{dialect}.{extension}", 0)).Where(x => !string.IsNullOrEmpty(connectivity))
                 .Union(dialects.Select(dialect => new ResourceMatch($"{id}.{connectivity}.{FallbackPath}.{extension}", 10)).Where(x => !string.IsNullOrEmpty(connectivity)))

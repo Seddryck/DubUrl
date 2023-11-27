@@ -11,8 +11,9 @@ namespace DubUrl.Querying.Dialects;
 [Renderer<FirebirdSqlRenderer>()]
 [ReturnCaster<DateTimeCaster<DateOnly>>]
 [ReturnCaster<TimeSpanCaster<TimeOnly>>]
+[ParentLanguage<SqlLanguage>]
 public class FirebirdSqlDialect : BaseDialect
 {
-    internal FirebirdSqlDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal FirebirdSqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

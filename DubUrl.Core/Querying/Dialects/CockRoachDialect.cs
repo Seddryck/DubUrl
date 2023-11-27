@@ -11,8 +11,9 @@ namespace DubUrl.Querying.Dialects;
 [Renderer<PgsqlRenderer>()]
 [ReturnCaster<DateTimeCaster<DateOnly>>]
 [ReturnCaster<TimeSpanCaster<TimeOnly>>]
+[ParentLanguage<SqlLanguage>]
 public class CockRoachDialect : BaseDialect
 {
-    internal CockRoachDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal CockRoachDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

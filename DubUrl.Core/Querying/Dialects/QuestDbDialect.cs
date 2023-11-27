@@ -10,8 +10,9 @@ namespace DubUrl.Querying.Dialects;
 
 [Renderer<PgsqlRenderer>()]
 [ReturnCaster<DecimalConverter>]
+[ParentLanguage<SqlLanguage>]
 public class QuestDbDialect : BaseDialect
 {
-    internal QuestDbDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(aliases, renderer, casters) { }
+    internal QuestDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
+        : base(language, aliases, renderer, casters) { }
 }

@@ -15,7 +15,7 @@ using System.Resources;
 
 namespace DubUrl.Querying.Templating;
 
-public class EmbeddedSqlTemplateCommand : EmbeddedSqlFileCommand
+public class EmbeddedTemplateCommand : EmbeddedResourceCommand
 {
     public IDictionary<string, object?> Parameters { get; }
     public string SubTemplatesPath { get; }
@@ -23,13 +23,13 @@ public class EmbeddedSqlTemplateCommand : EmbeddedSqlFileCommand
 
     protected new IResourceTemplateManager ResourceManager { get => (IResourceTemplateManager)base.ResourceManager; }
 
-    public EmbeddedSqlTemplateCommand(string basePath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
-        : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, string.Empty, string.Empty, parameters, queryLogger) { }
+    public EmbeddedTemplateCommand(string basePath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+        : this(new EmbeddedTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, string.Empty, string.Empty, parameters, queryLogger) { }
 
-    public EmbeddedSqlTemplateCommand(string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
-        : this(new EmbeddedSqlTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, subTemplatesPath, dictionariesPath, parameters, queryLogger) { }
+    public EmbeddedTemplateCommand(string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+        : this(new EmbeddedTemplateResourceManager(Assembly.GetCallingAssembly()), basePath, subTemplatesPath, dictionariesPath, parameters, queryLogger) { }
 
-    internal EmbeddedSqlTemplateCommand(IResourceTemplateManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
+    internal EmbeddedTemplateCommand(IResourceTemplateManager resourceManager, string basePath, string subTemplatesPath, string dictionariesPath, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
        : base(resourceManager, basePath, queryLogger)
     {
         Parameters = parameters;
