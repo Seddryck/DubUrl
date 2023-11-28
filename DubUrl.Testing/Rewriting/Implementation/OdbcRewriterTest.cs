@@ -57,8 +57,11 @@ public class OdbcRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(OdbcRewriter.USERNAME_KEYWORD));
-        Assert.That(result[OdbcRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(OdbcRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[OdbcRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(OdbcRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[OdbcRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 
@@ -74,8 +77,11 @@ public class OdbcRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("sslmode"));
-        Assert.That(result["sslmode"], Is.EqualTo("required"));
-        Assert.That(result, Does.ContainKey("charset"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["sslmode"], Is.EqualTo("required"));
+            Assert.That(result, Does.ContainKey("charset"));
+        });
         Assert.That(result["charset"], Is.EqualTo("UTF8"));
     }
 

@@ -30,8 +30,11 @@ public class NativeMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(PowerBiDesktopMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(PowerBiDesktopMapper)));
+        });
     }
 
     [Test]
@@ -42,10 +45,13 @@ public class NativeMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).Slug, Is.EqualTo("powerbi"));
-        Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
-        Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).Slug, Is.EqualTo("powerbi"));
+            Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
+            Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+        });
     }
 
     [Test]

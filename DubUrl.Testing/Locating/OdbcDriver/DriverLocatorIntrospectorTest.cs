@@ -15,8 +15,11 @@ public class DriverLocatorIntrospectorTest
     {
         var introspector = new DriverLocatorIntrospector();
         var result = introspector.Locate();
-        Assert.That(result.Any(x => !string.IsNullOrEmpty(x.Slug)), Is.True);
-        Assert.That(result.All(x => !string.IsNullOrEmpty(x.MainColor)), Is.True);
-        Assert.That(result.All(x => !string.IsNullOrEmpty(x.SecondaryColor)), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Any(x => !string.IsNullOrEmpty(x.Slug)), Is.True);
+            Assert.That(result.All(x => !string.IsNullOrEmpty(x.MainColor)), Is.True);
+            Assert.That(result.All(x => !string.IsNullOrEmpty(x.SecondaryColor)), Is.True);
+        });
     }
 }

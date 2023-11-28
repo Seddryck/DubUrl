@@ -18,8 +18,11 @@ public class AnyOfCaptureTest
     {
         var regex = new AnyOfCapture(options);
         var result = Regex.Match(text, regex.ToRegex());
-        Assert.That(result.Success, Is.True);
-        Assert.That(result.Groups[0].Captures[0].Value, Is.EqualTo(text));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Groups[0].Captures[0].Value, Is.EqualTo(text));
+        });
     }
 
     [Test]

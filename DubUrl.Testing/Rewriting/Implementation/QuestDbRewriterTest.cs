@@ -75,8 +75,11 @@ public class QuestDbRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(QuestDbRewriter.USERNAME_KEYWORD));
-        Assert.That(result[QuestDbRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(QuestDbRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[QuestDbRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(QuestDbRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[QuestDbRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 

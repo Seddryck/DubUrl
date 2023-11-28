@@ -80,8 +80,11 @@ public class TrinoOdbcRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(OdbcRewriter.USERNAME_KEYWORD));
-        Assert.That(result[OdbcRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(OdbcRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[OdbcRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(OdbcRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[OdbcRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 
@@ -97,8 +100,11 @@ public class TrinoOdbcRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("ClientTags"));
-        Assert.That(result["ClientTags"], Is.EqualTo("foo,bar"));
-        Assert.That(result, Does.ContainKey("ApplicationNamePrefix"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["ClientTags"], Is.EqualTo("foo,bar"));
+            Assert.That(result, Does.ContainKey("ApplicationNamePrefix"));
+        });
         Assert.That(result["ApplicationNamePrefix"], Is.EqualTo("qurx"));
     }
 

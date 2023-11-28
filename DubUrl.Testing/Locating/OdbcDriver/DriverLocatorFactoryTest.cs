@@ -47,8 +47,11 @@ public class DriverLocatorFactoryTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.InstanceOf<IDriverLocator>());
-        Assert.That(result, Is.TypeOf<MySqlConnectorDriverLocator>());
-        Assert.That(((MySqlConnectorDriverLocator)result).Encoding, Is.EqualTo(encoding));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.TypeOf<MySqlConnectorDriverLocator>());
+            Assert.That(((MySqlConnectorDriverLocator)result).Encoding, Is.EqualTo(encoding));
+        });
     }
 
     [Test]
@@ -67,8 +70,11 @@ public class DriverLocatorFactoryTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.InstanceOf<IDriverLocator>());
-        Assert.That(result, Is.TypeOf<PostgresqlDriverLocator>());
-        Assert.That(((PostgresqlDriverLocator)result).Encoding, Is.EqualTo(encoding));
-        Assert.That(((PostgresqlDriverLocator)result).Architecture, Is.EqualTo(architecture));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.TypeOf<PostgresqlDriverLocator>());
+            Assert.That(((PostgresqlDriverLocator)result).Encoding, Is.EqualTo(encoding));
+            Assert.That(((PostgresqlDriverLocator)result).Architecture, Is.EqualTo(architecture));
+        });
     }
 }

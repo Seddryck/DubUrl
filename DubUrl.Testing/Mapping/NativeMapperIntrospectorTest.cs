@@ -31,8 +31,11 @@ public class NativeMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
+        });
     }
 
     [Test]
@@ -43,10 +46,13 @@ public class NativeMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).Slug, Is.EqualTo("microsoftsqlserver"));
-        Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
-        Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).Slug, Is.EqualTo("microsoftsqlserver"));
+            Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
+            Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+        });
     }
 
     [Test]
@@ -68,8 +74,11 @@ public class NativeMapperIntrospectorTest
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
+        });
     }
 
     [Test]
@@ -80,8 +89,11 @@ public class NativeMapperIntrospectorTest
         var result = introspector.LocateAlternative();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MySqlDataMapper)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MySqlDataMapper)));
+        });
     }
 
     [Test]
@@ -92,8 +104,11 @@ public class NativeMapperIntrospectorTest
         var alternative = introspector.LocateAlternative().ElementAt(0).Aliases;
         var primary = introspector.Locate().ElementAt(0).Aliases;
 
-        Assert.That(primary, Is.Not.Null.Or.Empty);
-        Assert.That(alternative, Is.Not.Null.Or.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(primary, Is.Not.Null.Or.Empty);
+            Assert.That(alternative, Is.Not.Null.Or.Empty);
+        });
         Assert.That(primary, Is.EqualTo(alternative));
     }
 
@@ -105,8 +120,11 @@ public class NativeMapperIntrospectorTest
         var alternative = introspector.LocateAlternative().ElementAt(0).DatabaseName;
         var primary = introspector.Locate().ElementAt(0).DatabaseName;
 
-        Assert.That(primary, Is.Not.Null.Or.Empty);
-        Assert.That(alternative, Is.Not.Null.Or.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(primary, Is.Not.Null.Or.Empty);
+            Assert.That(alternative, Is.Not.Null.Or.Empty);
+        });
         Assert.That(primary, Is.EqualTo(alternative));
     }
 }

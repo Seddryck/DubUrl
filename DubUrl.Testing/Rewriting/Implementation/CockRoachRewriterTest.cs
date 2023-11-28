@@ -83,8 +83,11 @@ public class CockRoachRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(PostgresqlRewriter.USERNAME_KEYWORD));
-        Assert.That(result[PostgresqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[PostgresqlRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(PostgresqlRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[PostgresqlRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
         if (rewriter.IsIntegratedSecurityAllowed)
         {
@@ -126,8 +129,11 @@ public class CockRoachRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("Application Name"));
-        Assert.That(result["Application Name"], Is.EqualTo("myApp"));
-        Assert.That(result, Does.ContainKey("Persist Security Info"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["Application Name"], Is.EqualTo("myApp"));
+            Assert.That(result, Does.ContainKey("Persist Security Info"));
+        });
         Assert.That(result["Persist Security Info"], Is.True);
     }
 }

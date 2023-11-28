@@ -58,8 +58,11 @@ public class Db2RewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(Db2Rewriter.USERNAME_KEYWORD));
-        Assert.That(result[Db2Rewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(Db2Rewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[Db2Rewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(Db2Rewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[Db2Rewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
     }
 }

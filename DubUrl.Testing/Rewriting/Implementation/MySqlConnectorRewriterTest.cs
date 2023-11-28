@@ -53,10 +53,16 @@ public class MySqlConnectorRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(MySqlConnectorRewriter.USERNAME_KEYWORD));
-        Assert.That(result[MySqlConnectorRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(MySqlConnectorRewriter.PASSWORD_KEYWORD));
-        Assert.That(result[MySqlConnectorRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-        Assert.That(result, Does.Not.ContainKey("Integrated Security"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[MySqlConnectorRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(MySqlConnectorRewriter.PASSWORD_KEYWORD));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[MySqlConnectorRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.Not.ContainKey("Integrated Security"));
+        });
     }
 
     [Test]
@@ -79,8 +85,11 @@ public class MySqlConnectorRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("Application Name"));
-        Assert.That(result["Application Name"], Is.EqualTo("myApp"));
-        Assert.That(result, Does.ContainKey("Persist Security Info"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["Application Name"], Is.EqualTo("myApp"));
+            Assert.That(result, Does.ContainKey("Persist Security Info"));
+        });
         Assert.That(result["Persist Security Info"], Is.True);
     }
 }

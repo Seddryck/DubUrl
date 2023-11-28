@@ -28,9 +28,12 @@ public class DrillOdbcRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(DrillOdbcRewriter.SERVER_KEYWORD));
-        Assert.That(result[DrillOdbcRewriter.SERVER_KEYWORD], Is.EqualTo(expected));
-        Assert.That(result[DrillOdbcRewriter.CONNECTION_KEYWORD], Is.EqualTo("Direct"));
-        Assert.That(result, Does.Not.ContainKey(DrillOdbcRewriter.ZKQUORUM_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[DrillOdbcRewriter.SERVER_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result[DrillOdbcRewriter.CONNECTION_KEYWORD], Is.EqualTo("Direct"));
+            Assert.That(result, Does.Not.ContainKey(DrillOdbcRewriter.ZKQUORUM_KEYWORD));
+        });
     }
 
 
@@ -46,8 +49,11 @@ public class DrillOdbcRewriterTest
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.Not.ContainKey(DrillOdbcRewriter.SERVER_KEYWORD));
         Assert.That(result, Does.ContainKey(DrillOdbcRewriter.ZKQUORUM_KEYWORD));
-        Assert.That(result[DrillOdbcRewriter.ZKQUORUM_KEYWORD], Is.EqualTo(expected));
-        Assert.That(result[DrillOdbcRewriter.CONNECTION_KEYWORD], Is.EqualTo("ZooKeeper"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[DrillOdbcRewriter.ZKQUORUM_KEYWORD], Is.EqualTo(expected));
+            Assert.That(result[DrillOdbcRewriter.CONNECTION_KEYWORD], Is.EqualTo("ZooKeeper"));
+        });
     }
 
     [Test]
@@ -89,10 +95,16 @@ public class DrillOdbcRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(DrillOdbcRewriter.USERNAME_KEYWORD));
-        Assert.That(result[DrillOdbcRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(DrillOdbcRewriter.PASSWORD_KEYWORD));
-        Assert.That(result[DrillOdbcRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-        Assert.That(result, Does.ContainKey(DrillOdbcRewriter.AUTHENTICATION_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[DrillOdbcRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(DrillOdbcRewriter.PASSWORD_KEYWORD));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[DrillOdbcRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.ContainKey(DrillOdbcRewriter.AUTHENTICATION_KEYWORD));
+        });
         Assert.That(result[DrillOdbcRewriter.AUTHENTICATION_KEYWORD], Is.EqualTo("Plain"));
     }
 

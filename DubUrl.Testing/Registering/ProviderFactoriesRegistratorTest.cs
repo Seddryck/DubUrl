@@ -51,8 +51,11 @@ public class ProviderFactoriesRegistratorTest
         var registrator = new ProviderFactoriesRegistrator(discoverMock.Object);
         registrator.Register();
 
-        Assert.That(DbProviderFactories.TryGetFactory(GetType().Assembly.GetName().Name ?? throw new ArgumentException(), out var factory), Is.True);
-        Assert.That(factory, Is.TypeOf<FakeDbProviderFactory>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(DbProviderFactories.TryGetFactory(GetType().Assembly.GetName().Name ?? throw new ArgumentException(), out var factory), Is.True);
+            Assert.That(factory, Is.TypeOf<FakeDbProviderFactory>());
+        });
     }
 
     [TearDown]

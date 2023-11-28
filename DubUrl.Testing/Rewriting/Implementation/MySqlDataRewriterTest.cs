@@ -52,10 +52,16 @@ public class MySqlDataRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(MySqlDataRewriter.USERNAME_KEYWORD));
-        Assert.That(result[MySqlDataRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(MySqlDataRewriter.PASSWORD_KEYWORD));
-        Assert.That(result[MySqlDataRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-        Assert.That(result, Does.Not.ContainKey("Integrated Security"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[MySqlDataRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(MySqlDataRewriter.PASSWORD_KEYWORD));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[MySqlDataRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.Not.ContainKey("Integrated Security"));
+        });
     }
 
     [Test]
@@ -78,8 +84,11 @@ public class MySqlDataRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("certificatefile"));
-        Assert.That(result["certificatefile"], Is.EqualTo("myCert"));
-        Assert.That(result, Does.ContainKey("persistsecurityinfo"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["certificatefile"], Is.EqualTo("myCert"));
+            Assert.That(result, Does.ContainKey("persistsecurityinfo"));
+        });
         Assert.That(result["persistsecurityinfo"], Is.True);
     }
 }

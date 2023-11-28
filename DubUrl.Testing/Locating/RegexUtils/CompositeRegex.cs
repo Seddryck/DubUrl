@@ -82,9 +82,12 @@ public class CompositeRegexTest
     {
         var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new VersionCapture(), new SpaceMatch(), new AnyOfCapture(new[] { "ANSI", "Unicode" }), new SpaceMatch(), new WordMatch("Driver") });
         var result = Regex.Match(text, regex.ToRegex());
-        Assert.That(result.Success, Is.True);
-        Assert.That(result.Groups[1].Captures[0].Value, Is.EqualTo(version));
-        Assert.That(result.Groups[2].Captures[0].Value, Is.EqualTo(encoding));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Groups[1].Captures[0].Value, Is.EqualTo(version));
+            Assert.That(result.Groups[2].Captures[0].Value, Is.EqualTo(encoding));
+        });
     }
 
 

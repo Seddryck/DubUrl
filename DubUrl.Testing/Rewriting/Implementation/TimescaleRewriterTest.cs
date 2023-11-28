@@ -65,8 +65,11 @@ public class TimescaleRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(TimescaleRewriter.USERNAME_KEYWORD));
-        Assert.That(result[TimescaleRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
-        Assert.That(result, Does.ContainKey(TimescaleRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[TimescaleRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
+            Assert.That(result, Does.ContainKey(TimescaleRewriter.PASSWORD_KEYWORD));
+        });
         Assert.That(result[TimescaleRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
         if (Rewriter.IsIntegratedSecurityAllowed)
         {
@@ -108,8 +111,11 @@ public class TimescaleRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("Application Name"));
-        Assert.That(result["Application Name"], Is.EqualTo("myApp"));
-        Assert.That(result, Does.ContainKey("Persist Security Info"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["Application Name"], Is.EqualTo("myApp"));
+            Assert.That(result, Does.ContainKey("Persist Security Info"));
+        });
         Assert.That(result["Persist Security Info"], Is.True);
     }
 }
