@@ -16,7 +16,7 @@ namespace DubUrl.OleDb.Mapping;
     "OLE DB"
     , new[] { "oledb" }
 )]
-internal class OleDbConnectivity : IWrapperConnectivity 
+public class OleDbConnectivity : IWrapperConnectivity 
 {
     public string Alias
         => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;

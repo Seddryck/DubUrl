@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<QuestDbDatabase, PositionalParametrizer>(
     "Npgsql"
 )]
-internal class QuestDbMapper : PostgresqlMapper
+public class QuestDbMapper : PostgresqlMapper
 {
     public QuestDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new QuestDbRewriter(csb), dialect, parametrizer)

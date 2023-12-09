@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.Options;
 
 [AttributeUsage(AttributeTargets.Enum, Inherited = true, AllowMultiple = false)]
-sealed class LocatorOptionAttribute : Attribute
+public sealed class LocatorOptionAttribute : Attribute
 {
     public LocatorOptionAttribute()
     { }

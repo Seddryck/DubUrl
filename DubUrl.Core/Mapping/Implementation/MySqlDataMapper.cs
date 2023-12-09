@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [AlternativeMapper<MySqlDatabase, NamedParametrizer>(
     "MySql.Data"
 )]
-internal class MySqlDataMapper : MySqlConnectorMapper
+public class MySqlDataMapper : MySqlConnectorMapper
 {
     public MySqlDataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new MySqlDataRewriter(csb), 

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.OleDb;
 
-internal abstract class BaseProviderLocator : IProviderLocator
+public abstract class BaseProviderLocator : IProviderLocator
 {
     
     private string RegexPattern { get; }
@@ -24,13 +24,13 @@ internal abstract class BaseProviderLocator : IProviderLocator
     public BaseProviderLocator(string regexPattern, BaseTokenMapper[] additionalMappers)
         : this(regexPattern, new Func<ProviderInfo, string>(x => x.NickName)) { AdditionalMappers = additionalMappers; }
 
-    public BaseProviderLocator(string regexPattern, Func<ProviderInfo, string> namePointer)
+    internal BaseProviderLocator(string regexPattern, Func<ProviderInfo, string> namePointer)
         : this(regexPattern, namePointer, new ProviderLister()) { }
 
     public BaseProviderLocator(string regexPattern, ProviderLister lister)
         => (RegexPattern, NamePointer, Lister) = (regexPattern, new(x => x.NickName), lister);
 
-    public BaseProviderLocator(string regexPattern, Func<ProviderInfo, string> namePointer, ProviderLister lister)
+    internal BaseProviderLocator(string regexPattern, Func<ProviderInfo, string> namePointer, ProviderLister lister)
         => (RegexPattern, NamePointer, Lister) = (regexPattern, namePointer, lister);
 
     public virtual string Locate()

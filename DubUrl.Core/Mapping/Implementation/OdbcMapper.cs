@@ -30,5 +30,4 @@ public class OdbcMapper : BaseMapper, IOdbcMapper
               parametrizer
         )
     { }
-    
 }

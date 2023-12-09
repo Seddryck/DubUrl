@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping.Implementation;
 
 [Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
-internal class MariaDbConnectorMapper : MySqlConnectorMapper
+public class MariaDbConnectorMapper : MySqlConnectorMapper
 {
     public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(csb, dialect, parametrizer)

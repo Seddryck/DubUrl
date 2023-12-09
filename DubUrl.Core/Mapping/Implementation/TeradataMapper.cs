@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<TeradataDatabase, PositionalParametrizer>(
     "Teradata.Client"
 )]
-internal class TeradataMapper : BaseMapper
+public class TeradataMapper : BaseMapper
 {
     public TeradataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new TeradataRewriter(csb),

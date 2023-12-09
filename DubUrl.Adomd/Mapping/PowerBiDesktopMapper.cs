@@ -14,7 +14,7 @@ namespace DubUrl.Adomd.Mapping;
 [Mapper<PowerBiDesktopDatabase, NamedParametrizer>(
     "Microsoft.AnalysisServices.AdomdClient"
 )]
-internal class PowerBiDesktopMapper : PowerBiPremiumMapper
+public class PowerBiDesktopMapper : PowerBiPremiumMapper
 {
     public PowerBiDesktopMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new PowerBiDesktopRewriter(csb),

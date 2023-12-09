@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<TimescaleDatabase, PositionalParametrizer>(
     "Npgsql"
 )]
-internal class TimescaleMapper : PostgresqlMapper
+public class TimescaleMapper : PostgresqlMapper
 {
     public TimescaleMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new TimescaleRewriter(csb), dialect, parametrizer)

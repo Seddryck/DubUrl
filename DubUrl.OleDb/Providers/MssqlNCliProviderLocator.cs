@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DubUrl.OleDb.Providers;
 
 [AlternativeProvider<MssqlNCliProviderRegex, OleDbMapper, MsSqlServerDatabase>()]
-internal class MssqlNCliProviderLocator : BaseProviderLocator
+public class MssqlNCliProviderLocator : BaseProviderLocator
 {
     internal class MssqlNCliProviderRegex : BaseProviderRegex
     {

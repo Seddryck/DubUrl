@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<MySqlConnectorDriverRegex, OdbcMapper, MySqlDatabase>()]
-internal class MySqlConnectorDriverLocator : BaseDriverLocator
+public class MySqlConnectorDriverLocator : BaseDriverLocator
 {
     internal class MySqlConnectorDriverRegex : BaseDriverRegex
     {

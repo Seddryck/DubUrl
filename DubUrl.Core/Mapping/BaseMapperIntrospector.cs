@@ -17,10 +17,11 @@ public abstract class BaseIntrospector
     protected Type[] Types { get => _types ??= Probe.Locate().ToArray(); }
 
     protected BaseIntrospector(ITypesProbe probe)
-        => (Probe) = (probe);
+        => (Probe) = (probe); 
 
     protected IEnumerable<AttributeInfo<T>> LocateAttribute<T>() where T : Attribute
-        => Types.Where(
+    {
+        var types = Types.Where(
                     x => x.GetCustomAttributes(typeof(T), false).Length > 0
                 )
                 .Select(x => (Type: x, Attribute: x.GetCustomAttribute<T>() ?? throw new InvalidOperationException()))
@@ -29,6 +30,8 @@ public abstract class BaseIntrospector
                     x.Type,
                     x.Attribute
                 ));
+        return types;
+    }
 }
 
 public class AssemblyTypesProbe : ITypesProbe
@@ -44,7 +47,12 @@ public class AssemblyTypesProbe : ITypesProbe
     public virtual IEnumerable<Type> Locate()
         => Assemblies.Aggregate(
                 Array.Empty<Type>(), (types, asm)
-                => types.Concat(asm.GetTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+//#if NET7_0_OR_GREATER
+                    => types.Concat(asm.GetExportedTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+//#else
+//                    => types.Concat(asm.GetTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+//#endif
+
             );
 }
 
