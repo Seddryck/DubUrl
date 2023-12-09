@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<MssqlDriverRegex, OdbcMapper, MsSqlServerDatabase>()]
-internal class MssqlDriverLocator : BaseDriverLocator
+public class MssqlDriverLocator : BaseDriverLocator
 {
     internal class MssqlDriverRegex : BaseDriverRegex
     {

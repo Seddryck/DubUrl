@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.OdbcDriver;
 
-internal abstract class BaseDriverLocator : IDriverLocator
+public abstract class BaseDriverLocator : IDriverLocator
 {
     protected string RegexPattern { get; }
     protected DriverLister Lister { get; }

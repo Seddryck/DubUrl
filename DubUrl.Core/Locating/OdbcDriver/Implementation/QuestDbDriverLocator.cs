@@ -11,7 +11,7 @@ using DubUrl.Locating.Options;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<PostgresqlDriverRegex, QuestDbOdbcMapper, QuestDbDatabase>()]
-internal class QuestDbDriverLocator : PostgresqlDriverLocator
+public class QuestDbDriverLocator : PostgresqlDriverLocator
 {
     public QuestDbDriverLocator()
         : this(EncodingOption.Unspecified, ArchitectureOption.Unspecified) { }

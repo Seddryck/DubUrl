@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<DrillDriverRegex, DrillOdbcMapper, DrillDatabase>()]
-internal class DrillDriverLocator : BaseDriverLocator
+public class DrillDriverLocator : BaseDriverLocator
 {
     internal class DrillDriverRegex : BaseDriverRegex
     {

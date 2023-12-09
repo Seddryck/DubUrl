@@ -13,7 +13,7 @@ using DubUrl.Rewriting.Tokening;
 namespace DubUrl.OleDb.Providers;
 
 [Provider<MssqlOleDbProviderRegex, OleDbMapper, MsSqlServerDatabase>()]
-internal class MssqlOleDbProviderLocator : BaseProviderLocator
+public class MssqlOleDbProviderLocator : BaseProviderLocator
 {
     internal class MssqlOleDbProviderRegex : BaseProviderRegex
     {

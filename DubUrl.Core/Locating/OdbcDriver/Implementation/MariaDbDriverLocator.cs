@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<MariaDbDriverRegex, OdbcMapper, MariaDbDatabase>()]
-internal class MariaDbDriverLocator : BaseDriverLocator
+public class MariaDbDriverLocator : BaseDriverLocator
 {
     internal class MariaDbDriverRegex : BaseDriverRegex
     {

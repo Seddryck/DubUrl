@@ -15,7 +15,7 @@ public class ProviderLocatorIntrospectorTest
         var introspector = new ProviderLocatorIntrospector();
         var result = introspector.Locate();
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.GreaterThan(0));
+        Assert.That(result, Is.Not.Empty);
         Assert.Multiple(() =>
         {
             Assert.That(result.Any(x => !string.IsNullOrEmpty(x.Slug)), Is.True);

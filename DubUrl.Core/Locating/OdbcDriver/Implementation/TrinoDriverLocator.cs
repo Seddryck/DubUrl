@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<TrinoDriverRegex, TrinoOdbcMapper, TrinoDatabase>()]
-internal class TrinoDriverLocator : BaseDriverLocator
+public class TrinoDriverLocator : BaseDriverLocator
 {
     internal class TrinoDriverRegex : BaseDriverRegex
     {

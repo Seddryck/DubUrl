@@ -11,7 +11,7 @@ using DubUrl.Locating.Options;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<PostgresqlDriverRegex, OdbcMapper, TimescaleDatabase>()]
-internal class TimescaleDriverLocator : PostgresqlDriverLocator
+public class TimescaleDriverLocator : PostgresqlDriverLocator
 {
     public TimescaleDriverLocator()
         : this(EncodingOption.Unspecified, ArchitectureOption.Unspecified) { }

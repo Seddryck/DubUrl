@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping.Implementation;
 
 [Mapper<FirebirdSqlDatabase, NamedParametrizer>("FirebirdSql.Data.FirebirdClient")]
-internal class FirebirdSqlMapper : BaseMapper
+public class FirebirdSqlMapper : BaseMapper
 {
     public FirebirdSqlMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new FirebirdSqlRewriter(csb),

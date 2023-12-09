@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping.Implementation;
 
 [Mapper<CockRoachDatabase, PositionalParametrizer>("Npgsql")]
-internal class CockRoachMapper : PostgresqlMapper
+public class CockRoachMapper : PostgresqlMapper
 {
     public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new CockRoachRewriter(csb), dialect, parametrizer) { }

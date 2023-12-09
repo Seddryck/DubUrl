@@ -8,7 +8,7 @@ using Microsoft.Win32;
 
 namespace DubUrl.Locating.OdbcDriver;
 
-internal class DriverLister
+public class DriverLister
 {
     public virtual string[] List()
     {

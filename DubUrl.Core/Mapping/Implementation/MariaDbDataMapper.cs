@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Mapping.Implementation;
 
 [AlternativeMapper<MariaDbDatabase, NamedParametrizer>("MySql.Data")]
-internal class MariaDbDataRewriter : MySqlDataMapper
+public class MariaDbDataRewriter : MySqlDataMapper
 {
     public MariaDbDataRewriter(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(csb, dialect, parametrizer)

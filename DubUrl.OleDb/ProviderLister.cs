@@ -8,7 +8,7 @@ using System.Data.OleDb;
 
 namespace DubUrl.OleDb;
 
-internal class ProviderLister
+public class ProviderLister
 {
     internal virtual ProviderInfo[] List()
     {

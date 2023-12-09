@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver;
 
 [Driver<MsExcelDriverRegex, OdbcDbqMapper, MsExcelDatabase>()]
-internal class MsExcelDriverLocator : BaseDriverLocator
+public class MsExcelDriverLocator : BaseDriverLocator
 {
     internal class MsExcelDriverRegex : BaseDriverRegex
     {

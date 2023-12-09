@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<MsSqlServerDatabase, NamedParametrizer>(
     "Microsoft.Data.SqlClient"
 )]
-internal class MsSqlServerMapper : BaseMapper
+public class MsSqlServerMapper : BaseMapper
 {
     public MsSqlServerMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new MsSqlServerRewriter(csb),

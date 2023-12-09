@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<TrinoDatabase, NamedParametrizer>(
     "NReco.PrestoAdo"
 )]
-internal class TrinoMapper : BaseMapper
+public class TrinoMapper : BaseMapper
 {
     public TrinoMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new TrinoRewriter(csb),

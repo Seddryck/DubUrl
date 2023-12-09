@@ -69,7 +69,7 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
                 ?? AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(asmPath));
 
             //Check if assembly contains a DbProviderFactory
-            var types = asm.DefinedTypes;
+            var types = asm.GetExportedTypes();
             var providerFactories = types.Where(t =>
                     t.IsClass
                     && t.IsVisible

@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<OracleDatabase, NamedParametrizer>(
     "Oracle.ManagedDataAccess"
 )]
-internal class OracleManagedDataAccessMapper : BaseMapper
+public class OracleManagedDataAccessMapper : BaseMapper
 {
     public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new OracleManagedDataAccessRewriter(csb),

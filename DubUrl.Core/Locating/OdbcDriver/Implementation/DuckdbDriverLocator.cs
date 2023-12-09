@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Locating.OdbcDriver.Implementation;
 
 [Driver<DuckdbDriverRegex, OdbcMapper, DuckdbDatabase>()]
-internal class DuckdbDriverLocator : BaseDriverLocator
+public class DuckdbDriverLocator : BaseDriverLocator
 {
     internal class DuckdbDriverRegex : BaseDriverRegex
     {

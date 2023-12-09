@@ -12,7 +12,7 @@ using DubUrl.Rewriting.Tokening;
 namespace DubUrl.OleDb.Providers;
 
 [Provider<MySqlProviderRegex, OleDbMapper, MySqlDatabase>()]
-internal class MySqlProviderLocator : BaseProviderLocator
+public class MySqlProviderLocator : BaseProviderLocator
 {
     internal class MySqlProviderRegex : BaseProviderRegex
     {

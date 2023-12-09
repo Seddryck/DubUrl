@@ -14,7 +14,7 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<SnowflakeDatabase, PositionalNamedParametrizer>(
     "Snowflake.Data"
 )]
-internal class SnowflakeMapper : BaseMapper
+public class SnowflakeMapper : BaseMapper
 {
     public SnowflakeMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new SnowflakeRewriter(csb),
