@@ -44,7 +44,12 @@ public class AssemblyTypesProbe : ITypesProbe
     public virtual IEnumerable<Type> Locate()
         => Assemblies.Aggregate(
                 Array.Empty<Type>(), (types, asm)
-                => types.Concat(asm.GetTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+#if NET7_0_OR_GREATER
+                    => types.Concat(asm.GetExportedTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+#else
+                    => types.Concat(asm.GetTypes().Where(x => x.IsClass && !x.IsAbstract)).ToArray()
+#endif
+
             );
 }
 
