@@ -7,7 +7,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
-    <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.200" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.300" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.0" />
     <PackageReference Include="MySql.Data" Version="8.2.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.3" />
