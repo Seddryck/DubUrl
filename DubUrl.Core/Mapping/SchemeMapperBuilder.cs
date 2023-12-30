@@ -15,32 +15,35 @@ namespace DubUrl.Mapping;
 
 public class SchemeMapperBuilder
 {
+    private char[] Separators = ['+', ':'];
+
     private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
     private bool IsBuilt { get; set; } = false;
 
     private List<MapperInfo> MapperData { get; } = new();
 
-    protected Dictionary<string, IMapper> Mappers { get; set; } = new();
-    private BaseMapperIntrospector[] MapperIntrospectors { get; } = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new WrapperMapperIntrospector() };
+    protected Dictionary<string, IMapper> Mappers { get; set; } = [];
+    private BaseMapperIntrospector[] MapperIntrospectors { get; } = [new NativeMapperIntrospector(), new WrapperMapperIntrospector()];
     private DialectBuilder DialectBuilder { get; } = new();
 
     public SchemeMapperBuilder()
-     : this(new[] { typeof(SchemeMapperBuilder).Assembly }) { }
+     : this([typeof(SchemeMapperBuilder).Assembly]) { }
 
     public SchemeMapperBuilder(Assembly[] assemblies)
     {
         var asmTypesProbe = new AssemblyTypesProbe(assemblies);
-        MapperIntrospectors = new BaseMapperIntrospector[]
-        {
+        MapperIntrospectors =
+        [
             new NativeMapperIntrospector(asmTypesProbe)
-            , new WrapperMapperIntrospector(asmTypesProbe)
-        };
+            ,
+            new WrapperMapperIntrospector(asmTypesProbe)
+        ];
         Initialize();
     }
 
     protected virtual void Initialize()
     {
-        foreach (var mapperData 
+        foreach (var mapperData
             in MapperIntrospectors.Aggregate(
                 Array.Empty<MapperInfo>(), (data, introspector)
                 => data.Concat(introspector.Locate()).ToArray())
@@ -48,10 +51,16 @@ public class SchemeMapperBuilder
             AddMapping(mapperData);
     }
 
+    public bool CanHandle(string scheme)
+    {
+        var alias = GetAlias(scheme.Split(Separators));
+        return Mappers.ContainsKey(alias);
+    }
+
     public virtual void Build()
     {
         foreach (var mapperData in MapperData)
-            DialectBuilder.AddAliases(mapperData.DialectType, mapperData.Aliases.ToArray());
+            DialectBuilder.AddAliases(mapperData.DialectType, [.. mapperData.Aliases]);
         DialectBuilder.Build();
 
         Mappers.Clear();
@@ -107,7 +116,7 @@ public class SchemeMapperBuilder
     }
 
     public IMapper GetMapper(string alias)
-        => GetMapper(new[] { alias });
+        => GetMapper(alias.Split(Separators));
 
     public virtual IMapper GetMapper(string[] aliases)
     {
