@@ -43,7 +43,7 @@ public class FirebirdSqlRewriterTest
     [TestCase("data.fdb")]
     public void Map_DoubleSlash_Database(string host, string expected = "data.fdb")
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = Array.Empty<string>() };
+        var urlInfo = new UrlInfo() { Host = host, Segments = [] };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -90,7 +90,7 @@ public class FirebirdSqlRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -107,7 +107,7 @@ public class FirebirdSqlRewriterTest
     [Test]
     public void Map_UrlInfoWithPort_Port()
     {
-        var urlInfo = new UrlInfo() { Host = "localhost", Port = 3001, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Host = "localhost", Port = 3001, Segments = ["db"] };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

@@ -22,12 +22,12 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
         : this(csb, new DriverLocatorFactory()) { }
     public OdbcDbqRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : base(new StraightSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DbqMapper(),
                 new AuthentificationMapper(),
                 new DriverMapper(driverLocatorFactory),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

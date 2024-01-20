@@ -17,7 +17,7 @@ internal class Parser : IParser
         var uri = new Uri(url);
         var urlInfo = new UrlInfo();
 
-        urlInfo = urlInfo with { Schemes = uri.Scheme.Split(new[] { '+', ':' }) };
+        urlInfo = urlInfo with { Schemes = uri.Scheme.Split(['+', ':']) };
 
         if (!string.IsNullOrEmpty(uri.UserInfo))
         {
@@ -40,7 +40,7 @@ internal class Parser : IParser
                 segments[i] = segments[i].TrimEnd('/');
         }
         else
-            segments = Array.Empty<string>();
+            segments = [];
         
         urlInfo = urlInfo with { Segments = segments };
 

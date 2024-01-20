@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<TrinoDialect>(
     "Trino"
-    , new[] { "tr", "trino" }
+    , ["tr", "trino"]
     , DatabaseCategory.DistributedQueryEngine
 )]
 [Brand("trino", "#DD00A1")]

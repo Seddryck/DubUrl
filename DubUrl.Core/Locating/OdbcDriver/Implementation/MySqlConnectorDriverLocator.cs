@@ -17,20 +17,20 @@ public class MySqlConnectorDriverLocator : BaseDriverLocator
     internal class MySqlConnectorDriverRegex : BaseDriverRegex
     {
         public MySqlConnectorDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("MySQL ODBC"),
                 new SpaceMatch(),
                 new VersionCapture<VersionOption>(),
                 new SpaceMatch(),
-                new AnyOfCapture<EncodingOption>(new[] { "ANSI", "Unicode" }),
+                new AnyOfCapture<EncodingOption>(["ANSI", "Unicode"]),
                 new SpaceMatch(),
                 new WordMatch("Driver"),
-            })
+            ])
         { }
     }
 
-    private Dictionary<string, decimal> Candidates { get; } = new();
+    private Dictionary<string, decimal> Candidates { get; } = [];
     internal EncodingOption Encoding { get; }
 
     public MySqlConnectorDriverLocator()

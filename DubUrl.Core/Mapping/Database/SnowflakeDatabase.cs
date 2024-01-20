@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<SnowflakeDialect>(
     "Snowflake"
-    , new[] { "sf", "snowflake" }
+    , ["sf", "snowflake"]
     , DatabaseCategory.Warehouse
 )]
 [Brand("snowflake", "#29B5E8")]

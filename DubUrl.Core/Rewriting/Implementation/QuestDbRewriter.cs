@@ -19,13 +19,13 @@ internal class QuestDbRewriter : PostgresqlRewriter
 
     public QuestDbRewriter(DbConnectionStringBuilder csb)
         : base(new Specificator(csb),
-                  new BaseTokenMapper[] {
+                  [
                     new HostMapper(),
                     new PortMapper(),
                     new AuthentificationMapper(),
                     new DatabaseMapper(),
                     new OptionsMapper(),
-                  }
+                  ]
         )
     { }
 
@@ -74,10 +74,10 @@ internal class QuestDbRewriter : PostgresqlRewriter
                 throw new InvalidConnectionUrlException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' or its alias '{COMMAND_TIMEOUT}' and also an option named '{SERVER_COMPATIBILITY_MODE}'. You cannot specify both of '{COMMAND_TIMEOUT}' and '{STATEMENT_TIMEOUT}'.");
             else
             {
-                if (!urlInfo.Options.ContainsKey(SERVER_COMPATIBILITY_MODE))
+                if (!urlInfo.Options.TryGetValue(SERVER_COMPATIBILITY_MODE, out var value))
                     urlInfo.Options.Add(SERVER_COMPATIBILITY_MODE, NO_TYPE_LOADING);
-                else if (urlInfo.Options[SERVER_COMPATIBILITY_MODE] != NO_TYPE_LOADING)
-                    throw new InvalidConnectionUrlException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{urlInfo.Options[SERVER_COMPATIBILITY_MODE]}' is not supported.");
+                else if (value != NO_TYPE_LOADING)
+                    throw new InvalidConnectionUrlException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{value}' is not supported.");
                 
                 if (urlInfo.Options.TryGetValue(STATEMENT_TIMEOUT, out string? timeout))
                 {

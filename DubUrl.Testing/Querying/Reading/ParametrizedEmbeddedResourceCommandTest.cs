@@ -77,7 +77,7 @@ public class ParametrizedEmbeddedResourceCommandTest
 
         var queryLoggerMock = new Mock<IQueryLogger>();
 
-        var query = new ParametrizedEmbeddedResourceCommand(resourceManager.Object, "foo", Array.Empty<DubUrlParameter>(), queryLoggerMock.Object);
+        var query = new ParametrizedEmbeddedResourceCommand(resourceManager.Object, "foo", [], queryLoggerMock.Object);
         var result = query.Read(dialectMock.Object, connectivityMock.Object);
 
         queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));

@@ -290,11 +290,11 @@ public abstract class BaseAdomdProvider
         var repo = factory.Instantiate<MicroOrmCustomerRepository>(
                         ConnectionString
                     );
-        var customers = repo.SelectWhereCustomers(new IWhereClause[]
-        {
+        var customers = repo.SelectWhereCustomers(
+        [
             new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan , new DateTime(1920,1,1))
             , new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper")
-        });
+        ]);
         Assert.That(customers, Has.Count.EqualTo(2));
         Assert.That(customers.Select(x => x.FullName), Has.Member("Nikola Tesla"));
         Assert.That(customers.Select(x => x.FullName), Has.Member("John von Neumann"));

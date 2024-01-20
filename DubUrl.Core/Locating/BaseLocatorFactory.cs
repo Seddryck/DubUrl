@@ -8,7 +8,7 @@ namespace DubUrl.Locating;
 
 public abstract class BaseLocatorFactory
 {
-    protected readonly Dictionary<string, Type> Schemes = new();
+    protected readonly Dictionary<string, Type> Schemes = [];
 
     protected internal virtual string[] GetValidAliases() => Schemes.Keys.ToArray();
 
@@ -19,10 +19,10 @@ public abstract class BaseLocatorFactory
         if (Schemes.ContainsKey(alias))
             throw new ArgumentException($"There is already a scheme registered with the alias '{alias}'. You cannot add a second scheme with the same alias.", nameof(alias));
 
-        if (!Schemes.ContainsKey(original))
+        if (!Schemes.TryGetValue(original, out var value))
             throw new ArgumentException($"There is no scheme registered with the alias '{original}'. You cannot add an alias if the scheme is not already registered.", nameof(original));
 
-        Schemes.Add(alias, Schemes[original]);
+        Schemes.Add(alias, value);
     }
 
     protected void AddElement(string alias, Type locator)

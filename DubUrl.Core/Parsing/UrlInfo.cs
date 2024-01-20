@@ -14,7 +14,7 @@ public record class UrlInfo
     string Password = ""
 )
 {
-    public string[] Schemes { get; init; } = Array.Empty<string>();
-    public string[] Segments { get; init; } = Array.Empty<string>();
+    public string[] Schemes { get; init; } = [];
+    public string[] Segments { get; init; } = [];
     public IDictionary<string, string> Options { get; init; } = new Dictionary<string, string>();
 }

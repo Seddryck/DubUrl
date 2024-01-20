@@ -49,7 +49,7 @@ public class MsSqlServerRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -69,7 +69,7 @@ public class MsSqlServerRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -88,7 +88,7 @@ public class MsSqlServerRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Segments = ["db"] };
         urlInfo.Options.Add("Application Name", "myApp");
         urlInfo.Options.Add("Enlist", "False");
 

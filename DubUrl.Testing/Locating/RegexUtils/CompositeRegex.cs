@@ -28,7 +28,7 @@ public class CompositeRegexTest
     [TestCase("ODBC")]
     public void ToRegex_WordSpaceWord_ExpectedResult(string text, bool expected = false)
     {
-        var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new WordMatch("ODBC") });
+        var regex = new CompositeRegex([new WordMatch("MariaDB"), new SpaceMatch(), new WordMatch("ODBC")]);
         Assert.That(Regex.Match(text, regex.ToRegex()).Success, Is.EqualTo(expected));
     }
 
@@ -39,7 +39,7 @@ public class CompositeRegexTest
     [TestCase("MariaDB ODBC Driver")]
     public void ToRegex_WordSpaceVersionSpaceWord_ExpectedResult(string text, bool expected = false, string capture = "")
     {
-        var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new VersionCapture(), new SpaceMatch(), new WordMatch("Driver") });
+        var regex = new CompositeRegex([new WordMatch("MariaDB"), new SpaceMatch(), new VersionCapture(), new SpaceMatch(), new WordMatch("Driver")]);
         var result = Regex.Match(text, regex.ToRegex());
         Assert.That(result.Success, Is.EqualTo(expected));
         if (!string.IsNullOrEmpty(capture))
@@ -53,7 +53,7 @@ public class CompositeRegexTest
     [TestCase("MariaDB (x64) ODBC")]
     public void ToRegex_WordSpaceOptionalWord_ExpectedResult(string text, bool expected = false, string capture = "")
     {
-        var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new OptionalCapture("(x64) "), new WordMatch("Driver") });
+        var regex = new CompositeRegex([new WordMatch("MariaDB"), new SpaceMatch(), new OptionalCapture("(x64) "), new WordMatch("Driver")]);
         var result = Regex.Match(text, regex.ToRegex());
         Assert.That(result.Success, Is.EqualTo(expected));
         if (!string.IsNullOrEmpty(capture))
@@ -68,7 +68,7 @@ public class CompositeRegexTest
     [TestCase("MariaDB ASNI ODBC")]
     public void ToRegex_WordSpaceAnyOfSpaceWord_ExpectedResult(string text, bool expected = false, string capture = "")
     {
-        var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new AnyOfCapture(new[] { "ANSI", "Unicode" }), new SpaceMatch(), new WordMatch("Driver") });
+        var regex = new CompositeRegex([new WordMatch("MariaDB"), new SpaceMatch(), new AnyOfCapture(["ANSI", "Unicode"]), new SpaceMatch(), new WordMatch("Driver")]);
         var result = Regex.Match(text, regex.ToRegex());
         Assert.That(result.Success, Is.EqualTo(expected));
         if (!string.IsNullOrEmpty(capture))
@@ -80,7 +80,7 @@ public class CompositeRegexTest
     [TestCase("MariaDB 5.3.7 Unicode Driver", "5.3.7", "Unicode")]
     public void ToRegex_WordSpaceVersionSpaceAnyOfSpaceWord_ExpectedResult(string text, string version, string encoding)
     {
-        var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new VersionCapture(), new SpaceMatch(), new AnyOfCapture(new[] { "ANSI", "Unicode" }), new SpaceMatch(), new WordMatch("Driver") });
+        var regex = new CompositeRegex([new WordMatch("MariaDB"), new SpaceMatch(), new VersionCapture(), new SpaceMatch(), new AnyOfCapture(["ANSI", "Unicode"]), new SpaceMatch(), new WordMatch("Driver")]);
         var result = Regex.Match(text, regex.ToRegex());
         Assert.Multiple(() =>
         {
@@ -96,7 +96,7 @@ public class CompositeRegexTest
     [TestCase("MariaDB Unicode Driver", "", "Unicode")]
     public void ToRegex_WordSpaceOptionAnyOfSpaceWord_ExpectedResult(string text, string optional, string encoding)
     {
-        var regex = new CompositeRegex(new BaseRegex[] { new WordMatch("MariaDB"), new SpaceMatch(), new OptionalCapture("(x64) "), new AnyOfCapture(new[] { "ANSI", "Unicode" }), new SpaceMatch(), new WordMatch("Driver") });
+        var regex = new CompositeRegex([new WordMatch("MariaDB"), new SpaceMatch(), new OptionalCapture("(x64) "), new AnyOfCapture(["ANSI", "Unicode"]), new SpaceMatch(), new WordMatch("Driver")]);
         var result = Regex.Match(text, regex.ToRegex());
         Assert.That(result.Success, Is.True);
         if (string.IsNullOrEmpty(optional))

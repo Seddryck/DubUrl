@@ -33,11 +33,10 @@ public class SchemeMapperBuilderTests
     [TestCase("oledb+xlsb", typeof(OleDbMapper))]
     public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeMapperBuilder(new[] 
-            { typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly }
+        var builder = new SchemeMapperBuilder([typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
         );
         builder.Build();
-        var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
+        var result = builder.GetMapper(schemeList.Split(['+', ':']));
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf(expected));
@@ -47,11 +46,10 @@ public class SchemeMapperBuilderTests
     [TestCase("mssql+oledb", typeof(OleDbMapper))]
     public void Instantiate_RevertedScheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeMapperBuilder(new[]
-            { typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly }
+        var builder = new SchemeMapperBuilder([typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
         );
         builder.Build();
-        var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
+        var result = builder.GetMapper(schemeList.Split(['+', ':']));
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf(expected));

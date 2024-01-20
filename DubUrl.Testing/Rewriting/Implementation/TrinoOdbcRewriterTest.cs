@@ -74,7 +74,7 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -91,7 +91,7 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "catalog/schema" }, Schemes = new[] { "odbc", "mssql", "ODBC Driver 18 for SQL Server" } };
+        var urlInfo = new UrlInfo() { Segments = ["catalog/schema"], Schemes = ["odbc", "mssql", "ODBC Driver 18 for SQL Server"] };
         urlInfo.Options.Add("ClientTags", "foo,bar");
         urlInfo.Options.Add("ApplicationNamePrefix", "qurx");
 
@@ -111,7 +111,7 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_SchemeContainsDriverName_DriverNameReturned()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "trino", "{PRESTO ODBC Driver}" }, Segments = new[] { "catalog" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "trino", "{PRESTO ODBC Driver}"], Segments = ["catalog"] };
 
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);

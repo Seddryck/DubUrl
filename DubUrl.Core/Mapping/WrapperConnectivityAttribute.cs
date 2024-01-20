@@ -11,7 +11,7 @@ namespace DubUrl.Mapping;
 public class WrapperConnectivityAttribute : Attribute
 {
     public virtual string ConnectivityName { get; protected set; } = string.Empty;
-    public virtual string[] Aliases { get; protected set; } = Array.Empty<string>();
+    public virtual string[] Aliases { get; protected set; } = [];
 
     public WrapperConnectivityAttribute(string connectivityName, string[] aliases)
     {

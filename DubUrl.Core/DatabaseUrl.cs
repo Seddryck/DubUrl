@@ -25,7 +25,7 @@ public partial class DatabaseUrl : IDatabaseUrl
     protected ConnectionUrl ConnectionUrl { get; }
     protected CommandProvisionerFactory CommandProvisionerFactory { get; }
 
-    protected ICaster[] Casters { get; } = Array.Empty<ICaster>();
+    protected ICaster[] Casters { get; } = [];
 
     public IQueryLogger QueryLogger { get; }
 

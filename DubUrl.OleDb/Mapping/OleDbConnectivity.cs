@@ -14,7 +14,7 @@ namespace DubUrl.OleDb.Mapping;
 
 [WrapperConnectivity(
     "OLE DB"
-    , new[] { "oledb" }
+    , ["oledb"]
 )]
 public class OleDbConnectivity : IWrapperConnectivity 
 {

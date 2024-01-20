@@ -15,10 +15,10 @@ internal class SqliteRewriter : ConnectionStringRewriter
 
     public SqliteRewriter(DbConnectionStringBuilder csb)
         : base(new Specificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DataSourceMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

@@ -10,10 +10,8 @@ public class MySqlDataRewriterTest
 {
     private const string PROVIDER_NAME = "Mysql";
 
-    private DbConnectionStringBuilder ConnectionStringBuilder
-    {
-        get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, MySqlClientFactory.Instance);
-    }
+    protected virtual DbConnectionStringBuilder ConnectionStringBuilder
+        => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, MySqlClientFactory.Instance);
 
     [Test]
     [TestCase("host", "host")]
@@ -46,7 +44,7 @@ public class MySqlDataRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new MySqlDataRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -67,7 +65,7 @@ public class MySqlDataRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new MySqlDataRewriter(ConnectionStringBuilder);
         Assert.Catch<PlatformNotSupportedException>(() => Rewriter.Execute(urlInfo));
     }
@@ -75,7 +73,7 @@ public class MySqlDataRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Segments = ["db"] };
         urlInfo.Options.Add("SslCa", "myCert");
         urlInfo.Options.Add("Persist Security Info", "true");
 

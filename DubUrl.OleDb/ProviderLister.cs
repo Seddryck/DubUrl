@@ -19,8 +19,8 @@ public class ProviderLister
             while (dr.Read())
                 if (dr.GetInt32(3) != 3)
                     providers.Add(new ProviderInfo(dr.GetString(0), dr.GetString(1)));
-            return providers.ToArray();
+            return [.. providers];
         }
-        return Array.Empty<ProviderInfo>();
+        return [];
     }
 }

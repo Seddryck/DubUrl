@@ -20,7 +20,7 @@ public class SchemeMapperBuilder
     private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
     private bool IsBuilt { get; set; } = false;
 
-    private List<MapperInfo> MapperData { get; } = new();
+    private List<MapperInfo> MapperData { get; } = [];
 
     protected Dictionary<string, IMapper> Mappers { get; set; } = [];
     private BaseMapperIntrospector[] MapperIntrospectors { get; } = [new NativeMapperIntrospector(), new WrapperMapperIntrospector()];
@@ -88,9 +88,9 @@ public class SchemeMapperBuilder
 
             var ctor = mapperData.MapperType.GetConstructor(
                             BindingFlags.Instance | BindingFlags.Public,
-                            ctorParamTypes.ToArray()
+                            [.. ctorParamTypes]
                         ) ?? throw new NullReferenceException($"Unable to find a suitable constructor for the mapper of type '{mapperData.MapperType.Name}'.");
-            var mapper = ctor.Invoke(ctorParams.ToArray()) as IMapper
+            var mapper = ctor.Invoke([.. ctorParams]) as IMapper
                     ?? throw new NullReferenceException();
 
             foreach (var alias in mapperData.Aliases)
@@ -126,7 +126,7 @@ public class SchemeMapperBuilder
         var alias = GetAlias(aliases);
 
         if (!Mappers.ContainsKey(alias))
-            throw new SchemeNotFoundException(alias, Mappers.Keys.ToArray());
+            throw new SchemeNotFoundException(alias, [.. Mappers.Keys]);
 
         return Mappers[alias];
     }
@@ -139,7 +139,7 @@ public class SchemeMapperBuilder
         var alias = GetAlias(aliases);
 
         if (!Mappers.ContainsKey(alias))
-            throw new SchemeNotFoundException(alias, Mappers.Keys.ToArray());
+            throw new SchemeNotFoundException(alias, [.. Mappers.Keys]);
 
         var mapper = Mappers[alias];
         return GetProvider(mapper.GetProviderName())
@@ -159,7 +159,7 @@ public class SchemeMapperBuilder
         var mapperData = MapperData.Single(x => x.Aliases.Contains(original));
         var newAliases = mapperData.Aliases.ToList();
         newAliases.Add(alias);
-        mapperData.Aliases = newAliases.ToArray();
+        mapperData.Aliases = [.. newAliases];
     }
 
     public void AddMapping<M, D, P>(string databaseName, string alias, string providerName)

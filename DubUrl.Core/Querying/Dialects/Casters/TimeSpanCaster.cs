@@ -10,7 +10,7 @@ namespace DubUrl.Querying.Dialects.Casters;
 internal class TimeSpanCaster<T> : BaseCaster<T, TimeSpan>
 {
     public TimeSpanCaster()
-        : base("FromTimeSpan", new[] { typeof(TimeSpan) }) { }
+        : base("FromTimeSpan", [typeof(TimeSpan)]) { }
 
     public override T? ThrowCastException(object value)
         => throw new ArgumentOutOfRangeException($"Cannot cast returned value to type '{typeof(T).Name}' by truncating the TimeSpan '{value}' because we can't find a method named {MethodName} accepting {MethodTypeArgs.Length} parameter{(MethodTypeArgs.Length > 1 ? "s" : "")}.");

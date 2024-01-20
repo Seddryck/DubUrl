@@ -23,7 +23,7 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
         : this(csb, new DriverLocatorFactory()) { }
     public TrinoOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : base(csb,
-              new BaseTokenMapper[] {
+              [
                 new HostMapper(),
                 new PortMapper(),
                 new CatalogMapper(),
@@ -31,7 +31,7 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
                 new AuthentificationMapper(),
                 new DriverMapper(driverLocatorFactory),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

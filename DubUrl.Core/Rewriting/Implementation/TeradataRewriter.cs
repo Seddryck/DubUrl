@@ -21,12 +21,12 @@ internal class TeradataRewriter : ConnectionStringRewriter
 
     public TeradataRewriter(DbConnectionStringBuilder csb)
         : base(new Specificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DataSourceMapper(),
                 new PortNumberMapper(),
                 new DatabaseMapper(),
                 new AuthentificationMapper(),
-              }
+              ]
         )
     { }
 

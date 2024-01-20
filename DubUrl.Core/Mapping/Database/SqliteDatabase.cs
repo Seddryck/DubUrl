@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<SqliteDialect>(
     "SQLite3"
-    , new[] { "sq", "sqlite" }
+    , ["sq", "sqlite"]
     , DatabaseCategory.InMemory
 )]
 [Brand("sqlite", "#003B57")]

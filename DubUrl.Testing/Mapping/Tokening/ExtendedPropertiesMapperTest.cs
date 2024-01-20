@@ -14,7 +14,7 @@ internal class ExtendedPropertiesMapperTest
 {
     private class FakeSpecificator : ISpecificator
     {
-        public Dictionary<string, object> Properties { get; } = new();
+        public Dictionary<string, object> Properties { get; } = [];
 
         public string ConnectionString => throw new NotImplementedException();
 
@@ -29,7 +29,7 @@ internal class ExtendedPropertiesMapperTest
     public void Execute_ValueNoOption_Value()
     {
         var urlInfo = new UrlInfo() { Segments = string.Empty.Split('/') };
-        var mapper = new ExtendedPropertiesMapper(new[] { "Excel 8.0" });
+        var mapper = new ExtendedPropertiesMapper(["Excel 8.0"]);
         var specificator = new FakeSpecificator();
         mapper.Accept(specificator);
         mapper.Execute(urlInfo);
@@ -44,7 +44,7 @@ internal class ExtendedPropertiesMapperTest
     {
         var urlInfo = new UrlInfo() { Segments = string.Empty.Split('/')
             , Options = new Dictionary<string, string>() { { "HDR", "YES" }, { "IMEX", "1" } } };
-        var mapper = new ExtendedPropertiesMapper(Array.Empty<string>());
+        var mapper = new ExtendedPropertiesMapper([]);
         var specificator = new FakeSpecificator();
         mapper.Accept(specificator);
         mapper.Execute(urlInfo);
@@ -62,7 +62,7 @@ internal class ExtendedPropertiesMapperTest
             Segments = string.Empty.Split('/')
             , Options = new Dictionary<string, string>() { { "HDR", "YES" }, { "IMEX", "1" } }
         };
-        var mapper = new ExtendedPropertiesMapper(new[] { "Excel 8.0" });
+        var mapper = new ExtendedPropertiesMapper(["Excel 8.0"]);
         var specificator = new FakeSpecificator();
         mapper.Accept(specificator);
         mapper.Execute(urlInfo);

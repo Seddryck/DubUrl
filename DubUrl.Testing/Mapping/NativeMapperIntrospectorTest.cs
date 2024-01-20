@@ -26,14 +26,14 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void Locate_OneMapperClass_ClassReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MsSqlServerDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MsSqlServerMapper), typeof(MsSqlServerDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
         });
     }
@@ -41,42 +41,42 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void Locate_OneMapperClassWithBrand_ClassReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MsSqlServerDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MsSqlServerMapper), typeof(MsSqlServerDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result.ElementAt(0).Slug, Is.EqualTo("microsoftsqlserver"));
-            Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
-            Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+            Assert.That(result.ElementAt(0).MainColor, Has.Length.EqualTo(7));
+            Assert.That(result.ElementAt(0).SecondaryColor, Has.Length.EqualTo(7));
         });
     }
 
     [Test]
     public void Locate_TwoMapperClasses_ClassesReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(PostgresqlMapper), typeof(MsSqlServerDatabase), typeof(PostgresqlDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MsSqlServerMapper), typeof(PostgresqlMapper), typeof(MsSqlServerDatabase), typeof(PostgresqlDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(2));
+        Assert.That(result, Has.Length.EqualTo(2));
     }
 
     [Test]
     public void Locate_TwoMapperClassesButOneAlternate_ClassesReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MySqlDataMapper), typeof(MsSqlServerDatabase), typeof(MySqlDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MsSqlServerMapper), typeof(MySqlDataMapper), typeof(MsSqlServerDatabase), typeof(MySqlDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MsSqlServerMapper)));
         });
     }
@@ -84,14 +84,14 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void LocateAlternative_TwoMapperClassesButOneAlternate_ClassesReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MsSqlServerMapper), typeof(MySqlDataMapper), typeof(MsSqlServerDatabase), typeof(MySqlDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MsSqlServerMapper), typeof(MySqlDataMapper), typeof(MsSqlServerDatabase), typeof(MySqlDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var result = introspector.LocateAlternative();
 
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(MySqlDataMapper)));
         });
     }
@@ -99,7 +99,7 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void Aliases_TwoMapperClassesIncludingAlternative_Equivalent()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MySqlConnectorMapper), typeof(MySqlDataMapper), typeof(MySqlDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MySqlConnectorMapper), typeof(MySqlDataMapper), typeof(MySqlDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var alternative = introspector.LocateAlternative().ElementAt(0).Aliases;
         var primary = introspector.Locate().ElementAt(0).Aliases;
@@ -115,7 +115,7 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void DatabaseName_TwoMapperClassesIncludingAlternative_Equivalent()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(MySqlConnectorMapper), typeof(MySqlDataMapper), typeof(MySqlDatabase) });
+        var types = new FakeMappersIntrospector([typeof(MySqlConnectorMapper), typeof(MySqlDataMapper), typeof(MySqlDatabase)]);
         var introspector = new NativeMapperIntrospector(types);
         var alternative = introspector.LocateAlternative().ElementAt(0).DatabaseName;
         var primary = introspector.Locate().ElementAt(0).DatabaseName;

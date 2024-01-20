@@ -17,7 +17,7 @@ public class DialectBuilderTest
     public void Get_DefinedDialect_GetDialect()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
         builder.Build();
         var dialect = builder.Get<TSqlDialect>();
         Assert.That(dialect, Is.Not.Null);
@@ -30,8 +30,8 @@ public class DialectBuilderTest
     public void Get_DefinedDialectInTwoSteps_GetDialect()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<MySqlDialect>(new[] { "my", "mysql" });
-        builder.AddAliases<MySqlDialect>(new[] { "maria" });
+        builder.AddAliases<MySqlDialect>(["my", "mysql"]);
+        builder.AddAliases<MySqlDialect>(["maria"]);
         builder.Build();
         var dialect = builder.Get<MySqlDialect>();
         Assert.That(dialect, Is.Not.Null);
@@ -45,8 +45,8 @@ public class DialectBuilderTest
     public void Get_UndefinedDialect_ThrowsException()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
-        builder.AddAliases<MySqlDialect>(new[] { "maria" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        builder.AddAliases<MySqlDialect>(["maria"]);
         builder.Build();
         var ex = Assert.Throws<DialectNotFoundException>(() => builder.Get<PgsqlDialect>());
         Assert.That(ex?.Message, Does.Contain("'TSqlDialect'"));
@@ -57,8 +57,8 @@ public class DialectBuilderTest
     public void Get_WithoutBuild_ThrowsException()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
-        builder.AddAliases<MySqlDialect>(new[] { "maria" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        builder.AddAliases<MySqlDialect>(["maria"]);
         var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<TSqlDialect>());
     }
 
@@ -66,9 +66,9 @@ public class DialectBuilderTest
     public void Get_WithBuildButFollowedByAddAlias_ThrowsException()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
         builder.Build();
-        builder.AddAliases<MySqlDialect>(new[] { "maria" });
+        builder.AddAliases<MySqlDialect>(["maria"]);
         var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<TSqlDialect>());
     }
 
@@ -76,8 +76,8 @@ public class DialectBuilderTest
     public void GetByScheme_WithValidScheme_CorrectDialect()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
-        builder.AddAliases<MySqlDialect>(new[] { "my", "mysql" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        builder.AddAliases<MySqlDialect>(["my", "mysql"]);
         builder.Build();
         var dialect = builder.Get("ms");
         Assert.That(dialect, Is.Not.Null);
@@ -90,8 +90,8 @@ public class DialectBuilderTest
     public void Get_TwiceTheSameDialect_AreEqual()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
-        builder.AddAliases<MySqlDialect>(new[] { "my", "mysql" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        builder.AddAliases<MySqlDialect>(["my", "mysql"]);
         builder.Build();
         var firstDialect = builder.Get("ms");
         var secondDialect = builder.Get<TSqlDialect>();
@@ -107,7 +107,7 @@ public class DialectBuilderTest
     public void Get_RendererDialect_CorrectlySet()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
         builder.Build();
         var tsqlDialect = builder.Get("ms");
         Assert.That(tsqlDialect, Is.Not.Null);
@@ -120,7 +120,7 @@ public class DialectBuilderTest
     public void Get_ReturnCasterDialect_CorrectlySet()
     {
         var builder = new DialectBuilder();
-        builder.AddAliases<TSqlDialect>(new[] { "ms", "mssql" });
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
         builder.Build();
         var tsqlDialect = builder.Get("ms");
         Assert.That(tsqlDialect, Is.Not.Null);

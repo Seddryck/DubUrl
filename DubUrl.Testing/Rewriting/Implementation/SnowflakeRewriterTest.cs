@@ -52,7 +52,7 @@ public class SnowflakeRewriterTest
     [Test]
     public void Map_UrlInfoDatabaseMissing_Database()
     {
-        var urlInfo = new UrlInfo() { Segments = Array.Empty<string>() };
+        var urlInfo = new UrlInfo() { Segments = [] };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

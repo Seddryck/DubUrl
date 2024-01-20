@@ -49,7 +49,7 @@ internal class TcpDiscoverer
     {
         var tcpRows = new Dictionary<int, TcpRow>();
 
-        IntPtr tcpTable = IntPtr.Zero;
+        var tcpTable = IntPtr.Zero;
         int tcpTableLength = 0;
 
         if (UnmanagedTcpDiscoverer.GetExtendedTcpTable(tcpTable, ref tcpTableLength, false, UnmanagedTcpDiscoverer.AfInet, UnmanagedTcpDiscoverer.TcpTableType.OwnerPidAll, 0) != 0)

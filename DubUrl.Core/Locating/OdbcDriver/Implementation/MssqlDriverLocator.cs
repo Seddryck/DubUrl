@@ -17,18 +17,18 @@ public class MssqlDriverLocator : BaseDriverLocator
     internal class MssqlDriverRegex : BaseDriverRegex
     {
         public MssqlDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("ODBC Driver"),
                 new SpaceMatch(),
                 new VersionCapture<VersionOption>(),
                 new SpaceMatch(),
                 new WordMatch("for SQL Server"),
-            })
+            ])
         { }
     }
 
-    private Dictionary<string, int> Candidates { get; } = new();
+    private Dictionary<string, int> Candidates { get; } = [];
     public MssqlDriverLocator()
         : base(GetRegexPattern<MssqlDriverLocator>()) { }
     internal MssqlDriverLocator(DriverLister driverLister)

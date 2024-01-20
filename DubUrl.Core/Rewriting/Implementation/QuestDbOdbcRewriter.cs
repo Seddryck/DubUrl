@@ -21,13 +21,13 @@ public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
         : this(csb, new DriverLocatorFactory()) { }
     public QuestDbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : base(csb,
-              new BaseTokenMapper[] {
+              [
                 new HostMapper(),
                 new PortMapper(),
                 new AuthentificationMapper(),
                 new DriverMapper(driverLocatorFactory),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

@@ -17,9 +17,9 @@ public class DriverLister
             var drivers = new List<string>();
             drivers.AddRange(ListFromRegistry(Registry.LocalMachine));
             drivers.AddRange(ListFromRegistry(Registry.CurrentUser));
-            return drivers.ToArray();
+            return [.. drivers];
         }
-        return Array.Empty<string>();
+        return [];
     }
 
     private static List<string> ListFromRegistry(RegistryKey registryKey)
@@ -32,7 +32,7 @@ public class DriverLister
                ?.OpenSubKey("ODBC Drivers"))
 
         {
-            foreach (var driver in reg?.GetValueNames() ?? Array.Empty<string>())
+            foreach (var driver in reg?.GetValueNames() ?? [])
                 drivers.Add(driver);
         }
 #pragma warning restore CA1416 // Validate platform compatibility

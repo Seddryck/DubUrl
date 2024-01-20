@@ -11,7 +11,7 @@ namespace DubUrl.Adomd.Mapping;
 
 [Database<StandardDaxDialect>(
     "Power BI Desktop"
-    , new[] { "pbidesktop", "pbix", "powerbidesktop" }
+    , ["pbidesktop", "pbix", "powerbidesktop"]
     , DatabaseCategory.Analytics
 )]
 [Brand("powerbi", "#F2C811", "#000000")]

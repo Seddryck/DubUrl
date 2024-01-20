@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<TextDialect>(
     "Text files"
-    , new[] { "txt", "csv", "tsv" }
+    , ["txt", "csv", "tsv"]
     , DatabaseCategory.FileBased
 )]
 public class TextDatabase : IDatabase

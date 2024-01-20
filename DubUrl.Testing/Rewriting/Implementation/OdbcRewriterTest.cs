@@ -51,7 +51,7 @@ public class OdbcRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new OdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -68,7 +68,7 @@ public class OdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Schemes = new[] { "odbc", "mssql", "ODBC Driver 18 for SQL Server" } };
+        var urlInfo = new UrlInfo() { Segments = ["db"], Schemes = ["odbc", "mssql", "ODBC Driver 18 for SQL Server"] };
         urlInfo.Options.Add("sslmode", "required");
         urlInfo.Options.Add("charset", "UTF8");
 
@@ -88,7 +88,7 @@ public class OdbcRewriterTest
     [Test]
     public void Map_SchemeContainsDriverName_DriverNameReturned()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql", "{ODBC Driver 18 for SQL Server}" }, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "mssql", "{ODBC Driver 18 for SQL Server}"], Segments = ["db"] };
 
         var mapper = new OdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -101,7 +101,7 @@ public class OdbcRewriterTest
     [Test]
     public void Map_DriverSpecified_NoDriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql", "{ODBC Driver 18 for SQL Server}" }, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "mssql", "{ODBC Driver 18 for SQL Server}"], Segments = ["db"] };
 
         var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
         driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "mssql", "pgsql" });
@@ -116,7 +116,7 @@ public class OdbcRewriterTest
     [Test]
     public void Map_NoDriverSpecifiedNoAdditionalOption_DriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "mssql" }, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "mssql"], Segments = ["db"] };
 
         var driverLocationMock = new Mock<IDriverLocator>();
         driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
@@ -143,11 +143,15 @@ public class OdbcRewriterTest
             [Values(EncodingOption.ANSI, EncodingOption.Unicode)] EncodingOption encoding
         )
     {
-        var schemes = new List<string>() { "odbc", "mssql" };
-        schemes.Add(Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentNullException());
-        schemes.Add(Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentNullException());
+        var schemes = new List<string>
+        {
+            "odbc",
+            "mssql",
+            Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentNullException(),
+            Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentNullException()
+        };
 
-        var urlInfo = new UrlInfo() { Schemes = schemes.ToArray(), Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = [.. schemes], Segments = ["db"] };
 
         var driverLocationMock = new Mock<IDriverLocator>();
         driverLocationMock.Setup(x => x.Locate()).Returns("My driver");

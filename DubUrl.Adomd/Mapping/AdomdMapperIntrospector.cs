@@ -11,7 +11,7 @@ namespace DubUrl.Adomd.Mapping;
 public class AdomdMapperIntrospector : NativeMapperIntrospector
 {
     public AdomdMapperIntrospector()
-        : this(new[] { typeof(AdomdMapperIntrospector).Assembly }) { }
+        : this([typeof(AdomdMapperIntrospector).Assembly]) { }
     public AdomdMapperIntrospector(Assembly[] assemblies)
         : base(assemblies) { }
     public AdomdMapperIntrospector(ITypesProbe probe)

@@ -12,7 +12,7 @@ namespace DubUrl.Registering;
 public class ReferencedAssembliesDiscoverer : IProviderFactoriesDiscoverer
 {
     private Assembly? EntryAssembly { get; } = null;
-    private List<Func<AssemblyName, bool>> Exclusions { get; } = new();
+    private List<Func<AssemblyName, bool>> Exclusions { get; } = [];
 
     public ReferencedAssembliesDiscoverer()
         : this(Assembly.GetEntryAssembly()) { }

@@ -16,15 +16,15 @@ public class TextDriverLocator : BaseDriverLocator
     internal class TextDriverRegex : BaseDriverRegex
     {
         public TextDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("Microsoft Access Text Driver"),
                 new SpaceMatch(),
                 new LiteralMatch("(*.txt, *.csv)"),
-            })
+            ])
         { }
     }
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
 
     public TextDriverLocator()
         : base(GetRegexPattern<TextDriverLocator>()) { }

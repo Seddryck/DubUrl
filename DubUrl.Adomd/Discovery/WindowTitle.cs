@@ -38,7 +38,7 @@ internal class WindowTitle
         return "-";
     }
 
-    public static string GetWindowTitleTimeout(int procId, uint timeout)
+    public static string GetWindowTitle(int procId, uint timeout)
     {
         string? title = string.Empty;
         foreach (var handle in EnumerateProcessWindowHandles(procId))
@@ -56,7 +56,7 @@ internal class WindowTitle
             if (title?.Length > 0) 
                 return title;
         }
-        return title;
+        return title ?? "-";
     }
 
     private static unsafe string? GetWindowTextTimeout(IntPtr hWnd, uint timeout)

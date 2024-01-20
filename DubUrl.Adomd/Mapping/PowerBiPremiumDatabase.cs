@@ -11,7 +11,7 @@ namespace DubUrl.Adomd.Mapping;
 
 [Database<StandardDaxDialect>(
     "Power BI Premium"
-    , new[] { "powerbi", "pbi", "pbiazure", "pbipremium", "powerbipremium" }
+    , ["powerbi", "pbi", "pbiazure", "pbipremium", "powerbipremium"]
     , DatabaseCategory.Analytics
 )]
 [Brand("powerbi", "#F2C811", "#000000")]

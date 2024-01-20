@@ -42,7 +42,7 @@ public class ConnectionUrlTest
         var url = "mssql://localhost/db";
 
         var parserMock = new Mock<IParser>();
-        parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo() { Schemes = new[] { "mssql" } });
+        parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo() { Schemes = ["mssql"] });
 
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));

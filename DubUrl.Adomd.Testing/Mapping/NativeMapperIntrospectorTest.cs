@@ -25,14 +25,14 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void Locate_OneMapperClass_ClassReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase) });
+        var types = new FakeMappersIntrospector([typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase)]);
         var introspector = new AdomdMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result.ElementAt(0).MapperType, Is.EqualTo(typeof(PowerBiDesktopMapper)));
         });
     }
@@ -40,28 +40,28 @@ public class NativeMapperIntrospectorTest
     [Test]
     public void Locate_OneMapperClassWithBrand_ClassReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase) });
+        var types = new FakeMappersIntrospector([typeof(PowerBiDesktopMapper), typeof(PowerBiDesktopDatabase)]);
         var introspector = new AdomdMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Count(), Is.EqualTo(1));
+            Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result.ElementAt(0).Slug, Is.EqualTo("powerbi"));
-            Assert.That(result.ElementAt(0).MainColor.Length, Is.EqualTo(7));
-            Assert.That(result.ElementAt(0).SecondaryColor.Length, Is.EqualTo(7));
+            Assert.That(result.ElementAt(0).MainColor, Has.Length.EqualTo(7));
+            Assert.That(result.ElementAt(0).SecondaryColor, Has.Length.EqualTo(7));
         });
     }
 
     [Test]
     public void Locate_TwoMapperClasses_ClassesReturned()
     {
-        var types = new FakeMappersIntrospector(new[] { typeof(PowerBiDesktopMapper), typeof(PowerBiPremiumMapper), typeof(PowerBiDesktopDatabase), typeof(PowerBiPremiumDatabase) });
+        var types = new FakeMappersIntrospector([typeof(PowerBiDesktopMapper), typeof(PowerBiPremiumMapper), typeof(PowerBiDesktopDatabase), typeof(PowerBiPremiumDatabase)]);
         var introspector = new AdomdMapperIntrospector(types);
         var result = introspector.Locate();
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(2));
+        Assert.That(result, Has.Length.EqualTo(2));
     }
 }

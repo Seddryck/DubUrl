@@ -34,6 +34,6 @@ public class Configuration
     public void BindFromAppSettingsJson_Key()
     {
         var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
-        Assert.That(factory.BindFromConfiguration(new[] { "Databases", "Customers", "Details" }).Url, Is.EqualTo("mysql://remote.database.org:1234/myInstance/Customers"));
+        Assert.That(factory.BindFromConfiguration(["Databases", "Customers", "Details"]).Url, Is.EqualTo("mysql://remote.database.org:1234/myInstance/Customers"));
     }
 }

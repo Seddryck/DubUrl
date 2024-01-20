@@ -118,7 +118,7 @@ public class ParserTest
         Assert.That(result, Is.Not.Null);
         foreach (var scheme in expected)
             Assert.That(result.Schemes, Does.Contain(scheme));
-        Assert.That(result.Schemes.Length, Is.EqualTo(expected.Length));
+        Assert.That(result.Schemes, Has.Length.EqualTo(expected.Length));
     }
 
     [Test]
@@ -130,7 +130,7 @@ public class ParserTest
         Assert.Multiple(() =>
         {
             Assert.That(result.Host, Is.EqualTo("data.db"));
-            Assert.That(result.Segments.Length, Is.EqualTo(0));
+            Assert.That(result.Segments, Is.Empty);
         });
     }
 
@@ -143,7 +143,7 @@ public class ParserTest
         Assert.Multiple(() =>
         {
             Assert.That(result.Host, Is.Null.Or.Empty);
-            Assert.That(result.Segments.Length, Is.EqualTo(1));
+            Assert.That(result.Segments, Has.Length.EqualTo(1));
         });
         Assert.That(result.Segments[0], Is.EqualTo("data.db"));
     }
@@ -157,7 +157,7 @@ public class ParserTest
         Assert.Multiple(() =>
         {
             Assert.That(result.Host, Is.Null.Or.Empty);
-            Assert.That(result.Segments.Length, Is.EqualTo(3));
+            Assert.That(result.Segments, Has.Length.EqualTo(3));
         });
         Assert.Multiple(() =>
         {

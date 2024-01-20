@@ -67,7 +67,7 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfo_MissingCatalog()
     {
-        var urlInfo = new UrlInfo() { Segments = Array.Empty<string>() };
+        var urlInfo = new UrlInfo() { Segments = [] };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -91,7 +91,7 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfo_MissingSchema()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "catalog" } };
+        var urlInfo = new UrlInfo() { Segments = ["catalog"] };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

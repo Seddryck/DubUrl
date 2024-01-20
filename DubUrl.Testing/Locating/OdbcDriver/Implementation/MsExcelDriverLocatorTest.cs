@@ -23,7 +23,7 @@ public class MsExcelDriverLocatorTest
     [Test]
     public void Locate_SingleElementMatching_ElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" });
+        var driverLister = new FakeDriverLister(["Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"]);
         var driverLocator = new MsExcelDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"));
@@ -32,7 +32,7 @@ public class MsExcelDriverLocatorTest
     [Test]
     public void Locate_MultipleIdenticalElementMatching_BestElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" });
+        var driverLister = new FakeDriverLister(["Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"]);
         var driverLocator = new MsExcelDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"));
@@ -41,7 +41,7 @@ public class MsExcelDriverLocatorTest
     [Test]
     public void Locate_ElementNonMatching_ElementNotReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 13 for SQL Server", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 13 for SQL Server", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"]);
         var driverLocator = new MsExcelDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"));
@@ -50,7 +50,7 @@ public class MsExcelDriverLocatorTest
     [Test]
     public void Locate_NoMatching_EmptyString()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 17 for Other Database" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 17 for Other Database"]);
         var driverLocator = new MsExcelDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.Null.Or.Empty);

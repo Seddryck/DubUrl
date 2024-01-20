@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<OracleDialect>(
     "Oracle Database"
-    , new[] { "oracle", "or", "ora" }
+    , ["oracle", "or", "ora"]
     , DatabaseCategory.LargePlayer
 )]
 [Brand("oracle", "#F80000")]

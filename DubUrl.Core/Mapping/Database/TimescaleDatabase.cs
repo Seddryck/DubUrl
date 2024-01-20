@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<PgsqlDialect>(
     "Timescale"
-    , new[] { "ts", "timescale" }
+    , ["ts", "timescale"]
     , DatabaseCategory.TimeSeries
 )]
 [Brand("timescale", "#FDB515", "#000000")]

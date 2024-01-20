@@ -19,7 +19,7 @@ public class ReflectionCacheTest
     {
         var cache = new ReflectionCache();
         Assert.That(cache.Exists<Customer>(), Is.False);
-        cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
+        cache.Add<Customer>([], []);
         Assert.That(cache.Exists<Customer>(), Is.True);
     }
 
@@ -28,7 +28,7 @@ public class ReflectionCacheTest
     {
         var cache = new ReflectionCache();
         Assert.That(cache.Exists<Customer>(), Is.False);
-        cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
+        cache.Add<Customer>([], []);
         cache.Clear();
         Assert.That(cache.Exists<Customer>(), Is.False);
     }
@@ -42,7 +42,7 @@ public class ReflectionCacheTest
             Assert.That(cache.Exists<Customer>(), Is.False);
             Assert.That(cache.Exists<Product>(), Is.False);
         });
-        cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
+        cache.Add<Customer>([], []);
         Assert.Multiple(() =>
         {
             Assert.That(cache.Exists<Customer>(), Is.True);
@@ -54,8 +54,8 @@ public class ReflectionCacheTest
     public void Get_Any_ThrowsNotImplemented()
     {
         var cache = new ReflectionCache();
-        cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
-        cache.Add<Product>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
+        cache.Add<Customer>([], []);
+        cache.Add<Product>([], []);
         var (x, y) = cache.Get<Customer>();
         Assert.Multiple(() =>
         {
@@ -68,8 +68,8 @@ public class ReflectionCacheTest
     public void Remove_Any_DoesNotThrow()
     {
         var cache = new ReflectionCache();
-        cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
-        cache.Add<Product>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
+        cache.Add<Customer>([], []);
+        cache.Add<Product>([], []);
         cache.Remove<Customer>();
         Assert.Multiple(() =>
         {

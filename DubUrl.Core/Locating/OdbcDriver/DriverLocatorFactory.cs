@@ -44,7 +44,7 @@ public class DriverLocatorFactory : BaseLocatorFactory
         var parameters = new List<object>(ctor.GetParameters().Length);
         ctor.GetParameters().ToList().ForEach(x => parameters.Add(options[x.ParameterType]));
 
-        return ctor.Invoke(parameters.ToArray()) as IDriverLocator
+        return ctor.Invoke([.. parameters]) as IDriverLocator
             ?? throw new NullReferenceException();
     }
 

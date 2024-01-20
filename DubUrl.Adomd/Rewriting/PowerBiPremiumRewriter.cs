@@ -22,9 +22,9 @@ internal class PowerBiPremiumRewriter : ConnectionStringRewriter
 
     public PowerBiPremiumRewriter(DbConnectionStringBuilder csb)
         : base(new UniqueAssignmentSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DataSourceMapper()
-              }
+              ]
         )
     { }
 
@@ -54,7 +54,7 @@ internal class PowerBiPremiumRewriter : ConnectionStringRewriter
             for (int i = 0; i < segments.Count; i++)
                 segments[i] = Encode(segments[i]);
 
-            fullHost.AppendJoin('/', segments.ToArray());
+            fullHost.AppendJoin('/', [.. segments]);
            
             Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
         }

@@ -21,11 +21,11 @@ internal class Db2Rewriter : ConnectionStringRewriter
     public Db2Rewriter(DbConnectionStringBuilder csb)
         : base(
               new Specificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new ServerMapper(),
                 new DatabaseMapper(),
                 new AuthentificationMapper(),
-              }
+              ]
         )
     { }
 

@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<DuckdbDialect>(
     "DuckDB"
-    , new[] { "duck", "duckdb" }
+    , ["duck", "duckdb"]
     , DatabaseCategory.InMemory
 )]
 [Brand("duckdb", "#FFF000", "#000000")]

@@ -24,7 +24,7 @@ public class TrinoDriverLocatorTest
     [Test]
     public void Locate_SingleElementMatching_ElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "Simba Trino ODBC Driver" });
+        var driverLister = new FakeDriverLister(["Simba Trino ODBC Driver"]);
         var driverLocator = new TrinoDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("Simba Trino ODBC Driver"));
@@ -33,7 +33,7 @@ public class TrinoDriverLocatorTest
     [Test]
     public void Locate_NoMatching_EmptyString()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 17 for Other Database" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 17 for Other Database"]);
         var driverLocator = new TrinoDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.Null.Or.Empty);

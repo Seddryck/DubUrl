@@ -17,20 +17,20 @@ public class MySqlProviderLocator : BaseProviderLocator
     internal class MySqlProviderRegex : BaseProviderRegex
     {
         public MySqlProviderRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("MySQL Provider"),
-            })
+            ])
         { }
     }
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
 
     public MySqlProviderLocator()
-        : base(GetRegexPattern<MySqlProviderLocator>(), new BaseTokenMapper[]
-            { new OptionsMapper()
+        : base(GetRegexPattern<MySqlProviderLocator>(),
+            [new OptionsMapper()
                 , new OleDbRewriter.InitialCatalogMapper()
                 , new OleDbRewriter.ServerMapper()
-            }
+            ]
         )
     { }
 

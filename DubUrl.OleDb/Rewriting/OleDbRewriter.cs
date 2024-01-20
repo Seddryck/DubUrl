@@ -24,11 +24,11 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
     public OleDbRewriter(DbConnectionStringBuilder csb, ProviderLocatorFactory providerLocatorFactory)
         : base(
               new StraightSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new AuthentificationMapper(),
                 new ProviderMapper(providerLocatorFactory),
                 new AdditionalMappers(providerLocatorFactory)
-              }
+              ]
         )
     { }
 
