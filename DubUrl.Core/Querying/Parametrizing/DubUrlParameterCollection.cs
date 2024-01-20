@@ -9,7 +9,7 @@ namespace DubUrl.Querying.Parametrizing;
 public class DubUrlParameterCollection
 {
     private DubUrlParameterFactory DubUrlParameterFactory { get; }
-    private readonly List<DubUrlParameter> parameters = new ();
+    private readonly List<DubUrlParameter> parameters = [];
 
     public DubUrlParameterCollection()
         => DubUrlParameterFactory = new DubUrlParameterFactory();

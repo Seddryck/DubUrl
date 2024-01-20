@@ -17,16 +17,16 @@ public class TrinoDriverLocator : BaseDriverLocator
     internal class TrinoDriverRegex : BaseDriverRegex
     {
         public TrinoDriverRegex()
-            : base(new BaseRegex[]
-            {
-                new AnyOfCapture(new [] { "Simba" }),
+            : base(
+            [
+                new AnyOfCapture(["Simba"]),
                 new SpaceMatch(),
                 new WordMatch("Trino ODBC Driver"),
-            })
+            ])
         { }
     }
 
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
     public TrinoDriverLocator()
         : base(GetRegexPattern<TrinoDriverLocator>()) { }
     internal TrinoDriverLocator(DriverLister driverLister)

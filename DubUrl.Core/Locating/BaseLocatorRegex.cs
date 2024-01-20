@@ -24,7 +24,7 @@ public class BaseLocatorRegex : CompositeRegex
                 if (regexType.IsGenericType)
                     types.Add(regexType.GetGenericArguments()[0]);
             }
-            return types.ToArray();
+            return [.. types];
         } 
     }
 }

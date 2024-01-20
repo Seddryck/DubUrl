@@ -24,7 +24,7 @@ public class MySqlProviderLocatorTest
     [Test]
     public void Locate_SingleElementMatching_ElementReturned()
     {
-        var providerLister = new FakeProviderLister(new[] { new ProviderInfo("MySQL Provider", "MySQL Provider") });
+        var providerLister = new FakeProviderLister([new ProviderInfo("MySQL Provider", "MySQL Provider")]);
         var providerLocator = new MySqlProviderLocator(providerLister);
         var provider = providerLocator.Locate();
         Assert.That(provider, Is.EqualTo("MySQL Provider"));
@@ -34,9 +34,9 @@ public class MySqlProviderLocatorTest
     public void Locate_ElementNonMatching_ElementNotReturned()
     {
         var providerLister = new FakeProviderLister(
-            new[] { new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0"),
+            [ new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0"),
                 new ProviderInfo("MySQL Provider", "MySQL Provider"),
-                new ProviderInfo("SQLNCLI11", "SQL Server Native Client 11.0") }
+                new ProviderInfo("SQLNCLI11", "SQL Server Native Client 11.0") ]
         );
         var providerLocator = new MySqlProviderLocator(providerLister);
         var provider = providerLocator.Locate();
@@ -47,7 +47,7 @@ public class MySqlProviderLocatorTest
     public void Locate_NoMatching_EmptyString()
     {
         var providerLister = new FakeProviderLister(
-            new[] { new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0") });
+            [new ProviderInfo("MSOLAP", "Microsoft OLE DB Provider for Analysis Services 14.0")]);
         var providerLocator = new MySqlProviderLocator(providerLister);
         var provider = providerLocator.Locate();
         Assert.That(provider, Is.Null.Or.Empty);

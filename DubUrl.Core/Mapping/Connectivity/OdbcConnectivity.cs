@@ -13,7 +13,7 @@ namespace DubUrl.Mapping.Connectivity;
 
 [WrapperConnectivity(
     "ODBC"
-    , new[] { "odbc" }
+    , ["odbc"]
 )]
 public class OdbcConnectivity : IWrapperConnectivity {
 

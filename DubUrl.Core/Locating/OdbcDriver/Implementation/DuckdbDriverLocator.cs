@@ -17,15 +17,15 @@ public class DuckdbDriverLocator : BaseDriverLocator
     internal class DuckdbDriverRegex : BaseDriverRegex
     {
         public DuckdbDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("DuckDB"),
                 new SpaceMatch(),
                 new WordMatch("Driver"),
-            })
+            ])
         { }
     }
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
     public DuckdbDriverLocator()
         : base(GetRegexPattern<DuckdbDriverLocator>()) { }
     internal DuckdbDriverLocator(DriverLister driverLister)

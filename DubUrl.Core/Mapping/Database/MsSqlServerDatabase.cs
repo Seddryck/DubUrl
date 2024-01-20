@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<TSqlDialect>(
     "Microsoft SQL Server"
-    , new[] { "mssql", "ms", "sqlserver", "mssqlserver" }
+    , ["mssql", "ms", "sqlserver", "mssqlserver"]
     , DatabaseCategory.TopPlayer
 )]
 [Brand("microsoftsqlserver", "#CC2927")]

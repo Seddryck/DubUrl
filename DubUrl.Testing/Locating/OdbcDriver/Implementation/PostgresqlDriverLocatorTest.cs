@@ -25,7 +25,7 @@ public class PostgresqlDriverLocatorTest
     [Test]
     public void Locate_SingleElementMatching_ElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "PostgreSQL ANSI" });
+        var driverLister = new FakeDriverLister(["PostgreSQL ANSI"]);
         var driverLocator = new PostgresqlDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("PostgreSQL ANSI"));
@@ -34,7 +34,7 @@ public class PostgresqlDriverLocatorTest
     [Test]
     public void Locate_SingleElementMatchingWhenEncodingApplied_ElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "PostgreSQL ANSI", "PostgreSQL Unicode" });
+        var driverLister = new FakeDriverLister(["PostgreSQL ANSI", "PostgreSQL Unicode"]);
         var driverLocator = new PostgresqlDriverLocator(driverLister, EncodingOption.Unicode, ArchitectureOption.x86);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("PostgreSQL Unicode"));
@@ -43,11 +43,11 @@ public class PostgresqlDriverLocatorTest
     [Test]
     public void Locate_MultipleElementMatching_BestElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] {
+        var driverLister = new FakeDriverLister([
             "PostgreSQL ANSI",
             "PostgreSQL Unicode",
             "PostgreSQL ANSI(x64)",
-            "PostgreSQL Unicode(x64)" });
+            "PostgreSQL Unicode(x64)" ]);
         var driverLocator = new PostgresqlDriverLocator(driverLister, EncodingOption.Unicode, ArchitectureOption.x64);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("PostgreSQL Unicode(x64)"));
@@ -56,7 +56,7 @@ public class PostgresqlDriverLocatorTest
     [Test]
     public void Locate_ElementNonMatching_ElementNotReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 13 for SQL Server", "MySQL ODBC 5.3 Unicode Driver", "PostgreSQL ANSI" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 13 for SQL Server", "MySQL ODBC 5.3 Unicode Driver", "PostgreSQL ANSI"]);
         var driverLocator = new PostgresqlDriverLocator(driverLister, EncodingOption.ANSI, ArchitectureOption.x86);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("PostgreSQL ANSI"));
@@ -65,7 +65,7 @@ public class PostgresqlDriverLocatorTest
     [Test]
     public void Locate_NoMatching_EmptyString()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 13 for SQL Server", "MySQL ODBC 5.3 Unicode Driver" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 13 for SQL Server", "MySQL ODBC 5.3 Unicode Driver"]);
         var driverLocator = new PostgresqlDriverLocator(driverLister, EncodingOption.Unicode, ArchitectureOption.x64);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.Null.Or.Empty);

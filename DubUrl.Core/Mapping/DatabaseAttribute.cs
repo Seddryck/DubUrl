@@ -10,7 +10,7 @@ namespace DubUrl.Mapping;
 public abstract class DatabaseAttribute : Attribute
 {
     public virtual string DatabaseName { get; protected set; } = string.Empty;
-    public virtual string[] Aliases { get; protected set; } = Array.Empty<string>();
+    public virtual string[] Aliases { get; protected set; } = [];
     public virtual Type DialectType { get; protected set; } = typeof(AnsiDialect);
     public int ListingPriority { get; protected set; } = 0;
 

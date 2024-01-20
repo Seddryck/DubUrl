@@ -12,7 +12,7 @@ namespace DubUrl.Querying.Dialects.Casters;
 internal class NumericParser<T> : BaseCaster<T, string>
 {
     public NumericParser()
-        : base("Parse", new[] { typeof(string), typeof(IFormatProvider) }) { }
+        : base("Parse", [typeof(string), typeof(IFormatProvider)]) { }
 
     public override T? ThrowCastException(object value)
         => throw new ArgumentOutOfRangeException($"Cannot cast returned value to type '{typeof(T).Name}' by parsing the string '{value}' because we can't find a method named {MethodName} accepting {MethodTypeArgs.Length} parameter{(MethodTypeArgs.Length>1?"s":"")}.");
@@ -31,7 +31,7 @@ internal class NumericParser<T> : BaseCaster<T, string>
         }
 #endif
         var parse = GetMethod();
-        result = (T?)(parse?.Invoke(null, new object?[] { value, CultureInfo.InvariantCulture.NumberFormat }));
+        result = (T?)(parse?.Invoke(null, [value, CultureInfo.InvariantCulture.NumberFormat]));
         return parse is not null;
     }
 }

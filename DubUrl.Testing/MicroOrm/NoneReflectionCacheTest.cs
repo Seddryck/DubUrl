@@ -15,7 +15,7 @@ public class NoneReflectionCacheTest
 
     [Test]
     public void Add_Any_DoesNotThrow()
-        => Assert.That(() => new NoneReflectionCache().Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>())
+        => Assert.That(() => new NoneReflectionCache().Add<Customer>([], [])
                         , Throws.Nothing);
 
     [Test]
@@ -27,7 +27,7 @@ public class NoneReflectionCacheTest
     {
         var cache = new NoneReflectionCache();
         Assert.That(cache.Exists<Customer>(), Is.False);
-        cache.Add<Customer>(Array.Empty<PropertyInfo>(), Array.Empty<FieldInfo>());
+        cache.Add<Customer>([], []);
         Assert.That(cache.Exists<Customer>(), Is.False);
     }
 

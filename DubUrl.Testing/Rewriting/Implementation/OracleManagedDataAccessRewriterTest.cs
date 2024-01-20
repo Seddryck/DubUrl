@@ -24,7 +24,7 @@ public class OracleManagedDataAccessRewriterTest
     [TestCase("(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host)(PORT=1234))(CONNECT_DATA=(SERVICE_NAME=service-name)))", "host", "service-name", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = string.IsNullOrEmpty(segmentsList) ? Array.Empty<string>() : segmentsList.Split("/") };
+        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = string.IsNullOrEmpty(segmentsList) ? [] : segmentsList.Split("/") };
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -46,35 +46,38 @@ public class OracleManagedDataAccessRewriterTest
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
             Assert.That((object)result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("user"));
         });
-        Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.PASSWORD_KEYWORD));
-        Assert.That((object)result[OracleManagedDataAccessRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
-        Assert.That(result, Does.Not.ContainKey("INTEGRATED SECURITY"));
+        Assert.That(result, Does.ContainKey(OracleManagedDataAccessRewriter.PASSWORD_KEYWORD));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[OracleManagedDataAccessRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
+            Assert.That(result, Does.Not.ContainKey("INTEGRATED SECURITY"));
+        });
     }
 
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.Not.Null);
-            Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
-            Assert.That((object)result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("/"));
+            Assert.That(result, Does.ContainKey(OracleManagedDataAccessRewriter.USERNAME_KEYWORD));
+            Assert.That(result[OracleManagedDataAccessRewriter.USERNAME_KEYWORD], Is.EqualTo("/"));
         });
-        Assert.That((IReadOnlyDictionary<string, object>)result, Does.ContainKey(OracleManagedDataAccessRewriter.PASSWORD_KEYWORD));
-        Assert.That((object)result[OracleManagedDataAccessRewriter.PASSWORD_KEYWORD], Is.Empty);
+        Assert.That(result, Does.ContainKey(OracleManagedDataAccessRewriter.PASSWORD_KEYWORD));
+        Assert.That(result[OracleManagedDataAccessRewriter.PASSWORD_KEYWORD], Is.Empty);
     }
 
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Segments = ["db"] };
         urlInfo.Options.Add("Statement Cache Size", "100");
         urlInfo.Options.Add("Persist Security Info", "true");
 

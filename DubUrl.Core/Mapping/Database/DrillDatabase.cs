@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<DrillDialect>(
     "Apache Drill"
-    , new[] { "drill" }
+    , ["drill"]
     , DatabaseCategory.DistributedQueryEngine
 )]
 public class DrillDatabase : IDatabase

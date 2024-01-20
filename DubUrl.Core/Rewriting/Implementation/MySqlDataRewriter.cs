@@ -20,12 +20,12 @@ internal class MySqlDataRewriter : MySqlConnectorRewriter
 
     public MySqlDataRewriter(DbConnectionStringBuilder csb)
         : base(new Specificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new ServerMapper(),
                 new AuthentificationMapper(),
                 new DatabaseMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

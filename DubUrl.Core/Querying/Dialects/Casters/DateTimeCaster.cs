@@ -10,7 +10,7 @@ namespace DubUrl.Querying.Dialects.Casters;
 public class DateTimeCaster<T> : BaseCaster<T, DateTime>
 {
     public DateTimeCaster()
-        : base("FromDateTime", new[] { typeof(DateTime) }) { }
+        : base("FromDateTime", [typeof(DateTime)]) { }
 
     public override T? ThrowCastException(object value)
         => throw new ArgumentOutOfRangeException($"Cannot cast returned value to type '{typeof(T).Name}' by truncating the DateTime '{value}' because we can't find a method named {MethodName} accepting {MethodTypeArgs.Length} parameter{(MethodTypeArgs.Length > 1 ? "s" : "")}.");

@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<CockRoachDialect>(
     "CockRoachDB"
-    , new[] { "cr", "cockroach", "cockroachdb", "crdb", "cdb" }
+    , ["cr", "cockroach", "cockroachdb", "crdb", "cdb"]
     , DatabaseCategory.Warehouse
 )]
 [Brand("cockroachlabs", "#6933FF")]

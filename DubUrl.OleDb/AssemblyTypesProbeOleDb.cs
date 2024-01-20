@@ -10,8 +10,8 @@ namespace DubUrl.OleDb;
 internal class AssemblyTypesProbeOleDb : AssemblyTypesProbe
 {
     public AssemblyTypesProbeOleDb()
-        : base(new[] {
+        : base([
             typeof(AssemblyTypesProbeOleDb).Assembly 
             , typeof(AssemblyTypesProbe).Assembly
-        }) { }
+        ]) { }
 }

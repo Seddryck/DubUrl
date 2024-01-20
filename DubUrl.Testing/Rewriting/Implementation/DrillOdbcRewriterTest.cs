@@ -125,7 +125,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Schemes = new[] { "odbc", "drill", "MapR Drill ODBC Driver" } };
+        var urlInfo = new UrlInfo() { Segments = ["db"], Schemes = ["odbc", "drill", "MapR Drill ODBC Driver"] };
         urlInfo.Options.Add("ZKClusterID", "DrillBit200");
 
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
@@ -139,7 +139,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_SchemeContainsDriverName_DriverNameReturned()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "drill", "{MapR Drill ODBC Driver}" }, Segments = new[] { "dfs" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill", "{MapR Drill ODBC Driver}"], Segments = ["dfs"] };
 
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -152,7 +152,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_DriverSpecified_NoDriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "drill", "{MapR Drill ODBC Driver}" }, Segments = new[] { "dfs" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill", "{MapR Drill ODBC Driver}"], Segments = ["dfs"] };
 
         var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
         driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "drill", "pgsql" });
@@ -167,7 +167,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_NoDriverSpecifiedNoAdditionalOption_DriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "drill" }, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill"], Segments = ["db"] };
 
         var driverLocationMock = new Mock<IDriverLocator>();
         driverLocationMock.Setup(x => x.Locate()).Returns("My driver");

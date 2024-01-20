@@ -24,14 +24,14 @@ internal class TrinoRewriter : ConnectionStringRewriter
 
     public TrinoRewriter(DbConnectionStringBuilder csb)
         : base(new UniqueAssignmentSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new HostMapper(),
                 new PortMapper(),
                 new CatalogMapper(),
                 new SchemaMapper(),
                 new AuthentificationMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

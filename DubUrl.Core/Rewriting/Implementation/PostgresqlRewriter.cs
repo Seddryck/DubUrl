@@ -21,13 +21,13 @@ internal class PostgresqlRewriter : ConnectionStringRewriter
 
     public PostgresqlRewriter(DbConnectionStringBuilder csb)
         : base(   new Specificator(csb),
-                  new BaseTokenMapper[] {
+                  [
                     new HostMapper(),
                     new PortMapper(),
                     new AuthentificationMapper(),
                     new DatabaseMapper(),
                     new OptionsMapper(),
-                  }
+                  ]
         )
     { }
 

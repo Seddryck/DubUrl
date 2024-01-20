@@ -19,14 +19,14 @@ public abstract class AceProviderLocator : BaseProviderLocator
     internal class AceProviderRegex : BaseProviderRegex
     {
         public AceProviderRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("Microsoft.ACE.OLEDB."),
                 new VersionCapture<VersionOption>(),
-            })
+            ])
         { }
     }
-    private Dictionary<string, decimal> Candidates { get; } = new();
+    private Dictionary<string, decimal> Candidates { get; } = [];
 
     public AceProviderLocator()
         : base(GetRegexPattern<AceProviderLocator>()) { }
@@ -35,11 +35,11 @@ public abstract class AceProviderLocator : BaseProviderLocator
         : base(GetRegexPattern<AceProviderLocator>(), providerLister) { }
 
     public AceProviderLocator(string value)
-        : base(GetRegexPattern<AceProviderLocator>(), new BaseTokenMapper[] 
-            { 
-                new ExtendedPropertiesMapper(new[] { value })
+        : base(GetRegexPattern<AceProviderLocator>(),
+            [
+                new ExtendedPropertiesMapper([value])
                 , new OleDbRewriter.DataSourceMapper() 
-            }) { }
+            ]) { }
 
 
     protected override void AddCandidate(string provider, string[] matches)

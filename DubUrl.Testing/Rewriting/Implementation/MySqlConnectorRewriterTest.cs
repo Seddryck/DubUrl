@@ -47,7 +47,7 @@ public class MySqlConnectorRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new MySqlConnectorRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -68,7 +68,7 @@ public class MySqlConnectorRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new MySqlConnectorRewriter(ConnectionStringBuilder);
         Assert.Catch<UsernameNotFoundException>(() => Rewriter.Execute(urlInfo));
     }
@@ -76,7 +76,7 @@ public class MySqlConnectorRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Segments = ["db"] };
         urlInfo.Options.Add("Application Name", "myApp");
         urlInfo.Options.Add("Persist Security Info", "true");
 

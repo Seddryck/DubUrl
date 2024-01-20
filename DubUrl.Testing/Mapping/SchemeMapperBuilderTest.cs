@@ -45,7 +45,7 @@ public class SchemeMapperBuilderTest
         private class StubRewriter : ConnectionStringRewriter 
         {
             public StubRewriter(DbConnectionStringBuilder csb)
-                : base(new Specificator(csb), Array.Empty<BaseTokenMapper>()) { }
+                : base(new Specificator(csb), []) { }
         }
 
     }
@@ -73,9 +73,15 @@ public class SchemeMapperBuilderTest
         builder.Build();
         var result = builder.GetMapper(scheme.Split(['+', ':']));
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result, Is.TypeOf(expected));
-        Assert.That(builder.CanHandle(scheme), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.TypeOf(expected));
+                Assert.That(result, Is.Not.Null);
+            });
+            Assert.That(builder.CanHandle(scheme), Is.True);
+        });
     }
 
     [Test]

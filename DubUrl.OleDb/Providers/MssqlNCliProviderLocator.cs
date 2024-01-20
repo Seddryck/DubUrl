@@ -19,22 +19,22 @@ public class MssqlNCliProviderLocator : BaseProviderLocator
     internal class MssqlNCliProviderRegex : BaseProviderRegex
     {
         public MssqlNCliProviderRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("SQLNCLI"),
                 new VersionCapture<VersionOption>(),
-            })
+            ])
         { }
     }
 
-    private Dictionary<string, int> Candidates { get; } = new();
+    private Dictionary<string, int> Candidates { get; } = [];
 
     public MssqlNCliProviderLocator()
-        : base(GetRegexPattern<MssqlNCliProviderLocator>(), new BaseTokenMapper[]
-            { new OptionsMapper()
+        : base(GetRegexPattern<MssqlNCliProviderLocator>(),
+            [new OptionsMapper()
                 , new OleDbRewriter.InitialCatalogMapper()
                 , new OleDbRewriter.ServerMapper()
-            }
+            ]
         )
     { }
 

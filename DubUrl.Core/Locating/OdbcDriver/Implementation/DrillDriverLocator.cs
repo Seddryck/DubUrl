@@ -17,14 +17,14 @@ public class DrillDriverLocator : BaseDriverLocator
     internal class DrillDriverRegex : BaseDriverRegex
     {
         public DrillDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("MapR Drill ODBC Driver"),
-            })
+            ])
         { }
     }
 
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
     internal EncodingOption Encoding { get; }
 
     public DrillDriverLocator()

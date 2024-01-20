@@ -17,19 +17,19 @@ public class PostgresqlDriverLocator : BaseDriverLocator
     internal class PostgresqlDriverRegex : BaseDriverRegex
     {
         public PostgresqlDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("PostgreSQL"),
                 new SpaceMatch(),
-                new AnyOfCapture<EncodingOption>(new[] { "ANSI", "Unicode" }),
+                new AnyOfCapture<EncodingOption>(["ANSI", "Unicode"]),
                 new OptionalCapture<ArchitectureOption>("(x64)"),
-            })
+            ])
         { }
     }
 
     private record struct CandidateInfo(string Driver, EncodingOption Encoding, ArchitectureOption Architecture);
 
-    private List<CandidateInfo> Candidates { get; } = new();
+    private List<CandidateInfo> Candidates { get; } = [];
     internal EncodingOption Encoding { get; }
     internal ArchitectureOption Architecture { get; }
 

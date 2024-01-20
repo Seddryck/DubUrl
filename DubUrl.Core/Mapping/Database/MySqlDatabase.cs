@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<MySqlDialect>(
     "MySQL"
-    , new[] { "mysql", "my" }
+    , ["mysql", "my"]
     , DatabaseCategory.TopPlayer
 )]
 [Brand("mysql", "#4479A1")]

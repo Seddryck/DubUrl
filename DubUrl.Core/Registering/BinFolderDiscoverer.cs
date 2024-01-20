@@ -20,14 +20,14 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
         : this(new[] { Assembly.GetEntryAssembly() ?? throw new InvalidOperationException() }) { }
 
     internal BinFolderDiscoverer(BaseMapperIntrospector[] mapperIntrospectors)
-        : this(new[] { Assembly.GetEntryAssembly() ?? throw new InvalidOperationException() } , mapperIntrospectors) { }
+        : this([Assembly.GetEntryAssembly() ?? throw new InvalidOperationException()] , mapperIntrospectors) { }
 
     public BinFolderDiscoverer(Assembly[] assemblies)
-        : this(assemblies, new BaseMapperIntrospector[] 
-            {
-                new NativeMapperIntrospector(assemblies.Concat(new[] {typeof(NativeMapperIntrospector).Assembly }).ToArray())
-                , new WrapperMapperIntrospector(assemblies.Concat(new[] {typeof(WrapperMapperIntrospector).Assembly }).ToArray()) 
-            }
+        : this(assemblies,
+            [
+                new NativeMapperIntrospector([.. assemblies, .. new[] {typeof(NativeMapperIntrospector).Assembly }])
+                , new WrapperMapperIntrospector([.. assemblies, .. new[] {typeof(WrapperMapperIntrospector).Assembly }]) 
+            ]
         ) { }
 
     internal BinFolderDiscoverer(Assembly[] assemblies, BaseMapperIntrospector[] mapperIntrospectors)
@@ -52,7 +52,7 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
         var stack = new Stack<string>(files);
         var listCandidates = MapperIntrospectors.Aggregate(
             Array.Empty<string>(), (seed, x) =>
-                seed = seed.Concat(x.Locate().Select(x => x.ProviderInvariantName)).ToArray()
+                seed = [.. seed, .. x.Locate().Select(x => x.ProviderInvariantName)]
             ).Distinct();
         
         while (stack.Count > 0)

@@ -20,12 +20,12 @@ internal class MySqlConnectorRewriter : ConnectionStringRewriter
 
     public MySqlConnectorRewriter(DbConnectionStringBuilder csb)
         : base(new UniqueAssignmentSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new ServerMapper(),
                 new AuthentificationMapper(),
                 new DatabaseMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

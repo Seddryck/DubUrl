@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<QuestDbDialect>(
     "QuestDb"
-    , new[] { "quest", "questdb" }
+    , ["quest", "questdb"]
     , DatabaseCategory.TimeSeries
 )]
 public class QuestDbDatabase : IDatabase

@@ -19,7 +19,7 @@ public record struct ConnectionUrlSettings
     string[]? Values
 )
 {
-    public override string ToString()
+    public override readonly string ToString()
     {
         IDictionary<string, string> parameters;
         if (Keys is not null || Values is not null)
@@ -50,7 +50,7 @@ public record struct ConnectionUrlSettings
             builder.UserName = encoder.Encode(Username);
         if (!string.IsNullOrEmpty(Password))
             builder.Password = encoder.Encode(Password);
-        if (Segments is not null && Segments.Any())
+        if (Segments is not null && Segments.Length != 0)
             builder.Path = string.Join('/', Segments.Select(encoder.Encode));
         if (parameters.Any())
             builder.Query = string.Join("&", parameters.Select(x => $"{encoder.Encode(x.Key)}={encoder.Encode(x.Value)}"));

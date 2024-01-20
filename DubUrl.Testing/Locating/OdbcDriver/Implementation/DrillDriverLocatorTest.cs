@@ -24,7 +24,7 @@ public class DrillDriverLocatorTest
     [Test]
     public void Locate_SingleElementMatching_ElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "MapR Drill ODBC Driver" });
+        var driverLister = new FakeDriverLister(["MapR Drill ODBC Driver"]);
         var driverLocator = new DrillDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("MapR Drill ODBC Driver"));
@@ -33,7 +33,7 @@ public class DrillDriverLocatorTest
     [Test]
     public void Locate_ElementNonMatching_ElementNotReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 13 for SQL Server", "MapR Drill ODBC Driver" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 13 for SQL Server", "MapR Drill ODBC Driver"]);
         var driverLocator = new DrillDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("MapR Drill ODBC Driver"));
@@ -42,7 +42,7 @@ public class DrillDriverLocatorTest
     [Test]
     public void Locate_NoMatching_EmptyString()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 17 for Other Database" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 17 for Other Database"]);
         var driverLocator = new DrillDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.Null.Or.Empty);

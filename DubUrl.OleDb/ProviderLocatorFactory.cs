@@ -38,10 +38,10 @@ public class ProviderLocatorFactory : BaseLocatorFactory
         => Instantiate(scheme, new Dictionary<Type, object>());
     public virtual IProviderLocator Instantiate(string scheme, IDictionary<Type, object> options)
     {
-        if (!Schemes.ContainsKey(scheme))
+        if (!Schemes.TryGetValue(scheme, out var value))
             throw new ArgumentException($"No ProviderLocator registered with the alias '{scheme}'.", nameof(scheme));
 
-        var providerLocatorType = Schemes[scheme];
+        var providerLocatorType = value;
         var ctors = providerLocatorType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
         var ctor = ctors.FirstOrDefault(
             x => x.GetParameters().Length == options.Count
@@ -50,7 +50,7 @@ public class ProviderLocatorFactory : BaseLocatorFactory
         var parameters = new List<object>(ctor.GetParameters().Length);
         ctor.GetParameters().ToList().ForEach(x => parameters.Add(options[x.ParameterType]));
 
-        return ctor.Invoke(parameters.ToArray()) as IProviderLocator
+        return ctor.Invoke([.. parameters]) as IProviderLocator
             ?? throw new NullReferenceException();
     }
 

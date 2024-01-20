@@ -17,6 +17,6 @@ public class CommandProvisionerFactory
         };
         if (provider is IParametrizedCommand parametrizedProvider)
             list.Add(new ParametersCommandProvisioner(parametrizedProvider, connectionUrl.Parametrizer));
-        return list.ToArray();
+        return [.. list];
     }
 }

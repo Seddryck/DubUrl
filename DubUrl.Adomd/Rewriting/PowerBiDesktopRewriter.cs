@@ -19,7 +19,7 @@ internal class PowerBiDesktopRewriter : ConnectionStringRewriter
     protected internal const string SERVER_KEYWORD = "Data Source";
     protected internal const string DEFAULT_LOCALHOST = "localhost";
     protected internal static readonly string[] VALID_HOSTS =
-        new[] { "127.0.0.1", ".", string.Empty, DEFAULT_LOCALHOST };
+        ["127.0.0.1", ".", string.Empty, DEFAULT_LOCALHOST];
 
     public PowerBiDesktopRewriter(DbConnectionStringBuilder csb)
         : this(csb, new PowerBiDiscoverer())
@@ -27,9 +27,9 @@ internal class PowerBiDesktopRewriter : ConnectionStringRewriter
 
     protected internal PowerBiDesktopRewriter(DbConnectionStringBuilder csb, IPowerBiDiscoverer discoverer)
         : base(new UniqueAssignmentSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DataSourceMapper(discoverer)
-              }
+              ]
         )
     { }
 
@@ -56,7 +56,7 @@ internal class PowerBiDesktopRewriter : ConnectionStringRewriter
 
         public int GetPortFromSegments(string[] segments)
         {
-            if(segments==null || !segments.Any())
+            if(segments==null || segments.Length==0)
                 throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
 
             var pbiName = segments.Length == 1

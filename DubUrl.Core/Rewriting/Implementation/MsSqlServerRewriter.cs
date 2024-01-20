@@ -19,12 +19,12 @@ internal class MsSqlServerRewriter : ConnectionStringRewriter
 
     public MsSqlServerRewriter(DbConnectionStringBuilder csb)
         : base(new Specificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DataSourceMapper(),
                 new AuthentificationMapper(),
                 new InitialCatalogMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 
@@ -66,7 +66,7 @@ internal class MsSqlServerRewriter : ConnectionStringRewriter
             if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Length <= 2)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
             else
-                throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments.ToArray())}'");
+                throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", [.. urlInfo.Segments])}'");
         }
     }
 }

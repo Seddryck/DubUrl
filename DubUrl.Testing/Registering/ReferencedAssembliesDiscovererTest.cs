@@ -47,9 +47,9 @@ public class ReferencedAssembliesDiscovererTest
     [Test]
     public void Execute_CurrentAssembly_DoesntLoadMoreAssemblies()
     {
-        var countLoaded = AppDomain.CurrentDomain.GetAssemblies().Count();
+        var countLoaded = AppDomain.CurrentDomain.GetAssemblies().Length;
         var discover = new ReferencedAssembliesDiscoverer(GetType().Assembly);
-        var types = discover.Execute();
-        Assert.That(countLoaded, Is.EqualTo(AppDomain.CurrentDomain.GetAssemblies().Count()));
+        discover.Execute();
+        Assert.That(countLoaded, Is.EqualTo(AppDomain.CurrentDomain.GetAssemblies().Length));
     }
 }

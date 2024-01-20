@@ -77,7 +77,7 @@ public class CockRoachRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
         var rewriter = new CockRoachRewriter(ConnectionStringBuilder);
         var result = rewriter.Execute(urlInfo);
 
@@ -101,7 +101,7 @@ public class CockRoachRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
         var rewriter = new CockRoachRewriter(ConnectionStringBuilder);
         var result = rewriter.Execute(urlInfo);
 
@@ -120,7 +120,7 @@ public class CockRoachRewriterTest
     [Test]
     public void UrlInfo_Map_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Segments = ["db"] };
         urlInfo.Options.Add("Application Name", "myApp");
         urlInfo.Options.Add("Persist Security Info", "true");
 

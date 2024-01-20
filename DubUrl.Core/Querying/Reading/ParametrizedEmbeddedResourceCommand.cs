@@ -26,5 +26,7 @@ public class ParametrizedEmbeddedResourceCommand : EmbeddedResourceCommand, IPar
 
     public ParametrizedEmbeddedResourceCommand(IResourceManager resourceManager, string basePath, DubUrlParameter[] parameters, IQueryLogger queryLogger)
         : base(resourceManager, basePath, queryLogger)
+#pragma warning disable IDE0305 // Simplify collection initialization
         => Parameters = parameters.ToImmutableArray();
+#pragma warning restore IDE0305 // Simplify collection initialization
 }

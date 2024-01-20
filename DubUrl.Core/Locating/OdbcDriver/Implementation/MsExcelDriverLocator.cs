@@ -16,15 +16,15 @@ public class MsExcelDriverLocator : BaseDriverLocator
     internal class MsExcelDriverRegex : BaseDriverRegex
     {
         public MsExcelDriverRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("Microsoft Excel Driver"),
                 new SpaceMatch(),
                 new LiteralMatch("(*.xls, *.xlsx, *.xlsm, *.xlsb)"),
-            })
+            ])
         { }
     }
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
 
     public MsExcelDriverLocator()
         : base(GetRegexPattern<MsExcelDriverLocator>()) { }

@@ -19,12 +19,12 @@ internal class SnowflakeRewriter : ConnectionStringRewriter
 
     public SnowflakeRewriter(DbConnectionStringBuilder csb)
         : base(new UniqueAssignmentSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new AccountMapper(),
                 new DatabaseMapper(),
                 new SchemaMapper(),
                 new AuthentificationMapper(),
-              }
+              ]
         )
     { }
 

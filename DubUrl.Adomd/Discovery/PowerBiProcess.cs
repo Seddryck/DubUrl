@@ -9,8 +9,8 @@ namespace DubUrl.Adomd.Discovery;
 
 internal class PowerBiProcess
 {
-    public static readonly string[] PBIDesktopMainWindowTitleSuffixes = new string[]
-    {
+    public static readonly string[] PBIDesktopMainWindowTitleSuffixes =
+    [
         // Different characters are used as a separator in the PBIDesktop window title depending on the current UI culture/localization
         // See https://github.com/sql-bi/Bravo/issues/476
 
@@ -20,7 +20,7 @@ internal class PowerBiProcess
         " \u2013 Power BI Desktop", // Dash Punctuation - en dash
         " \u2014 Power BI Desktop", // Dash Punctuation - em dash
         " \u2015 Power BI Desktop", // Dash Punctuation - horizontal bar
-    };
+    ];
 
     public int Port { get; private set; }
     public string Name { get; private set; }

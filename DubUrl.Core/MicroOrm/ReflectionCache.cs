@@ -10,7 +10,7 @@ namespace DubUrl.MicroOrm;
 public class ReflectionCache : IReflectionCache
 {
     private record CacheContent(PropertyInfo[] Properties, FieldInfo[] Fields) { };
-    private readonly Dictionary<Type, CacheContent> dico = new();
+    private readonly Dictionary<Type, CacheContent> dico = [];
 
     public void Add<T>(PropertyInfo[] properties, FieldInfo[] fields)
         => dico.Add(typeof(T), new CacheContent(properties, fields));

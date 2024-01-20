@@ -65,7 +65,7 @@ public class OdbcDbqRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = new[] { "db" }, Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
+        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
         var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -82,7 +82,7 @@ public class OdbcDbqRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = new[] { "db" }, Schemes = new[] { "odbc", "xlsx", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } };
+        var urlInfo = new UrlInfo() { Segments = ["db"], Schemes = ["odbc", "xlsx", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"] };
         urlInfo.Options.Add("sslmode", "required");
         urlInfo.Options.Add("charset", "UTF8");
 
@@ -102,7 +102,7 @@ public class OdbcDbqRewriterTest
     [Test]
     public void Map_SchemeContainsDriverName_DriverNameReturned()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "xlsx", "{Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}" }, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "xlsx", "{Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}"], Segments = ["db"] };
 
         var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
@@ -115,7 +115,7 @@ public class OdbcDbqRewriterTest
     [Test]
     public void Map_DriverSpecified_NoDriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "xlsx", "{Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}" }, Segments = new[] { "db" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "xlsx", "{Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}"], Segments = ["db"] };
 
         var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
         driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "odbc+xlsx", "xlsx" });
@@ -130,7 +130,7 @@ public class OdbcDbqRewriterTest
     [Test]
     public void Map_NoDriverSpecifiedNoAdditionalOption_DriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = new[] { "odbc", "xlsx" }, Segments = new[] { "sheet.xlsx" } };
+        var urlInfo = new UrlInfo() { Schemes = ["odbc", "xlsx"], Segments = ["sheet.xlsx"] };
 
         var driverLocationMock = new Mock<IDriverLocator>();
         driverLocationMock.Setup(x => x.Locate()).Returns("My driver");

@@ -36,8 +36,8 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_SingleTemplate_SingleResult()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[] { "Foo.QueryId.sql.st", "Foo.Bar.DuckDb.T0.sql.st" });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(["Foo.QueryId.sql.st", "Foo.Bar.DuckDb.T0.sql.st"]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.That(resources, Has.Count.EqualTo(1));
         Assert.That(resources, Does.ContainKey("T0"));
         Assert.That(resources["T0"], Is.EqualTo("Foo.Bar.DuckDb.T0.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
@@ -46,16 +46,16 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_MultipleTemplates_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.QueryId.sql.st",
             "Foo.Bar.DuckDb.T0.sql.st",
             "Foo.Bar.MsSQL.T0.sql.st",
             "Foo.Bar.DuckDb.T1.sql.st",
             "Foo.Bar.T1.sql.st",
             "Foo.Bar.T2.sql.st"
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.Multiple(() =>
         {
             Assert.That(resources, Has.Count.EqualTo(3));
@@ -71,8 +71,8 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_MultipleTemplatesWithFallback_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.QueryId.sql.st",
             "Foo.Bar.DuckDb.T0.sql.st",
             "Foo.Bar.MsSQL.T0.sql.st",
@@ -81,8 +81,8 @@ public class EmbeddedTemplateResourceManagerTest
             "Foo.Bar.T1.sql.st",
             "Foo.Bar.T2.sql.st",
             "Foo.Bar.Common.T3.sql.st"
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.Multiple(() =>
         {
             Assert.That(resources, Has.Count.EqualTo(4));
@@ -100,16 +100,16 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_MultipleTemplatesWithSubFolders_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.QueryId.sql.st",
             "Foo.Bar.Qrz.DuckDb.T0.sql.st",
             "Foo.Bar.Qrz.MsSQL.T0.sql.st",
             "Foo.Bar.DuckDb.T1.sql.st",
             "Foo.Bar.T1.sql.st",
             "Foo.Bar.Baz.Bob.T2.sql.st"
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.Multiple(() =>
         {
             Assert.That(resources, Has.Count.EqualTo(3));
@@ -125,12 +125,12 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_TemplateWithSubFoldersNoMatchingDialect_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.Bar.Baz.Bob.MsSQL.T2.sql.st",
             "Foo.Bar.Baz.Bob.T2.sql.st",
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.That(resources, Has.Count.EqualTo(1));
         Assert.That(resources, Does.ContainKey("T2"));
         Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
@@ -139,13 +139,13 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_TemplateWithSubFoldersNoMatchingDialectFallback_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.Bar.Baz.Bob.MsSQL.T2.sql.st",
             "Foo.Bar.Baz.Bob.Common.T2.sql.st",
             "Foo.Bar.Baz.Bob.T2.sql.st",
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.That(resources, Has.Count.EqualTo(1));
         Assert.That(resources, Does.ContainKey("T2"));
         Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Baz.Bob.Common.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
@@ -154,13 +154,13 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_TemplateWithSubFoldersNoMatchingDialectFallbackDialectFront_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.Bar.MsSQL.Baz.Bob.T2.sql.st",
             "Foo.Bar.Common.Baz.Bob.T2.sql.st",
             "Foo.Bar.Baz.Bob.T2.sql.st",
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.That(resources, Has.Count.EqualTo(1));
         Assert.That(resources, Does.ContainKey("T2"));
         Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.Common.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
@@ -169,13 +169,13 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_TemplateWithSubFoldersMatchingDialectFallbackDialectFront_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.Bar.DuckDB.Baz.Bob.T2.sql.st",
             "Foo.Bar.Common.Baz.Bob.T2.sql.st",
             "Foo.Bar.Baz.Bob.T2.sql.st",
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.That(resources, Has.Count.EqualTo(1));
         Assert.That(resources, Does.ContainKey("T2"));
         Assert.That(resources["T2"], Is.EqualTo("Foo.Bar.DuckDB.Baz.Bob.T2.sql.st").Using((IComparer)StringComparer.InvariantCultureIgnoreCase));
@@ -184,16 +184,16 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_MultipleTemplatesWithSubFoldersNotEndingByDialect_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.QueryId.sql.st",
             "Foo.Bar.DuckDb.Qrz.T0.sql.st",
             "Foo.Bar.MsSQL.Qrz.T0.sql.st",
             "Foo.Bar.DuckDb.Qrz.T1.sql.st",
             "Foo.Bar.Qrz.T1.sql.st",
             "Foo.Bar.DuckDb.Baz.T2.sql.st"
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "sql.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "sql.st");
         Assert.Multiple(() =>
         {
             Assert.That(resources, Has.Count.EqualTo(3));
@@ -209,16 +209,16 @@ public class EmbeddedTemplateResourceManagerTest
     [Test]
     public void ListResources_MultipleDictionaries_MultipleResults()
     {
-        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(new[]
-        {
+        var resourceManager = new FakeEmbeddedSqlTemplateResourceManager(
+        [
             "Foo.QueryId.dic.st",
             "Foo.Bar.DuckDb.Qrz.T0.dic.st",
             "Foo.Bar.MsSQL.Qrz.T0.dic.st",
             "Foo.Bar.DuckDb.Qrz.T1.dic.st",
             "Foo.Bar.Qrz.T1.dic.st",
             "Foo.Bar.DuckDb.Baz.T2.dic.st"
-        });
-        var resources = resourceManager.ListResources("Foo.Bar", new[] { "duck", "duckdb" }, string.Empty, "dic.st");
+        ]);
+        var resources = resourceManager.ListResources("Foo.Bar", ["duck", "duckdb"], string.Empty, "dic.st");
         Assert.Multiple(() =>
         {
             Assert.That(resources, Has.Count.EqualTo(3));

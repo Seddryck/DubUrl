@@ -18,20 +18,20 @@ public class MssqlOleDbProviderLocator : BaseProviderLocator
     internal class MssqlOleDbProviderRegex : BaseProviderRegex
     {
         public MssqlOleDbProviderRegex()
-            : base(new BaseRegex[]
-            {
+            : base(
+            [
                 new WordMatch("MSOLEDBSQL"),
-            })
+            ])
         { }
     }
-    private List<string> Candidates { get; } = new();
+    private List<string> Candidates { get; } = [];
 
     public MssqlOleDbProviderLocator()
-        : base(GetRegexPattern<MssqlOleDbProviderLocator>(), new BaseTokenMapper[]
-            { new OptionsMapper()
+        : base(GetRegexPattern<MssqlOleDbProviderLocator>(),
+            [new OptionsMapper()
                 , new OleDbRewriter.InitialCatalogMapper()
                 , new OleDbRewriter.ServerMapper()
-            }
+            ]
         )
     { }
 

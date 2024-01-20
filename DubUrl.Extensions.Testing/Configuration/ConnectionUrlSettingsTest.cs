@@ -87,8 +87,8 @@ public class ConnectionUrlSettingsTest
         {
             Scheme = "mssql",
             Host = "localhost",
-            Keys = new[] { param1.Split(':')[0], param2.Split(':')[0] },
-            Values = new[] { param1.Split(':')[1], param2.Split(':')[1] }
+            Keys = [param1.Split(':')[0], param2.Split(':')[0]],
+            Values = [param1.Split(':')[1], param2.Split(':')[1]]
         };
         Assert.That(settings.ToString(), Is.EqualTo($"mssql://localhost/?foo=1&bar=2"));
     }

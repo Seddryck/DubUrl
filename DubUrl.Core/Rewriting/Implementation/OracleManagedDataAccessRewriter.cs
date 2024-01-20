@@ -21,11 +21,11 @@ internal class OracleManagedDataAccessRewriter : ConnectionStringRewriter
 
     public OracleManagedDataAccessRewriter(DbConnectionStringBuilder csb)
         : base(new Specificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DsnMapper(),
                 new AuthentificationMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

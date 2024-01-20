@@ -8,7 +8,7 @@ namespace DubUrl.Locating.RegexUtils;
 
 internal static class StringBuilderExtensions
 {
-    private static readonly char[] escapedChars = new[] { '[', ']', '(', ')', '{', '}', '*', '+', '?', '|', '^', '$', '.', '\\', '-' };
+    private static readonly char[] escapedChars = ['[', ']', '(', ')', '{', '}', '*', '+', '?', '|', '^', '$', '.', '\\', '-'];
 
     public static StringBuilder AppendEscaped(this StringBuilder stringBuilder, string text)
     {

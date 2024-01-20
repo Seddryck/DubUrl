@@ -11,8 +11,8 @@ namespace DubUrl.Querying.Dialects;
 
 public class DialectBuilder
 {
-    protected Dictionary<Type, List<string>> DialectAliases = new();
-    protected Dictionary<Type, IDialect> Dialects = new();
+    protected Dictionary<Type, List<string>> DialectAliases = [];
+    protected Dictionary<Type, IDialect> Dialects = [];
     protected bool IsBuilt = false;
 
     public void AddAliases<T>(string[] aliases)
@@ -27,7 +27,7 @@ public class DialectBuilder
         if (DialectAliases.TryGetValue(dialectType, out var existingAliases))
             existingAliases.AddRange(aliases);
         else
-            DialectAliases.Add(dialectType, aliases.ToList());
+            DialectAliases.Add(dialectType, [.. aliases]);
     }
 
     public void AddAlias(string alias, string original)
@@ -61,7 +61,7 @@ public class DialectBuilder
             var renderer = Activator.CreateInstance(
                                 dialectInfo.Key.GetCustomAttribute<RendererAttribute>()?.RendererType
                                     ?? throw new ArgumentNullException()
-                                , Array.Empty<object>());
+                                , []);
 
             var casters = (dialectInfo.Key.GetCustomAttributes<ReturnCasterAttribute>().Select(
                                     x => (ICaster)Activator.CreateInstance(x.CasterType)!)
@@ -73,7 +73,7 @@ public class DialectBuilder
             Dialects.Add(dialectInfo.Key,
                 (IDialect)(
                     Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
-                        , new[] { languages[language], dialectInfo.Value.ToArray(), renderer, casters! }, null
+                        , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!], null
                     )
                     ?? throw new ArgumentException()
                  )
@@ -90,12 +90,12 @@ public class DialectBuilder
         if (!IsBuilt)
             throw new InvalidOperationException();
         if (!Dialects.ContainsKey(dialectType))
-            throw new DialectNotFoundException(dialectType, Dialects.Keys.ToArray());
+            throw new DialectNotFoundException(dialectType, [.. Dialects.Keys]);
         return Dialects[dialectType];
     }
 
     public IDialect Get(string scheme)
         => Get(DialectAliases.FirstOrDefault(x => x.Value.Contains(scheme)).Key
-                ?? throw new DialectNotFoundException(scheme, Dialects.Keys.ToArray())
+                ?? throw new DialectNotFoundException(scheme, [.. Dialects.Keys])
            );
 }

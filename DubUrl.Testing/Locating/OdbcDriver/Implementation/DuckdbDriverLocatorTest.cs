@@ -24,7 +24,7 @@ public class DuckdbDriverLocatorTest
     [Test]
     public void Locate_SingleElementMatching_ElementReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "DuckDB Driver" });
+        var driverLister = new FakeDriverLister(["DuckDB Driver"]);
         var driverLocator = new DuckdbDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("DuckDB Driver"));
@@ -33,7 +33,7 @@ public class DuckdbDriverLocatorTest
     [Test]
     public void Locate_ElementNonMatching_ElementNotReturned()
     {
-        var driverLister = new FakeDriverLister(new[] { "DuckDB Driver", "ODBC Driver 17 for Other Database" });
+        var driverLister = new FakeDriverLister(["DuckDB Driver", "ODBC Driver 17 for Other Database"]);
         var driverLocator = new DuckdbDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.EqualTo("DuckDB Driver"));
@@ -42,7 +42,7 @@ public class DuckdbDriverLocatorTest
     [Test]
     public void Locate_NoMatching_EmptyString()
     {
-        var driverLister = new FakeDriverLister(new[] { "ODBC Driver 17 for Other Database" });
+        var driverLister = new FakeDriverLister(["ODBC Driver 17 for Other Database"]);
         var driverLocator = new DuckdbDriverLocator(driverLister);
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.Null.Or.Empty);

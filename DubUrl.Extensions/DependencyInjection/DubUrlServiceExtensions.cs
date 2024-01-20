@@ -74,7 +74,7 @@ public static class DubUrlServiceExtensions
     /// <exception cref="ArgumentNullException">services</exception>
     private static IServiceCollection AddDubUrlCore(this IServiceCollection services)
     {
-        if (services == null) throw new ArgumentNullException(nameof(services));
+        ArgumentNullException.ThrowIfNull(services, nameof(services));
 
         services.AddOptions();
         services.AddOptions<DubUrlServiceOptions>()

@@ -52,7 +52,7 @@ public class EmbeddedResourceManagerTest
     public void GetAllResourceNames_ListOfResources_BestMatch(string[] candidates, bool expected = true)
     {
         var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-        var resourceName = resourceManager.Any("QueryId", new TSqlDialect(new SqlLanguage(), new[] { "mssql" }, new AnsiRenderer(), Array.Empty<ICaster>()), null);
+        var resourceName = resourceManager.Any("QueryId", new TSqlDialect(new SqlLanguage(), ["mssql"], new AnsiRenderer(), []), null);
         Assert.That(resourceName, Is.EqualTo(expected));
     }
 

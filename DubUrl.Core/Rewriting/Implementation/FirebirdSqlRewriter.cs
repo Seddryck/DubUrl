@@ -19,13 +19,13 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
 
     public FirebirdSqlRewriter(DbConnectionStringBuilder csb)
         : base(new UniqueAssignmentSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new DataSourceMapper(),
                 new PortMapper(),
                 new AuthentificationMapper(),
                 new DatabaseMapper(),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

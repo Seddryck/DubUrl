@@ -107,7 +107,7 @@ public abstract class DatabaseUrlUtilities
 
         var cpfMock = new Mock<CommandProvisionerFactory>();
         cpfMock.Setup(x => x.Instantiate(It.IsAny<ICommandProvider>(), It.IsAny<ConnectionUrl>()))
-            .Returns(Array.Empty<ICommandProvisioner>());
+            .Returns([]);
 
         return CreateDbUrl(connectionUrlMock.Object, cpfMock.Object);
     }
@@ -124,7 +124,7 @@ public abstract class DatabaseUrlUtilities
 public class DatabaseUrlTest : DatabaseUrlUtilities
 {
     protected static readonly object[] Actions =
-    {
+    [
         new object[] {
             (Action<DatabaseUrl>) ((DatabaseUrl db) => db.ExecuteReader("QueryId"))
             , DefineExpr(x => x.ExecuteReader()) },
@@ -146,7 +146,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         new object[] {
             (Action<DatabaseUrl>) ((DatabaseUrl db) => db.ReadFirstNonNull("QueryId"))
             , DefineExpr(x => x.ExecuteReader(), DefineDataReader().Object) }
-    };
+    ];
 
     [TestCaseSource(nameof(Actions))]
     public void DbAction_AnyQuery_MocksVerified(Action<DatabaseUrl> dbAction, Mock<IDbCommand> commandMock)
@@ -159,7 +159,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
 
         var cpfMock = new Mock<CommandProvisionerFactory>();
         cpfMock.Setup(x => x.Instantiate(It.IsAny<ICommandProvider>(), It.IsAny<ConnectionUrl>()))
-            .Returns(Array.Empty<ICommandProvisioner>());
+            .Returns([]);
         var reflectionCache = new Mock<IReflectionCache>();
 
         var db = CreateDbUrl(connectionUrlMock.Object, cpfMock.Object);

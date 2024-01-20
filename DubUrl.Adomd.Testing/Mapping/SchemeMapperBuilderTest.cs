@@ -30,9 +30,9 @@ public class SchemeMapperBuilderTest
     [TestCase("pbidesktop", typeof(PowerBiDesktopMapper))]
     public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeMapperBuilder(new[] { typeof(PowerBiPremiumMapper).Assembly });
+        var builder = new SchemeMapperBuilder([typeof(PowerBiPremiumMapper).Assembly]);
         builder.Build();
-        var result = builder.GetMapper(schemeList.Split(new[] { '+', ':' }));
+        var result = builder.GetMapper(schemeList.Split(['+', ':']));
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf(expected));

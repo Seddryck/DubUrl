@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<MsExcelDialect>(
     "Microsoft Excel"
-    , new[] { "xls", "xlsx", "xlsb", "xlsm" }
+    , ["xls", "xlsx", "xlsb", "xlsm"]
     , DatabaseCategory.FileBased
 )]
 [Brand("microsoftexcel", "#217346")]

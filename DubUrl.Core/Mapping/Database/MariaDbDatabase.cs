@@ -11,7 +11,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<MySqlDialect>(
     "MariaDB"
-    , new[] { "maria", "mariadb" }
+    , ["maria", "mariadb"]
     , DatabaseCategory.LargePlayer
 )]
 [Brand("mariadb", "#003545")]

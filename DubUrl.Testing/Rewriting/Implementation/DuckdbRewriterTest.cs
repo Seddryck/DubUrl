@@ -74,7 +74,7 @@ public class DuckdbRewriterTest
     [TestCase(":memory:")]
     public void Map_InMemory_DataSource(string host)
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = Array.Empty<string>() };
+        var urlInfo = new UrlInfo() { Host = host, Segments = [] };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

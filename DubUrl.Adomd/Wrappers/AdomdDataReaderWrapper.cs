@@ -75,7 +75,7 @@ internal class AdomdDataReaderWrapper : DbDataReader, IDataReader
     public override string GetName(int ordinal)
     {
         var fieldName = InnerDataReader.GetName(ordinal);
-        return fieldName.StartsWith("[") && fieldName.EndsWith("]")
+        return fieldName.StartsWith('[') && fieldName.EndsWith(']')
             ? fieldName[1..^1]
             : fieldName;
     }

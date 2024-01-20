@@ -23,13 +23,13 @@ Function Run-TestSuite {
 			} else {
 				foreach ($category in $categories) {
 					Write-Host "`tRunning test-suite for $category ($framework)"
-					$args  = @("test", "..\..\DubUrl.QA")
-					$args += @("--filter", "`"TestCategory=$($category.Split("+") -join "`"`"&`"`"TestCategory=")`"")
-					$args += @("-c", $config)
-					$args += @("-f", $framework)
-					$args += @("--no-build", "--nologo")
-					$args += $adapters
-					& dotnet $args | Out-Host
+					$arguments  = @("test", "..\..\DubUrl.QA")
+					$arguments += @("--filter", "`"TestCategory=$($category.Split("+") -join "`"`"&`"`"TestCategory=")`"")
+					$arguments += @("-c", $config)
+					$arguments += @("-f", $framework)
+					$arguments += @("--no-build", "--nologo")
+					$arguments += $adapters
+					& dotnet $arguments | Out-Host
 					$testSuccessful += $lastexitcode
 				}
 			}

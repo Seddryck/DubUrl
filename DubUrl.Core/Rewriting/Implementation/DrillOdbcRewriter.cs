@@ -29,14 +29,14 @@ public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
         : this(csb, new DriverLocatorFactory()) { }
     public DrillOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : base(csb,
-              new BaseTokenMapper[] {
+              [
                 new HostMapper(),
                 new PortMapper(),
                 new SchemaMapper(),
                 new AuthentificationMapper(),
                 new DriverMapper(driverLocatorFactory),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 

@@ -24,13 +24,13 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
         : this (csb, new DriverLocatorFactory()) { }
     public OdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : base(new StraightSpecificator(csb),
-              new BaseTokenMapper[] {
+              [
                 new HostMapper(),
                 new AuthentificationMapper(),
                 new DatabaseMapper(),
                 new DriverMapper(driverLocatorFactory),
                 new OptionsMapper(),
-              }
+              ]
         )
     { }
 
