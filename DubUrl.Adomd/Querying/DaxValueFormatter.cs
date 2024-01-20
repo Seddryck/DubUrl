@@ -14,7 +14,10 @@ internal class DaxValueFormatter : BaseValueFormatter
     public DaxValueFormatter()
     {
         With(new BooleanFormatter());
-        With(new DoubleQuotedValueFormatter());
+        With(new GuidFormatter());
+        With<string>(new DoubleQuotedValueFormatter());
+        With<char>(new DoubleQuotedValueFormatter());
+        With<char>(new DoubleQuotedValueFormatter());
         With(new FunctionFormatter<DateOnly>("VALUE", new DaxDateFormatter()));
         With(new FunctionFormatter<TimeOnly>("VALUE", new DaxTimeFormatter()));
         With(new FunctionFormatter<DateTime>("VALUE", new DaxTimestampFormatter()));
