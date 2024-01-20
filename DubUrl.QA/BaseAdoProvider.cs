@@ -8,6 +8,7 @@ using Dapper;
 using DubUrl.QA.Dapper;
 using static DubUrl.QA.MicroOrmCustomerRepository;
 using System.Linq.Expressions;
+using Microsoft.Data.SqlClient;
 
 namespace DubUrl.QA;
 
@@ -34,6 +35,21 @@ public abstract class BaseAdoProvider
         using var conn = connectionUrl.Connect();
         Assert.That(conn.State, Is.EqualTo(ConnectionState.Closed));
     }
+
+#if NET7_0_OR_GREATER
+    [Test]
+    [Category("DataSourceUrl")]
+    public void CreateDataSource()
+    {
+        var dataSourceUrl = new DataSourceUrl(ConnectionString);
+
+        using var dataSource = dataSourceUrl.Create();
+        Assert.That(dataSource, Is.Not.Null);
+        var connection = dataSource.CreateConnection();
+        Assert.That(connection, Is.Not.Null);
+        Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
+    }
+#endif
 
     [Test]
     [Category("ConnectionUrl")]

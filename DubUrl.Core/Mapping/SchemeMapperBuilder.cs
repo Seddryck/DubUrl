@@ -15,13 +15,12 @@ namespace DubUrl.Mapping;
 
 public class SchemeMapperBuilder
 {
-    private char[] Separators = ['+', ':'];
+    protected readonly char[] Separators = ['+', ':'];
 
     private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
     private bool IsBuilt { get; set; } = false;
-
+    
     private List<MapperInfo> MapperData { get; } = [];
-
     protected Dictionary<string, IMapper> Mappers { get; set; } = [];
     private BaseMapperIntrospector[] MapperIntrospectors { get; } = [new NativeMapperIntrospector(), new WrapperMapperIntrospector()];
     private DialectBuilder DialectBuilder { get; } = new();
