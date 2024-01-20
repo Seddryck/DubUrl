@@ -6,10 +6,17 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-public class SimpleQuotedValueFormatter : IValueFormatter<string>
+public class SimpleQuotedValueFormatter : IValueFormatter<string>, IValueFormatter<char>
 {
     public string Format(string value)
         => $"'{value}'";
+    public string Format(char value)
+        => $"'{value}'";
     public string Format(object obj)
-        => obj is string value ? Format(value) : throw new Exception();
+        => obj switch
+        {
+            char c => Format(c),
+            string str => Format(str),
+            _ => throw new Exception()
+        };
 }

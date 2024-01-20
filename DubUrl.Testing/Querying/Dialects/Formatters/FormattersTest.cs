@@ -133,4 +133,15 @@ public class FormattersTest
     public void SimpleQuotedValueFormatter_Format_Match(string value, string expected)
         => Assert.That(new SimpleQuotedValueFormatter().Format(value), Is.EqualTo(expected));
 
+    [Test]
+    [TestCase("36f1d158-1fa1-11ed-ba36-c8cb9e32df8e", "'36f1d158-1fa1-11ed-ba36-c8cb9e32df8e'")]
+    [TestCase("36F1D158-1FA1-11ED-BA36-C8CB9e32DF8E", "'36f1d158-1fa1-11ed-ba36-c8cb9e32df8e'")]
+    public void GuidFormatter_Guid_Match(Guid value, string expected)
+        => Assert.That(new GuidFormatter().Format(value), Is.EqualTo($"'{value}'"));
+
+    [Test]
+    [TestCase("36f1d158-1fa1-11ed-ba36-c8cb9e32df8e", "'36f1d158-1fa1-11ed-ba36-c8cb9e32df8e'")]
+    [TestCase("36F1D158-1FA1-11ED-BA36-C8CB9e32DF8E", "'36f1d158-1fa1-11ed-ba36-c8cb9e32df8e'")]
+    public void GuidFormatter_String_Match(string value, string expected)
+        => Assert.That(new GuidFormatter().Format(value), Is.EqualTo(expected));
 }
