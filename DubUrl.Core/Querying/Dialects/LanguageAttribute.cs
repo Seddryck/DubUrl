@@ -10,7 +10,7 @@ namespace DubUrl.Querying.Dialects;
 public class LanguageAttribute : Attribute
 {
     public LanguageAttribute(string extension)
-        => Extension = extension.StartsWith(".") ? extension : $".{extension}";
+        => Extension = extension.StartsWith('.') ? extension : $".{extension}";
 
     public virtual string Extension { get; }
 }

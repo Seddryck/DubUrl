@@ -33,7 +33,7 @@ public static class ConnectionUrlFactoryExtensions
     private static IConfigurationSection GetSection(IConfigurationRoot config, string[] keys)
     {
         IConfigurationSection? section = null;
-        if (!keys.Any())
+        if (keys.Length == 0)
             throw new ArgumentOutOfRangeException(nameof(keys), $"A key cannot be empty in any configuration.");
         for (int i = 0; i < keys.Length; i++)
         {

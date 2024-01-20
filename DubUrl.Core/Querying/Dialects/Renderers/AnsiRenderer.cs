@@ -25,10 +25,10 @@ internal class AnsiRenderer : IRenderer
         if (string.IsNullOrWhiteSpace(format))
             return obj?.ToString() ?? "<empty>";
 
-        if (format.ToLowerInvariant() == "identity")
+        if (format.Equals("identity", StringComparison.InvariantCultureIgnoreCase))
             return Identity.Format(obj ?? throw new ArgumentNullException(nameof(obj)));
 
-        if (format.ToLowerInvariant() == "value")
+        if (format.Equals("value", StringComparison.InvariantCultureIgnoreCase))
         {
             if (obj is null || obj==DBNull.Value)
                 return Null.Format();

@@ -147,8 +147,8 @@ public class OdbcRewriterTest
         {
             "odbc",
             "mssql",
-            Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentNullException(),
-            Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentNullException()
+            Enum.GetName(typeof(ArchitectureOption), architecture) ?? throw new ArgumentOutOfRangeException(nameof(architecture)),
+            Enum.GetName(typeof(EncodingOption), encoding) ?? throw new ArgumentOutOfRangeException(nameof(encoding))
         };
 
         var urlInfo = new UrlInfo() { Schemes = [.. schemes], Segments = ["db"] };

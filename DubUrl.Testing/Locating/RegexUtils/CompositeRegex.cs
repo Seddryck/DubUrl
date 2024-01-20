@@ -100,10 +100,10 @@ public class CompositeRegexTest
         var result = Regex.Match(text, regex.ToRegex());
         Assert.That(result.Success, Is.True);
         if (string.IsNullOrEmpty(optional))
-            Assert.That(result.Groups[1].Captures.Count, Is.EqualTo(0));
+            Assert.That(result.Groups[1].Captures, Has.Count.EqualTo(0));
         else
         {
-            Assert.That(result.Groups[1].Captures.Count, Is.EqualTo(1));
+            Assert.That(result.Groups[1].Captures, Has.Count.EqualTo(1));
             Assert.That(result.Groups[1].Captures[0].Value, Is.EqualTo(optional));
         }
         Assert.That(result.Groups[2].Captures[0].Value, Is.EqualTo(encoding));
