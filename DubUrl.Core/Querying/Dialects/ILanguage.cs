@@ -8,4 +8,5 @@ namespace DubUrl.Querying.Dialects;
 public interface ILanguage
 {
     string Extension { get; }
+    string FullName { get; }
 }

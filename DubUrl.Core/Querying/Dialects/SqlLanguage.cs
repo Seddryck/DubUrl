@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects;
 
-[Language(".sql")]
+[Language(".sql", "Structured Query Language")]
 public class SqlLanguage : ILanguage
 {
     public virtual string Extension { get; }
+    public virtual string FullName { get; }
 
     public SqlLanguage()
-        => Extension = GetType().GetCustomAttribute<LanguageAttribute>()?.Extension
-            ?? throw new InvalidOperationException();
+    {
+        var attribute = GetType().GetCustomAttribute<LanguageAttribute>() ?? throw new InvalidOperationException();
+        (Extension, FullName) = (attribute.Extension, attribute.FullName);
+    }
 }
