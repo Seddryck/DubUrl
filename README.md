@@ -20,7 +20,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 <!-- [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl?ref=badge_shield) -->
 
 **Dev. activity:** [![GitHub last commit](https://img.shields.io/github/last-commit/Seddryck/DubUrl.svg)](https://github.com/Seddryck/DubUrl/commits)
-![Still maintained](https://img.shields.io/maintenance/yes/2023.svg)
+![Still maintained](https://img.shields.io/maintenance/yes/2024.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Seddryck/DubUrl)
 
 **Continuous integration builds:** [![Build status](https://ci.appveyor.com/api/projects/status/k26u1sesu2tt9pgl?svg=true)](https://ci.appveyor.com/project/Seddryck/DubUrl/)
