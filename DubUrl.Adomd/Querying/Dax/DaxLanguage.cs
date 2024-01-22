@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Querying.Dialects;
 
-namespace DubUrl.Adomd.Querying;
+namespace DubUrl.Adomd.Querying.Dax;
 
-[Language(".dax", "Data Analysis Expressions")]
+[Language(".msdax", "Data Analysis Expressions")]
 public class DaxLanguage : ILanguage
 {
     public virtual string Extension { get; }

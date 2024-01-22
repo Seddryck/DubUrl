@@ -18,6 +18,6 @@ internal class SqliteRenderer : AnsiRenderer
                     .With(new FunctionFormatter<DateTimeOffset>("datetime", new TimestampTimeZoneFormatter()))
                     .With(new FunctionFormatter<TimeSpan>("time", new IntervalAsTimeFormatter()))
               , new NullFormatter()
-              , new UnquotedIdentifierFormatter())
+              , new IdentifierUnquotedFormatter())
     { }
 }

@@ -15,19 +15,19 @@ public class FormattersTest
     [TestCase("foo", "`foo`")]
     [TestCase("foo bar", "`foo bar`")]
     public void BacktickIdentifier_Format_Match(string value, string expected)
-        => Assert.That(new BacktickIdentifierFormatter().Format(value), Is.EqualTo(expected));
+        => Assert.That(new IdentifierBacktickFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase("foo", "\"foo\"")]
     [TestCase("foo bar", "\"foo bar\"")]
     public void QuotedIdentifier_Format_Match(string value, string expected)
-        => Assert.That(new QuotedIdentifierFormatter().Format(value), Is.EqualTo(expected));
+        => Assert.That(new IdentifierQuotedFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase("foo", "[foo]")]
     [TestCase("foo bar", "[foo bar]")]
     public void SquareBracketIdentifier_Format_Match(string value, string expected)
-        => Assert.That(new SquareBracketIdentifierFormatter().Format(value), Is.EqualTo(expected));
+        => Assert.That(new IdentifierSquareBracketFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase(false, "0")]
@@ -131,7 +131,7 @@ public class FormattersTest
     [Test]
     [TestCase("Yousp 125", "'Yousp 125'")]
     public void SimpleQuotedValueFormatter_Format_Match(string value, string expected)
-        => Assert.That(new SimpleQuotedValueFormatter().Format(value), Is.EqualTo(expected));
+        => Assert.That(new ValueSimpleQuotedFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase("36f1d158-1fa1-11ed-ba36-c8cb9e32df8e", "'36f1d158-1fa1-11ed-ba36-c8cb9e32df8e'")]
@@ -144,4 +144,10 @@ public class FormattersTest
     [TestCase("36F1D158-1FA1-11ED-BA36-C8CB9e32DF8E", "'36f1d158-1fa1-11ed-ba36-c8cb9e32df8e'")]
     public void GuidFormatter_String_Match(string value, string expected)
         => Assert.That(new GuidFormatter().Format(value), Is.EqualTo(expected));
+
+    [Test]
+    [TestCase("36f1d158-1fa1-11ed-ba36-c8cb9e32df8e", "\"36f1d158-1fa1-11ed-ba36-c8cb9e32df8e\"")]
+    [TestCase("36F1D158-1FA1-11ED-BA36-C8CB9e32DF8E", "\"36f1d158-1fa1-11ed-ba36-c8cb9e32df8e\"")]
+    public void GuidDoubleQuotedFormatter_String_Match(string value, string expected)
+        => Assert.That(new GuidDoubleQuotedFormatter().Format(value), Is.EqualTo(expected));
 }

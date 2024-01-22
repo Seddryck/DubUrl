@@ -18,7 +18,7 @@ internal class AnsiRenderer : IRenderer
         => (Value, Null, Identity) = (value, @null, identity);
 
     public AnsiRenderer()
-        : this(new ValueFormatter(), new NullFormatter(), new QuotedIdentifierFormatter()) { }
+        : this(new ValueFormatter(), new NullFormatter(), new IdentifierQuotedFormatter()) { }
 
     public string Render(object? obj, string format)
     {

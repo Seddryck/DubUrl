@@ -13,5 +13,5 @@ internal class PgsqlRenderer : AnsiRenderer
         : this(new ValueFormatter()) { }
 
     protected PgsqlRenderer(BaseValueFormatter value)
-        : base(value, new NullFormatter(), new QuotedIdentifierFormatter()) { }
+        : base(value, new NullFormatter(), new IdentifierQuotedFormatter()) { }
 }

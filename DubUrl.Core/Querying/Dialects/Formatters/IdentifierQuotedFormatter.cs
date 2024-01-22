@@ -6,10 +6,14 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class UnquotedIdentifierFormatter : IIdentifierFormatter
+public class IdentifierQuotedFormatter : IIdentifierFormatter
 {
-    public string Format(string value)
-        => $"{value}";
+    public virtual string Format(string value)
+        => SurroundByQuotes(value);
+
+    protected virtual string SurroundByQuotes(string value)
+        => $"\"{value}\"";
+
     public string Format(object obj)
          => obj is string value ? Format(value) : throw new Exception();
 }

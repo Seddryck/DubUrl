@@ -19,5 +19,5 @@ internal class TSqlRenderer : AnsiRenderer
                     .With(new CastFormatter<DateTimeOffset>("DATETIMEOFFSET", new TimestampTimeZoneFormatter()))
                     .With(new CastFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
                 , new NullFormatter()
-                , new SquareBracketIdentifierFormatter()) { }
+                , new IdentifierSquareBracketFormatter()) { }
 }

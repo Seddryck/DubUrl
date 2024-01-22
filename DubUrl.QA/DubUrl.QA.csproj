@@ -5,14 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SelectAllCustomer.dax" />
-    <None Remove="SelectFirstCustomer.dax" />
+    <None Remove="SelectAllCustomer.msdax" />
+    <None Remove="SelectFirstCustomer.msdax" />
     <None Remove="SelectWhereCustomers.dax.st" />
     <None Remove="SelectYoungestCustomers.dax" />
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="SelectAllCustomer.dax" />
+    <EmbeddedResource Include="SelectAllCustomer.msdax" />
     <EmbeddedResource Include="SelectAllCustomer.trino.sql" />
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectAllCustomer.duckdb.sql" />
@@ -23,7 +23,7 @@
     <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
-    <EmbeddedResource Include="SelectFirstCustomer.dax" />
+    <EmbeddedResource Include="SelectFirstCustomer.msdax" />
     <EmbeddedResource Include="SelectWhereCustomers.dax.st" />
     
     <EmbeddedResource Include="SelectWhereCustomers.cockroach.sql.st" />
