@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace DubUrl.QA.SsasMultidim;
 
-[Category("PowerBiDesktop")]
+[Category("SsasMultidim")]
 [Category("AdomdProvider")]
 public class AdomdProviderSsasMultidim : BaseAdomdProvider
 {

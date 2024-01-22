@@ -33,8 +33,8 @@ public class SsasMultidimRewriterTest
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Does.ContainKey(SsasMultidimRewriter.SERVER_KEYWORD));
-        Assert.That(result[SsasMultidimRewriter.SERVER_KEYWORD], Is.EqualTo(expected));
+        Assert.That(result, Does.ContainKey(SsasRewriter.SERVER_KEYWORD));
+        Assert.That(result[SsasRewriter.SERVER_KEYWORD], Is.EqualTo(expected));
     }
 
     [Test]
@@ -61,8 +61,8 @@ public class SsasMultidimRewriterTest
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Does.ContainKey(SsasMultidimRewriter.DATABASE_KEYWORD));
-        Assert.That(result[SsasMultidimRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
+        Assert.That(result, Does.ContainKey(SsasRewriter.DATABASE_KEYWORD));
+        Assert.That(result[SsasRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
     [Test]
@@ -85,7 +85,7 @@ public class SsasMultidimRewriterTest
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Does.ContainKey(SsasMultidimRewriter.CUBE_KEYWORD));
-        Assert.That(result[SsasMultidimRewriter.CUBE_KEYWORD], Is.EqualTo(expected));
+        Assert.That(result, Does.ContainKey(SsasRewriter.CUBE_KEYWORD));
+        Assert.That(result[SsasRewriter.CUBE_KEYWORD], Is.EqualTo(expected));
     }
 }
