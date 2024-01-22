@@ -14,9 +14,9 @@ using System.Xml.Schema;
 
 namespace DubUrl.Adomd.Rewriting;
 
-internal class SsasMultidimRewriter : SsasRewriter
+internal class SsasTabularRewriter : SsasRewriter
 {
-    public SsasMultidimRewriter(DbConnectionStringBuilder csb)
+    public SsasTabularRewriter(DbConnectionStringBuilder csb)
         : base(csb)
     { }
 }

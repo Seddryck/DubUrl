@@ -38,5 +38,17 @@
     "Slug": "microsoftsqlserver",
     "MainColor": "#CC2927",
     "SecondaryColor": "#FFFFFF"
+  },
+  {
+    "Class": "SsasTabularMapper",
+    "Database": "SQL Server Analysis Services - Tabular",
+    "Aliases": [
+      "ssastabular",
+      "ssasdax"
+    ],
+    "ProviderInvariantName": "Microsoft.AnalysisServices.AdomdClient",
+    "Slug": "microsoftsqlserver",
+    "MainColor": "#CC2927",
+    "SecondaryColor": "#FFFFFF"
   }
 ]
