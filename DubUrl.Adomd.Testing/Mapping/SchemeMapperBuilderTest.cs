@@ -28,6 +28,8 @@ public class SchemeMapperBuilderTest
     [TestCase("powerbidesktop", typeof(PowerBiDesktopMapper))]
     [TestCase("pbix", typeof(PowerBiDesktopMapper))]
     [TestCase("pbidesktop", typeof(PowerBiDesktopMapper))]
+    [TestCase("ssasmdx", typeof(SsasMultidimMapper))]
+    [TestCase("ssasmultidim", typeof(SsasMultidimMapper))]
     public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
     {
         var builder = new SchemeMapperBuilder([typeof(PowerBiPremiumMapper).Assembly]);
