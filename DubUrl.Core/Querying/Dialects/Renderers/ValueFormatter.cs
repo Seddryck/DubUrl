@@ -15,8 +15,8 @@ public class ValueFormatter : BaseValueFormatter
     {
         With(new BooleanFormatter());
         With(new GuidFormatter());
-        With<string>(new SimpleQuotedValueFormatter());
-        With<char>(new SimpleQuotedValueFormatter());
+        With<string>(new ValueSimpleQuotedFormatter());
+        With<char>(new ValueSimpleQuotedFormatter());
         With(new PrefixFormatter<DateOnly>("DATE", new DateFormatter()));
         With(new PrefixFormatter<TimeOnly>("TIME", new TimeFormatter()));
         With(new PrefixFormatter<DateTime>("TIMESTAMP", new TimestampFormatter()));

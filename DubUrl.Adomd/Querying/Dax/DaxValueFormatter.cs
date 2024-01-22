@@ -1,13 +1,13 @@
 ﻿using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Dialects.Formatters;
+using DubUrl.Adomd.Querying.Dax.Formatters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl.Adomd.Querying.Formatters;
 
-namespace DubUrl.Adomd.Querying;
+namespace DubUrl.Adomd.Querying.Dax;
 
 internal class DaxValueFormatter : BaseValueFormatter
 {
@@ -15,9 +15,9 @@ internal class DaxValueFormatter : BaseValueFormatter
     {
         With(new BooleanFormatter());
         With(new GuidFormatter());
-        With<string>(new DoubleQuotedValueFormatter());
-        With<char>(new DoubleQuotedValueFormatter());
-        With<char>(new DoubleQuotedValueFormatter());
+        With<string>(new ValueDoubleQuotedFormatter());
+        With<char>(new ValueDoubleQuotedFormatter());
+        With<char>(new ValueDoubleQuotedFormatter());
         With(new FunctionFormatter<DateOnly>("VALUE", new DaxDateFormatter()));
         With(new FunctionFormatter<TimeOnly>("VALUE", new DaxTimeFormatter()));
         With(new FunctionFormatter<DateTime>("VALUE", new DaxTimestampFormatter()));

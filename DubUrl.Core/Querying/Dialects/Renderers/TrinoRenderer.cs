@@ -13,5 +13,5 @@ internal class TrinoRenderer : AnsiRenderer
         : base(new ValueFormatter()
                     .With(new IntervalTrinoFormatter())
                 , new NullFormatter()
-                , new QuotedIdentifierFormatter()) { }
+                , new IdentifierQuotedFormatter()) { }
 }

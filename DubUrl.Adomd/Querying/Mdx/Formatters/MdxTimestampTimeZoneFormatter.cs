@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Querying.Formatters;
+namespace DubUrl.Adomd.Querying.Mdx.Formatters;
 
-internal class DaxTimestampTimeZoneFormatter : IValueFormatter<DateTimeOffset>
+internal class MdxTimestampTimeZoneFormatter : IValueFormatter<DateTimeOffset>
 {
     public string Format(DateTimeOffset value)
 #if NET7_0_OR_GREATER

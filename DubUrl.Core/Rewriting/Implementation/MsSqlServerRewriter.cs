@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class MsSqlServerRewriter : ConnectionStringRewriter
+public class MsSqlServerRewriter : ConnectionStringRewriter
 {
     protected internal const string SERVER_KEYWORD = "Data Source";
     protected internal const string DATABASE_KEYWORD = "Initial Catalog";
@@ -17,8 +17,12 @@ internal class MsSqlServerRewriter : ConnectionStringRewriter
     protected internal const string PASSWORD_KEYWORD = "Password";
     protected internal const string SSPI_KEYWORD = "Integrated Security";
 
+    protected MsSqlServerRewriter(ISpecificator specificator, BaseTokenMapper[] tokenMappers)
+        : base(specificator, tokenMappers)
+    { }
+
     public MsSqlServerRewriter(DbConnectionStringBuilder csb)
-        : base(new Specificator(csb),
+        : this(new Specificator(csb),
               [
                 new DataSourceMapper(),
                 new AuthentificationMapper(),
@@ -28,7 +32,7 @@ internal class MsSqlServerRewriter : ConnectionStringRewriter
         )
     { }
 
-    internal class DataSourceMapper : BaseTokenMapper
+    protected internal class DataSourceMapper : BaseTokenMapper
     {
         public override void Execute(UrlInfo urlInfo)
         {
@@ -43,7 +47,7 @@ internal class MsSqlServerRewriter : ConnectionStringRewriter
         }
     }
 
-    internal class AuthentificationMapper : BaseTokenMapper
+    protected internal class AuthentificationMapper : BaseTokenMapper
     {
         public override void Execute(UrlInfo urlInfo)
         {
@@ -59,7 +63,7 @@ internal class MsSqlServerRewriter : ConnectionStringRewriter
         }
     }
 
-    internal class InitialCatalogMapper : BaseTokenMapper
+    protected internal class InitialCatalogMapper : BaseTokenMapper
     {
         public override void Execute(UrlInfo urlInfo)
         {

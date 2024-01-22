@@ -13,9 +13,7 @@ public class PowerBiPremiumRewriterTest
     private const string PROVIDER_NAME = "Microsoft.AnalysisServices.AdomdClient";
 
     private static DbConnectionStringBuilder ConnectionStringBuilder
-    {
-        get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, AdomdFactory.Instance);
-    }
+        => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, AdomdFactory.Instance);
 
     [Test]
     [TestCase("/myWorkspace")]

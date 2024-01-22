@@ -1,4 +1,4 @@
-﻿using DubUrl.Adomd.Querying;
+﻿using DubUrl.Adomd.Querying.Dax;
 using DubUrl.Mapping;
 using System;
 using System.Collections.Generic;

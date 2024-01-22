@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Querying.Formatters;
+namespace DubUrl.Adomd.Querying.Dax.Formatters;
 
 internal class DaxTimestampFormatter : IValueFormatter<DateTime>
 {

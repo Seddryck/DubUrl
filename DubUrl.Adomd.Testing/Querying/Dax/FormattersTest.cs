@@ -1,4 +1,4 @@
-﻿using DubUrl.Adomd.Querying.Formatters;
+﻿using DubUrl.Adomd.Querying.Dax.Formatters;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Formatters;
 using NUnit.Framework;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Testing.Querying.Formatters;
+namespace DubUrl.Adomd.Testing.Querying.Dax;
 
 public class FormattersTest
 {
@@ -16,7 +16,7 @@ public class FormattersTest
     [TestCase("foo", "'foo'")]
     [TestCase("foo bar", "'foo bar'")]
     public void QuotedIdentifier_Format_Match(string value, string expected)
-        => Assert.That(new SingleQuotedIdentifierFormatter().Format(value), Is.EqualTo(expected));
+        => Assert.That(new IdentifierSingleQuotedFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase("2023-12-16 17:12:16", "\"2023-12-16 17:12:16\"")]
@@ -31,5 +31,5 @@ public class FormattersTest
     [Test]
     [TestCase("foo bar", "\"foo bar\"")]
     public void SimpleQuotedValueFormatter_Format_Match(string value, string expected)
-        => Assert.That(new DoubleQuotedValueFormatter().Format(value), Is.EqualTo(expected));
+        => Assert.That(new ValueDoubleQuotedFormatter().Format(value), Is.EqualTo(expected));
 }

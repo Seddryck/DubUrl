@@ -15,9 +15,7 @@ public class PowerBiDesktopRewriterTest
     private const string PROVIDER_NAME = "Microsoft.AnalysisServices.AdomdClient";
 
     private static DbConnectionStringBuilder ConnectionStringBuilder
-    {
-        get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, AdomdFactory.Instance);
-    }
+        => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, AdomdFactory.Instance);
 
     [Test]
     [TestCase("/myPowerBiFile")]
