@@ -5,20 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Formatters;
+using DubUrl.Querying.Dialects.Renderers;
 
-namespace DubUrl.Querying.Dialects.Renderers;
+namespace DubUrl.Adomd.Querying.Mdx;
 
-internal class AnsiRenderer : IRenderer
+internal class MdxRenderer : IRenderer
 {
     protected NullFormatter Null { get; }
     protected BaseValueFormatter Value { get; }
     protected IIdentifierFormatter Identity { get; }
 
-    protected AnsiRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
+    protected MdxRenderer(BaseValueFormatter value, NullFormatter @null, IIdentifierFormatter identity)
         => (Value, Null, Identity) = (value, @null, identity);
 
-    public AnsiRenderer()
-        : this(new ValueFormatter(), new NullFormatter(), new IdentifierQuotedFormatter()) { }
+    public MdxRenderer()
+        : this(new MdxValueFormatter(), new NullFormatter(), new IdentifierSquareBracketFormatter()) { }
 
     public string Render(object? obj, string format)
     {
@@ -30,7 +31,7 @@ internal class AnsiRenderer : IRenderer
 
         if (format.Equals("value", StringComparison.InvariantCultureIgnoreCase))
         {
-            if (obj is null || obj==DBNull.Value)
+            if (obj is null || obj == DBNull.Value)
                 return Null.Format();
             if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
                 return formatter.Format(obj);

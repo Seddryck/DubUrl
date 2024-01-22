@@ -1,4 +1,4 @@
-﻿using DubUrl.Adomd.Querying;
+﻿using DubUrl.Adomd.Querying.Dax;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Testing.Querying;
+namespace DubUrl.Adomd.Testing.Querying.Dax;
 
 public class DaxRendererTest
 {

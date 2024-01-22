@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects.Formatters;
 public class GuidFormatter : IValueFormatter<Guid>
 {
-    public string Format(Guid value)
+    public virtual string Format(Guid value)
         => $"'{value}'";
 
     public string Format(object obj)

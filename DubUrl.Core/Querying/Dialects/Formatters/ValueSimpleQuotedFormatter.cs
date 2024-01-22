@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-public class DoubleQuotedValueFormatter : IValueFormatter<string>, IValueFormatter<char>
+public class ValueSimpleQuotedFormatter : IValueFormatter<string>, IValueFormatter<char>
 {
     public string Format(string value)
-        => $"\"{value}\"";
+        => $"'{value}'";
     public string Format(char value)
-        => $"\"{value}\"";
+        => $"'{value}'";
     public string Format(object obj)
         => obj switch
         {

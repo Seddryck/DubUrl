@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Adomd.Querying;
+namespace DubUrl.Adomd.Querying.Dax;
 
 [Renderer<DaxRenderer>()]
 [ReturnCaster<DecimalConverter>()]

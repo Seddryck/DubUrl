@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class DuckDBQuotedIdentifierFormatter : QuotedIdentifierFormatter
+internal class DuckDBQuotedIdentifierFormatter : IdentifierQuotedFormatter
 {
     private IReadOnlyCollection<string> ReservedKeywords { get; }
 

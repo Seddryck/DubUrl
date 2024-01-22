@@ -13,5 +13,5 @@ internal class MySqlRenderer : AnsiRenderer
         : base(new ValueFormatter()
                     .With(new FunctionFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
               , new NullFormatter()
-              , new BacktickIdentifierFormatter()) { }
+              , new IdentifierBacktickFormatter()) { }
 }

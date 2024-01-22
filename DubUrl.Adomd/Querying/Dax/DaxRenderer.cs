@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Formatters;
 using DubUrl.Querying.Dialects.Renderers;
 
-namespace DubUrl.Adomd.Querying;
+namespace DubUrl.Adomd.Querying.Dax;
 
 internal class DaxRenderer : IRenderer
 {
@@ -19,7 +19,7 @@ internal class DaxRenderer : IRenderer
         => (Value, Null, Identity) = (value, @null, identity);
 
     public DaxRenderer()
-        : this(new DaxValueFormatter(), new NullFormatter(), new SingleQuotedIdentifierFormatter()) { }
+        : this(new DaxValueFormatter(), new NullFormatter(), new IdentifierSingleQuotedFormatter()) { }
 
     public string Render(object? obj, string format)
     {
@@ -31,7 +31,7 @@ internal class DaxRenderer : IRenderer
 
         if (format.Equals("value", StringComparison.InvariantCultureIgnoreCase))
         {
-            if (obj is null || obj==DBNull.Value)
+            if (obj is null || obj == DBNull.Value)
                 return Null.Format();
             if (Value.Values.TryGetValue(obj.GetType(), out var formatter))
                 return formatter.Format(obj);

@@ -13,6 +13,6 @@ internal class FirebirdSqlRenderer : AnsiRenderer
         : base(new ValueFormatter()
                     .With(new PrefixFormatter<TimeSpan>("TIME", new IntervalAsTimeFormatter()))
               , new NullFormatter()
-              , new QuotedIdentifierFormatter())
+              , new IdentifierQuotedFormatter())
     { }
 }

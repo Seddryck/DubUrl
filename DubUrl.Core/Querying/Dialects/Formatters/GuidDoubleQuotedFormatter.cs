@@ -5,9 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
-
-public class SingleQuotedIdentifierFormatter : QuotedIdentifierFormatter
+public class GuidDoubleQuotedFormatter : GuidFormatter
 {
-    protected override string SurroundByQuotes(string value)
-        => $"'{value}'";
+    public override string Format(Guid value)
+        => $"\"{value}\"";
 }
