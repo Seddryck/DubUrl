@@ -37,13 +37,28 @@ public abstract class BaseAdomdProvider
     public abstract string ConnectionString { get; }
 
     [Test]
-    public void Connect()
+    public virtual void Connect()
     {
         var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
         Console.WriteLine(connectionUrl.Parse());
 
         using var conn = connectionUrl.Connect();
         Assert.That(conn.State, Is.EqualTo(ConnectionState.Closed));
+    }
+
+    [Test]
+    public virtual void Open()
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        using var conn = connectionUrl.Open();
+        Assert.That(conn.State, Is.EqualTo(ConnectionState.Open));
+    }
+
+    [Test]
+    public virtual void OpenWrongUrl()
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString.Substring(0, ConnectionString.Length-2), SchemeMapperBuilder);
+        Assert.That(connectionUrl.Open, Throws.InstanceOf<Exception>());
     }
 
     [Test]
