@@ -14,12 +14,17 @@ using System.Xml.Schema;
 
 namespace DubUrl.Adomd.Rewriting;
 
-internal class SsasMultidimRewriter : MsSqlServerRewriter
+internal class SsasMultidimRewriter : ConnectionStringRewriter
 {
-    protected internal new const string DATABASE_KEYWORD = "Database";
+    protected internal const string SERVER_KEYWORD = "Data Source";
+    protected internal const string DATABASE_KEYWORD = "Database";
     protected internal const string CUBE_KEYWORD = "Cube";
+    protected internal const string USERNAME_KEYWORD = "User ID";
+    protected internal const string PASSWORD_KEYWORD = "Password";
+    protected internal const string SSPI_KEYWORD = "Integrated Security";
+
     public SsasMultidimRewriter(DbConnectionStringBuilder csb)
-        : base(csb,
+        : base(new UniqueAssignmentSpecificator(csb),
               [
                   new DataSourceMapper(),
                   new AuthentificationMapper(),
@@ -30,7 +35,7 @@ internal class SsasMultidimRewriter : MsSqlServerRewriter
         )
     { }
 
-    protected internal new class DataSourceMapper : BaseTokenMapper
+    protected internal class DataSourceMapper : BaseTokenMapper
     {
         public override void Execute(UrlInfo urlInfo)
         {
@@ -51,7 +56,7 @@ internal class SsasMultidimRewriter : MsSqlServerRewriter
         }
     }
 
-    protected internal new class AuthentificationMapper : BaseTokenMapper
+    protected internal class AuthentificationMapper : BaseTokenMapper
     {
         public override void Execute(UrlInfo urlInfo)
         {
@@ -64,7 +69,7 @@ internal class SsasMultidimRewriter : MsSqlServerRewriter
         }
     }
 
-    protected internal new class InitialCatalogMapper : BaseTokenMapper
+    protected internal class InitialCatalogMapper : BaseTokenMapper
     {
         public override void Execute(UrlInfo urlInfo)
         {

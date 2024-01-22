@@ -17,12 +17,12 @@ public class MsSqlServerRewriter : ConnectionStringRewriter
     protected internal const string PASSWORD_KEYWORD = "Password";
     protected internal const string SSPI_KEYWORD = "Integrated Security";
 
-    protected MsSqlServerRewriter(DbConnectionStringBuilder csb, BaseTokenMapper[] tokenMappers)
-        : base(new UniqueAssignmentSpecificator(csb), tokenMappers)
+    protected MsSqlServerRewriter(ISpecificator specificator, BaseTokenMapper[] tokenMappers)
+        : base(specificator, tokenMappers)
     { }
 
     public MsSqlServerRewriter(DbConnectionStringBuilder csb)
-        : this(csb,
+        : this(new Specificator(csb),
               [
                 new DataSourceMapper(),
                 new AuthentificationMapper(),
