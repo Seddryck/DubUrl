@@ -37,7 +37,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 [![Mappers for ADO.Net Provider implemented badge](https://img.shields.io/badge/Mappers%20for%20ADO.Net%20Provider-15%20implemented-green)](https://seddryck.github.io/DubUrl/docs/native-ado-net-providers)
 [![Mappers for ODBC drivers implemented badge](https://img.shields.io/badge/Mappers%20for%20ODBC%20drivers-11%20implemented-green)](https://seddryck.github.io/DubUrl/docs/odbc-driver-locators)
 [![Mappers for OLE DB providers implemented badge](https://img.shields.io/badge/Mappers%20for%20OLE%20DB%20providers-6%20implemented-green)](https://seddryck.github.io/DubUrl/docs/oledb-provider-locators)
-[![Mappers for ADOMD.NET providers implemented badge](https://img.shields.io/badge/Mappers%20for%20ADOMD.NET%20providers-2%20implemented-green)](https://seddryck.github.io/DubUrl/docs/adomd-providers)
+[![Mappers for ADOMD.NET providers implemented badge](https://img.shields.io/badge/Mappers%20for%20ADOMD.NET%20providers-5%20implemented-green)](https://seddryck.github.io/DubUrl/docs/adomd-providers)
 <!-- END BADGES -->
 
 [![Upcoming features badge](https://img.shields.io/github/issues/seddryck/DubUrl/upcoming-feature.svg?color=purple&label=Feature%20requests)](https://github.com/Seddryck/DubUrl/issues?utf8=%E2%9C%93&q=is:issue+is:open+label:new-feature+)
@@ -176,10 +176,13 @@ The following databases and their associated schemes are supported through the O
 The following databases and their associated schemes are supported through the ADOMD.NET data provider extension:
 
 <!-- START ADOMD TABLE -->
-|Database                                                                                                                      | Aliases                                            | Provider Invariant Name               |
-|----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------|
-|![Power BI Desktop](https://img.shields.io/badge/Power%20BI%20Desktop-F2C811?logo=powerbi&logoColor=000000&style=flat-square) | pbidesktop, pbix, powerbidesktop                   | Microsoft.AnalysisServices.AdomdClient|
-|![Power BI Premium](https://img.shields.io/badge/Power%20BI%20Premium-F2C811?logo=powerbi&logoColor=000000&style=flat-square) | powerbi, pbi, pbiazure, pbipremium, powerbipremium | Microsoft.AnalysisServices.AdomdClient|
+|Database                                                                                                                                                                                                     | Aliases                                            | Provider Invariant Name               |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- | --------------------------------------|
+|![Azure Analysis Services](https://img.shields.io/badge/Azure%20Analysis%20Services-0078D4?logo=microsoftazure&logoColor=FFFFFF&style=flat-square)                                                           | asazure, asa                                       | Microsoft.AnalysisServices.AdomdClient|
+|![Power BI Desktop](https://img.shields.io/badge/Power%20BI%20Desktop-F2C811?logo=powerbi&logoColor=000000&style=flat-square)                                                                                | pbidesktop, pbix, powerbidesktop                   | Microsoft.AnalysisServices.AdomdClient|
+|![Power BI Premium](https://img.shields.io/badge/Power%20BI%20Premium-F2C811?logo=powerbi&logoColor=000000&style=flat-square)                                                                                | powerbi, pbi, pbiazure, pbipremium, powerbipremium | Microsoft.AnalysisServices.AdomdClient|
+|![SQL Server Analysis Services - Multidimensional](https://img.shields.io/badge/SQL%20Server%20Analysis%20Services%20-%20Multidimensional-CC2927?logo=microsoftsqlserver&logoColor=FFFFFF&style=flat-square) | ssasmultidim, ssasmdx                              | Microsoft.AnalysisServices.AdomdClient|
+|![SQL Server Analysis Services - Tabular](https://img.shields.io/badge/SQL%20Server%20Analysis%20Services%20-%20Tabular-CC2927?logo=microsoftsqlserver&logoColor=FFFFFF&style=flat-square)                   | ssastabular, ssasdax                               | Microsoft.AnalysisServices.AdomdClient|
 <!-- END ADOMD TABLE -->
 
 ## Installing
@@ -207,6 +210,11 @@ Install-Package DubUrl.Adomd
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
 
 
 

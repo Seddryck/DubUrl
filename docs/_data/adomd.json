@@ -1,5 +1,17 @@
 [
   {
+    "Class": "AsAzureMapper",
+    "Database": "Azure Analysis Services",
+    "Aliases": [
+      "asazure",
+      "asa"
+    ],
+    "ProviderInvariantName": "Microsoft.AnalysisServices.AdomdClient",
+    "Slug": "microsoftazure",
+    "MainColor": "#0078D4",
+    "SecondaryColor": "#FFFFFF"
+  },
+  {
     "Class": "PowerBiDesktopMapper",
     "Database": "Power BI Desktop",
     "Aliases": [
@@ -26,5 +38,29 @@
     "Slug": "powerbi",
     "MainColor": "#F2C811",
     "SecondaryColor": "#000000"
+  },
+  {
+    "Class": "SsasMultidimMapper",
+    "Database": "SQL Server Analysis Services - Multidimensional",
+    "Aliases": [
+      "ssasmultidim",
+      "ssasmdx"
+    ],
+    "ProviderInvariantName": "Microsoft.AnalysisServices.AdomdClient",
+    "Slug": "microsoftsqlserver",
+    "MainColor": "#CC2927",
+    "SecondaryColor": "#FFFFFF"
+  },
+  {
+    "Class": "SsasTabularMapper",
+    "Database": "SQL Server Analysis Services - Tabular",
+    "Aliases": [
+      "ssastabular",
+      "ssasdax"
+    ],
+    "ProviderInvariantName": "Microsoft.AnalysisServices.AdomdClient",
+    "Slug": "microsoftsqlserver",
+    "MainColor": "#CC2927",
+    "SecondaryColor": "#FFFFFF"
   }
 ]
