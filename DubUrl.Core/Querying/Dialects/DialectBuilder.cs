@@ -21,11 +21,20 @@ public class DialectBuilder
     {
         IsBuilt = false;
 
-        if (DialectAliases.Values.Any(x => x.Any(d => aliases.Contains(d))))
-            return;
+        var existing = DialectAliases
+                        .Where(x => x.Value.Any(d => aliases.Contains(d)))
+                        .SingleOrDefault(x => x.Key != dialectType);
+        {
+            if (existing.Key is not null)
+                throw new DialectAliasAlreadyExistingException(
+                        aliases.Intersect(existing.Value).First()
+                        , existing.Key
+                        , dialectType
+                    );
+        }
 
         if (DialectAliases.TryGetValue(dialectType, out var existingAliases))
-            existingAliases.AddRange(aliases);
+            existingAliases.AddRange(aliases.Except(existingAliases));
         else
             DialectAliases.Add(dialectType, [.. aliases]);
     }

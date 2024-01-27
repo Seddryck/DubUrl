@@ -39,15 +39,26 @@ public class SchemeMapperBuilderTest
 
     private class StubMapper : BaseMapper
     {
-        public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 
+        public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
             : base(new StubRewriter(csb), dialect, parametrizer) { }
 
-        private class StubRewriter : ConnectionStringRewriter 
+        private class StubRewriter : ConnectionStringRewriter
         {
             public StubRewriter(DbConnectionStringBuilder csb)
                 : base(new Specificator(csb), []) { }
         }
+    }
 
+    private class FakeMapper : BaseMapper
+    {
+        public FakeMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+            : base(new FakeRewriter(csb), dialect, parametrizer) { }
+
+        private class FakeRewriter : ConnectionStringRewriter
+        {
+            public FakeRewriter(DbConnectionStringBuilder csb)
+                : base(new Specificator(csb), []) { }
+        }
     }
 
     [Test]
@@ -85,7 +96,7 @@ public class SchemeMapperBuilderTest
     }
 
     [Test]
-    [Ignore ("To be re-implemented")]
+    [Ignore("To be re-implemented")]
     public void AddAlias_NewScheme_CorrectType()
     {
         var weirdScheme = "xyz";
@@ -111,7 +122,7 @@ public class SchemeMapperBuilderTest
         Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
 
         DbProviderFactories.RegisterFactory(invariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer> (databaseName, new[] { weirdScheme }, invariantName);
+        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer>(databaseName, new[] { weirdScheme }, invariantName);
 
         builder.Build();
         var result = builder.GetMapper(weirdScheme); //Should exists
@@ -141,7 +152,7 @@ public class SchemeMapperBuilderTest
         var mysqlScheme = "mysql";
 
         var builder = new SchemeMapperBuilder();
-        if(!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
+        if (!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
             DbProviderFactories.RegisterFactory("MySql.Data", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
         builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
@@ -170,12 +181,27 @@ public class SchemeMapperBuilderTest
         builder.ReplaceDriverLocatorFactory(typeof(OdbcRewriter), factory);
 
         builder.Build();
-        var result = builder.GetMapper(new[] { "odbc", "foobar" });
+        var result = builder.GetMapper(["odbc", "foobar"]);
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.TypeOf<OdbcRewriter>());
             Assert.That(((OdbcRewriter)result).DriverLocatorFactory, Is.EqualTo(factory));
         });
+    }
+
+    [Test]
+    public void Build_TwiceTheSameAlias_Throws()
+    {
+        DbProviderFactories.RegisterFactory("fakedb.provider.instance", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+        var builder = new SchemeMapperBuilder([]);
+        builder.Initialize
+        (
+            [
+                new MapperInfo(typeof(FakeMapper), "FakeDB", ["fake"], typeof(AnsiDialect), 0, "fakedb.provider.instance", typeof(NamedParametrizer), string.Empty, "#fff", "#000"),
+                new MapperInfo(typeof(StubMapper), "StubDB", ["stub", "fake"], typeof(AnsiDialect), 0, "fakedb.provider.instance", typeof(NamedParametrizer), string.Empty, "#fff", "#000")
+            ]
+        );
+        Assert.That(builder.Build, Throws.TypeOf<MapperAlreadyExistingException>());
     }
 }
