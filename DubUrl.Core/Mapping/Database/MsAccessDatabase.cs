@@ -13,6 +13,6 @@ namespace DubUrl.Mapping.Database;
     , ["accdb", "access", "msaccess"]
     , DatabaseCategory.FileBased
 )]
-[Brand("microsoftaccess", "#217346")]
+[Brand("microsoftaccess", "#A4373A")]
 public class MsAccessDatabase : IDatabase
 { }
