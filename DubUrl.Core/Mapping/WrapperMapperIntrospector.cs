@@ -40,6 +40,7 @@ public class MissingConnectivityException : MissingElementException
         : base("connectivity", "connectivities", "mapper", locatorType, elementType, types) { }
 }
 
+
 public class WrapperMapperIntrospector : BaseMapperIntrospector
 {
     public WrapperMapperIntrospector()
