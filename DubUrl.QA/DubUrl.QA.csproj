@@ -6,12 +6,17 @@
 
   <ItemGroup>
     <None Remove="SelectAllCustomer.msdax" />
+    <None Remove="SelectAllCustomer.singlestore.sql" />
+    <None Remove="SelectCustomerById.singlestore.sql" />
     <None Remove="SelectFirstCustomer.msdax" />
+    <None Remove="SelectFirstCustomer.singlestore.sql" />
     <None Remove="SelectWhereCustomers.dax.st" />
     <None Remove="SelectYoungestCustomers.dax" />
+    <None Remove="SelectYoungestCustomers.singlestore.sql" />
   </ItemGroup>
   
   <ItemGroup>
+    <EmbeddedResource Include="SelectAllCustomer.singlestore.sql" />
     <EmbeddedResource Include="SelectAllCustomer.msdax" />
     <EmbeddedResource Include="SelectAllCustomer.trino.sql" />
     <EmbeddedResource Include="SelectAllCustomer.cockroach.sql" />
@@ -23,6 +28,8 @@
     <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
+    <EmbeddedResource Include="SelectCustomerById.singlestore.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.singlestore.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.msdax" />
     <EmbeddedResource Include="SelectWhereCustomers.dax.st" />
     
@@ -53,6 +60,7 @@
     <EmbeddedResource Include="SelectFirstCustomer.timescale.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.singlestore.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.dax" />
 
     <EmbeddedResource Include="SelectYoungestCustomers.cockroach.sql" />
@@ -77,6 +85,7 @@
     <PackageReference Include="MySqlConnector" Version="2.3.5" />
     <PackageReference Include="Npgsql" Version="8.0.1" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
+    <PackageReference Include="SingleStoreConnector" Version="1.1.4" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.7" />
     <PackageReference Include="System.Data.Odbc" Version="8.0.0" />
     <PackageReference Include="System.Data.OleDb" Version="8.0.0" />

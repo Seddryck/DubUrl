@@ -128,6 +128,18 @@
     "SecondaryColor": "#ffffff"
   },
   {
+    "Class": "SingleStoreMapper",
+    "Database": "SingleStore",
+    "Aliases": [
+      "singlestore",
+      "single"
+    ],
+    "ProviderInvariantName": "SingleStoreConnector",
+    "Slug": "singlestore",
+    "MainColor": "#AA00FF",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "SnowflakeMapper",
     "Database": "Snowflake",
     "Aliases": [

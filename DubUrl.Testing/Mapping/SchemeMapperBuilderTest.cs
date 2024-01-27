@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Rewriting.Implementation;
+using SingleStoreConnector;
 
 namespace DubUrl.Testing.Mapping;
 
@@ -33,6 +34,8 @@ public class SchemeMapperBuilderTest
         DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
         DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
+        DbProviderFactories.RegisterFactory("SingleStoreConnector", SingleStoreConnectorFactory.Instance);
+        DbProviderFactories.RegisterFactory("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance);
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
     }
@@ -76,6 +79,8 @@ public class SchemeMapperBuilderTest
     [TestCase("ts", typeof(TimescaleMapper))]
     [TestCase("quest", typeof(QuestDbMapper))]
     [TestCase("tr", typeof(TrinoMapper))]
+    [TestCase("single", typeof(SingleStoreMapper))]
+    [TestCase("duck", typeof(DuckdbMapper))]
     [TestCase("odbc+mssql", typeof(OdbcMapper))]
     [TestCase("mssql+odbc", typeof(OdbcMapper))]
     public void Instantiate_Scheme_CorrectType(string scheme, Type expected)
