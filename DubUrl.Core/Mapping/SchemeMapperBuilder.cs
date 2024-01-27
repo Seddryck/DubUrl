@@ -19,7 +19,7 @@ public class SchemeMapperBuilder
 
     private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
     private bool IsBuilt { get; set; } = false;
-    
+
     private List<MapperInfo> MapperData { get; } = [];
     protected Dictionary<string, IMapper> Mappers { get; set; } = [];
     private BaseMapperIntrospector[] MapperIntrospectors { get; } = [new NativeMapperIntrospector(), new WrapperMapperIntrospector()];
@@ -41,12 +41,14 @@ public class SchemeMapperBuilder
     }
 
     protected virtual void Initialize()
-    {
-        foreach (var mapperData
-            in MapperIntrospectors.Aggregate(
+        => Initialize(MapperIntrospectors.Aggregate(
                 Array.Empty<MapperInfo>(), (data, introspector)
                 => data.Concat(introspector.Locate()).ToArray())
-        )
+        );
+
+    protected internal virtual void Initialize(IEnumerable<MapperInfo> infos)
+    {
+        foreach (var mapperData in infos)
             AddMapping(mapperData);
     }
 
@@ -93,9 +95,9 @@ public class SchemeMapperBuilder
                     ?? throw new NullReferenceException();
 
             foreach (var alias in mapperData.Aliases)
-                Mappers.Add(alias, mapper);
+                if (!Mappers.TryAdd(alias, mapper))
+                    throw new MapperAlreadyExistingException(alias, Mappers[alias], mapper);
         }
-
         IsBuilt = true;
     }
 

@@ -1,6 +1,7 @@
 ﻿using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
+using Google.Apis.Util;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -70,6 +71,39 @@ public class DialectBuilderTest
         builder.Build();
         builder.AddAliases<MySqlDialect>(["maria"]);
         var ex = Assert.Throws<InvalidOperationException>(() => builder.Get<TSqlDialect>());
+    }
+
+    [Test]
+    public void AddAliases_TwiceTheSameAliasToDistinctDialect_ThrowsException()
+    {
+        var builder = new DialectBuilder();
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        Assert.That(() => builder.AddAliases<MySqlDialect>(["mssql"])
+                        , Throws.TypeOf<DialectAliasAlreadyExistingException>()
+                            .With.Message.EqualTo("The alias 'mssql' is already associated to the dialect 'TSqlDialect' and cannot be associated to a second dialect 'MySqlDialect'.")
+                        );
+    }
+
+    [Test]
+    public void AddAliases_AdditionalAlias_ContainsAllAliases()
+    {
+        var builder = new DialectBuilder();
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        Assert.That(() => builder.AddAliases<TSqlDialect>(["sql"]), Throws.Nothing);
+        builder.Build();
+        var dialect = builder.Get<TSqlDialect>();
+        Assert.That(dialect.Aliases, Is.EquivalentTo(new[] { "ms", "mssql", "sql"}));
+    }
+
+    [Test]
+    public void AddAliases_AdditionalAliasRepeatingExisting_ContainsAllAliases()
+    {
+        var builder = new DialectBuilder();
+        builder.AddAliases<TSqlDialect>(["ms", "mssql"]);
+        Assert.That(() => builder.AddAliases<TSqlDialect>(["sql", "ms", "tsql"]), Throws.Nothing);
+        builder.Build();
+        var dialect = builder.Get<TSqlDialect>();
+        Assert.That(dialect.Aliases, Is.EquivalentTo(new[] { "ms", "mssql", "sql", "tsql" }));
     }
 
     [Test]

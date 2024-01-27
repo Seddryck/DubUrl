@@ -16,3 +16,9 @@ public class DialectNotFoundException : DubUrlException
         : base($"No dialect is mapped to the scheme '{scheme}'. The list of valid dialects is '{string.Join("', '", validDialects.Select(x => x.Name))}'.")
     { }
 }
+
+public class DialectAliasAlreadyExistingException : DubUrlException
+{
+    public DialectAliasAlreadyExistingException(string alias, Type existing, Type newOne)
+        : base($"The alias '{alias}' is already associated to the dialect '{existing.Name}' and cannot be associated to a second dialect '{newOne.Name}'.") { }
+}
