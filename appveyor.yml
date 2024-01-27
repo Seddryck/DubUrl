@@ -140,7 +140,7 @@ on_success:
         & git add --all
         & git status
         & git pull
-        & git commit -m "Update automatically generated documentation related to schemes"
+        & git commit -m "docs: update automatically generated documentation"
         Write-Host "`tPushing commit ..."
         & git push origin
         Write-Host "`tNew commit uploaded."
