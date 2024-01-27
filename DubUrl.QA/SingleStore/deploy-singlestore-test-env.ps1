@@ -20,10 +20,11 @@ if ($force -or ($filesChanged -like "*singlestore*")) {
 	$previouslyRunning, $running = Deploy-Container -FullName "singlestore"
 	if (!$previouslyRunning){
 		$waitForAvailable = 10
-        Write-Host "$License env:SINGLESTORE_LICENSE"
+        Write-Host "License $env:SINGLESTORE_LICENSE"
 		Write-host "`tWaiting $waitForAvailable seconds for the SingleStore server to be available ..."
 		Start-Sleep -s $waitForAvailable
-        & docker container ls --format "{{.ID}}" --filter "name=singlestore"
+        x = & docker container ls --format "{{.ID}}" --filter "name=singlestore"
+        Write-Host "List: $x"
 		Write-host "`tSingleStore Server is expected to be available."
 	}
 
