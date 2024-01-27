@@ -58,6 +58,11 @@ public class FormattersTest
         => Assert.That(new DateFormatter().Format(DateOnly.Parse(value)), Is.EqualTo(expected));
 
     [Test]
+    [TestCase("2023-12-16", "#12/16/2023#")]
+    public void DateCrossSurroundingFormatter_Format_Match(string value, string expected)
+        => Assert.That(new DateCrossSurroundingFormatter().Format(DateOnly.Parse(value)), Is.EqualTo(expected));
+
+    [Test]
     [TestCase("17:02:46", "'17:02:46'")]
     [TestCase("17:02:46.128", "'17:02:46.128'")]
 #if NET7_0_OR_GREATER
