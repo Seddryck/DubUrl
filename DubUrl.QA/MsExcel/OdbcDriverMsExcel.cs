@@ -9,6 +9,7 @@ using System.Drawing;
 namespace DubUrl.QA.MsExcel;
 
 [Category("MsExcel")]
+[Category("ODBC")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public class OdbcDriverMsExcel : BaseOdbcDriver
 {

@@ -28,9 +28,6 @@ public abstract class AceProviderLocator : BaseProviderLocator
     }
     private Dictionary<string, decimal> Candidates { get; } = [];
 
-    public AceProviderLocator()
-        : base(GetRegexPattern<AceProviderLocator>()) { }
-
     internal AceProviderLocator(ProviderLister providerLister)
         : base(GetRegexPattern<AceProviderLocator>(), providerLister) { }
 
@@ -40,6 +37,13 @@ public abstract class AceProviderLocator : BaseProviderLocator
                 new ExtendedPropertiesMapper([value])
                 , new OleDbRewriter.DataSourceMapper() 
             ]) { }
+
+    public AceProviderLocator()
+    : base(GetRegexPattern<AceProviderLocator>(),
+        [
+            new OleDbRewriter.DataSourceMapper()
+        ])
+    { }
 
 
     protected override void AddCandidate(string provider, string[] matches)
@@ -75,4 +79,10 @@ public class AceXlsmProviderLocator : AceProviderLocator
 public class AceXlsbProviderLocator : AceProviderLocator
 {
     public AceXlsbProviderLocator() : base("Excel 12.0") { }
+}
+
+[ProviderSpecialization<AceProviderLocator>(["mdb", "accdb"])]
+public class AceMsAccessProviderLocator : AceProviderLocator
+{
+    public AceMsAccessProviderLocator() : base() { }
 }
