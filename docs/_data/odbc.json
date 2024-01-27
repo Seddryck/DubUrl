@@ -105,6 +105,20 @@
     "SecondaryColor": "#ffffff"
   },
   {
+    "Class": "MsAccessDriverLocator",
+    "Database": "Microsoft Access",
+    "Aliases": [
+      "accdb",
+      "access",
+      "msaccess"
+    ],
+    "NamePattern": "^\\bMicrosoft Access Driver\\s\\(\\*\\.mdb, \\*\\.accdb\\)$",
+    "Options": [],
+    "Slug": "microsoftaccess",
+    "MainColor": "#217346",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "MsExcelDriverLocator",
     "Database": "Microsoft Excel",
     "Aliases": [
