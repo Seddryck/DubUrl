@@ -9,6 +9,7 @@ using System.Drawing;
 namespace DubUrl.QA.MsAccess;
 
 [Category("MsAccess")]
+[Category("ODBC")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public class OdbcDriverMsAccess : BaseOdbcDriver
 {

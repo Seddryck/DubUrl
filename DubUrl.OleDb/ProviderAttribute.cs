@@ -59,5 +59,8 @@ public class ProviderSpecializationAttribute<P> : ProviderSpecializationAttribut
     where P : IProviderLocator
 {
     public ProviderSpecializationAttribute(string alias)
-        : base(typeof(P), alias) { }
+        : this([alias]) { }
+
+    public ProviderSpecializationAttribute(string[] aliases)
+        : base(typeof(P), aliases) { }
 }

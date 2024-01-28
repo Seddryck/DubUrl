@@ -3,6 +3,7 @@ using NUnit.Framework;
 namespace DubUrl.QA.MsExcel;
 
 [Category("MsExcel")]
+[Category("OleDB")]
 public class OleDbProviderMsExcel : BaseOleDbProvider
 {
     public override string ConnectionString

@@ -22,6 +22,8 @@ public class ProviderLocatorFactoryTest
     [TestCase("xlsx", typeof(AceXlsxProviderLocator))]
     [TestCase("xlsm", typeof(AceXlsmProviderLocator))]
     [TestCase("xlsb", typeof(AceXlsbProviderLocator))]
+    [TestCase("mdb", typeof(AceMsAccessProviderLocator))]
+    [TestCase("accdb", typeof(AceMsAccessProviderLocator))]
     public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
     {
         var probeMock = new Mock<ITypesProbe>();
@@ -29,6 +31,7 @@ public class ProviderLocatorFactoryTest
             new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
             , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
             , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
+            , typeof(AceMsAccessProviderLocator)
             , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
             }
         );
@@ -55,7 +58,8 @@ public class ProviderLocatorFactoryTest
         probeMock.Setup(x => x.Locate()).Returns(
             new[] {typeof(MssqlOleDbProviderLocator), typeof(MySqlProviderLocator)
             , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
-            , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator) 
+            , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
+            , typeof(AceMsAccessProviderLocator)
             , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
             }
         );
