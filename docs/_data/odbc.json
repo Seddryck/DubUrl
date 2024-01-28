@@ -115,7 +115,7 @@
     "NamePattern": "^\\bMicrosoft Access Driver\\s\\(\\*\\.mdb, \\*\\.accdb\\)$",
     "Options": [],
     "Slug": "microsoftaccess",
-    "MainColor": "#217346",
+    "MainColor": "#A4373A",
     "SecondaryColor": "#ffffff"
   },
   {

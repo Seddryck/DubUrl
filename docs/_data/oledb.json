@@ -74,5 +74,18 @@
     "MainColor": "#217346",
     "SecondaryColor": "#ffffff",
     "Options": "VersionOption"
+  },
+  {
+    "Class": "AceMsAccessProviderLocator",
+    "Database": "Microsoft Excel",
+    "Aliases": [
+      "mdb",
+      "accdb"
+    ],
+    "NamePattern": "^\\bMicrosoft\\.ACE\\.OLEDB\\.([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})$",
+    "Slug": "microsoftexcel",
+    "MainColor": "#217346",
+    "SecondaryColor": "#ffffff",
+    "Options": "VersionOption"
   }
 ]
