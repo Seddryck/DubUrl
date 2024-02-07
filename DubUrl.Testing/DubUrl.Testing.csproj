@@ -3,8 +3,8 @@
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
     <PackageReference Include="DuckDB.NET.Bindings" Version="0.9.2" />
     <PackageReference Include="DuckDB.NET.Data" Version="0.9.2" />
-    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.74.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
+    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.76.0" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
@@ -23,7 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="NUnit" Version="4.0.1" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.0.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.0.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
     <PackageReference Include="Moq" Version="4.20.70" />
