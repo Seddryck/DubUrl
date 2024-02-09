@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Rewriting;
 
 namespace DubUrl.OleDb;
 
@@ -25,12 +26,13 @@ public class ProviderLocatorIntrospector : BaseIntrospector
     protected virtual IEnumerable<ProviderLocatorInfo> LocateProviders()
     {
         var databases = LocateAttribute<DatabaseAttribute>();
-        var providers = LocateAttribute<ProviderAttribute>();
+        var providers = LocateAttribute<ProviderAttribute>().ToArray();
         var brands = LocateAttribute<BrandAttribute>();
 
         foreach (var provider in providers)
         {
-            var db = databases.Single(x => x.Type == provider.Attribute.Database);
+            var db = databases.SingleOrDefault(x => x.Type == provider.Attribute.Database)
+                        ?? throw new UnexpectedDatabaseException($"The locator '{provider.Type.Name}' was expecting a database '{provider.Attribute.Database.Name}' but it was not found.", provider.Attribute.Database.Name);
             var brand = brands.SingleOrDefault(x => x.Type == provider.Attribute.Database);
             yield return new ProviderLocatorInfo(
                     provider.Type

@@ -12,3 +12,12 @@ public class UnexpectedSchemesWithDriverNameException : DubUrlException
         : base($"The schemes '{string.Join("', '", schemes)}' are specified but the driver name '{driverName}' is also specified. It's not possible to provider the driver name and options for the driver location.")
     { }
 }
+
+public class UnexpectedDatabaseException : DubUrlException
+{
+    public string DatabaseName { get; }    
+
+    public UnexpectedDatabaseException(string message, string databaseName)
+        : base(message)
+    { DatabaseName = databaseName; }
+}
