@@ -110,7 +110,8 @@
     "Aliases": [
       "accdb",
       "access",
-      "msaccess"
+      "msaccess",
+      "mdb"
     ],
     "NamePattern": "^\\bMicrosoft Access Driver\\s\\(\\*\\.mdb, \\*\\.accdb\\)$",
     "Options": [],
