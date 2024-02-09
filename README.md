@@ -129,7 +129,7 @@ The following databases and their associated schemes are supported out of the bo
 |![Firebird SQL](https://img.shields.io/badge/Firebird%20SQL-333333?logo=&logoColor=ffffff&style=flat-square)                                     | fb, firebird                          | FirebirdSql.Data.FirebirdClient|
 |![SQLite3](https://img.shields.io/badge/SQLite3-003B57?logo=sqlite&logoColor=ffffff&style=flat-square)                                           | sq, sqlite                            | Microsoft.Data.Sqlite          |
 |![CockRoachDB](https://img.shields.io/badge/CockRoachDB-6933FF?logo=cockroachlabs&logoColor=ffffff&style=flat-square)                            | cr, cockroach, cockroachdb, crdb, cdb | Npgsql                         |
-|![SingleStore](https://img.shields.io/badge/SingleStore-AA00FF?logo=singlestore&logoColor=ffffff&style=flat-square)                              | singlestore, single                   | SingleStoreConnector           |
+|![SingleStore](https://img.shields.io/badge/SingleStore-AA00FF?logo=singlestore&logoColor=ffffff&style=flat-square)                              | sg, sgs, singlestore, single          | SingleStoreConnector           |
 |![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?logo=snowflake&logoColor=ffffff&style=flat-square)                                    | sf, snowflake                         | Snowflake.Data                 |
 |![Teradata](https://img.shields.io/badge/Teradata-F37440?logo=Teradata&logoColor=ffffff&style=flat-square)                                       | td, teradata, tera                    | Teradata.Client                |
 |![Trino](https://img.shields.io/badge/Trino-DD00A1?logo=trino&logoColor=ffffff&style=flat-square)                                                | tr, trino                             | NReco.PrestoAdo                |
@@ -213,6 +213,11 @@ Install-Package DubUrl.Adomd
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
 
 
 

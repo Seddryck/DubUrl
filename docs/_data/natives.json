@@ -131,6 +131,8 @@
     "Class": "SingleStoreMapper",
     "Database": "SingleStore",
     "Aliases": [
+      "sg",
+      "sgs",
       "singlestore",
       "single"
     ],
