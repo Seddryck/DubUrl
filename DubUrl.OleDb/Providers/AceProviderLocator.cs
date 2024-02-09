@@ -81,7 +81,7 @@ public class AceXlsbProviderLocator : AceProviderLocator
     public AceXlsbProviderLocator() : base("Excel 12.0") { }
 }
 
-[ProviderSpecialization<AceProviderLocator>(["mdb", "accdb"])]
+[ProviderSpecialization<AceProviderLocator, MsAccessDatabase>()]
 public class AceMsAccessProviderLocator : AceProviderLocator
 {
     public AceMsAccessProviderLocator() : base() { }

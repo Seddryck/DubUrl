@@ -31,7 +31,6 @@ public class MsAccessDriverLocator : BaseDriverLocator
     internal MsAccessDriverLocator(DriverLister driverLister)
         : base(GetRegexPattern<MsAccessDriverLocator>(), driverLister) { }
 
-
     protected override void AddCandidate(string driver, string[] matches)
         => Candidates.Add(driver);
 
