@@ -32,7 +32,7 @@ public class ProviderLocatorFactoryTest
             , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
             , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
             , typeof(AceMsAccessProviderLocator)
-            , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
+            , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase), typeof(MsAccessDatabase)
             }
         );
         var introspector = new ProviderLocatorIntrospector(probeMock.Object);
@@ -60,7 +60,7 @@ public class ProviderLocatorFactoryTest
             , typeof(AceXlsbProviderLocator), typeof(AceXlsmProviderLocator)
             , typeof(AceXlsProviderLocator), typeof(AceXlsxProviderLocator)
             , typeof(AceMsAccessProviderLocator)
-            , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase)
+            , typeof(MySqlDatabase), typeof(MsSqlServerDatabase), typeof(MsExcelDatabase), typeof(MsAccessDatabase)
             }
         );
         var introspector = new ProviderLocatorIntrospector(probeMock.Object);

@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<MsAccessDialect>(
     "Microsoft Access"
-    , ["accdb", "access", "msaccess"]
+    , ["accdb", "access", "msaccess", "mdb"]
     , DatabaseCategory.FileBased
 )]
 [Brand("microsoftaccess", "#A4373A")]

@@ -1,4 +1,5 @@
-﻿using DubUrl.OleDb.Providers;
+﻿using DubUrl.Mapping.Database;
+using DubUrl.OleDb.Providers;
 using DubUrl.Rewriting.Tokening;
 using NUnit.Framework;
 using System;
@@ -83,5 +84,15 @@ public class AceProviderLocatorTest
     {
         var aceProviderLocator = Activator.CreateInstance(aceProviderLocatorType) as AceProviderLocator ?? throw new InvalidCastException();
         Assert.That(aceProviderLocator.AdditionalMappers[0], Is.TypeOf<ExtendedPropertiesMapper>());
+    }
+
+    [Test]
+    public void AceMsAccessProviderLocator_Database_IsMsAccess()
+    {
+        var attr = typeof(AceMsAccessProviderLocator).GetCustomAttribute<ProviderAttribute>();
+        Assert.That(attr, Is.Not.Null);
+        Assert.That(attr.Database, Is.EqualTo(typeof(MsAccessDatabase)));
+        Assert.That(attr, Is.AssignableTo<ProviderSpecializationAttribute>());
+        Assert.That(((ProviderSpecializationAttribute)attr).Aliases, Does.Contain("msaccess"));
     }
 }

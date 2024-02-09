@@ -151,7 +151,7 @@ The following databases and their associated schemes are supported out of the bo
 |![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=000000&style=flat-square)                                             | duck, duckdb                         | ^\bDuckDB\s\bDriver$                                                       |
 |![Apache Drill](https://img.shields.io/badge/Apache%20Drill-333333?logo=&logoColor=ffffff&style=flat-square)                                     | drill                                | ^\bMapR Drill ODBC Driver$                                                 |
 |![Trino](https://img.shields.io/badge/Trino-DD00A1?logo=trino&logoColor=ffffff&style=flat-square)                                                | tr, trino                            | ^(Simba)\s\bTrino ODBC Driver$                                             |
-|![Microsoft Access](https://img.shields.io/badge/Microsoft%20Access-A4373A?logo=microsoftaccess&logoColor=ffffff&style=flat-square)              | accdb, access, msaccess              | ^\bMicrosoft Access Driver\s\(\*\.mdb, \*\.accdb\)$                        |
+|![Microsoft Access](https://img.shields.io/badge/Microsoft%20Access-A4373A?logo=microsoftaccess&logoColor=ffffff&style=flat-square)              | accdb, access, msaccess, mdb         | ^\bMicrosoft Access Driver\s\(\*\.mdb, \*\.accdb\)$                        |
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls, xlsx, xlsb, xlsm                | ^\bMicrosoft Excel Driver\s\(\*\.xls, \*\.xlsx, \*\.xlsm, \*\.xlsb\)$      |
 |![Text files](https://img.shields.io/badge/Text%20files-333333?logo=&logoColor=ffffff&style=flat-square)                                         | txt, csv, tsv                        | ^\bMicrosoft Access Text Driver\s\(\*\.txt, \*\.csv\)$                     |
 |![QuestDb](https://img.shields.io/badge/QuestDb-333333?logo=&logoColor=ffffff&style=flat-square)                                                 | quest, questdb                       | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
@@ -171,7 +171,7 @@ The following databases and their associated schemes are supported through the O
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsx                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsm                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsb                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
-|![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | mdb, accdb                        | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
+|![Microsoft Access](https://img.shields.io/badge/Microsoft%20Access-A4373A?logo=microsoftaccess&logoColor=ffffff&style=flat-square)              | accdb, access, msaccess, mdb      | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 <!-- END OLEDB TABLE -->
 
 ### Extension for ADOMD.NET data provider
@@ -213,6 +213,11 @@ Install-Package DubUrl.Adomd
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
 
 
 

@@ -77,14 +77,16 @@
   },
   {
     "Class": "AceMsAccessProviderLocator",
-    "Database": "Microsoft Excel",
+    "Database": "Microsoft Access",
     "Aliases": [
-      "mdb",
-      "accdb"
+      "accdb",
+      "access",
+      "msaccess",
+      "mdb"
     ],
     "NamePattern": "^\\bMicrosoft\\.ACE\\.OLEDB\\.([0-9]{1,2}(?:\\.[0-9]{1,2}){0,2})$",
-    "Slug": "microsoftexcel",
-    "MainColor": "#217346",
+    "Slug": "microsoftaccess",
+    "MainColor": "#A4373A",
     "SecondaryColor": "#ffffff",
     "Options": "VersionOption"
   }
