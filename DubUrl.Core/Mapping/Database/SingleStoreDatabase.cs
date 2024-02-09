@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<SingleStoreDialect>(
     "SingleStore"
-    , ["sg", "singlestore", "single"]
+    , ["sg", "sgs", "singlestore", "single"]
     , DatabaseCategory.Warehouse
 )]
 [Brand("singlestore", "#AA00FF")]
