@@ -1,17 +1,15 @@
 ﻿using DubUrl.Parsing;
-using DubUrl.Rewriting.Implementation;
-using Npgsql;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MySqlConnector;
+using DubUrl.Rewriting.Implementation;
+using DubUrl.Rewriting;
+using SingleStoreConnector;
+using Npgsql;
 
 namespace DubUrl.Testing.Rewriting.Implementation;
 
-public class CockRoachRewriterTest
+public class CrateDbRewriterTest
 {
     private const string PROVIDER_NAME = "Npgsql";
 
@@ -24,7 +22,7 @@ public class CockRoachRewriterTest
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
     {
         var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-        var mapper = new CockRoachRewriter(ConnectionStringBuilder);
+        var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -38,7 +36,7 @@ public class CockRoachRewriterTest
     public void Map_UrlInfo_Port(int expected, int port = 0, string host = "host", string segmentsList = "db")
     {
         var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
-        var mapper = new CockRoachRewriter(ConnectionStringBuilder);
+        var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -47,24 +45,22 @@ public class CockRoachRewriterTest
     }
 
     [Test]
-    public void Map_UrlInfoDefautPort_Port()
+    public void Map_UrlInfoDefautPort_NoPort()
     {
-        var urlInfo = new UrlInfo() { Host = "host", Segments = "db".Split('/') };
-        var mapper = new CockRoachRewriter(ConnectionStringBuilder);
+        var urlInfo = new UrlInfo() { Host = "host:5432", Segments = "db".Split('/') };
+        var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Does.ContainKey(PostgresqlRewriter.PORT_KEYWORD));
-        Assert.That(result[PostgresqlRewriter.PORT_KEYWORD], Is.EqualTo(26257));
+        Assert.That(result, Does.Not.ContainKey(PostgresqlRewriter.PORT_KEYWORD));
     }
-
 
     [Test]
     [TestCase("db", "db")]
     public void Map_UrlInfo_Database(string segmentsList, string expected)
     {
         var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
-        var mapper = new CockRoachRewriter(ConnectionStringBuilder);
+        var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -76,7 +72,7 @@ public class CockRoachRewriterTest
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
         var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
-        var rewriter = new CockRoachRewriter(ConnectionStringBuilder);
+        var rewriter = new CrateDbRewriter(ConnectionStringBuilder);
         var result = rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -100,7 +96,7 @@ public class CockRoachRewriterTest
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
         var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
-        var rewriter = new CockRoachRewriter(ConnectionStringBuilder);
+        var rewriter = new CrateDbRewriter(ConnectionStringBuilder);
         var result = rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -122,7 +118,7 @@ public class CockRoachRewriterTest
         urlInfo.Options.Add("Application Name", "myApp");
         urlInfo.Options.Add("Persist Security Info", "true");
 
-        var mapper = new CockRoachRewriter(ConnectionStringBuilder);
+        var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
