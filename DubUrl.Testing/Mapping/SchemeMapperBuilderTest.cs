@@ -80,6 +80,7 @@ public class SchemeMapperBuilderTest
     [TestCase("quest", typeof(QuestDbMapper))]
     [TestCase("tr", typeof(TrinoMapper))]
     [TestCase("single", typeof(SingleStoreMapper))]
+    [TestCase("crate", typeof(CrateDbMapper))]
     [TestCase("duck", typeof(DuckdbMapper))]
     [TestCase("odbc+mssql", typeof(OdbcMapper))]
     [TestCase("mssql+odbc", typeof(OdbcMapper))]

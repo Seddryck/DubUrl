@@ -8,7 +8,6 @@ using Dapper;
 using DubUrl.QA.Dapper;
 using static DubUrl.QA.MicroOrmCustomerRepository;
 using System.Linq.Expressions;
-using Microsoft.Data.SqlClient;
 
 namespace DubUrl.QA;
 
