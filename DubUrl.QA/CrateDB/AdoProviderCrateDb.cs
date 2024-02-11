@@ -40,17 +40,17 @@ public class AdoProviderCrateDb : BaseAdoProviderPostgresql
         => base.QueryTwoYoungestCustomersWithRepositoryFactory();
 
     [Test]
-    [Ignore("CrateDB: limited support of date/time/interval")]
+    [Ignore("CrateDB: limited support of date/time/interval types")]
     public override void QueryDateWithDatabaseUrl()
         => base.QueryDateWithDatabaseUrl();
 
     [Test]
-    [Ignore("CrateDB: limited support of date/time/interval")]
+    [Ignore("CrateDB: limited support of date/time/interval types")]
     public override void QueryIntervalWithDatabaseUrl()
         => base.QueryIntervalWithDatabaseUrl();
 
     [Test]
-    [Ignore("CrateDB: limited support of date/time/interval")]
+    [Ignore("CrateDB: limited support of date/time/interval types")]
     public override void QueryTimeWithDatabaseUrl()
         => base.QueryTimeWithDatabaseUrl();
 }
