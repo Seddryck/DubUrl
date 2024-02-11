@@ -41,6 +41,19 @@
     "SecondaryColor": "#ffffff"
   },
   {
+    "Class": "OracleManagedDataAccessMapper",
+    "Database": "Oracle Database",
+    "Aliases": [
+      "oracle",
+      "or",
+      "ora"
+    ],
+    "ProviderInvariantName": "Oracle.ManagedDataAccess",
+    "Slug": "oracle",
+    "MainColor": "#F80000",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "Db2Mapper",
     "Database": "IBM DB2",
     "Aliases": [
@@ -61,19 +74,6 @@
     "ProviderInvariantName": "MySqlConnector",
     "Slug": "mariadb",
     "MainColor": "#003545",
-    "SecondaryColor": "#ffffff"
-  },
-  {
-    "Class": "OracleManagedDataAccessMapper",
-    "Database": "Oracle Database",
-    "Aliases": [
-      "oracle",
-      "or",
-      "ora"
-    ],
-    "ProviderInvariantName": "Oracle.ManagedDataAccess",
-    "Slug": "oracle",
-    "MainColor": "#F80000",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -113,32 +113,16 @@
     "SecondaryColor": "#ffffff"
   },
   {
-    "Class": "CockRoachMapper",
-    "Database": "CockRoachDB",
+    "Class": "TeradataMapper",
+    "Database": "Teradata",
     "Aliases": [
-      "cr",
-      "cockroach",
-      "cockroachdb",
-      "crdb",
-      "cdb"
+      "td",
+      "teradata",
+      "tera"
     ],
-    "ProviderInvariantName": "Npgsql",
-    "Slug": "cockroachlabs",
-    "MainColor": "#6933FF",
-    "SecondaryColor": "#ffffff"
-  },
-  {
-    "Class": "SingleStoreMapper",
-    "Database": "SingleStore",
-    "Aliases": [
-      "sg",
-      "sgs",
-      "singlestore",
-      "single"
-    ],
-    "ProviderInvariantName": "SingleStoreConnector",
-    "Slug": "singlestore",
-    "MainColor": "#AA00FF",
+    "ProviderInvariantName": "Teradata.Client",
+    "Slug": "Teradata",
+    "MainColor": "#F37440",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -154,16 +138,45 @@
     "SecondaryColor": "#ffffff"
   },
   {
-    "Class": "TeradataMapper",
-    "Database": "Teradata",
+    "Class": "CockRoachMapper",
+    "Database": "CockRoachDB",
     "Aliases": [
-      "td",
-      "teradata",
-      "tera"
+      "cr",
+      "cockroach",
+      "cockroachdb",
+      "crdb",
+      "cdb"
     ],
-    "ProviderInvariantName": "Teradata.Client",
-    "Slug": "Teradata",
-    "MainColor": "#F37440",
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "cockroachlabs",
+    "MainColor": "#6933FF",
+    "SecondaryColor": "#ffffff"
+  },
+  {
+    "Class": "CrateDbMapper",
+    "Database": "CrateDB",
+    "Aliases": [
+      "crt",
+      "crate",
+      "cratedb"
+    ],
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "cratedb",
+    "MainColor": "#009DC7",
+    "SecondaryColor": "#ffffff"
+  },
+  {
+    "Class": "SingleStoreMapper",
+    "Database": "SingleStore",
+    "Aliases": [
+      "sg",
+      "sgs",
+      "singlestore",
+      "single"
+    ],
+    "ProviderInvariantName": "SingleStoreConnector",
+    "Slug": "singlestore",
+    "MainColor": "#AA00FF",
     "SecondaryColor": "#ffffff"
   },
   {
