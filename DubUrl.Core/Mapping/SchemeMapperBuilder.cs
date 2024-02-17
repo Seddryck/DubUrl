@@ -1,4 +1,5 @@
 ﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Mapping.Connectivity;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting;
@@ -8,6 +9,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,6 +24,7 @@ public class SchemeMapperBuilder
 
     private List<MapperInfo> MapperData { get; } = [];
     protected Dictionary<string, IMapper> Mappers { get; set; } = [];
+    protected Dictionary<string, IWrapperConnectivity> Wrappers { get; set; } = [];
     private BaseMapperIntrospector[] MapperIntrospectors { get; } = [new NativeMapperIntrospector(), new WrapperMapperIntrospector()];
     private DialectBuilder DialectBuilder { get; } = new();
 
@@ -34,17 +37,17 @@ public class SchemeMapperBuilder
         MapperIntrospectors =
         [
             new NativeMapperIntrospector(asmTypesProbe)
-            ,
-            new WrapperMapperIntrospector(asmTypesProbe)
+            , new WrapperMapperIntrospector(asmTypesProbe)
         ];
         Initialize();
     }
 
     protected virtual void Initialize()
-        => Initialize(MapperIntrospectors.Aggregate(
+    {
+        Initialize(MapperIntrospectors.Aggregate(
                 Array.Empty<MapperInfo>(), (data, introspector)
-                => data.Concat(introspector.Locate()).ToArray())
-        );
+                => [.. data, .. introspector.Locate()]));
+    }
 
     protected internal virtual void Initialize(IEnumerable<MapperInfo> infos)
     {
@@ -98,22 +101,25 @@ public class SchemeMapperBuilder
                 if (!Mappers.TryAdd(alias, mapper))
                     throw new MapperAlreadyExistingException(alias, Mappers[alias], mapper);
         }
+
+        Wrappers = Mappers.Select(x => x.Value.GetConnectivity())
+                    .Where(x => x is IWrapperConnectivity)
+                    .Cast<IWrapperConnectivity>()
+                    .Distinct(new WrapperConnectivityComparer())
+                    .ToDictionary(x => x.Alias);
+
         IsBuilt = true;
     }
 
-    private static string GetAlias(string[] aliases)
+    private string GetAlias(string[] aliases)
     {
-        var mainAlias = aliases.Length == 1
-            ? aliases[0]
-            : aliases.Contains("oledb")
-                ? "oledb"
-                : aliases.Contains("odbc")
-                    ? "odbc"
-                    : throw new ArgumentOutOfRangeException(nameof(aliases));
+        var wrapperAlias = Wrappers.SingleOrDefault(x => aliases.Contains(x.Key)).Value?.Alias;
+        if (aliases.Length > 1 && string.IsNullOrEmpty(wrapperAlias))
+            throw new ArgumentOutOfRangeException(nameof(aliases));
 
-        var secondAlias = aliases.SkipWhile(x => x.Equals(mainAlias)).FirstOrDefault();
+        var databaseAlias = aliases.SkipWhile(x => x.Equals(wrapperAlias)).First();
 
-        return string.IsNullOrEmpty(secondAlias) ? mainAlias : $"{mainAlias}+{secondAlias}";
+        return string.IsNullOrEmpty(wrapperAlias) ? databaseAlias : $"{wrapperAlias}+{databaseAlias}";
     }
 
     public IMapper GetMapper(string alias)
@@ -126,10 +132,10 @@ public class SchemeMapperBuilder
 
         var alias = GetAlias(aliases);
 
-        if (!Mappers.ContainsKey(alias))
+        if (!Mappers.TryGetValue(alias, out var mapper))
             throw new SchemeNotFoundException(alias, [.. Mappers.Keys]);
 
-        return Mappers[alias];
+        return mapper;
     }
 
     public virtual DbProviderFactory GetProviderFactory(string[] aliases)
