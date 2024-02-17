@@ -9,7 +9,7 @@ if ($force) {
 	Write-Host "Enforcing QA testing for DuckDB"
 }
 
-$rootUrl = "https://github.com/duckdb/duckdb/releases/latest/download"
+$rootUrl = "https://github.com/duckdb/duckdb/releases/v0.9.2/download"
 if (-not($env:PATH -like "7-zip")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
 }
