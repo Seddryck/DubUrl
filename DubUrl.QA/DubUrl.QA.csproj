@@ -93,7 +93,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.2" />
     <PackageReference Include="MySqlConnector" Version="2.3.5" />
-    <PackageReference Include="Npgsql" Version="8.0.1" />
+    <PackageReference Include="Npgsql" Version="8.0.2" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.4" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8" />
