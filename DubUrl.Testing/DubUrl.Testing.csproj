@@ -8,7 +8,7 @@
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
-    <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.300" Condition="'$(TargetFramework)' != 'net8.0'" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.400" Condition="'$(TargetFramework)' != 'net8.0'" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.2" />
     <PackageReference Include="MySql.Data" Version="8.3.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.5" />
@@ -21,7 +21,7 @@
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="NUnit" Version="4.0.1" />
     <PackageReference Include="NUnit.Analyzers" Version="4.0.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
