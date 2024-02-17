@@ -8,25 +8,25 @@ updates:
   - package-ecosystem: "nuget" 
     directory: "/DubUrl.Core/" 
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
     directory: "/DubUrl.OleDb/" 
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Extensions.DependencyInjection/" 
+    directory: "/DubUrl.Extensions/" 
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
     directory: "/DubUrl.Adomd/" 
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
@@ -42,7 +42,7 @@ updates:
     labels:
       - "dependency-update"
   - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Extensions.DependencyInjection.Testing/"
+    directory: "/DubUrl.Extensions.Testing/"
     schedule:
       interval: "weekly"
     labels:
