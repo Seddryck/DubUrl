@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{95E83BA6
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		.github\conventional_commits_labels.json = .github\conventional_commits_labels.json
+		.github\dependabot.yml = .github\dependabot.yml
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		github.ps1 = github.ps1
