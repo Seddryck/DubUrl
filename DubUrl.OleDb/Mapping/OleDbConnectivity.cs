@@ -16,7 +16,7 @@ namespace DubUrl.OleDb.Mapping;
     "OLE DB"
     , ["oledb"]
 )]
-public class OleDbConnectivity : IWrapperConnectivity 
+public class OleDbConnectivity : IWrapperConnectivity, ISchemeHandler
 {
     private string[]? schemes = null;
     public string[] Schemes
