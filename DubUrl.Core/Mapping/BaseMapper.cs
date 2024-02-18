@@ -3,6 +3,7 @@ using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting;
+using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -16,12 +17,12 @@ namespace DubUrl.Mapping;
 
 public abstract class BaseMapper : IMapper
 {
-    private IConnectionStringRewriter Rewriter { get; }
+    private ConnectionStringRewriter Rewriter { get; }
     
     protected IDialect Dialect { get; }
     protected IParametrizer Parametrizer { get; }
 
-    public BaseMapper(IConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
+    public BaseMapper(ConnectionStringRewriter rewriter, IDialect dialect, IParametrizer parametrizer)
         => (Rewriter, Dialect, Parametrizer) = (rewriter, dialect, parametrizer);
 
     public string GetConnectionString()
@@ -41,6 +42,10 @@ public abstract class BaseMapper : IMapper
         
     public IParametrizer GetParametrizer()
         => Parametrizer;
+
     public IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo)
         => Rewriter.Execute(urlInfo);
+
+    public void PrependTokenMapper(ITokenMapper mapper)
+        => Rewriter.Prepend(mapper);
 }

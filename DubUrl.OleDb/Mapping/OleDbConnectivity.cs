@@ -18,8 +18,16 @@ namespace DubUrl.OleDb.Mapping;
 )]
 public class OleDbConnectivity : IWrapperConnectivity 
 {
+    private string[]? schemes = null;
+    public string[] Schemes
+        => schemes ??= GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases
+                ?? throw new ArgumentNullException();
+
     public string Alias
-        => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;
+        => Schemes[0];
+
+    public bool CanHandle(string scheme)
+        => Schemes.Contains(scheme);
 
     public IEnumerable<string> DefineAliases(WrapperConnectivityAttribute connectivity, DatabaseAttribute database, LocatorAttribute locator)
         => CartesianProduct(connectivity.Aliases, 

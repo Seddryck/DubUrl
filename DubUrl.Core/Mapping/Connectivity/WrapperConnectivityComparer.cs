@@ -19,5 +19,4 @@ internal class WrapperConnectivityComparer : IEqualityComparer<IWrapperConnectiv
         
     public int GetHashCode([DisallowNull] IWrapperConnectivity obj)
         => obj.Alias.GetHashCode();
-
 }

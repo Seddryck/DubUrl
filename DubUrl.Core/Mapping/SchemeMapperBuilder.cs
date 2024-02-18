@@ -23,9 +23,10 @@ public class SchemeMapperBuilder
     private bool IsBuilt { get; set; } = false;
 
     private List<MapperInfo> MapperData { get; } = [];
+    private List<Type> SchemeHandlerTypes { get; } = [];
+
     protected Dictionary<string, IMapper> Mappers { get; set; } = [];
-    protected Dictionary<string, IWrapperConnectivity> Wrappers { get; set; } = [];
-    private BaseMapperIntrospector[] MapperIntrospectors { get; } = [new NativeMapperIntrospector(), new WrapperMapperIntrospector()];
+    protected Dictionary<string, ISchemeHandler> SchemeHandlers { get; set; } = [];
     private DialectBuilder DialectBuilder { get; } = new();
 
     public SchemeMapperBuilder()
@@ -34,17 +35,19 @@ public class SchemeMapperBuilder
     public SchemeMapperBuilder(Assembly[] assemblies)
     {
         var asmTypesProbe = new AssemblyTypesProbe(assemblies);
-        MapperIntrospectors =
-        [
-            new NativeMapperIntrospector(asmTypesProbe)
-            , new WrapperMapperIntrospector(asmTypesProbe)
-        ];
-        Initialize();
+        Initialize
+        (
+            [
+                new NativeMapperIntrospector(asmTypesProbe)
+                , new WrapperMapperIntrospector(asmTypesProbe)
+            ]
+        );
+        Initialize(new SchemeHandlerIntrospector(asmTypesProbe));
     }
 
-    protected virtual void Initialize()
+    protected virtual void Initialize(BaseMapperIntrospector[] mapperIntrospectors)
     {
-        Initialize(MapperIntrospectors.Aggregate(
+        Initialize(mapperIntrospectors.Aggregate(
                 Array.Empty<MapperInfo>(), (data, introspector)
                 => [.. data, .. introspector.Locate()]));
     }
@@ -53,6 +56,13 @@ public class SchemeMapperBuilder
     {
         foreach (var mapperData in infos)
             AddMapping(mapperData);
+    }
+
+    protected virtual void Initialize(SchemeHandlerIntrospector introspector)
+    {
+        var schemeHandlers = introspector.Locate();
+        foreach (var schemeHandler in schemeHandlers)
+                SchemeHandlerTypes.Add(schemeHandler);
     }
 
     public bool CanHandle(string scheme)
@@ -83,13 +93,6 @@ public class SchemeMapperBuilder
                 , DialectBuilder.Get(mapperData.Aliases.First())
                 , ParametrizerFactory.Instantiate(mapperData.ParametrizerType)
             };
-
-            //if (mapperData.DriverLocatorFactory != null)
-            //{
-            //    ctorParamTypes.Add(typeof(DriverLocatorFactory));
-            //    ctorParams.Add(mapperData.Value.DriverLocatorFactory);
-            //}
-
             var ctor = mapperData.MapperType.GetConstructor(
                             BindingFlags.Instance | BindingFlags.Public,
                             [.. ctorParamTypes]
@@ -102,24 +105,28 @@ public class SchemeMapperBuilder
                     throw new MapperAlreadyExistingException(alias, Mappers[alias], mapper);
         }
 
-        Wrappers = Mappers.Select(x => x.Value.GetConnectivity())
-                    .Where(x => x is IWrapperConnectivity)
-                    .Cast<IWrapperConnectivity>()
-                    .Distinct(new WrapperConnectivityComparer())
-                    .ToDictionary(x => x.Alias);
-
+        SchemeHandlers.Clear();
+        foreach (var schemeHandlerType in SchemeHandlerTypes)
+        {
+            var schemeHandler = (ISchemeHandler)(Activator.CreateInstance(schemeHandlerType) ?? throw new ArgumentException());
+            foreach (var scheme in schemeHandler.Schemes)
+                SchemeHandlers.Add(scheme, schemeHandler);
+        }
         IsBuilt = true;
     }
 
     private string GetAlias(string[] aliases)
     {
-        var wrapperAlias = Wrappers.SingleOrDefault(x => aliases.Contains(x.Key)).Value?.Alias;
-        if (aliases.Length > 1 && string.IsNullOrEmpty(wrapperAlias))
+        var schemeHandlers = SchemeHandlers.Where(x => aliases.Contains(x.Key));
+        var schemes = schemeHandlers.Aggregate(Array.Empty<string>(), (data, handler)
+                => [.. data, .. handler.Value.Schemes]);
+        if (aliases.Length - schemeHandlers.Count() != 1)
             throw new ArgumentOutOfRangeException(nameof(aliases));
 
-        var databaseAlias = aliases.SkipWhile(x => x.Equals(wrapperAlias)).First();
+        var databaseAlias = aliases.Single(x => !schemes.Contains(x));
+        var wrapperHandler = schemeHandlers.SingleOrDefault(x => x.Value is IWrapperConnectivity); 
 
-        return string.IsNullOrEmpty(wrapperAlias) ? databaseAlias : $"{wrapperAlias}+{databaseAlias}";
+        return wrapperHandler.Value is null ? databaseAlias : $"{wrapperHandler.Value.Schemes[0]}+{databaseAlias}";
     }
 
     public IMapper GetMapper(string alias)

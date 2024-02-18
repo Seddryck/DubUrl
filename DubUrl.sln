@@ -67,6 +67,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Adomd", "DubUrl.Adom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Adomd.Testing", "DubUrl.Adomd.Testing\DubUrl.Adomd.Testing.csproj", "{079A2CF7-4031-4788-B11D-346336AFAAFE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Encryption", "DubUrl.Encryption\DubUrl.Encryption.csproj", "{D1589751-56E3-4928-B545-A83CDFFF8300}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -109,6 +111,10 @@ Global
 		{079A2CF7-4031-4788-B11D-346336AFAAFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{079A2CF7-4031-4788-B11D-346336AFAAFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{079A2CF7-4031-4788-B11D-346336AFAAFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1589751-56E3-4928-B545-A83CDFFF8300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1589751-56E3-4928-B545-A83CDFFF8300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1589751-56E3-4928-B545-A83CDFFF8300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1589751-56E3-4928-B545-A83CDFFF8300}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,6 +131,7 @@ Global
 		{BAFC00CA-8CE9-4A48-B05B-45982D1F6F0F} = {95E83BA6-B535-4D56-B06A-D00249A4EF00}
 		{B785C4D7-06AE-4FC4-999D-7C4CA4AFA4BD} = {5753A175-C643-4A9E-8532-E4D4CE251C1D}
 		{079A2CF7-4031-4788-B11D-346336AFAAFE} = {5753A175-C643-4A9E-8532-E4D4CE251C1D}
+		{D1589751-56E3-4928-B545-A83CDFFF8300} = {AD94AAB8-523D-44E3-AAB6-29FA38611B8F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}

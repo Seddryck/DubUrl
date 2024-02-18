@@ -12,7 +12,7 @@ namespace DubUrl.Rewriting;
 public class ConnectionStringRewriter : IConnectionStringRewriter
 {
     private ISpecificator Specificator { get; }
-    protected BaseTokenMapper[] TokenMappers { get; }
+    protected IEnumerable<ITokenMapper> TokenMappers { get; set; }
     public string ConnectionString
     { get => Specificator.ConnectionString; }
 
@@ -29,13 +29,19 @@ public class ConnectionStringRewriter : IConnectionStringRewriter
         return Specificator.ToReadOnlyDictionary();
     }
 
-    protected void ReplaceTokenMapper(Type oldMapperType, BaseTokenMapper newMapper)
+    protected void Replace(Type oldMapperType, BaseTokenMapper newMapper)
     {
-        for (int i = 0; i < TokenMappers.Length; i++)
+        var tokenMappers = TokenMappers.ToArray();
+        for (int i = 0; i < tokenMappers.Length; i++)
         {
-            if (TokenMappers[i].GetType() == oldMapperType)
-                TokenMappers[i] = newMapper;
+            if (tokenMappers[i].GetType() == oldMapperType)
+                tokenMappers[i] = newMapper;
         }
+        TokenMappers = tokenMappers;
     }
 
+    public void Prepend(ITokenMapper mapper)
+        => TokenMappers = TokenMappers.Prepend(mapper);
+    public void Append(ITokenMapper mapper)
+        => TokenMappers = TokenMappers.Append(mapper);
 }

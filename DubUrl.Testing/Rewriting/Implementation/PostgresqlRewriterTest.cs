@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System.Data.Common;
 using Npgsql;
 using DubUrl.Rewriting.Implementation;
+using DubUrl.Rewriting.Tokening;
 
 namespace DubUrl.Testing.Rewriting.Implementation;
 
@@ -106,8 +107,8 @@ public class PostrgresqlRewriterTest
         urlInfo.Options.Add("Application Name", "myApp");
         urlInfo.Options.Add("Persist Security Info", "true");
 
-        var Rewriter = new PostgresqlRewriter(ConnectionStringBuilder);
-        var result = Rewriter.Execute(urlInfo);
+        var rewriter = new PostgresqlRewriter(ConnectionStringBuilder);
+        var result = rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey("Application Name"));
@@ -119,5 +120,39 @@ public class PostrgresqlRewriterTest
         Assert.That(result["Persist Security Info"], Is.True);
     }
 
+    private class SslTokenMapper : BaseTokenMapper
+    {
+        public override void Execute(UrlInfo urlInfo)
+        {
+            if (urlInfo.Schemes.Contains("ssl", StringComparer.OrdinalIgnoreCase))
+                Specificator.Execute("SSL Mode", "require");
+        }
+    }
 
+    [Test]
+    public void Prepend_SslTokenMapper_ConnectionString()
+    {
+        var urlInfo = new UrlInfo() { Schemes=["ssl"], Host="localhost", Segments = ["db"] };
+
+        var rewriter = new PostgresqlRewriter(ConnectionStringBuilder);
+        rewriter.Prepend(new SslTokenMapper());
+        var result = rewriter.Execute(urlInfo);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.ContainKey("SSL Mode"));
+        Assert.That(result["SSL Mode"], Is.EqualTo(SslMode.Require));
+    }
+
+    [Test]
+    public void Prepend_NoSslTokenMapper_ConnectionString()
+    {
+        var urlInfo = new UrlInfo() { Schemes = [], Host = "localhost", Segments = ["db"] };
+
+        var rewriter = new PostgresqlRewriter(ConnectionStringBuilder);
+        rewriter.Prepend(new SslTokenMapper());
+        var result = rewriter.Execute(urlInfo);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.Not.ContainKey("SSL Mode"));
+    }
 }

@@ -15,7 +15,7 @@ internal class CockRoachRewriter : PostgresqlRewriter
 
     public CockRoachRewriter(DbConnectionStringBuilder csb)
         : base(csb)
-        => ReplaceTokenMapper(typeof(PostgresqlRewriter.PortMapper), new PortMapper());
+        => Replace(typeof(PostgresqlRewriter.PortMapper), new PortMapper());
 
     internal new class PortMapper : PostgresqlRewriter.PortMapper
     {
