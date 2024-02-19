@@ -18,10 +18,8 @@ public class SchemeMapperBuilderTests
     public void DefaultRegistration()
     {
         DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-#pragma warning disable CA1416 // Validate platform compatibility
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
-#pragma warning restore CA1416 // Validate platform compatibility
     }
 
     [Test]
@@ -35,8 +33,8 @@ public class SchemeMapperBuilderTests
     {
         var builder = new SchemeMapperBuilder([typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
         );
-        builder.Build();
-        var result = builder.GetMapper(schemeList.Split(['+', ':']));
+        var schemeMapper = builder.Build();
+        var result = schemeMapper.GetMapper(schemeList);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf(expected));
@@ -48,8 +46,8 @@ public class SchemeMapperBuilderTests
     {
         var builder = new SchemeMapperBuilder([typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
         );
-        builder.Build();
-        var result = builder.GetMapper(schemeList.Split(['+', ':']));
+        var schemeMapper = builder.Build();
+        var result = schemeMapper.GetMapper(schemeList);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf(expected));

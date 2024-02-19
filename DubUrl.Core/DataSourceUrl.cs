@@ -19,10 +19,10 @@ namespace DubUrl;
 public class DataSourceUrl : BaseConnectionUrl
 {
     public DataSourceUrl(string url, SchemeMapperBuilder? builder = null)
-        : this(url, new Parser(), builder ?? new()) { }
+        : this(url, new Parser(), (builder ?? new()).Build()) { }
 
-    internal DataSourceUrl(string url, IParser parser, SchemeMapperBuilder builder)
-        : base(url, parser, builder) { }
+    internal DataSourceUrl(string url, IParser parser, SchemeMapper schemeMapper)
+        : base(url, parser, schemeMapper) { }
 
     public virtual DbDataSource Create()
     {

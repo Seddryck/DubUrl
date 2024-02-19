@@ -23,7 +23,7 @@ public class ConnectionUrlTest
     {
         var schemeMapperBuilder = new SchemeMapperBuilder([typeof(PowerBiPremiumMapper).Assembly]);
         var url = "powerbi://api.powerbi.com/v1.0/foo/bar";
-        var connectionUrl = new ConnectionUrl(url, schemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(url, schemeMapperBuilder.Build());
         var conn = connectionUrl.Connect();
         Assert.That(conn, Is.Not.Null);
         Assert.That(conn, Is.TypeOf<AdomdConnectionWrapper>());

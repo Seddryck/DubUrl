@@ -17,16 +17,8 @@ namespace DubUrl.Mapping;
 
 public class SchemeMapperBuilder
 {
-    protected readonly char[] Separators = ['+', ':'];
-
-    private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
-    private bool IsBuilt { get; set; } = false;
-
     private List<MapperInfo> MapperData { get; } = [];
     private List<Type> SchemeHandlerTypes { get; } = [];
-
-    protected Dictionary<string, IMapper> Mappers { get; set; } = [];
-    protected Dictionary<string, ISchemeHandler> SchemeHandlers { get; set; } = [];
     private DialectBuilder DialectBuilder { get; } = new();
 
     public SchemeMapperBuilder()
@@ -65,19 +57,13 @@ public class SchemeMapperBuilder
                 SchemeHandlerTypes.Add(schemeHandler);
     }
 
-    public bool CanHandle(string scheme)
-    {
-        var alias = GetAlias(scheme.Split(Separators));
-        return Mappers.ContainsKey(alias);
-    }
-
-    public virtual void Build()
+    public virtual SchemeMapper Build()
     {
         foreach (var mapperData in MapperData)
             DialectBuilder.AddAliases(mapperData.DialectType, [.. mapperData.Aliases]);
         DialectBuilder.Build();
 
-        Mappers.Clear();
+        var mappers = new Dictionary<string, IMapper>();
         foreach (var mapperData in MapperData)
         {
             var provider = GetProvider(mapperData.ProviderInvariantName);
@@ -101,63 +87,20 @@ public class SchemeMapperBuilder
                     ?? throw new NullReferenceException();
 
             foreach (var alias in mapperData.Aliases)
-                if (!Mappers.TryAdd(alias, mapper))
-                    throw new MapperAlreadyExistingException(alias, Mappers[alias], mapper);
+                if (!mappers.TryAdd(alias, mapper))
+                    throw new MapperAlreadyExistingException(alias, mappers[alias], mapper);
         }
 
-        SchemeHandlers.Clear();
+        var schemeHandlers = new Dictionary<string, ISchemeHandler>();
         foreach (var schemeHandlerType in SchemeHandlerTypes)
         {
             var schemeHandler = (ISchemeHandler)(Activator.CreateInstance(schemeHandlerType) ?? throw new ArgumentException());
             foreach (var scheme in schemeHandler.Schemes)
-                SchemeHandlers.Add(scheme, schemeHandler);
+                schemeHandlers.Add(scheme, schemeHandler);
         }
-        IsBuilt = true;
-    }
+        var normalizer = new SchemeNormalizer(schemeHandlers);
 
-    private string GetAlias(string[] aliases)
-    {
-        var schemeHandlers = SchemeHandlers.Where(x => aliases.Contains(x.Key));
-        var schemes = schemeHandlers.Aggregate(Array.Empty<string>(), (data, handler)
-                => [.. data, .. handler.Value.Schemes]);
-        if (aliases.Length - schemeHandlers.Count() != 1)
-            throw new ArgumentOutOfRangeException(nameof(aliases));
-
-        var databaseAlias = aliases.Single(x => !schemes.Contains(x));
-        var wrapperHandler = schemeHandlers.SingleOrDefault(x => x.Value is IWrapperConnectivity); 
-
-        return wrapperHandler.Value is null ? databaseAlias : $"{wrapperHandler.Value.Schemes[0]}+{databaseAlias}";
-    }
-
-    public IMapper GetMapper(string alias)
-        => GetMapper(alias.Split(Separators));
-
-    public virtual IMapper GetMapper(string[] aliases)
-    {
-        if (!IsBuilt)
-            throw new InvalidOperationException();
-
-        var alias = GetAlias(aliases);
-
-        if (!Mappers.TryGetValue(alias, out var mapper))
-            throw new SchemeNotFoundException(alias, [.. Mappers.Keys]);
-
-        return mapper;
-    }
-
-    public virtual DbProviderFactory GetProviderFactory(string[] aliases)
-    {
-        if (!IsBuilt)
-            throw new InvalidOperationException();
-
-        var alias = GetAlias(aliases);
-
-        if (!Mappers.ContainsKey(alias))
-            throw new SchemeNotFoundException(alias, [.. Mappers.Keys]);
-
-        var mapper = Mappers[alias];
-        return GetProvider(mapper.GetProviderName())
-            ?? throw new ProviderNotFoundException(mapper.GetProviderName(), DbProviderFactories.GetProviderInvariantNames().ToArray());
+        return new SchemeMapper(mappers, normalizer);
     }
 
     protected internal static DbProviderFactory? GetProvider(string providerName)

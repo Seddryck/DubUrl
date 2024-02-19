@@ -25,11 +25,12 @@ public class ConnectionUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var normalizer = new Mock<SchemeNormalizer>(new Dictionary<string, ISchemeHandler>());
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var schemeMapperMock = new Mock<SchemeMapper>(new Dictionary<string, IMapper> { { "mssql", mapperMock.Object } }, normalizer.Object);
+        schemeMapperMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperMock.Object);
         connectionUrl.Parse();
 
         parserMock.Verify(x => x.Parse(url), Times.Once());
@@ -46,15 +47,14 @@ public class ConnectionUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var normalizer = new Mock<SchemeNormalizer>(new Dictionary<string, ISchemeHandler>());
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var schemeMapperMock = new Mock<SchemeMapper>(new Dictionary<string, IMapper> { { "mssql", mapperMock.Object } }, normalizer.Object);
+        schemeMapperMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperMock.Object);
         connectionUrl.Parse();
-
-        schemeMapperBuilderMock.Verify(x => x.Build(), Times.Once());
-        schemeMapperBuilderMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.AtLeastOnce());
+        schemeMapperMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.AtLeastOnce());
     }
 
     [Test]
@@ -68,11 +68,12 @@ public class ConnectionUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var normalizer = new Mock<SchemeNormalizer>(new Dictionary<string, ISchemeHandler>());
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var schemeMapperMock = new Mock<SchemeMapper>(new Dictionary<string, IMapper> { { "mssql", mapperMock.Object } }, normalizer.Object);
+        schemeMapperMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperMock.Object);
         connectionUrl.Parse();
 
         mapperMock.Verify(x => x.Rewrite(It.IsAny<UrlInfo>()), Times.Once());
@@ -94,15 +95,16 @@ public class ConnectionUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var normalizer = new Mock<SchemeNormalizer>(new Dictionary<string, ISchemeHandler>());
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var schemeMapperMock = new Mock<SchemeMapper>(new Dictionary<string, IMapper> { { "mssql", mapperMock.Object } }, normalizer.Object);
+        schemeMapperMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        schemeMapperMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperMock.Object);
         connectionUrl.Connect();
 
-        schemeMapperBuilderMock.VerifyAll();
+        schemeMapperMock.VerifyAll();
     }
 
     [Test]
@@ -125,12 +127,13 @@ public class ConnectionUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var normalizer = new Mock<SchemeNormalizer>(new Dictionary<string, ISchemeHandler>());
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var schemeMapperMock = new Mock<SchemeMapper>(new Dictionary<string, IMapper> { {"mssql", mapperMock.Object } }, normalizer.Object);
+        schemeMapperMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        schemeMapperMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperMock.Object);
         connectionUrl.Connect();
 
         dbConnectionMock.VerifySet(x => x.ConnectionString = connString);
@@ -159,12 +162,13 @@ public class ConnectionUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var normalizer = new Mock<SchemeNormalizer>(new Dictionary<string, ISchemeHandler>());
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var schemeMapperMock = new Mock<SchemeMapper>(new Dictionary<string, IMapper> { { "mssql", mapperMock.Object } }, normalizer.Object);
+        schemeMapperMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        schemeMapperMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperMock.Object);
         connectionUrl.Open();
 
         dbConnectionMock.VerifySet(x => x.ConnectionString = connString);

@@ -20,28 +20,27 @@ public class BaseConnectionUrl
     protected record ParseResult(string ConnectionString, UrlInfo UrlInfo, IDialect Dialect, IConnectivity Connectivity, IParametrizer Parametrizer) { }
     private ParseResult? result;
     protected ParseResult Result { get => result ??= ParseDetail(); }
-    protected SchemeMapperBuilder SchemeMapperBuilder { get; }
+    protected SchemeMapper SchemeMapper { get; }
     private IMapper? Mapper { get; set; }
     private IParser Parser { get; }
     public string Url { get; }
 
     public BaseConnectionUrl(string url)
-        : this(url, new Parser(), new SchemeMapperBuilder()) { }
+        : this(url, new Parser(), new SchemeMapperBuilder().Build()) { }
 
-    public BaseConnectionUrl(string url, SchemeMapperBuilder builder)
-        : this(url, new Parser(), builder) { }
+    public BaseConnectionUrl(string url, SchemeMapper mapper)
+        : this(url, new Parser(), mapper) { }
 
-    internal BaseConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
-        => (Url, Parser, SchemeMapperBuilder) = (url, parser, builder);
+    internal BaseConnectionUrl(string url, IParser parser, SchemeMapper mapper)
+        => (Url, Parser, SchemeMapper) = (url, parser, mapper);
 
     protected internal DbProviderFactory GetProviderFactory()
-            => SchemeMapperBuilder.GetProviderFactory(Result.UrlInfo.Schemes);
+            => SchemeMapper.GetProviderFactory(Result.UrlInfo.Schemes);
 
     private ParseResult ParseDetail()
     {
         var urlInfo = Parser.Parse(Url);
-        SchemeMapperBuilder.Build();
-        Mapper = SchemeMapperBuilder.GetMapper(urlInfo.Schemes);
+        Mapper = SchemeMapper.GetMapper(urlInfo.Schemes);
         Mapper.Rewrite(urlInfo);
         return new ParseResult(Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect(), Mapper.GetConnectivity(), Mapper.GetParametrizer());
     }
