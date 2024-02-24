@@ -14,32 +14,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Rewriting.Implementation;
-using SingleStoreConnector;
+using static DubUrl.Mapping.SchemeMapperBuilder;
+using Moq;
 
 namespace DubUrl.Testing.Mapping;
 
 public class SchemeMapperBuilderTest
 {
-    [SetUp]
-    public void DefaultRegistration()
-    {
-        DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-        DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-        DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance);
-        DbProviderFactories.RegisterFactory("Oracle.ManagedDataAccess", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance);
-        DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
-        DbProviderFactories.RegisterFactory("IBM.Data.Db2", IBM.Data.Db2.DB2Factory.Instance);
-        DbProviderFactories.RegisterFactory("Snowflake.Data", Snowflake.Data.Client.SnowflakeDbFactory.Instance);
-        DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
-        DbProviderFactories.RegisterFactory("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance);
-        DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-        DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
-        DbProviderFactories.RegisterFactory("SingleStoreConnector", SingleStoreConnectorFactory.Instance);
-        DbProviderFactories.RegisterFactory("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
-    }
-
     private class StubMapper : BaseMapper
     {
         public StubMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
@@ -86,7 +67,7 @@ public class SchemeMapperBuilderTest
     [TestCase("mssql+odbc", typeof(OdbcMapper))]
     public void Instantiate_Scheme_CorrectType(string scheme, Type expected)
     {
-        var schemeMapper = new SchemeMapperBuilder().Build();
+        var schemeMapper = new SchemeMapperBuilder(new IgnoreNotRegisteredProvider()).Build();
         Assert.That(schemeMapper.CanHandle(scheme), Is.True);
         var result = schemeMapper.GetMapper(scheme);
 
@@ -137,7 +118,7 @@ public class SchemeMapperBuilderTest
     {
         var oracleScheme = "ora";
 
-        var builder = new SchemeMapperBuilder();
+        var builder = new SchemeMapperBuilder(new IgnoreNotRegisteredProvider());
         var schemeMapper = builder.Build();
         var result = schemeMapper.GetMapper(oracleScheme); //should be found
         Assert.That(result, Is.Not.Null);
@@ -153,9 +134,7 @@ public class SchemeMapperBuilderTest
     {
         var mysqlScheme = "mysql";
 
-        var builder = new SchemeMapperBuilder();
-        if (!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
-            DbProviderFactories.RegisterFactory("MySql.Data", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
+        var builder = new SchemeMapperBuilder(new IgnoreNotRegisteredProvider());
         builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
         var schemeMapper = builder.Build();
@@ -178,9 +157,8 @@ public class SchemeMapperBuilderTest
         var factory = new DriverLocatorFactory();
         factory.AddDriver("foobar", typeof(FakeDriverLocator));
 
-        var builder = new SchemeMapperBuilder();
+        var builder = new SchemeMapperBuilder(new IgnoreNotRegisteredProvider());
         var schemeMapper = builder.Build();
-        DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         builder.ReplaceDriverLocatorFactory(typeof(OdbcRewriter), factory);
 
         builder.Build();
@@ -196,8 +174,7 @@ public class SchemeMapperBuilderTest
     [Test]
     public void Build_TwiceTheSameAlias_Throws()
     {
-        DbProviderFactories.RegisterFactory("fakedb.provider.instance", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-        var builder = new SchemeMapperBuilder([]);
+        var builder = new SchemeMapperBuilder([], new IgnoreNotRegisteredProvider());
         builder.Initialize
         (
             [
@@ -207,4 +184,30 @@ public class SchemeMapperBuilderTest
         );
         Assert.That(builder.Build, Throws.TypeOf<MapperAlreadyExistingException>());
     }
+
+    [Test]
+    public void IgnoreNotRegisteredProvider_Null_True()
+        => Assert.That(new IgnoreNotRegisteredProvider().Execute(null, "name"), Is.EqualTo(true));
+
+    [Test]
+    public void SkipNotRegisteredProvider_Null_False()
+        => Assert.That(new SkipNotRegisteredProvider().Execute(null, "name"), Is.EqualTo(false));
+
+    [Test]
+    public void FailNotRegisteredProvider_Null_Throws()
+        => Assert.That(() => new FailNotRegisteredProvider().Execute(null, "name"), Throws.TypeOf(typeof(NotRegisteredProviderException)));
+
+
+    [Test]
+    public void IgnoreNotRegisteredProvider_NotNull_True()
+        => Assert.That(new IgnoreNotRegisteredProvider().Execute(Mock.Of<DbProviderFactory>(), "name"), Is.EqualTo(true));
+
+    [Test]
+    public void SkipNotRegisteredProvider_NotNull_True()
+        => Assert.That(new SkipNotRegisteredProvider().Execute(Mock.Of<DbProviderFactory>(), "name"), Is.EqualTo(true));
+
+    [Test]
+    public void FailNotRegisteredProvider_NotNull_True()
+        => Assert.That(() => new FailNotRegisteredProvider().Execute(Mock.Of<DbProviderFactory>(), "name"), Is.EqualTo(true));
+
 }

@@ -21,6 +21,9 @@
     <ProjectReference Include="..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
     <ProjectReference Include="..\DubUrl.Testing\DubUrl.Testing.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Rewriting\" />
+  </ItemGroup>
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>

@@ -9,19 +9,12 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static DubUrl.Mapping.SchemeMapperBuilder;
 
 namespace DubUrl.OleDb.Testing;
 
 public class SchemeMapperBuilderTests
 {
-    [SetUp]
-    public void DefaultRegistration()
-    {
-        DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            DbProviderFactories.RegisterFactory("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
-    }
-
     [Test]
     [TestCase("oledb+mssql", typeof(OleDbMapper))]
     [TestCase("oledb+mysql", typeof(OleDbMapper))]
@@ -31,7 +24,9 @@ public class SchemeMapperBuilderTests
     [TestCase("oledb+xlsb", typeof(OleDbMapper))]
     public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeMapperBuilder([typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
+        var builder = new SchemeMapperBuilder(
+                [typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
+                , new IgnoreNotRegisteredProvider()
         );
         var schemeMapper = builder.Build();
         var result = schemeMapper.GetMapper(schemeList);
@@ -44,7 +39,9 @@ public class SchemeMapperBuilderTests
     [TestCase("mssql+oledb", typeof(OleDbMapper))]
     public void Instantiate_RevertedScheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeMapperBuilder([typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
+        var builder = new SchemeMapperBuilder(
+                [typeof(OleDbRewriter).Assembly, typeof(SchemeMapperBuilder).Assembly]
+                , new IgnoreNotRegisteredProvider()
         );
         var schemeMapper = builder.Build();
         var result = schemeMapper.GetMapper(schemeList);

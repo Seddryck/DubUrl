@@ -1,18 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<ItemGroup>
-		<PackageReference Include="System.Data.OleDb" Version="8.0.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+  </ItemGroup>
 
-	<PropertyGroup>
-		<PackageId>DubUrl.OleDb</PackageId>
-		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
-		<PackageTags>connection-string;database;sql;oledb</PackageTags>
-		<Description>DubUrl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
-	</PropertyGroup>
-	
+  <PropertyGroup>
+    <PackageId>DubUrl.OleDb</PackageId>
+    <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+    <PackageTags>connection-string;database;sql;oledb</PackageTags>
+    <Description>DubUrl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Testing" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleTo Include="DubUrl.QA" />
+  </ItemGroup>
+
 </Project>

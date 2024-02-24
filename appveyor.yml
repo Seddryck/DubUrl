@@ -61,6 +61,8 @@ test_script:
     $globalTestResult += $LastExitCode
     dotnet test DubUrl.Extensions.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult += $LastExitCode
+    dotnet test DubUrl.QA --filter TestCategory="ConnectionString" -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.QA.ConnectionString.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    $globalTestResult += $LastExitCode
     if($globalTestResult -ne 0) { $host.SetShouldExit($globalTestResult) }
 
 - pwsh: |

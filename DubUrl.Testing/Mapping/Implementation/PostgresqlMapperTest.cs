@@ -1,6 +1,5 @@
 ﻿using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialects;
-using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Testing.Rewriting;
@@ -17,22 +16,18 @@ namespace DubUrl.Testing.Mapping.Implementation;
 
 public class PostgresqlMapperTest
 {
-    private const string PROVIDER_NAME = "Npgsql";
-
-    private static DbConnectionStringBuilder ConnectionStringBuilder
-    {
-        get => ConnectionStringBuilderHelper.Retrieve(PROVIDER_NAME, NpgsqlFactory.Instance);
-    }
-
     [Test]
     public void GetDialect_None_DialectReturned()
     {
-        var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new SqlLanguage(), ["pgsql", "pg"], new PgsqlRenderer(), []), new PositionalParametrizer());
+        var mapper = new PostgresqlMapper([], new PgsqlDialect(new SqlLanguage(), ["pgsql", "pg"], new PgsqlRenderer(), []), new PositionalParametrizer());
         var result = mapper.GetDialect();
 
         Assert.That(result, Is.Not.Null.Or.Empty);
         Assert.That(result, Is.InstanceOf<PgsqlDialect>());
-        Assert.That(result.Aliases, Does.Contain("pgsql"));
-        Assert.That(result.Aliases, Does.Contain("pg"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Aliases, Does.Contain("pgsql"));
+            Assert.That(result.Aliases, Does.Contain("pg"));
+        });
     }
 }

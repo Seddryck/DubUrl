@@ -1,7 +1,6 @@
 ﻿using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
-using Google.Apis.Util;
 using Moq;
 using NUnit.Framework;
 using System;

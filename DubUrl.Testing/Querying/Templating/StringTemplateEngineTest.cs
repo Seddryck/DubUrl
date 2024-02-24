@@ -1,5 +1,4 @@
-﻿using Amazon.Runtime.Internal.Transform;
-using DubUrl.Querying.Templating;
+﻿using DubUrl.Querying.Templating;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
