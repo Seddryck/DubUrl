@@ -12,8 +12,8 @@ public class ConfiguredConnectionUrlFactory : ConnectionUrlFactory
 {
     private IConfigurationRoot Configuration { get; }
 
-    public ConfiguredConnectionUrlFactory(SchemeMapperBuilder builder)
-        : base(builder)
+    public ConfiguredConnectionUrlFactory(SchemeMapper schemeMapper)
+        : base(schemeMapper)
     {
         Configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")

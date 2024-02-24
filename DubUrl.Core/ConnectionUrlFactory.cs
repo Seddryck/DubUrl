@@ -13,15 +13,17 @@ namespace DubUrl;
 
 public class ConnectionUrlFactory
 {
-    private SchemeMapperBuilder SchemeMapperBuilder { get; }
+    private SchemeMapper SchemeMapper { get; }
     private IParser Parser { get; }
 
-
     public ConnectionUrlFactory(SchemeMapperBuilder builder)
-        : this(new Parser(), builder) { }
+        : this(new Parser(), builder.Build()) { }
 
-    internal ConnectionUrlFactory(IParser parser, SchemeMapperBuilder builder)
-        => (Parser, SchemeMapperBuilder) = (parser, builder);
+    public ConnectionUrlFactory(SchemeMapper schemeMapper)
+        : this(new Parser(), schemeMapper) { }
 
-    public virtual ConnectionUrl Instantiate(string url) => new (url, Parser, SchemeMapperBuilder.Build());
+    internal ConnectionUrlFactory(IParser parser, SchemeMapper builder)
+        => (Parser, SchemeMapper) = (parser, builder);
+
+    public virtual ConnectionUrl Instantiate(string url) => new (url, Parser, SchemeMapper);
 }
