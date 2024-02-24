@@ -20,12 +20,21 @@ public class SchemeMapperBuilder
     private List<MapperInfo> MapperData { get; } = [];
     private List<Type> SchemeHandlerTypes { get; } = [];
     private DialectBuilder DialectBuilder { get; } = new();
+    private INotRegisteredProviderStrategy NotRegisteredProvider { get; }
+
 
     public SchemeMapperBuilder()
      : this([typeof(SchemeMapperBuilder).Assembly]) { }
 
     public SchemeMapperBuilder(Assembly[] assemblies)
+     : this(assemblies, new SkipNotRegisteredProvider()) { }
+
+    public SchemeMapperBuilder(INotRegisteredProviderStrategy notRegisteredProvider)
+     : this([typeof(SchemeMapperBuilder).Assembly], notRegisteredProvider) { }
+
+    public SchemeMapperBuilder(Assembly[] assemblies, INotRegisteredProviderStrategy notRegisteredProvider)
     {
+        NotRegisteredProvider = notRegisteredProvider;
         var asmTypesProbe = new AssemblyTypesProbe(assemblies);
         Initialize
         (
@@ -54,7 +63,7 @@ public class SchemeMapperBuilder
     {
         var schemeHandlers = introspector.Locate();
         foreach (var schemeHandler in schemeHandlers)
-                SchemeHandlerTypes.Add(schemeHandler);
+            SchemeHandlerTypes.Add(schemeHandler);
     }
 
     public virtual SchemeMapper Build()
@@ -67,15 +76,11 @@ public class SchemeMapperBuilder
         foreach (var mapperData in MapperData)
         {
             var provider = GetProvider(mapperData.ProviderInvariantName);
-            if (provider == null)
-            {
-                Debug.WriteLine($"No provider registered with the name '{mapperData.ProviderInvariantName}', skipping associated mapper.");
+            if (!NotRegisteredProvider.Execute(provider, mapperData.ProviderInvariantName))
                 continue;
-            }
-
             var ctorParamTypes = new List<Type>() { typeof(DbConnectionStringBuilder), typeof(IDialect), typeof(IParametrizer) };
             var ctorParams = new List<object>() {
-                provider.CreateConnectionStringBuilder() ?? throw new NullReferenceException()
+                provider?.CreateConnectionStringBuilder() ?? new DbConnectionStringBuilder()
                 , DialectBuilder.Get(mapperData.Aliases.First())
                 , ParametrizerFactory.Instantiate(mapperData.ParametrizerType)
             };
@@ -163,5 +168,48 @@ public class SchemeMapperBuilder
     public void ReplaceDriverLocatorFactory(Type mapper, DriverLocatorFactory factory)
         => throw new NotImplementedException();
 
+    #endregion
+
+    #region strategies
+    public interface INotRegisteredProviderStrategy
+    {
+        /// <summary>
+        /// Execute the strategy when a provider is not registered.
+        /// </summary>
+        /// <param name="provider">the provider itself</param>
+        /// <param name="providerInvariantName">the provider invariant name</param>
+        /// <returns>Returns true if the registration process of the mapper should be continued, return false if it should be caneclled/skipped.</returns>
+        bool Execute(DbProviderFactory? provider, string providerInvariantName);
+    }
+
+    public class IgnoreNotRegisteredProvider : INotRegisteredProviderStrategy
+    {
+        public bool Execute(DbProviderFactory? provider, string providerInvariantName)
+        {
+            if (provider is null)
+                Debug.WriteLine($"No provider registered with the name '{providerInvariantName}', skipping associated mapper.");
+            return true;
+        }
+    }
+
+    public class SkipNotRegisteredProvider : INotRegisteredProviderStrategy
+    {
+        public bool Execute(DbProviderFactory? provider, string providerInvariantName)
+        {
+            if (provider is null)
+                Debug.WriteLine($"No provider registered with the name '{providerInvariantName}', skipping associated mapper.");
+            return provider is not null;
+        }
+    }
+
+    public class FailNotRegisteredProvider : INotRegisteredProviderStrategy
+    {
+        public bool Execute(DbProviderFactory? provider, string providerInvariantName)
+        {
+            if (provider is null)
+                throw new NotRegisteredProviderException(providerInvariantName);
+            return true;
+        }
+    }
     #endregion
 }
