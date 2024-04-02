@@ -88,7 +88,7 @@
   <ItemGroup>
     <PackageReference Include="DuckDB.NET.Bindings" Version="0.10.1" />
     <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="DuckDB.NET.Data" Version="0.10.1" />
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="0.10.1" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.3" />
