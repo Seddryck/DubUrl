@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
-    <PackageReference Include="DuckDB.NET.Bindings" Version="0.10.1.2" />
-    <PackageReference Include="DuckDB.NET.Data" Version="0.10.1.2" />
+    <PackageReference Include="DuckDB.NET.Bindings" Version="0.10.1" />
+    <PackageReference Include="DuckDB.NET.Data" Version="0.10.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
     <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.77.0" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
