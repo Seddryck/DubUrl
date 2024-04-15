@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace DubUrl.QA.CrateDb;
 
-[Category("Postgresql")]
+[Category("CrateDB")]
 [Category("AdoProvider")]
 public class AdoProviderCrateDb : BaseAdoProviderPostgresql
 {
