@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
-    <PackageReference Include="DuckDB.NET.Bindings" Version="0.9.2" />
+    <PackageReference Include="DuckDB.NET.Bindings" Version="0.10.2" />
     <PackageReference Include="DuckDB.NET.Data" Version="0.9.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
     <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.80.0" />
@@ -9,7 +9,7 @@
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.400" Condition="'$(TargetFramework)' != 'net8.0'" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.3" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.5" />
     <PackageReference Include="MySql.Data" Version="8.4.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.6" />
     <PackageReference Include="Npgsql" Version="8.0.2" />
