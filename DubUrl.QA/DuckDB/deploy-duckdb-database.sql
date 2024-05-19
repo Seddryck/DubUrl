@@ -9,7 +9,7 @@ CREATE SEQUENCE CustomerIdSeq
 CREATE TABLE Customer (
     CustomerId INT NOT NULL PRIMARY KEY,
     FullName VARCHAR(50),
-    BirthDate DATE
+    BirthDate DATETIME
 );
 
 INSERT INTO Customer
