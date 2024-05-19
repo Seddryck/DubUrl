@@ -10,9 +10,7 @@ namespace DubUrl.QA.DuckDB;
 public class AdoProviderDuckDB : BaseAdoProvider
 {
     public override string ConnectionString
-    {
-        get => $"duckdb:///customer.duckdb";
-    }
+        => $"duckdb:///customer.duckdb";
 
     [Test]
     public override void QueryCustomer()
