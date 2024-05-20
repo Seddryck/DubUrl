@@ -36,5 +36,5 @@ public class TrinoDriverLocator : BaseDriverLocator
         => Candidates.Add(driver);
 
     protected override List<string> RankCandidates()
-        => Candidates.OrderByDescending(x => x).ToList();
+        => [.. Candidates.OrderByDescending(x => x)];
 }

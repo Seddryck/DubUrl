@@ -155,7 +155,7 @@ public class DrillOdbcRewriterTest
         var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill", "{MapR Drill ODBC Driver}"], Segments = ["dfs"] };
 
         var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
-        driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "drill", "pgsql" });
+        driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(["drill", "pgsql"]);
         driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
 
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder, driverLocationFactoryMock.Object);
@@ -172,7 +172,7 @@ public class DrillOdbcRewriterTest
         var driverLocationMock = new Mock<IDriverLocator>();
         driverLocationMock.Setup(x => x.Locate()).Returns("My driver");
         var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
-        driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "drill", "pgsql" });
+        driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(["drill", "pgsql"]);
         driverLocationFactoryMock.Setup(x =>
                 x.Instantiate(It.IsAny<string>())
             ).Returns(driverLocationMock.Object);

@@ -35,5 +35,5 @@ public class DuckdbDriverLocator : BaseDriverLocator
         => Candidates.Add(driver);
 
     protected override List<string> RankCandidates()
-        => Candidates.ToList();
+        => [.. Candidates];
 }

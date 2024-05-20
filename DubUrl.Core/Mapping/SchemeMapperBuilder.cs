@@ -43,7 +43,7 @@ public class SchemeMapperBuilder
     protected virtual void Initialize()
         => Initialize(MapperIntrospectors.Aggregate(
                 Array.Empty<MapperInfo>(), (data, introspector)
-                => data.Concat(introspector.Locate()).ToArray())
+                => [.. data, .. introspector.Locate()])
         );
 
     protected internal virtual void Initialize(IEnumerable<MapperInfo> infos)
