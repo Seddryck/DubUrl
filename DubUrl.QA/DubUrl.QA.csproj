@@ -89,7 +89,7 @@
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="0.10.2" />
     <PackageReference Include="Dapper" Version="2.1.44" />
     <PackageReference Include="DuckDB.NET.Data" Version="0.10.2" />
-    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.5" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
