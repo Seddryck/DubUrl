@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="0.10.2" />
@@ -6,7 +6,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.80.0" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
-    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.1" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.400" Condition="'$(TargetFramework)' != 'net8.0'" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.5" />
