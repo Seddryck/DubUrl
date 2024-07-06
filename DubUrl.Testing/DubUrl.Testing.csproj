@@ -4,7 +4,7 @@
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.0.1" />
     <PackageReference Include="DuckDB.NET.Data" Version="1.0.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
-    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.80.0" />
+    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.84.1" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.1" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
@@ -41,6 +41,12 @@
   <ItemGroup>
 		<ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
 	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>

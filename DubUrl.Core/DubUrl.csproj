@@ -33,4 +33,11 @@
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>
