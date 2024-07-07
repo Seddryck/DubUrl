@@ -16,4 +16,10 @@ public class DateTimeCasterTest
     [TestCase("2023-06-16 06:20:30", "2023-06-16")]
     public void CastDateOnly_DateTime_Match(DateTime value, string expected)
         => Assert.That(new DateTimeCaster<DateOnly>().Cast(value), Is.EqualTo(DateOnly.Parse(expected)));
+
+    [Test]
+    [TestCase("2023-06-16 00:00:00", "00:00:00")]
+    [TestCase("2023-06-16 06:20:30", "06:20:30")]
+    public void CastTimeOnly_DateTime_Match(DateTime value, string expected)
+        => Assert.That(new DateTimeCaster<TimeOnly>().Cast(value), Is.EqualTo(TimeOnly.Parse(expected)));
 }
