@@ -23,7 +23,7 @@ internal class TimeSpanCaster<T> : BaseCaster<T, TimeSpan>
     protected bool TryTruncate(TimeSpan value, out T? result)
     {
         var parse = GetMethod();
-        result = (T?)(parse?.Invoke(null, new object[] { value }));
+        result = (T?)(parse?.Invoke(null, [value]));
         return parse is not null;
     }
 }

@@ -39,6 +39,10 @@ public class AdoProviderCockRoach : BaseAdoProvider
         => QueryCustomerWithDapper("select * from Customer");
 
     [Test]
+    public override void QueryCustomerWithDbReader()
+        => QueryCustomerWithDbReader("select * from Customer");
+
+    [Test]
     public override void QueryCustomerWithWhereClause()
         => Assert.Ignore("Issue with lower in template");
 }

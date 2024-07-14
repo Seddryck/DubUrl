@@ -369,4 +369,23 @@ public abstract class BaseAdomdProvider
             Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
         });
     }
+
+    [Test]
+    [Category("DbReader")]
+    public abstract void QueryCustomerWithDbReader();
+    protected void QueryCustomerWithDbReader(string sql)
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString);
+
+        using var conn = connectionUrl.Open();
+        var customers = conn.Query<DbReader.Customer>(sql).ToList();
+        Assert.That(customers, Has.Count.EqualTo(5));
+        Assert.Multiple(() =>
+        {
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        });
+    }
 }

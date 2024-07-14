@@ -24,4 +24,8 @@ public abstract class BaseAdoProviderPostgresql : BaseAdoProvider
     [Test]
     public override void QueryCustomerWithDapper()
         => QueryCustomerWithDapper("select * from \"Customer\"");
+
+    [Test]
+    public override void QueryCustomerWithDbReader()
+        => QueryCustomerWithDapper("select * from \"Customer\"");
 }

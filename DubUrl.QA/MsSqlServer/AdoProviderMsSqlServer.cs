@@ -37,4 +37,8 @@ public class AdoProviderMsSqlServer : BaseAdoProvider
     public override void QueryCustomerWithDapper()
         => QueryCustomerWithDapper("select * from Customer");
 
+    [Test]
+    public override void QueryCustomerWithDbReader()
+        => QueryCustomerWithDbReader("select * from Customer");
+
 }

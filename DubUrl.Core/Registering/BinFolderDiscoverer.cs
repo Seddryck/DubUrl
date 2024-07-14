@@ -37,7 +37,7 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
     {
         var files = Assemblies.Aggregate(
                 Array.Empty<string>(), (seed, asm) =>
-                seed.Concat(new[] { asm?.Location ?? string.Empty }).ToArray()
+                [.. seed, .. new[] { asm?.Location ?? string.Empty }]
             )
             .Where(x => !string.IsNullOrEmpty(x))
             .Distinct()
@@ -45,7 +45,7 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
             .Where(Directory.Exists)
             .Aggregate(
                 Array.Empty<string>(), (seed, location) =>
-                seed.Concat(Directory.GetFiles(location!)).ToArray()
+                [.. seed, .. Directory.GetFiles(location!)]
             )
             .Where(x => Path.GetExtension(x) == ".dll");
 
