@@ -13,5 +13,6 @@ namespace DubUrl.Mapping.Database;
     , ["ve", "vertica"]
     , DatabaseCategory.Analytics
 )]
+[Brand("vertica", "#0066ff")]
 public class VerticaDatabase : IDatabase
 { }
