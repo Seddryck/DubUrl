@@ -199,8 +199,8 @@
       "questdb"
     ],
     "ProviderInvariantName": "Npgsql",
-    "Slug": "",
-    "MainColor": "#333333",
+    "Slug": "questdb",
+    "MainColor": "#A23154",
     "SecondaryColor": "#ffffff"
   },
   {
