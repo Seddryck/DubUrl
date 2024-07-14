@@ -13,5 +13,6 @@ namespace DubUrl.Mapping.Database;
     , ["quest", "questdb"]
     , DatabaseCategory.TimeSeries
 )]
+[Brand("questdb", "#A23154")]
 public class QuestDbDatabase : IDatabase
 { }

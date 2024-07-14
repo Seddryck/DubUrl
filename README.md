@@ -134,7 +134,7 @@ The following databases and their associated schemes are supported out of the bo
 |![CrateDB](https://img.shields.io/badge/CrateDB-009DC7?logo=cratedb&logoColor=ffffff&style=flat-square)                                          | crt, crate, cratedb                   | Npgsql                         |
 |![SingleStore](https://img.shields.io/badge/SingleStore-AA00FF?logo=singlestore&logoColor=ffffff&style=flat-square)                              | sg, sgs, singlestore, single          | SingleStoreConnector           |
 |![Trino](https://img.shields.io/badge/Trino-DD00A1?logo=trino&logoColor=ffffff&style=flat-square)                                                | tr, trino                             | NReco.PrestoAdo                |
-|![QuestDb](https://img.shields.io/badge/QuestDb-333333?logo=&logoColor=ffffff&style=flat-square)                                                 | quest, questdb                        | Npgsql                         |
+|![QuestDb](https://img.shields.io/badge/QuestDb-A23154?logo=questdb&logoColor=ffffff&style=flat-square)                                          | quest, questdb                        | Npgsql                         |
 |![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                         | Npgsql                         |
 <!-- END ADONET TABLE -->
 
@@ -155,7 +155,7 @@ The following databases and their associated schemes are supported out of the bo
 |![Microsoft Access](https://img.shields.io/badge/Microsoft%20Access-A4373A?logo=microsoftaccess&logoColor=ffffff&style=flat-square)              | accdb, access, msaccess, mdb         | ^\bMicrosoft Access Driver\s\(\*\.mdb, \*\.accdb\)$                        |
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls, xlsx, xlsb, xlsm                | ^\bMicrosoft Excel Driver\s\(\*\.xls, \*\.xlsx, \*\.xlsm, \*\.xlsb\)$      |
 |![Text files](https://img.shields.io/badge/Text%20files-333333?logo=&logoColor=ffffff&style=flat-square)                                         | txt, csv, tsv                        | ^\bMicrosoft Access Text Driver\s\(\*\.txt, \*\.csv\)$                     |
-|![QuestDb](https://img.shields.io/badge/QuestDb-333333?logo=&logoColor=ffffff&style=flat-square)                                                 | quest, questdb                       | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
+|![QuestDb](https://img.shields.io/badge/QuestDb-A23154?logo=questdb&logoColor=ffffff&style=flat-square)                                          | quest, questdb                       | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
 |![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                        | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
 <!-- END ODBC TABLE -->
 
@@ -214,6 +214,11 @@ Install-Package DubUrl.Adomd
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
 
 
 
