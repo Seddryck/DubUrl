@@ -1,5 +1,7 @@
 ﻿select first 2
-	CustomerId, FullName, BirthDate
+	CustomerId as "CustomerId"
+    , FullName as "FullName"
+    , BirthDate as "BirthDate"
 from
 	Customer
 order by
