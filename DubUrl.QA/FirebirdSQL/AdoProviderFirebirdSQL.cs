@@ -43,5 +43,5 @@ public class AdoProviderFirebirdSQL : BaseAdoProvider
 
 [Test]
     public override void QueryCustomerWithDbReader()
-        => Assert.Ignore("Not investigated why, but not working");
+        => QueryCustomerWithDapper("select CustomerId as \"CustomerId\", FullName as \"FullName\", BirthDate as \"BirthDate\" from Customer");
 }
