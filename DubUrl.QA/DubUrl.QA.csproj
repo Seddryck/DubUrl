@@ -15,6 +15,7 @@
     <None Remove="SelectFirstCustomer.singlestore.sql" />
     <None Remove="SelectWhereCustomers.cratedb.sql.st" />
     <None Remove="SelectWhereCustomers.dax.st" />
+    <None Remove="SelectWhereCustomers.firebird.sql.st" />
     <None Remove="SelectYoungestCustomers.cratedb.sql" />
     <None Remove="SelectYoungestCustomers.dax" />
     <None Remove="SelectYoungestCustomers.singlestore.sql" />
@@ -39,6 +40,7 @@
     <EmbeddedResource Include="SelectFirstCustomer.cratedb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.singlestore.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.msdax" />
+    <EmbeddedResource Include="SelectWhereCustomers.firebird.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.cratedb.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.dax.st" />
     
