@@ -40,12 +40,4 @@ public class AdoProviderFirebirdSQL : BaseAdoProvider
     [Test]
     public override void QueryCustomerWithDapper()
         => QueryCustomerWithDapper("select * from Customer");
-
-    [Test]
-    public override void QueryTwoYoungestCustomersWithRepositoryFactory()
-        => Assert.Ignore("Not investigated why, but not working");
-
-    [Test]
-    public override void QueryCustomerWithWhereClause()
-        => Assert.Ignore("Not investigated why, but not working");
 }
