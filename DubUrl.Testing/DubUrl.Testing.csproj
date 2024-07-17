@@ -9,7 +9,7 @@
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.1" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.200" Condition="'$(TargetFramework)' == 'net8.0'" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="7.0.0.400" Condition="'$(TargetFramework)' != 'net8.0'" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.7" />
     <PackageReference Include="MySql.Data" Version="9.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="Npgsql" Version="8.0.3" />
