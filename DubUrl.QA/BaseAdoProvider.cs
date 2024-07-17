@@ -4,10 +4,10 @@ using DubUrl.Registering;
 using DubUrl.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Dapper;
-using DubUrl.QA.Dapper;
 using static DubUrl.QA.MicroOrmCustomerRepository;
 using System.Linq.Expressions;
+using Dapper;
+using DbReader;
 
 namespace DubUrl.QA;
 
@@ -308,13 +308,32 @@ public abstract class BaseAdoProvider
         using var provider = new ServiceCollection()
             .AddSingleton(EmptyDubUrlConfiguration)
             .AddDubUrl(options)
-            .AddSingleton<IDapperConfiguration>(
-                provider => ActivatorUtilities.CreateInstance<DapperConfiguration>(provider
+            .AddSingleton<Dapper.IDapperConfiguration>(
+                provider => ActivatorUtilities.CreateInstance<Dapper.DapperConfiguration>(provider
                     , new[] { ConnectionString }))
-            .AddTransient<ICustomerRepository, DapperCustomerRepository>()
+            .AddTransient<Dapper.ICustomerRepository, Dapper.DapperCustomerRepository>()
             .BuildServiceProvider();
-        var repo = provider.GetRequiredService<ICustomerRepository>();
+        var repo = provider.GetRequiredService<Dapper.ICustomerRepository>();
         var customers = repo.GetAllAsync().Result;
+        Assert.That(customers, Has.Count.EqualTo(5));
+        Assert.Multiple(() =>
+        {
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        });
+    }
+
+    [Test]
+    [Category("DbReader")]
+    public abstract void QueryCustomerWithDbReader();
+    protected void QueryCustomerWithDbReader(string sql)
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString);
+
+        using var conn = connectionUrl.Open();
+        var customers = conn.Read<DbReader.Customer>(sql).ToList();
         Assert.That(customers, Has.Count.EqualTo(5));
         Assert.Multiple(() =>
         {

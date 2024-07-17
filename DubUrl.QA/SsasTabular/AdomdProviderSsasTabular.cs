@@ -34,6 +34,10 @@ public class AdomdProviderSsasTabular : BaseAdomdProvider
         => Assert.Ignore("Test not implemented");
 
     [Test]
+    public override void QueryCustomerWithDbReader()
+        => Assert.Ignore("Test not implemented");
+
+    [Test]
     public override void QueryCustomerWithRepository()
         => Assert.Ignore("Test not implemented");
 

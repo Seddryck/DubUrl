@@ -34,6 +34,10 @@ public class AdomdProviderSsasMultidim : BaseAdomdProvider
         => Assert.Ignore("Test not implemented");
 
     [Test]
+    public override void QueryCustomerWithDbReader()
+        => Assert.Ignore("Test not implemented");
+
+    [Test]
     [Category("DatabaseUrl")]
     [Category("Primitive")]
     public override void QueryStringWithDatabaseUrl()

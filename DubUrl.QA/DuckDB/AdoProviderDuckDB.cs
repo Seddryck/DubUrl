@@ -33,6 +33,10 @@ public class AdoProviderDuckDB : BaseAdoProvider
         => QueryCustomerWithDapper("select * from Customer");
 
     [Test]
+    public override void QueryCustomerWithDbReader()
+        => QueryCustomerWithDbReader("select * from Customer");
+
+    [Test]
     public override void QueryCustomerWithWhereClause()
         => Assert.Ignore("Object of type 'DuckDB.NET.DuckDBDateOnly' cannot be converted to type 'System.DateTime'");
 

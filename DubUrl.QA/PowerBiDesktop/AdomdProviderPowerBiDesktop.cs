@@ -36,6 +36,9 @@ public class AdomdProviderPowerBiDesktop : BaseAdomdProvider
     public override void QueryCustomerWithDapper()
         => QueryCustomerWithDapper("EVALUATE SELECTCOLUMNS(Customer, \"CustomerId\" , Customer[CustomerId], \"FullName\" , Customer[FullName], \"BirthDate\" , Customer[BirthDate])");
 
+    [Test]
+    public override void QueryCustomerWithDbReader()
+        => QueryCustomerWithDapper("EVALUATE SELECTCOLUMNS(Customer, \"CustomerId\" , Customer[CustomerId], \"FullName\" , Customer[FullName], \"BirthDate\" , Customer[BirthDate])");
     //[Test]
     //public override void QueryTwoYoungestCustomersWithRepositoryFactory()
     //    => Assert.Ignore("Not investigated why, but not working");

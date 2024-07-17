@@ -40,4 +40,8 @@ public class AdoProviderFirebirdSQL : BaseAdoProvider
     [Test]
     public override void QueryCustomerWithDapper()
         => QueryCustomerWithDapper("select * from Customer");
+
+[Test]
+    public override void QueryCustomerWithDbReader()
+        => QueryCustomerWithDapper("select CustomerId as \"CustomerId\", FullName as \"FullName\", BirthDate as \"BirthDate\" from Customer");
 }

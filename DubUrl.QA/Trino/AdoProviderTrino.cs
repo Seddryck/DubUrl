@@ -31,7 +31,11 @@ public class AdoProviderTrino : BaseAdoProvider
     [Test]
     public override void QueryCustomerWithDapper()
         => Assert.Ignore("Unable to cast object of type 'System.Int64' to type 'System.Int32'");
-    
+
+    [Test]
+    public override void QueryCustomerWithDbReader()
+        => Assert.Ignore("Unable to cast object of type 'System.Int64' to type 'System.Int32'");
+
     [Test]
     public override void QueryCustomerWithDapperRepository()
                 => Assert.Ignore("Unable to cast object of type 'System.Int64' to type 'System.Int32'");

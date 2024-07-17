@@ -23,7 +23,7 @@ public class DateTimeCaster<T> : BaseCaster<T, DateTime>
     protected bool TryTruncate(DateTime value, out T? result)
     {
         var parse = GetMethod();
-        result = (T?)(parse?.Invoke(null, new object[] { value }));
+        result = (T?)(parse?.Invoke(null, [value]));
         return parse is not null;
     }
 }
