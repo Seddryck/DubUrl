@@ -19,7 +19,7 @@
 - title: Interfaces with other frameworks
   docs:
   - dapper
-  - Using with DbReader
+  - dbreader
 
 - title: Connection settings
   docs:
