@@ -180,6 +180,18 @@
     "SecondaryColor": "#ffffff"
   },
   {
+    "Class": "VerticaMapper",
+    "Database": "Vertica",
+    "Aliases": [
+      "ve",
+      "vertica"
+    ],
+    "ProviderInvariantName": "Vertica.Data",
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "TrinoMapper",
     "Database": "Trino",
     "Aliases": [

@@ -8,20 +8,25 @@
     <None Remove="SelectAllCustomer.cratedb.sql" />
     <None Remove="SelectAllCustomer.msdax" />
     <None Remove="SelectAllCustomer.singlestore.sql" />
+    <None Remove="SelectAllCustomer.vertica.sql" />
     <None Remove="SelectCustomerById.cratedb.sql" />
     <None Remove="SelectCustomerById.singlestore.sql" />
+    <None Remove="SelectCustomerById.vertica.sql" />
     <None Remove="SelectFirstCustomer.cratedb.sql" />
     <None Remove="SelectFirstCustomer.msdax" />
     <None Remove="SelectFirstCustomer.singlestore.sql" />
+    <None Remove="SelectFirstCustomer.vertica.sql" />
     <None Remove="SelectWhereCustomers.cratedb.sql.st" />
     <None Remove="SelectWhereCustomers.dax.st" />
     <None Remove="SelectWhereCustomers.firebird.sql.st" />
     <None Remove="SelectYoungestCustomers.cratedb.sql" />
     <None Remove="SelectYoungestCustomers.dax" />
     <None Remove="SelectYoungestCustomers.singlestore.sql" />
+    <None Remove="SelectYoungestCustomers.vertica.sql" />
   </ItemGroup>
   
   <ItemGroup>
+    <EmbeddedResource Include="SelectAllCustomer.vertica.sql" />
     <EmbeddedResource Include="SelectAllCustomer.cratedb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.singlestore.sql" />
     <EmbeddedResource Include="SelectAllCustomer.msdax" />
@@ -35,8 +40,10 @@
     <EmbeddedResource Include="SelectAllCustomer.questdb.sql" />
     <EmbeddedResource Include="SelectAllCustomer.sqlite.sql" />
     <EmbeddedResource Include="SelectAllCustomer.timescale.sql" />
+    <EmbeddedResource Include="SelectCustomerById.vertica.sql" />
     <EmbeddedResource Include="SelectCustomerById.cratedb.sql" />
     <EmbeddedResource Include="SelectCustomerById.singlestore.sql" />
+    <EmbeddedResource Include="SelectFirstCustomer.vertica.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.cratedb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.singlestore.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.msdax" />
@@ -71,6 +78,7 @@
     <EmbeddedResource Include="SelectFirstCustomer.timescale.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.trino.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.xlsx.sql" />
+    <EmbeddedResource Include="SelectYoungestCustomers.vertica.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.cratedb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.singlestore.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.dax" />
@@ -122,6 +130,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Vertica.Data" Version="24.2.0" />
   </ItemGroup>
 
   <ItemGroup>

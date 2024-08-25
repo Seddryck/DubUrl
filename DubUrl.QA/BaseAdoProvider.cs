@@ -35,6 +35,18 @@ public abstract class BaseAdoProvider
         Assert.That(conn.State, Is.EqualTo(ConnectionState.Closed));
     }
 
+    [Test]
+    [Category("ConnectionUrl")]
+    public void Open()
+    {
+        Console.WriteLine(ConnectionString);
+        var connectionUrl = new ConnectionUrl(ConnectionString);
+        Console.WriteLine(connectionUrl.Parse());
+
+        using var conn = connectionUrl.Open();
+        Assert.That(conn.State, Is.EqualTo(ConnectionState.Open));
+    }
+
 #if NET7_0_OR_GREATER
     [Test]
     [Category("DataSourceUrl")]
