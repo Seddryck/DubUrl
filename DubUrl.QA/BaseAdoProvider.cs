@@ -343,4 +343,27 @@ public abstract class BaseAdoProvider
             Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
         });
     }
+
+
+    [Test]
+    [Category("DbExtensions")]
+    public virtual void QueryCustomerWithDbExtensions()
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString);
+
+        using var conn = connectionUrl.Open();
+        var db = new global::DbExtensions.Database(conn);
+        var query = db.From<DbExtensions.Customer>("Customer").Where("FullName < {0}", "Hopper");
+        var customers = query.ToList();
+
+
+        Assert.That(customers, Has.Count.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(2));
+            Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
+            Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(2));
+            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+        });
+    }
 }
