@@ -14,3 +14,13 @@ updates:
       - "dependency-update"
     commit-message:
       prefix: "chore"
+    groups:
+      nunit:
+          patterns:
+            - "NUnit"
+      ms-test-sdk:
+          patterns:
+            - "Microsoft.NET.Test.Sdk"
+      db2:
+          patterns:
+            - "Net.IBM.Data.Db2"
