@@ -6,56 +6,11 @@
 version: 2
 updates:
   - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Core/" 
+    directories:
+      - "/DubUrl.*/" 
     schedule:
       interval: "weekly"
     labels:
       - "dependency-update"
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.OleDb/" 
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Extensions/" 
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Adomd/" 
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Testing/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.OleDb.Testing/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Extensions.Testing/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"      
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.Adomd.Testing/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"     
-  - package-ecosystem: "nuget" 
-    directory: "/DubUrl.QA/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependency-update"
+    commit-message:
+      prefix: "chore"
