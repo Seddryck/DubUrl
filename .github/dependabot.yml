@@ -15,12 +15,12 @@ updates:
     commit-message:
       prefix: "chore"
     groups:
-      nunit:
+      NUnit:
           patterns:
             - "NUnit"
-      ms-test-sdk:
+      Microsoft.NET.Test.Sdk:
           patterns:
             - "Microsoft.NET.Test.Sdk"
-      db2:
+      Net.IBM.Data.Db2:
           patterns:
             - "Net.IBM.Data.Db2"
