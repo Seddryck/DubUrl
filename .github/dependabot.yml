@@ -21,6 +21,12 @@ updates:
       Microsoft.NET.Test.Sdk:
           patterns:
             - "Microsoft.NET.Test.Sdk"
+      Moq:
+          patterns:
+            - "Moq"
+      Microsoft.Data.SqlClient:
+          patterns:
+            - "Microsoft.Data.SqlClient"
       Net.IBM.Data.Db2:
           patterns:
             - "Net.IBM.Data.Db2"
