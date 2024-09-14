@@ -6,6 +6,7 @@ branches:
     - /v\d+\.\d+\.\d+/
 skip_commits:
   files:
+    - .github/
     - docs/
     - misc/
     - README.md
