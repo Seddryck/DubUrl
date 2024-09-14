@@ -24,6 +24,9 @@ updates:
       Moq:
           patterns:
             - "Moq"
+      DotNet.ReproducibleBuilds:
+          patterns:
+            - "DotNet.ReproducibleBuilds"
       Microsoft.Data.SqlClient:
           patterns:
             - "Microsoft.Data.SqlClient"
