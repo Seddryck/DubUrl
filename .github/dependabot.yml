@@ -33,3 +33,10 @@ updates:
       Net.IBM.Data.Db2:
           patterns:
             - "Net.IBM.Data.Db2"
+      Npgsql :
+          patterns:
+            - "Npgsql"      
+      DuckDB :
+          patterns:
+            - "DuckDB.NET.Data"
+            - "DuckDB.NET.Bindings.Full"
