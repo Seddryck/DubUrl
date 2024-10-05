@@ -9,7 +9,7 @@ updates:
     directories:
       - "/DubUrl.*/" 
     schedule:
-      interval: "weekly"
+      interval: "daily"
     labels:
       - "dependency-update"
     commit-message:
