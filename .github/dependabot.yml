@@ -30,6 +30,15 @@ updates:
       Microsoft.Data.SqlClient:
           patterns:
             - "Microsoft.Data.SqlClient"
+      Microsoft.Data.Sqlite.Core:
+          patterns:
+            - "Microsoft.Data.Sqlite.Core"
+      System.Data.Odbc:
+          patterns:
+            - "System.Data.Odbc"
+      System.Data.OleDb:
+          patterns:
+            - "System.Data.OleDb"
       Net.IBM.Data.Db2:
           patterns:
             - "Net.IBM.Data.Db2"
