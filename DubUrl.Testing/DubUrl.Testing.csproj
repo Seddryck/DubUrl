@@ -17,7 +17,7 @@
     <PackageReference Include="SingleStoreConnector" Version="1.1.4" />
     <PackageReference Include="Snowflake.Data" Version="4.1.0" />
     <PackageReference Include="System.Data.Odbc" Version="8.0.0" />
-    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+    <PackageReference Include="System.Data.OleDb" Version="8.0.1" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.3" />
   </ItemGroup>
