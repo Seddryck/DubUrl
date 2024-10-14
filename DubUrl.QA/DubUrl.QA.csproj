@@ -100,7 +100,7 @@
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.4" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.10" />
-    <PackageReference Include="System.Data.Odbc" Version="8.0.0" />
+    <PackageReference Include="System.Data.Odbc" Version="8.0.1" />
     <PackageReference Include="System.Data.OleDb" Version="8.0.1" />
   </ItemGroup>
 
