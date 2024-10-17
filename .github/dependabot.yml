@@ -27,6 +27,9 @@ updates:
       DotNet.ReproducibleBuilds:
           patterns:
             - "DotNet.ReproducibleBuilds"
+      Microsoft.Extensions:
+          patterns:
+            - "Microsoft.Extensions*"
       Microsoft.Data.SqlClient:
           patterns:
             - "Microsoft.Data.SqlClient"
@@ -49,6 +52,9 @@ updates:
           patterns:
             - "DuckDB.NET.Data"
             - "DuckDB.NET.Bindings.Full"
-      Microsoft.Extensions:
+      MySql.Data:
           patterns:
-            - "Microsoft.Extensions*"
+            - "MySql.Data"
+      Oracle.ManagedDataAccess.Core:
+          patterns:
+            - "Oracle.ManagedDataAccess.Core"
