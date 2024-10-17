@@ -49,3 +49,6 @@ updates:
           patterns:
             - "DuckDB.NET.Data"
             - "DuckDB.NET.Bindings.Full"
+      Microsoft.Extensions:
+          patterns:
+            - "Microsoft.Extensions*"
