@@ -58,3 +58,6 @@ updates:
       Oracle.ManagedDataAccess.Core:
           patterns:
             - "Oracle.ManagedDataAccess.Core"
+      Snowflake.Data:
+          patterns:
+            - "Snowflake.Data"
