@@ -13,7 +13,7 @@
     <PackageReference Include="MySql.Data" Version="9.1.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="Npgsql" Version="8.0.5" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.5.1" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.6.1" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.4" />
     <PackageReference Include="Snowflake.Data" Version="4.2.0" />
     <PackageReference Include="System.Data.Odbc" Version="8.0.1" />
