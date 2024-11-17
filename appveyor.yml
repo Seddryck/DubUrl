@@ -17,7 +17,7 @@ skip_commits:
 
 environment:
   github_access_token:
-    secure: gtEHCUmmDjYfrp/NEe2qUPjZi9gXoSgzYTNEmN99fCWp7qp4tXhVSPhzutj2WATjNqlFChFx1vcvFZtiq9C9vVjJ/lcmp/b0paF+W9V0xqScKMrkYQmCrA/glUq4XOae
+    secure: gtEHCUmmDjYfrp/NEe2qUL/VwxZasWJUaIYe9UGs9SjMQmM9aim/7pugYwf1vezGd86kRNQkS6v7YjmSmCtWlwDmdpcnfMNAqVlH4e3Eapfo43EboM42IdpFNr5CfzYf
   SINGLESTORE_LICENSE:
     secure: CnPDQsQ/dDximcta5iMng/QKahXstSQpENsXCHiDd9JbPfkYTRn8GgXsAcYQgrHKtnsA+FDAO85fxfHXyb2tmrLjJupAMKA14t58y7D0ePpeIs6ZRGu8MCQkSLk9cuiGFQeRSOxoH9gUkVPQU30M3n9+HY8gVvasxanUsWH+HWhwrl9+4gr7D8SGx4ZB4rUyEZ8vQGUw0uHerbaImkQk9Q==
 
