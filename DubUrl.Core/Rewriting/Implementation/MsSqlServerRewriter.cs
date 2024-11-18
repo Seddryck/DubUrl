@@ -70,7 +70,7 @@ public class MsSqlServerRewriter : ConnectionStringRewriter
             if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Length <= 2)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
             else
-                throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", [.. urlInfo.Segments])}'");
+                throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments)}'");
         }
     }
 }

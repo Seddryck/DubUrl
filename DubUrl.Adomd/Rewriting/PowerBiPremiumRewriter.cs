@@ -54,7 +54,7 @@ internal class PowerBiPremiumRewriter : ConnectionStringRewriter
             for (int i = 0; i < segments.Count; i++)
                 segments[i] = Encode(segments[i]);
 
-            fullHost.AppendJoin('/', [.. segments]);
+            fullHost.AppendJoin('/', segments);
            
             Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
         }
