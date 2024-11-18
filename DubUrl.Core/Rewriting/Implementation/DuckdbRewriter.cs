@@ -34,7 +34,7 @@ internal class DuckdbRewriter : ConnectionStringRewriter
                 if (!urlInfo.Segments.Any())
                     segments.Add(":memory:");
                 else
-                    throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", [.. urlInfo.Segments])}'");
+                    throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '",  urlInfo.Segments)}'");
             }
             else if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
                 segments = urlInfo.Segments.Skip(1).ToList();

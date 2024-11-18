@@ -42,7 +42,7 @@ internal abstract class SsasRewriter : ConnectionStringRewriter
             var fullHost = new StringBuilder();
             fullHost.Append(urlInfo.Host);
             if (urlInfo.Segments.Length == 0 || urlInfo.Segments.Length > 3)
-                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", [.. urlInfo.Segments])}'");
+                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments)}'");
             if (urlInfo.Port != 0)
             {
                 fullHost.Append(':').Append(urlInfo.Port);
@@ -80,7 +80,7 @@ internal abstract class SsasRewriter : ConnectionStringRewriter
             else if (urlInfo.Segments.Length >= 2 && urlInfo.Segments.Length <= 3)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Skip(1).First());
             else
-                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", [.. urlInfo.Segments])}'");
+                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments)}'");
         }
     }
 

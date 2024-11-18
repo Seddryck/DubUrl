@@ -16,10 +16,16 @@
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.6.1" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.4" />
     <PackageReference Include="Snowflake.Data" Version="4.2.0" />
-    <PackageReference Include="System.Data.Odbc" Version="8.0.1" />
-    <PackageReference Include="System.Data.OleDb" Version="8.0.1" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.3" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
+    <PackageReference Include="System.Data.Odbc" Version="8.0.1" />
+    <PackageReference Include="System.Data.OleDb" Version="8.0.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="System.Data.Odbc" Version="9.0.0" />
+    <PackageReference Include="System.Data.OleDb" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
@@ -43,8 +49,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-		<ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
-	</ItemGroup>
+    <ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.25">
       <PrivateAssets>all</PrivateAssets>
