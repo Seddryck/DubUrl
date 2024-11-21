@@ -47,6 +47,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Vertica.Data" Version="24.2.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\DubUrl\DubUrl.Core\DubUrl.csproj" />
