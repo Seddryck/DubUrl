@@ -58,6 +58,9 @@ updates:
       MySql.Data:
           patterns:
             - "MySql.Data"
+      MySqlConnector:
+          patterns:
+            - "MySqlConnector"
       Oracle.ManagedDataAccess.Core:
           patterns:
             - "Oracle.ManagedDataAccess.Core"
