@@ -1,7 +1,7 @@
 Param(
 	[switch] $force=$false
 	, [string] $config = "Release"
-	, [string[]] $frameworks = @("net6.0", "net7.0")
+	, [string[]] $frameworks = @("net6.0", "net8.0", "net9.0")
 	, [string] $downloadUrl = "https://download.microsoft.com/download/8/8/0/880BCA75-79DD-466A-927D-1ABF1F5454B0/PBIDesktopSetup_x64.exe"
 	, [string] $processName = "PBIDesktop"
 )

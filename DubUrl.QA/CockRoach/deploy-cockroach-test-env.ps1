@@ -1,7 +1,7 @@
 Param(
 	[switch] $force=$false
 	, [string] $config = "Release"
-	, [string[]] $frameworks = @("net6.0", "net7.0")
+	, [string[]] $frameworks = @("net6.0", "net8.0", "net9.0")
 )
 if ($force) {
 	Write-Host "Enforcing QA testing for CockRoachDB"
