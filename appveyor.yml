@@ -24,10 +24,13 @@ environment:
 init:
 - cmd: git config --global core.autocrlf true
 - cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE "1"
+- cmd: setx DOTNET_CLI_TELEMETRY_OPTOUT 1
+- cmd: setx DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE 1
 - cmd: RefreshEnv.cmd
 - pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
 before_build:
+- cmd: dotnet --version
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 - pwsh: |
@@ -48,7 +51,6 @@ before_build:
     }
 
 build_script:
-  #- dotnet --info
   - dotnet build DubUrl.sln -p:version="%GitVersion_SemVer%" -c Release /p:ContinuousIntegrationBuild=true --nologo 
 
 test_script:
