@@ -5,7 +5,7 @@ Function Run-TestSuite {
         [ValidateNotNullOrEmpty()]
         [string[]] $categories
 		, [string] $config = "Release"
-		, [string[]] $frameworks = @("net6.0")
+		, [string[]] $frameworks = @("net6.0", "net8.0", "net9.0")
 	)
 
 	Begin {
