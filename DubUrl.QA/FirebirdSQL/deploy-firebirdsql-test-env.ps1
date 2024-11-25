@@ -3,7 +3,7 @@ Param(
 	, $package= "Firebird-4.0.2.2816-0-x64"
 	, [string] $config= "Release"
 	, [string] $extension = "zip"
-	, [string[]] $frameworks = @("net6.0", "net7.0")
+	, [string[]] $frameworks = @("net6.0", "net8.0", "net9.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 

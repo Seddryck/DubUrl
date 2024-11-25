@@ -67,6 +67,7 @@ updates:
       Snowflake.Data:
           patterns:
             - "Snowflake.Data"
-      System.Management:
+      System:
           patterns:
             - "System.Management"
+            - "System.Text.Json"

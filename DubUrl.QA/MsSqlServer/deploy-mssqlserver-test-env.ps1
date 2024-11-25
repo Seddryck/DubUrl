@@ -2,7 +2,7 @@ Param(
 	[switch] $force=$false
 	, [string] $databaseService= "MSSQL`$SQL2019"
 	, [string] $config = "Release"
-	, [string[]] $frameworks = @("net6.0", "net7.0")
+	, [string[]] $frameworks = @("net6.0", "net8.0", "net9.0")
 )
 . $PSScriptRoot\..\Windows-Service.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
