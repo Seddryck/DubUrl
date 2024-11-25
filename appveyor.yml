@@ -76,7 +76,7 @@ test_script:
 
 - pwsh: |
       $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
-      & .\DubUrl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net6.0") -exclude @("CockRoach", "Drill", "Trino", "PowerBIDesktop", "SsasMultdim", "SsasTabular", "SingleStore", "CrateDB")
+      & .\DubUrl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net6.0", "net8.0", "net9.0") -exclude @("CockRoach", "Drill", "Trino", "PowerBIDesktop", "SsasMultdim", "SsasTabular", "SingleStore", "CrateDB")
       if ($lastexitcode -gt 0) {
         throw "At least one of the test-suite was not successful. Build stopped."
       }
