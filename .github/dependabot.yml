@@ -71,3 +71,6 @@ updates:
           patterns:
             - "System.Management"
             - "System.Text.Json"
+      SingleStoreConnector:
+          patterns:
+            - "SingleStoreConnector"
