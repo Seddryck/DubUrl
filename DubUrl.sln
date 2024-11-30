@@ -33,6 +33,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Edit", "Edit", "{210C887C-6
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		generate-adomd-info.ps1 = generate-adomd-info.ps1
+		generate-adonet-info.ps1 = generate-adonet-info.ps1
+		generate-odbc-driver-info.ps1 = generate-odbc-driver-info.ps1
+		generate-oledb-provider-info.ps1 = generate-oledb-provider-info.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA", "DubUrl.QA\DubUrl.QA.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
