@@ -17,7 +17,7 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
 
 $assemblyPath = "DubUrl.QA\bin"
 Set-Location $assemblyPath
-$dllfile = "net6.0\DubUrl.OleDb.dll"
+$dllfile = "net8.0\DubUrl.OleDb.dll"
 
 If ((-not (Test-Path -Path "Release\$dllfile")) -or ("Release\$dllfile".CreationTime -lt "Debug\$dllfile".CreationTime)) {
     $directory = "Debug"    
@@ -25,7 +25,7 @@ If ((-not (Test-Path -Path "Release\$dllfile")) -or ("Release\$dllfile".Creation
     $directory = "Release"   
 }
 
-Add-Type -Path "$directory\net6.0\Antlr4.StringTemplate.dll"
+Add-Type -Path "$directory\net8.0\Antlr4.StringTemplate.dll"
 Add-Type -Path "$directory\$dllfile"
 
 
