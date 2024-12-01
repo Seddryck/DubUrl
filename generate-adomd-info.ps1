@@ -18,7 +18,7 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
 
 $assemblyPath = "DubUrl.Adomd\bin"
 Set-Location $assemblyPath
-$dllfile = "net6.0\DubUrl.Adomd.dll"
+$dllfile = "net8.0\DubUrl.Adomd.dll"
 
 If ((-not (Test-Path -Path "Release\$dllfile")) -or ("Release\$dllfile".CreationTime -lt "Debug\$dllfile".CreationTime)) {
     $directory = "Debug"    
