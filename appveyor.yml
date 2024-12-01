@@ -1,9 +1,7 @@
 version: build.{build}
 image: Visual Studio 2022
 
-branches:
-  except:
-    - /v\d+\.\d+\.\d+/
+skip_tags: true
 skip_commits:
   files:
     - .github/
