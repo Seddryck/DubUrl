@@ -74,3 +74,6 @@ updates:
       SingleStoreConnector:
           patterns:
             - "SingleStoreConnector"
+      FirebirdSql.Data.FirebirdClient:
+          patterns:
+            - "FirebirdSql.*"
