@@ -7,7 +7,7 @@
     <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.84.1" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.2" />
-    <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.300" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' != 'net8.0'" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.0" />
     <PackageReference Include="MySql.Data" Version="9.1.0" />
@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NUnit" Version="4.3.1" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.4.0">
+    <PackageReference Include="NUnit.Analyzers" Version="4.5.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
