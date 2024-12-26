@@ -43,11 +43,9 @@
     <EmbeddedResource Include="SelectWhereCustomers.firebird.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.cratedb.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.dax.st" />
-    
     <EmbeddedResource Include="SelectWhereCustomers.cockroach.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.sql.st" />
     <EmbeddedResource Include="SelectWhereCustomers.timescale.sql.st" />
-    
     <EmbeddedResource Include="SelectCustomerById.cockroach.sql" />
     <EmbeddedResource Include="SelectCustomerById.duckdb.sql" />
     <EmbeddedResource Include="SelectCustomerById.firebird.sql" />
@@ -59,7 +57,6 @@
     <EmbeddedResource Include="SelectCustomerById.timescale.sql" />
     <EmbeddedResource Include="SelectCustomerById.trino.sql" />
     <EmbeddedResource Include="SelectCustomerById.xlsx.sql" />
-
     <EmbeddedResource Include="SelectFirstCustomer.cockroach.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.duckdb.sql" />
     <EmbeddedResource Include="SelectFirstCustomer.firebird.sql" />
@@ -74,7 +71,6 @@
     <EmbeddedResource Include="SelectYoungestCustomers.cratedb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.singlestore.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.dax" />
-
     <EmbeddedResource Include="SelectYoungestCustomers.cockroach.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.duckdb.sql" />
     <EmbeddedResource Include="SelectYoungestCustomers.firebird.sql" />
@@ -111,7 +107,7 @@
   <ItemGroup>
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="NUnit" Version="4.3.0" />
+    <PackageReference Include="NUnit" Version="4.3.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.4.0">
       <PrivateAssets>all</PrivateAssets>
