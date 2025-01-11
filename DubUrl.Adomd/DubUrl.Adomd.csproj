@@ -3,7 +3,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.84.1" />
     <PackageReference Include="System.Management" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.66.2" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.67.1" />
   </ItemGroup>
 
   <ItemGroup>
