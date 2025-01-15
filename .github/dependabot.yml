@@ -38,7 +38,7 @@ updates:
             - "Microsoft.Extensions*"
       Microsoft.Identity:
           patterns:
-            - "Microsoft.Identify*"
+            - "Microsoft.Identity*"
       Microsoft.Data.SqlClient:
           patterns:
             - "Microsoft.Data.SqlClient"
