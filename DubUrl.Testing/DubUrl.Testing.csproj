@@ -11,7 +11,7 @@
     <PackageReference Include="MySql.Data" Version="9.2.0" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.6" />
-    <PackageReference Include="Snowflake.Data" Version="4.2.0" />
+    <PackageReference Include="Snowflake.Data" Version="4.3.0" />
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.3" />
     <PackageReference Include="System.Management" Version="9.0.1" />
     <PackageReference Include="Npgsql" Version="9.0.2" />
