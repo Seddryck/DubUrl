@@ -17,10 +17,10 @@
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="System.Data.Odbc" Version="9.0.1" />
-    <PackageReference Include="System.Data.OleDb" Version="9.0.1" />
+    <PackageReference Include="System.Data.OleDb" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.300" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' != 'net8.0'" />
   </ItemGroup>
   <ItemGroup>
