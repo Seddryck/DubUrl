@@ -94,8 +94,8 @@
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.6" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.10" />
+    <PackageReference Include="System.Data.OleDb" Version="9.0.2" />
     <PackageReference Include="System.Data.Odbc" Version="9.0.2" />
-    <PackageReference Include="System.Data.OleDb" Version="9.0.1" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.2" />
