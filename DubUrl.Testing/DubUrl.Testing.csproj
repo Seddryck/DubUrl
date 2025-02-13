@@ -16,7 +16,7 @@
     <PackageReference Include="System.Management" Version="9.0.1" />
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
-    <PackageReference Include="System.Data.Odbc" Version="9.0.1" />
+    <PackageReference Include="System.Data.Odbc" Version="9.0.2" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup>
