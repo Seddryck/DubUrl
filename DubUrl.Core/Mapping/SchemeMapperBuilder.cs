@@ -16,6 +16,7 @@ namespace DubUrl.Mapping;
 public class SchemeMapperBuilder
 {
     protected readonly char[] Separators = ['+', ':'];
+    private readonly string RootPath;
 
     private readonly record struct ProviderInfo(string ProviderName, List<string> Aliases, Type DialectType, DriverLocatorFactory? DriverLocatorFactory);
     private bool IsBuilt { get; set; } = false;
@@ -26,19 +27,22 @@ public class SchemeMapperBuilder
     private DialectBuilder DialectBuilder { get; } = new();
 
     public SchemeMapperBuilder()
-     : this([typeof(SchemeMapperBuilder).Assembly]) { }
+     : this(string.Empty) { }
 
-    public SchemeMapperBuilder(Assembly[] assemblies)
+    public SchemeMapperBuilder(string rootPath)
+     : this([typeof(SchemeMapperBuilder).Assembly], rootPath) { }
+
+    public SchemeMapperBuilder(Assembly[] assemblies, string? rootPath = null)
     {
+        RootPath = rootPath ?? string.Empty;
         var asmTypesProbe = new AssemblyTypesProbe(assemblies);
         MapperIntrospectors =
         [
-            new NativeMapperIntrospector(asmTypesProbe)
-            ,
+            new NativeMapperIntrospector(asmTypesProbe),
             new WrapperMapperIntrospector(asmTypesProbe)
         ];
         Initialize();
-    }
+    }  
 
     protected virtual void Initialize()
         => Initialize(MapperIntrospectors.Aggregate(
@@ -81,11 +85,11 @@ public class SchemeMapperBuilder
                 , ParametrizerFactory.Instantiate(mapperData.ParametrizerType)
             };
 
-            //if (mapperData.DriverLocatorFactory != null)
-            //{
-            //    ctorParamTypes.Add(typeof(DriverLocatorFactory));
-            //    ctorParams.Add(mapperData.Value.DriverLocatorFactory);
-            //}
+            if (typeof(IFileBasedMapper).IsAssignableFrom(mapperData.MapperType))
+            {
+                ctorParamTypes.Add(typeof(string));
+                ctorParams.Add(RootPath);
+            }
 
             var ctor = mapperData.MapperType.GetConstructor(
                             BindingFlags.Instance | BindingFlags.Public,

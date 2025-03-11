@@ -14,10 +14,10 @@ namespace DubUrl.Mapping.Implementation;
 [Mapper<SqliteDatabase, NamedParametrizer>(
     "Microsoft.Data.Sqlite"
 )]
-public class SqliteMapper : BaseMapper
+public class SqliteMapper : BaseMapper, IFileBasedMapper
 {
-    public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : base(new SqliteRewriter(csb),
+    public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)
+        : base(new SqliteRewriter(csb, rootPath),
               dialect,
               parametrizer
         )

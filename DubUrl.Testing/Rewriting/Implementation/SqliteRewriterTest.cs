@@ -32,7 +32,7 @@ public class SqliteRewriterTest
     public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "data.db")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-        var Rewriter = new SqliteRewriter(ConnectionStringBuilder);
+        var Rewriter = new SqliteRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -47,7 +47,7 @@ public class SqliteRewriterTest
     public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.db")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-        var Rewriter = new SqliteRewriter(ConnectionStringBuilder);
+        var Rewriter = new SqliteRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -55,17 +55,30 @@ public class SqliteRewriterTest
         Assert.That(result[SqliteRewriter.DATABASE_KEYWORD], Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
     }
 
-
     [Test]
     public void Map_QuadrupleSlash_DataSource()
     {
         var path = "c:/directory/data.db";
         var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
-        var Rewriter = new SqliteRewriter(ConnectionStringBuilder);
+        var Rewriter = new SqliteRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(SqliteRewriter.DATABASE_KEYWORD));
         Assert.That(result[SqliteRewriter.DATABASE_KEYWORD], Is.EqualTo(path.Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    [Test]
+    public void Map_QuadrupleSlashWithRootPath_DataSource()
+    {
+        var rootPath = "c:\\directory\\";
+        var path = "data.db";
+        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var Rewriter = new SqliteRewriter(ConnectionStringBuilder, rootPath);
+        var result = Rewriter.Execute(urlInfo);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.ContainKey(SqliteRewriter.DATABASE_KEYWORD));
+        Assert.That(result[SqliteRewriter.DATABASE_KEYWORD], Is.EqualTo((rootPath + path).Replace('/', Path.DirectorySeparatorChar)));
     }
 }

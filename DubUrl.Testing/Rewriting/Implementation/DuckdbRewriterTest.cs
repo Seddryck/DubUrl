@@ -32,7 +32,7 @@ public class DuckdbRewriterTest
     public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "data.db")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder);
+        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -47,7 +47,7 @@ public class DuckdbRewriterTest
     public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.db")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder);
+        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -55,13 +55,12 @@ public class DuckdbRewriterTest
         Assert.That(result[DuckdbRewriter.DATABASE_KEYWORD], Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
     }
 
-
     [Test]
     public void Map_QuadrupleSlash_DataSource()
     {
         var path = "c:/directory/data.db";
         var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
-        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder);
+        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -70,12 +69,26 @@ public class DuckdbRewriterTest
     }
 
     [Test]
+    public void Map_QuadrupleSlashWithRootPath_DataSource()
+    {
+        var rootPath = "c:\\directory\\";
+        var path = "data.db";
+        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, rootPath);
+        var result = Rewriter.Execute(urlInfo);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.ContainKey(DuckdbRewriter.DATABASE_KEYWORD));
+        Assert.That(result[DuckdbRewriter.DATABASE_KEYWORD], Is.EqualTo((rootPath + path).Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    [Test]
     [TestCase("memory")]
     [TestCase(":memory:")]
     public void Map_InMemory_DataSource(string host)
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = [] };
-        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder);
+        var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
