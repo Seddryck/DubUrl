@@ -16,7 +16,6 @@ public class ConnectionUrlFactory
     private SchemeMapperBuilder SchemeMapperBuilder { get; }
     private IParser Parser { get; }
 
-
     public ConnectionUrlFactory(SchemeMapperBuilder builder)
         : this(new Parser(), builder) { }
 

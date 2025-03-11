@@ -12,11 +12,11 @@ namespace DubUrl.Rewriting.Implementation;
 internal class DuckdbRewriter : ConnectionStringRewriter
 {
     protected internal const string DATABASE_KEYWORD = "Data Source";
-
-    public DuckdbRewriter(DbConnectionStringBuilder csb)
+    
+    public DuckdbRewriter(DbConnectionStringBuilder csb, string rootPath)
         : base(   new UniqueAssignmentSpecificator(csb),
                   [
-                    new DataSourceMapper(),
+                    new DataSourceMapper(rootPath),
                     new OptionsMapper(),
                   ]
         )
@@ -24,6 +24,15 @@ internal class DuckdbRewriter : ConnectionStringRewriter
 
     internal class DataSourceMapper : BaseTokenMapper
     {
+        private readonly string RootPath;
+
+        public DataSourceMapper(string rootPath)
+        {
+            if (!rootPath.EndsWith(Path.DirectorySeparatorChar) && !string.IsNullOrEmpty(rootPath))
+                rootPath += Path.DirectorySeparatorChar.ToString();
+            RootPath = rootPath;
+        }
+
         public override void Execute(UrlInfo urlInfo)
         {
             var segments = new List<string>();
@@ -46,15 +55,18 @@ internal class DuckdbRewriter : ConnectionStringRewriter
                 segments.AddRange(urlInfo.Segments);
             }
 
-            Specificator.Execute(DATABASE_KEYWORD, BuildPath(segments));
+            Specificator.Execute(DATABASE_KEYWORD, BuildPath(segments, RootPath));
         }
 
-        private static string BuildPath(IEnumerable<string> segments)
+        private static string BuildPath(IEnumerable<string> segments, string rootPath)
         {
             if (segments == null || !segments.Any())
                 throw new InvalidConnectionUrlMissingSegmentsException("DuckDB");
 
             var path = new StringBuilder();
+
+            if (!segments.First().Contains(':'))
+                path.Append(rootPath);
             foreach (var segment in segments)
                 if (!string.IsNullOrEmpty(segment))
                     path.Append(segment).Append(Path.DirectorySeparatorChar);

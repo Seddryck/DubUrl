@@ -15,10 +15,10 @@ namespace DubUrl.Mapping.Implementation;
 [MapperAttribute<DuckdbDatabase, PositionalParametrizer>(
     "DuckDB.NET.Data"
 )]
-public class DuckdbMapper : BaseMapper
+public class DuckdbMapper : BaseMapper, IFileBasedMapper
 {
-    public DuckdbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : base(new DuckdbRewriter(csb),
+    public DuckdbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)
+        : this(new DuckdbRewriter(csb, rootPath),
               dialect,
               parametrizer
         )
