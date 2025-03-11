@@ -17,13 +17,13 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
     internal const string USERNAME_KEYWORD = "User";
     internal const string PASSWORD_KEYWORD = "Password";
 
-    public FirebirdSqlRewriter(DbConnectionStringBuilder csb)
+    public FirebirdSqlRewriter(DbConnectionStringBuilder csb, string rootPath)
         : base(new UniqueAssignmentSpecificator(csb),
               [
                 new DataSourceMapper(),
                 new PortMapper(),
                 new AuthentificationMapper(),
-                new DatabaseMapper(),
+                new DatabaseMapper(rootPath),
                 new OptionsMapper(),
               ]
         )
@@ -57,6 +57,15 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
 
     internal class DatabaseMapper : BaseTokenMapper
     {
+        private readonly string RootPath;
+
+        public DatabaseMapper(string rootPath)
+        {
+            if (!rootPath.EndsWith(Path.DirectorySeparatorChar) && !string.IsNullOrEmpty(rootPath))
+                rootPath += Path.DirectorySeparatorChar.ToString();
+            RootPath = rootPath;
+        }
+
         public override void Execute(UrlInfo urlInfo)
         {
             if (urlInfo.Segments.Length == 0)
@@ -64,6 +73,8 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
             else
             {
                 var path = new StringBuilder();
+                if (!urlInfo.Segments.First().Contains(':'))
+                    path.Append(RootPath);
                 foreach (var segment in urlInfo.Segments)
                     if (!string.IsNullOrEmpty(segment))
                         path.Append(segment).Append(Path.DirectorySeparatorChar);

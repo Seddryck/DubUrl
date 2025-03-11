@@ -31,7 +31,7 @@ public class FirebirdSqlRewriterTest
     public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "localhost")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -44,7 +44,7 @@ public class FirebirdSqlRewriterTest
     public void Map_DoubleSlash_Database(string host, string expected = "data.fdb")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = [] };
-        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -65,7 +65,7 @@ public class FirebirdSqlRewriterTest
     public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.fdb")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
-        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -73,13 +73,12 @@ public class FirebirdSqlRewriterTest
         Assert.That(result[FirebirdSqlRewriter.DATABASE_KEYWORD], Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
     }
 
-
     [Test]
     public void Map_QuadrupleSlash_DataSource()
     {
         var path = "c:/directory/data.fdb";
         var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
-        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -88,10 +87,24 @@ public class FirebirdSqlRewriterTest
     }
 
     [Test]
+    public void Map_QuadrupleSlashWithRootPath_DataSource()
+    {
+        var rootPath = "c:\\directory\\";
+        var path = "data.fdb";
+        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, rootPath);
+        var result = Rewriter.Execute(urlInfo);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.DATABASE_KEYWORD));
+        Assert.That(result[FirebirdSqlRewriter.DATABASE_KEYWORD], Is.EqualTo((rootPath + path).Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
         var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
-        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -108,7 +121,7 @@ public class FirebirdSqlRewriterTest
     public void Map_UrlInfoWithPort_Port()
     {
         var urlInfo = new UrlInfo() { Host = "localhost", Port = 3001, Segments = ["db"] };
-        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder);
+        var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
