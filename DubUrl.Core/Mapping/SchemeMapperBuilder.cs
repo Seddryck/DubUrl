@@ -30,7 +30,7 @@ public class SchemeMapperBuilder
      : this(string.Empty) { }
 
     public SchemeMapperBuilder(string rootPath)
-     : this([typeof(SchemeMapperBuilder).Assembly]) { }
+     : this([typeof(SchemeMapperBuilder).Assembly], rootPath) { }
 
     public SchemeMapperBuilder(Assembly[] assemblies, string? rootPath = null)
     {
