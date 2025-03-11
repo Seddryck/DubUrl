@@ -71,7 +71,7 @@ public class SqliteRewriterTest
     [Test]
     public void Map_QuadrupleSlashWithRootPath_DataSource()
     {
-        var rootPath = "c:\\directory\\";
+        var rootPath = "c:\\directory";
         var path = "data.db";
         var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new SqliteRewriter(ConnectionStringBuilder, rootPath);
@@ -79,6 +79,6 @@ public class SqliteRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(SqliteRewriter.DATABASE_KEYWORD));
-        Assert.That(result[SqliteRewriter.DATABASE_KEYWORD], Is.EqualTo((rootPath + path).Replace('/', Path.DirectorySeparatorChar)));
+        Assert.That(result[SqliteRewriter.DATABASE_KEYWORD], Is.EqualTo(Path.Combine(rootPath, path).Replace('/', Path.DirectorySeparatorChar)));
     }
 }

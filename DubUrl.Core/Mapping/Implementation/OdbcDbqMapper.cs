@@ -16,10 +16,10 @@ namespace DubUrl.Mapping.Implementation;
 [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
     "System.Data.Odbc"
 )]
-public class OdbcDbqMapper : BaseMapper, IOdbcMapper
+public class OdbcDbqMapper : BaseMapper, IOdbcMapper, IFileBasedMapper
 { 
-    public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : base(new OdbcDbqRewriter(csb),
+    public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)
+        : base(new OdbcDbqRewriter(csb, rootPath),
               dialect,
               parametrizer
         )
