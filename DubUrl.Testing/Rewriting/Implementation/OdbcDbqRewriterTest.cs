@@ -25,7 +25,7 @@ public class OdbcDbqRewriterTest
     public void Map_DoubleSlash_Dbq(string host, string segmentsList, string expected = "sheet.xlsx")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -40,7 +40,7 @@ public class OdbcDbqRewriterTest
     public void Map_TripleSlash_Dbq(string host, string segmentsList, string expected = "directory/sheet.xlsx")
     {
         var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -48,13 +48,12 @@ public class OdbcDbqRewriterTest
         Assert.That(result[OdbcDbqRewriter.SERVER_KEYWORD], Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
     }
 
-
     [Test]
     public void Map_QuadrupleSlash_DataSource()
     {
         var path = "c:/directory/sheet.xlsx";
         var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/'), Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -63,10 +62,24 @@ public class OdbcDbqRewriterTest
     }
 
     [Test]
+    public void Map_QuadrupleSlashWithRootPath_DataSource()
+    {
+        var rootPath = "c:\\directory";
+        var path = "sheet.xlsx";
+        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/'), Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, rootPath);
+        var result = Rewriter.Execute(urlInfo);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.ContainKey(OdbcDbqRewriter.SERVER_KEYWORD));
+        Assert.That(result[OdbcDbqRewriter.SERVER_KEYWORD], Is.EqualTo(Path.Combine(rootPath, path).Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
         var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Driver", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)" } } };
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -86,7 +99,7 @@ public class OdbcDbqRewriterTest
         urlInfo.Options.Add("sslmode", "required");
         urlInfo.Options.Add("charset", "UTF8");
 
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -104,7 +117,7 @@ public class OdbcDbqRewriterTest
     {
         var urlInfo = new UrlInfo() { Schemes = ["odbc", "xlsx", "{Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}"], Segments = ["db"] };
 
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
         Assert.That(result, Is.Not.Null);
@@ -121,7 +134,7 @@ public class OdbcDbqRewriterTest
         driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(new[] { "odbc+xlsx", "xlsx" });
         driverLocationFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
 
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty, driverLocationFactoryMock.Object);
         var result = Rewriter.Execute(urlInfo);
 
         driverLocationFactoryMock.Verify(x => x.Instantiate(It.IsAny<string>()), Times.Never);
@@ -140,7 +153,7 @@ public class OdbcDbqRewriterTest
                 x.Instantiate(It.IsAny<string>())
             ).Returns(driverLocationMock.Object);
 
-        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, driverLocationFactoryMock.Object);
+        var Rewriter = new OdbcDbqRewriter(ConnectionStringBuilder, string.Empty, driverLocationFactoryMock.Object);
         var result = Rewriter.Execute(urlInfo);
 
         driverLocationFactoryMock.Verify(x => x.GetValidAliases(), Times.AtLeastOnce);

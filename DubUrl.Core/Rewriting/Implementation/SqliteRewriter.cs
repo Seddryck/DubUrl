@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -45,22 +47,10 @@ internal class SqliteRewriter : ConnectionStringRewriter
                 segments.AddRange(urlInfo.Segments);
             }
 
-            Specificator.Execute(DATABASE_KEYWORD, BuildPath(segments, RootPath));
-        }
-
-        private static string BuildPath(IEnumerable<string> segments, string rootPath)
-        {
             if (segments == null || !segments.Any())
                 throw new InvalidConnectionUrlMissingSegmentsException("Sqlite");
 
-            var path = new StringBuilder();
-            if (!segments.First().Contains(':'))
-                path.Append(rootPath);
-            foreach (var segment in segments)
-                if (!string.IsNullOrEmpty(segment))
-                    path.Append(segment).Append(Path.DirectorySeparatorChar);
-            path.Remove(path.Length - 1, 1);
-            return path.ToString();
+            Specificator.Execute(DATABASE_KEYWORD, PathHelper.Create(RootPath, segments));
         }
     }
 }

@@ -18,12 +18,14 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
     protected internal const string PASSWORD_KEYWORD = "Pwd";
     protected internal const string DRIVER_KEYWORD = "Driver";
 
-    public OdbcDbqRewriter(DbConnectionStringBuilder csb)
-        : this(csb, new DriverLocatorFactory()) { }
-    public OdbcDbqRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
+    public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath)
+        : this(csb, rootPath, new DriverLocatorFactory())
+    { }
+
+    public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath, DriverLocatorFactory driverLocatorFactory)
         : base(new StraightSpecificator(csb),
               [
-                new DbqMapper(),
+                new DbqMapper(rootPath),
                 new AuthentificationMapper(),
                 new DriverMapper(driverLocatorFactory),
                 new OptionsMapper(),
@@ -33,6 +35,15 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
 
     internal class DbqMapper : BaseTokenMapper
     {
+        private readonly string RootPath;
+
+        public DbqMapper(string rootPath)
+        {
+            if (!rootPath.EndsWith(Path.DirectorySeparatorChar) && !string.IsNullOrEmpty(rootPath))
+                rootPath += Path.DirectorySeparatorChar.ToString();
+            RootPath = rootPath;
+        }
+
         public override void Execute(UrlInfo urlInfo)
         {
             var segments = new List<string>();
@@ -45,20 +56,10 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
                 segments.AddRange(urlInfo.Segments);
             }
 
-            Specificator.Execute(SERVER_KEYWORD, BuildPath(segments));
-        }
-
-        private static string BuildPath(IEnumerable<string> segments)
-        {
             if (segments == null || !segments.Any())
                 throw new InvalidConnectionUrlMissingSegmentsException("ODBC DBQ");
 
-            var path = new StringBuilder();
-            foreach (var segment in segments)
-                if (!string.IsNullOrEmpty(segment))
-                    path.Append(segment).Append(Path.DirectorySeparatorChar);
-            path.Remove(path.Length - 1, 1);
-            return path.ToString();
+            Specificator.Execute(SERVER_KEYWORD, PathHelper.Create(RootPath, segments));
         }
     }
 

@@ -72,15 +72,12 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Host);
             else
             {
-                var path = new StringBuilder();
-                if (!urlInfo.Segments.First().Contains(':'))
-                    path.Append(RootPath);
-                foreach (var segment in urlInfo.Segments)
-                    if (!string.IsNullOrEmpty(segment))
-                        path.Append(segment).Append(Path.DirectorySeparatorChar);
-                path.Remove(path.Length - 1, 1);
-                Specificator.Execute(DATABASE_KEYWORD, path.ToString());
+                if (urlInfo.Segments == null || !urlInfo.Segments.Any())
+                    throw new InvalidConnectionUrlMissingSegmentsException("FirebirdSql");
+
+                Specificator.Execute(DATABASE_KEYWORD, PathHelper.Create(RootPath, urlInfo.Segments));
             }
+                
         }
     }
 
