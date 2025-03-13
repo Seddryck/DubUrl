@@ -7,13 +7,13 @@
     <PackageReference Include="Microsoft.AnalysisServices.AdomdClient.NetCore.retail.amd64" Version="19.84.1" />
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.2" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.3" />
     <PackageReference Include="MySql.Data" Version="9.2.0" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.1.6" />
     <PackageReference Include="Snowflake.Data" Version="4.3.0" />
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.3" />
-    <PackageReference Include="System.Management" Version="9.0.2" />
+    <PackageReference Include="System.Management" Version="9.0.3" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="System.Data.Odbc" Version="9.0.3" />
@@ -24,7 +24,7 @@
     <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' != 'net8.0'" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="9.0.2" />
+    <PackageReference Include="System.Text.Json" Version="9.0.3" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
