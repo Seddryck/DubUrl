@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<PackageId>DubUrl.OleDb</PackageId>
+		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+		<PackageTags>connection-string;database;sql;oledb</PackageTags>
+		<Description>DubUrl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
+	</PropertyGroup>
+	
+</Project>
