@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 namespace DubUrl.Schema;
 public class Table
 {
-    public string Name { get; set; }
-    public ImmutableDictionary<string, Column> Columns { get; set; }
+    public string Name { get; }
+    public ImmutableDictionary<string, Column> Columns => ColumnValues.ToImmutableDictionary(c => c.Name);
+    public Column[] ColumnValues { get; }
 
     public Table(string name, Column[] columns)
     {
         Name = name;
-        Columns = columns.ToImmutableDictionary(c => c.Name);
+        ColumnValues = columns;
     }
 }

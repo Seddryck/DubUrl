@@ -10,8 +10,11 @@ public class Column
 {
     public string Name { get; }
     public DbType Type { get; }
+    public string TypeValue => Type.ToString();
+
     public bool IsNullable { get; } = false;
     public object? DefaultValue { get; }
+    public bool HasDefaultValue => DefaultValue is not null;
 
     public Column(string name, DbType type, bool isNullable = false, object? defaultValue = null)
     {

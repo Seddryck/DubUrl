@@ -1,5 +1,6 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
+using DubUrl.Querying.TypeMapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +13,10 @@ public abstract class BaseDialect : IDialect
 {
     public IRenderer Renderer { get; }
     public ICaster[] Casters { get; }
+    public IDbTypeMapper DbTypeMapper { get; }
     public virtual string[] Aliases { get; }
     public virtual ILanguage Language { get; }
 
-    public BaseDialect(string[] aliases, IRenderer renderer, ICaster[] casters)
-        => (Language, Aliases, Renderer, Casters) = (new SqlLanguage(), aliases, renderer, casters);
-
-    public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
-        => (Language, Aliases, Renderer, Casters) = (language, aliases, renderer, casters);
+    public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper)
+        => (Language, Aliases, Renderer, Casters, DbTypeMapper) = (language, aliases, renderer, casters, dbTypeMapper);
 }

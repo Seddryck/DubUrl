@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace DubUrl.Schema;
 internal class VarLengthColumn : Column
 {
-    public int Size { get; }
+    public int Length { get; }
 
     public VarLengthColumn(string name, DbType type, int size, bool isNullable = false, object? defaultValue = null)
         : base(name, type, isNullable, defaultValue)
-        => Size = size;
+        => Length = size;
 }

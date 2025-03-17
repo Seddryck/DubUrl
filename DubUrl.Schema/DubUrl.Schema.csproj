@@ -1,7 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Templates\CreateSchema.sql.hbs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Didot.Core" Version="0.25.0" />
 	</ItemGroup>
 
 	<PropertyGroup>

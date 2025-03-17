@@ -71,7 +71,7 @@ public class ColumnBuilderTests
         {
             Assert.That(varLength.Name, Is.EqualTo("value"));
             Assert.That(varLength.Type, Is.EqualTo(DbType.AnsiString));
-            Assert.That(varLength.Size, Is.EqualTo(255));
+            Assert.That(varLength.Length, Is.EqualTo(255));
         });
     }
 
