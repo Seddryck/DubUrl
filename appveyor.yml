@@ -46,7 +46,6 @@ before_build:
     }
 
 build_script:
-  - dotnet --info
   - dotnet build DubUrl.sln -p:version="%GitVersion_SemVer%" -c Release /p:ContinuousIntegrationBuild=true --nologo 
 
 test_script:
