@@ -23,10 +23,10 @@ public static class ConnectionUrlExtensions
 
     public static string ScriptSchema(this ConnectionUrl connectionUrl, Schema schema, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
-        var tables = new List<TableRender>();
+        var tables = new List<TableViewModel>();
         foreach (var table in schema.Tables)
         {
-            var tableRenderer = new TableRender(table.Value);
+            var tableRenderer = new TableViewModel(table.Value);
             tables.Add(tableRenderer);
         }
         var model = new { model = new { Tables = tables.ToArray() } };

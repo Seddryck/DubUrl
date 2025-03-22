@@ -11,7 +11,14 @@ public interface ITableCollectionBuilder
     ISchemaBuilder WithTables(Func<TableCollectionBuilder, TableCollectionBuilder> tables);
 }
 
+/// <summary>
+/// Interface for schema building operations.
+/// </summary>
 public interface ISchemaBuilder
 {
+    /// <summary>
+    /// Builds and returns a Schema object.
+    /// </summary>
+    /// <returns>A fully constructed Schema object.</returns>
     Schema Build();
 }

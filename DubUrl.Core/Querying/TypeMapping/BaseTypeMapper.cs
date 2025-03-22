@@ -10,11 +10,10 @@ public abstract class BaseTypeMapper : IDbTypeMapper
 {
     private Dictionary<DbType, string> Mappings { get; } = [];
 
-    public BaseTypeMapper()
-    { }
-
     protected void AddOrReplace(DbType dbType, string sqlType)
     {
+        ArgumentNullException.ThrowIfNull(sqlType);
+        ArgumentException.ThrowIfNullOrEmpty(sqlType);
         if (!Mappings.TryAdd(dbType, sqlType))
             Mappings[dbType] = sqlType;
     }

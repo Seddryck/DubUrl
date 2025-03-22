@@ -17,9 +17,10 @@ public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnT
     private object? DefaultValue { get; set; }
     private bool IsNullable { get; set; } = false;
 
-
     public IColumnTypeBuilder WithName(string name)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Column name cannot be empty or whitespace.", nameof(name));
         Name = name;
         return this;
     }
@@ -70,6 +71,9 @@ public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnT
 
     Column IColumnBuilder.Build()
     {
+        if (string.IsNullOrWhiteSpace(Name))
+            throw new InvalidOperationException("Column name must be set before building");
+
         if (Scale.HasValue && Length.HasValue)
             return new NumericColumn(Name, Type, Length.Value, Scale.Value, IsNullable, DefaultValue);
 

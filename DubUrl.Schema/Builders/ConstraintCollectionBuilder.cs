@@ -12,7 +12,8 @@ public class ConstraintCollectionBuilder : IEnumerable<IConstraintBuilder>
 
     public ConstraintCollectionBuilder Add(Func<ColumnBuilder, IConstraintBuilder> column)
     {
-        Constraints.Add(column(new()));
+        var constraint = column(new()) ?? throw new ArgumentException("The constraint builder function returned null", nameof(column));
+        Constraints.Add(constraint);
         return this;
     }
 

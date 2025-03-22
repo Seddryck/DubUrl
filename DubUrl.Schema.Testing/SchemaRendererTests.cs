@@ -16,9 +16,9 @@ public class SchemaRendererTests
     [Test]
     public void Render_BasicTable_ExpectedResult()
     {
-        var schema = new CreateSchemaRenderer(DuckDbTypeMapper.Instance);
-        var table = new TableRender(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
-        var model = new { model = new { Tables = new TableRender[] { table } } };
+        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -28,16 +28,32 @@ public class SchemaRendererTests
     }
 
     [Test]
+    public void Render_BasicTableDropIfExists_ExpectedResult()
+    {
+        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance, SchemaCreationOptions.DropIfExists);
+        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
+        var result = schema.Render(model);
+        Assert.That(result, Is.EqualTo("DROP TABLE IF EXISTS Customer;" +
+                                    "\r\nCREATE TABLE Customer (" +
+                                    "\r\n    Id INTEGER," +
+                                    "\r\n    FullName VARCHAR(120)" +
+                                    "\r\n);" +
+                                    "\r\n"));
+    }
+
+
+    [Test]
     public void Render_BasicTableWithPrimaryKey_ExpectedResult()
     {
-        var schema = new CreateSchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
         var columnId = new Column("Id", DbType.Int32);
-        var table = new TableRender(new Table(
+        var table = new TableViewModel(new Table(
                         "Customer",
                         [columnId, new VarLengthColumn("FullName", DbType.String, 120)],
                         [new PrimaryKeyConstraint([columnId])]
                     ));
-        var model = new { model = new { Tables = new TableRender[] { table } } };
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -50,15 +66,15 @@ public class SchemaRendererTests
     [Test]
     public void Render_BasicTableWithCompositePrimaryKey_ExpectedResult()
     {
-        var schema = new CreateSchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
         var columnTenant = new Column("Tenant", DbType.Guid);
         var columnId = new Column("Id", DbType.Int32);
-        var table = new TableRender(new Table(
+        var table = new TableViewModel(new Table(
                         "Customer",
                         [columnTenant, columnId, new VarLengthColumn("FullName", DbType.String, 120)],
                         [new PrimaryKeyConstraint([columnTenant, columnId])]
                     ));
-        var model = new { model = new { Tables = new TableRender[] { table } } };
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Tenant UUID," +
@@ -72,9 +88,9 @@ public class SchemaRendererTests
     [Test]
     public void Render_DefaultValue_ExpectedResult()
     {
-        var schema = new CreateSchemaRenderer(DuckDbTypeMapper.Instance);
-        var table = new TableRender(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, false, 0)]));
-        var model = new { model = new { Tables = new TableRender[] { table } } };
+        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, false, 0)]));
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -86,9 +102,9 @@ public class SchemaRendererTests
     [Test]
     public void Render_Nullable_ExpectedResult()
     {
-        var schema = new CreateSchemaRenderer(DuckDbTypeMapper.Instance);
-        var table = new TableRender(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, true)]));
-        var model = new { model = new { Tables = new TableRender[] { table } } };
+        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, true)]));
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -100,7 +116,7 @@ public class SchemaRendererTests
     [Test]
     public void Render_TwoTables_ExpectedResult()
     {
-        var renderer = new CreateSchemaRenderer(DuckDbTypeMapper.Instance);
+        var renderer = new SchemaRenderer(DuckDbTypeMapper.Instance);
         var schema = new SchemaBuilder()
             .WithTables(tables =>
                 tables.Add(table =>
@@ -119,7 +135,7 @@ public class SchemaRendererTests
                         )
                 )).Build();
 
-        var model = new { model = new { Tables = new TableRender[] { new(schema.Tables["Customer"]), new(schema.Tables["Sales"]) } } };
+        var model = new { model = new { Tables = new TableViewModel[] { new(schema.Tables["Customer"]), new(schema.Tables["Sales"]) } } };
         var result = renderer.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
