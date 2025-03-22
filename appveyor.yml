@@ -25,11 +25,6 @@ init:
 - cmd: RefreshEnv.cmd
 - pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
-install:
-- ps: |
-    Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1"
-    & $env:temp\dotnet-install.ps1 -Architecture x64 -Version '9.0.100' -InstallDir "$env:ProgramFiles\dotnet"
-
 before_build:
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
