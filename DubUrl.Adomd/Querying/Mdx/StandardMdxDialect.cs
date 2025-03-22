@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Adomd.Querying.Mdx;
 
+[DbTypeMapper<MdxTypeMapper>()]
 [Renderer<MdxRenderer>()]
 [ReturnCaster<DecimalConverter>()]
 [ReturnCaster<DateTimeCaster<DateOnly>>()]

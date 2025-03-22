@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Adomd.Querying.Dax;
 
+[DbTypeMapper<DaxTypeMapper>()]
 [Renderer<DaxRenderer>()]
 [ReturnCaster<DecimalConverter>()]
 [ReturnCaster<DateTimeCaster<DateOnly>>()]
