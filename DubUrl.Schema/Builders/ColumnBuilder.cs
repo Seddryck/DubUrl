@@ -77,6 +77,5 @@ public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnT
             return new VarLengthColumn(Name, Type, Length.Value, IsNullable, DefaultValue);
 
         return new Column(Name, Type, IsNullable, DefaultValue);
-
     }
 }

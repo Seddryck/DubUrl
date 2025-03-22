@@ -12,7 +12,6 @@ public interface IColumnTypeBuilder
     IColumnTypeSettingsBuilder WithType(DbType type);
     IColumnSettingsBuilder WithLength(int value);
     IColumnNumericBuilder WithPrecision(int value);
-
 }
 
 public interface IColumnNumericBuilder
