@@ -1,5 +1,6 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
+using DubUrl.Querying.TypeMapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,26 +68,40 @@ public class DialectBuilder
         Dialects.Clear();
         foreach (var dialectInfo in DialectAliases)
         {
-            var renderer = Activator.CreateInstance(
-                                dialectInfo.Key.GetCustomAttribute<RendererAttribute>()?.RendererType
-                                    ?? throw new ArgumentNullException()
-                                , []);
+            try
+            {
+                var renderer = Activator.CreateInstance(
+                                    dialectInfo.Key.GetCustomAttribute<RendererAttribute>()?.RendererType
+                                        ?? throw new NullReferenceException("Can't find renderer.")
+                                    , []);
 
-            var casters = (dialectInfo.Key.GetCustomAttributes<ReturnCasterAttribute>().Select(
-                                    x => (ICaster)Activator.CreateInstance(x.CasterType)!)
-                            ?? Array.Empty<ICaster>()).ToArray();
+                var casters = (dialectInfo.Key.GetCustomAttributes<ReturnCasterAttribute>().Select(
+                                        x => (ICaster)Activator.CreateInstance(x.CasterType)!)
+                                ?? Array.Empty<ICaster>()).ToArray();
 
-            var language = dialectInfo.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language.Extension
-                ?? throw new NullReferenceException();
+                var language = dialectInfo.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language.Extension
+                    ?? throw new NullReferenceException("Can't find parent language.");
 
-            Dialects.Add(dialectInfo.Key,
-                (IDialect)(
-                    Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
-                        , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!], null
-                    )
-                    ?? throw new ArgumentException()
-                 )
-            );
+                var dbTypeMapperType = dialectInfo.Key.GetCustomAttribute<DbTypeMapperAttribute>()?.DbTypeMapperType
+                    ?? throw new NullReferenceException("Can't find DbTypeMapper.");
+
+                var dbTypeMapper = dbTypeMapperType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+                    ?.GetValue(null) as IDbTypeMapper
+                    ?? throw new NullReferenceException("Can't instantiate DbTypeMapper.");
+
+                Dialects.Add(dialectInfo.Key,
+                    (IDialect)(
+                        Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
+                            , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!, dbTypeMapper], null
+                        )
+                        ?? throw new ArgumentException()
+                     )
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(dialectInfo.Key.Name, ex);
+            }
         }
         IsBuilt = true;
     }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DubUrl.Schema;
-internal class VarLengthColumn : Column
+public class VarLengthColumn : Column
 {
     public int Length { get; }
 

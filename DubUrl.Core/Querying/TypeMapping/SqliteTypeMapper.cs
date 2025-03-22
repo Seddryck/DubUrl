@@ -28,5 +28,6 @@ public class SqliteTypeMapper : AnsiTypeMapper
         AddOrReplace(DbType.Date, "TEXT");
         AddOrReplace(DbType.DateTime, "TEXT");
         AddOrReplace(DbType.DateTimeOffset, "TEXT");
+        AddOrReplace(DbType.Guid, "TEXT");
     }
 }

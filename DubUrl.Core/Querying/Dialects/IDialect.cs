@@ -1,5 +1,6 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
+using DubUrl.Querying.TypeMapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,4 +16,5 @@ public interface IDialect
 
     string[] Aliases { get; }
     ILanguage Language { get; }
+    IDbTypeMapper DbTypeMapper { get; }
 }

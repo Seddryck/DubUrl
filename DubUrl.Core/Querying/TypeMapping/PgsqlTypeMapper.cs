@@ -18,5 +18,6 @@ public class PgsqlTypeMapper : AnsiTypeMapper
         AddOrReplace(DbType.Decimal, "NUMERIC");
         AddOrReplace(DbType.String, "TEXT");
         AddOrReplace(DbType.AnsiString, "VARCHAR");
+        AddOrReplace(DbType.Guid, "UUID");
     }
 }

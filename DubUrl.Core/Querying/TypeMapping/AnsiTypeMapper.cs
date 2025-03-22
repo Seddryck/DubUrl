@@ -28,5 +28,6 @@ public class AnsiTypeMapper : BaseTypeMapper
         AddOrReplace(DbType.Date, "DATE");
         AddOrReplace(DbType.DateTime, "TIMESTAMP");
         AddOrReplace(DbType.DateTimeOffset, "TIMESTAMP WITH TIMEZONE");
+        AddOrReplace(DbType.Guid, "CHAR(36)");
     }
 }

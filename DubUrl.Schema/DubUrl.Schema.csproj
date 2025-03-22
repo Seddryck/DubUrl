@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Templates\CreateSchema.sql.hbs" />
+	  <EmbeddedResource Include="Renderers\Templates\DropTablesIfExists.sql.hbs" />
+	  <EmbeddedResource Include="Renderers\Templates\CreateTables.sql.hbs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -13,9 +14,9 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<PackageId>DubUrl.OleDb</PackageId>
+		<PackageId>DubUrl.Schema</PackageId>
 		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
-		<PackageTags>connection-string;database;sql;oledb</PackageTags>
+		<PackageTags>connection-string;database;sql;schema</PackageTags>
 		<Description>DubUrl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
 	</PropertyGroup>
 	

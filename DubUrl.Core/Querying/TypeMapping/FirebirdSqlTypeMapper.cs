@@ -10,12 +10,13 @@ public class FirebirdSqlTypeMapper : AnsiTypeMapper
 {
     private static readonly Lazy<FirebirdSqlTypeMapper> _instance = new(() => new FirebirdSqlTypeMapper());
 
-    protected static new FirebirdSqlTypeMapper Instance => _instance.Value;
+    public static new FirebirdSqlTypeMapper Instance => _instance.Value;
 
     protected FirebirdSqlTypeMapper()
     {
         AddOrReplace(DbType.SByte, "SMALLINT");
         AddOrReplace(DbType.Decimal, "DECIMAL");
         AddOrReplace(DbType.AnsiString, "VARCHAR");
+        AddOrReplace(DbType.Guid, "UUID");
     }
 }

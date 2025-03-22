@@ -17,5 +17,6 @@ public class DuckDbTypeMapper : AnsiTypeMapper
         AddOrReplace(DbType.Double, "DOUBLE");
         AddOrReplace(DbType.Decimal, "DECIMAL");
         AddOrReplace(DbType.AnsiString, "VARCHAR");
+        AddOrReplace(DbType.Guid, "UUID");
     }
 }

@@ -8,7 +8,12 @@ namespace DubUrl.Schema.Builders;
 
 public interface ITableColumnCollectionBuilder
 {
-    ITableBuilder WithColumns(Func<ColumnCollectionBuilder, ColumnCollectionBuilder> columns);
+    ITableConstraintCollectionBuilder WithColumns(Func<ColumnCollectionBuilder, ColumnCollectionBuilder> columns);
+}
+
+public interface ITableConstraintCollectionBuilder : ITableBuilder
+{
+    ITableBuilder WithConstraints(Func<ConstraintCollectionBuilder, ConstraintCollectionBuilder> columns);
 }
 
 public interface ITableBuilder

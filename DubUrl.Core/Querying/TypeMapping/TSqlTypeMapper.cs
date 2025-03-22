@@ -24,5 +24,6 @@ public class TSqlTypeMapper : AnsiTypeMapper
         AddOrReplace(DbType.AnsiStringFixedLength, "CHAR");
         AddOrReplace(DbType.DateTime, "DATETIME2");
         AddOrReplace(DbType.DateTimeOffset, "DATETIMEOFFSET");
+        AddOrReplace(DbType.Guid, "UNIQUEIDENTIFIER");
     }
 }

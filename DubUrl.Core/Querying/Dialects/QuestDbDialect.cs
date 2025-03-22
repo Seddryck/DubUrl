@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects;
 
 [DbTypeMapper<PgsqlTypeMapper>]
+[Renderer<PgsqlRenderer>()]
 [ReturnCaster<DecimalConverter>]
 [ParentLanguage<SqlLanguage>]
 public class QuestDbDialect : BaseDialect

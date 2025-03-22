@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DubUrl.Schema;
-internal class NumericColumn : Column
+public class NumericColumn : Column
 {
     public int Precision { get; }
     public int Scale { get; }
