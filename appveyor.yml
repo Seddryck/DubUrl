@@ -51,15 +51,17 @@ build_script:
 test_script:
 - pwsh: |
     $ErrorActionPreference = "Stop"
-    dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult = $LastExitCode
-    dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.OleDb.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.OleDb.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult += $LastExitCode
-    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Adomd.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Adomd.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:Exclude=[DubUrl.Testing]* /p:CoverletOutput=../.coverage/coverage.DubUrl.Adomd.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult += $LastExitCode
-    dotnet test DubUrl.Extensions.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Extensions.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult += $LastExitCode
-    dotnet test DubUrl.Schema.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=10 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Schema.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    dotnet test DubUrl.Schema.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Schema.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    $globalTestResult += $LastExitCode
+    dotnet test DubUrl.BulkCopy.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.BulkCopy.Schema.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult += $LastExitCode
     if($globalTestResult -ne 0) { $host.SetShouldExit($globalTestResult) }
 
@@ -80,7 +82,8 @@ after_test:
 - dotnet pack DubUrl.OleDb -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.Extensions -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.Adomd -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo
-- dotnet pack DubUrl.Schema -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
+- dotnet pack DubUrl.Schema -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo
+- dotnet pack DubUrl.BulkCopy -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 
 artifacts:
 - path: '**\*.nupkg'
