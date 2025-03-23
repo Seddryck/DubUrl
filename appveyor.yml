@@ -61,6 +61,8 @@ test_script:
     $globalTestResult += $LastExitCode
     dotnet test DubUrl.Schema.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Schema.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
     $globalTestResult += $LastExitCode
+    dotnet test DubUrl.BulkCopy.Testing -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Threshold=1 /p:ThresholdType=line /p:CoverletOutput=../.coverage/coverage.DubUrl.Extensions.xml --test-adapter-path:. --logger:Appveyor --no-build --nologo
+    $globalTestResult += $LastExitCode
     if($globalTestResult -ne 0) { $host.SetShouldExit($globalTestResult) }
 
 - pwsh: |
@@ -81,6 +83,7 @@ after_test:
 - dotnet pack DubUrl.Extensions -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 - dotnet pack DubUrl.Adomd -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo
 - dotnet pack DubUrl.Schema -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo
+- dotnet pack DubUrl.BulkCopy -p:version="%GitVersion_SemVer%" -c Release --include-symbols --no-build --nologo 
 
 artifacts:
 - path: '**\*.nupkg'
