@@ -92,15 +92,13 @@ public class AdoProviderDuckDB : BaseAdoProvider
 
         int i = 0;
         var dataReader = new Mock<IDataReader>();
-        dataReader.Setup(x => x.Read()).Returns(new Queue<bool>([true, true, true, false]).Dequeue).Verifiable();
-        dataReader.SetupGet(x => x.FieldCount).Returns(2).Verifiable();
-        dataReader.Setup(x => x[0]).Returns(++i).Verifiable();
-        dataReader.Setup(x => x[1]).Returns(new Queue<decimal>([10.2m, 105.23m, 1500m]).Dequeue).Verifiable();
+        dataReader.Setup(x => x.Read()).Returns(new Queue<bool>([true, true, true, false]).Dequeue);
+        dataReader.SetupGet(x => x.FieldCount).Returns(2);
+        dataReader.Setup(x => x[0]).Returns(() => ++i);
+        dataReader.Setup(x => x[1]).Returns(new Queue<decimal>([10.2m, 105.23m, 1500m]).Dequeue);
 
         var tableName = "Sales";
-        var factory = new BulkCopyEngineFactory();
-        var bulkCopy = factory.Create(connectionUrl);
-        bulkCopy.Write(tableName, dataReader.Object);
+        connectionUrl.BulkCopy(tableName, dataReader.Object);
 
         using (var conn = connectionUrl.Open())
         {

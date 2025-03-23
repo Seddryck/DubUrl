@@ -54,7 +54,7 @@ public class DuckDbBulkCopyEngineTests
         var dataReader = new Mock<IDataReader>();
         dataReader.Setup(x => x.Read()).Returns(new Queue<bool>(new[] { true, true, false }).Dequeue).Verifiable();
         dataReader.SetupGet(x => x.FieldCount).Returns(2).Verifiable();
-        dataReader.Setup(x => x[0]).Returns(++i).Verifiable();
+        dataReader.Setup(x => x[0]).Returns(() => ++i).Verifiable();
         dataReader.Setup(x => x[1]).Returns(new Queue<string>(["foo", "bar"]).Dequeue).Verifiable();
 
         var tableName = "Customer";
@@ -65,5 +65,4 @@ public class DuckDbBulkCopyEngineTests
         dataReader.Verify(x => x[0], Times.Exactly(2));
         dataReader.Verify(x => x[1], Times.Exactly(2));
     }
-
 }
