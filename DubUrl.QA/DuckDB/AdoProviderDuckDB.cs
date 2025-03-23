@@ -1,6 +1,11 @@
 using NUnit.Framework;
 using DuckDB.NET.Data;
 using DuckDB.NET;
+using System.Data;
+using DubUrl.Schema;
+using DubUrl.Querying.TypeMapping;
+using DubUrl.Schema.Renderers;
+using Microsoft.Extensions.Options;
 
 namespace DubUrl.QA.DuckDB;
 
@@ -43,5 +48,31 @@ public class AdoProviderDuckDB : BaseAdoProvider
     [Test]
     public override void QueryIntervalWithDatabaseUrl()
         => Assert.Ignore("Awaiting resolution of https://github.com/Giorgi/DuckDB.NET/issues/111");
+
+    [Test]
+    public void CreateTable()
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString);
+        connectionUrl.DeploySchema(s =>
+            s.WithTables(tables =>
+                tables.Add(t =>
+                    t.WithName("Sales")
+                    .WithColumns(cols =>
+                        cols.Add(col => col.WithName("SalesId").WithType(DbType.Int64))
+                            .Add(col => col.WithName("CustomerId").WithType(DbType.Int32))
+                            .Add(col => col.WithName("Amount").WithType(DbType.Decimal).WithPrecision(10).WithScale(2))
+                    )
+                    .WithConstraints(constraints =>
+                        constraints.AddPrimaryKey(pk => pk.WithColumnName("CustomerId")
+                    )
+                )
+            )
+        ), SchemaCreationOptions.DropIfExists);
+
+        using var conn = connectionUrl.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "select count(*) from Sales;";
+        Assert.That(cmd.ExecuteScalar(), Is.EqualTo(0));
+    }
 
 }

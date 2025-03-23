@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Renderers\Templates\DropTablesIfExists.sql.hbs" />
+	  <EmbeddedResource Include="Renderers\Templates\CreateTables.sql.hbs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Didot.Core" Version="0.25.0" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<PackageId>DubUrl.Schema</PackageId>
+		<RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+		<PackageTags>connection-string;database;sql;schema</PackageTags>
+		<Description>DubUrl provides a standardized URL-style mechanism for providing database connection information and opening a DbConnection in the .NET ecosystem</Description>
+	</PropertyGroup>
+	
+</Project>

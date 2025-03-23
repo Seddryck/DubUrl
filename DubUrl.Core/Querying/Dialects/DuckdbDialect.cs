@@ -1,5 +1,6 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
+using DubUrl.Querying.TypeMapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects;
 
+[DbTypeMapper<DuckDbTypeMapper>]
 [Renderer<DuckDBRenderer>()]
 [ReturnCaster<Converter<DateOnly>>]
 [ReturnCaster<Converter<TimeOnly>>]
@@ -16,6 +18,6 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class DuckdbDialect : BaseDialect
 {
-    internal DuckdbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters)
-        : base(language, aliases, renderer, casters) { }
+    internal DuckdbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper)
+        : base(language, aliases, renderer, casters, dbTypeMapper) { }
 }
