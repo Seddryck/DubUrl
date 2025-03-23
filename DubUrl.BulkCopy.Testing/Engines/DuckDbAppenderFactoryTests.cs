@@ -12,8 +12,6 @@ using NUnit.Framework;
 namespace DubUrl.BulkCopy.Testing.Engines;
 internal class DuckDbAppenderFactoryTests
 {
-    
-
     [Test]
     public void CreateAppender_ConnectionOpenExistingTable_Success()
     {

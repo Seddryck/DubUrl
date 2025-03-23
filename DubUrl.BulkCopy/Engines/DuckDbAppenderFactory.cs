@@ -10,6 +10,12 @@ using Antlr.Runtime.Misc;
 namespace DubUrl.BulkCopy.Engines;
 internal class DuckDbAppenderFactory
 {
+    private MethodInfo? createRowMethod;
+    private MethodInfo? closeMethod;
+    private MethodInfo? appendNullMethod;
+    private MethodInfo? endRowMethod;
+    private Dictionary<Type, MethodInfo>? appendMethods;
+
     public virtual DuckDbAppenderProxy CreateAppender(IDbConnection connection, string tableName)
     {
         if (connection.State != ConnectionState.Open)
@@ -31,18 +37,18 @@ internal class DuckDbAppenderFactory
         }
         var appenderType = appender?.GetType() ?? throw new InvalidOperationException("Failed to create DuckDB appender.");
 
-        var createRowMethod = appenderType.GetMethod("CreateRow")!;
-        var closeMethod = appenderType.GetMethod("Close")!;
+        createRowMethod ??= appenderType.GetMethod("CreateRow")!;
+        closeMethod ??= appenderType.GetMethod("Close")!;
 
         //Try to get the output of the createRowMethod
         var appenderRowType = createRowMethod.ReturnType;
 
-        var appendMethods = appenderRowType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+        appendMethods ??= appenderRowType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == "AppendValue" && m.GetParameters().Count() == 1)
             .Select(m => new KeyValuePair<Type, MethodInfo>(m.GetParameters().First().ParameterType, m))
             .ToDictionary();
-        var appendNullMethod = appenderRowType.GetMethod("AppendNullValue")!;
-        var endRowMethod = appenderRowType.GetMethod("EndRow")!;
+        appendNullMethod ??= appenderRowType.GetMethod("AppendNullValue")!;
+        endRowMethod ??= appenderRowType.GetMethod("EndRow")!;
 
         return new DuckDbAppenderProxy
         (
@@ -60,12 +66,10 @@ internal class DuckDbAppenderFactory
                         {
                             var type = value.GetType();
                             var nullableType = type.IsValueType ? typeof(Nullable<>).MakeGenericType(type) : type;
-                            if (appendMethods.TryGetValue(nullableType, out method))
-                                method.Invoke(row, [CastToNullable(nullableType, value)]);
-                            else
+                            if (!appendMethods.TryGetValue(nullableType, out method))
                                 throw new InvalidOperationException($"No suitable AppendValue method found for type {type.Name}.");
+                            method.Invoke(row, [CastToNullable(nullableType, value)]);
                         }
-
                     },
                     () => endRowMethod.Invoke(row, null)
                 );

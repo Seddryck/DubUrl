@@ -15,5 +15,5 @@ internal class MsSqlServerBulkCopyProxy : IDisposable
         => (WriteToServer, Close) = (writeToServer, close);
 
     public void Dispose()
-        => Close();
+        => Close?.Invoke();
 }
