@@ -9,7 +9,7 @@ using DubUrl.Querying.Dialects;
 namespace DubUrl.BulkCopy;
 public class BulkCopyEngineFactory
 {
-    public IBulkCopyEngine Create(ConnectionUrl connectionUrl)
+    public virtual IBulkCopyEngine Create(ConnectionUrl connectionUrl)
     {
         ArgumentNullException.ThrowIfNull(connectionUrl, nameof(connectionUrl));
         return connectionUrl.Dialect switch

@@ -12,15 +12,15 @@ using DubUrl.Querying.Dialects;
 using DubUrl.Schema.Renderers;
 
 namespace DubUrl.Schema;
-public class SchemaRenderer
+public class SchemaScriptRenderer
 {
     private RendererEngine[] Renderers { get; } = [];
 
-    public SchemaRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None)
+    public SchemaScriptRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None)
         : this(dialect.DbTypeMapper, options)
     { }
 
-    public SchemaRenderer(IDbTypeMapper typeMapper, SchemaCreationOptions options = SchemaCreationOptions.None)
+    public SchemaScriptRenderer(IDbTypeMapper typeMapper, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
         var renderers = new List<RendererEngine>();
         if (options == SchemaCreationOptions.DropIfExists)

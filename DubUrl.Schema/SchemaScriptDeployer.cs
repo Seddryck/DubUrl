@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DubUrl.Schema;
-public class SchemaDeployer
+public class SchemaScriptDeployer
 {
     public virtual void DeploySchema(ConnectionUrl connectionUrl, string script)
     {

@@ -13,7 +13,7 @@ public static class ConnectionUrlExtensions
     public static void DeploySchema(this ConnectionUrl connectionUrl, Schema schema, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
         var script = ScriptSchema(connectionUrl, schema, options);
-        var deployer = new SchemaDeployer();
+        var deployer = new SchemaScriptDeployer();
         deployer.DeploySchema(connectionUrl, script);
     }
 
@@ -22,7 +22,7 @@ public static class ConnectionUrlExtensions
 
     public static string ScriptSchema(this ConnectionUrl connectionUrl, Schema schema, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
-        var renderer = new SchemaRenderer(connectionUrl.Dialect, options);
+        var renderer = new SchemaScriptRenderer(connectionUrl.Dialect, options);
         var sql = renderer.Render(schema);
         return sql;
     }
