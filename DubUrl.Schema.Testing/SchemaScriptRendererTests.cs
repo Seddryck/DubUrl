@@ -11,12 +11,12 @@ using DubUrl.Schema.Renderers;
 using DubUrl.Schema.Builders;
 
 namespace DubUrl.Schema.Testing;
-public class SchemaRendererTests
+public class SchemaScriptRendererTests
 {
     [Test]
     public void Render_BasicTable_ExpectedResult()
     {
-        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbTypeMapper.Instance);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -30,7 +30,7 @@ public class SchemaRendererTests
     [Test]
     public void Render_BasicTableDropIfExists_ExpectedResult()
     {
-        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance, SchemaCreationOptions.DropIfExists);
+        var schema = new SchemaScriptRenderer(DuckDbTypeMapper.Instance, SchemaCreationOptions.DropIfExists);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -42,11 +42,10 @@ public class SchemaRendererTests
                                     "\r\n"));
     }
 
-
     [Test]
     public void Render_BasicTableWithPrimaryKey_ExpectedResult()
     {
-        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbTypeMapper.Instance);
         var columnId = new Column("Id", DbType.Int32);
         var table = new TableViewModel(new Table(
                         "Customer",
@@ -66,7 +65,7 @@ public class SchemaRendererTests
     [Test]
     public void Render_BasicTableWithCompositePrimaryKey_ExpectedResult()
     {
-        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbTypeMapper.Instance);
         var columnTenant = new Column("Tenant", DbType.Guid);
         var columnId = new Column("Id", DbType.Int32);
         var table = new TableViewModel(new Table(
@@ -88,7 +87,7 @@ public class SchemaRendererTests
     [Test]
     public void Render_DefaultValue_ExpectedResult()
     {
-        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbTypeMapper.Instance);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, false, 0)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -102,7 +101,7 @@ public class SchemaRendererTests
     [Test]
     public void Render_Nullable_ExpectedResult()
     {
-        var schema = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbTypeMapper.Instance);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, true)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -116,7 +115,7 @@ public class SchemaRendererTests
     [Test]
     public void Render_TwoTables_ExpectedResult()
     {
-        var renderer = new SchemaRenderer(DuckDbTypeMapper.Instance);
+        var renderer = new SchemaScriptRenderer(DuckDbTypeMapper.Instance);
         var schema = new SchemaBuilder()
             .WithTables(tables =>
                 tables.Add(table =>
