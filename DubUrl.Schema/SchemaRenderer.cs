@@ -30,11 +30,27 @@ public class SchemaRenderer
         Renderers = [.. renderers];
     }
 
-    public string Render(object schema)
+    public virtual string Render(Schema schema)
+    {
+        var tables = new List<TableViewModel>();
+        foreach (var table in schema.Tables)
+        {
+            var tableRenderer = new TableViewModel(table.Value);
+            tables.Add(tableRenderer);
+        }
+        var model = new { model = new { Tables = tables.ToArray() } };
+
+        var script = new StringBuilder();
+        foreach (var renderer in Renderers)
+            script.Append(renderer.Render(model));
+        return script.ToString();
+    }
+
+    protected internal string Render(object model)
     {
         var script = new StringBuilder();
         foreach (var renderer in Renderers)
-            script.Append(renderer.Render(schema));
+            script.Append(renderer.Render(model));
         return script.ToString();
     }
 }

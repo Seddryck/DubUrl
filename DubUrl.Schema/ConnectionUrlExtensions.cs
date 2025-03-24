@@ -12,10 +12,9 @@ public static class ConnectionUrlExtensions
 {
     public static void DeploySchema(this ConnectionUrl connectionUrl, Schema schema, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
-        using var conn = connectionUrl.Open();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = ScriptSchema(connectionUrl, schema, options);
-        cmd.ExecuteNonQuery();
+        var script = ScriptSchema(connectionUrl, schema, options);
+        var deployer = new SchemaDeployer();
+        deployer.DeploySchema(connectionUrl, script);
     }
 
     public static void DeploySchema(this ConnectionUrl connectionUrl, Func<ITableCollectionBuilder, ISchemaBuilder> builder, SchemaCreationOptions options = SchemaCreationOptions.None)
@@ -23,17 +22,8 @@ public static class ConnectionUrlExtensions
 
     public static string ScriptSchema(this ConnectionUrl connectionUrl, Schema schema, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
-        var tables = new List<TableViewModel>();
-        foreach (var table in schema.Tables)
-        {
-            var tableRenderer = new TableViewModel(table.Value);
-            tables.Add(tableRenderer);
-        }
-        var model = new { model = new { Tables = tables.ToArray() } };
-
         var renderer = new SchemaRenderer(connectionUrl.Dialect, options);
-        var sql = renderer.Render(model);
-
+        var sql = renderer.Render(schema);
         return sql;
     }
 
