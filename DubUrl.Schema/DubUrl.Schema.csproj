@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Renderers\Templates\DropTablesIfExists.sql.hbs" />
@@ -10,7 +10,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Didot.Core" Version="0.25.0" />
+	  <PackageReference Include="Didot.Core" Version="0.25.3" />
 	</ItemGroup>
 
 	<PropertyGroup>
