@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialects.Casters;
+﻿using DubUrl.Mapping;
+using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using System;
@@ -19,4 +20,21 @@ public abstract class BaseDialect : IDialect
 
     public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper)
         => (Language, Aliases, Renderer, Casters, DbTypeMapper) = (language, aliases, renderer, casters, dbTypeMapper);
+
+    protected static DialectBuilder DialectBuilder => _dialectBuilder ??= CreateDialectBuilder();
+    private static DialectBuilder? _dialectBuilder;
+    private static DialectBuilder CreateDialectBuilder()
+    {
+        var builder = new DialectBuilder();
+        var introspectors = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new WrapperMapperIntrospector() };
+        builder.AddAliases(typeof(AnsiDialect), ["ansi"]);
+        foreach (var mapperData in introspectors.Aggregate(
+                Array.Empty<MapperInfo>(), (data, introspector)
+                => [.. data, .. introspector.Locate()]))
+        {
+            builder.AddAliases(mapperData.DialectType, mapperData.Aliases);
+        }
+        builder.Build();
+        return builder;
+    }
 }

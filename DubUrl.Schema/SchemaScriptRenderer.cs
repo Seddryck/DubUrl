@@ -14,20 +14,16 @@ using DubUrl.Schema.Renderers;
 namespace DubUrl.Schema;
 public class SchemaScriptRenderer
 {
-    private RendererEngine[] Renderers { get; } = [];
+    private RendererEngine[] Templates { get; } = [];
 
     public SchemaScriptRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None)
-        : this(dialect.DbTypeMapper, options)
-    { }
-
-    public SchemaScriptRenderer(IDbTypeMapper typeMapper, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
-        var renderers = new List<RendererEngine>();
+        var templates = new List<RendererEngine>();
         if (options == SchemaCreationOptions.DropIfExists)
-            renderers.Add(new DropTablesIfExistsRenderer(typeMapper));
+            templates.Add(new DropTablesIfExistsRenderer(dialect));
 
-        renderers.Add(new CreateSchemaRenderer(typeMapper));
-        Renderers = [.. renderers];
+        templates.Add(new CreateSchemaRenderer(dialect));
+        Templates = [.. templates];
     }
 
     public virtual string Render(Schema schema)
@@ -41,7 +37,7 @@ public class SchemaScriptRenderer
         var model = new { model = new { Tables = tables.ToArray() } };
 
         var script = new StringBuilder();
-        foreach (var renderer in Renderers)
+        foreach (var renderer in Templates)
             script.Append(renderer.Render(model));
         return script.ToString();
     }
@@ -49,7 +45,7 @@ public class SchemaScriptRenderer
     protected internal string Render(object model)
     {
         var script = new StringBuilder();
-        foreach (var renderer in Renderers)
+        foreach (var renderer in Templates)
             script.Append(renderer.Render(model));
         return script.ToString();
     }

@@ -149,7 +149,6 @@ public class DialectBuilderTest
         Assert.That(tsqlDialect.Renderer, Is.TypeOf<TSqlRenderer>());
     }
 
-
     [Test]
     public void Get_ReturnCasterDialect_CorrectlySet()
     {
@@ -161,5 +160,19 @@ public class DialectBuilderTest
         Assert.That(tsqlDialect.Casters, Is.Not.Null);
         Assert.That(tsqlDialect.Casters.Count, Is.GreaterThan(0));
         Assert.That(tsqlDialect.Casters.Any(x => x is DecimalConverter), Is.True);
+    }
+
+    [Test]
+    public void Instance_Ansi_ReturnDialect()
+    {
+        var dialect = AnsiDialect.Instance;
+        Assert.That(dialect, Is.Not.Null);
+    }
+
+    [Test]
+    public void Instance_Pgsql_ReturnDialect()
+    {
+        var dialect = PgsqlDialect.Instance;
+        Assert.That(dialect, Is.Not.Null);
     }
 }
