@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DubUrl.BulkCopy.Engines;
 using DuckDB.NET.Data;
+using DuckDB.NET.Native;
 using Moq;
 using NUnit.Framework;
 
@@ -32,7 +33,7 @@ internal class DuckDbAppenderFactoryTests
     {
         var factory = new DuckDbAppenderFactory();
 
-        using var conn = new DuckDBConnection("DataSource = customers.db");
+        using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (id INTEGER PRIMARY KEY);";
@@ -41,6 +42,40 @@ internal class DuckDbAppenderFactoryTests
 
         var appender = factory.CreateAppender(conn, "Customer");
         Assert.That(appender, Is.Not.Null);
+    }
+
+    [Test]
+    public void CreateAppender_DateOnly_Success()
+    {
+        var factory = new DuckDbAppenderFactory();
+        using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (birthDate DATE);";
+        cmd.ExecuteNonQuery();
+        conn.Close();
+
+        var appender = factory.CreateAppender(conn, "Customer");
+        Assert.That(appender, Is.Not.Null);
+        var row = appender.CreateRow();
+        Assert.DoesNotThrow(() => row.AppendValue(new DateOnly(2021, 1, 1)));
+    }
+
+    [Test]
+    public void CreateAppender_TimeOnly_Success()
+    {
+        var factory = new DuckDbAppenderFactory();
+        using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (birthDate DATE);";
+        cmd.ExecuteNonQuery();
+        conn.Close();
+
+        var appender = factory.CreateAppender(conn, "Customer");
+        Assert.That(appender, Is.Not.Null);
+        var row = appender.CreateRow();
+        Assert.DoesNotThrow(() => row.AppendValue(new TimeOnly(15, 18, 10)));
     }
 
     [Test]
