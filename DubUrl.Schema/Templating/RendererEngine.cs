@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Didot.Core.TemplateEngines;
 using Didot.Core;
 using System.Reflection;
+using DubUrl.Querying.Dialects.Renderers;
 
 namespace DubUrl.Schema.Templating;
 public abstract class RendererEngine
@@ -22,8 +23,20 @@ public abstract class RendererEngine
         Engine = new FileBasedTemplateEngineFactory().GetByExtension(extension);
     }
 
+    protected static Dictionary<string, Func<object?, string>> CreateHelpers(IRenderer renderer)
+    {
+        KeyValuePair<string, Func<object?, string>> create(string name) =>
+            new(name, value => renderer.Render(value, name));
+
+        return new([create("value"), create("identity")]);
+    }
+
+
     protected void AddMappings(string mapKey, IDictionary<string, object> mappings)
         => Engine.AddMappings(mapKey, mappings);
+
+    protected void AddFormatter(string functionName, Func<object?, string> function)
+        => Engine.AddFormatter(functionName, function);
 
     public string Render(object value)
     {

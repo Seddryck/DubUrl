@@ -1,17 +1,17 @@
 ﻿{{#each model.Tables}}
-CREATE TABLE {{Name}} (
+CREATE TABLE {{identity Name}} (
 {{#each Columns}}
-    {{Name}} {{dbtype TypeValue ~}}
+    {{identity Name}} {{dbtype TypeValue ~}}
     {{#if Length}}({{Length}}){{/if~}}
     {{#if Precision}}({{Precision}}, {{Scale}}){{/if~}}
     {{#if IsNullable}} NULL{{/if~}}
-    {{#if HasDefaultValue}} DEFAULT {{DefaultValue}}{{/if~}}
+    {{#if HasDefaultValue}} DEFAULT {{value DefaultValue}}{{/if~}}
     {{#unless @last}},{{/unless}}
 {{/each}}
 {{#if PrimaryKey}}
-    , CONSTRAINT PK_{{Name}} PRIMARY KEY (
+    , CONSTRAINT {{identity ([String.Append] 'PK_' Name)}} PRIMARY KEY (
 {{~ #each PrimaryKey.Columns}}
-{{Name}}{{#unless @last}}, {{/unless~}}
+{{identity Name}}{{#unless @last}}, {{/unless~}}
 {{/each~}}
 )
 {{/if~}}

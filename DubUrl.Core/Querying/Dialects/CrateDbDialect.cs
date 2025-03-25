@@ -19,4 +19,5 @@ public class CrateDbDialect : BaseDialect
 {
      internal CrateDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper) { }
+    public static IDialect Instance => DialectBuilder.Get<CrateDbDialect>();
 }

@@ -14,10 +14,13 @@ namespace DubUrl.Schema.Renderers;
 public class DropTablesIfExistsRenderer : RendererEngine
 {
     public DropTablesIfExistsRenderer(IDialect dialect)
-        : this(dialect.DbTypeMapper)
+            : this(dialect.DbTypeMapper, CreateHelpers(dialect.Renderer))
     { }
 
-    public DropTablesIfExistsRenderer(IDbTypeMapper typeMapper)
+    protected DropTablesIfExistsRenderer(IDbTypeMapper typeMapper, IDictionary<string, Func<object?, string>> helpers)
         : base(typeof(DropTablesIfExistsRenderer).Assembly, $"{typeof(DropTablesIfExistsRenderer).Namespace}.Templates.DropTablesIfExists.sql.hbs")
-    { }
+    {
+        foreach (var helper in helpers)
+            AddFormatter(helper.Key, helper.Value);
+    }
 }

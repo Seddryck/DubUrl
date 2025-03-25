@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using DubUrl.Schema.Builders;
 using Moq;
@@ -14,7 +15,7 @@ namespace DubUrl.Schema.Testing;
 public class ConnectionUrlExtensionsTests
 {
     [Test]
-    public void Render_TwoTables_ExpectedResult()
+    public void DeploySchema_SingleTable_ExpectedCalls()
     {
         var dbCommand = new Mock<IDbCommand>();
 
@@ -24,8 +25,12 @@ public class ConnectionUrlExtensionsTests
         var dbTypeMapper = new Mock<IDbTypeMapper>();
         dbTypeMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>());
 
+        var renderer = new Mock<IRenderer>();
+        renderer.Setup(x => x.Render(It.IsAny<object?>(), It.IsAny<string>()));
+
         var dialect = new Mock<IDialect>();
         dialect.Setup(x => x.DbTypeMapper).Returns(dbTypeMapper.Object);
+        dialect.Setup(x => x.Renderer).Returns(renderer.Object);
 
         var connectionUrl = new Mock<ConnectionUrl>(It.IsAny<string>());
         connectionUrl.Setup(c => c.Open()).Returns(dbConnection.Object);
