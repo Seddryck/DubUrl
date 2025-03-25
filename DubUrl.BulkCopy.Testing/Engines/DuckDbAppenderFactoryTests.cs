@@ -33,7 +33,7 @@ internal class DuckDbAppenderFactoryTests
     {
         var factory = new DuckDbAppenderFactory();
 
-        using var conn = new DuckDBConnection("DataSource = customers.db");
+        using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (id INTEGER PRIMARY KEY);";
@@ -48,7 +48,7 @@ internal class DuckDbAppenderFactoryTests
     public void CreateAppender_DateOnly_Success()
     {
         var factory = new DuckDbAppenderFactory();
-        using var conn = new DuckDBConnection("DataSource = customers.db");
+        using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (birthDate DATE);";
@@ -65,7 +65,7 @@ internal class DuckDbAppenderFactoryTests
     public void CreateAppender_TimeOnly_Success()
     {
         var factory = new DuckDbAppenderFactory();
-        using var conn = new DuckDBConnection("DataSource = customers.db");
+        using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (birthDate DATE);";
