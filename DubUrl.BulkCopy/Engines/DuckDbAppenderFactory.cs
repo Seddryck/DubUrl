@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Antlr.Runtime.Misc;
 
 namespace DubUrl.BulkCopy.Engines;
 internal class DuckDbAppenderFactory
@@ -15,6 +14,15 @@ internal class DuckDbAppenderFactory
     private MethodInfo? appendNullMethod;
     private MethodInfo? endRowMethod;
     private Dictionary<Type, MethodInfo>? appendMethods;
+    private static Func<DateOnly, object> CastDateOnly { get; } = CreateCast<DateOnly>("DuckDB.NET.Native.DuckDBDateOnly, DuckDB.NET.Bindings");
+    private static Func<TimeOnly, object> CastTimeOnly { get; } = CreateCast<TimeOnly>("DuckDB.NET.Native.DuckDBTimeOnly, DuckDB.NET.Bindings");
+
+    private static Func<T, object> CreateCast<T>(string typeFullName)
+    {
+        var type = Type.GetType(typeFullName)!;
+        var cast = ReflectionHelper.GetCaster(type, typeof(T), type)!;
+        return (T value) => cast.Invoke(null, [value])!;
+    }
 
     public virtual DuckDbAppenderProxy CreateAppender(IDbConnection connection, string tableName)
     {
@@ -60,15 +68,21 @@ internal class DuckDbAppenderFactory
                     () => appendNullMethod.Invoke(appender, null),
                     value =>
                     {
-                        if (appendMethods.TryGetValue(value.GetType(), out var method))
-                            method.Invoke(row, [value]);
+                        var dbValue = value switch
+                        {
+                            DateOnly date => CastDateOnly(date),
+                            TimeOnly time => CastTimeOnly(time),
+                            _ => value
+                        };
+                        if (appendMethods.TryGetValue(dbValue.GetType(), out var method))
+                            method.Invoke(row, [dbValue]);
                         else
                         {
-                            var type = value.GetType();
+                            var type = dbValue.GetType();
                             var nullableType = type.IsValueType ? typeof(Nullable<>).MakeGenericType(type) : type;
                             if (!appendMethods.TryGetValue(nullableType, out method))
                                 throw new InvalidOperationException($"No suitable AppendValue method found for type {type.Name}.");
-                            method.Invoke(row, [CastToNullable(nullableType, value)]);
+                            method.Invoke(row, [CastToNullable(nullableType, dbValue)]);
                         }
                     },
                     () => endRowMethod.Invoke(row, null)
