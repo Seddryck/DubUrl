@@ -29,6 +29,20 @@ public class SchemaScriptRendererTests
     }
 
     [Test]
+    public void Render_QuotedTableDuckDb_ExpectedResult()
+    {
+        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var table = new TableViewModel(new Table("my-customer", [new Column("my-id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
+        var model = new { model = new { Tables = new TableViewModel[] { table } } };
+        var result = schema.Render(model);
+        Assert.That(result, Is.EqualTo("CREATE TABLE \"my-customer\" (" +
+                                    "\r\n    \"my-id\" INTEGER," +
+                                    "\r\n    FullName VARCHAR(120)" +
+                                    "\r\n);" +
+                                    "\r\n"));
+    }
+
+    [Test]
     public void Render_BasicTableTSql_ExpectedResult()
     {
         var schema = new SchemaScriptRenderer(TSqlDialect.Instance);

@@ -7,6 +7,7 @@ using Didot.Core.TemplateEngines;
 using Didot.Core;
 using System.Reflection;
 using DubUrl.Querying.Dialects.Renderers;
+using System.Text.Encodings.Web;
 
 namespace DubUrl.Schema.Templating;
 public abstract class RendererEngine
@@ -20,7 +21,8 @@ public abstract class RendererEngine
         var extension = Path.GetExtension(templatePath);
         Assembly = asm;
         TemplatePath = templatePath;
-        Engine = new FileBasedTemplateEngineFactory().GetByExtension(extension);
+        var factory = new FileBasedTemplateEngineFactory(new TemplateConfiguration(HtmlEncode: false));
+        Engine = factory.GetByExtension(extension);
     }
 
     protected static Dictionary<string, Func<object?, string>> CreateHelpers(IRenderer renderer)

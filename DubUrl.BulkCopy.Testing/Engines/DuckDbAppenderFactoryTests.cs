@@ -68,7 +68,7 @@ internal class DuckDbAppenderFactoryTests
         using var conn = new DuckDBConnection($"DataSource = {Guid.NewGuid():N}.db");
         conn.Open();
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (birthDate DATE);";
+        cmd.CommandText = "DROP TABLE IF EXISTS Customer; CREATE TABLE Customer (Wakeup TIME);";
         cmd.ExecuteNonQuery();
         conn.Close();
 
