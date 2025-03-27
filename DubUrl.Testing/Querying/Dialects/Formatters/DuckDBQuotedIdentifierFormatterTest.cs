@@ -51,5 +51,11 @@ public class DuckDBQuotedIdentifierFormatterTest
     [TestCase("Na123me")]
     [TestCase("_123Name")]
     public void Format_NotStartingByDigit_NotQuoted(string keyword)
-=> Assert.That(new DuckDBQuotedIdentifierFormatter().Format(keyword), Does.Not.StartWith("\"").And.Not.EndsWith("\""));
+        => Assert.That(new DuckDBQuotedIdentifierFormatter().Format(keyword), Does.Not.StartWith("\"").And.Not.EndsWith("\""));
+
+    [TestCase("Na-me")]
+    [TestCase("Name-")]
+    [TestCase("-Name")]
+    public void Format_ContainsSpecialChar_Quoted(string keyword)
+        => Assert.That(new DuckDBQuotedIdentifierFormatter().Format(keyword), Does.StartWith("\"").And.EndsWith("\""));
 }
