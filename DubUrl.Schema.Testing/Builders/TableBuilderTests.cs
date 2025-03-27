@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Schema.Builders;
+using DubUrl.Schema.Constraints;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 
@@ -33,6 +34,74 @@ public class TableBuilderTests
             Assert.That(table.Columns, Has.Count.EqualTo(2));
             Assert.That(table.Columns, Does.ContainKey("id"));
             Assert.That(table.Columns, Does.ContainKey("name"));
+        });
+    }
+
+    [Test]
+    public void Build_ColumnWithConstraints_Expected()
+    {
+        var builder = new TableBuilder()
+                            .WithName("value")
+                            .WithColumns(cols =>
+                                cols.Add(col => col.WithName("id").WithType(DbType.Int32).WithPrimaryKey())
+                                    .Add(col => col.WithName("name").WithType(DbType.AnsiString)
+                                            .WithLength(50).WithUnique().WithNotNullable())
+                            );
+        var table = builder.Build();
+        Assert.Multiple(() =>
+        {
+            Assert.That(table, Is.Not.Null);
+            Assert.That(table, Is.TypeOf<Table>());
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(table.Name, Is.EqualTo("value"));
+            Assert.That(table.Columns, Has.Count.EqualTo(2));
+            Assert.That(table.Columns, Does.ContainKey("id"));
+            Assert.That(table.Columns, Does.ContainKey("name"));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(table.Columns["id"].Constraints.Get<PrimaryKeyConstraint>, Is.Not.Null);
+            Assert.That(table.Columns["name"].Constraints.Get<UniquenessConstraint>, Is.Not.Null);
+            Assert.That(table.Columns["name"].Constraints.Get<NotNullableConstraint>, Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Build_ColumnWithChecks_Expected()
+    {
+        var builder = new TableBuilder()
+                            .WithName("value")
+                            .WithColumns(cols =>
+                                cols.Add(col => col.WithName("id").WithType(DbType.Int32).WithPrimaryKey())
+                                    .Add(col => col.WithName("name").WithType(DbType.AnsiString)
+                                            .WithLength(50).WithCheck(check
+                                                => check.WithComparison(
+                                                    left => left.WithFunctionCurrentColumn("length"),
+                                                    ">=",
+                                                    right => right.WithValue(10))))
+                            );
+        var table = builder.Build();
+        Assert.Multiple(() =>
+        {
+            Assert.That(table, Is.Not.Null);
+            Assert.That(table, Is.TypeOf<Table>());
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(table.Name, Is.EqualTo("value"));
+            Assert.That(table.Columns, Has.Count.EqualTo(2));
+            Assert.That(table.Columns, Does.ContainKey("id"));
+            Assert.That(table.Columns, Does.ContainKey("name"));
+        });
+        Assert.Multiple(() =>
+        {
+            var check = table.Columns["name"].Constraints.Get<CheckConstraint>();
+            Assert.That(check, Is.Not.Null);
+            Assert.That(check!.Left, Is.Not.Null);
+            Assert.That(check.Operator, Is.EqualTo(">="));
+            Assert.That(check.Right, Is.Not.Null);
         });
     }
 
@@ -68,7 +137,7 @@ public class TableBuilderTests
         });
         Assert.Multiple(() =>
         {
-            Assert.That(table.Constraints, Has.Length.EqualTo(1));
+            Assert.That(table.Constraints, Has.Count.EqualTo(1));
             Assert.That(table.Constraints[0], Is.TypeOf<PrimaryKeyConstraint>());
         });
         var pkConstraint = (PrimaryKeyConstraint)table.Constraints[0];
@@ -99,7 +168,7 @@ public class TableBuilderTests
         });
         Assert.Multiple(() =>
         {
-            Assert.That(table.Constraints, Has.Length.EqualTo(1));
+            Assert.That(table.Constraints, Has.Count.EqualTo(1));
             Assert.That(table.Constraints[0], Is.TypeOf<PrimaryKeyConstraint>());
         });
         var pkConstraint = (PrimaryKeyConstraint)table.Constraints[0];

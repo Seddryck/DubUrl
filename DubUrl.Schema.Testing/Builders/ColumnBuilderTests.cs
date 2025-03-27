@@ -25,7 +25,6 @@ public class ColumnBuilderTests
         {
             Assert.That(column.Name, Is.EqualTo("value"));
             Assert.That(column.Type, Is.EqualTo(DbType.Boolean));
-            Assert.That(column.IsNullable, Is.False);
             Assert.That(column.DefaultValue, Is.Null);
         });
     }
@@ -36,7 +35,7 @@ public class ColumnBuilderTests
         var builder = new ColumnBuilder()
                         .WithName("value")
                         .WithType(DbType.Boolean)
-                        .AsNullable()
+                        .WithNullable()
                         .WithDefaultValue(false);
         var column = builder.Build();
         Assert.Multiple(() =>
@@ -48,7 +47,6 @@ public class ColumnBuilderTests
         {
             Assert.That(column.Name, Is.EqualTo("value"));
             Assert.That(column.Type, Is.EqualTo(DbType.Boolean));
-            Assert.That(column.IsNullable, Is.True);
             Assert.That(column.DefaultValue, Is.False);
         });
     }

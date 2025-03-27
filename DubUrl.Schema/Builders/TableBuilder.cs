@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema.Builders;
 
@@ -10,7 +11,7 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
 {
     private string? Name { get; set; }
     private ColumnCollectionBuilder Columns { get; set; } = [];
-    private ConstraintCollectionBuilder Constraints { get; set; } = [];
+    private TableConstraintCollectionBuilder Constraints { get; set; } = [];
 
     public ITableColumnCollectionBuilder WithName(string name)
     {
@@ -24,7 +25,7 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
         return this;
     }
 
-    public ITableBuilder WithConstraints(Func<ConstraintCollectionBuilder, ConstraintCollectionBuilder> constraints)
+    public ITableBuilder WithConstraints(Func<TableConstraintCollectionBuilder, TableConstraintCollectionBuilder> constraints)
     {
         Constraints = constraints(Constraints);
         return this;
@@ -49,6 +50,6 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
                     throw new InvalidOperationException($"Primary key column '{column.Key}' does not exist in table '{Name}'.");
         }
 
-        return new Table(Name, columns, constraints.ToArray());
+        return new Table(Name, columns, [.. constraints]);
     }
 }

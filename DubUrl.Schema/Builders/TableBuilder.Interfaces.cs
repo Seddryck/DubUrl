@@ -13,7 +13,7 @@ public interface ITableColumnCollectionBuilder
 
 public interface ITableConstraintCollectionBuilder : ITableBuilder
 {
-    ITableBuilder WithConstraints(Func<ConstraintCollectionBuilder, ConstraintCollectionBuilder> constraints);
+    ITableBuilder WithConstraints(Func<TableConstraintCollectionBuilder, TableConstraintCollectionBuilder> constraints);
 }
 
 public interface ITableBuilder
