@@ -9,7 +9,7 @@ CREATE TABLE {{identity Name}} (
     {{#if PrimaryKey}} PRIMARY KEY{{/if~}}
     {{#if Unique}} UNIQUE{{/if~}}
     {{#if HasDefaultValue}} DEFAULT {{value DefaultValue}}{{/if~}}
-    {{#each Checks}} CHECK {{#if Left.Function}}{{function Left.Function}}({{Left.Name}}){{else}}{{Left.Name}}{{/if}} {{Operator}} {{Right.Value}}
+    {{#each Checks}} CHECK {{#if Left.Function}}{{function Left.Function}}({{identity Left.Name}}){{else}}{{identity Left.Name}}{{/if}} {{Operator}} {{Right.Value}}
     {{~ /each ~}}
     {{#unless @last}},{{/unless}}
 {{/each}}

@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using System;
@@ -89,10 +90,17 @@ public class DialectBuilder
                     ?.GetValue(null) as IDbTypeMapper
                     ?? throw new NullReferenceException("Can't instantiate DbTypeMapper.");
 
+                var sqlFunctionMapperType = dialectInfo.Key.GetCustomAttribute<SqlFunctionMapperAttribute>()?.SqlFunctionMapperType
+                    ?? throw new NullReferenceException("Can't find SqlFunctionMapper.");
+
+                var sqlFunctionMapper = sqlFunctionMapperType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+                    ?.GetValue(null) as ISqlFunctionMapper
+                    ?? throw new NullReferenceException("Can't instantiate DbTypeMapper.");
+
                 Dialects.Add(dialectInfo.Key,
                     (IDialect)(
                         Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
-                            , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!, dbTypeMapper], null
+                            , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!, dbTypeMapper, sqlFunctionMapper], null
                         )
                         ?? throw new ArgumentException()
                      )

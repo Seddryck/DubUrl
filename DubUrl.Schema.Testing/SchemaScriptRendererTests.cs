@@ -18,7 +18,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_BasicTableDuckDb_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -32,7 +32,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_QuotedTableDuckDb_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var table = new TableViewModel(new Table("my-customer", [new Column("my-id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -60,7 +60,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_BasicTableDropIfExists_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance, SchemaCreationOptions.DropIfExists);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance, SchemaCreationOptions.DropIfExists);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new VarLengthColumn("FullName", DbType.String, 120)]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -75,7 +75,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_BasicTableWithPrimaryKey_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var columnId = new Column("Id", DbType.Int32);
         var table = new TableViewModel(new Table(
                         "Customer",
@@ -95,7 +95,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_BasicTableWithCompositePrimaryKey_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var columnTenant = new Column("Tenant", DbType.Guid);
         var columnId = new Column("Id", DbType.Int32);
         var table = new TableViewModel(new Table(
@@ -117,7 +117,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_DefaultValue_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, 0, [])]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -131,7 +131,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_Nullable_ExpectedResult()
     {
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, null, [new NullableConstraint()])]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
@@ -154,7 +154,7 @@ public class SchemaScriptRendererTests
                             );
         var table = builder.Build();
         var model = new { model = new { Tables = new TableViewModel[] { new(table) } } };
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -163,9 +163,7 @@ public class SchemaScriptRendererTests
                                     "\r\n"));
     }
 
-
-    [Test]
-    public void Render_CheckLengthOfColumn_ExpectedResult()
+    private object GetModel()
     {
         var builder = new TableBuilder()
                             .WithName("Customer")
@@ -174,17 +172,35 @@ public class SchemaScriptRendererTests
                                     .Add(col => col.WithName("Name").WithType(DbType.AnsiString)
                                             .WithLength(50).WithCheck(check
                                                 => check.WithComparison(
-                                                    left => left.WithFunctionCurrentColumn("length"),
+                                                    left => left.WithFunctionCurrentColumn("Length"),
                                                     ">=",
                                                     right => right.WithValue(10))))
                             );
         var table = builder.Build();
         var model = new { model = new { Tables = new TableViewModel[] { new(table) } } };
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
-        var result = schema.Render(model);
+        return model;
+    }
+
+    [Test]
+    public void Render_CheckLengthOfColumnTSql_ExpectedResult()
+    {
+        var schema = new SchemaScriptRenderer(TSqlDialect.Instance);
+        var result = schema.Render(GetModel());
+        Assert.That(result, Is.EqualTo("CREATE TABLE [Customer] (" +
+                                    "\r\n    [Id] INTEGER," +
+                                    "\r\n    [Name] VARCHAR(50) CHECK LEN([Name]) >= 10" +
+                                    "\r\n);" +
+                                    "\r\n"));
+    }
+
+    [Test]
+    public void Render_CheckLengthOfColumnDuckDB_ExpectedResult()
+    {
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
+        var result = schema.Render(GetModel());
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
-                                    "\r\n    Name VARCHAR(50) CHECK LEN(Name) >= 10" +
+                                    "\r\n    Name VARCHAR(50) CHECK LENGTH(Name) >= 10" +
                                     "\r\n);" +
                                     "\r\n"));
     }
@@ -205,7 +221,7 @@ public class SchemaScriptRendererTests
                             );
         var table = builder.Build();
         var model = new { model = new { Tables = new TableViewModel[] { new(table) } } };
-        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var schema = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -217,7 +233,7 @@ public class SchemaScriptRendererTests
     [Test]
     public void Render_TwoTables_ExpectedResult()
     {
-        var renderer = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var renderer = new SchemaScriptRenderer(DuckDbDialect.Instance);
         var schema = new SchemaBuilder()
             .WithTables(tables =>
                 tables.Add(table =>

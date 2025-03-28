@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using System;
@@ -10,15 +11,16 @@ using System.Threading.Tasks;
 namespace DubUrl.Querying.Dialects;
 
 [DbTypeMapper<DuckDbTypeMapper>]
+[SqlFunctionMapper<DuckDbFunctionMapper>]
 [Renderer<DuckDBRenderer>()]
 [ReturnCaster<Converter<DateOnly>>]
 [ReturnCaster<Converter<TimeOnly>>]
 [ReturnCaster<Converter<DateTime>>]
 [ReturnCaster<Converter<TimeSpan>>]
 [ParentLanguage<SqlLanguage>]
-public class DuckdbDialect : BaseDialect
+public class DuckDbDialect : BaseDialect
 {
-    internal DuckdbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper)
-        : base(language, aliases, renderer, casters, dbTypeMapper) { }
-    public static IDialect Instance => DialectBuilder.Get<DuckdbDialect>();
+    internal DuckDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
+        : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
+    public static IDialect Instance => DialectBuilder.Get<DuckDbDialect>();
 }

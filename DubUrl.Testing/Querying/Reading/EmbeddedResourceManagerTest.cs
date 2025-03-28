@@ -1,5 +1,6 @@
 ﻿using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Reading;
 using DubUrl.Querying.TypeMapping;
@@ -53,7 +54,7 @@ public class EmbeddedResourceManagerTest
     public void GetAllResourceNames_ListOfResources_BestMatch(string[] candidates, bool expected = true)
     {
         var resourceManager = new FakeEmbeddedSqlFileResourceManager(candidates);
-        var resourceName = resourceManager.Any("QueryId", new TSqlDialect(new SqlLanguage(), ["mssql"], new AnsiRenderer(), [], TSqlTypeMapper.Instance), null);
+        var resourceName = resourceManager.Any("QueryId", new TSqlDialect(new SqlLanguage(), ["mssql"], new AnsiRenderer(), [], TSqlTypeMapper.Instance, TSqlFunctionMapper.Instance), null);
         Assert.That(resourceName, Is.EqualTo(expected));
     }
 

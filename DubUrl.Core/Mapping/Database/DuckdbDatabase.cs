@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping.Database;
 
-[Database<DuckdbDialect>(
+[Database<DuckDbDialect>(
     "DuckDB"
     , ["duck", "duckdb"]
     , DatabaseCategory.InMemory

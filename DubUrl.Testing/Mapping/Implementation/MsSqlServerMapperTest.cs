@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.TypeMapping;
+using DubUrl.Querying.Dialects.Functions;
 
 namespace DubUrl.Testing.Mapping.Implementation;
 
@@ -28,7 +29,7 @@ public class MsSqlServerMapperTest
     [Test]
     public void GetDialect_None_DialectReturned()
     {
-        var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new SqlLanguage(), ["mssql", "ms"], new TSqlRenderer(), [], TSqlTypeMapper.Instance), new NamedParametrizer());
+        var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new SqlLanguage(), ["mssql", "ms"], new TSqlRenderer(), [], TSqlTypeMapper.Instance, TSqlFunctionMapper.Instance), new NamedParametrizer());
         var result = mapper.GetDialect();
 
         Assert.That(result, Is.Not.Null.Or.Empty);

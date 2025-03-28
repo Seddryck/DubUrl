@@ -1,5 +1,6 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using System;
@@ -15,11 +16,12 @@ public abstract class BaseDialect : IDialect
     public IRenderer Renderer { get; }
     public ICaster[] Casters { get; }
     public IDbTypeMapper DbTypeMapper { get; }
+    public ISqlFunctionMapper SqlFunctionMapper { get; }
     public virtual string[] Aliases { get; }
     public virtual ILanguage Language { get; }
 
-    public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper)
-        => (Language, Aliases, Renderer, Casters, DbTypeMapper) = (language, aliases, renderer, casters, dbTypeMapper);
+    public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper? sqlFunctionMapper = null)
+        => (Language, Aliases, Renderer, Casters, DbTypeMapper, SqlFunctionMapper) = (language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper ?? AnsiFunctionMapper.Instance);
 
     protected static DialectBuilder DialectBuilder => _dialectBuilder ??= CreateDialectBuilder();
     private static DialectBuilder? _dialectBuilder;

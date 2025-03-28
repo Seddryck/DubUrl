@@ -14,7 +14,7 @@ public class BulkCopyEngineFactory
         ArgumentNullException.ThrowIfNull(connectionUrl, nameof(connectionUrl));
         return connectionUrl.Dialect switch
         {
-            DuckdbDialect _ => new DuckDbBulkCopyEngine(connectionUrl),
+            DuckDbDialect _ => new DuckDbBulkCopyEngine(connectionUrl),
             TSqlDialect _ => new MsSqlServerBulkCopyEngine(connectionUrl),
             _ => throw new NotSupportedException($"Dialect '{connectionUrl.Dialect}' not supported")
         };
