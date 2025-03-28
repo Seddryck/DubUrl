@@ -27,7 +27,7 @@ public class ConnectionUrlExtensionsTests
         dbTypeMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>());
 
         var sqlFunctionMapper = new Mock<ISqlFunctionMapper>();
-        dbTypeMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>());
+        sqlFunctionMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>());
 
         var renderer = new Mock<IRenderer>();
         renderer.Setup(x => x.Render(It.IsAny<object?>(), It.IsAny<string>()));

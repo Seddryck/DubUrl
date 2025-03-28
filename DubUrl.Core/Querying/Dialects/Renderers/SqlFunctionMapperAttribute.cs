@@ -10,9 +10,9 @@ namespace DubUrl.Querying.Dialects.Renderers;
 
 public abstract class SqlFunctionMapperAttribute : Attribute
 {
-    public virtual Type SqlFunctionMapperType { get; protected set; } = typeof(AnsiFunctionMapper);
+    public virtual Type SqlFunctionMapperType { get; protected set; }
 
-    public SqlFunctionMapperAttribute(Type dbTypeMapperType)
+    protected SqlFunctionMapperAttribute(Type dbTypeMapperType)
     {
         SqlFunctionMapperType = dbTypeMapperType;
     }

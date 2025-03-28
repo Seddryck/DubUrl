@@ -20,7 +20,7 @@ public abstract class BaseDialect : IDialect
     public virtual string[] Aliases { get; }
     public virtual ILanguage Language { get; }
 
-    public BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper? sqlFunctionMapper = null)
+    protected BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper? sqlFunctionMapper = null)
         => (Language, Aliases, Renderer, Casters, DbTypeMapper, SqlFunctionMapper) = (language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper ?? AnsiFunctionMapper.Instance);
 
     protected static DialectBuilder DialectBuilder => _dialectBuilder ??= CreateDialectBuilder();
