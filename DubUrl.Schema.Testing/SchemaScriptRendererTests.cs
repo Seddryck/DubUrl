@@ -10,6 +10,7 @@ using DubUrl.Schema.Templating;
 using DubUrl.Schema.Renderers;
 using DubUrl.Schema.Builders;
 using DubUrl.Querying.Dialects;
+using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema.Testing;
 public class SchemaScriptRendererTests
@@ -117,7 +118,7 @@ public class SchemaScriptRendererTests
     public void Render_DefaultValue_ExpectedResult()
     {
         var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
-        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, false, 0)]));
+        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, 0, [])]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
@@ -131,12 +132,84 @@ public class SchemaScriptRendererTests
     public void Render_Nullable_ExpectedResult()
     {
         var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
-        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, true)]));
+        var table = new TableViewModel(new Table("Customer", [new Column("Id", DbType.Int32), new Column("Age", DbType.Int32, null, [new NullableConstraint()])]));
         var model = new { model = new { Tables = new TableViewModel[] { table } } };
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
                                     "\r\n    Age INTEGER NULL" +
+                                    "\r\n);" +
+                                    "\r\n"));
+    }
+
+    [Test]
+    public void Render_Constraints_ExpectedResult()
+    {
+        var builder = new TableBuilder()
+                            .WithName("Customer")
+                            .WithColumns(cols =>
+                                cols.Add(col => col.WithName("Id").WithType(DbType.Int32).WithPrimaryKey())
+                                    .Add(col => col.WithName("Name").WithType(DbType.AnsiString)
+                                            .WithLength(50).WithUnique().WithNotNullable())
+                            );
+        var table = builder.Build();
+        var model = new { model = new { Tables = new TableViewModel[] { new(table) } } };
+        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var result = schema.Render(model);
+        Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
+                                    "\r\n    Id INTEGER," +
+                                    "\r\n    Name VARCHAR(50) NOT NULL UNIQUE" +
+                                    "\r\n);" +
+                                    "\r\n"));
+    }
+
+
+    [Test]
+    public void Render_CheckLengthOfColumn_ExpectedResult()
+    {
+        var builder = new TableBuilder()
+                            .WithName("Customer")
+                            .WithColumns(cols =>
+                                cols.Add(col => col.WithName("Id").WithType(DbType.Int32).WithPrimaryKey())
+                                    .Add(col => col.WithName("Name").WithType(DbType.AnsiString)
+                                            .WithLength(50).WithCheck(check
+                                                => check.WithComparison(
+                                                    left => left.WithFunctionCurrentColumn("length"),
+                                                    ">=",
+                                                    right => right.WithValue(10))))
+                            );
+        var table = builder.Build();
+        var model = new { model = new { Tables = new TableViewModel[] { new(table) } } };
+        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var result = schema.Render(model);
+        Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
+                                    "\r\n    Id INTEGER," +
+                                    "\r\n    Name VARCHAR(50) CHECK LEN(Name) >= 10" +
+                                    "\r\n);" +
+                                    "\r\n"));
+    }
+
+    [Test]
+    public void Render_CheckValueOfColumn_ExpectedResult()
+    {
+        var builder = new TableBuilder()
+                            .WithName("Customer")
+                            .WithColumns(cols =>
+                                cols.Add(col => col.WithName("Id").WithType(DbType.Int32).WithPrimaryKey())
+                                    .Add(col => col.WithName("Age").WithType(DbType.Int16)
+                                            .WithCheck(check
+                                                => check.WithComparison(
+                                                    left => left.WithCurrentColumn(),
+                                                    ">=",
+                                                    right => right.WithValue(18))))
+                            );
+        var table = builder.Build();
+        var model = new { model = new { Tables = new TableViewModel[] { new(table) } } };
+        var schema = new SchemaScriptRenderer(DuckdbDialect.Instance);
+        var result = schema.Render(model);
+        Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
+                                    "\r\n    Id INTEGER," +
+                                    "\r\n    Age SMALLINT CHECK Age >= 18" +
                                     "\r\n);" +
                                     "\r\n"));
     }

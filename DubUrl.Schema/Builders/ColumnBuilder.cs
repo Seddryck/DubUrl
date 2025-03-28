@@ -5,17 +5,18 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema.Builders;
 
-public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnTypeSettingsBuilder, IColumnSettingsBuilder
+public class ColumnBuilder : IColumnName, IColumnTypeBuilder, IColumnNumericBuilder, IColumnTypeSettingsBuilder, IColumnConstraintBuilder
 {
-    private string Name { get; set; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
     private DbType Type { get; set; } = DbType.Object;
     private int? Length { get; set; }
     private int? Scale { get; set; }
     private object? DefaultValue { get; set; }
-    private bool IsNullable { get; set; } = false;
+    private ColumnConstraintCollectionBuilder Constraints { get; } = [];
 
     public IColumnTypeBuilder WithName(string name)
     {
@@ -31,7 +32,7 @@ public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnT
         return this;
     }
 
-    IColumnSettingsBuilder IColumnTypeBuilder.WithLength(int value)
+    IColumnConstraintBuilder IColumnTypeBuilder.WithLength(int value)
     {
         Length = value;
         return this;
@@ -43,7 +44,7 @@ public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnT
         return this;
     }
 
-    IColumnSettingsBuilder IColumnNumericBuilder.WithScale(int value)
+    IColumnConstraintBuilder IColumnNumericBuilder.WithScale(int value)
     {
         if (value>=Length)
             throw new ArgumentOutOfRangeException(nameof(value), "Scale must be less than precision");
@@ -51,35 +52,61 @@ public class ColumnBuilder : IColumnTypeBuilder, IColumnNumericBuilder, IColumnT
         return this;
     }
 
-    IColumnSettingsBuilder IColumnSettingsBuilder.WithDefaultValue(object value)
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithDefaultValue(object value)
     {
         DefaultValue = value;
         return this;
     }
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithNullable(bool value)
 
-    IColumnSettingsBuilder IColumnSettingsBuilder.AsNullable(bool value)
     {
-        IsNullable = value;
+        if (value)
+            Constraints.AddNullable();
+        else
+            Constraints.AddNotNullable();
         return this;
     }
 
-    IColumnSettingsBuilder IColumnSettingsBuilder.AsNullable()
-        => ((IColumnSettingsBuilder)this).AsNullable(true);
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithNullable()
 
-    IColumnSettingsBuilder IColumnSettingsBuilder.AsNotNullable()
-        => ((IColumnSettingsBuilder)this).AsNullable(false);
+    {
+        Constraints.AddNullable();
+        return this;
+    }
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithNotNullable()
+    {
+        Constraints.AddNotNullable();
+        return this;
+    }
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithUnique()
+    {
+        Constraints.AddUnique();
+        return this;
+    }
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithPrimaryKey()
+    {
+        Constraints.AddPrimaryKey();
+        return this;
+    }
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithCheck(Func<ICheckBuilder, ICheckBuildable> builder)
+    {
+        Constraints.AddCheck(builder(new CheckBuilder(this)).Build());
+        return this;
+    }
 
     Column IColumnBuilder.Build()
     {
         if (string.IsNullOrWhiteSpace(Name))
             throw new InvalidOperationException("Column name must be set before building");
 
+        var constraints = Constraints.Build();
+
         if (Scale.HasValue && Length.HasValue)
-            return new NumericColumn(Name, Type, Length.Value, Scale.Value, IsNullable, DefaultValue);
+            return new NumericColumn(Name, Type, Length.Value, Scale.Value, DefaultValue, constraints);
 
         if (Length.HasValue)
-            return new VarLengthColumn(Name, Type, Length.Value, IsNullable, DefaultValue);
+            return new VarLengthColumn(Name, Type, Length.Value, DefaultValue, constraints);
 
-        return new Column(Name, Type, IsNullable, DefaultValue);
+        return new Column(Name, Type, DefaultValue, constraints);
     }
 }

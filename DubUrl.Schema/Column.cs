@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema;
 public class Column
 {
     public string Name { get; }
-    public DbType Type { get; }
-    public string TypeValue => Type.ToString();
-
-    public bool IsNullable { get; } = false;
+    public System.Data.DbType Type { get; }
     public object? DefaultValue { get; }
-    public bool HasDefaultValue => DefaultValue is not null;
+    public ConstraintCollection Constraints { get; }
 
-    public Column(string name, DbType type, bool isNullable = false, object? defaultValue = null)
+    public Column(string name, System.Data.DbType type, object? defaultValue = null, IConstraint[]? constraints = null)
     {
-        (Name, Type, IsNullable, DefaultValue) = (name, type, isNullable, defaultValue);
+        (Name, Type, DefaultValue, Constraints) = (name, type, defaultValue, new ConstraintCollection(constraints ?? []));
     }
+
+    
 }

@@ -22,6 +22,7 @@ public class CreateSchemaRenderer : RendererEngine
         : base(typeof(CreateSchemaRenderer).Assembly, $"{typeof(CreateSchemaRenderer).Namespace}.Templates.CreateTables.sql.hbs")
     {
         AddMappings("dbtype", typeMapper.ToDictionary());
+        AddMappings("function", new Dictionary<string, object>() { { "length", "LEN"} });
         foreach (var helper in helpers)
             AddFormatter(helper.Key, helper.Value);
     }

@@ -1,11 +1,16 @@
 ﻿{{#each model.Tables}}
 CREATE TABLE {{identity Name}} (
 {{#each Columns}}
-    {{identity Name}} {{dbtype TypeValue ~}}
+    {{identity Name}} {{dbtype Type ~}}
     {{#if Length}}({{Length}}){{/if~}}
     {{#if Precision}}({{Precision}}, {{Scale}}){{/if~}}
-    {{#if IsNullable}} NULL{{/if~}}
+    {{#if Nullable}} NULL{{/if~}}
+    {{#if NotNullable}} NOT NULL{{/if~}}
+    {{#if PrimaryKey}} PRIMARY KEY{{/if~}}
+    {{#if Unique}} UNIQUE{{/if~}}
     {{#if HasDefaultValue}} DEFAULT {{value DefaultValue}}{{/if~}}
+    {{#each Checks}} CHECK {{#if Left.Function}}{{function Left.Function}}({{Left.Name}}){{else}}{{Left.Name}}{{/if}} {{Operator}} {{Right.Value}}
+    {{~ /each ~}}
     {{#unless @last}},{{/unless}}
 {{/each}}
 {{#if PrimaryKey}}

@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DubUrl.Schema;
+namespace DubUrl.Schema.Constraints;
 public class PrimaryKeyConstraint : Constraint
 {
-    public string? Name { get; }
     public OrderedImmutableDictionary<string, Column> Columns { get; }
     private PrimaryKeyConstraint(Column[] columns, string? name)
+        : base(name)
     {
-        Name = name;
         Columns = OrderedImmutableDictionary<string, Column>.From(
                     columns.Select(c => new KeyValuePair<string, Column>(c.Name, c)));
     }
@@ -20,6 +19,9 @@ public class PrimaryKeyConstraint : Constraint
     public PrimaryKeyConstraint(Column[] columns)
         : this(columns, null) { }
 
-    public PrimaryKeyConstraint(string name, Column[] columns)
-        : this(columns, name) { }
+    public PrimaryKeyConstraint(Column column, string? name = null)
+        : this([column], name) { }
+
+    public PrimaryKeyConstraint(string? name = null)
+        : this([], name) { }
 }

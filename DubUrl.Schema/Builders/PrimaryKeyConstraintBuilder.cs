@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
+using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema.Builders;
 
@@ -24,8 +24,8 @@ public class PrimaryKeyConstraintBuilder : IConstraintBuilder
         if (Names is null || Names.Length==0)
             throw new InvalidDataException("Column names must be provided.");
 
-        var columns = Names.Select(name => new Column(name, DbType.Object));
+        var columns = Names.Select(name => new Column(name, System.Data.DbType.Object));
 
-        return new PrimaryKeyConstraint(columns.ToArray());
+        return new PrimaryKeyConstraint([.. columns]);
     }
 }
