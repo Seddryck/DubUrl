@@ -1,4 +1,5 @@
 ﻿using DubUrl.Querying.Dialects.Casters;
+using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using System;
@@ -72,7 +73,7 @@ public class DialectBuilder
             {
                 var renderer = Activator.CreateInstance(
                                     dialectInfo.Key.GetCustomAttribute<RendererAttribute>()?.RendererType
-                                        ?? throw new NullReferenceException("Can't find renderer.")
+                                        ?? throw new InvalidOperationException("Can't find renderer.")
                                     , []);
 
                 var casters = (dialectInfo.Key.GetCustomAttributes<ReturnCasterAttribute>().Select(
@@ -80,19 +81,20 @@ public class DialectBuilder
                                 ?? Array.Empty<ICaster>()).ToArray();
 
                 var language = dialectInfo.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language.Extension
-                    ?? throw new NullReferenceException("Can't find parent language.");
+                    ?? throw new InvalidOperationException("Can't find parent language.");
 
-                var dbTypeMapperType = dialectInfo.Key.GetCustomAttribute<DbTypeMapperAttribute>()?.DbTypeMapperType
-                    ?? throw new NullReferenceException("Can't find DbTypeMapper.");
+               var dbTypeMapper = GetComponent<DbTypeMapperAttribute, IDbTypeMapper>(
+                        dialectInfo.Key
+                        , x => x?.DbTypeMapperType);
 
-                var dbTypeMapper = dbTypeMapperType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
-                    ?.GetValue(null) as IDbTypeMapper
-                    ?? throw new NullReferenceException("Can't instantiate DbTypeMapper.");
+                var sqlFunctionMapper = GetComponent<SqlFunctionMapperAttribute, ISqlFunctionMapper>(
+                        dialectInfo.Key
+                        , x => x?.SqlFunctionMapperType);
 
                 Dialects.Add(dialectInfo.Key,
                     (IDialect)(
                         Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
-                            , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!, dbTypeMapper], null
+                            , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!, dbTypeMapper, sqlFunctionMapper], null
                         )
                         ?? throw new ArgumentException()
                      )
@@ -104,6 +106,21 @@ public class DialectBuilder
             }
         }
         IsBuilt = true;
+    }
+
+    private I GetComponent<A, I>(Type dialect, Func<A?, Type?> getMember) where A : Attribute where I : class
+    {
+        var dialectName = dialect.Name.Replace("Dialect", string.Empty);
+        var propertyName = nameof(I).Substring(1);
+
+        var type = getMember(dialect.GetCustomAttribute<A>())
+                    ?? throw new InvalidOperationException($"Can't find {propertyName} for dialect {dialectName}.");
+
+        var obj = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+            ?.GetValue(null) as I
+            ?? throw new InvalidOperationException($"Can't instantiate {propertyName} for dialect {dialectName}.");
+
+        return obj;
     }
 
     public IDialect Get<T>()
