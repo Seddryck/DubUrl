@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.2.1" />
@@ -16,11 +16,11 @@
     <PackageReference Include="System.Management" Version="9.0.3" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
-    <PackageReference Include="System.Data.Odbc" Version="9.0.3" />
+    <PackageReference Include="System.Data.Odbc" Version="9.0.4" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.300" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' == 'net8.0'" />
     <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.100" Condition="'$(TargetFramework)' != 'net8.0'" />
   </ItemGroup>
   <ItemGroup>
