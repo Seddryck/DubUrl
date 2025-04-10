@@ -15,7 +15,7 @@ updates:
     commit-message:
       prefix: "chore"
     ignore:
-      dependency-name: "Net.IBM.Data.Db2"
+      - dependency-name: "Net.IBM.Data.Db2"
     groups:
       NUnit:
           patterns:
