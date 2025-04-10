@@ -14,6 +14,8 @@ updates:
       - "dependency-update"
     commit-message:
       prefix: "chore"
+    ignore:
+      dependency-name: "Net.IBM.Data.Db2"
     groups:
       NUnit:
           patterns:
@@ -51,9 +53,6 @@ updates:
       System.Data.OleDb:
           patterns:
             - "System.Data.OleDb"
-      Net.IBM.Data.Db2:
-          patterns:
-            - "Net.IBM.Data.Db2"
       Npgsql :
           patterns:
             - "Npgsql"      
