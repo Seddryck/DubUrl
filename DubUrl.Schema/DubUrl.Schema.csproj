@@ -10,7 +10,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Didot.Core" Version="0.27.0" />
+	  <PackageReference Include="Didot.Core" Version="0.27.10" />
 	</ItemGroup>
 
 	<PropertyGroup>
