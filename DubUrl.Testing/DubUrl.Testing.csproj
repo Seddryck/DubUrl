@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.2.1" />
@@ -9,7 +9,7 @@
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.3" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.4" />
     <PackageReference Include="MySql.Data" Version="9.2.0" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.2.0" />
     <PackageReference Include="Snowflake.Data" Version="4.3.0" />
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.3" />
