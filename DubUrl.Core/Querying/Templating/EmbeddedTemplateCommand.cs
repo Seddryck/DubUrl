@@ -66,7 +66,7 @@ public class EmbeddedTemplateCommand : EmbeddedResourceCommand
     }
 
     protected override string Render(IDialect dialect, IConnectivity connectivity)
-        => new StringTemplateEngine().Render(
+        => new DidotEngine(".st").Render(
                 ReadResource(dialect, connectivity)
                 , ReadSubTemplates(dialect, connectivity)
                 , ReadDictionaries(dialect, connectivity)

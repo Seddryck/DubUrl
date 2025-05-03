@@ -31,7 +31,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Domemtech.StringTemplate4" Version="4.3.0" />
+    <PackageReference Include="Didot.Core" Version="0.31.0" />
   </ItemGroup>
 
   <ItemGroup>

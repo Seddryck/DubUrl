@@ -22,5 +22,5 @@ internal class InlineTemplateCommand : InlineCommand
         : base(sql, queryLogger) { Parameters = parameters; }
 
     protected override string Render(IDialect dialect, IConnectivity connectivity)
-        =>  new StringTemplateEngine().Render(Text, new Dictionary<string, string>(), Parameters, dialect.Renderer);
+        =>  new DidotEngine(".st").Render(Text, new Dictionary<string, string>(), Parameters, dialect.Renderer);
 }
