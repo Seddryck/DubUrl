@@ -9,21 +9,20 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Testing.Querying.Templating;
 
-public class StringTemplateEngineTest
+public class DidotEngineTest
 {
     [Test]
     public void Render_WithoutSubTemplate_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var response = engine.Render("Hello $name$!", new Dictionary<string, string>(), new Dictionary<string, object?>() { { "name", "Cédric" } }, null);
         Assert.That(response, Is.EqualTo("Hello Cédric!"));
     }
 
-
     [Test]
     public void Render_WithSubTemplate_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" } };
         var subTemplates = new Dictionary<string, string>()
         {
@@ -33,11 +32,10 @@ public class StringTemplateEngineTest
         Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
     }
 
-
     [Test]
     public void Render_WithMultipleSubTemplate_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" } };
         var subTemplates = new Dictionary<string, string>() 
         { 
@@ -51,7 +49,7 @@ public class StringTemplateEngineTest
     [Test]
     public void Render_WithChainingSubTemplate_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" } };
         var subTemplates = new Dictionary<string, string>()
         {
@@ -65,7 +63,7 @@ public class StringTemplateEngineTest
     [Test]
     public void Render_WithChainingSubTemplateWithVariables_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" }, { "template", "print_end" } };
         var subTemplates = new Dictionary<string, string>()
         {
@@ -79,7 +77,7 @@ public class StringTemplateEngineTest
     [Test]
     public void Render_WithDictionary_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" }, { "symbol", "LessThan" } };
         var dictionary = new Dictionary<string, object?>()
         {
@@ -94,7 +92,7 @@ public class StringTemplateEngineTest
     [Test]
     public void Render_WithTemplateParsable_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var templates = new Dictionary<string, string>()
         {
             { "bold", "bold(value)::=<b>$value$</b>" },
@@ -108,7 +106,7 @@ public class StringTemplateEngineTest
     [Test]
     public void Render_WithTemplateParsableMultiVar_Correct()
     {
-        var engine = new StringTemplateEngine();
+        var engine = new DidotEngine(".st");
         var templates = new Dictionary<string, string>()
         {
             { "bold", "bold(value,value2)::=<b>$value$</b>" },
