@@ -22,7 +22,7 @@ public class InlineTemplateCommand
         _renderer = renderer;
         Template = template;
     }
-
+    
     public string Render(IDictionary<string, object?> parameters)
         => _renderer.Render(parameters);
 }
