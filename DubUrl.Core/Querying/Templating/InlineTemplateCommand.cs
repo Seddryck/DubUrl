@@ -14,18 +14,15 @@ namespace DubUrl.Querying.Templating;
 
 public class InlineTemplateCommand
 {
-    private IRenderingProxy Renderer { get; }
+    private readonly IRenderingProxy _renderer;
+    public string Template { get; }
 
-    public InlineTemplateCommand(string sql, IDialect dialect)
-        : this(".st", sql, dialect)
-    { }
-
-    public InlineTemplateCommand(string extension, string sql, IDialect dialect)
+    internal InlineTemplateCommand(IRenderingProxy renderer, string template)
     {
-        var engine = new DidotEngine(extension);
-        Renderer = engine.Prepare(sql, renderer: dialect.Renderer);
+        _renderer = renderer;
+        Template = template;
     }
 
     public string Render(IDictionary<string, object?> parameters)
-        => Renderer.Render(parameters);
+        => _renderer.Render(parameters);
 }

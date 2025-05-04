@@ -24,6 +24,7 @@ public partial class DatabaseUrl : IDatabaseUrl
 {
     protected ConnectionUrl ConnectionUrl { get; }
     protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+    protected readonly InlineTemplateCommandFactory _inlineTemplateCommandFactory;
 
     protected ICaster[] Casters { get; } = [];
 
@@ -44,7 +45,8 @@ public partial class DatabaseUrl : IDatabaseUrl
     { }
 
     public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
-        => (ConnectionUrl, CommandProvisionerFactory, QueryLogger) = (connectionUrl, commandProvisionerFactory, logger);
+        => (ConnectionUrl, CommandProvisionerFactory, QueryLogger, _inlineTemplateCommandFactory) =
+                (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect));
 
     protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
     {
@@ -78,7 +80,7 @@ public partial class DatabaseUrl : IDatabaseUrl
       => ReadScalar<T>(new InlineCommand(query, QueryLogger));
 
     public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
-       => ReadScalar<T>(new InlineTemplateCommand(template, Dialect), parameters);
+       => ReadScalar<T>(CreateTemplate(template), parameters);
 
     public T? ReadScalar<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
        => ReadScalar<T>(template.Render(parameters));
@@ -89,11 +91,14 @@ public partial class DatabaseUrl : IDatabaseUrl
         return (T?)(result == DBNull.Value ? null : result);
     }
 
+    public InlineTemplateCommand CreateTemplate(string source)
+        => _inlineTemplateCommandFactory.Create(source);
+
     public T ReadScalarNonNull<T>(string query)
        => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
 
     public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull<T>(new InlineTemplateCommand(template, Dialect), parameters);
+       => ReadScalarNonNull<T>(CreateTemplate(template), parameters);
 
     public T ReadScalarNonNull<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
        => ReadScalarNonNull<T>(template.Render(parameters));

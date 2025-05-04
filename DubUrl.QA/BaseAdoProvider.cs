@@ -196,7 +196,7 @@ public abstract class BaseAdoProvider
     {
         var db = new DatabaseUrl(ConnectionString);
         var template = $"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$";
-        var itc = new InlineTemplateCommand(template, db.Dialect);
+        var itc = db.CreateTemplate(template);
 
         var parameters = new Dictionary<string, object?>() { { "value", "foo" }, { "columnId", "ColumnName" } };
         Assert.That(db.ReadScalar<string>(itc, parameters), Is.EqualTo("foo"));
