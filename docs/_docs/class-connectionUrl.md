@@ -1,10 +1,11 @@
 ---
-title: Class ConnectionUrl
+title: ConnectionUrl Class
 subtitle: Instantiate and manipulate the class ConnectionUrl
 tags: [connection, quick-start]
 ---
 
 As we'll use the [ADO.Net provider for SQL Server](https://docs.microsoft.com/en-us/sql/connect/ado-net/microsoft-ado-net-sql-server) in this example, we should add it as a reference of the .NET project.
+
 ```bash
 # With Package Manager
 Install-Package System.Data.SqlClient
@@ -13,11 +14,13 @@ dotnet add package System.Data.SqlClient
 ```
 
 If you're using .NET Core (and not .NET Framework), don't forget to register the ADO.Net providers before trying to use them. With .NET Framework, this step is facultative as the providers, installed at the machine-level, are automatically registered. In the code of your .NET project, add the following registration before trying to use DubUrl.
+
 ```csharp
 DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
 ```
 
 Once the string representation of a connectionUrl is specified, you can instantiate an object of the class `ConnectionUrl` and use the function `Parse` to transform the connection URL into a classical *connection string*.
+
 ```csharp
 string connectionUrl = "mssql://{server}/{database_name}";
 string connectionString = new ConnectionUrl(connectionUrl).Parse();
@@ -25,6 +28,7 @@ string connectionString = new ConnectionUrl(connectionUrl).Parse();
 ```
 
 You can also directly create a connection object. To achieve this, you need to use one of the functions `Connect` or `Open`. Both returns a connection object but the latest is also opening the connection, which is not the case for the former. Both connection objects are initialized with a `ConnectionString` property equal to the return of the `Parse` function.
+
 ```csharp
 string connectionUrl = "mssql://{server}:{port}/{database_name}";
 var firstConnection = new ConnectionUrl(connectionUrl).Connect();
@@ -35,6 +39,7 @@ var secondConnection = new ConnectionUrl(connectionUrl).Open();
 ```
 
 You can use the created connection in a `using` statement to be sure that it's properly disposed when leaving the scope and you can also use the created connection to create a new command.
+
 ```csharp
 DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
 string connectionUrl = "mssql://{server}/{database_name}";
