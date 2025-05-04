@@ -58,5 +58,5 @@ internal class DidotRenderer : IRenderingProxy
         => Renderer = renderer;
 
     public string Render(IDictionary<string, object?> parameters)
-        => Renderer.Render(parameters);
+        => Renderer.Render(parameters.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? DBNull.Value));
 }
