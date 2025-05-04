@@ -66,11 +66,10 @@ public class EmbeddedTemplateCommand : EmbeddedResourceCommand
     }
 
     protected override string Render(IDialect dialect, IConnectivity connectivity)
-        => new DidotEngine(".st").Render(
+        => new DidotEngine(".st").Prepare(
                 ReadResource(dialect, connectivity)
                 , ReadSubTemplates(dialect, connectivity)
                 , ReadDictionaries(dialect, connectivity)
-                , Parameters
                 , dialect.Renderer
-            );
+            ).Render(Parameters);
 }

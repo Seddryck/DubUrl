@@ -24,6 +24,7 @@ public partial class DatabaseUrl : IDatabaseUrl
 {
     protected ConnectionUrl ConnectionUrl { get; }
     protected CommandProvisionerFactory CommandProvisionerFactory { get; }
+    protected readonly InlineTemplateCommandFactory _inlineTemplateCommandFactory;
 
     protected ICaster[] Casters { get; } = [];
 
@@ -44,7 +45,8 @@ public partial class DatabaseUrl : IDatabaseUrl
     { }
 
     public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
-        => (ConnectionUrl, CommandProvisionerFactory, QueryLogger) = (connectionUrl, commandProvisionerFactory, logger);
+        => (ConnectionUrl, CommandProvisionerFactory, QueryLogger, _inlineTemplateCommandFactory) =
+                (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect));
 
     protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
     {
@@ -56,16 +58,31 @@ public partial class DatabaseUrl : IDatabaseUrl
         return cmd;
     }
 
+    public InlineTemplateCommand CreateTemplate(string source)
+        => _inlineTemplateCommandFactory.Create(source);
+
     #region Scalar
 
     public object? ReadScalar(string query)
         => ReadScalar(new InlineCommand(query, QueryLogger));
+
+    public object? ReadScalar(string template, IDictionary<string, object?> parameters)
+       => ReadScalar(CreateTemplate(template), parameters);
+
+    public object? ReadScalar(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalar(template.Render(parameters));
 
     public object? ReadScalar(ICommandProvider commandProvider)
         => PrepareCommand(commandProvider).ExecuteScalar();
 
     public object ReadScalarNonNull(string query)
         => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
+
+    public object ReadScalarNonNull(string template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull(CreateTemplate(template), parameters);
+
+    public object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull(template.Render(parameters));
 
     public object ReadScalarNonNull(ICommandProvider commandProvider)
     {
@@ -78,7 +95,10 @@ public partial class DatabaseUrl : IDatabaseUrl
       => ReadScalar<T>(new InlineCommand(query, QueryLogger));
 
     public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
-       => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
+       => ReadScalar<T>(CreateTemplate(template), parameters);
+
+    public T? ReadScalar<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalar<T>(template.Render(parameters));
 
     public T? ReadScalar<T>(ICommandProvider query)
     {
@@ -90,7 +110,10 @@ public partial class DatabaseUrl : IDatabaseUrl
        => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
 
     public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
+       => ReadScalarNonNull<T>(CreateTemplate(template), parameters);
+
+    public T ReadScalarNonNull<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull<T>(template.Render(parameters));
 
     public T ReadScalarNonNull<T>(ICommandProvider query)
     {
@@ -116,6 +139,12 @@ public partial class DatabaseUrl : IDatabaseUrl
     public object? ReadSingle(string query)
         => ReadSingle(new InlineCommand(query, QueryLogger));
 
+    public object? ReadSingle(string template, IDictionary<string, object?> parameters)
+       => ReadSingle(CreateTemplate(template), parameters);
+
+    public object? ReadSingle(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadSingle(template.Render(parameters));
+
     public object? ReadSingle(ICommandProvider commandProvider)
     {
         (var dyn, var dr) = ReadInternal(commandProvider);
@@ -124,6 +153,12 @@ public partial class DatabaseUrl : IDatabaseUrl
 
     public object ReadSingleNonNull(string query)
         => ReadSingleNonNull(new InlineCommand(query, QueryLogger));
+
+    public object ReadSingleNonNull(string template, IDictionary<string, object?> parameters)
+       => ReadSingleNonNull(CreateTemplate(template), parameters);
+
+    public object ReadSingleNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadSingleNonNull(template.Render(parameters));
 
     public object ReadSingleNonNull(ICommandProvider commandProvider)
         => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
@@ -135,6 +170,12 @@ public partial class DatabaseUrl : IDatabaseUrl
     public object? ReadFirst(string query)
         => ReadFirst(new InlineCommand(query, QueryLogger));
 
+    public object? ReadFirst(string template, IDictionary<string, object?> parameters)
+       => ReadFirst(CreateTemplate(template), parameters);
+
+    public object? ReadFirst(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadFirst(template.Render(parameters));
+
     public object? ReadFirst(ICommandProvider commandProvider)
     {
         (var dyn, _) = ReadInternal(commandProvider);
@@ -143,6 +184,12 @@ public partial class DatabaseUrl : IDatabaseUrl
 
     public object ReadFirstNonNull(string query)
         => ReadFirstNonNull(new InlineCommand(query, QueryLogger));
+
+    public object ReadFirstNonNull(string template, IDictionary<string, object?> parameters)
+       => ReadFirstNonNull(CreateTemplate(template), parameters);
+
+    public object ReadFirstNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadFirstNonNull(template.Render(parameters));
 
     public object ReadFirstNonNull(ICommandProvider commandProvider)
         => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
@@ -154,6 +201,12 @@ public partial class DatabaseUrl : IDatabaseUrl
     public IEnumerable<object> ReadMultiple(string query)
         => ReadMultiple(new InlineCommand(query, QueryLogger));
 
+    public IEnumerable<object> ReadMultiple(string template, IDictionary<string, object?> parameters)
+       => ReadMultiple(CreateTemplate(template), parameters);
+
+    public IEnumerable<object> ReadMultiple(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadMultiple(template.Render(parameters));
+    
     public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
     {
         using var dr = PrepareCommand(commandProvider).ExecuteReader();
@@ -168,6 +221,12 @@ public partial class DatabaseUrl : IDatabaseUrl
 
     public IDataReader ExecuteReader(string query)
        => ExecuteReader(new InlineCommand(query, QueryLogger));
+
+    public IDataReader ExecuteReader(string template, IDictionary<string, object?> parameters)
+       => ExecuteReader(CreateTemplate(template), parameters);
+
+    public IDataReader ExecuteReader(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ExecuteReader(template.Render(parameters));
 
     public IDataReader ExecuteReader(ICommandProvider commandProvider)
         => PrepareCommand(commandProvider).ExecuteReader();

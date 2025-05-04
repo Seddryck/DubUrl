@@ -12,10 +12,16 @@ namespace DubUrl.Testing.Querying.Templating;
 public class DidotEngineTest
 {
     [Test]
-    public void Render_WithoutSubTemplate_Correct()
+    [TestCase(".st", "Hello $name$!")]
+    [TestCase(".scriban", "Hello {{name}}!")]
+    [TestCase(".hdb", "Hello {{name}}!")]
+    [TestCase(".mustache", "Hello {{name}}!")]
+    [TestCase(".liquid", "Hello {{name}}!")]
+    public void Render_WithoutSubTemplate_Correct(string extension, string template)
     {
-        var engine = new DidotEngine(".st");
-        var response = engine.Render("Hello $name$!", new Dictionary<string, string>(), new Dictionary<string, object?>() { { "name", "Cédric" } }, null);
+        var engine = new DidotEngine(extension);
+        var renderer = engine.Prepare(template);
+        var response = renderer.Render(new Dictionary<string, object?>() { { "name", "Cédric" } });
         Assert.That(response, Is.EqualTo("Hello Cédric!"));
     }
 
@@ -28,7 +34,8 @@ public class DidotEngineTest
         {
             { "print_name", "dear $name$" },
         };
-        var response = engine.Render("Hello $print_name()$!", subTemplates, parameters, null);
+        var renderer = engine.Prepare("Hello $print_name()$!", subTemplates);
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
     }
 
@@ -42,7 +49,8 @@ public class DidotEngineTest
             { "print_name", "dear $name$" },
             { "print_end", "!" }
         };
-        var response = engine.Render("Hello $print_name()$$print_end()$", subTemplates, parameters, null);
+        var renderer = engine.Prepare("Hello $print_name()$$print_end()$", subTemplates);
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
     }
 
@@ -56,7 +64,8 @@ public class DidotEngineTest
             { "print_name", "dear $name$$print_end()$" },
             { "print_end", "!" }
         };
-        var response = engine.Render("Hello $print_name()$", subTemplates, parameters, null);
+        var renderer = engine.Prepare("Hello $print_name()$", subTemplates);
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
     }
 
@@ -70,7 +79,8 @@ public class DidotEngineTest
             { "print_name", "dear $(template)()$" },
             { "print_end", "$name$!" }
         };
-        var response = engine.Render("Hello $print_name()$", subTemplates, parameters, null);
+        var renderer = engine.Prepare("Hello $print_name()$", subTemplates);
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello dear Cédric!"));
     }
 
@@ -84,7 +94,8 @@ public class DidotEngineTest
             { "LessThan", "<" },
             { "GreaterThan", ">" }
         };
-        var response = engine.Render("Hello $name$ $comparison.GreaterThan$$comparison.(symbol)$", new Dictionary<string, string>(), new Dictionary<string, IDictionary<string, object?>>() { { "comparison", dictionary } }, parameters, null);
+        var renderer = engine.Prepare("Hello $name$ $comparison.GreaterThan$$comparison.(symbol)$", dictionaries: new Dictionary<string, IDictionary<string, object?>>() { { "comparison", dictionary } });
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello Cédric ><"));
     }
 
@@ -99,7 +110,8 @@ public class DidotEngineTest
             { "italic", "italic(value)::=<i>$value$</i>" }
         };
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" }, { "template", "italic" } };
-        var response = engine.Render("Hello $(template)(name)$", templates, new Dictionary<string, IDictionary<string, object?>>(), parameters, null);
+        var renderer = engine.Prepare("Hello $(template)(name)$", templates);
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello <i>Cédric</i>"));
     }
 
@@ -113,7 +125,8 @@ public class DidotEngineTest
             { "italic", "italic (value, value2) ::=<i>$value$</i>$value2$" }
         };
         var parameters = new Dictionary<string, object?>() { { "name", "Cédric" }, { "template", "italic" }, { "punc", "!" } };
-        var response = engine.Render("Hello $(template)(name, punc)$", templates, new Dictionary<string, IDictionary<string, object?>>(), parameters, null);
+        var renderer = engine.Prepare("Hello $(template)(name, punc)$", templates);
+        var response = renderer.Render(parameters);
         Assert.That(response, Is.EqualTo("Hello <i>Cédric</i>!"));
     }
 }

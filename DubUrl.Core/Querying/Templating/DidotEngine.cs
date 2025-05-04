@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 using Didot.Core.TemplateEngines;
 using Didot.Core;
 using System.Reflection;
+using DubUrlRenderes = DubUrl.Querying.Dialects.Renderers;
 
 namespace DubUrl.Querying.Templating;
 
-public class DidotEngine : IRenderingEngine
+internal class DidotEngine
 {
     private ITemplateEngine Engine { get; }
 
@@ -22,32 +23,29 @@ public class DidotEngine : IRenderingEngine
         var factory = new TemplateEngineFactory();
         factory.AddOrReplace(".st", Engine => Engine.UseStringTemplate(opt => opt.WithDollarDelimitedExpressions()));
         factory.AddOrReplace(".scriban", Engine => Engine.UseScriban());
+        factory.AddOrReplace(".hdb", Engine => Engine.UseHandlebars());
+        factory.AddOrReplace(".mustache", Engine => Engine.UseMorestachio());
+        factory.AddOrReplace(".liquid", Engine => Engine.UseFluid());
         factory.Configure(config => config.WithoutWrapAsModel());
         Engine = factory.Create(extension);
     }
 
-    public string Render(string source, IDictionary<string, string> subTemplates, IDictionary<string, object?> parameters, IRenderer? renderer)
-        => Render(source, subTemplates, new Dictionary<string, IDictionary<string, object?>>(), parameters, renderer);
+    public DidotRenderer Prepare(string source)
+        => new (Engine.Prepare(source));
 
-    public string Render(string source, IDictionary<string, string> subTemplates, IDictionary<string, IDictionary<string, object?>> @dictionaries, IDictionary<string, object?> parameters, IRenderer? renderer)
+    public DidotRenderer Prepare(string source, IDictionary<string, string>? subTemplates = null, IDictionary<string, IDictionary<string, object?>>? @dictionaries = null, DubUrlRenderes.IRenderer? renderer = null)
     {
         if (renderer is not null)
         {
             Engine.AddFormatter("value", (object? input) => renderer.Render(input, "value"));
             Engine.AddFormatter("identity", (object? input) => renderer.Render(input, "identity"));
         }
-
-        foreach (var subTemplate in subTemplates)
-            Engine.AddFunction(subTemplate.Key, () => subTemplate.Value);
-
-        foreach (var @dictionary in @dictionaries)
-            Engine.AddMappings(@dictionary.Key, @dictionary.Value.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty));
-
-        foreach (var parameter in parameters)
-            if (parameter.Value is null)
-                parameters[parameter.Key] = DBNull.Value;
-
-        var actual = Engine.Render(source, parameters);
-        return actual;
+        if (subTemplates is not null)
+            foreach (var subTemplate in subTemplates)
+                Engine.AddFunction(subTemplate.Key, () => subTemplate.Value);
+        if (@dictionaries is not null)
+            foreach (var @dictionary in @dictionaries)
+                Engine.AddMappings(@dictionary.Key, @dictionary.Value.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty));
+        return new DidotRenderer(Engine.Prepare(source));
     }
 }

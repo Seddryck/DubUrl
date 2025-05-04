@@ -19,12 +19,12 @@ internal class InlineCommand : ICommandProvider
 
     public string Read(IDialect dialect, IConnectivity connectivity)
     {
-        var text = Render(dialect, connectivity);
+        var text = Render(dialect);
         QueryLogger.Log(text);
         return text;
     }
 
-    protected virtual string Render(IDialect dialect, IConnectivity connectivity)
+    protected virtual string Render(IDialect dialect)
         => Text;
 
     public bool Exists(IDialect dialect, IConnectivity connectivity, bool includeDefault = false) => true;
