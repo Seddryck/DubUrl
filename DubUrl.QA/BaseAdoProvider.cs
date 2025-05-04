@@ -195,7 +195,7 @@ public abstract class BaseAdoProvider
     public virtual void QueryRepeatWithDatabaseUrl()
     {
         var db = new DatabaseUrl(ConnectionString);
-        var template = "{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$";
+        var template = $"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$";
         var itc = new InlineTemplateCommand(template, db.Dialect);
 
         var parameters = new Dictionary<string, object?>() { { "value", "foo" }, { "columnId", "ColumnName" } };
