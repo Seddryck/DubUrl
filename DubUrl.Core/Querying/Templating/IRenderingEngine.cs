@@ -7,8 +7,13 @@ using DubUrl.Querying.Dialects.Renderers;
 
 namespace DubUrl.Querying.Templating;
 
-internal interface IRenderingEngine
+internal interface ITemplatingProxy
 {
-    string Render(string source, IDictionary<string, string> subTemplates, IDictionary<string, object?> parameters, IRenderer? renderer);
-    string Render(string source, IDictionary<string, string> subTemplates, IDictionary<string, IDictionary<string, object?>> @dictionaries, IDictionary<string, object?> parameters, IRenderer? renderer);
+    IRenderingProxy Prepare(string source);
+    IRenderingProxy Prepare(string source, IDictionary<string, string> subTemplates, IDictionary<string, IDictionary<string, object?>> @dictionaries, IRenderer? renderer);
+}
+
+internal interface IRenderingProxy
+{
+    string Render(IDictionary<string, object?> parameters);
 }

@@ -78,7 +78,10 @@ public partial class DatabaseUrl : IDatabaseUrl
       => ReadScalar<T>(new InlineCommand(query, QueryLogger));
 
     public T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
-       => ReadScalar<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
+       => ReadScalar<T>(new InlineTemplateCommand(template, Dialect), parameters);
+
+    public T? ReadScalar<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalar<T>(template.Render(parameters));
 
     public T? ReadScalar<T>(ICommandProvider query)
     {
@@ -90,7 +93,10 @@ public partial class DatabaseUrl : IDatabaseUrl
        => ReadScalarNonNull<T>(new InlineCommand(query, QueryLogger));
 
     public T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull<T>(new InlineTemplateCommand(template, parameters, QueryLogger));
+       => ReadScalarNonNull<T>(new InlineTemplateCommand(template, Dialect), parameters);
+
+    public T ReadScalarNonNull<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull<T>(template.Render(parameters));
 
     public T ReadScalarNonNull<T>(ICommandProvider query)
     {

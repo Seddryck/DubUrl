@@ -9,18 +9,23 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Antlr4.StringTemplate;
-using DubUrl.Mapping;
 
 namespace DubUrl.Querying.Templating;
 
-internal class InlineTemplateCommand : InlineCommand
+public class InlineTemplateCommand
 {
-    public IDictionary<string, object?> Parameters { get; }
+    private IRenderingProxy Renderer { get; }
 
-    public InlineTemplateCommand(string sql, IDictionary<string, object?> parameters, IQueryLogger queryLogger)
-        : base(sql, queryLogger) { Parameters = parameters; }
+    public InlineTemplateCommand(string sql, IDialect dialect)
+        : this(".st", sql, dialect)
+    { }
 
-    protected override string Render(IDialect dialect, IConnectivity connectivity)
-        =>  new DidotEngine(".st").Render(Text, new Dictionary<string, string>(), Parameters, dialect.Renderer);
+    public InlineTemplateCommand(string extension, string sql, IDialect dialect)
+    {
+        var engine = new DidotEngine(extension);
+        Renderer = engine.Prepare(sql, renderer: dialect.Renderer);
+    }
+
+    public string Render(IDictionary<string, object?> parameters)
+        => Renderer.Render(parameters);
 }

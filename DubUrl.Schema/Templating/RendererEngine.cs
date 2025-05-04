@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Didot.Core.TemplateEngines;
-using Didot.Core;
+using Ddt = Didot.Core;
 using System.Reflection;
 using DubUrl.Querying.Dialects.Renderers;
 using System.Text.Encodings.Web;
@@ -12,7 +11,7 @@ using System.Text.Encodings.Web;
 namespace DubUrl.Schema.Templating;
 public abstract class RendererEngine
 {
-    protected ITemplateEngine Engine { get; }
+    protected Ddt.ITemplateEngine Engine { get; }
     private string TemplatePath { get; }
     private Assembly Assembly { get; }
 
@@ -21,8 +20,8 @@ public abstract class RendererEngine
         var extension = Path.GetExtension(templatePath);
         Assembly = asm;
         TemplatePath = templatePath;
-        var factory = new FileBasedTemplateEngineFactory(new TemplateConfiguration(HtmlEncode: false));
-        Engine = factory.GetByExtension(extension);
+        var factory = Ddt.TemplateEngineFactory.Default;
+        Engine = factory.Create(extension);
     }
 
     protected static Dictionary<string, Func<object?, string>> CreateHelpers(IRenderer renderer)
@@ -32,7 +31,6 @@ public abstract class RendererEngine
 
         return new([create("value"), create("identity")]);
     }
-
 
     protected void AddMappings(string mapKey, IDictionary<string, object> mappings)
         => Engine.AddMappings(mapKey, mappings);

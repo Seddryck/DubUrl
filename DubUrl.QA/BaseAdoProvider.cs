@@ -8,6 +8,7 @@ using static DubUrl.QA.MicroOrmCustomerRepository;
 using System.Linq.Expressions;
 using Dapper;
 using DbReader;
+using DubUrl.Querying.Templating;
 
 namespace DubUrl.QA;
 
@@ -187,6 +188,24 @@ public abstract class BaseAdoProvider
         var db = new DatabaseUrl(ConnectionString);
         var value = db.ReadScalar<string>($"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$", new Dictionary<string, object?>() { { "value", null }, { "columnId", "ColumnName"} });
         Assert.That(value, Is.Null);
+    }
+
+    [Test]
+    [Category("DatabaseUrl")]
+    public virtual void QueryRepeatWithDatabaseUrl()
+    {
+        var db = new DatabaseUrl(ConnectionString);
+        var template = "{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$";
+        var itc = new InlineTemplateCommand(template, db.Dialect);
+
+        var parameters = new Dictionary<string, object?>() { { "value", "foo" }, { "columnId", "ColumnName" } };
+        Assert.That(db.ReadScalar<string>(itc, parameters), Is.EqualTo("foo"));
+
+        parameters["value"] = "bar";
+        Assert.That(db.ReadScalar<string>(itc, parameters), Is.EqualTo("bar"));
+
+        parameters["value"] = "qrz";
+        Assert.That(db.ReadScalar<string>(itc, parameters), Is.EqualTo("qrz"));
     }
 
     [Test]
