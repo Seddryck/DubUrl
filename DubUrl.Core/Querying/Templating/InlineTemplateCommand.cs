@@ -14,10 +14,10 @@ namespace DubUrl.Querying.Templating;
 
 public class InlineTemplateCommand
 {
-    private readonly IRenderingProxy _renderer;
+    private readonly DidotRenderer _renderer;
     public string Template { get; }
 
-    internal InlineTemplateCommand(IRenderingProxy renderer, string template)
+    internal InlineTemplateCommand(DidotRenderer renderer, string template)
     {
         _renderer = renderer;
         Template = template;
