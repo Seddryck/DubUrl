@@ -14,7 +14,7 @@ using DubUrlRenderes = DubUrl.Querying.Dialects.Renderers;
 
 namespace DubUrl.Querying.Templating;
 
-internal class DidotEngine : ITemplatingProxy
+internal class DidotEngine
 {
     private ITemplateEngine Engine { get; }
 
@@ -30,10 +30,10 @@ internal class DidotEngine : ITemplatingProxy
         Engine = factory.Create(extension);
     }
 
-    public IRenderingProxy Prepare(string source)
-        => new DidotRenderer(Engine.Prepare(source));
+    public DidotRenderer Prepare(string source)
+        => new (Engine.Prepare(source));
 
-    public IRenderingProxy Prepare(string source, IDictionary<string, string>? subTemplates = null, IDictionary<string, IDictionary<string, object?>>? @dictionaries = null, DubUrlRenderes.IRenderer? renderer = null)
+    public DidotRenderer Prepare(string source, IDictionary<string, string>? subTemplates = null, IDictionary<string, IDictionary<string, object?>>? @dictionaries = null, DubUrlRenderes.IRenderer? renderer = null)
     {
         if (renderer is not null)
         {
@@ -48,15 +48,4 @@ internal class DidotEngine : ITemplatingProxy
                 Engine.AddMappings(@dictionary.Key, @dictionary.Value.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty));
         return new DidotRenderer(Engine.Prepare(source));
     }
-}
-
-internal class DidotRenderer : IRenderingProxy
-{
-    private Didot.Core.IRenderer Renderer { get; }
-
-    public DidotRenderer(Didot.Core.IRenderer renderer)
-        => Renderer = renderer;
-
-    public string Render(IDictionary<string, object?> parameters)
-        => Renderer.Render(parameters.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? DBNull.Value));
 }

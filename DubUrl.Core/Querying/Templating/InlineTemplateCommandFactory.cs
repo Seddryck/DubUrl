@@ -25,6 +25,8 @@ public class InlineTemplateCommandFactory
 
     public InlineTemplateCommand Create(string template)
     {
+        if (string.IsNullOrWhiteSpace(template))
+            throw new ArgumentException("Template cannot be null or whitespace", nameof(template));
         var renderer = _engine.Prepare(template, renderer: _dialect.Renderer);
         return new InlineTemplateCommand(renderer, template);
     }
