@@ -31,7 +31,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Didot.Core" Version="0.32.0" />
+    <PackageReference Include="Didot.Core" Version="0.32.1" />
   </ItemGroup>
 
   <ItemGroup>
