@@ -17,7 +17,7 @@ public class DatabaseUrlFactoryTest
     [Test]
     public void Instantiate_Url_AnyDatabaseUrl()
     {
-        var connectionUrlFactory = new Mock<ConnectionUrlFactory>(new[] { Mock.Of<SchemeMapperBuilder>() });
+        var connectionUrlFactory = new Mock<ConnectionUrlFactory>(new[] { Mock.Of<ISchemeRegistry>() });
         connectionUrlFactory.Setup(x => x.Instantiate(It.IsAny<string>()))
             .Returns(new Mock<ConnectionUrl>(new[] { "any://host" }).Object);
 

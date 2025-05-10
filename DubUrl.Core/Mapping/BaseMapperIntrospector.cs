@@ -36,7 +36,7 @@ public abstract class BaseIntrospector
 
 public class AssemblyTypesProbe : ITypesProbe
 {
-    public Assembly[] Assemblies { get; } = [typeof(SchemeMapperBuilder).Assembly];
+    public Assembly[] Assemblies { get; } = [typeof(SchemeRegistry).Assembly];
 
     public AssemblyTypesProbe()
     { }

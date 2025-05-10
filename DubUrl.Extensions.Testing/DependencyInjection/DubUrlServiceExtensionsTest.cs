@@ -22,10 +22,10 @@ public class DubUrlServiceExtensionsTest
             .AddDubUrl()
             .AddSingleton(Configuration)
             .BuildServiceProvider();
-        SchemeMapperBuilder? mapper = null;
+        ISchemeRegistry? mapper = null;
         Assert.Multiple(() =>
         {
-            Assert.DoesNotThrow(() => mapper = provider.GetRequiredService<SchemeMapperBuilder>());
+            Assert.DoesNotThrow(() => mapper = provider.GetRequiredService<ISchemeRegistry>());
             Assert.That(mapper, Is.Not.Null);
         });
     }
@@ -39,7 +39,7 @@ public class DubUrlServiceExtensionsTest
             .AddSingleton(Configuration)
             .AddLogging()
             .BuildServiceProvider();
-        Assert.DoesNotThrow(() => provider.GetRequiredService<SchemeMapperBuilder>());
+        Assert.DoesNotThrow(() => provider.GetRequiredService<ISchemeRegistry>());
         var options = provider.GetRequiredService<IOptions<DubUrlServiceOptions>>();
         Assert.That(options.Value.Logger, Is.Not.Null);
     }
@@ -52,8 +52,8 @@ public class DubUrlServiceExtensionsTest
             .AddSingleton(EmptyConfiguration)
             .AddDubUrl(options)
             .BuildServiceProvider();
-        SchemeMapperBuilder? mapper = null;
-        Assert.DoesNotThrow(() => mapper = provider.GetRequiredService<SchemeMapperBuilder>());
+        ISchemeRegistry? mapper = null;
+        Assert.DoesNotThrow(() => mapper = provider.GetRequiredService<ISchemeRegistry>());
     }
 
     [Test]

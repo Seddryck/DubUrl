@@ -26,11 +26,10 @@ public class DataSourceUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
-        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Parse();
 
         parserMock.Verify(x => x.Parse(url), Times.Once());
@@ -47,15 +46,13 @@ public class DataSourceUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
-        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Parse();
 
-        schemeMapperBuilderMock.Verify(x => x.Build(), Times.Once());
-        schemeMapperBuilderMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length == 1 || x.First() == "mssql")), Times.AtLeastOnce());
+        registryMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length == 1 || x.First() == "mssql")), Times.AtLeastOnce());
     }
 
     [Test]
@@ -69,11 +66,10 @@ public class DataSourceUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
-        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Parse();
 
         mapperMock.Verify(x => x.Rewrite(It.IsAny<UrlInfo>()), Times.Once());
@@ -93,15 +89,14 @@ public class DataSourceUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateDataSource(It.IsAny<string>())).Returns(Mock.Of<DbDataSource>());
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
-        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Create();
 
-        schemeMapperBuilderMock.VerifyAll();
+        registryMock.VerifyAll();
     }
 
     [Test]
@@ -120,12 +115,11 @@ public class DataSourceUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateDataSource(connString)).Returns(Mock.Of<DbDataSource>());
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
-        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Create();
 
         dbProviderfactoryMock.Verify(x => x.CreateDataSource(connString), Times.Once());
@@ -149,12 +143,11 @@ public class DataSourceUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateDataSource(connString)).Returns(dbDataSource);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
-        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         Assert.That(dataSourceUrl.Create(), Is.EqualTo(dbDataSource));
     }
 }

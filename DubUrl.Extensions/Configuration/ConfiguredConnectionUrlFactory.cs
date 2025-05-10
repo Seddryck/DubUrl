@@ -12,7 +12,7 @@ public class ConfiguredConnectionUrlFactory : ConnectionUrlFactory
 {
     private IConfigurationRoot Configuration { get; }
 
-    public ConfiguredConnectionUrlFactory(SchemeMapperBuilder builder)
+    public ConfiguredConnectionUrlFactory(SchemeRegistry builder)
         : base(builder)
     {
         Configuration = new ConfigurationBuilder()
@@ -21,8 +21,8 @@ public class ConfiguredConnectionUrlFactory : ConnectionUrlFactory
             .Build();
     }
 
-    public ConfiguredConnectionUrlFactory(SchemeMapperBuilder builder, IConfigurationRoot config)
-        : base(builder)
+    public ConfiguredConnectionUrlFactory(ISchemeRegistry registry, IConfigurationRoot config)
+        : base(registry)
         => Configuration = config;
 
     public ConnectionUrl InstantiateFromConnectionStrings(string name)

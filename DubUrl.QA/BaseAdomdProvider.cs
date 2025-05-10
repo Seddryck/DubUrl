@@ -19,7 +19,7 @@ namespace DubUrl.QA;
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public abstract class BaseAdomdProvider
 {
-    protected SchemeMapperBuilder SchemeMapperBuilder { get; set; }
+    protected SchemeRegistry SchemeRegistry { get; set; }
     protected virtual string SelectPrimitiveTemplate(string type) => "EVALUATE DATATABLE(\"value\", " + type + ", {{$value; format=\"value\"$}})";
 
     [OneTimeSetUp]
@@ -31,7 +31,10 @@ public abstract class BaseAdomdProvider
         var registrator = new ProviderFactoriesRegistrator(discovery);
         registrator.Register();
 
-        SchemeMapperBuilder = new SchemeMapperBuilder(assemblies);
+        SchemeRegistry = new SchemeRegistryBuilder()
+            .WithAssemblies(assemblies)
+            .WithAutoDiscoveredMappings()
+            .Build();
     }
 
     public abstract string ConnectionString { get; }
@@ -39,7 +42,7 @@ public abstract class BaseAdomdProvider
     [Test]
     public virtual void Connect()
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
         Console.WriteLine(connectionUrl.Parse());
 
         using var conn = connectionUrl.Connect();
@@ -49,7 +52,7 @@ public abstract class BaseAdomdProvider
     [Test]
     public virtual void Open()
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
         using var conn = connectionUrl.Open();
         Assert.That(conn.State, Is.EqualTo(ConnectionState.Open));
     }
@@ -57,7 +60,7 @@ public abstract class BaseAdomdProvider
     [Test]
     public virtual void OpenWrongUrl()
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString.Substring(0, ConnectionString.Length-2), SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString.Substring(0, ConnectionString.Length-2), SchemeRegistry);
         Assert.That(connectionUrl.Open, Throws.InstanceOf<Exception>());
     }
 
@@ -65,7 +68,7 @@ public abstract class BaseAdomdProvider
     public abstract void QueryCustomer();
     protected virtual void QueryCustomer(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -77,7 +80,7 @@ public abstract class BaseAdomdProvider
     public abstract void QueryCustomerScalarValueWithReader();
     protected virtual void QueryCustomerScalarValueWithReader(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -98,7 +101,7 @@ public abstract class BaseAdomdProvider
     public abstract void QueryCustomerWithDatabase();
     protected void QueryCustomerWithDatabase(string sql)
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var fullName = db.ReadScalarNonNull<string>(sql);
         Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
     }
@@ -109,7 +112,7 @@ public abstract class BaseAdomdProvider
     public abstract void QueryCustomerWithParams();
     protected void QueryCustomerWithParams(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -128,7 +131,7 @@ public abstract class BaseAdomdProvider
     public abstract void QueryCustomerWithPositionalParameter();
     protected void QueryCustomerWithPositionalParameter(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -144,7 +147,7 @@ public abstract class BaseAdomdProvider
     [Category("DatabaseUrl")]
     public virtual void QueryCustomerWithDatabaseUrlAndQueryClass()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var fullName = db.ReadScalarNonNull<string>(new SelectFirstCustomer());
         Assert.That(fullName, Is.EqualTo("Nikola Tesla"));
     }
@@ -154,7 +157,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryStringWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<string>(SelectPrimitiveTemplate("STRING"), new Dictionary<string, object?>() { { "value", "Grace Hopper" } });
         Assert.That(value, Is.EqualTo("Grace Hopper"));
     }
@@ -164,7 +167,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryBooleanWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<bool>(SelectPrimitiveTemplate("BOOLEAN"), new Dictionary<string, object?>() { { "value", true } });
         Assert.That(value, Is.EqualTo(true));
     }
@@ -174,7 +177,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryNumericWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<decimal>(SelectPrimitiveTemplate("DOUBLE"), new Dictionary<string, object?>() { { "value", 17.505m } });
         Assert.That(value, Is.EqualTo(17.505m));
     }
@@ -184,7 +187,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryTimestampWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<DateTime>("EVALUATE DATATABLE(\"value\", DATETIME, {{\"2023-06-10 17:52:12\"}})", new Dictionary<string, object?>());
         Assert.That(value, Is.EqualTo(new DateTime(2023, 6, 10, 17, 52, 12)));
     }
@@ -194,7 +197,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryDateWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<DateOnly>("EVALUATE DATATABLE(\"value\", DATETIME, {{\"2023-06-10 00:00:00\"}})", new Dictionary<string, object?>());
         Assert.That(value, Is.EqualTo(new DateOnly(2023, 6, 10)));
     }
@@ -204,7 +207,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryTimeWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<TimeOnly>("EVALUATE DATATABLE(\"value\", DATETIME, {{\"2001-01-01 17:52:12\"}})", new Dictionary<string, object?>());
         Assert.That(value, Is.EqualTo(new TimeOnly(17, 52, 12)));
     }
@@ -215,7 +218,7 @@ public abstract class BaseAdomdProvider
     [Ignore("Can't return a constant in DAX?")]
     public virtual void QueryIntervalWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalarNonNull<TimeSpan>(SelectPrimitiveTemplate("DATETIME"), new Dictionary<string, object?>() { { "value", new TimeSpan(17, 52, 12) } });
         Assert.That(value, Is.EqualTo(new TimeSpan(17, 52, 12)));
     }
@@ -225,7 +228,7 @@ public abstract class BaseAdomdProvider
     [Category("Primitive")]
     public virtual void QueryNullWithDatabaseUrl()
     {
-        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeMapperBuilder), ConnectionString);
+        var db = new DatabaseUrl(new ConnectionUrlFactory(SchemeRegistry), ConnectionString);
         var value = db.ReadScalar<string>("EVALUATE DATATABLE(\"value\", STRING, {{BLANK()}})", new Dictionary<string, object?>());
         Assert.That(value, Is.Null);
     }
@@ -238,7 +241,7 @@ public abstract class BaseAdomdProvider
         using var provider = new ServiceCollection()
             .AddSingleton(EmptyDubUrlConfiguration)
             .AddDubUrl(options)
-            .AddSingleton(x => SchemeMapperBuilder)
+            .AddSingleton(x => SchemeRegistry)
             .AddTransient(provider => ActivatorUtilities.CreateInstance<CustomerRepository>(provider
                 , new[] { ConnectionString }))
             .BuildServiceProvider();
@@ -255,7 +258,7 @@ public abstract class BaseAdomdProvider
         using var provider = new ServiceCollection()
             .AddSingleton(EmptyDubUrlConfiguration)
             .AddDubUrl(options)
-            .AddSingleton(x => SchemeMapperBuilder)
+            .AddSingleton(x => SchemeRegistry)
             .AddSingleton<RepositoryFactory>()
             .BuildServiceProvider();
         var factory = provider.GetRequiredService<RepositoryFactory>();
@@ -274,7 +277,7 @@ public abstract class BaseAdomdProvider
         using var provider = new ServiceCollection()
             .AddSingleton(EmptyDubUrlConfiguration)
             .AddDubUrl(options)
-            .AddSingleton(x => SchemeMapperBuilder)
+            .AddSingleton(x => SchemeRegistry)
             .WithMicroOrm()
             .AddSingleton<RepositoryFactory>()
             .BuildServiceProvider();
@@ -297,7 +300,7 @@ public abstract class BaseAdomdProvider
         using var provider = new ServiceCollection()
             .AddSingleton(EmptyDubUrlConfiguration)
             .AddDubUrl(options)
-            .AddSingleton(x => SchemeMapperBuilder)
+            .AddSingleton(x => SchemeRegistry)
             .WithMicroOrm()
             .AddSingleton<RepositoryFactory>()
             .BuildServiceProvider();
@@ -329,7 +332,7 @@ public abstract class BaseAdomdProvider
     public abstract void QueryCustomerWithDapper();
     protected void QueryCustomerWithDapper(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistry);
 
         using var conn = connectionUrl.Open();
         var customers = conn.Query<Dapper.Customer>(sql).ToList();
@@ -352,7 +355,7 @@ public abstract class BaseAdomdProvider
         using var provider = new ServiceCollection()
             .AddSingleton(EmptyDubUrlConfiguration)
             .AddDubUrl(options)
-            .AddSingleton(x => SchemeMapperBuilder)
+            .AddSingleton(x => SchemeRegistry)
             .AddSingleton<IDapperConfiguration>(
                 provider => ActivatorUtilities.CreateInstance<DapperConfiguration>(provider
                     , new[] { ConnectionString }))

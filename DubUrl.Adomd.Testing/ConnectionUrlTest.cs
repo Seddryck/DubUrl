@@ -21,9 +21,12 @@ public class ConnectionUrlTest
     [Test]
     public void Connect_ValidUrl_AdomdConnection()
     {
-        var schemeMapperBuilder = new SchemeMapperBuilder([typeof(PowerBiPremiumMapper).Assembly]);
+        var builder = new SchemeRegistryBuilder()
+            .WithAssemblies(typeof(PowerBiPremiumMapper).Assembly)
+            .WithAutoDiscoveredMappings();
+        var registry = builder.Build();
         var url = "powerbi://api.powerbi.com/v1.0/foo/bar";
-        var connectionUrl = new ConnectionUrl(url, schemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(url, registry);
         var conn = connectionUrl.Connect();
         Assert.That(conn, Is.Not.Null);
         Assert.That(conn, Is.TypeOf<AdomdConnectionWrapper>());

@@ -25,7 +25,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(connectionStrings)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.That(factory.FromConfiguration(config, connectionName).Url, Is.EqualTo(connectionUrl));
     }
 
@@ -42,7 +42,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(databases)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.That(factory.FromConfiguration(config, key.Split(':')).Url, Is.EqualTo(connectionUrl));
     }
 
@@ -62,7 +62,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(databases)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.Throws<KeyNotFoundException>(() => factory.FromConfiguration(config, keys.Split(':')));
     }
 
@@ -81,7 +81,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(databases)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.That(factory.BindFromConfiguration(config, key.Split(':')).Url, Is.EqualTo(connectionUrl));
     }
 
@@ -103,7 +103,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(databases)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.That(factory.BindFromConfiguration(config, key.Split(':')).Url, Is.EqualTo(connectionUrl));
     }
 
@@ -123,7 +123,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(databases)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.That(factory.BindFromConfiguration(config, key.Split(':')).Url, Is.EqualTo(connectionUrl));
     }
 
@@ -146,7 +146,7 @@ public class ConnectionUrlFactoryExtensionsTest
             .AddInMemoryCollection(databases)
             .Build();
 
-        var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
+        var factory = new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault());
         Assert.That(factory.BindFromConfiguration(config, key.Split(':')).Url, Is.EqualTo(connectionUrl));
     }
 }

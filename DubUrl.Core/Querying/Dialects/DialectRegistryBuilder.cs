@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialects.Casters;
+﻿using DubUrl.Dialect;
+using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
@@ -11,19 +12,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects;
 
-public class DialectBuilder
+public class DialectRegistryBuilder
 {
-    protected Dictionary<Type, List<string>> DialectAliases = [];
-    protected Dictionary<Type, IDialect> Dialects = [];
-    protected bool IsBuilt = false;
+    private readonly Dictionary<Type, List<string>> _aliases = [];
+    
+    public void AddDialect<T>(string[] aliases)
+        => AddDialect(typeof(T), aliases);
 
-    public void AddAliases<T>(string[] aliases)
-        => AddAliases(typeof(T), aliases);
-    public void AddAliases(Type dialectType, string[] aliases)
+    public void AddDialect(Type dialectType, string[] aliases)
     {
-        IsBuilt = false;
-
-        var existing = DialectAliases
+        var existing = _aliases
                         .Where(x => x.Value.Any(d => aliases.Contains(d)))
                         .SingleOrDefault(x => x.Key != dialectType);
         {
@@ -35,39 +33,37 @@ public class DialectBuilder
                     );
         }
 
-        if (DialectAliases.TryGetValue(dialectType, out var existingAliases))
+        if (_aliases.TryGetValue(dialectType, out var existingAliases))
             existingAliases.AddRange(aliases.Except(existingAliases));
         else
-            DialectAliases.Add(dialectType, [.. aliases]);
+            _aliases.Add(dialectType, [.. aliases]);
     }
 
-    public void AddAlias(string alias, string original)
+    public void CreateAlias(string alias, string original)
     {
-        IsBuilt = false;
-
-        if (DialectAliases.Values.Any(x => x.Contains(alias)))
+        if (_aliases.Values.Any(x => x.Contains(alias)))
             throw new ArgumentOutOfRangeException(nameof(alias));
 
-        if (!DialectAliases.Values.Any(x => x.Contains(original)))
+        if (!_aliases.Values.Any(x => x.Contains(original)))
             throw new ArgumentOutOfRangeException(nameof(original));
 
-        var dialect = DialectAliases.First(x => x.Value.Contains(original));
+        var dialect = _aliases.First(x => x.Value.Contains(original));
         dialect.Value.Add(alias);
     }
 
-    public void Build()
+    public IDialectRegistry Build()
     {
         var languages = new Dictionary<string, ILanguage>
         (
-            DialectAliases.Select
+            _aliases.Select
             (
                 x => x.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language ?? throw new NullReferenceException()
             ).Distinct(new LanguageComparer())
             .Select(x => new KeyValuePair<string, ILanguage>(x.Extension, x))
         );
 
-        Dialects.Clear();
-        foreach (var dialectInfo in DialectAliases)
+        var dialects = new Dictionary<Type, IDialect>();
+        foreach (var dialectInfo in _aliases)
         {
             try
             {
@@ -83,15 +79,15 @@ public class DialectBuilder
                 var language = dialectInfo.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language.Extension
                     ?? throw new InvalidOperationException("Can't find parent language.");
 
-               var dbTypeMapper = GetComponent<DbTypeMapperAttribute, IDbTypeMapper>(
-                        dialectInfo.Key
-                        , x => x?.DbTypeMapperType);
+                var dbTypeMapper = GetComponent<DbTypeMapperAttribute, IDbTypeMapper>(
+                         dialectInfo.Key
+                         , x => x?.DbTypeMapperType);
 
                 var sqlFunctionMapper = GetComponent<SqlFunctionMapperAttribute, ISqlFunctionMapper>(
                         dialectInfo.Key
                         , x => x?.SqlFunctionMapperType);
 
-                Dialects.Add(dialectInfo.Key,
+                dialects.Add(dialectInfo.Key,
                     (IDialect)(
                         Activator.CreateInstance(dialectInfo.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null
                             , [languages[language], dialectInfo.Value.ToArray(), renderer, casters!, dbTypeMapper, sqlFunctionMapper], null
@@ -105,7 +101,7 @@ public class DialectBuilder
                 throw new InvalidOperationException(dialectInfo.Key.Name, ex);
             }
         }
-        IsBuilt = true;
+        return new DialectRegistry(dialects, _aliases);
     }
 
     private I GetComponent<A, I>(Type dialect, Func<A?, Type?> getMember) where A : Attribute where I : class
@@ -122,21 +118,4 @@ public class DialectBuilder
 
         return obj;
     }
-
-    public IDialect Get<T>()
-        => Get(typeof(T));
-
-    public IDialect Get(Type dialectType)
-    {
-        if (!IsBuilt)
-            throw new InvalidOperationException();
-        if (!Dialects.ContainsKey(dialectType))
-            throw new DialectNotFoundException(dialectType, [.. Dialects.Keys]);
-        return Dialects[dialectType];
-    }
-
-    public IDialect Get(string scheme)
-        => Get(DialectAliases.FirstOrDefault(x => x.Value.Contains(scheme)).Key
-                ?? throw new DialectNotFoundException(scheme, [.. Dialects.Keys])
-           );
 }

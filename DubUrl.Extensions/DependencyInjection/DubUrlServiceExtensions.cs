@@ -1,6 +1,7 @@
 ﻿using DubUrl.Mapping;
 using DubUrl.MicroOrm;
 using DubUrl.Querying;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Reading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -90,12 +91,13 @@ public static class DubUrlServiceExtensions
                     //Let's put up some configuration options here ;-)
                 }
             });
-        services.AddSingleton<SchemeMapperBuilder>();
+        services.AddSingleton<ISchemeRegistry>(SchemeRegistryBuilder.GetDefault());
+        services.AddSingleton<IDialectRegistry>(new DialectRegistryBuilder().Build());
         services.AddSingleton<ConnectionUrlFactory>();
-        services.AddSingleton(typeof(IDatabaseUrlFactory), typeof(DatabaseUrlFactory));
-        services.AddSingleton(typeof(IQueryLogger), NullQueryLogger.Instance);
+        services.AddSingleton<IDatabaseUrlFactory, DatabaseUrlFactory>();
+        services.AddSingleton<IQueryLogger>(NullQueryLogger.Instance);
         services.AddSingleton<CommandProvisionerFactory>();
-        services.AddSingleton(typeof(IReflectionCache), typeof(ReflectionCache));
+        services.AddSingleton<IReflectionCache, ReflectionCache>();
         return services;
     }
 

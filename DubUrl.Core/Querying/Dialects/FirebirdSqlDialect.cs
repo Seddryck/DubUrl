@@ -20,5 +20,4 @@ public class FirebirdSqlDialect : BaseDialect
 {
     internal FirebirdSqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
-    public static IDialect Instance => DialectBuilder.Get<FirebirdSqlDialect>();
 }

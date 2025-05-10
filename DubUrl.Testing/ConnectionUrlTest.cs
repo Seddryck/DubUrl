@@ -25,11 +25,10 @@ public class ConnectionUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var schemeRegistryMock = new Mock<ISchemeRegistry>();
+        schemeRegistryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeRegistryMock.Object);
         connectionUrl.Parse();
 
         parserMock.Verify(x => x.Parse(url), Times.Once());
@@ -46,15 +45,13 @@ public class ConnectionUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, registryMock.Object);
         connectionUrl.Parse();
 
-        schemeMapperBuilderMock.Verify(x => x.Build(), Times.Once());
-        schemeMapperBuilderMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.AtLeastOnce());
+        registryMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length==1 || x.First()=="mssql")), Times.AtLeastOnce());
     }
 
     [Test]
@@ -68,11 +65,10 @@ public class ConnectionUrlTest
         var mapperMock = new Mock<IMapper>();
         mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, registryMock.Object);
         connectionUrl.Parse();
 
         mapperMock.Verify(x => x.Rewrite(It.IsAny<UrlInfo>()), Times.Once());
@@ -94,15 +90,14 @@ public class ConnectionUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, registryMock.Object);
         connectionUrl.Connect();
 
-        schemeMapperBuilderMock.VerifyAll();
+        registryMock.VerifyAll();
     }
 
     [Test]
@@ -125,12 +120,11 @@ public class ConnectionUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, registryMock.Object);
         connectionUrl.Connect();
 
         dbConnectionMock.VerifySet(x => x.ConnectionString = connString);
@@ -159,12 +153,11 @@ public class ConnectionUrlTest
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateConnection()).Returns(dbConnectionMock.Object);
 
-        var schemeMapperBuilderMock = new Mock<SchemeMapperBuilder>();
-        schemeMapperBuilderMock.Setup(x => x.Build());
-        schemeMapperBuilderMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        schemeMapperBuilderMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        var registryMock = new Mock<ISchemeRegistry>();
+        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
 
-        var connectionUrl = new ConnectionUrl(url, parserMock.Object, schemeMapperBuilderMock.Object);
+        var connectionUrl = new ConnectionUrl(url, parserMock.Object, registryMock.Object);
         connectionUrl.Open();
 
         dbConnectionMock.VerifySet(x => x.ConnectionString = connString);
