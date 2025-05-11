@@ -185,7 +185,9 @@ public class SchemeRegistryBuilder
     public SchemeRegistryBuilder AddAlias(string alias, string original)
     {
         var info = _mapperInfos.Single(x => x.Aliases.Contains(original));
+        _mapperInfos.Remove(info);
         info.Aliases = [.. info.Aliases, alias];
+        _mapperInfos.Add(info);
         return this;
     }
 

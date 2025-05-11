@@ -18,7 +18,7 @@ public class SchemeRegistry : ISchemeRegistry
     private readonly Dictionary<string, IMapper> _mappers;
 
     public SchemeRegistry(Dictionary<string, IMapper> mappers)
-        => _mappers = new(mappers); // Defensive copy
+        => _mappers = new(mappers, StringComparer.OrdinalIgnoreCase); // Defensive copy
 
     public IMapper GetMapper(string scheme)
         => GetMapper([scheme]);

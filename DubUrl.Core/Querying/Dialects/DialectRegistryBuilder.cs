@@ -16,7 +16,7 @@ public class DialectRegistryBuilder
 {
     private readonly Dictionary<Type, List<string>> _aliases = [];
     
-    public void AddDialect<T>(string[] aliases)
+    public void AddDialect<T>(string[] aliases) where T : IDialect
         => AddDialect(typeof(T), aliases);
 
     public void AddDialect(Type dialectType, string[] aliases)
@@ -101,7 +101,12 @@ public class DialectRegistryBuilder
                 throw new InvalidOperationException(dialectInfo.Key.Name, ex);
             }
         }
-        return new DialectRegistry(dialects, _aliases);
+        return new DialectRegistry(
+            new Dictionary<Type, IDialect>(dialects),
+            _aliases.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.ToList())   // deep copy of alias lists
+        );
     }
 
     private I GetComponent<A, I>(Type dialect, Func<A?, Type?> getMember) where A : Attribute where I : class

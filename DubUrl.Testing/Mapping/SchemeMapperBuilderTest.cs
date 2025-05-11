@@ -102,20 +102,22 @@ public class SchemeMapperBuilderTest
     }
 
     [Test]
-    [Ignore("To be re-implemented")]
     public void AddAlias_NewScheme_CorrectType()
     {
         var weirdScheme = "xyz";
+        var invariantName = "x.y.z";
 
         var builder = new SchemeRegistryBuilder();
+        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer>("ANSI db", ["ansi"], invariantName);
+        DbProviderFactories.RegisterFactory(invariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
         var registry = builder.Build();
         Assert.Catch<SchemeNotFoundException>(() => registry.GetMapper(weirdScheme)); //Should not exists
 
-        builder.AddAlias(weirdScheme, "mssql");
-        builder.Build();
+        builder.AddAlias(weirdScheme, "ansi");
+        registry = builder.Build();
         var result = registry.GetMapper(weirdScheme); //Should exists
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Is.TypeOf<MsSqlServerRewriter>());
+        Assert.That(result, Is.TypeOf<StubMapper>());
     }
 
     [Test]
