@@ -73,8 +73,7 @@ public class DialectRegistryBuilder
                                     , []);
 
                 var casters = (dialectInfo.Key.GetCustomAttributes<ReturnCasterAttribute>().Select(
-                                        x => (ICaster)Activator.CreateInstance(x.CasterType)!)
-                                ?? Array.Empty<ICaster>()).ToArray();
+                                        x => (ICaster)Activator.CreateInstance(x.CasterType)!)).ToArray();
 
                 var language = dialectInfo.Key.GetCustomAttribute<ParentLanguageAttribute>()?.Language.Extension
                     ?? throw new InvalidOperationException("Can't find parent language.");

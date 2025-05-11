@@ -62,7 +62,7 @@ public class SchemeRegistryBuilder
 
         var mappingData = new List<MapperInfo>();
 
-        var infos = introspectors.SelectMany(i => i.Locate()) ?? [];
+        var infos = introspectors.SelectMany(i => i.Locate());
         foreach (var info in _mapperInfos.Union(infos))
         {
             if (_exclusions.Any(x => info.Aliases.Contains(x)))
