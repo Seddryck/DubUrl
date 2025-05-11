@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl.Dialect;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
