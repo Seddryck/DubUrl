@@ -34,7 +34,7 @@ public abstract class BaseOleDbProvider
     [Test]
     public void Connect()
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
         Console.WriteLine(connectionUrl.Parse());
 
         using var conn = connectionUrl.Connect();
@@ -45,7 +45,7 @@ public abstract class BaseOleDbProvider
     public abstract void QueryCustomer();
     protected virtual void QueryCustomer(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -57,7 +57,7 @@ public abstract class BaseOleDbProvider
     public abstract void QueryCustomerWithParams();
     protected virtual void QueryCustomerWithParams(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();

@@ -18,10 +18,7 @@ namespace DubUrl;
 public class ConnectionUrl : BaseConnectionUrl
 {
     public ConnectionUrl(string url)
-        : this(url, new SchemeRegistryBuilder()) { }
-
-    public ConnectionUrl(string url, SchemeRegistryBuilder builder)
-        : this(url, new Parser(), builder.Build()) { }
+        : this(url, SchemeRegistryBuilder.GetDefault()) { }
 
     public ConnectionUrl(string url, ISchemeRegistry registry)
         : this(url, new Parser(), registry) { }

@@ -22,6 +22,9 @@ public class SchemeRegistryBuilder
     private readonly List<MapperInfo> _mapperInfos = [];
     private readonly List<string> _exclusions = [];
 
+    public SchemeRegistryBuilder()
+    { }
+
     public static SchemeRegistry GetDefault()
         => new SchemeRegistryBuilder()
             .WithRootPath(string.Empty)

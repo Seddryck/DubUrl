@@ -25,15 +25,6 @@ public class BaseConnectionUrl
     private IParser Parser { get; }
     public string Url { get; }
 
-    public BaseConnectionUrl(string url)
-        : this(url, new SchemeRegistryBuilder()) { }
-
-    public BaseConnectionUrl(string url, SchemeRegistryBuilder builder)
-        : this(url, new Parser(), builder.Build()) { }
-
-    public BaseConnectionUrl(string url, ISchemeRegistry builder)
-        : this(url, new Parser(), builder) { }
-
     internal BaseConnectionUrl(string url, IParser parser, ISchemeRegistry builder)
         => (Url, Parser, Registry) = (url, parser, builder);
 
