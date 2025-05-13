@@ -18,5 +18,4 @@ public class TextDialect : BaseDialect
 {
     internal TextDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
-    public static IDialect Instance => DialectBuilder.Get<TextDialect>();
 }

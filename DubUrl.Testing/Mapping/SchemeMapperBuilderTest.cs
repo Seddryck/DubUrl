@@ -86,9 +86,9 @@ public class SchemeMapperBuilderTest
     [TestCase("mssql+odbc", typeof(OdbcMapper))]
     public void Instantiate_Scheme_CorrectType(string scheme, Type expected)
     {
-        var builder = new SchemeMapperBuilder();
-        builder.Build();
-        var result = builder.GetMapper(scheme.Split(['+', ':']));
+        var builder = new SchemeRegistryBuilder().WithAutoDiscoveredMappings();
+        var registry = builder.Build();
+        var result = registry.GetMapper(scheme.Split(['+', ':']));
 
         Assert.Multiple(() =>
         {
@@ -97,25 +97,27 @@ public class SchemeMapperBuilderTest
                 Assert.That(result, Is.TypeOf(expected));
                 Assert.That(result, Is.Not.Null);
             });
-            Assert.That(builder.CanHandle(scheme), Is.True);
+            Assert.That(registry.CanHandle(scheme), Is.True);
         });
     }
 
     [Test]
-    [Ignore("To be re-implemented")]
     public void AddAlias_NewScheme_CorrectType()
     {
         var weirdScheme = "xyz";
+        var invariantName = "x.y.z";
 
-        var builder = new SchemeMapperBuilder();
-        builder.Build();
-        Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
+        var builder = new SchemeRegistryBuilder();
+        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer>("ANSI db", ["ansi"], invariantName);
+        DbProviderFactories.RegisterFactory(invariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+        var registry = builder.Build();
+        Assert.Catch<SchemeNotFoundException>(() => registry.GetMapper(weirdScheme)); //Should not exists
 
-        builder.AddAlias(weirdScheme, "mssql");
-        builder.Build();
-        var result = builder.GetMapper(weirdScheme); //Should exists
+        builder.AddAlias(weirdScheme, "ansi");
+        registry = builder.Build();
+        var result = registry.GetMapper(weirdScheme); //Should exists
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Is.TypeOf<MsSqlServerRewriter>());
+        Assert.That(result, Is.TypeOf<StubMapper>());
     }
 
     [Test]
@@ -123,15 +125,15 @@ public class SchemeMapperBuilderTest
     {
         (var databaseName, var weirdScheme, var invariantName) = ("XY for Z", "xyz", "x.y.z");
 
-        var builder = new SchemeMapperBuilder();
-        builder.Build();
-        Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(weirdScheme)); //Should not exists
+        var builder = new SchemeRegistryBuilder();
+        var registry = builder.Build();
+        Assert.Catch<SchemeNotFoundException>(() => registry.GetMapper(weirdScheme)); //Should not exists
 
         DbProviderFactories.RegisterFactory(invariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer>(databaseName, new[] { weirdScheme }, invariantName);
+        builder.AddMapping<StubMapper, AnsiDialect, PositionalParametrizer>(databaseName, [weirdScheme], invariantName);
 
-        builder.Build();
-        var result = builder.GetMapper(weirdScheme); //Should exists
+        registry = builder.Build();
+        var result = registry.GetMapper(weirdScheme); //Should exists
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf<StubMapper>());
     }
@@ -141,14 +143,14 @@ public class SchemeMapperBuilderTest
     {
         var oracleScheme = "ora";
 
-        var builder = new SchemeMapperBuilder();
-        builder.Build();
-        var result = builder.GetMapper(oracleScheme); //should be found
+        var builder = new SchemeRegistryBuilder().WithAutoDiscoveredMappings();
+        var registry = builder.Build();
+        var result = registry.GetMapper(oracleScheme); //should be found
         Assert.That(result, Is.Not.Null);
 
         builder.RemoveMapping(oracleScheme);
-        builder.Build();
-        Assert.Catch<SchemeNotFoundException>(() => builder.GetMapper(oracleScheme)); //Should not exist
+        registry = builder.Build();
+        Assert.Catch<SchemeNotFoundException>(() => registry.GetMapper(oracleScheme)); //Should not exist
     }
 
     [Test]
@@ -157,13 +159,13 @@ public class SchemeMapperBuilderTest
     {
         var mysqlScheme = "mysql";
 
-        var builder = new SchemeMapperBuilder();
+        var builder = new SchemeRegistryBuilder();
         if (!DbProviderFactories.GetProviderInvariantNames().Contains("MySql.Data"))
             DbProviderFactories.RegisterFactory("MySql.Data", MySql.Data.MySqlClient.MySqlClientFactory.Instance);
         builder.ReplaceMapper(typeof(MySqlConnectorMapper), typeof(MySqlDataMapper));
 
-        builder.Build();
-        var result = builder.GetMapper(mysqlScheme);
+        var registry = builder.Build();
+        var result = registry.GetMapper(mysqlScheme);
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.TypeOf<MySqlDataMapper>());
     }
@@ -182,12 +184,12 @@ public class SchemeMapperBuilderTest
         var factory = new DriverLocatorFactory();
         factory.AddDriver("foobar", typeof(FakeDriverLocator));
 
-        var builder = new SchemeMapperBuilder();
+        var builder = new SchemeRegistryBuilder();
         DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         builder.ReplaceDriverLocatorFactory(typeof(OdbcRewriter), factory);
 
-        builder.Build();
-        var result = builder.GetMapper(["odbc", "foobar"]);
+        var registry = builder.Build();
+        var result = registry.GetMapper(["odbc", "foobar"]);
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
         {
@@ -200,14 +202,10 @@ public class SchemeMapperBuilderTest
     public void Build_TwiceTheSameAlias_Throws()
     {
         DbProviderFactories.RegisterFactory("fakedb.provider.instance", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-        var builder = new SchemeMapperBuilder([]);
-        builder.Initialize
-        (
-            [
-                new MapperInfo(typeof(FakeMapper), "FakeDB", ["fake"], typeof(AnsiDialect), 0, "fakedb.provider.instance", typeof(NamedParametrizer), string.Empty, "#fff", "#000"),
-                new MapperInfo(typeof(StubMapper), "StubDB", ["stub", "fake"], typeof(AnsiDialect), 0, "fakedb.provider.instance", typeof(NamedParametrizer), string.Empty, "#fff", "#000")
-            ]
-        );
+        var builder = new SchemeRegistryBuilder();
+        builder
+            .AddMapping<FakeMapper, AnsiDialect, NamedParametrizer>("FakeDB", "fake", "fakedb.provider.instance")
+            .AddMapping<StubMapper, AnsiDialect, NamedParametrizer>("StubDB", "fake", "fakedb.provider.instance");
         Assert.That(builder.Build, Throws.TypeOf<MapperAlreadyExistingException>());
     }
 }

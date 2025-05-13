@@ -22,21 +22,4 @@ public abstract class BaseDialect : IDialect
 
     protected BaseDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper? sqlFunctionMapper = null)
         => (Language, Aliases, Renderer, Casters, DbTypeMapper, SqlFunctionMapper) = (language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper ?? AnsiFunctionMapper.Instance);
-
-    protected static DialectBuilder DialectBuilder => _dialectBuilder ??= CreateDialectBuilder();
-    private static DialectBuilder? _dialectBuilder;
-    private static DialectBuilder CreateDialectBuilder()
-    {
-        var builder = new DialectBuilder();
-        var introspectors = new BaseMapperIntrospector[] { new NativeMapperIntrospector(), new WrapperMapperIntrospector() };
-        builder.AddAliases(typeof(AnsiDialect), ["ansi"]);
-        foreach (var mapperData in introspectors.Aggregate(
-                Array.Empty<MapperInfo>(), (data, introspector)
-                => [.. data, .. introspector.Locate()]))
-        {
-            builder.AddAliases(mapperData.DialectType, mapperData.Aliases);
-        }
-        builder.Build();
-        return builder;
-    }
 }

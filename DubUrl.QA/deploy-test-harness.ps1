@@ -2,7 +2,7 @@
 Param(
     [switch] $force=$false,
     [string] $config = "Release",
-    [string[]] $frameworks = @("net6.0", "net8.0", "net9.0"),
+    [string[]] $frameworks = @("net8.0", "net9.0"),
     [Parameter(Position = 0, ParameterSetName='single')]
     [string] $suite=$null,
     [Parameter(ParameterSetName='multiple')]

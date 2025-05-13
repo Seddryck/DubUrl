@@ -3,7 +3,7 @@ Param(
 	, [string] $databaseService= "MySQL80"
 	, [string[]] $odbcDrivers = @("MariaDB", "MySQL")
 	, [string] $config = "Release"
-	, [string[]] $frameworks = @("net6.0", "net8.0", "net9.0")
+	, [string[]] $frameworks = @("net8.0", "net9.0")
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1

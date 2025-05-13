@@ -13,7 +13,7 @@ namespace DubUrl.QA;
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public abstract class BaseOleDbProvider
 {
-    protected SchemeMapperBuilder SchemeMapperBuilder { get; set; }
+    protected SchemeRegistryBuilder SchemeRegistryBuilder { get; set; }
 
     [OneTimeSetUp]
     public void SetupFixture()
@@ -24,7 +24,9 @@ public abstract class BaseOleDbProvider
         var registrator = new ProviderFactoriesRegistrator(discovery);
         registrator.Register();
 
-        SchemeMapperBuilder = new SchemeMapperBuilder(assemblies);
+        SchemeRegistryBuilder = new SchemeRegistryBuilder()
+            .WithAssemblies(assemblies)
+            .WithAutoDiscoveredMappings();
     }
 
     public abstract string ConnectionString { get; }
@@ -32,7 +34,7 @@ public abstract class BaseOleDbProvider
     [Test]
     public void Connect()
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
         Console.WriteLine(connectionUrl.Parse());
 
         using var conn = connectionUrl.Connect();
@@ -43,7 +45,7 @@ public abstract class BaseOleDbProvider
     public abstract void QueryCustomer();
     protected virtual void QueryCustomer(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -55,7 +57,7 @@ public abstract class BaseOleDbProvider
     public abstract void QueryCustomerWithParams();
     protected virtual void QueryCustomerWithParams(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeMapperBuilder);
+        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();

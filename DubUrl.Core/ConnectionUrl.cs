@@ -18,13 +18,13 @@ namespace DubUrl;
 public class ConnectionUrl : BaseConnectionUrl
 {
     public ConnectionUrl(string url)
-        : this(url, new Parser(), new SchemeMapperBuilder()) { }
+        : this(url, SchemeRegistryBuilder.GetDefault()) { }
 
-    public ConnectionUrl(string url, SchemeMapperBuilder builder)
-        : this(url, new Parser(), builder) { }
+    public ConnectionUrl(string url, ISchemeRegistry registry)
+        : this(url, new Parser(), registry) { }
 
-    internal ConnectionUrl(string url, IParser parser, SchemeMapperBuilder builder)
-        : base(url, parser, builder) { }
+    internal ConnectionUrl(string url, IParser parser, ISchemeRegistry registry)
+        : base(url, parser, registry) { }
 
     public virtual IDbConnection Connect()
     {
