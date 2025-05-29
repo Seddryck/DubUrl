@@ -12,7 +12,6 @@ public class IndexBuilder : IIndexTableBuilder, IIndexColumnCollectionBuilder, I
     private string? Name { get; set; }
     private string? TableName { get; set; }
     private IndexColumnCollectionBuilder Columns { get; set; } = [];
-    private Table? Table { get; set; }
 
     public IIndexTableBuilder WithName(string name)
     {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Schema.Builders;
 
 /// <summary>
-/// Adds a new table to the collection.
+/// Adds a new index to the collection.
 /// </summary>
 /// <param name="indexBuilder">A function that configures and returns an index builder.</param>
 /// <returns>This instance for method chaining.</returns>
@@ -16,10 +16,10 @@ public class IndexCollectionBuilder : IEnumerable<IIndexBuilder>
 {
     private List<IIndexBuilder> Indexs { get; } = [];
 
-    public IndexCollectionBuilder Add(Func<IndexBuilder, IIndexBuilder> table)
+    public IndexCollectionBuilder Add(Func<IndexBuilder, IIndexBuilder> index)
     {
-        ArgumentNullException.ThrowIfNull(table);
-        Indexs.Add(table(new()));
+        ArgumentNullException.ThrowIfNull(index);
+        Indexs.Add(index(new()));
         return this;
     }
 
