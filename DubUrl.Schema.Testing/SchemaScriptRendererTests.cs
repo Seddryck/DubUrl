@@ -280,4 +280,44 @@ public class SchemaScriptRendererTests
                                     "\r\n"
             ));
     }
+
+
+    [Test]
+    public void Render_TableWithIndexes_ExpectedResult()
+    {
+        var renderer = new SchemaScriptRenderer(DuckDb);
+        var schema = new SchemaBuilder()
+            .WithTables(tables =>
+                tables.Add(table =>
+                    table.WithName("Customer")
+                        .WithColumns(cols =>
+                            cols.Add(col => col.WithName("Id").WithType(DbType.Int32))
+                                .Add(col => col.WithName("FullName").WithType(DbType.String).WithLength(120))
+                                .Add(col => col.WithName("BirthDate").WithType(DbType.Date))
+                        )
+                ))
+            .WithIndexes(indexes =>
+                indexes.Add(index =>
+                    index.WithName("Idx_Customer_Name").OnTable("Customer")
+                            .WithColumns(cols => cols.Add(col => col.WithName("FullName"))))
+                .Add(index => index.WithName("Idx_Customer_BirthDate").OnTable("Customer")
+                            .WithColumns(cols => cols.Add(col => col.WithName("BirthDate"))))
+                ).Build();
+
+        var model = new { model = new { Tables = new TableViewModel[] { new(schema.Tables["Customer"]) }, Indexes= new IndexViewModel[] { new(schema.Indexes["Idx_Customer_Name"]) , new(schema.Indexes["Idx_Customer_BirthDate"]) } } };
+        var result = renderer.Render(model);
+        Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
+                                    "\r\n    Id INTEGER," +
+                                    "\r\n    FullName VARCHAR(120)," +
+                                    "\r\n    BirthDate DATE" +
+                                    "\r\n);" +
+                                    "\r\nCREATE INDEX Idx_Customer_Name ON Customer (" +
+                                    "\r\n    FullName" +
+                                    "\r\n);" +
+                                    "\r\nCREATE INDEX Idx_Customer_BirthDate ON Customer (" +
+                                    "\r\n    BirthDate" +
+                                    "\r\n);" +
+                                    "\r\n"
+            ));
+    }
 }

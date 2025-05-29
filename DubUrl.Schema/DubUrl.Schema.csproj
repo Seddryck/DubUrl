@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Renderers\Templates\CreateIndexes.sql.hbs" />
+	  <EmbeddedResource Include="Renderers\Templates\DropIndexesIfExists.sql.hbs" />
 	  <EmbeddedResource Include="Renderers\Templates\DropTablesIfExists.sql.hbs" />
 	  <EmbeddedResource Include="Renderers\Templates\CreateTables.sql.hbs" />
 	</ItemGroup>
