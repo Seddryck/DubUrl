@@ -27,7 +27,7 @@ public class Schema
         // Check for duplicate index names
         var duplicatedIndexes = indexes.GroupBy(t => t.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
         if (duplicatedIndexes.Length > 0)
-            throw new ArgumentException($"Duplicate index names found: {string.Join(", ", duplicates)}", nameof(indexes));
+            throw new ArgumentException($"Duplicate index names found: {string.Join(", ", duplicatedIndexes)}", nameof(indexes));
 
         Indexes = OrderedImmutableDictionary<string, Index>.From(
             indexes.Select(t => new KeyValuePair<string, Index>(t.Name, t)));
