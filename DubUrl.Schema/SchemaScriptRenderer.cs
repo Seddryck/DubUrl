@@ -20,9 +20,13 @@ public class SchemaScriptRenderer
     {
         var templates = new List<RendererEngine>();
         if (options == SchemaCreationOptions.DropIfExists)
+        {
             templates.Add(new DropTablesIfExistsRenderer(dialect));
-
+            templates.Add(new DropIndexesIfExistsRenderer(dialect));
+        }
+            
         templates.Add(new CreateSchemaRenderer(dialect));
+        templates.Add(new CreateIndexRenderer(dialect));
         Templates = [.. templates];
     }
 

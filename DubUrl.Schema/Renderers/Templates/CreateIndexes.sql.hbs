@@ -1,0 +1,7 @@
+﻿{{#each model.Indexes}}
+CREATE INDEX {{identity Name}} ON {{identity TableName}} (
+{{#each Columns}}
+    {{identity Name}}{{#unless @last}},{{/unless}}
+{{/each}}
+);
+{{/each}}

@@ -79,6 +79,38 @@ public class AdoProviderDuckDB : BaseAdoProvider
     }
 
     [Test]
+    public void CreateIndex()
+    {
+        var connectionUrl = new ConnectionUrl(ConnectionString);
+        connectionUrl.DeploySchema(s =>
+            s.WithTables(tables =>
+                tables.Add(t =>
+                    t.WithName("Orders")
+                    .WithColumns(cols =>
+                        cols.Add(col => col.WithName("OrderId").WithType(DbType.Int64))
+                            .Add(col => col.WithName("ProductId").WithType(DbType.Int16))
+                            .Add(col => col.WithName("CustomerId").WithType(DbType.Int32))
+                            .Add(col => col.WithName("Quantity").WithType(DbType.Decimal).WithPrecision(10).WithScale(2))
+                    )
+                    .WithConstraints(constraints =>
+                        constraints.AddPrimaryKey(pk => pk.WithColumnName("CustomerId")
+                    )
+                )
+            ))
+            .WithIndexes(indexes =>
+                indexes.Add(i => i.WithName("idx_ProductId").OnTable("Orders")
+                    .WithColumns(cols => cols.Add(c => c.WithName("ProductId")))
+                )
+        ), SchemaCreationOptions.DropIfExists);
+
+        using var conn = connectionUrl.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "select count(*) from Orders;";
+        Assert.That(cmd.ExecuteScalar(), Is.EqualTo(0));
+    }
+
+
+    [Test]
     public void BulkCopy()
     {
         var connectionUrl = new ConnectionUrl(ConnectionString);

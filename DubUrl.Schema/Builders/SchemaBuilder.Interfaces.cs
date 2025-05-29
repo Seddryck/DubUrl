@@ -8,7 +8,12 @@ namespace DubUrl.Schema.Builders;
 
 public interface ITableCollectionBuilder
 {
-    ISchemaBuilder WithTables(Func<TableCollectionBuilder, TableCollectionBuilder> tables);
+    IIndexCollectionBuilder WithTables(Func<TableCollectionBuilder, TableCollectionBuilder> tables);
+}
+
+public interface IIndexCollectionBuilder : ISchemaBuilder
+{
+    ISchemaBuilder WithIndexes(Func<IndexCollectionBuilder, IndexCollectionBuilder> indexes);
 }
 
 /// <summary>
