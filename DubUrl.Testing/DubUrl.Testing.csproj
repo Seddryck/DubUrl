@@ -16,7 +16,7 @@
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="System.Data.Odbc" Version="9.0.8" />
-    <PackageReference Include="System.Data.OleDb" Version="9.0.6" />
+    <PackageReference Include="System.Data.OleDb" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.300" Condition="'$(TargetFramework)' == 'net8.0'" />
