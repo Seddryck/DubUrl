@@ -12,7 +12,7 @@
     <PackageReference Include="SingleStoreConnector" Version="1.2.0" />
     <PackageReference Include="Teradata.Client.Provider" Version="20.0.5" />
     <PackageReference Include="Snowflake.Data" Version="4.7.0" />
-    <PackageReference Include="System.Management" Version="9.0.6" />
+    <PackageReference Include="System.Management" Version="9.0.8" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="System.Data.Odbc" Version="9.0.8" />
@@ -23,12 +23,12 @@
     <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.200" Condition="'$(TargetFramework)' != 'net8.0'" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="9.0.6" />
+    <PackageReference Include="System.Text.Json" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="NUnit" Version="4.3.2" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.9.2">
+    <PackageReference Include="NUnit.Analyzers" Version="4.8.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
