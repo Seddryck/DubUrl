@@ -9,7 +9,8 @@ if ($force) {
 	Write-Host "Enforcing QA testing for DuckDB"
 }
 
-$rootUrl = "https://github.com/duckdb/duckdb/releases/download/v1.3.0/"
+$rootUrl = "https://github.com/duckdb/duckdb/releases/download/v1.3.2/"
+$odbcRootUrl = "https://github.com/duckdb/duckdb-odbc/releases/download/v1.3.2/"
 if (-not($env:PATH -like "7-zip")) {
 	$env:PATH += ";C:\Program Files\7-Zip"
 }
@@ -77,11 +78,11 @@ if ($force -or ($filesChanged -like "*duckdb*")) {
 	}
 
 	# Installing ODBC driver
-	Write-host "`tDeploying DuckDB ODBC drivers ..."
+	Write-host "`tDeploying DuckDB ODBC drivers from $odbcRootUrl ..."
 	$drivers = Get-OdbcDriver -Name "*DuckDB*" -Platform "64-bit"
 	If ($drivers.Length -eq 0) {
 		Write-Host "`t`tDownloading DuckDB ODBC driver ..."
-		Invoke-WebRequest "$rootUrl/duckdb_odbc-windows-amd64.zip" -OutFile "$env:temp\duckdb_odbc.zip"
+		Invoke-WebRequest "$odbcRootUrl/duckdb_odbc-windows-amd64.zip" -OutFile "$env:temp\duckdb_odbc.zip"
 		Write-Host "`t`tExtracting from archive DuckDB ODBC driver ..."
 		& 7z e "$env:temp\duckdb_odbc.zip" -o"$duckPath" -y | Out-Null
 		Write-Host "`t`tInstalling DuckDB ODBC driver ..."
