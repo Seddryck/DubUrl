@@ -34,7 +34,7 @@
     <ProjectReference Include="..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.39">
+    <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
