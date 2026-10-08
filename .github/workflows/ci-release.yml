@@ -194,6 +194,10 @@ jobs:
             'DubUrl.BulkCopy'
           )
           $failedProjects = @()
+          $coverageArguments = @()
+          if ('${{ matrix.platform }}' -eq 'Windows') {
+            $coverageArguments += '--collect:XPlat Code Coverage'
+          }
 
           foreach ($project in $projects) {
             dotnet test "$project.Testing/$project.Testing.csproj" `
@@ -204,7 +208,7 @@ jobs:
               --nologo `
               --logger trx `
               --results-directory ".test-results/$project/${{ matrix.platform }}/${{ matrix.framework }}" `
-              --collect:'XPlat Code Coverage'
+              @coverageArguments
             if ($LASTEXITCODE -ne 0) {
               $failedProjects += $project
             }
@@ -215,6 +219,7 @@ jobs:
           }
 
       - name: Collect coverage reports
+        if: matrix.platform == 'Windows'
         shell: pwsh
         run: |
           $projects = @(
@@ -249,6 +254,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload coverage report
+        if: matrix.platform == 'Windows'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.platform }}-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
@@ -272,8 +278,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 36) {
-            throw "Expected 36 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 18) {
+            throw "Expected 18 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
