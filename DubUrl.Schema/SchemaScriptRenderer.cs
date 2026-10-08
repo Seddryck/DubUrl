@@ -12,14 +12,16 @@ using DubUrl.Querying.Dialects;
 using DubUrl.Schema.Renderers;
 
 namespace DubUrl.Schema;
-public class SchemaScriptRenderer
+    public class SchemaScriptRenderer
 {
     private RendererEngine[] Templates { get; } = [];
     private IDialect Dialect { get; }
+    public bool SupportsComments { get; }
 
     public SchemaScriptRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
         Dialect = dialect;
+        SupportsComments = CommentRenderer.Supports(dialect);
         var templates = new List<RendererEngine>();
         if (options == SchemaCreationOptions.DropIfExists)
         {
@@ -29,6 +31,8 @@ public class SchemaScriptRenderer
             
         templates.Add(new CreateSchemaRenderer(dialect));
         templates.Add(new ForeignKeyRenderer(dialect));
+        if (SupportsComments)
+            templates.Add(new CommentRenderer(dialect));
         templates.Add(new CreateIndexRenderer(dialect));
         Templates = [.. templates];
     }

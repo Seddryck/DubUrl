@@ -12,6 +12,7 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
     private string? Name { get; set; }
     private ColumnCollectionBuilder Columns { get; set; } = [];
     private TableConstraintCollectionBuilder Constraints { get; set; } = [];
+    private string? Description { get; set; }
 
     public ITableColumnCollectionBuilder WithName(string name)
     {
@@ -28,6 +29,12 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
     public ITableBuilder WithConstraints(Func<TableConstraintCollectionBuilder, TableConstraintCollectionBuilder> constraints)
     {
         Constraints = constraints(Constraints);
+        return this;
+    }
+
+    public ITableBuilder WithDescription(string? description)
+    {
+        Description = description;
         return this;
     }
 
@@ -66,6 +73,6 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
         if (duplicateConstraintNames.Length > 0)
             throw new InvalidOperationException($"Constraint names must be unique within table '{Name}': {string.Join(", ", duplicateConstraintNames)}.");
 
-        return new Table(Name, columns, [.. constraints]);
+        return new Table(Name, columns, [.. constraints], Description);
     }
 }
