@@ -409,6 +409,54 @@ public class SchemaScriptRendererTests
     }
 
     [Test]
+    public void Render_DescriptionsPostgresql_RendersEscapedMultilineUnicodeComments()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("DisplayName").WithType(DbType.String)
+                .WithDescription("Owner's display name\nPréféré")))
+            .WithDescription("Customer's record")
+            .Build();
+
+        var renderer = new SchemaScriptRenderer(Pgsql);
+        var result = renderer.Render(new Schema([table], []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(renderer.SupportsComments, Is.True);
+            Assert.That(result, Does.Contain("COMMENT ON TABLE \"Customer\" IS 'Customer''s record';"));
+            Assert.That(result, Does.Contain("COMMENT ON COLUMN \"Customer\".\"DisplayName\" IS 'Owner''s display name\r\nPréféré';"));
+        });
+    }
+
+    [Test]
+    public void Render_EmptyDescriptions_EmitsNoCommentStatements()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32, description: " ")], description: string.Empty);
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Not.Contain("COMMENT ON"));
+    }
+
+    [Test]
+    public void Render_DescriptionsUnsupportedDialect_ExposesNoOpCapability()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32, description: "Identifier")], description: "Customers");
+        var renderer = new SchemaScriptRenderer(TSql);
+
+        var result = renderer.Render(new Schema([table], []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(renderer.SupportsComments, Is.False);
+            Assert.That(result, Does.Not.Contain("COMMENT"));
+            Assert.That(result, Does.Not.Contain("MS_Description"));
+        });
+    }
+
+    [Test]
     public void Render_TwoTables_ExpectedResult()
     {
         var renderer = new SchemaScriptRenderer(DuckDb);

@@ -18,6 +18,7 @@ public class TableViewModel
     public CheckConstraint[] Checks { get; } = [];
     public ForeignKeyConstraintViewModel[] ForeignKeys { get; }
     public bool RenderForeignKeysInline { get; }
+    public string? Description { get; }
 
     public TableViewModel(Table table, bool renderForeignKeysInline = false)
     {
@@ -31,5 +32,6 @@ public class TableViewModel
             .Select(constraint => new ForeignKeyConstraintViewModel(constraint))
             .ToArray();
         RenderForeignKeysInline = renderForeignKeysInline;
+        Description = table.Description;
     }
 }
