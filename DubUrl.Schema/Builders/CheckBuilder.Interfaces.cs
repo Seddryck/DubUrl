@@ -17,6 +17,10 @@ public interface ICheckBuilder
         Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
         IEnumerable<object?> values,
         NullMembershipBehavior nullBehavior = NullMembershipBehavior.SqlThreeValuedLogic);
+    ICheckBuildable WithRegex(
+        Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
+        string pattern,
+        RegexNullBehavior nullBehavior = RegexNullBehavior.AllowNull);
 }
 
 public interface ICheckBuildable
