@@ -1,5 +1,5 @@
 version: build.{build}
-image: Visual Studio 2022
+image: Visual Studio 2026
 
 skip_tags: true
 skip_commits:
@@ -22,10 +22,11 @@ environment:
 init:
 - cmd: git config --global core.autocrlf true
 - cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE "1"
-- cmd: RefreshEnv.cmd
-- pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
 before_build:
+- pwsh: .\install-gitversion.ps1
+- cmd: RefreshEnv.cmd
+- pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 - pwsh: |
