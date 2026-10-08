@@ -35,7 +35,7 @@ public class ColumnConstraintCollectionBuilder : IEnumerable<IConstraint>
         return this;
     }
 
-    public ColumnConstraintCollectionBuilder AddCheck(CheckConstraint check)
+    public ColumnConstraintCollectionBuilder AddCheck(Constraint check)
     {
         Constraints.Add(check);
         return this;
