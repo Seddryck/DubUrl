@@ -286,6 +286,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Block release while AppVeyor is configured
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath './appveyor.yml') {
+            throw 'Release is blocked while appveyor.yml exists. Remove the legacy AppVeyor workflow before enabling GitHub publication.'
+          }
+
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
         with:

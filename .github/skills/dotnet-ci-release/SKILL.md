@@ -182,6 +182,8 @@ Validate generated outputs according to their consumers: required files, names, 
 
 Treat current TFMs, RIDs, package identities, release cadence, artifact formats, documentation, and release history as evidence of the product contract. Do not remove or expand them solely to match a generic template.
 
+When a root `appveyor.yml` exists, allow the new workflow to build, test, and package, but block it before release identity reservation or publication. Put this explicit failing guard at the same release boundary as the main-branch or release-event check. The guard remains in place until `appveyor.yml` is removed so two delivery systems cannot publish the same release.
+
 Compare repeated support declarations across project properties, script defaults, workflow matrices, package validators, installers, and documentation. Report disagreement as drift and choose one authoritative source before modifying the matrix.
 
 A validation may run in the packaging job when it must inspect the generated artifact. It does not require a separate test job, but publication must depend on that validation succeeding.
