@@ -1,6 +1,6 @@
 Param(
 	[switch] $force=$false
-	, [string] $databaseService= "MSSQL`$SQL2019"
+	, [string] $databaseService= "MSSQL`$SQL2025"
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
@@ -34,13 +34,13 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	Write-host "`tDeploying database ..."
 	if ($env:APPVEYOR -eq "True") {
 		Write-host "`t`tUsing local client ..."
-		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2019" -i ".\deploy-mssqlserver-database.sql" | Out-Null
+		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2025" -i ".\deploy-mssqlserver-database.sql" | Out-Null
 	} else {
 		Write-host "`t`tCopying deployment script on container ..."
 		& docker cp "./deploy-mssqlserver-database.sql" mssql:"./deploy-mssqlserver-database.sql" 
 		Write-host "`t`tScript copied"
 		Write-host "`t`tUsing remote client on the docker container ..."
-		& docker exec -it mssql /opt/mssql-tools/bin/sqlcmd "-Usa" "-PPassword12!" "-i./deploy-mssqlserver-database.sql" | Out-Null
+		& docker exec -it mssql /opt/mssql-tools18/bin/sqlcmd "-Usa" "-PPassword12!" "-i./deploy-mssqlserver-database.sql" | Out-Null
 	}
 	Write-host "`tDatabase deployed"
 	
@@ -49,7 +49,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	foreach ($framework in $frameworks)
 	{
 		$filePath = "$PSScriptRoot\..\bin\$config\$framework\Instance.txt"
-		$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2019" } else { "localhost" }
+		$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2025" } else { "localhost" }
 		$serverUrl | Set-Content -NoNewline -Force $filePath
 		Write-Host "`t`tConfigure value '$serverUrl' into $filePath"
 	}

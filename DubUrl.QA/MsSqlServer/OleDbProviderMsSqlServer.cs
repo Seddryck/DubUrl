@@ -16,7 +16,7 @@ public class OleDbProviderMsSqlServer : BaseOleDbProvider
 
     public override string ConnectionString
     {
-        get => $"oledb+mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2019")}/DubUrl?TrustServerCertificate=Yes";
+        get => $"oledb+mssql://sa:Password12!@{(File.Exists(FILENAME) ? File.ReadAllText(FILENAME) : "localhost/2025")}/DubUrl?TrustServerCertificate=Yes";
     }
 
     [Test]
