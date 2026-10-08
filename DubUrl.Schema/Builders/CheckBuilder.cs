@@ -19,6 +19,8 @@ public class CheckBuilder : ICheckBuilder, ICheckBuildable
     private ICheckExpressionBuildable? Right { get; set; }
     private IReadOnlyList<object?>? Values { get; set; }
     private NullMembershipBehavior NullBehavior { get; set; }
+    private string? Pattern { get; set; }
+    private RegexNullBehavior RegexNullBehavior { get; set; }
 
     public CheckBuilder(IColumnName column)
         => Column = column;
@@ -45,8 +47,24 @@ public class CheckBuilder : ICheckBuilder, ICheckBuildable
         return this;
     }
 
+    ICheckBuildable ICheckBuilder.WithRegex(
+        Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
+        string pattern,
+        RegexNullBehavior nullBehavior)
+    {
+        Left = expression(new CheckExpressionBuilder(Column!));
+        Pattern = pattern ?? throw new ArgumentNullException(nameof(pattern));
+        RegexNullBehavior = nullBehavior;
+        return this;
+    }
+
     Constraint ICheckBuildable.Build()
     {
+        if (Pattern is not null)
+            return new RegexCheckConstraint(
+                Left?.Build() ?? throw new InvalidOperationException("A regex expression must be provided."),
+                Pattern,
+                RegexNullBehavior);
         if (Values is not null)
             return new MembershipCheckConstraint(
                 Left?.Build() ?? throw new InvalidOperationException("A membership expression must be provided."),

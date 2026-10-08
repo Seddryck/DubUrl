@@ -17,6 +17,7 @@ public class SchemaScriptRendererTests
 {
     private IDialect DuckDb { get; set; }
     private IDialect TSql { get; set; }
+    private IDialect Pgsql { get; set; }
 
     [SetUp]
     public void Setup()
@@ -24,9 +25,11 @@ public class SchemaScriptRendererTests
         var builder = new DialectRegistryBuilder();
         builder.AddDialect<DuckDbDialect>(["duckdb"]);
         builder.AddDialect<TSqlDialect>(["mssql"]);
+        builder.AddDialect<PgsqlDialect>(["pgsql"]);
         var registry = builder.Build();
         DuckDb = registry.Get<DuckDbDialect>();
         TSql = registry.Get<TSqlDialect>();
+        Pgsql = registry.Get<PgsqlDialect>();
     }
 
     [Test]
@@ -290,6 +293,58 @@ public class SchemaScriptRendererTests
                         expression => expression.WithCurrentColumn(),
                         [])))),
             Throws.ArgumentException.With.Message.Contains("at least one value"));
+    }
+
+    [Test]
+    public void Render_RegexPostgresql_UsesDialectPredicateAndEscapedPattern()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Code").WithType(DbType.String)
+                .WithCheck(check => check.WithRegex(
+                    expression => expression.WithCurrentColumn(),
+                    "^[A-Z']+$"))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("\"Code\" TEXT CHECK \"Code\" ~ '^[A-Z'']+$'"));
+    }
+
+    [Test]
+    public void Render_RegexRejectNull_RendersExplicitNullGuard()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Code").WithType(DbType.String)
+                .WithCheck(check => check.WithRegex(
+                    expression => expression.WithCurrentColumn(),
+                    "^[A-Z]+$",
+                    RegexNullBehavior.RejectNull))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CHECK (Code IS NOT NULL AND regexp_matches(Code, '^[A-Z]+$'))"));
+    }
+
+    [Test]
+    public void Render_RegexUnsupportedDialect_ThrowsExplicitError()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Code").WithType(DbType.String)
+                .WithCheck(check => check.WithRegex(
+                    expression => expression.WithCurrentColumn(),
+                    "^[A-Z]+$"))))
+            .Build();
+
+        Assert.That(
+            () => new SchemaScriptRenderer(TSql).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>().With.Message.Contains("TSqlDialect"));
     }
 
     [Test]

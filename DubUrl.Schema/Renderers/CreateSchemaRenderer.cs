@@ -20,6 +20,7 @@ public class CreateSchemaRenderer : RendererEngine
         : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateHelpers(dialect.Renderer))
     {
         AddFormatter("membership", value => RenderMembership(value, dialect));
+        AddFormatter("regex", value => RenderRegex(value, dialect));
     }
     
     protected CreateSchemaRenderer(IDbTypeMapper typeMapper, ISqlFunctionMapper sqlFunctionMapper, IDictionary<string, Func<object?, string>> helpers)
@@ -63,4 +64,36 @@ public class CreateSchemaRenderer : RendererEngine
         => mapper.ToDictionary().TryGetValue(function, out var mapped)
             ? mapped.ToString()!
             : throw new ArgumentException($"Function '{function}' is not supported by the selected dialect.", nameof(function));
+
+    private static string RenderRegex(object? value, IDialect dialect)
+    {
+        if (value is not RegexCheckConstraint constraint)
+            throw new ArgumentException("The regex formatter requires a regex check constraint.", nameof(value));
+
+        var expression = constraint.Expression switch
+        {
+            ColumnIdentityExpression column => dialect.Renderer.Render(column.Name, "identity"),
+            FunctionColumnIdentityExpression function =>
+                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
+            _ => throw new ArgumentException(
+                $"Expression type '{constraint.Expression.GetType().Name}' is not supported for regex checks.",
+                nameof(value))
+        };
+        var pattern = dialect.Renderer.Render(constraint.Pattern, "value");
+        var predicate = dialect switch
+        {
+            PgsqlDialect or CockRoachDialect or CrateDbDialect or QuestDbDialect
+                => $"{expression} ~ {pattern}",
+            MySqlDialect or SingleStoreDialect
+                => $"{expression} REGEXP {pattern}",
+            DuckDbDialect
+                => $"regexp_matches({expression}, {pattern})",
+            _ => throw new NotSupportedException(
+                $"Regular-expression checks are not supported by dialect '{dialect.GetType().Name}'.")
+        };
+
+        return constraint.NullBehavior == RegexNullBehavior.RejectNull
+            ? $"({expression} IS NOT NULL AND {predicate})"
+            : predicate;
+    }
 }

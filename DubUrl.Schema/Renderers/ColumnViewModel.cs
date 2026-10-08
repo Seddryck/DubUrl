@@ -19,6 +19,7 @@ public class ColumnViewModel
     public PrimaryKeyConstraintViewModel? PrimaryKey { get; }
     public CheckConstraint[] Checks { get; }
     public MembershipCheckConstraint[] MembershipChecks { get; }
+    public RegexCheckConstraint[] RegexChecks { get; }
 
     public object? DefaultValue { get; }
     public bool HasDefaultValue { get; }
@@ -34,6 +35,7 @@ public class ColumnViewModel
         Unique = column.Constraints.Get<UniquenessConstraint>();
         Checks = [.. column.Constraints.OfType<CheckConstraint>()];
         MembershipChecks = [.. column.Constraints.OfType<MembershipCheckConstraint>()];
+        RegexChecks = [.. column.Constraints.OfType<RegexCheckConstraint>()];
         if (column is VarLengthColumn varLength)
             Length = varLength.Length;
         if (column is NumericColumn numeric)
