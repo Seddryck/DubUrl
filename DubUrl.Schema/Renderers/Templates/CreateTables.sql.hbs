@@ -11,6 +11,8 @@ CREATE TABLE {{identity Name}} (
     {{#if HasDefaultValue}} DEFAULT {{value DefaultValue}}{{/if~}}
     {{#each Checks}} CHECK {{#if Left.Function}}{{function Left.Function}}({{identity Left.Name}}){{else}}{{identity Left.Name}}{{/if}} {{Operator}} {{Right.Value}}
     {{~ /each ~}}
+    {{#each MembershipChecks}} CHECK {{membership this}}
+    {{~ /each ~}}
     {{#unless @last}},{{/unless}}
 {{/each}}
 {{#if PrimaryKey}}
