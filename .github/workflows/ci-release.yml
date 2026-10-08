@@ -58,24 +58,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        framework:
-          - net8.0
-          - net9.0
-          - net10.0
+        include:
+          - framework: net8.0
+            sdk: 8.0.416
+          - framework: net9.0
+            sdk: 9.0.308
+          - framework: net10.0
+            sdk: 10.0.401
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Set up .NET SDKs
+      - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: |
-            8.0.416
-            9.0.308
-            10.0.401
+          dotnet-version: ${{ matrix.sdk }}
 
       - name: Restore
-        run: dotnet restore DubUrlLibraries.sln
+        run: >-
+          dotnet restore DubUrlLibraries.sln
+          -p:TargetFramework=${{ matrix.framework }}
 
       - name: Build
         run: >-
@@ -344,6 +346,9 @@ jobs:
               throw "Failed to extract '$($archive.Name)'."
             }
           }
+
+      - name: Restore package project
+        run: dotnet restore "${{ matrix.project }}" --force-evaluate
 
       - name: Pack
         run: >-

@@ -86,8 +86,9 @@ Run repository-wide checks such as metadata, documentation, and formatting once 
 
 Install only the tooling required by each isolated job. Do not mirror the complete TFM matrix in every SDK setup step.
 
-- A test job scoped to one TFM should install the matching SDK and runtime. When the project declares multiple TFMs and a normal restore would require the other targeting packs, restore only the selected TFM.
-- A package or publish job that consumes immutable, already-restored and already-built outputs with `dotnet pack --no-build --no-restore` normally needs only one SDK capable of evaluating the project and assembling or pushing the artifacts. It does not need one SDK per packaged TFM.
+- A build or test job scoped to one TFM should map that framework to its matching SDK in the matrix, install only that SDK and runtime, and scope restore to the selected TFM. Passing `--framework` to build or test does not scope an earlier unqualified restore.
+- When packaging combines immutable binaries produced by framework-scoped build jobs, restore the complete package project once in the package job with one compatible SDK, then run `dotnet pack --no-build --no-restore`. Reuse the compiled binaries; do not treat framework-scoped `obj` state as a substitute for the package's full multi-target restore.
+- A package or publish job does not need one SDK per packaged TFM merely because the package contains several TFM-specific assemblies.
 - A job that performs a full multi-target restore or build may need all corresponding targeting packs or SDKs. Keep multiple SDKs there only when that work genuinely depends on them.
 - Installing several SDKs does not make matrix entries use each SDK. Without `global.json` or another explicit selector, `dotnet` normally chooses the newest compatible installed SDK. When SDK-version compatibility itself must be validated, select the intended SDK explicitly in each matrix entry.
 
