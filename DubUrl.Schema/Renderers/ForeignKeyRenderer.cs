@@ -8,7 +8,7 @@ public sealed class ForeignKeyRenderer : RendererEngine
     public ForeignKeyRenderer(IDialect dialect)
         : base(typeof(ForeignKeyRenderer).Assembly, $"{typeof(ForeignKeyRenderer).Namespace}.Templates.CreateForeignKeys.sql.hbs")
     {
-        foreach (var helper in CreateHelpers(dialect.Renderer))
+        foreach (var helper in CreateHelpers(dialect))
             AddFormatter(helper.Key, helper.Value);
     }
 }

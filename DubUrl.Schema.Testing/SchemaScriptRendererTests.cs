@@ -20,6 +20,7 @@ public class SchemaScriptRendererTests
     private IDialect TSql { get; set; }
     private IDialect Pgsql { get; set; }
     private IDialect Sqlite { get; set; }
+    private IDialect MySql { get; set; }
 
     [SetUp]
     public void Setup()
@@ -29,11 +30,13 @@ public class SchemaScriptRendererTests
         builder.AddDialect<TSqlDialect>(["mssql"]);
         builder.AddDialect<PgsqlDialect>(["pgsql"]);
         builder.AddDialect<SqliteDialect>(["sqlite"]);
+        builder.AddDialect<MySqlDialect>(["mysql"]);
         var registry = builder.Build();
         DuckDb = registry.Get<DuckDbDialect>();
         TSql = registry.Get<TSqlDialect>();
         Pgsql = registry.Get<PgsqlDialect>();
         Sqlite = registry.Get<SqliteDialect>();
+        MySql = registry.Get<MySqlDialect>();
     }
 
     [Test]
@@ -517,6 +520,72 @@ public class SchemaScriptRendererTests
         Assert.That(
             () => new NativeDatabaseType("VARCHAR(20); DROP TABLE Customer"),
             Throws.ArgumentException.With.Message.Contains("Native type names"));
+    }
+
+    [Test]
+    public void Render_SqlServerMultipartIdentity_QuotesEveryComponent()
+    {
+        var identity = new DatabaseObjectName("Customer", schema: "sales", database: "Warehouse", catalog: "ServerA");
+        var table = new Table(identity, [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(TSql, SchemaCreationOptions.DropIfExists)
+            .Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("DROP TABLE IF EXISTS [ServerA].[Warehouse].[sales].[Customer];"));
+        Assert.That(result, Does.Contain("CREATE TABLE [ServerA].[Warehouse].[sales].[Customer]"));
+    }
+
+    [Test]
+    public void Render_PostgresqlQualifiedIdentity_AppliesToCommentsForeignKeysAndIndexes()
+    {
+        var customerIdentity = new DatabaseObjectName("Customer", schema: "sales");
+        var orderIdentity = new DatabaseObjectName("Order", schema: "sales");
+        var customers = new Table(customerIdentity, [new Column("Id", DbType.Int32)], description: "Customers");
+        var orders = new Table(orderIdentity, [new Column("CustomerId", DbType.Int32)], [
+            new SchemaForeignKeyConstraint("FK_Order_Customer", ["CustomerId"], customerIdentity, ["Id"])
+        ]);
+        var index = new Index(new DatabaseObjectName("IX_Order_Customer", schema: "sales"), orderIdentity,
+            [new IndexColumn("CustomerId")]);
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([customers, orders], [index]));
+
+        Assert.That(result, Does.Contain("CREATE TABLE \"sales\".\"Customer\""));
+        Assert.That(result, Does.Contain("REFERENCES \"sales\".\"Customer\" (\"Id\")"));
+        Assert.That(result, Does.Contain("COMMENT ON TABLE \"sales\".\"Customer\" IS 'Customers';"));
+        Assert.That(result, Does.Contain("CREATE INDEX \"sales\".\"IX_Order_Customer\" ON \"sales\".\"Order\""));
+    }
+
+    [Test]
+    public void Render_MySqlDatabaseQualifiedIdentity_UsesDatabaseQualifier()
+    {
+        var table = new Table(new DatabaseObjectName("Customer", database: "warehouse"),
+            [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(MySql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CREATE TABLE `warehouse`.`Customer`"));
+    }
+
+    [Test]
+    public void Render_IdentifierContainingDot_DoesNotParseItAsQualification()
+    {
+        var table = new Table(new DatabaseObjectName("sales.Customer"), [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CREATE TABLE \"sales.Customer\""));
+        Assert.That(result, Does.Not.Contain("\"sales\".\"Customer\""));
+    }
+
+    [Test]
+    public void Render_UnsupportedQualifier_ThrowsExplicitError()
+    {
+        var table = new Table(new DatabaseObjectName("Customer", database: "warehouse"),
+            [new Column("Id", DbType.Int32)]);
+
+        Assert.That(
+            () => new SchemaScriptRenderer(Pgsql).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>().With.Message.Contains("Database"));
     }
 
     [Test]

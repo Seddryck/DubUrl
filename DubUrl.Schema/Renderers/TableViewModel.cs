@@ -10,6 +10,7 @@ namespace DubUrl.Schema.Renderers;
 public class TableViewModel
 {
     public string Name { get; }
+    public DatabaseObjectName Identity { get; }
     public ColumnViewModel[] Columns { get; }
     public PrimaryKeyConstraint? PrimaryKey { get; }
     public NullableConstraint? Nullable { get; }
@@ -23,6 +24,7 @@ public class TableViewModel
     public TableViewModel(Table table, bool renderForeignKeysInline = false)
     {
         Name = table.Name;
+        Identity = table.Identity;
         Columns = table.Columns.Values.Select(c => new ColumnViewModel(c)).ToArray();
         PrimaryKey = table.Constraints.Get<PrimaryKeyConstraint>();
         Nullable = table.Constraints.Get<NullableConstraint>();

@@ -9,19 +9,28 @@ namespace DubUrl.Schema.Builders;
 
 public class IndexBuilder : IIndexTableBuilder, IIndexColumnCollectionBuilder, IIndexBuilder
 {
-    private string? Name { get; set; }
-    private string? TableName { get; set; }
+    private DatabaseObjectName? Identity { get; set; }
+    private DatabaseObjectName? TableIdentity { get; set; }
     private IndexColumnCollectionBuilder Columns { get; set; } = [];
 
     public IIndexTableBuilder WithName(string name)
     {
-        Name = name;
+        Identity = new DatabaseObjectName(name);
+        return this;
+    }
+
+    public IIndexTableBuilder WithIdentity(DatabaseObjectName identity)
+    {
+        Identity = identity ?? throw new ArgumentNullException(nameof(identity));
         return this;
     }
 
     public IIndexColumnCollectionBuilder OnTable(string name)
+        => OnTable(new DatabaseObjectName(name));
+
+    public IIndexColumnCollectionBuilder OnTable(DatabaseObjectName identity)
     {
-        TableName = name;
+        TableIdentity = identity ?? throw new ArgumentNullException(nameof(identity));
         return this;
     }
 
@@ -33,15 +42,15 @@ public class IndexBuilder : IIndexTableBuilder, IIndexColumnCollectionBuilder, I
 
     public Index Build()
     {
-        if (Name is null)
-            throw new ArgumentNullException(nameof(Name));
-        if (TableName is null)
-            throw new ArgumentNullException(nameof(TableName));
+        if (Identity is null)
+            throw new InvalidOperationException("An index identity must be provided.");
+        if (TableIdentity is null)
+            throw new InvalidOperationException("A table identity must be provided.");
         var columns = Columns.Select(c => c.Build()).ToArray();
 
         if (columns.GroupBy(c => c.Name).Count() != columns.Length)
             throw new InvalidOperationException("Column names must be unique.");
 
-        return new Index(Name, TableName, columns);
+        return new Index(Identity, TableIdentity, columns);
     }
 }

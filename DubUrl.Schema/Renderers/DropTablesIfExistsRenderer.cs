@@ -14,7 +14,7 @@ namespace DubUrl.Schema.Renderers;
 public class DropTablesIfExistsRenderer : RendererEngine
 {
     public DropTablesIfExistsRenderer(IDialect dialect)
-            : this(CreateHelpers(dialect.Renderer))
+            : this(CreateHelpers(dialect))
     { }
 
     protected DropTablesIfExistsRenderer(IDictionary<string, Func<object?, string>> helpers)

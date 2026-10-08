@@ -9,14 +9,21 @@ namespace DubUrl.Schema.Builders;
 
 public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintCollectionBuilder, ITableBuilder
 {
-    private string? Name { get; set; }
+    private DatabaseObjectName? Identity { get; set; }
+    private string? Name => Identity?.Name;
     private ColumnCollectionBuilder Columns { get; set; } = [];
     private TableConstraintCollectionBuilder Constraints { get; set; } = [];
     private string? Description { get; set; }
 
     public ITableColumnCollectionBuilder WithName(string name)
     {
-        Name = name;
+        Identity = new DatabaseObjectName(name);
+        return this;
+    }
+
+    public ITableColumnCollectionBuilder WithIdentity(DatabaseObjectName identity)
+    {
+        Identity = identity ?? throw new ArgumentNullException(nameof(identity));
         return this;
     }
 
@@ -73,6 +80,6 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
         if (duplicateConstraintNames.Length > 0)
             throw new InvalidOperationException($"Constraint names must be unique within table '{Name}': {string.Join(", ", duplicateConstraintNames)}.");
 
-        return new Table(Name, columns, [.. constraints], Description);
+        return new Table(Identity!, columns, [.. constraints], Description);
     }
 }
