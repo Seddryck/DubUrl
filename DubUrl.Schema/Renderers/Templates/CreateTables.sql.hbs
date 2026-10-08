@@ -1,7 +1,7 @@
 ﻿{{#each model.Tables}}
 CREATE TABLE {{identity Name}} (
 {{#each Columns}}
-    {{identity Name}} {{dbtype Type ~}}
+    {{identity Name}} {{columntype this ~}}
     {{#if Length}}({{Length}}){{/if~}}
     {{#if Precision}}({{Precision}}, {{Scale}}){{/if~}}
     {{#if Nullable}} NULL{{/if~}}
