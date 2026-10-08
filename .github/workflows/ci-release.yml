@@ -51,9 +51,81 @@ jobs:
             throw "GitVersion produced invalid SemVer '$version'."
           }
 
+  build:
+    name: Build (${{ matrix.framework }})
+    needs: version
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        framework:
+          - net8.0
+          - net9.0
+          - net10.0
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDKs
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.416
+            9.0.308
+            10.0.401
+
+      - name: Restore
+        run: dotnet restore DubUrlLibraries.sln
+
+      - name: Build
+        run: >-
+          dotnet build DubUrlLibraries.sln
+          --configuration Release
+          --framework ${{ matrix.framework }}
+          --no-restore
+          --nologo
+          -p:Version=${{ needs.version.outputs.semver }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Archive build outputs
+        shell: pwsh
+        run: |
+          $projects = @(
+            dotnet sln DubUrlLibraries.sln list |
+              Where-Object { $_ -match '\.csproj$' }
+          )
+          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 6) {
+            throw "Expected six projects in DubUrlLibraries.sln, found $($projects.Count)."
+          }
+
+          $paths = @(
+            foreach ($project in $projects) {
+              $directory = Split-Path -Parent $project
+              "$directory/bin"
+              "$directory/obj"
+            }
+          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
+
+          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
+          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to archive ${{ matrix.framework }} build outputs."
+          }
+
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
   unit-tests:
     name: Unit tests - ${{ matrix.project }} (${{ matrix.framework }})
-    needs: version
+    needs:
+      - version
+      - build
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -81,14 +153,37 @@ jobs:
             9.0.308
             10.0.401
 
-      - name: Restore
+      - name: Download build outputs
+        uses: actions/download-artifact@v7
+        with:
+          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/build
+
+      - name: Extract build outputs
+        shell: pwsh
+        run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
+
+      - name: Restore unit-test project
         run: dotnet restore "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
 
-      - name: Build
+      - name: Build shared test infrastructure
+        if: matrix.project == 'DubUrl.OleDb' || matrix.project == 'DubUrl.Adomd'
+        run: >-
+          dotnet build DubUrl.Testing/DubUrl.Testing.csproj
+          --configuration Release
+          --framework ${{ matrix.framework }}
+          --no-dependencies
+          --no-restore
+          --nologo
+          -p:Version=${{ needs.version.outputs.semver }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Build unit-test project
         run: >-
           dotnet build "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
           --configuration Release
           --framework ${{ matrix.framework }}
+          --no-dependencies
           --no-restore
           --nologo
           -p:Version=${{ needs.version.outputs.semver }}
@@ -194,6 +289,7 @@ jobs:
     name: Package - ${{ matrix.package-id }}
     needs:
       - version
+      - build
       - unit-tests
       - coverage-threshold
     runs-on: windows-latest
@@ -225,13 +321,32 @@ jobs:
             9.0.308
             10.0.401
 
-      - name: Restore
-        run: dotnet restore "${{ matrix.project }}"
+      - name: Download build outputs
+        uses: actions/download-artifact@v7
+        with:
+          pattern: build-*-${{ needs.version.outputs.semver }}
+          path: .artifacts/build
+          merge-multiple: true
+
+      - name: Extract build outputs
+        shell: pwsh
+        run: |
+          $archives = @(Get-ChildItem .artifacts/build -Filter 'build-*.tar.gz' -File)
+          if ($archives.Count -ne 3) {
+            throw "Expected three framework build archives, found $($archives.Count)."
+          }
+          foreach ($archive in $archives | Sort-Object Name) {
+            tar -xzf $archive.FullName -C .
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to extract '$($archive.Name)'."
+            }
+          }
 
       - name: Pack
         run: >-
           dotnet pack "${{ matrix.project }}"
           --configuration Release
+          --no-build
           --no-restore
           --nologo
           --include-symbols
