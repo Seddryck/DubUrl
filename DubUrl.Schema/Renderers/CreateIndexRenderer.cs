@@ -16,7 +16,7 @@ namespace DubUrl.Schema.Renderers;
 public class CreateIndexRenderer : RendererEngine
 {
     public CreateIndexRenderer(IDialect dialect)
-        : this(CreateHelpers(dialect.Renderer))
+        : this(CreateHelpers(dialect))
     { }
     
     protected CreateIndexRenderer(IDictionary<string, Func<object?, string>> helpers)

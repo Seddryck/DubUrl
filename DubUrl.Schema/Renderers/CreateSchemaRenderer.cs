@@ -17,7 +17,7 @@ namespace DubUrl.Schema.Renderers;
 public class CreateSchemaRenderer : RendererEngine
 {
     public CreateSchemaRenderer(IDialect dialect, NativeTypeRegistry? nativeTypes = null)
-        : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateHelpers(dialect.Renderer))
+        : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateHelpers(dialect))
     {
         nativeTypes ??= NativeTypeRegistry.Default;
         AddFormatter("membership", value => RenderMembership(value, dialect));

@@ -24,7 +24,11 @@ public class ConnectionUrlExtensionsTests
         dbConnection.Setup(c => c.CreateCommand()).Returns(dbCommand.Object);
 
         var dbTypeMapper = new Mock<IDbTypeMapper>();
-        dbTypeMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>());
+        dbTypeMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>
+        {
+            [DbType.Int32.ToString()] = "INTEGER",
+            [DbType.String.ToString()] = "VARCHAR"
+        });
 
         var sqlFunctionMapper = new Mock<ISqlFunctionMapper>();
         sqlFunctionMapper.Setup(x => x.ToDictionary()).Returns(new Dictionary<string, object>());

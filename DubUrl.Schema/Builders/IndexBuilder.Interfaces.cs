@@ -9,6 +9,7 @@ namespace DubUrl.Schema.Builders;
 public interface IIndexTableBuilder
 {
     IIndexColumnCollectionBuilder OnTable(string name);
+    IIndexColumnCollectionBuilder OnTable(DatabaseObjectName identity);
 }
 
 public interface IIndexColumnCollectionBuilder

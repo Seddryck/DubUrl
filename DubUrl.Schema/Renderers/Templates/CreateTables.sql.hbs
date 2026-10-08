@@ -1,5 +1,5 @@
 ﻿{{#each model.Tables}}
-CREATE TABLE {{identity Name}} (
+CREATE TABLE {{objectname Identity}} (
 {{#each Columns}}
     {{identity Name}} {{columntype this ~}}
     {{#if Length}}({{Length}}){{/if~}}
@@ -28,7 +28,7 @@ CREATE TABLE {{identity Name}} (
 {{#each ForeignKeys}}
     , CONSTRAINT {{identity Name}} FOREIGN KEY (
 {{~ #each SourceColumns}}{{identity this}}{{#unless @last}}, {{/unless}}{{/each~}}
-) REFERENCES {{identity TargetTableName}} (
+) REFERENCES {{objectname TargetTable}} (
 {{~ #each TargetColumns}}{{identity this}}{{#unless @last}}, {{/unless}}{{/each~}}
 )
 {{/each}}

@@ -27,12 +27,12 @@ public class SchemaBuilder : ISchemaBuilder, ITableCollectionBuilder, IIndexColl
     {
         var tables = Tables.Select(c => c.Build()).ToArray();
 
-        if (tables.GroupBy(c => c.Name).Count() != tables.Length)
+        if (tables.GroupBy(c => c.Identity).Count() != tables.Length)
             throw new InvalidOperationException("Table names must be unique.");
 
         var indexes = Indexes.Select(c => c.Build()).ToArray();
 
-        if (indexes.GroupBy(c => c.Name).Count() != indexes.Length)
+        if (indexes.GroupBy(c => c.Identity).Count() != indexes.Length)
             throw new InvalidOperationException("Index names must be unique.");
 
         return new Schema(tables, indexes);
