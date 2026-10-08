@@ -82,6 +82,15 @@ For applications, include the TFM in the distribution matrix only when users rec
 
 Run repository-wide checks such as metadata, documentation, and formatting once on an appropriate TFM unless their behavior is framework-dependent.
 
+## Minimize SDK and runtime installation
+
+Install only the tooling required by each isolated job. Do not mirror the complete TFM matrix in every SDK setup step.
+
+- A test job scoped to one TFM should install the matching SDK and runtime. When the project declares multiple TFMs and a normal restore would require the other targeting packs, restore only the selected TFM.
+- A package or publish job that consumes immutable, already-restored and already-built outputs with `dotnet pack --no-build --no-restore` normally needs only one SDK capable of evaluating the project and assembling or pushing the artifacts. It does not need one SDK per packaged TFM.
+- A job that performs a full multi-target restore or build may need all corresponding targeting packs or SDKs. Keep multiple SDKs there only when that work genuinely depends on them.
+- Installing several SDKs does not make matrix entries use each SDK. Without `global.json` or another explicit selector, `dotnet` normally chooses the newest compatible installed SDK. When SDK-version compatibility itself must be validated, select the intended SDK explicitly in each matrix entry.
+
 ## Decide the runner operating-system matrix
 
 Add native OS runners when tests must exercise differences that cross-publishing cannot validate, including:
