@@ -76,12 +76,12 @@ jobs:
 
       - name: Restore
         run: >-
-          dotnet restore DubUrlLibraries.sln
+          dotnet restore DubUrlCi.slnf
           -p:TargetFramework=${{ matrix.framework }}
 
       - name: Build
         run: >-
-          dotnet build DubUrlLibraries.sln
+          dotnet build DubUrlCi.slnf
           --configuration Release
           --framework ${{ matrix.framework }}
           --no-restore
@@ -93,11 +93,11 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            dotnet sln DubUrlLibraries.sln list |
+            dotnet sln DubUrlCi.slnf list |
               Where-Object { $_ -match '\.csproj$' }
           )
-          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 6) {
-            throw "Expected six projects in DubUrlLibraries.sln, found $($projects.Count)."
+          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 12) {
+            throw "Expected twelve projects in DubUrlCi.slnf, found $($projects.Count)."
           }
 
           $paths = @(
@@ -168,34 +168,6 @@ jobs:
       - name: Extract build outputs
         shell: pwsh
         run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
-
-      - name: Restore unit-test project
-        run: >-
-          dotnet restore "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
-          -p:TargetFramework=${{ matrix.framework }}
-
-      - name: Build shared test infrastructure
-        if: matrix.project == 'DubUrl.OleDb' || matrix.project == 'DubUrl.Adomd'
-        run: >-
-          dotnet build DubUrl.Testing/DubUrl.Testing.csproj
-          --configuration Release
-          --framework ${{ matrix.framework }}
-          --no-dependencies
-          --no-restore
-          --nologo
-          -p:Version=${{ needs.version.outputs.semver }}
-          -p:ContinuousIntegrationBuild=true
-
-      - name: Build unit-test project
-        run: >-
-          dotnet build "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
-          --configuration Release
-          --framework ${{ matrix.framework }}
-          --no-dependencies
-          --no-restore
-          --nologo
-          -p:Version=${{ needs.version.outputs.semver }}
-          -p:ContinuousIntegrationBuild=true
 
       - name: Test
         run: >-
