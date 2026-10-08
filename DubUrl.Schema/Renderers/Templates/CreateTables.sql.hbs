@@ -24,5 +24,14 @@ CREATE TABLE {{identity Name}} (
 {{/each~}}
 )
 {{/if~}}
+{{#if RenderForeignKeysInline}}
+{{#each ForeignKeys}}
+    , CONSTRAINT {{identity Name}} FOREIGN KEY (
+{{~ #each SourceColumns}}{{identity this}}{{#unless @last}}, {{/unless}}{{/each~}}
+) REFERENCES {{identity TargetTableName}} (
+{{~ #each TargetColumns}}{{identity this}}{{#unless @last}}, {{/unless}}{{/each~}}
+)
+{{/each}}
+{{/if~}}
 );
 {{/each}}

@@ -16,6 +16,12 @@ public class TableConstraintCollectionBuilder : IEnumerable<IConstraintBuilder>
         return this;
     }
 
+    public TableConstraintCollectionBuilder AddForeignKey(Func<ForeignKeyConstraintBuilder, IConstraintBuilder> constraint)
+    {
+        Constraints.Add(constraint(new ForeignKeyConstraintBuilder()));
+        return this;
+    }
+
     public IEnumerator<IConstraintBuilder> GetEnumerator()
         => Constraints.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator()

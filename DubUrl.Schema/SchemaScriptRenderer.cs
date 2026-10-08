@@ -15,9 +15,11 @@ namespace DubUrl.Schema;
 public class SchemaScriptRenderer
 {
     private RendererEngine[] Templates { get; } = [];
+    private IDialect Dialect { get; }
 
     public SchemaScriptRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None)
     {
+        Dialect = dialect;
         var templates = new List<RendererEngine>();
         if (options == SchemaCreationOptions.DropIfExists)
         {
@@ -26,6 +28,7 @@ public class SchemaScriptRenderer
         }
             
         templates.Add(new CreateSchemaRenderer(dialect));
+        templates.Add(new ForeignKeyRenderer(dialect));
         templates.Add(new CreateIndexRenderer(dialect));
         Templates = [.. templates];
     }
@@ -35,7 +38,7 @@ public class SchemaScriptRenderer
         var tables = new List<TableViewModel>();
         foreach (var table in schema.Tables)
         {
-            var tableRenderer = new TableViewModel(table.Value);
+            var tableRenderer = new TableViewModel(table.Value, Dialect is SqliteDialect);
             tables.Add(tableRenderer);
         }
         var model = new { model = new { Tables = tables.ToArray() } };

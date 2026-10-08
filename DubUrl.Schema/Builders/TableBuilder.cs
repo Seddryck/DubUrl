@@ -50,6 +50,22 @@ public class TableBuilder : ITableColumnCollectionBuilder, ITableConstraintColle
                     throw new InvalidOperationException($"Primary key column '{column.Key}' does not exist in table '{Name}'.");
         }
 
+        foreach (var foreignKey in constraints.OfType<ForeignKeyConstraint>())
+        {
+            var missingColumns = foreignKey.SourceColumns.Where(name => !columns.Any(column => column.Name == name)).ToArray();
+            if (missingColumns.Length > 0)
+                throw new InvalidOperationException(
+                    $"Foreign key '{foreignKey.Name}' references missing source column(s) {string.Join(", ", missingColumns)} in table '{Name}'.");
+        }
+
+        var duplicateConstraintNames = constraints.Where(constraint => constraint.Name is not null)
+            .GroupBy(constraint => constraint.Name, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToArray();
+        if (duplicateConstraintNames.Length > 0)
+            throw new InvalidOperationException($"Constraint names must be unique within table '{Name}': {string.Join(", ", duplicateConstraintNames)}.");
+
         return new Table(Name, columns, [.. constraints]);
     }
 }

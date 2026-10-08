@@ -11,6 +11,7 @@ using DubUrl.Schema.Renderers;
 using DubUrl.Schema.Builders;
 using DubUrl.Querying.Dialects;
 using DubUrl.Schema.Constraints;
+using SchemaForeignKeyConstraint = DubUrl.Schema.Constraints.ForeignKeyConstraint;
 
 namespace DubUrl.Schema.Testing;
 public class SchemaScriptRendererTests
@@ -18,6 +19,7 @@ public class SchemaScriptRendererTests
     private IDialect DuckDb { get; set; }
     private IDialect TSql { get; set; }
     private IDialect Pgsql { get; set; }
+    private IDialect Sqlite { get; set; }
 
     [SetUp]
     public void Setup()
@@ -26,10 +28,12 @@ public class SchemaScriptRendererTests
         builder.AddDialect<DuckDbDialect>(["duckdb"]);
         builder.AddDialect<TSqlDialect>(["mssql"]);
         builder.AddDialect<PgsqlDialect>(["pgsql"]);
+        builder.AddDialect<SqliteDialect>(["sqlite"]);
         var registry = builder.Build();
         DuckDb = registry.Get<DuckDbDialect>();
         TSql = registry.Get<TSqlDialect>();
         Pgsql = registry.Get<PgsqlDialect>();
+        Sqlite = registry.Get<SqliteDialect>();
     }
 
     [Test]
@@ -345,6 +349,63 @@ public class SchemaScriptRendererTests
         Assert.That(
             () => new SchemaScriptRenderer(TSql).Render(new Schema([table], [])),
             Throws.TypeOf<NotSupportedException>().With.Message.Contains("TSqlDialect"));
+    }
+
+    [Test]
+    public void Render_ForeignKeys_RendersNamedSingleCompositeAndSelfReferences()
+    {
+        var customers = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns
+                .Add(column => column.WithName("TenantId").WithType(DbType.Int32))
+                .Add(column => column.WithName("Id").WithType(DbType.Int32))
+                .Add(column => column.WithName("ParentId").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints
+                .AddPrimaryKey(key => key.WithColumnNames("TenantId", "Id"))
+                .AddForeignKey(key => key.WithName("FK_Customer_Parent")
+                    .FromColumns("TenantId", "ParentId")
+                    .References("Customer", "TenantId", "Id")))
+            .Build();
+        var orders = new TableBuilder()
+            .WithName("Order")
+            .WithColumns(columns => columns
+                .Add(column => column.WithName("TenantId").WithType(DbType.Int32))
+                .Add(column => column.WithName("CustomerId").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints.AddForeignKey(key => key
+                .WithName("FK_Order_Customer")
+                .FromColumns("TenantId", "CustomerId")
+                .References("Customer", "TenantId", "Id")))
+            .Build();
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([customers, orders], []));
+
+        Assert.That(result, Does.Contain(
+            "ALTER TABLE [Customer] ADD CONSTRAINT [FK_Customer_Parent] FOREIGN KEY ([TenantId], [ParentId]) REFERENCES [Customer] ([TenantId], [Id]);"));
+        Assert.That(result, Does.Contain(
+            "ALTER TABLE [Order] ADD CONSTRAINT [FK_Order_Customer] FOREIGN KEY ([TenantId], [CustomerId]) REFERENCES [Customer] ([TenantId], [Id]);"));
+    }
+
+    [Test]
+    public void Render_CircularForeignKeysSqlite_RendersInline()
+    {
+        var first = new Table("First", [new Column("SecondId", DbType.Int32)],
+            [new SchemaForeignKeyConstraint("FK_First_Second", ["SecondId"], "Second", ["Id"])]);
+        var second = new Table("Second", [new Column("Id", DbType.Int32), new Column("FirstId", DbType.Int32)],
+            [new SchemaForeignKeyConstraint("FK_Second_First", ["FirstId"], "First", ["SecondId"])]);
+
+        var result = new SchemaScriptRenderer(Sqlite).Render(new Schema([first, second], []));
+
+        Assert.That(result, Does.Contain("CONSTRAINT FK_First_Second FOREIGN KEY (SecondId) REFERENCES Second (Id)"));
+        Assert.That(result, Does.Contain("CONSTRAINT FK_Second_First FOREIGN KEY (FirstId) REFERENCES First (SecondId)"));
+        Assert.That(result, Does.Not.Contain("ALTER TABLE"));
+    }
+
+    [Test]
+    public void Build_ForeignKeyWithMismatchedColumns_ThrowsActionableError()
+    {
+        Assert.That(
+            () => new SchemaForeignKeyConstraint("FK_Order_Customer", ["TenantId", "CustomerId"], "Customer", ["Id"]),
+            Throws.ArgumentException.With.Message.Contains("2 source columns but 1 target columns"));
     }
 
     [Test]
