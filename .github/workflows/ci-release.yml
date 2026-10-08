@@ -68,6 +68,7 @@ jobs:
         framework:
           - net8.0
           - net9.0
+          - net10.0
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -78,6 +79,7 @@ jobs:
           dotnet-version: |
             8.0.416
             9.0.308
+            10.0.401
 
       - name: Restore
         run: dotnet restore "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
@@ -151,8 +153,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 12) {
-            throw "Expected 12 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 18) {
+            throw "Expected 18 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
@@ -221,6 +223,7 @@ jobs:
           dotnet-version: |
             8.0.416
             9.0.308
+            10.0.401
 
       - name: Restore
         run: dotnet restore "${{ matrix.project }}"
@@ -342,7 +345,7 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 9.0.308
+          dotnet-version: 10.0.401
 
       - name: Download NuGet packages
         uses: actions/download-artifact@v7

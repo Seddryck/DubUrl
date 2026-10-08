@@ -17,7 +17,7 @@ $packages = @(
     @{ Id = 'DubUrl.Schema'; Assembly = 'DubUrl.Schema' },
     @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
 )
-$frameworks = @('net8.0', 'net9.0')
+$frameworks = @('net8.0', 'net9.0', 'net10.0')
 
 function Assert-Condition {
     param(
