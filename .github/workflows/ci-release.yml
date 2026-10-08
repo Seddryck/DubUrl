@@ -1,0 +1,539 @@
+name: CI and release
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+  DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
+
+jobs:
+  version:
+    name: Calculate version
+    runs-on: ubuntu-latest
+    outputs:
+      semver: ${{ steps.gitversion.outputs.semVer }}
+      patch: ${{ steps.gitversion.outputs.patch }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
+        with:
+          versionSpec: 6.6.0
+
+      - name: Calculate version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
+
+      - name: Validate version
+        shell: pwsh
+        run: |
+          $version = '${{ steps.gitversion.outputs.semVer }}'
+          if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "GitVersion produced invalid SemVer '$version'."
+          }
+
+  build:
+    name: Build (${{ matrix.framework }})
+    needs: version
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - framework: net8.0
+            sdk: 8.0.416
+          - framework: net9.0
+            sdk: 9.0.308
+          - framework: net10.0
+            sdk: 10.0.401
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ matrix.sdk }}
+
+      - name: Restore
+        run: >-
+          dotnet restore DubUrlCi.slnf
+          -p:TargetFramework=${{ matrix.framework }}
+
+      - name: Build
+        run: >-
+          dotnet build DubUrlCi.slnf
+          --configuration Release
+          --framework ${{ matrix.framework }}
+          --no-restore
+          --nologo
+          -p:Version=${{ needs.version.outputs.semver }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Archive build outputs
+        shell: pwsh
+        run: |
+          $projects = @(
+            dotnet sln DubUrlCi.slnf list |
+              Where-Object { $_ -match '\.csproj$' }
+          )
+          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 12) {
+            throw "Expected twelve projects in DubUrlCi.slnf, found $($projects.Count)."
+          }
+
+          $paths = @(
+            foreach ($project in $projects) {
+              $directory = Split-Path -Parent $project
+              "$directory/bin"
+              "$directory/obj"
+            }
+          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
+
+          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
+          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to archive ${{ matrix.framework }} build outputs."
+          }
+
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
+  unit-tests:
+    name: Unit tests (${{ matrix.framework }})
+    needs:
+      - version
+      - build
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - framework: net8.0
+            sdk: 8.0.416
+          - framework: net9.0
+            sdk: 9.0.308
+          - framework: net10.0
+            sdk: 10.0.401
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ matrix.sdk }}
+
+      - name: Download build outputs
+        uses: actions/download-artifact@v7
+        with:
+          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/build
+
+      - name: Extract build outputs
+        shell: pwsh
+        run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
+
+      - name: Restore test dependencies
+        run: >-
+          dotnet restore DubUrlCi.slnf
+          -p:TargetFramework=${{ matrix.framework }}
+          --force-evaluate
+
+      - name: Test
+        shell: pwsh
+        run: |
+          $projects = @(
+            'DubUrl',
+            'DubUrl.OleDb',
+            'DubUrl.Extensions',
+            'DubUrl.Adomd',
+            'DubUrl.Schema',
+            'DubUrl.BulkCopy'
+          )
+          $failedProjects = @()
+
+          foreach ($project in $projects) {
+            dotnet test "$project.Testing/$project.Testing.csproj" `
+              --configuration Release `
+              --framework '${{ matrix.framework }}' `
+              --no-build `
+              --no-restore `
+              --nologo `
+              --logger trx `
+              --results-directory ".test-results/$project/${{ matrix.framework }}" `
+              --collect:'XPlat Code Coverage'
+            if ($LASTEXITCODE -ne 0) {
+              $failedProjects += $project
+            }
+          }
+
+          if ($failedProjects.Count -ne 0) {
+            throw "Unit tests failed for: $($failedProjects -join ', ')."
+          }
+
+      - name: Collect coverage reports
+        shell: pwsh
+        run: |
+          $projects = @(
+            'DubUrl',
+            'DubUrl.OleDb',
+            'DubUrl.Extensions',
+            'DubUrl.Adomd',
+            'DubUrl.Schema',
+            'DubUrl.BulkCopy'
+          )
+          New-Item -ItemType Directory -Force .coverage | Out-Null
+
+          foreach ($project in $projects) {
+            $reports = @(
+              Get-ChildItem ".test-results/$project/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
+                Where-Object FullName -NotMatch '[\\/]In[\\/]'
+            )
+            if ($reports.Count -ne 1) {
+              throw "Expected one canonical coverage report for $project, found $($reports.Count)."
+            }
+
+            Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
+          }
+
+      - name: Upload test results and coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .test-results
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .coverage
+          include-hidden-files: true
+          if-no-files-found: error
+
+  coverage-threshold:
+    name: Coverage threshold
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download coverage reports
+        uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-*
+          path: .coverage
+          merge-multiple: true
+
+      - name: Enforce one-percent line coverage
+        shell: pwsh
+        run: |
+          $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
+          if ($reports.Count -ne 18) {
+            throw "Expected 18 coverage reports, found $($reports.Count)."
+          }
+
+          foreach ($report in $reports) {
+            [xml] $coverage = Get-Content -LiteralPath $report.FullName -Raw
+            $lineRate = [double]::Parse(
+              $coverage.coverage.'line-rate',
+              [Globalization.CultureInfo]::InvariantCulture
+            )
+            if ($lineRate -lt 0.01) {
+              throw "Coverage in '$($report.FullName)' is $($lineRate * 100)%, below 1%."
+            }
+          }
+
+  coverage-upload:
+    name: Upload coverage
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download coverage reports
+        uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-*
+          path: .coverage
+          merge-multiple: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          directory: .coverage
+          fail_ci_if_error: true
+          use_oidc: true
+
+  package:
+    name: Package - ${{ matrix.package-id }}
+    needs:
+      - version
+      - build
+      - unit-tests
+      - coverage-threshold
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package-id: DubUrl
+            project: DubUrl.Core/DubUrl.csproj
+          - package-id: DubUrl.OleDb
+            project: DubUrl.OleDb/DubUrl.OleDb.csproj
+          - package-id: DubUrl.Extensions
+            project: DubUrl.Extensions/DubUrl.Extensions.csproj
+          - package-id: DubUrl.Adomd
+            project: DubUrl.Adomd/DubUrl.Adomd.csproj
+          - package-id: DubUrl.Schema
+            project: DubUrl.Schema/DubUrl.Schema.csproj
+          - package-id: DubUrl.BulkCopy
+            project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Download build outputs
+        uses: actions/download-artifact@v7
+        with:
+          pattern: build-*-${{ needs.version.outputs.semver }}
+          path: .artifacts/build
+          merge-multiple: true
+
+      - name: Extract build outputs
+        shell: pwsh
+        run: |
+          $archives = @(Get-ChildItem .artifacts/build -Filter 'build-*.tar.gz' -File)
+          if ($archives.Count -ne 3) {
+            throw "Expected three framework build archives, found $($archives.Count)."
+          }
+          foreach ($archive in $archives | Sort-Object Name) {
+            tar -xzf $archive.FullName -C .
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to extract '$($archive.Name)'."
+            }
+          }
+
+      - name: Restore package project
+        run: dotnet restore "${{ matrix.project }}" --force-evaluate
+
+      - name: Pack
+        run: >-
+          dotnet pack "${{ matrix.project }}"
+          --configuration Release
+          --no-build
+          --no-restore
+          --nologo
+          --include-symbols
+          --output .artifacts/nuget
+          -p:Version=${{ needs.version.outputs.semver }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-${{ matrix.package-id }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/nuget
+          include-hidden-files: true
+          if-no-files-found: error
+
+  validate-packages:
+    name: Validate packages
+    needs:
+      - version
+      - package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v7
+        with:
+          pattern: nuget-*
+          path: .artifacts/nuget
+          merge-multiple: true
+
+      - name: Validate release artifacts
+        shell: pwsh
+        run: >-
+          ./.github/scripts/Validate-ReleaseArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -NuGetDirectory './.artifacts/nuget'
+
+  reserve-release:
+    name: Reserve release identity
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - version
+      - validate-packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Block release while AppVeyor is configured
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath './appveyor.yml') {
+            throw 'Release is blocked while appveyor.yml exists. Remove the legacy AppVeyor workflow before enabling GitHub publication.'
+          }
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
+        with:
+          versionSpec: 6.6.0
+
+      - name: Recalculate version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
+
+      - name: Validate tested commit and version
+        shell: pwsh
+        run: |
+          $testedCommit = git rev-parse HEAD
+          if ($testedCommit -ne '${{ github.sha }}') {
+            throw "Checked-out commit '$testedCommit' does not match tested commit '${{ github.sha }}'."
+          }
+          if ('${{ steps.gitversion.outputs.semVer }}' -ne '${{ needs.version.outputs.semver }}') {
+            throw "Recalculated version '${{ steps.gitversion.outputs.semVer }}' does not match tested version '${{ needs.version.outputs.semver }}'."
+          }
+
+      - name: Reserve release tag
+        if: needs.version.outputs.patch == '0'
+        shell: pwsh
+        run: |
+          $tag = 'v${{ needs.version.outputs.semver }}'
+          git fetch origin --force --tags
+          $remote = git ls-remote --tags origin "refs/tags/$tag"
+
+          if ($remote) {
+            $tagCommit = git rev-list -n 1 $tag
+            if ($tagCommit -ne '${{ github.sha }}') {
+              throw "Tag '$tag' already identifies '$tagCommit', not '${{ github.sha }}'."
+            }
+            Write-Host "Reusing '$tag' for the tested commit."
+          }
+          else {
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag --annotate $tag --message "DubUrl ${{ needs.version.outputs.semver }}" '${{ github.sha }}'
+            git push origin $tag
+          }
+
+  publish-nuget:
+    name: Publish NuGet packages
+    needs:
+      - version
+      - reserve-release
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v7
+        with:
+          pattern: nuget-*
+          path: .artifacts/nuget
+          merge-multiple: true
+
+      - name: Revalidate downloaded artifacts
+        shell: pwsh
+        run: >-
+          ./.github/scripts/Validate-ReleaseArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -NuGetDirectory './.artifacts/nuget'
+
+      - name: Exchange GitHub identity for a NuGet API key
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: Seddryck
+
+      - name: Publish NuGet packages
+        shell: pwsh
+        run: |
+          Get-ChildItem .artifacts/nuget -Filter *.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName `
+              --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
+              --source 'https://api.nuget.org/v3/index.json' `
+              --skip-duplicate
+
+            if ($LASTEXITCODE -ne 0) {
+              throw "Publishing '$($_.Name)' failed."
+            }
+          }
+
+  github-release:
+    name: Create GitHub release
+    if: needs.version.outputs.patch == '0'
+    needs:
+      - version
+      - publish-nuget
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      discussions: write
+    steps:
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = 'v${{ needs.version.outputs.semver }}'
+          if (gh release view $tag --repo '${{ github.repository }}' 2>$null) {
+            Write-Host "Release '$tag' already exists."
+          }
+          else {
+            gh release create $tag `
+              --repo '${{ github.repository }}' `
+              --title 'DubUrl ${{ needs.version.outputs.semver }}' `
+              --generate-notes `
+              --discussion-category 'Announcements' `
+              --verify-tag
+          }
