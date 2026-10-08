@@ -457,6 +457,69 @@ public class SchemaScriptRendererTests
     }
 
     [Test]
+    public void Render_ValidatedNativeType_UsesDialectRegistry()
+    {
+        var table = new TableBuilder()
+            .WithName("Spatial")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Location").WithType(DbType.Object)
+                .WithNativeType(new NativeDatabaseType("geography", typeof(TSqlDialect)))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("[Location] GEOGRAPHY"));
+    }
+
+    [Test]
+    public void Render_NativeNumericType_PreservesStructuredPrecisionAndScale()
+    {
+        var registry = new NativeTypeRegistry().Register<TSqlDialect>("DECIMAL");
+        var table = new Table("Measure", [
+            new NumericColumn("Amount", DbType.Decimal, 12, 3,
+                nativeType: new NativeDatabaseType("DECIMAL"))
+        ]);
+
+        var result = new SchemaScriptRenderer(TSql, nativeTypes: registry).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("[Amount] DECIMAL(12, 3)"));
+    }
+
+    [Test]
+    public void Render_UnsupportedNativeTypeWithFallback_UsesLogicalMapping()
+    {
+        var table = new Table("Spatial", [
+            new Column("Location", DbType.String, nativeType: new NativeDatabaseType("GEOGRAPHY"),
+                nativeTypeFallback: NativeTypeFallback.LogicalType)
+        ]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("Location VARCHAR"));
+    }
+
+    [Test]
+    public void Render_DialectScopedNativeTypeOnIncompatibleDialect_ThrowsExplicitError()
+    {
+        var table = new Table("Document", [
+            new Column("Payload", DbType.String,
+                nativeType: new NativeDatabaseType("JSONB", typeof(PgsqlDialect)))
+        ]);
+
+        Assert.That(
+            () => new SchemaScriptRenderer(TSql).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>().With.Message.Contains("JSONB"));
+    }
+
+    [Test]
+    public void Create_NativeTypeWithHostileInput_ThrowsValidationError()
+    {
+        Assert.That(
+            () => new NativeDatabaseType("VARCHAR(20); DROP TABLE Customer"),
+            Throws.ArgumentException.With.Message.Contains("Native type names"));
+    }
+
+    [Test]
     public void Render_TwoTables_ExpectedResult()
     {
         var renderer = new SchemaScriptRenderer(DuckDb);

@@ -18,7 +18,7 @@ namespace DubUrl.Schema;
     private IDialect Dialect { get; }
     public bool SupportsComments { get; }
 
-    public SchemaScriptRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None)
+    public SchemaScriptRenderer(IDialect dialect, SchemaCreationOptions options = SchemaCreationOptions.None, NativeTypeRegistry? nativeTypes = null)
     {
         Dialect = dialect;
         SupportsComments = CommentRenderer.Supports(dialect);
@@ -29,7 +29,7 @@ namespace DubUrl.Schema;
             templates.Add(new DropIndexesIfExistsRenderer(dialect));
         }
             
-        templates.Add(new CreateSchemaRenderer(dialect));
+        templates.Add(new CreateSchemaRenderer(dialect, nativeTypes));
         templates.Add(new ForeignKeyRenderer(dialect));
         if (SupportsComments)
             templates.Add(new CommentRenderer(dialect));

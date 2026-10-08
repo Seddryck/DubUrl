@@ -24,6 +24,8 @@ public class ColumnViewModel
     public object? DefaultValue { get; }
     public bool HasDefaultValue { get; }
     public string? Description { get; }
+    public NativeDatabaseType? NativeType { get; }
+    public NativeTypeFallback NativeTypeFallback { get; }
 
     public ColumnViewModel(Column column)
     {
@@ -32,6 +34,8 @@ public class ColumnViewModel
         DefaultValue = column.DefaultValue;
         HasDefaultValue = column.DefaultValue is not null;
         Description = column.Description;
+        NativeType = column.NativeType;
+        NativeTypeFallback = column.NativeTypeFallback;
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
         Unique = column.Constraints.Get<UniquenessConstraint>();
