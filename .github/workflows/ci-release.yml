@@ -141,17 +141,21 @@ jobs:
           - net8.0
           - net9.0
           - net10.0
+        include:
+          - framework: net8.0
+            sdk: 8.0.416
+          - framework: net9.0
+            sdk: 9.0.308
+          - framework: net10.0
+            sdk: 10.0.401
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Set up .NET SDKs
+      - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: |
-            8.0.416
-            9.0.308
-            10.0.401
+          dotnet-version: ${{ matrix.sdk }}
 
       - name: Download build outputs
         uses: actions/download-artifact@v7
@@ -164,7 +168,9 @@ jobs:
         run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
 
       - name: Restore unit-test project
-        run: dotnet restore "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
+        run: >-
+          dotnet restore "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
+          -p:TargetFramework=${{ matrix.framework }}
 
       - name: Build shared test infrastructure
         if: matrix.project == 'DubUrl.OleDb' || matrix.project == 'DubUrl.Adomd'
@@ -313,13 +319,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Set up .NET SDKs
+      - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: |
-            8.0.416
-            9.0.308
-            10.0.401
+          dotnet-version: 10.0.401
 
       - name: Download build outputs
         uses: actions/download-artifact@v7
