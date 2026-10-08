@@ -17,7 +17,8 @@ public class ColumnViewModel
     public Constraint? NotNullable { get; }
     public Constraint? Unique { get; }
     public PrimaryKeyConstraintViewModel? PrimaryKey { get; }
-    public Constraint[] Checks { get; }
+    public CheckConstraint[] Checks { get; }
+    public MembershipCheckConstraint[] MembershipChecks { get; }
 
     public object? DefaultValue { get; }
     public bool HasDefaultValue { get; }
@@ -32,6 +33,7 @@ public class ColumnViewModel
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
         Unique = column.Constraints.Get<UniquenessConstraint>();
         Checks = [.. column.Constraints.OfType<CheckConstraint>()];
+        MembershipChecks = [.. column.Constraints.OfType<MembershipCheckConstraint>()];
         if (column is VarLengthColumn varLength)
             Length = varLength.Length;
         if (column is NumericColumn numeric)

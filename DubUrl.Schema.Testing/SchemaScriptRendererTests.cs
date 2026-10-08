@@ -245,6 +245,54 @@ public class SchemaScriptRendererTests
     }
 
     [Test]
+    public void Render_MembershipWithEscapedStrings_UsesDialectValueFormatter()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Status").WithType(DbType.String)
+                .WithCheck(check => check.WithMembership(
+                    expression => expression.WithCurrentColumn(),
+                    ["new", "owner's choice"]))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("Status VARCHAR CHECK Status IN ('new', 'owner''s choice')"));
+    }
+
+    [Test]
+    public void Render_MembershipWithNullMatch_RendersExplicitNullPredicate()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Status").WithType(DbType.String)
+                .WithCheck(check => check.WithMembership(
+                    expression => expression.WithCurrentColumn(),
+                    ["new", null],
+                    NullMembershipBehavior.MatchNull))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CHECK ([Status] IN ('new') OR [Status] IS NULL)"));
+    }
+
+    [Test]
+    public void Build_EmptyMembership_ThrowsActionableError()
+    {
+        Assert.That(() => new TableBuilder()
+                .WithName("Customer")
+                .WithColumns(columns => columns.Add(column => column
+                    .WithName("Status").WithType(DbType.String)
+                    .WithCheck(check => check.WithMembership(
+                        expression => expression.WithCurrentColumn(),
+                        [])))),
+            Throws.ArgumentException.With.Message.Contains("at least one value"));
+    }
+
+    [Test]
     public void Render_TwoTables_ExpectedResult()
     {
         var renderer = new SchemaScriptRenderer(DuckDb);

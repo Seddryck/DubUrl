@@ -9,9 +9,9 @@ namespace DubUrl.Querying.Dialects.Formatters;
 public class ValueSimpleQuotedFormatter : IValueFormatter<string>, IValueFormatter<char>
 {
     public string Format(string value)
-        => $"'{value}'";
+        => $"'{value.Replace("'", "''")}'";
     public string Format(char value)
-        => $"'{value}'";
+        => value == '\'' ? "''''" : $"'{value}'";
     public string Format(object obj)
         => obj switch
         {
