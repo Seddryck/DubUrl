@@ -218,6 +218,8 @@ Across isolated jobs, transferring `bin` and `obj` outputs does not populate the
 
 When several test projects share the same framework, SDK, runner, and compiled artifact, consider one test job per framework that restores their dependencies once and executes each project separately with `--no-build --no-restore`. Preserve distinct result and coverage identities for every project. Keep a project-level job matrix when independent status, retry scope, or isolation is more valuable than avoiding repeated restores.
 
+When the same compiled managed artifacts and logical test suite run on multiple operating systems, retain test results for every native runner but collect coverage on one canonical platform unless platform-specific coverage is itself a requirement. This avoids duplicate or empty reports from runners that intentionally skip unsupported tests. Keep the canonical platform explicit, require its exact report set, and never let missing cross-platform test results pass silently.
+
 Prefer a workflow-native matrix with direct build and test commands when the project, target-framework, runner, or architecture dimensions are stable and enumerable. Do not hide those dimensions in a wrapper script whose main purpose is nested iteration. A script remains appropriate for substantial reusable logic, but the workflow should still expose the dimensions that determine job isolation, status, retry scope, and artifact identity.
 
 Select one coverage driver that matches the active test platform and do not mix drivers in the same test project:
