@@ -94,9 +94,5 @@ $shimPath = Join-Path $dotnetToolsPath "gitversion.cmd"
 
 $env:Path = "$dotnetToolsPath;$env:Path"
 
-if (Get-Command Set-AppveyorBuildVariable -ErrorAction SilentlyContinue) {
-    Set-AppveyorBuildVariable -Name "PATH" -Value $env:Path
-}
-
 Write-Host "GitVersion $installedVersion installed successfully."
 Write-Host "Path: $gitVersionExe"
