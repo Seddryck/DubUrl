@@ -124,7 +124,7 @@ jobs:
           if-no-files-found: error
 
   unit-tests:
-    name: Unit tests - ${{ matrix.project }} (${{ matrix.framework }})
+    name: Unit tests (${{ matrix.framework }})
     needs:
       - version
       - build
@@ -132,17 +132,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project:
-          - DubUrl
-          - DubUrl.OleDb
-          - DubUrl.Extensions
-          - DubUrl.Adomd
-          - DubUrl.Schema
-          - DubUrl.BulkCopy
-        framework:
-          - net8.0
-          - net9.0
-          - net10.0
         include:
           - framework: net8.0
             sdk: 8.0.416
@@ -169,37 +158,74 @@ jobs:
         shell: pwsh
         run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
 
-      - name: Test
+      - name: Restore test dependencies
         run: >-
-          dotnet test "${{ matrix.project }}.Testing/${{ matrix.project }}.Testing.csproj"
-          --configuration Release
-          --framework ${{ matrix.framework }}
-          --no-build
-          --no-restore
-          --nologo
-          --logger trx
-          --results-directory ".test-results/${{ matrix.project }}/${{ matrix.framework }}"
-          --collect:"XPlat Code Coverage"
+          dotnet restore DubUrlCi.slnf
+          -p:TargetFramework=${{ matrix.framework }}
+          --force-evaluate
 
-      - name: Collect coverage report
+      - name: Test
         shell: pwsh
         run: |
-          $reports = @(
-            Get-ChildItem ".test-results/${{ matrix.project }}/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
-              Where-Object FullName -NotMatch '[\\/]In[\\/]'
+          $projects = @(
+            'DubUrl',
+            'DubUrl.OleDb',
+            'DubUrl.Extensions',
+            'DubUrl.Adomd',
+            'DubUrl.Schema',
+            'DubUrl.BulkCopy'
           )
-          if ($reports.Count -ne 1) {
-            throw "Expected one canonical coverage report, found $($reports.Count)."
+          $failedProjects = @()
+
+          foreach ($project in $projects) {
+            dotnet test "$project.Testing/$project.Testing.csproj" `
+              --configuration Release `
+              --framework '${{ matrix.framework }}' `
+              --no-build `
+              --no-restore `
+              --nologo `
+              --logger trx `
+              --results-directory ".test-results/$project/${{ matrix.framework }}" `
+              --collect:'XPlat Code Coverage'
+            if ($LASTEXITCODE -ne 0) {
+              $failedProjects += $project
+            }
           }
 
+          if ($failedProjects.Count -ne 0) {
+            throw "Unit tests failed for: $($failedProjects -join ', ')."
+          }
+
+      - name: Collect coverage reports
+        shell: pwsh
+        run: |
+          $projects = @(
+            'DubUrl',
+            'DubUrl.OleDb',
+            'DubUrl.Extensions',
+            'DubUrl.Adomd',
+            'DubUrl.Schema',
+            'DubUrl.BulkCopy'
+          )
           New-Item -ItemType Directory -Force .coverage | Out-Null
-          Copy-Item $reports[0].FullName ".coverage/coverage.${{ matrix.project }}.${{ matrix.framework }}.xml"
+
+          foreach ($project in $projects) {
+            $reports = @(
+              Get-ChildItem ".test-results/$project/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
+                Where-Object FullName -NotMatch '[\\/]In[\\/]'
+            )
+            if ($reports.Count -ne 1) {
+              throw "Expected one canonical coverage report for $project, found $($reports.Count)."
+            }
+
+            Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
+          }
 
       - name: Upload test results and coverage
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-results-${{ matrix.project }}-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          name: test-results-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
           path: .test-results
           include-hidden-files: true
           if-no-files-found: error
@@ -207,7 +233,7 @@ jobs:
       - name: Upload coverage report
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-${{ matrix.project }}-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          name: coverage-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
           path: .coverage
           include-hidden-files: true
           if-no-files-found: error

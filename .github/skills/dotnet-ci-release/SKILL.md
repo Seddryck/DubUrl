@@ -214,6 +214,10 @@ Set up SDKs and caches using project or lock files as cache keys. Run cheap sour
 
 Restore deterministically, preferring locked mode for release inputs. Build before testing, then use `--no-build` and `--no-restore` or their equivalents. Matrix dimensions must correspond to compilation, dependency, or behavior differences. Give every entry a descriptive name and unique coverage identity.
 
+Across isolated jobs, transferring `bin` and `obj` outputs does not populate the next runner's global package cache. A project-based `dotnet test --no-restore` can therefore become a successful no-op when `Microsoft.NET.Test.Sdk` targets are unavailable. Restore test dependencies on the consuming runner, distribute a complete runner-ready test bundle, or invoke compiled test modules with all required adapters and collectors. Always require the expected test-result and coverage files so a no-op cannot pass silently.
+
+When several test projects share the same framework, SDK, runner, and compiled artifact, consider one test job per framework that restores their dependencies once and executes each project separately with `--no-build --no-restore`. Preserve distinct result and coverage identities for every project. Keep a project-level job matrix when independent status, retry scope, or isolation is more valuable than avoiding repeated restores.
+
 Prefer a workflow-native matrix with direct build and test commands when the project, target-framework, runner, or architecture dimensions are stable and enumerable. Do not hide those dimensions in a wrapper script whose main purpose is nested iteration. A script remains appropriate for substantial reusable logic, but the workflow should still expose the dimensions that determine job isolation, status, retry scope, and artifact identity.
 
 Select one coverage driver that matches the active test platform and do not mix drivers in the same test project:
