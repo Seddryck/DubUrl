@@ -14,7 +14,7 @@ namespace DubUrl.Schema.Renderers;
 public class DropIndexesIfExistsRenderer : RendererEngine
 {
     public DropIndexesIfExistsRenderer(IDialect dialect)
-            : this(CreateHelpers(dialect.Renderer))
+            : this(CreateHelpers(dialect))
     { }
 
     protected DropIndexesIfExistsRenderer(IDictionary<string, Func<object?, string>> helpers)

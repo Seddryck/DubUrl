@@ -1,5 +1,5 @@
 ﻿{{#each model.Indexes}}
-CREATE INDEX {{identity Name}} ON {{identity TableName}} (
+CREATE INDEX {{objectname Identity}} ON {{objectname TableIdentity}} (
 {{#each Columns}}
     {{identity Name}}{{#unless @last}},{{/unless}}
 {{/each}}

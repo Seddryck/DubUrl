@@ -4,6 +4,7 @@ public sealed class ForeignKeyConstraint : Constraint
 {
     public IReadOnlyList<string> SourceColumns { get; }
     public string TargetTableName { get; }
+    public DatabaseObjectName TargetTable { get; }
     public IReadOnlyList<string> TargetColumns { get; }
 
     public ForeignKeyConstraint(
@@ -11,14 +12,21 @@ public sealed class ForeignKeyConstraint : Constraint
         IEnumerable<string> sourceColumns,
         string targetTableName,
         IEnumerable<string> targetColumns)
+        : this(name, sourceColumns, new DatabaseObjectName(targetTableName), targetColumns)
+    { }
+
+    public ForeignKeyConstraint(
+        string name,
+        IEnumerable<string> sourceColumns,
+        DatabaseObjectName targetTable,
+        IEnumerable<string> targetColumns)
         : base(string.IsNullOrWhiteSpace(name)
             ? throw new ArgumentException("A foreign-key constraint name must be provided.", nameof(name))
             : name)
     {
         SourceColumns = ValidateColumns(sourceColumns, nameof(sourceColumns));
-        TargetTableName = string.IsNullOrWhiteSpace(targetTableName)
-            ? throw new ArgumentException("A target table name must be provided.", nameof(targetTableName))
-            : targetTableName;
+        TargetTable = targetTable ?? throw new ArgumentNullException(nameof(targetTable));
+        TargetTableName = targetTable.Name;
         TargetColumns = ValidateColumns(targetColumns, nameof(targetColumns));
         if (SourceColumns.Count != TargetColumns.Count)
             throw new ArgumentException(

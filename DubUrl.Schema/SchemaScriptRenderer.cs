@@ -45,7 +45,8 @@ namespace DubUrl.Schema;
             var tableRenderer = new TableViewModel(table.Value, Dialect is SqliteDialect);
             tables.Add(tableRenderer);
         }
-        var model = new { model = new { Tables = tables.ToArray() } };
+        var indexes = schema.Indexes.Values.Select(index => new IndexViewModel(index)).ToArray();
+        var model = new { model = new { Tables = tables.ToArray(), Indexes = indexes } };
 
         var script = new StringBuilder();
         foreach (var renderer in Templates)
