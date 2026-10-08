@@ -5,6 +5,7 @@
 	  <EmbeddedResource Include="Renderers\Templates\DropIndexesIfExists.sql.hbs" />
 	  <EmbeddedResource Include="Renderers\Templates\DropTablesIfExists.sql.hbs" />
 	  <EmbeddedResource Include="Renderers\Templates\CreateTables.sql.hbs" />
+	  <EmbeddedResource Include="Renderers\Templates\CreateForeignKeys.sql.hbs" />
 	</ItemGroup>
 
 	<ItemGroup>
