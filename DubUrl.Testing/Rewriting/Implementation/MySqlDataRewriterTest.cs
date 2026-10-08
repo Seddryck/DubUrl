@@ -68,9 +68,13 @@ public class MySqlDataRewriterTest
         var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new MySqlDataRewriter(ConnectionStringBuilder);
         if (OperatingSystem.IsWindows())
+        {
             Assert.Catch<PlatformNotSupportedException>(() => Rewriter.Execute(urlInfo));
+        }
         else
+        {
             Assert.Catch<MySqlException>(() => Rewriter.Execute(urlInfo));
+        }
     }
 
     [Test]
