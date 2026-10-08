@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.OleDb.Testing;
 
+[Platform("Win")]
 public class SchemeRegistryBuilderTests
 {
     [SetUp]
