@@ -13,11 +13,14 @@ public class Column
     public object? DefaultValue { get; }
     public ConstraintCollection Constraints { get; }
     public string? Description { get; }
+    public NativeDatabaseType? NativeType { get; }
+    public NativeTypeFallback NativeTypeFallback { get; }
 
-    public Column(string name, System.Data.DbType type, object? defaultValue = null, IConstraint[]? constraints = null, string? description = null)
+    public Column(string name, System.Data.DbType type, object? defaultValue = null, IConstraint[]? constraints = null,
+        string? description = null, NativeDatabaseType? nativeType = null, NativeTypeFallback nativeTypeFallback = NativeTypeFallback.Error)
     {
-        (Name, Type, DefaultValue, Constraints, Description) =
-            (name, type, defaultValue, new ConstraintCollection(constraints ?? []), NormalizeDescription(description));
+        (Name, Type, DefaultValue, Constraints, Description, NativeType, NativeTypeFallback) =
+            (name, type, defaultValue, new ConstraintCollection(constraints ?? []), NormalizeDescription(description), nativeType, nativeTypeFallback);
     }
 
     private static string? NormalizeDescription(string? description)

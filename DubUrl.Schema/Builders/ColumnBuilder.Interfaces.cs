@@ -102,6 +102,7 @@ public interface IColumnConstraintBuilder : IColumnBuilder
     /// <returns>The settings builder for method chaining.</returns>
     IColumnConstraintBuilder WithCheck(Func<ICheckBuilder, ICheckBuildable> builder);
     IColumnConstraintBuilder WithDescription(string? description);
+    IColumnConstraintBuilder WithNativeType(NativeDatabaseType nativeType, NativeTypeFallback fallback = NativeTypeFallback.Error);
 }
 
 /// <summary>

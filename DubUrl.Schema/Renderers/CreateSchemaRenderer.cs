@@ -16,11 +16,27 @@ using DubUrl.Schema.Constraints;
 namespace DubUrl.Schema.Renderers;
 public class CreateSchemaRenderer : RendererEngine
 {
-    public CreateSchemaRenderer(IDialect dialect)
+    public CreateSchemaRenderer(IDialect dialect, NativeTypeRegistry? nativeTypes = null)
         : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateHelpers(dialect.Renderer))
     {
+        nativeTypes ??= NativeTypeRegistry.Default;
         AddFormatter("membership", value => RenderMembership(value, dialect));
         AddFormatter("regex", value => RenderRegex(value, dialect));
+        AddFormatter("columntype", value => RenderColumnType(value, dialect, nativeTypes));
+    }
+
+    private static string RenderColumnType(object? value, IDialect dialect, NativeTypeRegistry nativeTypes)
+    {
+        if (value is not ColumnViewModel column)
+            throw new ArgumentException("The column type formatter requires a column view model.", nameof(value));
+        if (column.NativeType is null)
+            return dialect.DbTypeMapper.ToDictionary()[column.Type].ToString()!;
+        if (nativeTypes.TryResolve(dialect, column.NativeType, out var nativeType))
+            return nativeType;
+        if (column.NativeTypeFallback == NativeTypeFallback.LogicalType)
+            return dialect.DbTypeMapper.ToDictionary()[column.Type].ToString()!;
+        throw new NotSupportedException(
+            $"Native type '{column.NativeType.Name}' is not supported by dialect '{dialect.GetType().Name}'.");
     }
     
     protected CreateSchemaRenderer(IDbTypeMapper typeMapper, ISqlFunctionMapper sqlFunctionMapper, IDictionary<string, Func<object?, string>> helpers)
