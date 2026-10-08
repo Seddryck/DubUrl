@@ -23,6 +23,7 @@ public class ColumnViewModel
 
     public object? DefaultValue { get; }
     public bool HasDefaultValue { get; }
+    public string? Description { get; }
 
     public ColumnViewModel(Column column)
     {
@@ -30,6 +31,7 @@ public class ColumnViewModel
         Type = column.Type.ToString();
         DefaultValue = column.DefaultValue;
         HasDefaultValue = column.DefaultValue is not null;
+        Description = column.Description;
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
         Unique = column.Constraints.Get<UniquenessConstraint>();

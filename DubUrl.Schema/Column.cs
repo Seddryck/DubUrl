@@ -12,11 +12,14 @@ public class Column
     public System.Data.DbType Type { get; }
     public object? DefaultValue { get; }
     public ConstraintCollection Constraints { get; }
+    public string? Description { get; }
 
-    public Column(string name, System.Data.DbType type, object? defaultValue = null, IConstraint[]? constraints = null)
+    public Column(string name, System.Data.DbType type, object? defaultValue = null, IConstraint[]? constraints = null, string? description = null)
     {
-        (Name, Type, DefaultValue, Constraints) = (name, type, defaultValue, new ConstraintCollection(constraints ?? []));
+        (Name, Type, DefaultValue, Constraints, Description) =
+            (name, type, defaultValue, new ConstraintCollection(constraints ?? []), NormalizeDescription(description));
     }
 
-    
+    private static string? NormalizeDescription(string? description)
+        => string.IsNullOrWhiteSpace(description) ? null : description;
 }

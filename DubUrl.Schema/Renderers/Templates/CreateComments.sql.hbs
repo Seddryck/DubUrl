@@ -1,0 +1,10 @@
+{{#each model.Tables}}
+{{#if Description}}
+COMMENT ON TABLE {{identity Name}} IS {{value Description}};
+{{/if}}
+{{#each Columns}}
+{{#if Description}}
+COMMENT ON COLUMN {{identity ../Name}}.{{identity Name}} IS {{value Description}};
+{{/if}}
+{{/each}}
+{{/each}}
