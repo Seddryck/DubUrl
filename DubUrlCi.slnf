@@ -10,7 +10,7 @@
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",
       "DubUrl.Extensions\\DubUrl.Extensions.csproj",
       "DubUrl.OleDb.Testing\\DubUrl.OleDb.Testing.csproj",
-      "Duburl.OleDb\\DubUrl.OleDb.csproj",
+      "DubUrl.OleDb\\DubUrl.OleDb.csproj",
       "DubUrl.Schema.Testing\\DubUrl.Schema.Testing.csproj",
       "DubUrl.Schema\\DubUrl.Schema.csproj",
       "DubUrl.Testing\\DubUrl.Testing.csproj"

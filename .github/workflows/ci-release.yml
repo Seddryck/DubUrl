@@ -124,20 +124,38 @@ jobs:
           if-no-files-found: error
 
   unit-tests:
-    name: Unit tests (${{ matrix.framework }})
+    name: Unit tests (${{ matrix.platform }}, ${{ matrix.framework }})
     needs:
       - version
       - build
-    runs-on: windows-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - framework: net8.0
+          - platform: Windows
+            runner: windows-latest
+            framework: net8.0
             sdk: 8.0.416
-          - framework: net9.0
+          - platform: Windows
+            runner: windows-latest
+            framework: net9.0
             sdk: 9.0.308
-          - framework: net10.0
+          - platform: Windows
+            runner: windows-latest
+            framework: net10.0
+            sdk: 10.0.401
+          - platform: Linux
+            runner: ubuntu-latest
+            framework: net8.0
+            sdk: 8.0.416
+          - platform: Linux
+            runner: ubuntu-latest
+            framework: net9.0
+            sdk: 9.0.308
+          - platform: Linux
+            runner: ubuntu-latest
+            framework: net10.0
             sdk: 10.0.401
     steps:
       - name: Check out repository
@@ -176,6 +194,10 @@ jobs:
             'DubUrl.BulkCopy'
           )
           $failedProjects = @()
+          $coverageArguments = @()
+          if ('${{ matrix.platform }}' -eq 'Windows') {
+            $coverageArguments += '--collect:XPlat Code Coverage'
+          }
 
           foreach ($project in $projects) {
             dotnet test "$project.Testing/$project.Testing.csproj" `
@@ -185,8 +207,8 @@ jobs:
               --no-restore `
               --nologo `
               --logger trx `
-              --results-directory ".test-results/$project/${{ matrix.framework }}" `
-              --collect:'XPlat Code Coverage'
+              --results-directory ".test-results/$project/${{ matrix.platform }}/${{ matrix.framework }}" `
+              @coverageArguments
             if ($LASTEXITCODE -ne 0) {
               $failedProjects += $project
             }
@@ -197,6 +219,7 @@ jobs:
           }
 
       - name: Collect coverage reports
+        if: matrix.platform == 'Windows'
         shell: pwsh
         run: |
           $projects = @(
@@ -211,29 +234,30 @@ jobs:
 
           foreach ($project in $projects) {
             $reports = @(
-              Get-ChildItem ".test-results/$project/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
+              Get-ChildItem ".test-results/$project/${{ matrix.platform }}/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
                 Where-Object FullName -NotMatch '[\\/]In[\\/]'
             )
             if ($reports.Count -ne 1) {
               throw "Expected one canonical coverage report for $project, found $($reports.Count)."
             }
 
-            Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
+            Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.platform }}.${{ matrix.framework }}.xml"
           }
 
       - name: Upload test results and coverage
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-results-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          name: test-results-${{ matrix.platform }}-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
           path: .test-results
           include-hidden-files: true
           if-no-files-found: error
 
       - name: Upload coverage report
+        if: matrix.platform == 'Windows'
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          name: coverage-${{ matrix.platform }}-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
           path: .coverage
           include-hidden-files: true
           if-no-files-found: error
