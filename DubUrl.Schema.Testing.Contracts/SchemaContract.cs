@@ -27,7 +27,7 @@ public abstract class SchemaContract
             new Table(tableName,
             [
                 new Column("Id", DbType.Int32),
-                new VarLengthColumn("Name", DbType.String, 50),
+                new VarLengthColumn("Name", DbType.AnsiString, 50),
             ]),
         ]);
         var script = new SchemaScriptRenderer(CreateDialect()).Render(schema);
