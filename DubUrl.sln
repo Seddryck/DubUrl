@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.FirebirdSq
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.Timescale.QA", "DubUrl.Providers.Timescale.QA\\DubUrl.Providers.Timescale.QA.csproj", "{0E213A7B-BFE1-4783-9817-9BF0A41F4BF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.QuestDb.QA", "DubUrl.Providers.QuestDb.QA\\DubUrl.Providers.QuestDb.QA.csproj", "{73AFBC7A-DDF5-43FD-919E-5827F657F476}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +187,10 @@ Global
 		{0E213A7B-BFE1-4783-9817-9BF0A41F4BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E213A7B-BFE1-4783-9817-9BF0A41F4BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E213A7B-BFE1-4783-9817-9BF0A41F4BF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73AFBC7A-DDF5-43FD-919E-5827F657F476}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73AFBC7A-DDF5-43FD-919E-5827F657F476}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73AFBC7A-DDF5-43FD-919E-5827F657F476}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73AFBC7A-DDF5-43FD-919E-5827F657F476}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

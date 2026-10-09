@@ -11,6 +11,7 @@ public abstract class OdbcContract
     protected abstract string ConnectionUrl { get; }
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectCustomerByIdSql { get; }
+    protected virtual bool SupportsParameters => true;
 
     [OneTimeSetUp]
     public void RegisterProviderFactories()
@@ -29,7 +30,11 @@ public abstract class OdbcContract
 
     [Test, Category("ConnectionUrl")]
     public void QueryCustomerWithParams()
-        => AssertScalar(SelectCustomerByIdSql, "CustId", 2, "Albert Einstein");
+    {
+        if (!SupportsParameters)
+            Assert.Ignore("The ODBC provider does not support parameters.");
+        AssertScalar(SelectCustomerByIdSql, "CustId", 2, "Albert Einstein");
+    }
 
     private void AssertScalar(string sql, string? parameterName, int parameterValue, string expected)
     {
