@@ -106,8 +106,8 @@ public class NativeMapperIntrospectorTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(primary, Is.Not.Null.Or.Empty);
-            Assert.That(alternative, Is.Not.Null.Or.Empty);
+            Assert.That(primary, Is.Not.Null.And.Not.Empty);
+            Assert.That(alternative, Is.Not.Null.And.Not.Empty);
         });
         Assert.That(primary, Is.EqualTo(alternative));
     }
@@ -122,8 +122,8 @@ public class NativeMapperIntrospectorTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(primary, Is.Not.Null.Or.Empty);
-            Assert.That(alternative, Is.Not.Null.Or.Empty);
+            Assert.That(primary, Is.Not.Null.And.Not.Empty);
+            Assert.That(alternative, Is.Not.Null.And.Not.Empty);
         });
         Assert.That(primary, Is.EqualTo(alternative));
     }

@@ -1,5 +1,5 @@
 version: build.{build}
-image: Visual Studio 2022
+image: Visual Studio 2026
 
 skip_tags: true
 skip_commits:
@@ -15,17 +15,18 @@ skip_commits:
 
 environment:
   github_access_token:
-    secure: gtEHCUmmDjYfrp/NEe2qUL/VwxZasWJUaIYe9UGs9SjMQmM9aim/7pugYwf1vezGd86kRNQkS6v7YjmSmCtWlwDmdpcnfMNAqVlH4e3Eapfo43EboM42IdpFNr5CfzYf
+    secure: gtEHCUmmDjYfrp/NEe2qUPNZOpJs99mniDnyZTIG90uG4QjcJnLf1p6aJUlgDMxoh18mWc+2oFtrp2GJjUJOJia39pYbkI/GQG06zO1Jq9GBxIf9SITobhG9NM4kuLIM
   SINGLESTORE_LICENSE:
     secure: CnPDQsQ/dDximcta5iMng/QKahXstSQpENsXCHiDd9JbPfkYTRn8GgXsAcYQgrHKtnsA+FDAO85fxfHXyb2tmrLjJupAMKA14t58y7D0ePpeIs6ZRGu8MCQkSLk9cuiGFQeRSOxoH9gUkVPQU30M3n9+HY8gVvasxanUsWH+HWhwrl9+4gr7D8SGx4ZB4rUyEZ8vQGUw0uHerbaImkQk9Q==
 
 init:
 - cmd: git config --global core.autocrlf true
 - cmd: setx IGNORE_NORMALISATION_GIT_HEAD_MOVE "1"
-- cmd: RefreshEnv.cmd
-- pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 
 before_build:
+- pwsh: .\install-gitversion.ps1
+- cmd: RefreshEnv.cmd
+- pwsh: Write-Host "Target branch is '$($env:APPVEYOR_REPO_BRANCH)'"
 - cmd: gitversion /output buildserver /verbosity Minimal
 - pwsh: Write-Host "Building DubUrl version $($env:GitVersion_SemVer)"
 - pwsh: |
@@ -72,7 +73,7 @@ test_script:
 
 - pwsh: |
       $force = ($env:APPVEYOR_REPO_BRANCH -eq "main") #Valid for a Pull Request or a Commit on main
-      & .\DubUrl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net8.0", "net9.0") -exclude @("CockRoach", "Drill", "Trino", "PowerBIDesktop", "SsasMultdim", "SsasTabular", "SingleStore", "CrateDB")
+      & .\DubUrl.QA\deploy-test-harness.ps1 -force:$force -config "Release" -frameworks @("net8.0", "net9.0", "net10.0") -exclude @("CockRoach", "Drill", "Trino", "PowerBIDesktop", "SsasMultdim", "SsasTabular", "SingleStore", "CrateDB")
       if ($lastexitcode -gt 0) {
         throw "At least one of the test-suite was not successful. Build stopped."
       }
@@ -92,7 +93,7 @@ artifacts:
 deploy:
 - provider: NuGet
   api_key:
-    secure: NL0RNWNOT5ZMdK7p8i8UQ1v8mmjivWnU3BazHZ8G15I8v+CRBjpTZA9Oz3y0nhEC
+    secure: VnvWv31LeRP82fYb+4ZyMYbX+9qYs6dp21LV+Sn2P4RqYJrEaHrn88G349mvLfDQ
   skip_symbols: false
   artifact: /.*(\.|\.s)nupkg/
   on:
