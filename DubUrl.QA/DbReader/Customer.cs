@@ -9,6 +9,6 @@ namespace DubUrl.QA.DbReader;
 internal record Customer(
     int CustomerId,
     string FullName,
-    DateTime BirthDate
+    DateOnly BirthDate
 )
 { }

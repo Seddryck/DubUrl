@@ -46,7 +46,7 @@ public class AdoProviderDuckDB : BaseAdoProvider
 
     [Test]
     public override void QueryCustomerWithWhereClause()
-        => Assert.Ignore("Object of type 'DuckDB.NET.DuckDBDateOnly' cannot be converted to type 'System.DateTime'");
+        => base.QueryCustomerWithWhereClause();
 
     [Test]
     public override void QueryIntervalWithDatabaseUrl()
