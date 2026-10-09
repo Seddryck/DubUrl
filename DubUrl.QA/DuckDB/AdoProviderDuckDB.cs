@@ -109,7 +109,6 @@ public class AdoProviderDuckDB : BaseAdoProvider
         Assert.That(cmd.ExecuteScalar(), Is.EqualTo(0));
     }
 
-
     [Test]
     public void BulkCopy()
     {
