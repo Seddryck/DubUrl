@@ -20,6 +20,7 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
+  POSTGRES_IMAGE: public.ecr.aws/docker/library/postgres:17
 
 jobs:
   provider-qa:
