@@ -87,6 +87,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.Sqlite.QA"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.PostgreSql.QA", "DubUrl.Providers.PostgreSql.QA\DubUrl.Providers.PostgreSql.QA.csproj", "{23CFF4EF-5BB3-425F-8D3A-DDE1C0F74A8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.CockroachDb.QA", "DubUrl.Providers.CockroachDb.QA\\DubUrl.Providers.CockroachDb.QA.csproj", "{68D03333-9CEF-44CC-BE86-268E92B538A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -161,6 +163,10 @@ Global
 		{23CFF4EF-5BB3-425F-8D3A-DDE1C0F74A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23CFF4EF-5BB3-425F-8D3A-DDE1C0F74A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23CFF4EF-5BB3-425F-8D3A-DDE1C0F74A8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68D03333-9CEF-44CC-BE86-268E92B538A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68D03333-9CEF-44CC-BE86-268E92B538A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68D03333-9CEF-44CC-BE86-268E92B538A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68D03333-9CEF-44CC-BE86-268E92B538A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
