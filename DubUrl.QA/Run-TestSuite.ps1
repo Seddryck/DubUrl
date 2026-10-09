@@ -24,7 +24,7 @@ Function Run-TestSuite {
 				foreach ($category in $categories) {
 					Write-Host "`tRunning test-suite for $category ($framework)"
 					$arguments  = @("test", "..\..\DubUrl.QA")
-					$arguments += @("--filter", "`"TestCategory=$($category.Split("+") -join "`"`"&`"`"TestCategory=")`"")
+					$arguments += @("--filter", "TestCategory=$($category.Split("+") -join "&TestCategory=")")
 					$arguments += @("-c", $config)
 					$arguments += @("-f", $framework)
 					$arguments += @("--no-build", "--nologo")
