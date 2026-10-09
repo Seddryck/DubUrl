@@ -12,6 +12,13 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PostgreSql.QA\DubUrl.Providers.PostgreSql.QA.csproj"
 	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PostgreSql.QA\infrastructure\compose.yaml"
 
+	if ($IsLinux) {
+		& sudo apt-get update
+		if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
+		& sudo apt-get install --yes odbc-postgresql
+		if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL ODBC driver." }
+	}
+
 	Write-Host "Starting PostgreSQL QA infrastructure with Docker Compose"
 	& docker compose -f $composeFile up --detach --wait
 	if ($LASTEXITCODE -ne 0) {
