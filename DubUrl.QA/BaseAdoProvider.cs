@@ -266,7 +266,6 @@ public abstract class BaseAdoProvider
         Assert.That(customers.Select(x => x.FullName), Has.Member("Linus Torvalds"));
     }
 
-
     [Test]
     [Category("MicroOrm")]
     [Category("Template")]
