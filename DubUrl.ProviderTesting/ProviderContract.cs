@@ -29,6 +29,7 @@ public abstract class ProviderContract
     protected virtual bool SupportsTime => true;
     protected virtual bool SupportsInterval => true;
     protected virtual bool SupportsNull => true;
+    protected virtual bool SupportsYoungestCustomers => true;
     protected virtual string SelectPrimitiveTemplate => "select $value; format=\"value\"$";
 
     [OneTimeSetUp]
@@ -169,6 +170,8 @@ public abstract class ProviderContract
     [Test, Category("MicroOrm")]
     public void QueryTwoYoungestCustomersWithRepositoryFactory()
     {
+        if (!SupportsYoungestCustomers)
+            Assert.Ignore("The provider does not support the shared youngest-customers contract.");
         using var provider = CreateServices(microOrm: true).AddSingleton<RepositoryFactory>().BuildServiceProvider();
         var repository = provider.GetRequiredService<RepositoryFactory>().Instantiate<MicroOrmCustomerRepository>(ConnectionUrl);
         var customers = repository.Select(SelectYoungestCustomersSql.Replace("$count$", "2"));
