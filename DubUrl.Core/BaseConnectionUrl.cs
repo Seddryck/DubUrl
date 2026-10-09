@@ -17,11 +17,9 @@ namespace DubUrl;
 
 public class BaseConnectionUrl
 {
-    protected record ParseResult(string ConnectionString, UrlInfo UrlInfo, IDialect Dialect, IConnectivity Connectivity, IParametrizer Parametrizer) { }
-    private ParseResult? result;
-    protected ParseResult Result { get => result ??= ParseDetail(); }
+    private ResolvedConnection? result;
+    protected ResolvedConnection Result { get => result ??= ParseDetail(); }
     protected ISchemeRegistry Registry { get; }
-    private IMapper? Mapper { get; set; }
     private IParser Parser { get; }
     public string Url { get; }
 
@@ -29,15 +27,10 @@ public class BaseConnectionUrl
         => (Url, Parser, Registry) = (url, parser, builder);
 
     protected internal DbProviderFactory GetProviderFactory()
-            => Registry.GetProviderFactory(Result.UrlInfo.Schemes);
+            => Result.ProviderFactory;
 
-    private ParseResult ParseDetail()
-    {
-        var urlInfo = Parser.Parse(Url);
-        Mapper = Registry.GetMapper(urlInfo.Schemes);
-        Mapper.Rewrite(urlInfo);
-        return new ParseResult(Mapper.GetConnectionString(), urlInfo, Mapper.GetDialect(), Mapper.GetConnectivity(), Mapper.GetParametrizer());
-    }
+    private ResolvedConnection ParseDetail()
+        => Registry.Resolve(Parser.Parse(Url));
 
     public string Parse() => Result.ConnectionString;   
     public virtual IDialect Dialect => Result.Dialect;

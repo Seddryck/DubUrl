@@ -75,7 +75,7 @@ public class SchemeRegistryBuilder
             mappingData.Add(info);
         }
 
-        var mapperDict = new Dictionary<string, IMapper>();
+        var mapperFactories = new Dictionary<string, Func<IMapper>>();
 
         var dialectRegistryBuilder = new DialectRegistryBuilder();
         foreach (var info in mappingData)
@@ -92,13 +92,6 @@ public class SchemeRegistryBuilder
                 continue;
             }
 
-            var ctorParams = new List<object>
-            {
-                provider.CreateConnectionStringBuilder()!,
-                dialectRegistry.Get(info.Aliases.First()),
-                ParametrizerFactory.Instantiate(info.ParametrizerType)
-            };
-
             var paramTypes = new List<Type>
             {
                 typeof(DbConnectionStringBuilder),
@@ -109,22 +102,36 @@ public class SchemeRegistryBuilder
             if (typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType))
             {
                 paramTypes.Add(typeof(string));
-                ctorParams.Add(_rootPath);
             }
 
             var ctor = info.MapperType.GetConstructor(BindingFlags.Instance | BindingFlags.Public, paramTypes.ToArray())
                        ?? throw new NullReferenceException($"Missing constructor on {info.MapperType.Name}");
 
-            var mapper = (IMapper)ctor.Invoke(ctorParams.ToArray());
+            var dialect = dialectRegistry.Get(info.Aliases.First());
+            var rootPath = _rootPath;
+            IMapper CreateMapper()
+            {
+                var ctorParams = new List<object>
+                {
+                    provider.CreateConnectionStringBuilder()!,
+                    dialect,
+                    ParametrizerFactory.Instantiate(info.ParametrizerType)
+                };
+
+                if (typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType))
+                    ctorParams.Add(rootPath);
+
+                return (IMapper)ctor.Invoke(ctorParams.ToArray());
+            }
 
             foreach (var alias in info.Aliases)
             {
-                if (!mapperDict.TryAdd(alias, mapper))
-                    throw new MapperAlreadyExistingException(alias, mapperDict[alias], mapper);
+                if (!mapperFactories.TryAdd(alias, CreateMapper))
+                    throw new MapperAlreadyExistingException(alias, mapperFactories[alias](), CreateMapper());
             }
         }
 
-        return new SchemeRegistry(mapperDict);
+        return new SchemeRegistry(mapperFactories);
     }
 
     #region Fluent Configuration for Mappings
