@@ -216,6 +216,24 @@ public static partial class CommonExtensions
                 return @this;
             }
 
+            if (targetType == typeof(DateOnly))
+            {
+                if (@this is DateTime dateTime)
+                {
+                    return DateOnly.FromDateTime(dateTime);
+                }
+
+                if (@this is DateTimeOffset dateTimeOffset)
+                {
+                    return DateOnly.FromDateTime(dateTimeOffset.DateTime);
+                }
+            }
+
+            if (targetType == typeof(DateTime) && @this is DateOnly dateOnly)
+            {
+                return dateOnly.ToDateTime(TimeOnly.MinValue);
+            }
+
             TypeConverter converter = TypeDescriptor.GetConverter(@this);
             if (converter != null)
             {
