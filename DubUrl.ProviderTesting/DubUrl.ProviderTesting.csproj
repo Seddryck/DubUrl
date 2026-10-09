@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>DubUrl.ProviderTesting</PackageId>
+    <Description>Reusable live provider QA contracts for DubUrl provider modules.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+  </ItemGroup>
+</Project>
