@@ -1,0 +1,15 @@
+services:
+  postgresql:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: Password12!
+      POSTGRES_DB: DubUrl
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./initialize.sql:/docker-entrypoint-initdb.d/initialize.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d DubUrl" ]
+      interval: 2s
+      timeout: 5s
+      retries: 20
