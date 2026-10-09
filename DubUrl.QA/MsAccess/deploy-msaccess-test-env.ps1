@@ -3,6 +3,21 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	if ((Get-OdbcDriver -Name "*accdb*" -Platform "64-bit").Length -eq 0) {
+		$installer = Join-Path $env:RUNNER_TEMP "accessdatabaseengine_X64.exe"
+		Invoke-WebRequest "https://download.microsoft.com/download/3/5/C/35C84C36-661A-44E6-9324-8786B8DBE231/accessdatabaseengine_X64.exe" -OutFile $installer
+		$install = Start-Process -FilePath $installer -ArgumentList "/quiet" -Wait -WindowStyle Hidden -PassThru
+		if ($install.ExitCode -ne 0) { throw "Microsoft Access Database Engine installation failed with exit code $($install.ExitCode)." }
+	}
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MsAccess.QA\DubUrl.Providers.MsAccess.QA.csproj"
+	Run-ProviderQaSuite -project $project -provider "msaccess" -config $config -frameworks $frameworks
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {

@@ -40,17 +40,19 @@ public class DriverLister
     private static List<string> ListFromRegistry(RegistryKey registryKey)
     {
 #pragma warning disable CA1416 // Validate platform compatibility
-        var drivers = new List<string>();
-        using (var reg = registryKey.OpenSubKey("Software")
-               ?.OpenSubKey("ODBC")
-               ?.OpenSubKey("ODBCINST.INI")
-               ?.OpenSubKey("ODBC Drivers"))
-
+        try
         {
+            var drivers = new List<string>();
+            using var reg = registryKey.OpenSubKey("Software")
+                ?.OpenSubKey("ODBC")
+                ?.OpenSubKey("ODBCINST.INI")
+                ?.OpenSubKey("ODBC Drivers");
             foreach (var driver in reg?.GetValueNames() ?? [])
                 drivers.Add(driver);
+            return drivers;
         }
+        catch (System.Security.SecurityException) { return []; }
+        catch (UnauthorizedAccessException) { return []; }
 #pragma warning restore CA1416 // Validate platform compatibility
-        return drivers;
     }
 }
