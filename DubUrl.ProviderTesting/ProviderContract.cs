@@ -30,6 +30,8 @@ public abstract class ProviderContract
     protected virtual bool SupportsInterval => true;
     protected virtual bool SupportsNull => true;
     protected virtual bool SupportsYoungestCustomers => true;
+    protected virtual bool SupportsDapper => true;
+    protected virtual bool SupportsDapperRepository => true;
     protected virtual string SelectPrimitiveTemplate => "select $value; format=\"value\"$";
 
     [OneTimeSetUp]
@@ -196,6 +198,8 @@ public abstract class ProviderContract
     [Test, Category("Dapper")]
     public void QueryCustomerWithDapper()
     {
+        if (!SupportsDapper)
+            Assert.Ignore("The provider is not supported by Dapper.");
         using var connection = new ConnectionUrl(ConnectionUrl).Open();
         AssertCustomers(connection.Query<Customer>(SelectAllCustomersSql).ToList());
     }
@@ -203,6 +207,8 @@ public abstract class ProviderContract
     [Test, Category("Dapper"), Category("DapperCustomerRepository")]
     public async Task QueryCustomerWithDapperRepository()
     {
+        if (!SupportsDapperRepository)
+            Assert.Ignore("The provider is not supported by the Dapper repository contract.");
         using var provider = CreateServices()
             .AddTransient(sp => new DapperCustomerRepository(sp.GetRequiredService<ConnectionUrlFactory>(), ConnectionUrl))
             .BuildServiceProvider();
