@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.MsAccess.Q
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.MsExcel.QA", "DubUrl.Providers.MsExcel.QA\\DubUrl.Providers.MsExcel.QA.csproj", "{8FF9BAC3-A80D-4457-A1CC-DB3C78DCF17A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.CrateDb.QA", "DubUrl.Providers.CrateDb.QA\\DubUrl.Providers.CrateDb.QA.csproj", "{772813A2-BC7A-4114-9365-AE32BED3F741}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -209,6 +211,10 @@ Global
 		{8FF9BAC3-A80D-4457-A1CC-DB3C78DCF17A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FF9BAC3-A80D-4457-A1CC-DB3C78DCF17A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FF9BAC3-A80D-4457-A1CC-DB3C78DCF17A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{772813A2-BC7A-4114-9365-AE32BED3F741}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{772813A2-BC7A-4114-9365-AE32BED3F741}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{772813A2-BC7A-4114-9365-AE32BED3F741}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{772813A2-BC7A-4114-9365-AE32BED3F741}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

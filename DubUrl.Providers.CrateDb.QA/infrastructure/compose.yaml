@@ -1,0 +1,12 @@
+services:
+  cratedb:
+    image: crate:5.10.2
+    command: [ "crate", "-Cdiscovery.type=single-node", "-Cgateway.expected_data_nodes=1" ]
+    ports:
+      - "4200:4200"
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:4200/_cluster/health || exit 1" ]
+      interval: 3s
+      timeout: 5s
+      retries: 30
