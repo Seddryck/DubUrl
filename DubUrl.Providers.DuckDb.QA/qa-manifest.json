@@ -1,0 +1,10 @@
+{
+  "$schema": "https://duburl.dev/schemas/provider-qa-manifest-1.0.json",
+  "provider": "duckdb",
+  "version": "0.0.0",
+  "contractVersion": "1.0",
+  "targetFrameworks": [ "net8.0", "net9.0", "net10.0" ],
+  "operatingSystems": [ "windows" ],
+  "rids": [ "win-x64" ],
+  "capabilities": [ "Connection", "Querying", "ODBC", "Schema", "BulkCopy" ]
+}
