@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,8 +20,22 @@ public class DriverLister
             drivers.AddRange(ListFromRegistry(Registry.CurrentUser));
             return [.. drivers];
         }
-        return [];
+        return ListFromIniFiles(
+            "/etc/odbcinst.ini",
+            "/usr/local/etc/odbcinst.ini",
+            "/opt/homebrew/etc/odbcinst.ini");
     }
+
+    private static string[] ListFromIniFiles(params string[] paths)
+        => paths
+            .Where(File.Exists)
+            .SelectMany(File.ReadLines)
+            .Select(line => line.Trim())
+            .Where(line => line.Length > 2 && line[0] == '[' && line[^1] == ']')
+            .Select(line => line[1..^1])
+            .Where(name => !name.Equals("ODBC Drivers", StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
     private static List<string> ListFromRegistry(RegistryKey registryKey)
     {

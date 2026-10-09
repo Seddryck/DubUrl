@@ -3,6 +3,29 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+
+	& sudo apt-get update
+	if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
+	& sudo apt-get install --yes odbc-postgresql
+	if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL ODBC driver." }
+
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Timescale.QA\DubUrl.Providers.Timescale.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Timescale.QA\infrastructure\compose.yaml"
+	& docker compose -f $composeFile up --detach --wait
+	if ($LASTEXITCODE -ne 0) { throw "Timescale QA infrastructure failed to start." }
+	try {
+		Run-ProviderQaSuite -project $project -provider "timescale" -config $config -frameworks $frameworks
+	}
+	finally {
+		& docker compose -f $composeFile down --volumes
+	}
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
