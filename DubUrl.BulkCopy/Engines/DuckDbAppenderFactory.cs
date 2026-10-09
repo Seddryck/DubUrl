@@ -32,7 +32,13 @@ internal class DuckDbAppenderFactory
         var connectionType = connection.GetType();
 
         // DuckDB method: CreateAppender(string)
-        var createAppenderMethod = connectionType.GetMethod("CreateAppender", new[] { typeof(string) })
+        var createAppenderMethod = connectionType
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(method =>
+                method.Name == "CreateAppender"
+                && !method.IsGenericMethod
+                && method.GetParameters() is [{ ParameterType: var parameterType }]
+                && parameterType == typeof(string))
             ?? throw new InvalidOperationException("CreateAppender method not found on connection.");
         object? appender = null;
         try
@@ -52,7 +58,7 @@ internal class DuckDbAppenderFactory
         var appenderRowType = createRowMethod.ReturnType;
 
         appendMethods ??= appenderRowType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(m => m.Name == "AppendValue" && m.GetParameters().Count() == 1)
+            .Where(m => m.Name == "AppendValue" && m.GetParameters().Length == 1)
             .Select(m => new KeyValuePair<Type, MethodInfo>(m.GetParameters().First().ParameterType, m))
             .ToDictionary();
         appendNullMethod ??= appenderRowType.GetMethod("AppendNullValue")!;
