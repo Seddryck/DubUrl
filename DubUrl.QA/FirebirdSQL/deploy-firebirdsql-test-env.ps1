@@ -5,6 +5,38 @@ Param(
 	, [string] $extension = "zip"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+
+	$firebirdPath = "C:\Program Files\Firebird\Firebird_4_0"
+	$archive = Join-Path $env:RUNNER_TEMP "firebird.zip"
+	$firebirdVersion = "v$($package.Split(".")[0].Split("-")[1]).$($package.Split(".")[1]).$($package.Split(".")[2])"
+	$downloadUrl = "https://github.com/FirebirdSQL/firebird/releases/download/$firebirdVersion/$package.$extension"
+	Invoke-WebRequest $downloadUrl -OutFile $archive
+	New-Item -ItemType Directory -Path $firebirdPath -Force | Out-Null
+	Expand-Archive $archive -DestinationPath $firebirdPath -Force
+
+	$process = Start-Process -FilePath (Join-Path $firebirdPath "firebird.exe") -ArgumentList "-a" -WindowStyle Hidden -PassThru
+	try {
+		$env:DUBURL_FIREBIRD_DATABASE = Join-Path $env:RUNNER_TEMP "Customer.fdb"
+		$initScript = Join-Path $env:RUNNER_TEMP "initialize-firebird.sql"
+		$sourceScript = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.FirebirdSql.QA\infrastructure\initialize.sql"
+		(Get-Content $sourceScript) -replace '<path>', $env:DUBURL_FIREBIRD_DATABASE | Set-Content $initScript
+		& (Join-Path $firebirdPath "isql.exe") -u SYSADMIN -p masterkey -i $initScript -b -e -q
+		if ($LASTEXITCODE -ne 0) { throw "FirebirdSQL QA database initialization failed." }
+
+		$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.FirebirdSql.QA\DubUrl.Providers.FirebirdSql.QA.csproj"
+		Run-ProviderQaSuite -project $project -provider "firebirdsql" -config $config -frameworks $frameworks
+	}
+	finally {
+		if ($null -ne $process -and -not $process.HasExited) { Stop-Process -Id $process.Id }
+	}
+
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
