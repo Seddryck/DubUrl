@@ -17,10 +17,15 @@ public class ColumnViewModel
     public Constraint? NotNullable { get; }
     public Constraint? Unique { get; }
     public PrimaryKeyConstraintViewModel? PrimaryKey { get; }
-    public Constraint[] Checks { get; }
+    public CheckConstraint[] Checks { get; }
+    public MembershipCheckConstraint[] MembershipChecks { get; }
+    public RegexCheckConstraint[] RegexChecks { get; }
 
     public object? DefaultValue { get; }
     public bool HasDefaultValue { get; }
+    public string? Description { get; }
+    public NativeDatabaseType? NativeType { get; }
+    public NativeTypeFallback NativeTypeFallback { get; }
 
     public ColumnViewModel(Column column)
     {
@@ -28,10 +33,15 @@ public class ColumnViewModel
         Type = column.Type.ToString();
         DefaultValue = column.DefaultValue;
         HasDefaultValue = column.DefaultValue is not null;
+        Description = column.Description;
+        NativeType = column.NativeType;
+        NativeTypeFallback = column.NativeTypeFallback;
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
         Unique = column.Constraints.Get<UniquenessConstraint>();
         Checks = [.. column.Constraints.OfType<CheckConstraint>()];
+        MembershipChecks = [.. column.Constraints.OfType<MembershipCheckConstraint>()];
+        RegexChecks = [.. column.Constraints.OfType<RegexCheckConstraint>()];
         if (column is VarLengthColumn varLength)
             Length = varLength.Length;
         if (column is NumericColumn numeric)

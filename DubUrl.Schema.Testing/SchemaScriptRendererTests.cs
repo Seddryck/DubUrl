@@ -11,12 +11,16 @@ using DubUrl.Schema.Renderers;
 using DubUrl.Schema.Builders;
 using DubUrl.Querying.Dialects;
 using DubUrl.Schema.Constraints;
+using SchemaForeignKeyConstraint = DubUrl.Schema.Constraints.ForeignKeyConstraint;
 
 namespace DubUrl.Schema.Testing;
 public class SchemaScriptRendererTests
 {
     private IDialect DuckDb { get; set; }
     private IDialect TSql { get; set; }
+    private IDialect Pgsql { get; set; }
+    private IDialect Sqlite { get; set; }
+    private IDialect MySql { get; set; }
 
     [SetUp]
     public void Setup()
@@ -24,9 +28,15 @@ public class SchemaScriptRendererTests
         var builder = new DialectRegistryBuilder();
         builder.AddDialect<DuckDbDialect>(["duckdb"]);
         builder.AddDialect<TSqlDialect>(["mssql"]);
+        builder.AddDialect<PgsqlDialect>(["pgsql"]);
+        builder.AddDialect<SqliteDialect>(["sqlite"]);
+        builder.AddDialect<MySqlDialect>(["mysql"]);
         var registry = builder.Build();
         DuckDb = registry.Get<DuckDbDialect>();
         TSql = registry.Get<TSqlDialect>();
+        Pgsql = registry.Get<PgsqlDialect>();
+        Sqlite = registry.Get<SqliteDialect>();
+        MySql = registry.Get<MySqlDialect>();
     }
 
     [Test]
@@ -242,6 +252,340 @@ public class SchemaScriptRendererTests
                                     "\r\n    Age SMALLINT CHECK Age >= 18" +
                                     "\r\n);" +
                                     "\r\n"));
+    }
+
+    [Test]
+    public void Render_MembershipWithEscapedStrings_UsesDialectValueFormatter()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Status").WithType(DbType.String)
+                .WithCheck(check => check.WithMembership(
+                    expression => expression.WithCurrentColumn(),
+                    ["new", "owner's choice"]))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("Status VARCHAR CHECK Status IN ('new', 'owner''s choice')"));
+    }
+
+    [Test]
+    public void Render_MembershipWithNullMatch_RendersExplicitNullPredicate()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Status").WithType(DbType.String)
+                .WithCheck(check => check.WithMembership(
+                    expression => expression.WithCurrentColumn(),
+                    ["new", null],
+                    NullMembershipBehavior.MatchNull))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CHECK ([Status] IN ('new') OR [Status] IS NULL)"));
+    }
+
+    [Test]
+    public void Build_EmptyMembership_ThrowsActionableError()
+    {
+        Assert.That(() => new TableBuilder()
+                .WithName("Customer")
+                .WithColumns(columns => columns.Add(column => column
+                    .WithName("Status").WithType(DbType.String)
+                    .WithCheck(check => check.WithMembership(
+                        expression => expression.WithCurrentColumn(),
+                        [])))),
+            Throws.ArgumentException.With.Message.Contains("at least one value"));
+    }
+
+    [Test]
+    public void Render_RegexPostgresql_UsesDialectPredicateAndEscapedPattern()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Code").WithType(DbType.String)
+                .WithCheck(check => check.WithRegex(
+                    expression => expression.WithCurrentColumn(),
+                    "^[A-Z']+$"))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("\"Code\" TEXT CHECK \"Code\" ~ '^[A-Z'']+$'"));
+    }
+
+    [Test]
+    public void Render_RegexRejectNull_RendersExplicitNullGuard()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Code").WithType(DbType.String)
+                .WithCheck(check => check.WithRegex(
+                    expression => expression.WithCurrentColumn(),
+                    "^[A-Z]+$",
+                    RegexNullBehavior.RejectNull))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CHECK (Code IS NOT NULL AND regexp_matches(Code, '^[A-Z]+$'))"));
+    }
+
+    [Test]
+    public void Render_RegexUnsupportedDialect_ThrowsExplicitError()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Code").WithType(DbType.String)
+                .WithCheck(check => check.WithRegex(
+                    expression => expression.WithCurrentColumn(),
+                    "^[A-Z]+$"))))
+            .Build();
+
+        Assert.That(
+            () => new SchemaScriptRenderer(TSql).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>().With.Message.Contains("TSqlDialect"));
+    }
+
+    [Test]
+    public void Render_ForeignKeys_RendersNamedSingleCompositeAndSelfReferences()
+    {
+        var customers = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns
+                .Add(column => column.WithName("TenantId").WithType(DbType.Int32))
+                .Add(column => column.WithName("Id").WithType(DbType.Int32))
+                .Add(column => column.WithName("ParentId").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints
+                .AddPrimaryKey(key => key.WithColumnNames("TenantId", "Id"))
+                .AddForeignKey(key => key.WithName("FK_Customer_Parent")
+                    .FromColumns("TenantId", "ParentId")
+                    .References("Customer", "TenantId", "Id")))
+            .Build();
+        var orders = new TableBuilder()
+            .WithName("Order")
+            .WithColumns(columns => columns
+                .Add(column => column.WithName("TenantId").WithType(DbType.Int32))
+                .Add(column => column.WithName("CustomerId").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints.AddForeignKey(key => key
+                .WithName("FK_Order_Customer")
+                .FromColumns("TenantId", "CustomerId")
+                .References("Customer", "TenantId", "Id")))
+            .Build();
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([customers, orders], []));
+
+        Assert.That(result, Does.Contain(
+            "ALTER TABLE [Customer] ADD CONSTRAINT [FK_Customer_Parent] FOREIGN KEY ([TenantId], [ParentId]) REFERENCES [Customer] ([TenantId], [Id]);"));
+        Assert.That(result, Does.Contain(
+            "ALTER TABLE [Order] ADD CONSTRAINT [FK_Order_Customer] FOREIGN KEY ([TenantId], [CustomerId]) REFERENCES [Customer] ([TenantId], [Id]);"));
+    }
+
+    [Test]
+    public void Render_CircularForeignKeysSqlite_RendersInline()
+    {
+        var first = new Table("First", [new Column("SecondId", DbType.Int32)],
+            [new SchemaForeignKeyConstraint("FK_First_Second", ["SecondId"], "Second", ["Id"])]);
+        var second = new Table("Second", [new Column("Id", DbType.Int32), new Column("FirstId", DbType.Int32)],
+            [new SchemaForeignKeyConstraint("FK_Second_First", ["FirstId"], "First", ["SecondId"])]);
+
+        var result = new SchemaScriptRenderer(Sqlite).Render(new Schema([first, second], []));
+
+        Assert.That(result, Does.Contain("CONSTRAINT FK_First_Second FOREIGN KEY (SecondId) REFERENCES Second (Id)"));
+        Assert.That(result, Does.Contain("CONSTRAINT FK_Second_First FOREIGN KEY (FirstId) REFERENCES First (SecondId)"));
+        Assert.That(result, Does.Not.Contain("ALTER TABLE"));
+    }
+
+    [Test]
+    public void Build_ForeignKeyWithMismatchedColumns_ThrowsActionableError()
+    {
+        Assert.That(
+            () => new SchemaForeignKeyConstraint("FK_Order_Customer", ["TenantId", "CustomerId"], "Customer", ["Id"]),
+            Throws.ArgumentException.With.Message.Contains("2 source columns but 1 target columns"));
+    }
+
+    [Test]
+    public void Render_DescriptionsPostgresql_RendersEscapedMultilineUnicodeComments()
+    {
+        var table = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("DisplayName").WithType(DbType.String)
+                .WithDescription("Owner's display name\nPréféré")))
+            .WithDescription("Customer's record")
+            .Build();
+
+        var renderer = new SchemaScriptRenderer(Pgsql);
+        var result = renderer.Render(new Schema([table], []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(renderer.SupportsComments, Is.True);
+            Assert.That(result, Does.Contain("COMMENT ON TABLE \"Customer\" IS 'Customer''s record';"));
+            Assert.That(result, Does.Contain("COMMENT ON COLUMN \"Customer\".\"DisplayName\" IS 'Owner''s display name\r\nPréféré';"));
+        });
+    }
+
+    [Test]
+    public void Render_EmptyDescriptions_EmitsNoCommentStatements()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32, description: " ")], description: string.Empty);
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Not.Contain("COMMENT ON"));
+    }
+
+    [Test]
+    public void Render_DescriptionsUnsupportedDialect_ExposesNoOpCapability()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32, description: "Identifier")], description: "Customers");
+        var renderer = new SchemaScriptRenderer(TSql);
+
+        var result = renderer.Render(new Schema([table], []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(renderer.SupportsComments, Is.False);
+            Assert.That(result, Does.Not.Contain("COMMENT"));
+            Assert.That(result, Does.Not.Contain("MS_Description"));
+        });
+    }
+
+    [Test]
+    public void Render_ValidatedNativeType_UsesDialectRegistry()
+    {
+        var table = new TableBuilder()
+            .WithName("Spatial")
+            .WithColumns(columns => columns.Add(column => column
+                .WithName("Location").WithType(DbType.Object)
+                .WithNativeType(new NativeDatabaseType("geography", typeof(TSqlDialect)))))
+            .Build();
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("[Location] GEOGRAPHY"));
+    }
+
+    [Test]
+    public void Render_NativeNumericType_PreservesStructuredPrecisionAndScale()
+    {
+        var registry = new NativeTypeRegistry().Register<TSqlDialect>("DECIMAL");
+        var table = new Table("Measure", [
+            new NumericColumn("Amount", DbType.Decimal, 12, 3,
+                nativeType: new NativeDatabaseType("DECIMAL"))
+        ]);
+
+        var result = new SchemaScriptRenderer(TSql, nativeTypes: registry).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("[Amount] DECIMAL(12, 3)"));
+    }
+
+    [Test]
+    public void Render_UnsupportedNativeTypeWithFallback_UsesLogicalMapping()
+    {
+        var table = new Table("Spatial", [
+            new Column("Location", DbType.String, nativeType: new NativeDatabaseType("GEOGRAPHY"),
+                nativeTypeFallback: NativeTypeFallback.LogicalType)
+        ]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("Location VARCHAR"));
+    }
+
+    [Test]
+    public void Render_DialectScopedNativeTypeOnIncompatibleDialect_ThrowsExplicitError()
+    {
+        var table = new Table("Document", [
+            new Column("Payload", DbType.String,
+                nativeType: new NativeDatabaseType("JSONB", typeof(PgsqlDialect)))
+        ]);
+
+        Assert.That(
+            () => new SchemaScriptRenderer(TSql).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>().With.Message.Contains("JSONB"));
+    }
+
+    [Test]
+    public void Create_NativeTypeWithHostileInput_ThrowsValidationError()
+    {
+        Assert.That(
+            () => new NativeDatabaseType("VARCHAR(20); DROP TABLE Customer"),
+            Throws.ArgumentException.With.Message.Contains("Native type names"));
+    }
+
+    [Test]
+    public void Render_SqlServerMultipartIdentity_QuotesEveryComponent()
+    {
+        var identity = new DatabaseObjectName("Customer", schema: "sales", database: "Warehouse", catalog: "ServerA");
+        var table = new Table(identity, [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(TSql, SchemaCreationOptions.DropIfExists)
+            .Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("DROP TABLE IF EXISTS [ServerA].[Warehouse].[sales].[Customer];"));
+        Assert.That(result, Does.Contain("CREATE TABLE [ServerA].[Warehouse].[sales].[Customer]"));
+    }
+
+    [Test]
+    public void Render_PostgresqlQualifiedIdentity_AppliesToCommentsForeignKeysAndIndexes()
+    {
+        var customerIdentity = new DatabaseObjectName("Customer", schema: "sales");
+        var orderIdentity = new DatabaseObjectName("Order", schema: "sales");
+        var customers = new Table(customerIdentity, [new Column("Id", DbType.Int32)], description: "Customers");
+        var orders = new Table(orderIdentity, [new Column("CustomerId", DbType.Int32)], [
+            new SchemaForeignKeyConstraint("FK_Order_Customer", ["CustomerId"], customerIdentity, ["Id"])
+        ]);
+        var index = new Index(new DatabaseObjectName("IX_Order_Customer", schema: "sales"), orderIdentity,
+            [new IndexColumn("CustomerId")]);
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([customers, orders], [index]));
+
+        Assert.That(result, Does.Contain("CREATE TABLE \"sales\".\"Customer\""));
+        Assert.That(result, Does.Contain("REFERENCES \"sales\".\"Customer\" (\"Id\")"));
+        Assert.That(result, Does.Contain("COMMENT ON TABLE \"sales\".\"Customer\" IS 'Customers';"));
+        Assert.That(result, Does.Contain("CREATE INDEX \"sales\".\"IX_Order_Customer\" ON \"sales\".\"Order\""));
+    }
+
+    [Test]
+    public void Render_MySqlDatabaseQualifiedIdentity_UsesDatabaseQualifier()
+    {
+        var table = new Table(new DatabaseObjectName("Customer", database: "warehouse"),
+            [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(MySql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CREATE TABLE `warehouse`.`Customer`"));
+    }
+
+    [Test]
+    public void Render_IdentifierContainingDot_DoesNotParseItAsQualification()
+    {
+        var table = new Table(new DatabaseObjectName("sales.Customer"), [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CREATE TABLE \"sales.Customer\""));
+        Assert.That(result, Does.Not.Contain("\"sales\".\"Customer\""));
+    }
+
+    [Test]
+    public void Render_UnsupportedQualifier_ThrowsExplicitError()
+    {
+        var table = new Table(new DatabaseObjectName("Customer", database: "warehouse"),
+            [new Column("Id", DbType.Int32)]);
+
+        Assert.That(
+            () => new SchemaScriptRenderer(Pgsql).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>().With.Message.Contains("Database"));
     }
 
     [Test]

@@ -10,7 +10,8 @@ public class VarLengthColumn : Column
 {
     public int Length { get; }
 
-    public VarLengthColumn(string name, System.Data.DbType type, int size, object? defaultValue = null, IConstraint[]? constraints = null)
-        : base(name, type, defaultValue, constraints)
+    public VarLengthColumn(string name, System.Data.DbType type, int size, object? defaultValue = null, IConstraint[]? constraints = null,
+        string? description = null, NativeDatabaseType? nativeType = null, NativeTypeFallback nativeTypeFallback = NativeTypeFallback.Error)
+        : base(name, type, defaultValue, constraints, description, nativeType, nativeTypeFallback)
         => Length = size;
 }

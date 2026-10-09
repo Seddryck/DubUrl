@@ -16,6 +16,9 @@ public class ColumnBuilder : IColumnName, IColumnTypeBuilder, IColumnNumericBuil
     private int? Length { get; set; }
     private int? Scale { get; set; }
     private object? DefaultValue { get; set; }
+    private string? Description { get; set; }
+    private NativeDatabaseType? NativeType { get; set; }
+    private NativeTypeFallback NativeTypeFallback { get; set; }
     private ColumnConstraintCollectionBuilder Constraints { get; } = [];
 
     public IColumnTypeBuilder WithName(string name)
@@ -94,6 +97,19 @@ public class ColumnBuilder : IColumnName, IColumnTypeBuilder, IColumnNumericBuil
         return this;
     }
 
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithDescription(string? description)
+    {
+        Description = description;
+        return this;
+    }
+
+    IColumnConstraintBuilder IColumnConstraintBuilder.WithNativeType(NativeDatabaseType nativeType, NativeTypeFallback fallback)
+    {
+        NativeType = nativeType ?? throw new ArgumentNullException(nameof(nativeType));
+        NativeTypeFallback = fallback;
+        return this;
+    }
+
     Column IColumnBuilder.Build()
     {
         if (string.IsNullOrWhiteSpace(Name))
@@ -102,11 +118,11 @@ public class ColumnBuilder : IColumnName, IColumnTypeBuilder, IColumnNumericBuil
         var constraints = Constraints.Build();
 
         if (Scale.HasValue && Length.HasValue)
-            return new NumericColumn(Name, Type, Length.Value, Scale.Value, DefaultValue, constraints);
+            return new NumericColumn(Name, Type, Length.Value, Scale.Value, DefaultValue, constraints, Description, NativeType, NativeTypeFallback);
 
         if (Length.HasValue)
-            return new VarLengthColumn(Name, Type, Length.Value, DefaultValue, constraints);
+            return new VarLengthColumn(Name, Type, Length.Value, DefaultValue, constraints, Description, NativeType, NativeTypeFallback);
 
-        return new Column(Name, Type, DefaultValue, constraints);
+        return new Column(Name, Type, DefaultValue, constraints, Description, NativeType, NativeTypeFallback);
     }
 }

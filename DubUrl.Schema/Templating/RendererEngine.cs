@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Ddt = Didot.Core;
 using System.Reflection;
 using DubUrl.Querying.Dialects.Renderers;
+using DubUrl.Querying.Dialects;
+using DubUrl.Schema.Renderers;
 using System.Text.Encodings.Web;
 
 namespace DubUrl.Schema.Templating;
@@ -32,6 +34,13 @@ public abstract class RendererEngine
         return new([create("value"), create("identity")]);
     }
 
+    protected static Dictionary<string, Func<object?, string>> CreateHelpers(IDialect dialect)
+    {
+        var helpers = CreateHelpers(dialect.Renderer);
+        helpers.Add("objectname", value => DatabaseObjectNameFormatter.Render(value, dialect));
+        return helpers;
+    }
+
     protected void AddMappings(string mapKey, IDictionary<string, object> mappings)
         => Engine.AddMappings(mapKey, mappings);
 
@@ -41,6 +50,6 @@ public abstract class RendererEngine
     public string Render(object value)
     {
         using (var stream = Assembly.GetManifestResourceStream(TemplatePath) ?? throw new FileNotFoundException(TemplatePath))
-        return Engine.Render(stream, value);
+        return Engine.Render(stream, value).ReplaceLineEndings("\r\n");
     }
 }

@@ -17,19 +17,45 @@ public class Schema
     public Schema(Table[] tables, Index[] indexes)
     {
         // Check for duplicate table names
-        var duplicates = tables.GroupBy(t => t.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        var duplicates = tables.GroupBy(t => t.Identity).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
         if (duplicates.Length > 0)
-            throw new ArgumentException($"Duplicate table names found: {string.Join(", ", duplicates)}", nameof(tables));
+            throw new ArgumentException($"Duplicate table names found: {string.Join(", ", duplicates.Select(identity => identity.ToString()))}", nameof(tables));
 
         Tables = OrderedImmutableDictionary<string, Table>.From(
-            tables.Select(t => new KeyValuePair<string, Table>(t.Name, t)));
+            tables.Select(t => new KeyValuePair<string, Table>(t.Identity.Key, t)));
+
+        foreach (var table in tables)
+        foreach (var foreignKey in table.Constraints.OfType<Constraints.ForeignKeyConstraint>())
+        {
+            if (!Tables.TryGetValue(foreignKey.TargetTable.Key, out var targetTable))
+                throw new ArgumentException(
+                    $"Foreign key '{foreignKey.Name}' on table '{table.Name}' references missing table '{foreignKey.TargetTableName}'.",
+                    nameof(tables));
+            var missingColumns = foreignKey.TargetColumns.Where(name => !targetTable.Columns.ContainsKey(name)).ToArray();
+            if (missingColumns.Length > 0)
+                throw new ArgumentException(
+                    $"Foreign key '{foreignKey.Name}' references missing target column(s) {string.Join(", ", missingColumns)} on table '{targetTable.Name}'.",
+                    nameof(tables));
+        }
 
         // Check for duplicate index names
-        var duplicatedIndexes = indexes.GroupBy(t => t.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        var duplicatedIndexes = indexes.GroupBy(t => t.Identity).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
         if (duplicatedIndexes.Length > 0)
-            throw new ArgumentException($"Duplicate index names found: {string.Join(", ", duplicatedIndexes)}", nameof(indexes));
+            throw new ArgumentException($"Duplicate index names found: {string.Join(", ", duplicatedIndexes.Select(identity => identity.ToString()))}", nameof(indexes));
 
         Indexes = OrderedImmutableDictionary<string, Index>.From(
-            indexes.Select(t => new KeyValuePair<string, Index>(t.Name, t)));
+            indexes.Select(t => new KeyValuePair<string, Index>(t.Identity.Key, t)));
+
+        foreach (var index in indexes)
+            if (!Tables.ContainsKey(index.TableIdentity.Key))
+                throw new ArgumentException(
+                    $"Index '{index.Identity}' references missing table '{index.TableIdentity}'.",
+                    nameof(indexes));
     }
+
+    public Table GetTable(DatabaseObjectName identity)
+        => Tables[identity?.Key ?? throw new ArgumentNullException(nameof(identity))];
+
+    public Index GetIndex(DatabaseObjectName identity)
+        => Indexes[identity?.Key ?? throw new ArgumentNullException(nameof(identity))];
 }

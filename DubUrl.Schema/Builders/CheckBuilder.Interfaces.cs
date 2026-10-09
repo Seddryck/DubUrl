@@ -13,6 +13,14 @@ namespace DubUrl.Schema.Builders;
 public interface ICheckBuilder
 {
     ICheckBuildable WithComparison(Func<ICheckExpressionBuilder, ICheckExpressionBuildable> left, string op, Func<ICheckExpressionValueBuilder, ICheckExpressionBuildable> right);
+    ICheckBuildable WithMembership(
+        Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
+        IEnumerable<object?> values,
+        NullMembershipBehavior nullBehavior = NullMembershipBehavior.SqlThreeValuedLogic);
+    ICheckBuildable WithRegex(
+        Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
+        string pattern,
+        RegexNullBehavior nullBehavior = RegexNullBehavior.AllowNull);
 }
 
 public interface ICheckBuildable
@@ -20,5 +28,5 @@ public interface ICheckBuildable
      /// Builds and returns a Check constraint object based on the configured properties.
      /// </summary>
      /// <returns>A Check constraint object with the configured properties.</returns>
-    CheckConstraint Build();
+    Constraint Build();
 }

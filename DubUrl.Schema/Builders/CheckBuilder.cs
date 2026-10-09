@@ -17,6 +17,10 @@ public class CheckBuilder : ICheckBuilder, ICheckBuildable
     private ICheckExpressionBuildable? Left { get; set; }
     private string? Operator { get; set; }
     private ICheckExpressionBuildable? Right { get; set; }
+    private IReadOnlyList<object?>? Values { get; set; }
+    private NullMembershipBehavior NullBehavior { get; set; }
+    private string? Pattern { get; set; }
+    private RegexNullBehavior RegexNullBehavior { get; set; }
 
     public CheckBuilder(IColumnName column)
         => Column = column;
@@ -32,8 +36,40 @@ public class CheckBuilder : ICheckBuilder, ICheckBuildable
         return this;
     }
 
-    CheckConstraint ICheckBuildable.Build()
+    ICheckBuildable ICheckBuilder.WithMembership(
+        Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
+        IEnumerable<object?> values,
+        NullMembershipBehavior nullBehavior)
     {
+        Left = expression(new CheckExpressionBuilder(Column!));
+        Values = values?.ToArray() ?? throw new ArgumentNullException(nameof(values));
+        NullBehavior = nullBehavior;
+        return this;
+    }
+
+    ICheckBuildable ICheckBuilder.WithRegex(
+        Func<ICheckExpressionBuilder, ICheckExpressionBuildable> expression,
+        string pattern,
+        RegexNullBehavior nullBehavior)
+    {
+        Left = expression(new CheckExpressionBuilder(Column!));
+        Pattern = pattern ?? throw new ArgumentNullException(nameof(pattern));
+        RegexNullBehavior = nullBehavior;
+        return this;
+    }
+
+    Constraint ICheckBuildable.Build()
+    {
+        if (Pattern is not null)
+            return new RegexCheckConstraint(
+                Left?.Build() ?? throw new InvalidOperationException("A regex expression must be provided."),
+                Pattern,
+                RegexNullBehavior);
+        if (Values is not null)
+            return new MembershipCheckConstraint(
+                Left?.Build() ?? throw new InvalidOperationException("A membership expression must be provided."),
+                Values,
+                NullBehavior);
         if (Left is null || Operator is null || Right is null)
             throw new InvalidOperationException();
         return new CheckConstraint(Left.Build(), Operator, Right.Build());

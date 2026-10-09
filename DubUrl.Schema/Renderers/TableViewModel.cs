@@ -10,20 +10,30 @@ namespace DubUrl.Schema.Renderers;
 public class TableViewModel
 {
     public string Name { get; }
+    public DatabaseObjectName Identity { get; }
     public ColumnViewModel[] Columns { get; }
     public PrimaryKeyConstraint? PrimaryKey { get; }
     public NullableConstraint? Nullable { get; }
     public NotNullableConstraint? NotNullable { get; }
     public UniquenessConstraint? Unique { get; }
     public CheckConstraint[] Checks { get; } = [];
+    public ForeignKeyConstraintViewModel[] ForeignKeys { get; }
+    public bool RenderForeignKeysInline { get; }
+    public string? Description { get; }
 
-    public TableViewModel(Table table)
+    public TableViewModel(Table table, bool renderForeignKeysInline = false)
     {
         Name = table.Name;
+        Identity = table.Identity;
         Columns = table.Columns.Values.Select(c => new ColumnViewModel(c)).ToArray();
         PrimaryKey = table.Constraints.Get<PrimaryKeyConstraint>();
         Nullable = table.Constraints.Get<NullableConstraint>();
         NotNullable = table.Constraints.Get<NotNullableConstraint>();
         Unique = table.Constraints.Get<UniquenessConstraint>();
+        ForeignKeys = table.Constraints.OfType<ForeignKeyConstraint>()
+            .Select(constraint => new ForeignKeyConstraintViewModel(constraint))
+            .ToArray();
+        RenderForeignKeysInline = renderForeignKeysInline;
+        Description = table.Description;
     }
 }

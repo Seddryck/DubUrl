@@ -18,5 +18,6 @@ public interface ITableConstraintCollectionBuilder : ITableBuilder
 
 public interface ITableBuilder
 {
+    ITableBuilder WithDescription(string? description);
     Table Build();
 }

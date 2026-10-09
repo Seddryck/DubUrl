@@ -135,6 +135,7 @@ public class FormattersTest
 
     [Test]
     [TestCase("Yousp 125", "'Yousp 125'")]
+    [TestCase("owner's choice", "'owner''s choice'")]
     public void SimpleQuotedValueFormatter_Format_Match(string value, string expected)
         => Assert.That(new ValueSimpleQuotedFormatter().Format(value), Is.EqualTo(expected));
 

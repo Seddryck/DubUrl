@@ -1,0 +1,11 @@
+{{#each model.Tables}}
+{{#unless RenderForeignKeysInline}}
+{{#each ForeignKeys}}
+ALTER TABLE {{objectname ../Identity}} ADD CONSTRAINT {{identity Name}} FOREIGN KEY (
+{{~ #each SourceColumns}}{{identity this}}{{#unless @last}}, {{/unless}}{{/each~}}
+) REFERENCES {{objectname TargetTable}} (
+{{~ #each TargetColumns}}{{identity this}}{{#unless @last}}, {{/unless}}{{/each~}}
+);
+{{/each}}
+{{/unless}}
+{{/each}}
