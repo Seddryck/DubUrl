@@ -32,7 +32,7 @@ public class MsSqlServerMapperTest
         var mapper = new MsSqlServerMapper(ConnectionStringBuilder, new TSqlDialect(new SqlLanguage(), ["mssql", "ms"], new TSqlRenderer(), [], TSqlTypeMapper.Instance, TSqlFunctionMapper.Instance), new NamedParametrizer());
         var result = mapper.GetDialect();
 
-        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.InstanceOf<TSqlDialect>());
         Assert.Multiple(() =>
         {
