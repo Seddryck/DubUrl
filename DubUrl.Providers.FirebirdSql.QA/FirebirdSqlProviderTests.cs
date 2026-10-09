@@ -21,7 +21,7 @@ public sealed class FirebirdSqlProviderTests : ProviderContract
         from Customer
         where $clauses:{clause | $clause.Field$ $clause.Operator$ $clause.Value;format="value"$}; separator=" and "$
         """;
-    protected override string SelectPrimitiveTemplate => "select $value; format=\"value\"$ FROM RDB$DATABASE";
+    protected override string SelectPrimitiveTemplate => "select $value; format=\"value\"$ FROM RDB\\$DATABASE";
     protected override bool SupportsPositionalParameters => false;
     protected override bool SupportsDbReader => false;
 }
