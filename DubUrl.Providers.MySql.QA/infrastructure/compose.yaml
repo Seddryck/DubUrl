@@ -1,0 +1,15 @@
+services:
+  mysql:
+    image: public.ecr.aws/docker/library/mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: Password12!
+      MYSQL_DATABASE: DubUrl
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./initialize.sql:/docker-entrypoint-initdb.d/initialize.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD}" ]
+      interval: 3s
+      timeout: 5s
+      retries: 30
