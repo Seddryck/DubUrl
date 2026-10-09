@@ -22,8 +22,10 @@ public abstract class ProviderContract
     protected abstract string SelectYoungestCustomersSql { get; }
     protected abstract string SelectWhereCustomersTemplate { get; }
     protected virtual bool SupportsPositionalParameters => true;
+    protected virtual bool SupportsNamedParameters => true;
     protected virtual bool SupportsDbReader => true;
     protected virtual bool SupportsTemplates => true;
+    protected virtual bool SupportsInterval => true;
     protected virtual string SelectPrimitiveTemplate => "select $value; format=\"value\"$";
 
     [OneTimeSetUp]
@@ -63,7 +65,11 @@ public abstract class ProviderContract
 
     [Test, Category("ConnectionUrl")]
     public void QueryCustomerWithParams()
-        => AssertParameter(SelectCustomerByIdSql, "CustId", 2, "Albert Einstein");
+    {
+        if (!SupportsNamedParameters)
+            Assert.Ignore("The provider does not support named parameters.");
+        AssertParameter(SelectCustomerByIdSql, "CustId", 2, "Albert Einstein");
+    }
 
     [Test, Category("ConnectionUrl")]
     public void QueryCustomerWithPositionalParameter()
@@ -99,7 +105,12 @@ public abstract class ProviderContract
     public void QueryTimeWithDatabaseUrl() => AssertPrimitive(new TimeOnly(17, 52, 12));
 
     [Test, Category("DatabaseUrl")]
-    public void QueryIntervalWithDatabaseUrl() => AssertPrimitive(new TimeSpan(17, 52, 12));
+    public void QueryIntervalWithDatabaseUrl()
+    {
+        if (!SupportsInterval)
+            Assert.Ignore("The provider does not support interval values.");
+        AssertPrimitive(new TimeSpan(17, 52, 12));
+    }
 
     [Test, Category("DatabaseUrl")]
     public void QueryNullWithDatabaseUrl()

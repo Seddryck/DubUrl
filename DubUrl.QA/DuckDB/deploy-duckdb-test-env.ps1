@@ -3,6 +3,23 @@ Param(
 	, $config= "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.DuckDb.QA\DubUrl.Providers.DuckDb.QA.csproj"
+	$driverArchive = Join-Path $env:RUNNER_TEMP "duckdb_odbc.zip"
+	$driverPath = Join-Path $env:RUNNER_TEMP "duckdb_odbc"
+
+	Invoke-WebRequest "https://github.com/duckdb/duckdb-odbc/releases/download/v1.3.2.0/duckdb_odbc-windows-amd64.zip" -OutFile $driverArchive
+	Expand-Archive $driverArchive -DestinationPath $driverPath -Force
+	& (Join-Path $driverPath "odbc_install.exe") /CI /Install
+	if ($LASTEXITCODE -ne 0) { throw "DuckDB ODBC driver installation failed." }
+
+	Run-ProviderQaSuite -project $project -provider "duckdb" -config $config -frameworks $frameworks
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
