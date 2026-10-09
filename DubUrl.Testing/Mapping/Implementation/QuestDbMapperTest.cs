@@ -32,7 +32,7 @@ public class QuestDbMapperTest
         var mapper = new QuestDbMapper(ConnectionStringBuilder, new QuestDbDialect(new SqlLanguage(), ["quest", "questdb"], new PgsqlRenderer(), [], PgsqlTypeMapper.Instance, PgsqlFunctionMapper.Instance), new PositionalParametrizer());
         var result = mapper.GetDialect();
 
-        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.InstanceOf<QuestDbDialect>());
         Assert.That(result.Aliases, Does.Contain("quest"));
         Assert.That(result.Aliases, Does.Contain("questdb"));

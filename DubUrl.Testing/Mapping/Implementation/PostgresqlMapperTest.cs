@@ -32,7 +32,7 @@ public class PostgresqlMapperTest
         var mapper = new PostgresqlMapper(ConnectionStringBuilder, new PgsqlDialect(new SqlLanguage(), ["pgsql", "pg"], new PgsqlRenderer(), [], PgsqlTypeMapper.Instance, PgsqlFunctionMapper.Instance), new PositionalParametrizer());
         var result = mapper.GetDialect();
 
-        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.InstanceOf<PgsqlDialect>());
         Assert.That(result.Aliases, Does.Contain("pgsql"));
         Assert.That(result.Aliases, Does.Contain("pg"));
