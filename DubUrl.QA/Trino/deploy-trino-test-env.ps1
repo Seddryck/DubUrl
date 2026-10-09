@@ -4,6 +4,19 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\DubUrl.Providers.Trino.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\infrastructure\compose.yaml"
+	& docker compose -f $composeFile up --detach --wait
+	if ($LASTEXITCODE -ne 0) { throw "Trino QA infrastructure failed to start." }
+	try { Run-ProviderQaSuite -project $project -provider "trino" -config $config -frameworks $frameworks }
+	finally { & docker compose -f $composeFile down --volumes }
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
