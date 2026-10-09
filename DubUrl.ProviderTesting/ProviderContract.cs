@@ -25,7 +25,10 @@ public abstract class ProviderContract
     protected virtual bool SupportsNamedParameters => true;
     protected virtual bool SupportsDbReader => true;
     protected virtual bool SupportsTemplates => true;
+    protected virtual bool SupportsDate => true;
+    protected virtual bool SupportsTime => true;
     protected virtual bool SupportsInterval => true;
+    protected virtual bool SupportsNull => true;
     protected virtual string SelectPrimitiveTemplate => "select $value; format=\"value\"$";
 
     [OneTimeSetUp]
@@ -99,10 +102,20 @@ public abstract class ProviderContract
     public void QueryTimestampWithDatabaseUrl() => AssertPrimitive(new DateTime(2023, 6, 10, 17, 52, 12));
 
     [Test, Category("DatabaseUrl")]
-    public void QueryDateWithDatabaseUrl() => AssertPrimitive(new DateOnly(2023, 6, 10));
+    public void QueryDateWithDatabaseUrl()
+    {
+        if (!SupportsDate)
+            Assert.Ignore("The provider does not support date values.");
+        AssertPrimitive(new DateOnly(2023, 6, 10));
+    }
 
     [Test, Category("DatabaseUrl")]
-    public void QueryTimeWithDatabaseUrl() => AssertPrimitive(new TimeOnly(17, 52, 12));
+    public void QueryTimeWithDatabaseUrl()
+    {
+        if (!SupportsTime)
+            Assert.Ignore("The provider does not support time values.");
+        AssertPrimitive(new TimeOnly(17, 52, 12));
+    }
 
     [Test, Category("DatabaseUrl")]
     public void QueryIntervalWithDatabaseUrl()
@@ -115,6 +128,8 @@ public abstract class ProviderContract
     [Test, Category("DatabaseUrl")]
     public void QueryNullWithDatabaseUrl()
     {
+        if (!SupportsNull)
+            Assert.Ignore("The provider does not support the shared null-value contract.");
         var value = new DatabaseUrl(ConnectionUrl).ReadScalar<string>(
             $"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$",
             new Dictionary<string, object?> { ["value"] = null, ["columnId"] = "ColumnName" });
