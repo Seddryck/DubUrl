@@ -23,6 +23,7 @@ public abstract class ProviderContract
     protected abstract string SelectWhereCustomersTemplate { get; }
     protected virtual bool SupportsPositionalParameters => true;
     protected virtual bool SupportsDbReader => true;
+    protected virtual bool SupportsTemplates => true;
     protected virtual string SelectPrimitiveTemplate => "select $value; format=\"value\"$";
 
     [OneTimeSetUp]
@@ -151,6 +152,8 @@ public abstract class ProviderContract
     [Test, Category("MicroOrm"), Category("Template")]
     public void QueryCustomerWithWhereClause()
     {
+        if (!SupportsTemplates)
+            Assert.Ignore("The provider does not support the shared SQL template contract.");
         using var provider = CreateServices(microOrm: true).AddSingleton<RepositoryFactory>().BuildServiceProvider();
         var repository = provider.GetRequiredService<RepositoryFactory>().Instantiate<MicroOrmCustomerRepository>(ConnectionUrl);
         var customers = repository.SelectWhere(SelectWhereCustomersTemplate,
