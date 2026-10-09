@@ -115,6 +115,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.Trino.QA",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.Drill.QA", "DubUrl.Providers.Drill.QA\\DubUrl.Providers.Drill.QA.csproj", "{C3B4D638-46CB-42BC-8558-3264E185394A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.PowerBiDesktop.QA", "DubUrl.Providers.PowerBiDesktop.QA\\DubUrl.Providers.PowerBiDesktop.QA.csproj", "{92269F76-1DB2-467F-BE75-72B601DAE455}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -245,6 +247,10 @@ Global
 		{C3B4D638-46CB-42BC-8558-3264E185394A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3B4D638-46CB-42BC-8558-3264E185394A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3B4D638-46CB-42BC-8558-3264E185394A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92269F76-1DB2-467F-BE75-72B601DAE455}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92269F76-1DB2-467F-BE75-72B601DAE455}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92269F76-1DB2-467F-BE75-72B601DAE455}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92269F76-1DB2-467F-BE75-72B601DAE455}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
