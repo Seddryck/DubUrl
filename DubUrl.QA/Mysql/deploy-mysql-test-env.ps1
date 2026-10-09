@@ -5,6 +5,38 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	& sudo apt-get update
+	if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
+	& sudo apt-get install --yes odbc-mariadb unixodbc
+	if ($LASTEXITCODE -ne 0) { throw "Unable to install the MariaDB ODBC driver." }
+
+	$mariaDriver = (& odbcinst -q -d -n "MariaDB Unicode" | Where-Object { $_ -like "Driver=*" } | Select-Object -First 1).Split('=', 2)[1]
+	$aliases = Join-Path $env:RUNNER_TEMP "duburl-mysql-odbc.ini"
+	@"
+[MariaDB ODBC 3.1 Driver]
+Description=MariaDB ODBC compatibility alias
+Driver=$mariaDriver
+
+[MySQL ODBC 8.0 Unicode Driver]
+Description=MySQL ODBC compatibility alias
+Driver=$mariaDriver
+"@ | Set-Content $aliases
+	& sudo odbcinst -i -d -f $aliases
+	if ($LASTEXITCODE -ne 0) { throw "Unable to register the MySQL ODBC compatibility aliases." }
+
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MySql.QA\DubUrl.Providers.MySql.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MySql.QA\infrastructure\compose.yaml"
+	& docker compose -f $composeFile up --detach --wait
+	if ($LASTEXITCODE -ne 0) { throw "MySQL QA infrastructure failed to start." }
+	try { Run-ProviderQaSuite -project $project -provider "mysql" -config $config -frameworks $frameworks }
+	finally { & docker compose -f $composeFile down --volumes }
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
