@@ -56,6 +56,15 @@ The output under `bin/qa/<provider>/<version>/<framework>/<rid>` contains:
 
 The manifest is checked by the provider suite, so malformed or incomplete metadata fails QA.
 
+## GitHub Actions
+
+Provider QA runs independently from the unit-test and release workflow:
+
+- `.github/workflows/qa-postgresql.yml` starts the bundled Docker Compose environment, runs the complete PostgreSQL suite and its Schema category on .NET 8, 9, and 10, then uploads each runnable QA bundle.
+- `.github/workflows/qa-sqlite.yml` runs the complete self-contained SQLite suite and its Schema category on .NET 8, 9, and 10, then uploads each runnable QA bundle.
+
+Both workflows call the existing provider deployment entry points under `DubUrl.QA`. Those scripts preserve their AppVeyor/local behavior and select the provider-owned projects only when `GITHUB_ACTIONS=true`.
+
 ## Aggregate compatibility QA
 
 `DubUrl.QA` remains during the migration for providers that do not yet own a QA project. Once each provider moves, the aggregate suite retains only composition concerns:

@@ -4,6 +4,21 @@ Param(
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 	, $extension = "zip"
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Sqlite.QA\DubUrl.Providers.Sqlite.QA.csproj"
+	Run-ProviderQaSuite `
+		-project $project `
+		-provider "sqlite" `
+		-config $config `
+		-frameworks $frameworks
+
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
 if ($force) {
