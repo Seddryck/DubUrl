@@ -7,38 +7,8 @@ Param(
 if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
-	$archive = Join-Path $env:RUNNER_TEMP "apache-drill.tar.gz"
-	$extractRoot = Join-Path $env:RUNNER_TEMP "apache-drill"
-	Invoke-WebRequest "https://archive.apache.org/dist/drill/drill-1.21.2/apache-drill-1.21.2.tar.gz" -OutFile $archive
-	New-Item -ItemType Directory -Path $extractRoot -Force | Out-Null
-	& tar -xzf $archive -C $extractRoot
-	if ($LASTEXITCODE -ne 0) { throw "Apache Drill extraction failed." }
-	$drillHome = Join-Path $extractRoot "apache-drill-1.21.2"
-	New-Item -ItemType Directory -Path "C:\mnt" -Force | Out-Null
-	Copy-Item (Join-Path $PSScriptRoot "..\.bigdata\Customer") "C:\mnt\Customer" -Recurse -Force
-
-	$driverInstaller = Join-Path $env:RUNNER_TEMP "drill-odbc.msi"
-	Invoke-WebRequest "http://package.mapr.com/tools/MapR-ODBC/MapR_Drill/MapRDrill_odbc_v1.3.22.1055/MapR%20Drill%201.3%2064-bit.msi" -OutFile $driverInstaller
-	$driverInstall = Start-Process msiexec.exe -ArgumentList @('/i', $driverInstaller, '/quiet', '/qn', '/norestart') -Wait -WindowStyle Hidden -PassThru
-	if ($driverInstall.ExitCode -ne 0) { throw "MapR Drill ODBC driver installation failed with exit code $($driverInstall.ExitCode)." }
-
-	$drillCommand = "`"$(Join-Path $drillHome 'bin\drillbit.bat')`" start"
-	$start = Start-Process cmd.exe -ArgumentList @('/c', $drillCommand) -Wait -WindowStyle Hidden -PassThru
-	if ($start.ExitCode -ne 0) { throw "Apache Drill failed to start." }
-	try {
-		$ready = $false
-		foreach ($attempt in 1..30) {
-			if (Test-NetConnection localhost -Port 31010 -InformationLevel Quiet) { $ready = $true; break }
-			Start-Sleep -Seconds 2
-		}
-		if (-not $ready) { throw "Apache Drill did not become ready." }
-		$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Drill.QA\DubUrl.Providers.Drill.QA.csproj"
-		Run-ProviderQaSuite -project $project -provider "drill" -config $config -frameworks $frameworks
-	}
-	finally {
-		$stopCommand = "`"$(Join-Path $drillHome 'bin\drillbit.bat')`" stop"
-		Start-Process cmd.exe -ArgumentList @('/c', $stopCommand) -Wait -WindowStyle Hidden | Out-Null
-	}
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Drill.QA\DubUrl.Providers.Drill.QA.csproj"
+	Run-ProviderQaSuite -project $project -provider "drill" -config $config -frameworks $frameworks
 	exit 0
 }
 
