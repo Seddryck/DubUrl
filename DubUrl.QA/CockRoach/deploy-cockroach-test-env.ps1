@@ -11,8 +11,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CockroachDb.QA\DubUrl.Providers.CockroachDb.QA.csproj"
 	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CockroachDb.QA\infrastructure\compose.yaml"
 
-	& docker compose -f $composeFile up --detach --wait
-	if ($LASTEXITCODE -ne 0) { throw "CockroachDB QA infrastructure failed to start." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "CockroachDB" -wait
 
 	try {
 		& docker compose -f $composeFile exec -T cockroachdb cockroach sql --insecure --file /infrastructure/initialize.sql

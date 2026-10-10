@@ -12,8 +12,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SingleStore.QA\DubUrl.Providers.SingleStore.QA.csproj"
 	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SingleStore.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
-	& docker compose -f $composeFile up --detach --wait
-	if ($LASTEXITCODE -ne 0) { throw "SingleStore QA infrastructure failed to start." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SingleStore" -wait
 	try {
 		& docker compose -f $composeFile exec -T singlestore singlestore -pPassword12! --execute="$(Get-Content (Join-Path $infrastructure 'initialize.sql') -Raw)"
 		if ($LASTEXITCODE -ne 0) { throw "SingleStore QA database initialization failed." }

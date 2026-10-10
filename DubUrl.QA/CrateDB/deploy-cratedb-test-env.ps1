@@ -19,8 +19,7 @@ if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL client." }
 $project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CrateDb.QA\DubUrl.Providers.CrateDb.QA.csproj"
 $infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CrateDb.QA\infrastructure"
 $composeFile = Join-Path $infrastructure "compose.yaml"
-& docker compose -f $composeFile up --detach
-if ($LASTEXITCODE -ne 0) { throw "CrateDB QA infrastructure failed to start." }
+Start-ProviderQaInfrastructure -composeFile $composeFile -provider "CrateDB"
 try {
 	$ready = $false
 	foreach ($attempt in 1..45) {

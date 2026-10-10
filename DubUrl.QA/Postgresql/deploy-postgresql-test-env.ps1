@@ -20,10 +20,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	}
 
 	Write-Host "Starting PostgreSQL QA infrastructure with Docker Compose"
-	& docker compose -f $composeFile up --detach --wait
-	if ($LASTEXITCODE -ne 0) {
-		throw "PostgreSQL QA infrastructure failed to start."
-	}
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "PostgreSQL" -wait
 
 	try {
 		Run-ProviderQaSuite `
