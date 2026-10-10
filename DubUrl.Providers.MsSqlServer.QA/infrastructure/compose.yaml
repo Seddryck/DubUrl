@@ -1,0 +1,15 @@
+services:
+  mssqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Password12!
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./initialize.sql:/infrastructure/initialize.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Password12!' -C -Q 'select 1' || exit 1" ]
+      interval: 3s
+      timeout: 10s
+      retries: 40

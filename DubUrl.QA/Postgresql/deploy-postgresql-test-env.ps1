@@ -4,6 +4,39 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PostgreSql.QA\DubUrl.Providers.PostgreSql.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PostgreSql.QA\infrastructure\compose.yaml"
+
+	if ($IsLinux) {
+		& sudo apt-get update
+		if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
+		& sudo apt-get install --yes odbc-postgresql
+		if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL ODBC driver." }
+	}
+
+	Write-Host "Starting PostgreSQL QA infrastructure with Docker Compose"
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "PostgreSQL" -wait
+
+	try {
+		Run-ProviderQaSuite `
+			-project $project `
+			-provider "postgresql" `
+			-config $config `
+			-frameworks $frameworks
+	}
+	finally {
+		Write-Host "Stopping PostgreSQL QA infrastructure"
+		& docker compose -f $composeFile down --volumes
+	}
+
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Windows-Service.ps1
 . $PSScriptRoot\..\Docker-Container.ps1

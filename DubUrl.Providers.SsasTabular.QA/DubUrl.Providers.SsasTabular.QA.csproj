@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>false</IsPackable><QaProvider>ssastabular</QaProvider></PropertyGroup>
+  <ItemGroup><PackageReference Include="Microsoft.AnalysisServices.AdomdClient" Version="19.117.0" /><PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" /><PackageReference Include="NUnit" Version="5.0.0" /><PackageReference Include="NUnit3TestAdapter" Version="5.1.0" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\DubUrl.Adomd\DubUrl.Adomd.csproj" /><ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" /><ProjectReference Include="..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
+  <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure\**\*" /></ItemGroup>
+  <Import Project="..\build\ProviderQaBundle.targets" />
+</Project>

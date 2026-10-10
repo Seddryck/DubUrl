@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup>
+    <QaContractVersion Condition="'$(QaContractVersion)' == ''">1.0</QaContractVersion>
+    <QaRuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">portable</QaRuntimeIdentifier>
+    <QaBundleRoot>$(MSBuildProjectDirectory)\bin\qa\$(QaProvider)\$(Version)\$(TargetFramework)\$(QaRuntimeIdentifier)</QaBundleRoot>
+  </PropertyGroup>
+
+  <Target Name="ValidateQaBundleConfiguration" BeforeTargets="QaBundle">
+    <Error Condition="'$(QaProvider)' == ''" Text="QaProvider must be set by a provider QA project." />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)\qa-manifest.json')" Text="The provider QA manifest is missing." />
+  </Target>
+
+  <Target Name="QaBundle" DependsOnTargets="Build">
+    <ItemGroup>
+      <QaAdapterFile Include="$(TargetDir)**\*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(QaBundleRoot)" />
+    <MakeDir Directories="$(QaBundleRoot)\adapter;$(QaBundleRoot)\infrastructure" />
+    <Copy SourceFiles="@(QaAdapterFile)"
+          DestinationFiles="@(QaAdapterFile->'$(QaBundleRoot)\adapter\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\qa-manifest.json"
+          DestinationFolder="$(QaBundleRoot)" />
+    <Copy SourceFiles="@(QaInfrastructure)"
+          DestinationFiles="@(QaInfrastructure->'$(QaBundleRoot)\infrastructure\%(RecursiveDir)%(Filename)%(Extension)')"
+          Condition="'@(QaInfrastructure)' != ''" />
+    <Message Importance="high" Text="QA bundle: $(QaBundleRoot)" />
+  </Target>
+</Project>

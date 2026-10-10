@@ -1,0 +1,38 @@
+name: Trino provider QA
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+concurrency:
+  group: qa-trino-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions: { contents: read }
+env: { DOTNET_CLI_TELEMETRY_OPTOUT: 1, DOTNET_NOLOGO: 1, DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1 }
+jobs:
+  provider-qa:
+    name: Trino QA (${{ matrix.framework }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { framework: net8.0, sdk: 8.0.416 }
+          - { framework: net9.0, sdk: 9.0.308 }
+          - { framework: net10.0, sdk: 10.0.401 }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with: { dotnet-version: '${{ matrix.sdk }}' }
+      - name: Run provider QA
+        shell: pwsh
+        run: ./DubUrl.QA/Trino/deploy-trino-test-env.ps1 -force -config Release -frameworks @('${{ matrix.framework }}')
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with: { name: 'qa-trino-results-${{ matrix.framework }}-${{ github.sha }}', path: '.test-results/trino/${{ matrix.framework }}', if-no-files-found: error }
+      - name: Upload QA bundle
+        uses: actions/upload-artifact@v7
+        with: { name: 'qa-trino-bundle-${{ matrix.framework }}-${{ github.sha }}', path: 'DubUrl.Providers.Trino.QA/bin/qa/trino/*/${{ matrix.framework }}/**', include-hidden-files: true, if-no-files-found: error }

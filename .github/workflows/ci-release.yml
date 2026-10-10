@@ -25,6 +25,9 @@ jobs:
   version:
     name: Calculate version
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     outputs:
       semver: ${{ steps.gitversion.outputs.semVer }}
       patch: ${{ steps.gitversion.outputs.patch }}
@@ -49,6 +52,25 @@ jobs:
           $version = '${{ steps.gitversion.outputs.semVer }}'
           if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
             throw "GitVersion produced invalid SemVer '$version'."
+          }
+
+      - name: Apply expected labels to merged pull requests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          . ./github.ps1
+          $repository = '${{ github.repository }}' -split '/', 2
+          $context = [PSCustomObject] @{
+            Id = '${{ github.sha }}'
+            Owner = $repository[0]
+            Repository = $repository[1]
+            SecretToken = $env:GITHUB_TOKEN
+          }
+          foreach ($id in ($context | Get-Commit-Associated-Pull-Requests)) {
+            $context.Id = $id
+            $context | Set-Pull-Request-Expected-Labels -Config '.github/conventional_commits_labels.json'
           }
 
   build:
@@ -454,6 +476,79 @@ jobs:
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git tag --annotate $tag --message "DubUrl ${{ needs.version.outputs.semver }}" '${{ github.sha }}'
             git push origin $tag
+          }
+
+  update-documentation:
+    name: Update generated documentation
+    needs:
+      - version
+      - reserve-release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out validated release commit
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.416
+
+      - name: Build documentation inputs
+        run: >-
+          dotnet build DubUrl.QA/DubUrl.QA.csproj
+          --configuration Release
+          --framework net8.0
+          --nologo
+          -p:Version=${{ needs.version.outputs.semver }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Regenerate and commit documentation
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.DOCUMENTATION_PUSH_TOKEN }}
+        run: |
+          & ./generate-adonet-info.ps1
+          $exitCode = $LastExitCode
+          & ./generate-odbc-driver-info.ps1
+          $exitCode += $LastExitCode
+          & ./generate-oledb-provider-info.ps1
+          $exitCode += $LastExitCode
+          & ./generate-adomd-info.ps1
+          $exitCode += $LastExitCode
+          if ($exitCode -gt 0) {
+            if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
+              throw 'DOCUMENTATION_PUSH_TOKEN is required to push generated documentation to protected main.'
+            }
+            Write-Host "`tUpdating README.md ..."
+            & ./generate-table-scheme.ps1
+            & ./generate-badge.ps1
+            Write-Host "`tSetting GitHub credentials ..."
+            & gh auth setup-git
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Configuring GitHub credentials failed.'
+            }
+            & git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            & git config user.name 'github-actions[bot]'
+            Write-Host "`tCreating commit ..."
+            & git add --all
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Staging generated documentation failed.'
+            }
+            & git status
+            & git commit -m 'docs: update automatically generated documentation'
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Committing generated documentation failed.'
+            }
+            Write-Host "`tPushing commit ..."
+            & git push origin HEAD:main
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Pushing generated documentation to main failed.'
+            }
+            Write-Host "`tNew commit uploaded."
           }
 
   publish-nuget:

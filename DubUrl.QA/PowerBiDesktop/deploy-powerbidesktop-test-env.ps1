@@ -7,6 +7,46 @@ Param(
 )
 . $PSScriptRoot\..\Run-TestSuite.ps1
 
+if ($env:GITHUB_ACTIONS -eq "true") {
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PowerBiDesktop.QA\DubUrl.Providers.PowerBiDesktop.QA.csproj"
+	$pbix = Join-Path $PSScriptRoot "Customer.pbix"
+	$setup = Join-Path $env:RUNNER_TEMP "PBIDesktopSetup_x64.exe"
+	$previouslyRunning = (Get-Process $processName -ErrorAction SilentlyContinue).Length -gt 0
+
+	try {
+		Write-Host "Downloading Power BI Desktop"
+		Invoke-WebRequest $downloadUrl -OutFile $setup
+		Unblock-File $setup
+		Write-Host "Installing Power BI Desktop"
+		$installer = Start-Process -FilePath $setup -ArgumentList @("-quiet", "-norestart", "ACCEPT_EULA=1") -WindowStyle Hidden -Wait -PassThru
+		if ($installer.ExitCode -notin @(0, 3010)) {
+			throw "Power BI Desktop setup failed with exit code $($installer.ExitCode)."
+		}
+
+		if (!$previouslyRunning) {
+			Write-Host "Opening the Power BI QA model"
+			Start-Process -FilePath $pbix -WindowStyle Hidden | Out-Null
+		}
+
+		$deadline = (Get-Date).AddSeconds(90)
+		do {
+			$pbiReady = (Get-Process $processName -ErrorAction SilentlyContinue).Length -gt 0
+			$modelReady = (Get-Process "msmdsrv" -ErrorAction SilentlyContinue).Length -gt 0
+			if (!$pbiReady -or !$modelReady) { Start-Sleep -Seconds 2 }
+		} while ((!$pbiReady -or !$modelReady) -and (Get-Date) -lt $deadline)
+		if (!$pbiReady -or !$modelReady) { throw "Power BI Desktop did not expose the QA model within 90 seconds." }
+
+		Run-ProviderQaSuite -project $project -provider "powerbidesktop" -config $config -frameworks $frameworks
+		exit 0
+	}
+	finally {
+		if (!$previouslyRunning) {
+			Get-Process $processName, "msmdsrv" -ErrorAction SilentlyContinue | Stop-Process -Force
+		}
+	}
+}
+
 if ($force) {
 	Write-Host "Enforcing QA testing for Power BI Desktop"
 }

@@ -1,0 +1,16 @@
+services:
+  postgresql:
+    image: public.ecr.aws/docker/library/postgres:17
+    environment: { POSTGRES_PASSWORD: 'Password12!', POSTGRES_DB: DubUrl }
+    volumes: [ './initialize.sql:/docker-entrypoint-initdb.d/initialize.sql:ro' ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d DubUrl" ]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+  trino:
+    image: trinodb/trino:477
+    depends_on:
+      postgresql: { condition: service_healthy }
+    ports: [ '8080:8080' ]
+    volumes: [ './pg.properties:/etc/trino/catalog/pg.properties:ro' ]
