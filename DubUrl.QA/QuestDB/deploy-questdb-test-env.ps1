@@ -15,8 +15,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.QuestDb.QA\DubUrl.Providers.QuestDb.QA.csproj"
 	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.QuestDb.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
-	& docker compose -f $composeFile up --detach
-	if ($LASTEXITCODE -ne 0) { throw "QuestDB QA infrastructure failed to start." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "QuestDB"
 	try {
 		$env:PGPASSWORD = "quest"
 		$ready = $false

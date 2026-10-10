@@ -30,21 +30,7 @@ Driver=$mariaDriver
 
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MySql.QA\DubUrl.Providers.MySql.QA.csproj"
 	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MySql.QA\infrastructure\compose.yaml"
-	$infrastructureStarted = $false
-	foreach ($attempt in 1..3) {
-		& docker compose -f $composeFile up --detach --wait
-		if ($LASTEXITCODE -eq 0) {
-			$infrastructureStarted = $true
-			break
-		}
-
-		if ($attempt -lt 3) {
-			$delay = 30 * $attempt
-			Write-Warning "MySQL QA infrastructure failed to start (attempt $attempt of 3). Retrying in $delay seconds."
-			Start-Sleep -Seconds $delay
-		}
-	}
-	if (!$infrastructureStarted) { throw "MySQL QA infrastructure failed to start after 3 attempts." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "MySQL" -wait
 	try { Run-ProviderQaSuite -project $project -provider "mysql" -config $config -frameworks $frameworks }
 	finally { & docker compose -f $composeFile down --volumes }
 	exit 0

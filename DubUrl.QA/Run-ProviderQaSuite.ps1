@@ -1,3 +1,40 @@
+Function Start-ProviderQaInfrastructure {
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory=$true)]
+		[ValidateNotNullOrEmpty()]
+		[string] $composeFile,
+
+		[Parameter(Mandatory=$true)]
+		[ValidateNotNullOrEmpty()]
+		[string] $provider,
+
+		[switch] $wait,
+
+		[int] $attempts = 3,
+
+		[int] $initialDelaySeconds = 30
+	)
+
+	Process {
+		$composeArguments = @("compose", "-f", $composeFile, "up", "--detach")
+		if ($wait) { $composeArguments += "--wait" }
+
+		foreach ($attempt in 1..$attempts) {
+			& docker @composeArguments
+			if ($LASTEXITCODE -eq 0) { return }
+
+			if ($attempt -lt $attempts) {
+				$delay = [int]($initialDelaySeconds * [math]::Pow(2, $attempt - 1))
+				Write-Warning "$provider QA infrastructure failed to start (attempt $attempt of $attempts). Retrying in $delay seconds."
+				Start-Sleep -Seconds $delay
+			}
+		}
+
+		throw "$provider QA infrastructure failed to start after $attempts attempts."
+	}
+}
+
 Function Run-ProviderQaSuite {
 	[CmdletBinding()]
 	Param(

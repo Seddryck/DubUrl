@@ -11,8 +11,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MsSqlServer.QA\DubUrl.Providers.MsSqlServer.QA.csproj"
 	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MsSqlServer.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
-	& docker compose -f $composeFile up --detach --wait
-	if ($LASTEXITCODE -ne 0) { throw "SQL Server QA infrastructure failed to start." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SQL Server" -wait
 	try {
 		& docker compose -f $composeFile exec -T mssqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password12!" -C -i /infrastructure/initialize.sql
 		if ($LASTEXITCODE -ne 0) { throw "SQL Server QA database initialization failed." }

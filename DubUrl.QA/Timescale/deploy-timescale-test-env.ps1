@@ -15,8 +15,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Timescale.QA\DubUrl.Providers.Timescale.QA.csproj"
 	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Timescale.QA\infrastructure\compose.yaml"
-	& docker compose -f $composeFile up --detach --wait
-	if ($LASTEXITCODE -ne 0) { throw "Timescale QA infrastructure failed to start." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "Timescale" -wait
 	try {
 		Run-ProviderQaSuite -project $project -provider "timescale" -config $config -frameworks $frameworks
 	}

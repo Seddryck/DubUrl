@@ -10,8 +10,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\DubUrl.Providers.Trino.QA.csproj"
 	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\infrastructure\compose.yaml"
-	& docker compose -f $composeFile up --detach --wait
-	if ($LASTEXITCODE -ne 0) { throw "Trino QA infrastructure failed to start." }
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "Trino" -wait
 	try {
 		$ready = $false
 		foreach ($attempt in 1..40) {
