@@ -12,7 +12,18 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\infrastructure\compose.yaml"
 	& docker compose -f $composeFile up --detach --wait
 	if ($LASTEXITCODE -ne 0) { throw "Trino QA infrastructure failed to start." }
-	try { Run-ProviderQaSuite -project $project -provider "trino" -config $config -frameworks $frameworks }
+	try {
+		$ready = $false
+		foreach ($attempt in 1..40) {
+			try {
+				$response = Invoke-WebRequest "http://localhost:8080/v1/info" -TimeoutSec 3
+				if ($response.StatusCode -eq 200) { $ready = $true; break }
+			} catch { }
+			Start-Sleep -Seconds 3
+		}
+		if (!$ready) { throw "Trino did not become ready." }
+		Run-ProviderQaSuite -project $project -provider "trino" -config $config -frameworks $frameworks
+	}
 	finally { & docker compose -f $composeFile down --volumes }
 	exit 0
 }
