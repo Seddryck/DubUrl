@@ -6,8 +6,8 @@ namespace DubUrl.Providers.DuckDb.QA;
 [SetUpFixture]
 public sealed class DuckDbTestDatabase
 {
-    public static string DatabasePath => Path.Combine(AppContext.BaseDirectory, "Customer.duckdb");
-    public static string ConnectionUrl => $"duckdb:///{DatabasePath.Replace('\\', '/')}";
+    public static string DatabasePath => Path.GetFullPath("Customer.duckdb");
+    public static string ConnectionUrl => "duckdb:///Customer.duckdb";
 
     [OneTimeSetUp]
     public void Initialize()
