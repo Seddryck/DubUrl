@@ -7,7 +7,7 @@ namespace DubUrl.Providers.CockroachDb.QA;
 [Category("CockRoach")]
 public sealed class CockroachDbProviderTests : ProviderContract
 {
-    protected override string ConnectionUrl => "cr://root@localhost/DubUrl?sslmode=disable&Timeout=5";
+    protected override string ConnectionUrl => "cr://root@localhost/duburl?sslmode=disable&Timeout=5";
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => "select FullName from Customer where CustomerId=@CustId";
     protected override string SelectCustomerByPositionSql => "select FullName from Customer where CustomerId=($1)";
