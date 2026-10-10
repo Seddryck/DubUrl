@@ -30,6 +30,7 @@ public abstract class BaseAdomdProvider
         var discovery = new BinFolderDiscoverer(assemblies);
         var registrator = new ProviderFactoriesRegistrator(discovery);
         registrator.Register();
+        DateOnlyMappings.Register();
 
         SchemeRegistry = new SchemeRegistryBuilder()
             .WithAssemblies(assemblies)
@@ -310,7 +311,7 @@ public abstract class BaseAdomdProvider
                     );
         var customers = repo.SelectWhereCustomers(
         [
-            new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan , new DateTime(1920,1,1))
+            new BasicComparisonWhereClause<DateOnly>(x => x.BirthDate, Expression.LessThan , new DateOnly(1920,1,1))
             , new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper")
         ]);
         Assert.That(customers, Has.Count.EqualTo(2));
@@ -342,7 +343,7 @@ public abstract class BaseAdomdProvider
             Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
             Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
             Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            Assert.That(customers.Any(x => x.BirthDate == DateOnly.MinValue), Is.False);
         });
     }
 
@@ -369,7 +370,7 @@ public abstract class BaseAdomdProvider
             Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
             Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
             Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            Assert.That(customers.Any(x => x.BirthDate == DateOnly.MinValue), Is.False);
         });
     }
 
@@ -388,7 +389,7 @@ public abstract class BaseAdomdProvider
             Assert.That(customers.Select(x => x.CustomerId).Distinct().ToList(), Has.Count.EqualTo(5));
             Assert.That(customers.Any(x => string.IsNullOrEmpty(x.FullName)), Is.False);
             Assert.That(customers.Select(x => x.BirthDate).Distinct().ToList(), Has.Count.EqualTo(5));
-            Assert.That(customers.Any(x => x.BirthDate == DateTime.MinValue), Is.False);
+            Assert.That(customers.Any(x => x.BirthDate == DateOnly.MinValue), Is.False);
         });
     }
 }

@@ -15,10 +15,24 @@ namespace DubUrl.Mapping;
 
 public class SchemeRegistry : ISchemeRegistry
 {
-    private readonly Dictionary<string, IMapper> _mappers;
+    private readonly Dictionary<string, Func<IMapper>> _mapperFactories;
 
-    public SchemeRegistry(Dictionary<string, IMapper> mappers)
-        => _mappers = new(mappers, StringComparer.OrdinalIgnoreCase); // Defensive copy
+    public SchemeRegistry(Dictionary<string, Func<IMapper>> mapperFactories)
+        => _mapperFactories = new(mapperFactories, StringComparer.OrdinalIgnoreCase); // Defensive copy
+
+    public ResolvedConnection Resolve(Parsing.UrlInfo urlInfo)
+    {
+        var mapper = GetMapper(urlInfo.Schemes);
+        mapper.Rewrite(urlInfo);
+
+        return new ResolvedConnection(
+            mapper.GetConnectionString(),
+            mapper.GetDialect(),
+            mapper.GetConnectivity(),
+            mapper.GetParametrizer(),
+            GetProviderFactory(mapper)
+        );
+    }
 
     public IMapper GetMapper(string scheme)
         => GetMapper([scheme]);
@@ -27,19 +41,23 @@ public class SchemeRegistry : ISchemeRegistry
     {
         var alias = SchemeRegistryBuilder.GetAlias(schemes);
 
-        if (!_mappers.TryGetValue(alias, out var mapper))
-            throw new SchemeNotFoundException(alias, [.. _mappers.Keys]);
+        if (!_mapperFactories.TryGetValue(alias, out var mapperFactory))
+            throw new SchemeNotFoundException(alias, [.. _mapperFactories.Keys]);
 
-        return mapper;
+        return mapperFactory();
     }
 
     public DbProviderFactory GetProviderFactory(string[] schemes)
     {
-        var mapper = GetMapper(schemes);
+        return GetProviderFactory(GetMapper(schemes));
+    }
+
+    private static DbProviderFactory GetProviderFactory(IMapper mapper)
+    {
         return SchemeRegistryBuilder.GetProvider(mapper.GetProviderName())
             ?? throw new ProviderNotFoundException(mapper.GetProviderName(), DbProviderFactories.GetProviderInvariantNames().ToArray());
     }
 
     public bool CanHandle(string scheme)
-        => _mappers.ContainsKey(SchemeRegistryBuilder.GetAlias(scheme.Split(['+', ':'])));
+        => _mapperFactories.ContainsKey(SchemeRegistryBuilder.GetAlias(scheme.Split(['+', ':'])));
 }

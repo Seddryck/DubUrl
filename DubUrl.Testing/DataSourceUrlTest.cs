@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Parametrizing;
 using Moq;
 using NUnit.Framework;
 
@@ -15,6 +17,15 @@ namespace DubUrl.Testing;
 #if NET7_0_OR_GREATER
 public class DataSourceUrlTest
 {
+    private static ResolvedConnection Resolved(string connectionString = "", DbProviderFactory? providerFactory = null)
+        => new(
+            connectionString,
+            Mock.Of<IDialect>(),
+            Mock.Of<IConnectivity>(),
+            Mock.Of<IParametrizer>(),
+            providerFactory ?? Mock.Of<DbProviderFactory>()
+        );
+
     [Test]
     public void Parse_AnyConnectionString_OneCallToParserParse()
     {
@@ -23,11 +34,8 @@ public class DataSourceUrlTest
         var parserMock = new Mock<IParser>();
         parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
-        var mapperMock = new Mock<IMapper>();
-        mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
-
         var registryMock = new Mock<ISchemeRegistry>();
-        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.Resolve(It.IsAny<UrlInfo>())).Returns(Resolved());
 
         var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Parse();
@@ -36,43 +44,37 @@ public class DataSourceUrlTest
     }
 
     [Test]
-    public void Parse_AnyConnectionString_OneCallToMapperFactoryInstantiate()
+    public void Parse_AnyConnectionString_OneCallToRegistryResolve()
     {
         var url = "mssql://localhost/db";
 
         var parserMock = new Mock<IParser>();
         parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo() { Schemes = ["mssql"] });
 
-        var mapperMock = new Mock<IMapper>();
-        mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
-
         var registryMock = new Mock<ISchemeRegistry>();
-        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.Resolve(It.IsAny<UrlInfo>())).Returns(Resolved());
 
         var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Parse();
 
-        registryMock.Verify(x => x.GetMapper(It.Is<string[]>(x => x.Length == 1 || x.First() == "mssql")), Times.AtLeastOnce());
+        registryMock.Verify(x => x.Resolve(It.Is<UrlInfo>(x => x.Schemes.Length == 1 && x.Schemes[0] == "mssql")), Times.Once());
     }
 
     [Test]
-    public void Parse_AnyConnectionString_OneCallToMapperMap()
+    public void Parse_AnyConnectionString_OneCallToRegistryResolveResult()
     {
         var url = "mssql://localhost/db";
 
         var parserMock = new Mock<IParser>();
         parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
-        var mapperMock = new Mock<IMapper>();
-        mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
-
         var registryMock = new Mock<ISchemeRegistry>();
-        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
+        registryMock.Setup(x => x.Resolve(It.IsAny<UrlInfo>())).Returns(Resolved());
 
         var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Parse();
 
-        mapperMock.Verify(x => x.Rewrite(It.IsAny<UrlInfo>()), Times.Once());
+        registryMock.Verify(x => x.Resolve(It.IsAny<UrlInfo>()), Times.Once());
     }
 
     [Test]
@@ -83,15 +85,11 @@ public class DataSourceUrlTest
         var parserMock = new Mock<IParser>();
         parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
-        var mapperMock = new Mock<IMapper>();
-        mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
-
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateDataSource(It.IsAny<string>())).Returns(Mock.Of<DbDataSource>());
 
         var registryMock = new Mock<ISchemeRegistry>();
-        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        registryMock.Setup(x => x.Resolve(It.IsAny<UrlInfo>())).Returns(Resolved(providerFactory: dbProviderfactoryMock.Object));
 
         var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Create();
@@ -108,16 +106,11 @@ public class DataSourceUrlTest
         var parserMock = new Mock<IParser>();
         parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
-        var mapperMock = new Mock<IMapper>();
-        mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
-        mapperMock.Setup(x => x.GetConnectionString()).Returns(connString);
-
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateDataSource(connString)).Returns(Mock.Of<DbDataSource>());
 
         var registryMock = new Mock<ISchemeRegistry>();
-        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        registryMock.Setup(x => x.Resolve(It.IsAny<UrlInfo>())).Returns(Resolved(connString, dbProviderfactoryMock.Object));
 
         var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         dataSourceUrl.Create();
@@ -135,17 +128,12 @@ public class DataSourceUrlTest
         var parserMock = new Mock<IParser>();
         parserMock.Setup(x => x.Parse(It.IsAny<string>())).Returns(new UrlInfo());
 
-        var mapperMock = new Mock<IMapper>();
-        mapperMock.Setup(x => x.Rewrite(It.IsAny<UrlInfo>()));
-        mapperMock.Setup(x => x.GetConnectionString()).Returns(connString);
-
         var dbDataSource = Mock.Of<DbDataSource>();
         var dbProviderfactoryMock = new Mock<DbProviderFactory>();
         dbProviderfactoryMock.Setup(x => x.CreateDataSource(connString)).Returns(dbDataSource);
 
         var registryMock = new Mock<ISchemeRegistry>();
-        registryMock.Setup(x => x.GetMapper(It.IsAny<string[]>())).Returns(mapperMock.Object);
-        registryMock.Setup(x => x.GetProviderFactory(It.IsAny<string[]>())).Returns(dbProviderfactoryMock.Object);
+        registryMock.Setup(x => x.Resolve(It.IsAny<UrlInfo>())).Returns(Resolved(connString, dbProviderfactoryMock.Object));
 
         var dataSourceUrl = new DataSourceUrl(url, parserMock.Object, registryMock.Object);
         Assert.That(dataSourceUrl.Create(), Is.EqualTo(dbDataSource));

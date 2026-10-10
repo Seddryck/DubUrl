@@ -10,5 +10,5 @@ internal class Customer
 {
     public int CustomerId { get; set; }
     public string FullName { get; set; } = "";
-    public DateTime BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
 }

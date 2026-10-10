@@ -11,17 +11,17 @@ internal interface ICustomer
 {
     int CustomerId { get; }
     string FullName { get; }
-    DateTime BirthDate { get; }
+    DateOnly BirthDate { get; }
 }
 
 internal sealed class Customer : ICustomer
 {
     public int CustomerId { get; set; }
     public string FullName { get; set; } = string.Empty;
-    public DateTime BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
 }
 
-internal sealed record ReaderCustomer(int CustomerId, string FullName, DateTime BirthDate) : ICustomer;
+internal sealed record ReaderCustomer(int CustomerId, string FullName, DateOnly BirthDate) : ICustomer;
 
 internal sealed class InlineProviderCommand(string sql) : ICommandProvider
 {

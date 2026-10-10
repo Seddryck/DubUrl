@@ -21,7 +21,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
     {
         public int CustomerId { get; set; }
         public string FullName { get; set; } = "";
-        public DateTime BirthDate  { get; set; }
+        public DateOnly BirthDate  { get; set; }
     }
 
     private IReflectionCache? ReflectionCache { get; set; }
@@ -52,7 +52,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.CustomerId, Is.EqualTo(5));
             Assert.That(result.FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result!.BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result!.BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 
@@ -73,7 +73,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.CustomerId, Is.EqualTo(5));
             Assert.That(result.FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result.BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result.BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 
@@ -87,7 +87,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.CustomerId, Is.EqualTo(5));
             Assert.That(result.FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result!.BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result!.BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 
@@ -108,7 +108,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.CustomerId, Is.EqualTo(5));
             Assert.That(result.FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result.BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result.BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 
@@ -129,7 +129,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.CustomerId, Is.EqualTo(5));
             Assert.That(result.FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result.BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result.BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 
@@ -157,7 +157,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.CustomerId, Is.EqualTo(5));
             Assert.That(result.FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result.BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result.BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 
@@ -179,11 +179,11 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
            Assert.That(result.ElementAt(0).CustomerId, Is.EqualTo(5));
            Assert.That(result.ElementAt(0).FullName, Is.EqualTo("Linus Torvalds"));
-           Assert.That(result.ElementAt(0).BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+           Assert.That(result.ElementAt(0).BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
            
            Assert.That(result.ElementAt(1).CustomerId, Is.EqualTo(4));
            Assert.That(result.ElementAt(1).FullName, Is.EqualTo("Alan Turing"));
-           Assert.That(result.ElementAt(1).BirthDate, Is.EqualTo(new DateTime(1912, 6, 23)));
+           Assert.That(result.ElementAt(1).BirthDate, Is.EqualTo(new DateOnly(1912, 6, 23)));
         });
     }
 
@@ -199,7 +199,7 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
         {
             Assert.That(result.ElementAt(0).CustomerId, Is.EqualTo(5));
             Assert.That(result.ElementAt(0).FullName, Is.EqualTo("Linus Torvalds"));
-            Assert.That(result.ElementAt(0).BirthDate, Is.EqualTo(new DateTime(1969, 12, 28)));
+            Assert.That(result.ElementAt(0).BirthDate, Is.EqualTo(new DateOnly(1969, 12, 28)));
         });
     }
 

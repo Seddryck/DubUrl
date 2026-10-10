@@ -35,7 +35,11 @@ public abstract class AdomdContract
     protected virtual bool DbReaderUsesDapper => false;
 
     [OneTimeSetUp]
-    public void SetUpRegistry() => registry = CreateSchemeRegistry();
+    public void SetUpRegistry()
+    {
+        registry = CreateSchemeRegistry();
+        DateOnlyMappings.Register();
+    }
 
     private ConnectionUrl CreateUrl(string? url = null) => new(url ?? ConnectionUrl, registry);
     private DatabaseUrl CreateDatabase() => new(new ConnectionUrlFactory(registry), ConnectionUrl);
@@ -90,7 +94,7 @@ public abstract class AdomdContract
         using var services = CreateServices(microOrm: true).AddSingleton<RepositoryFactory>().BuildServiceProvider();
         var customers = services.GetRequiredService<RepositoryFactory>().Instantiate<MicroOrmCustomerRepository>(ConnectionUrl).SelectWhere(SelectWhereCustomersTemplate,
         [
-            new BasicComparisonWhereClause<DateTime>(x => x.BirthDate, Expression.LessThan, new DateTime(1920, 1, 1)),
+            new BasicComparisonWhereClause<DateOnly>(x => x.BirthDate, Expression.LessThan, new DateOnly(1920, 1, 1)),
             new BasicComparisonWhereClause<string>(x => x.FullName, Expression.GreaterThanOrEqual, "Hopper")
         ]);
         Assert.That(customers.Select(x => x.FullName), Is.EquivalentTo(new[] { "Nikola Tesla", "John von Neumann" }));

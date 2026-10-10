@@ -11,7 +11,7 @@ namespace DubUrl.Rewriting.Implementation;
 
 internal class DuckdbRewriter : ConnectionStringRewriter
 {
-    protected internal const string DATABASE_KEYWORD = "Data Source";
+    protected internal const string DATABASE_KEYWORD = "DataSource";
     
     public DuckdbRewriter(DbConnectionStringBuilder csb, string rootPath)
         : base(   new UniqueAssignmentSpecificator(csb),
@@ -40,7 +40,7 @@ internal class DuckdbRewriter : ConnectionStringRewriter
                     || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ":memory:") == 0
                    )
             {
-                if (!urlInfo.Segments.Any())
+                if (urlInfo.Segments.Length == 0)
                     segments.Add(":memory:");
                 else
                     throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments)}'");
@@ -55,7 +55,7 @@ internal class DuckdbRewriter : ConnectionStringRewriter
                 segments.AddRange(urlInfo.Segments);
             }
 
-            if (segments == null || !segments.Any())
+            if (segments.Count == 0)
                 throw new InvalidConnectionUrlMissingSegmentsException("DuckDB");
 
             Specificator.Execute(DATABASE_KEYWORD, PathHelper.Create(RootPath, segments));
