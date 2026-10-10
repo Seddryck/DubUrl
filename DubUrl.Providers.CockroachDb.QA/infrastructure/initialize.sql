@@ -1,14 +1,14 @@
-DROP DATABASE IF EXISTS "DubUrl" CASCADE;
-CREATE DATABASE "DubUrl";
-SET DATABASE = "DubUrl";
+DROP DATABASE IF EXISTS duburl CASCADE;
+CREATE DATABASE duburl;
+SET DATABASE = duburl;
 
-CREATE TABLE "Customer" (
-    "CustomerId" INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    "FullName" STRING,
-    "BirthDate" DATE
+CREATE TABLE Customer (
+    CustomerId INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
+    FullName STRING,
+    BirthDate DATE
 );
 
-INSERT INTO "Customer" ("FullName", "BirthDate") VALUES
+INSERT INTO Customer (FullName, BirthDate) VALUES
      ('Nikola Tesla', '1856-07-10')
     ,('Albert Einstein', '1879-03-14')
     ,('John von Neumann', '1903-12-28')
