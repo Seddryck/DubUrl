@@ -19,9 +19,16 @@ if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL client." }
 $project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CrateDb.QA\DubUrl.Providers.CrateDb.QA.csproj"
 $infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CrateDb.QA\infrastructure"
 $composeFile = Join-Path $infrastructure "compose.yaml"
-& docker compose -f $composeFile up --detach --wait
+& docker compose -f $composeFile up --detach
 if ($LASTEXITCODE -ne 0) { throw "CrateDB QA infrastructure failed to start." }
 try {
+	$ready = $false
+	foreach ($attempt in 1..45) {
+		& psql -U crate -h localhost -p 5432 -d crate -c "select 1" 2>$null | Out-Null
+		if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+		Start-Sleep -Seconds 2
+	}
+	if (!$ready) { throw "CrateDB did not become ready." }
 	& psql -U crate -h localhost -p 5432 -d crate -f (Join-Path $infrastructure "initialize.sql")
 	if ($LASTEXITCODE -ne 0) { throw "CrateDB QA database initialization failed." }
 	Run-ProviderQaSuite -project $project -provider "cratedb" -config $config -frameworks $frameworks
