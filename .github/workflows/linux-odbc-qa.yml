@@ -1,0 +1,53 @@
+name: Linux ODBC QA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgresql:
+    name: PostgreSQL (${{ matrix.framework }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [net8.0, net9.0]
+    services:
+      postgresql:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: Password12!
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Install unixODBC and PostgreSQL driver
+        run: sudo apt-get update && sudo apt-get install --yes unixodbc odbc-postgresql postgresql-client
+
+      - name: Show installed ODBC drivers
+        run: odbcinst -q -d
+
+      - name: Create QA database
+        env:
+          PGPASSWORD: Password12!
+        run: psql --host localhost --username postgres --file DubUrl.QA/Postgresql/deploy-postgresql-database.sql
+
+      - name: Run PostgreSQL ODBC QA
+        run: dotnet test DubUrl.QA/DubUrl.QA.csproj --configuration Release --framework ${{ matrix.framework }} --filter "TestCategory=Postgresql&TestCategory=ODBC" --nologo

@@ -25,7 +25,7 @@ public class OdbcMapper : BaseMapper, IOdbcMapper
         : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
 
     public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new OdbcRewriter(csb),
+        : base(new OdbcRewriter(csb, driverLocatorFactory),
               dialect,
               parametrizer
         )

@@ -84,6 +84,9 @@ public class SchemeMapperBuilderTest
     [TestCase("duck", typeof(DuckdbMapper))]
     [TestCase("odbc+mssql", typeof(OdbcMapper))]
     [TestCase("mssql+odbc", typeof(OdbcMapper))]
+    [TestCase("odbc+pgsql", typeof(PostgresqlOdbcMapper))]
+    [TestCase("pgsql+odbc", typeof(PostgresqlOdbcMapper))]
+    [TestCase("odbc+timescale", typeof(PostgresqlOdbcMapper))]
     public void Instantiate_Scheme_CorrectType(string scheme, Type expected)
     {
         var builder = new SchemeRegistryBuilder().WithAutoDiscoveredMappings();

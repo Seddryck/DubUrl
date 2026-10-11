@@ -1,41 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
 
 namespace DubUrl.Locating.OdbcDriver;
 
 public class DriverLister
 {
+    private IDriverListingStrategy Strategy { get; }
+
+    public DriverLister()
+        : this(CreateStrategy()) { }
+
+    internal DriverLister(IDriverListingStrategy strategy)
+        => Strategy = strategy;
+
     public virtual string[] List()
+        => Strategy.List();
+
+    private static IDriverListingStrategy CreateStrategy()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var drivers = new List<string>();
-            drivers.AddRange(ListFromRegistry(Registry.LocalMachine));
-            drivers.AddRange(ListFromRegistry(Registry.CurrentUser));
-            return [.. drivers];
-        }
-        return [];
-    }
+            return new WindowsRegistryDriverListingStrategy();
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return new UnixOdbcDriverListingStrategy();
 
-    private static List<string> ListFromRegistry(RegistryKey registryKey)
-    {
-#pragma warning disable CA1416 // Validate platform compatibility
-        var drivers = new List<string>();
-        using (var reg = registryKey.OpenSubKey("Software")
-               ?.OpenSubKey("ODBC")
-               ?.OpenSubKey("ODBCINST.INI")
-               ?.OpenSubKey("ODBC Drivers"))
-
-        {
-            foreach (var driver in reg?.GetValueNames() ?? [])
-                drivers.Add(driver);
-        }
-#pragma warning restore CA1416 // Validate platform compatibility
-        return drivers;
+        return new EmptyDriverListingStrategy();
     }
+}
+
+internal sealed class EmptyDriverListingStrategy : IDriverListingStrategy
+{
+    public string[] List() => [];
 }

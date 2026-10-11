@@ -70,4 +70,20 @@ public class PostgresqlDriverLocatorTest
         var driver = driverLocator.Locate();
         Assert.That(driver, Is.Null.Or.Empty);
     }
+
+    [Test]
+    public void Locate_UnixOdbcNames_UnicodeDriverReturned()
+    {
+        var strategy = new FakeDriverListingStrategy("PostgreSQL ANSI", "PostgreSQL Unicode");
+        var driverLocator = new PostgresqlDriverLocator(new DriverLister(strategy));
+
+        var driver = driverLocator.Locate();
+
+        Assert.That(driver, Is.EqualTo("PostgreSQL Unicode"));
+    }
+
+    private sealed class FakeDriverListingStrategy(params string[] drivers) : IDriverListingStrategy
+    {
+        public string[] List() => drivers;
+    }
 }
