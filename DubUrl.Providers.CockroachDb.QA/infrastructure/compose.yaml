@@ -1,0 +1,14 @@
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:latest
+    command: start-single-node --insecure
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - ./initialize.sql:/infrastructure/initialize.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "cockroach node status --insecure" ]
+      interval: 2s
+      timeout: 5s
+      retries: 30

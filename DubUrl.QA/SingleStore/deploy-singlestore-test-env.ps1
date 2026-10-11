@@ -4,6 +4,24 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	if ([string]::IsNullOrWhiteSpace($env:SINGLESTORE_LICENSE)) { throw "SINGLESTORE_LICENSE is required." }
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SingleStore.QA\DubUrl.Providers.SingleStore.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SingleStore.QA\infrastructure"
+	$composeFile = Join-Path $infrastructure "compose.yaml"
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SingleStore" -wait
+	try {
+		& docker compose -f $composeFile exec -T singlestore singlestore -pPassword12! --execute="$(Get-Content (Join-Path $infrastructure 'initialize.sql') -Raw)"
+		if ($LASTEXITCODE -ne 0) { throw "SingleStore QA database initialization failed." }
+		Run-ProviderQaSuite -project $project -provider "singlestore" -config $config -frameworks $frameworks
+	}
+	finally { & docker compose -f $composeFile down --volumes }
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 . $PSScriptRoot\..\Windows-Service.ps1

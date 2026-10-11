@@ -173,7 +173,7 @@ function Get-Expected-Labels {
 	
 	$conventional = $tokens[0].Trim()
 	if ($conventional.IndexOf('(') -gt 0) {
-		$conventional = $conventional.SubString(0, $conventional.IndexOf('(') - 1).Trim()
+		$conventional = $conventional.SubString(0, $conventional.IndexOf('(')).Trim()
 	}
 
 	if ($conventional.EndsWith('!')) {

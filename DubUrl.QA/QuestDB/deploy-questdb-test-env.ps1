@@ -3,6 +3,38 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	& sudo apt-get update
+	if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
+	& sudo apt-get install --yes odbc-postgresql postgresql-client
+	if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL clients." }
+
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.QuestDb.QA\DubUrl.Providers.QuestDb.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.QuestDb.QA\infrastructure"
+	$composeFile = Join-Path $infrastructure "compose.yaml"
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "QuestDB"
+	try {
+		$env:PGPASSWORD = "quest"
+		$ready = $false
+		foreach ($attempt in 1..30) {
+			& psql -U admin -h localhost -p 8812 -d qdb -c "select 1" 2>$null | Out-Null
+			if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+			Start-Sleep -Seconds 2
+		}
+		if (!$ready) { throw "QuestDB did not become ready." }
+		& psql -U admin -h localhost -p 8812 -f (Join-Path $infrastructure "initialize.sql")
+		if ($LASTEXITCODE -ne 0) { throw "QuestDB QA database initialization failed." }
+		Run-ProviderQaSuite -project $project -provider "questdb" -config $config -frameworks $frameworks
+	}
+	finally {
+		& docker compose -f $composeFile down --volumes
+	}
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 

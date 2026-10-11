@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>DubUrl.Schema.Testing.Contracts</PackageId>
+    <Description>Reusable live-database contracts for DubUrl.Schema providers.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+  </ItemGroup>
+</Project>

@@ -4,6 +4,29 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\DubUrl.Providers.Trino.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\infrastructure\compose.yaml"
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "Trino" -wait
+	try {
+		$ready = $false
+		foreach ($attempt in 1..40) {
+			try {
+				$response = Invoke-WebRequest "http://localhost:8080/v1/info" -TimeoutSec 3
+				if ($response.StatusCode -eq 200) { $ready = $true; break }
+			} catch { }
+			Start-Sleep -Seconds 3
+		}
+		if (!$ready) { throw "Trino did not become ready." }
+		Run-ProviderQaSuite -project $project -provider "trino" -config $config -frameworks $frameworks
+	}
+	finally { & docker compose -f $composeFile down --volumes }
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 

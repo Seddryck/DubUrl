@@ -3,6 +3,28 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CockroachDb.QA\DubUrl.Providers.CockroachDb.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CockroachDb.QA\infrastructure\compose.yaml"
+
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "CockroachDB" -wait
+
+	try {
+		& docker compose -f $composeFile exec -T cockroachdb cockroach sql --insecure --file /infrastructure/initialize.sql
+		if ($LASTEXITCODE -ne 0) { throw "CockroachDB QA database initialization failed." }
+		Run-ProviderQaSuite -project $project -provider "cockroachdb" -config $config -frameworks $frameworks
+	}
+	finally {
+		& docker compose -f $composeFile down --volumes
+	}
+
+	exit 0
+}
+
 if ($force) {
 	Write-Host "Enforcing QA testing for CockRoachDB"
 }

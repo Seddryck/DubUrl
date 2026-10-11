@@ -3,6 +3,15 @@ Param(
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Drill.QA\DubUrl.Providers.Drill.QA.csproj"
+	Run-ProviderQaSuite -project $project -provider "drill" -config $config -frameworks $frameworks
+	exit 0
+}
+
 . $PSScriptRoot\..\Run-TestSuite.ps1
 . $PSScriptRoot\..\Docker-Container.ps1
 
