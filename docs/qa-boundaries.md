@@ -58,16 +58,11 @@ The manifest is checked by the provider suite, so malformed or incomplete metada
 
 ## GitHub Actions
 
-Provider QA runs independently from the unit-test and release workflow:
-
-- `.github/workflows/qa-postgresql.yml` starts the bundled Docker Compose environment, runs the complete PostgreSQL suite and its Schema category on .NET 8, 9, and 10, then uploads each runnable QA bundle.
-- `.github/workflows/qa-sqlite.yml` runs the complete self-contained SQLite suite and its Schema category on .NET 8, 9, and 10, then uploads each runnable QA bundle.
-
-Both workflows call the existing provider deployment entry points under `DubUrl.QA`. Those scripts preserve their AppVeyor/local behavior and select the provider-owned projects only when `GITHUB_ACTIONS=true`.
+Provider QA runs independently from the unit-test and release workflow. Each provider workflow calls its existing deployment entry point under `DubUrl.QA`, runs the provider-owned suite on .NET 8, 9, and 10, and uploads its test results and runnable QA bundle. Power BI Desktop and SingleStore remain manual workflows because they require licensed external software.
 
 ## Aggregate compatibility QA
 
-`DubUrl.QA` remains during the migration for providers that do not yet own a QA project. Once each provider moves, the aggregate suite retains only composition concerns:
+`DubUrl.QA` remains as the shared deployment harness and aggregate composition suite. Provider-owned projects cover provider capabilities, while the aggregate suite retains only composition concerns:
 
 - all advertised built-ins can be discovered by the compatibility package;
 - aliases do not conflict;

@@ -23,8 +23,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 ![Still maintained](https://img.shields.io/maintenance/yes/2025.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Seddryck/DubUrl)
 
-**Continuous integration builds:** [![Build status](https://ci.appveyor.com/api/projects/status/k26u1sesu2tt9pgl?svg=true)](https://ci.appveyor.com/project/Seddryck/DubUrl/)
-[![Tests](https://img.shields.io/appveyor/tests/seddryck/DubUrl.svg)](https://ci.appveyor.com/project/Seddryck/DubUrl/build/tests)
+**Continuous integration builds:** [![CI and release](https://github.com/Seddryck/DubUrl/actions/workflows/ci-release.yml/badge.svg?branch=main)](https://github.com/Seddryck/DubUrl/actions/workflows/ci-release.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/seddryck/duburl/badge)](https://www.codefactor.io/repository/github/seddryck/duburl)
 [![codecov](https://codecov.io/github/Seddryck/DubUrl/branch/main/graph/badge.svg?token=9ZSJ6N0X9E)](https://codecov.io/github/Seddryck/DubUrl)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSeddryck%2FDubUrl?ref=badge_shield)
