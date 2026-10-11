@@ -16,9 +16,11 @@ public sealed class DuckDbProviderTests : ProviderContract
     protected override string SelectCustomerByPositionSql => "select FullName from Customer where CustomerId=($1)";
     protected override string SelectAllCustomersSql => "select * from Customer";
     protected override string SelectYoungestCustomersSql => "select CustomerId, FullName, cast(BirthDate as DateTime) as \"BirthDate\" from Customer order by BirthDate desc limit $count$";
-    protected override string SelectWhereCustomersTemplate => string.Empty;
+    protected override string SelectWhereCustomersTemplate => """
+        select $fields:{field | $field; format="identity"$}; separator=", "$ from $table; format="identity"$
+        where $clauses:{clause | $clause.Field; format="identity"$ $clause.Operator$ $clause.Value; format="value"$}; separator=" and "$
+        """;
     protected override bool SupportsNamedParameters => false;
-    protected override bool SupportsTemplates => false;
     protected override bool SupportsInterval => false;
 
     [Test]
