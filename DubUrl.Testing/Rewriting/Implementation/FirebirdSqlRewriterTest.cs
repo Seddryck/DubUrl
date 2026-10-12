@@ -89,7 +89,7 @@ public class FirebirdSqlRewriterTest
     [Test]
     public void Map_QuadrupleSlashWithRootPath_DataSource()
     {
-        var rootPath = "c:\\directory\\";
+        var rootPath = "c:\\directory";
         var path = "data.fdb";
         var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, rootPath);
@@ -97,7 +97,7 @@ public class FirebirdSqlRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.DATABASE_KEYWORD));
-        Assert.That(result[FirebirdSqlRewriter.DATABASE_KEYWORD], Is.EqualTo((rootPath + path).Replace('/', Path.DirectorySeparatorChar)));
+        Assert.That(result[FirebirdSqlRewriter.DATABASE_KEYWORD], Is.EqualTo(Path.Combine(rootPath, path).Replace('/', Path.DirectorySeparatorChar)));
     }
 
     [Test]
