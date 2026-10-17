@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ internal class SnowflakeRewriter : ConnectionStringRewriter
 
     internal class AccountMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
         }
@@ -38,25 +38,25 @@ internal class SnowflakeRewriter : ConnectionStringRewriter
 
     internal class DatabaseMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length >= 1)
+            if (urlInfo.Segments.Count >= 1)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
         }
     }
 
     internal class SchemaMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length >= 2)
+            if (urlInfo.Segments.Count >= 2)
                 Specificator.Execute(SCHEMA_KEYWORD, urlInfo.Segments.Skip(1).First());
         }
     }
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);

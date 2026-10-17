@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -9,20 +9,13 @@ using DubUrl.Parsing;
 namespace DubUrl.Mapping;
 public interface ISchemeRegistry
 {
-    ResolvedConnection Resolve(UrlInfo urlInfo)
-    {
-        var mapper = GetMapper(urlInfo.Schemes);
-        mapper.Rewrite(urlInfo);
-        return new(
-            mapper.GetConnectionString(),
-            mapper.GetDialect(),
-            mapper.GetConnectivity(),
-            mapper.GetParametrizer(),
-            GetProviderFactory(urlInfo.Schemes)
-        );
-    }
+    ResolvedConnection Resolve(ConnectionUri connectionUri);
+    bool TryResolve(
+        ConnectionUri connectionUri,
+        out ResolvedConnection? resolvedConnection,
+        out ConnectionResolutionDiagnostic? diagnostic);
     IMapper GetMapper(string alias);
-    IMapper GetMapper(string[] aliases);
-    DbProviderFactory GetProviderFactory(string[] aliases);
+    IMapper GetMapper(SchemeKey scheme);
+    DbProviderFactory GetProviderFactory(SchemeKey scheme);
     bool CanHandle(string scheme);
 }

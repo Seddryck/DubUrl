@@ -11,6 +11,7 @@ using DubUrl.Locating.OdbcDriver;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting;
+using DubUrl.Parsing;
 
 namespace DubUrl.Mapping;
 public class SchemeRegistryBuilder
@@ -226,14 +227,18 @@ public class SchemeRegistryBuilder
     #region Static Helpers
 
     public static string GetAlias(string[] aliases)
-    {
-        var main = aliases.Length == 1
-            ? aliases[0]
-            : aliases.Contains("oledb") ? "oledb"
-            : aliases.Contains("odbc") ? "odbc"
-            : throw new ArgumentOutOfRangeException(nameof(aliases));
+        => GetAlias(new SchemeKey(aliases));
 
-        var second = aliases.FirstOrDefault(x => x != main);
+    public static string GetAlias(SchemeKey scheme)
+    {
+        var aliases = scheme.Parts;
+        var main = aliases.Count == 1
+            ? aliases[0]
+            : aliases.Contains("oledb", StringComparer.OrdinalIgnoreCase) ? "oledb"
+            : aliases.Contains("odbc", StringComparer.OrdinalIgnoreCase) ? "odbc"
+            : throw new ArgumentOutOfRangeException(nameof(scheme));
+
+        var second = aliases.FirstOrDefault(x => !x.Equals(main, StringComparison.OrdinalIgnoreCase));
         return string.IsNullOrEmpty(second) ? main : $"{main}+{second}";
     }
 

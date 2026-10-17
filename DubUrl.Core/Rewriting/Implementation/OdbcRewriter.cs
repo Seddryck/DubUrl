@@ -1,4 +1,4 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.Options;
 using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
@@ -43,11 +43,11 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
 
     protected internal class HostMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var fullHost = new StringBuilder(urlInfo.Host);
 
-            if (urlInfo.Segments.Length > 1)
+            if (urlInfo.Segments.Count > 1)
                 fullHost.Append('\\').Append(urlInfo.Segments.First());
 
             if (urlInfo.Port > 0)
@@ -65,11 +65,11 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
         public DriverMapper(DriverLocatorFactory driverLocatorFactory)
             => DriverLocatorFactory = driverLocatorFactory;
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
             {
-                var otherSchemes = urlInfo.Schemes.Where(x => x != "odbc");
+                var otherSchemes = urlInfo.Scheme.Parts.Where(x => !x.Equals("odbc", StringComparison.OrdinalIgnoreCase));
 
                 var secondScheme = string.Empty;
                 switch (otherSchemes.Count(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)))
@@ -133,7 +133,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
 
     protected internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
@@ -144,9 +144,9 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
 
     protected internal class DatabaseMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length <= 2)
+            if (urlInfo.Segments.Count <= 2)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
             else
                 throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
@@ -155,7 +155,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
 
     protected internal class OptionsMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             foreach (var option in urlInfo.Options)
             {

@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 using System.Data.Common;
@@ -20,7 +20,7 @@ public class TrinoOdbcRewriterTest
     [TestCase("", "localhost")]
     public void Map_UrlInfo_ReturnsHost(string host, string expected)
     {
-        var urlInfo = new UrlInfo() { Host = host, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Host = host, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -34,7 +34,7 @@ public class TrinoOdbcRewriterTest
     [TestCase(1234, "1234")]
     public void Map_UrlInfo_ReturnsPort(int port, string expected)
     {
-        var urlInfo = new UrlInfo() { Host = "host", Port= port, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Host = "host", Port= port, Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -48,7 +48,7 @@ public class TrinoOdbcRewriterTest
     [TestCase("catalog/schema", "catalog")]
     public void Map_UrlInfo_ReturnsCatalog(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -62,7 +62,7 @@ public class TrinoOdbcRewriterTest
     [TestCase("catalog/schema", "schema")]
     public void Map_UrlInfo_ReturnsSchema(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -74,7 +74,7 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Driver", "ODBC Driver 18 for SQL Server" } } };
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -91,9 +91,9 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = ["catalog/schema"], Schemes = ["odbc", "mssql", "ODBC Driver 18 for SQL Server"] };
-        urlInfo.Options.Add("ClientTags", "foo,bar");
-        urlInfo.Options.Add("ApplicationNamePrefix", "qurx");
+        var urlInfo = new ConnectionUri() { Segments = ["catalog/schema"], Scheme = new SchemeKey(["odbc", "mssql", "ODBC Driver 18 for SQL Server"]) };
+        urlInfo = urlInfo.WithOption("ClientTags", "foo,bar");
+        urlInfo = urlInfo.WithOption("ApplicationNamePrefix", "qurx");
 
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -111,7 +111,7 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_SchemeContainsDriverName_DriverNameReturned()
     {
-        var urlInfo = new UrlInfo() { Schemes = ["odbc", "trino", "{PRESTO ODBC Driver}"], Segments = ["catalog"] };
+        var urlInfo = new ConnectionUri() { Scheme = new SchemeKey(["odbc", "trino", "{PRESTO ODBC Driver}"]), Segments = ["catalog"] };
 
         var mapper = new TrinoOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);

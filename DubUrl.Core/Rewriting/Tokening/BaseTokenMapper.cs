@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -22,5 +22,5 @@ public abstract class BaseTokenMapper : ITokenMapper
     public void Accept(ISpecificator specificator)
         => Specificator = specificator;
 
-    public abstract void Execute(UrlInfo urlInfo);
+    public abstract void Execute(ConnectionUri urlInfo);
 }

@@ -1,4 +1,4 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.Options;
 using DubUrl.Mapping;
 using DubUrl.Mapping.Database;
@@ -42,7 +42,7 @@ public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 
     protected internal new class HostMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (urlInfo.Host.Contains(','))
             {
@@ -73,23 +73,23 @@ public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 
     protected internal class PortMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(PORT_KEYWORD, urlInfo.Port > 0 ? urlInfo.Port : 31010);
     }
     protected internal class SchemaMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length == 1 || (urlInfo.Segments.Length == 2 && urlInfo.Segments.First() == "DRILL"))
+            if (urlInfo.Segments.Count == 1 || (urlInfo.Segments.Count == 2 && urlInfo.Segments.First() == "DRILL"))
                 Specificator.Execute(SCHEMA_KEYWORD, urlInfo.Segments.Last());
-            else if (urlInfo.Segments.Length > 1)
+            else if (urlInfo.Segments.Count > 1)
                 throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
         }
     }
 
     protected internal new class AuthentificationMapper : OdbcRewriter.AuthentificationMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             base.Execute(urlInfo);
             if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))

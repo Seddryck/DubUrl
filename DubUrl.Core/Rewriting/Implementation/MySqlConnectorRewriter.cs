@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ internal class MySqlConnectorRewriter : ConnectionStringRewriter
 
     internal class ServerMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
             if (urlInfo.Port > 0)
@@ -44,7 +44,7 @@ internal class MySqlConnectorRewriter : ConnectionStringRewriter
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
@@ -58,13 +58,13 @@ internal class MySqlConnectorRewriter : ConnectionStringRewriter
 
     internal class DatabaseMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (urlInfo.Segments==null || !urlInfo.Segments.Any())
                 throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
-            else if (urlInfo.Segments.Length == 1)
+            else if (urlInfo.Segments.Count == 1)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
-            else if (urlInfo.Segments.Length > 1)
+            else if (urlInfo.Segments.Count > 1)
                 throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
         }
     }

@@ -122,8 +122,8 @@ public class ParserTest
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         foreach (var scheme in expected)
-            Assert.That(result.Schemes, Does.Contain(scheme));
-        Assert.That(result.Schemes, Has.Length.EqualTo(expected.Length));
+            Assert.That(result.Scheme.Parts, Does.Contain(scheme));
+        Assert.That(result.Scheme.Parts, Has.Count.EqualTo(expected.Length));
     }
 
     [Test]
@@ -148,7 +148,7 @@ public class ParserTest
         Assert.Multiple(() =>
         {
             Assert.That(result.Host, Is.Null.Or.Empty);
-            Assert.That(result.Segments, Has.Length.EqualTo(1));
+            Assert.That(result.Segments, Has.Count.EqualTo(1));
         });
         Assert.That(result.Segments[0], Is.EqualTo("data.db"));
     }
@@ -162,7 +162,7 @@ public class ParserTest
         Assert.Multiple(() =>
         {
             Assert.That(result.Host, Is.Null.Or.Empty);
-            Assert.That(result.Segments, Has.Length.EqualTo(3));
+            Assert.That(result.Segments, Has.Count.EqualTo(3));
         });
         Assert.Multiple(() =>
         {

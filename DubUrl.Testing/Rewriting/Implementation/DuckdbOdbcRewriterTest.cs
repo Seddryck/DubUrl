@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ public class DuckdbOdbcRewriterTest
     public void Map_RemoteServer_DataSource()
     {
         var path = "data.db";
-        var urlInfo = new UrlInfo() { Host = "remote.server.com", Segments = $"{path}".Split('/'), Options = new Dictionary<string, string>() { { "Driver", "DuckDB Driver" } } };
+        var urlInfo = new ConnectionUri() { Host = "remote.server.com", Segments = $"{path}".Split('/'), Options = new Dictionary<string, string>() { { "Driver", "DuckDB Driver" } } };
         var Rewriter = new DuckdbOdbcRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -39,7 +39,7 @@ public class DuckdbOdbcRewriterTest
     public void Map_LocalServer_DataSource()
     {
         var path = "data.db";
-        var urlInfo = new UrlInfo() { Host = "", Segments = $"{path}".Split('/'), Options = new Dictionary<string, string>() { { "Driver", "DuckDB Driver" } } };
+        var urlInfo = new ConnectionUri() { Host = "", Segments = $"{path}".Split('/'), Options = new Dictionary<string, string>() { { "Driver", "DuckDB Driver" } } };
         var Rewriter = new DuckdbOdbcRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

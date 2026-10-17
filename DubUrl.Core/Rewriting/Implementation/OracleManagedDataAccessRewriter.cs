@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,7 @@ internal class OracleManagedDataAccessRewriter : ConnectionStringRewriter
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
             {
@@ -49,14 +49,14 @@ internal class OracleManagedDataAccessRewriter : ConnectionStringRewriter
 
     internal class DsnMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             //If only host is specified, it's the TNS name
-            if (urlInfo.Segments.Length == 0 && urlInfo.Port == 0)
+            if (urlInfo.Segments.Count == 0 && urlInfo.Port == 0)
                 Specificator.Execute("DATA SOURCE", urlInfo.Host);
 
             //If segment is specified then it's the ConnectDescriptor
-            else if (urlInfo.Segments.Length == 1)
+            else if (urlInfo.Segments.Count == 1)
                 Specificator.Execute("DATA SOURCE",
                     $"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)" +
                     $"({SERVER_KEYWORD}={urlInfo.Host})({PORT_KEYWORD}={(urlInfo.Port > 0 ? urlInfo.Port : 1521)}))(CONNECT_DATA=" +

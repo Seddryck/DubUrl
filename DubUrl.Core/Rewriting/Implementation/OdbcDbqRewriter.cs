@@ -1,4 +1,4 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Parsing;
 using DubUrl.Locating.Options;
 using DubUrl.Rewriting.Tokening;
@@ -44,10 +44,10 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
             RootPath = rootPath;
         }
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var segments = new List<string>();
-            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
+            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
                 segments = urlInfo.Segments.Skip(1).ToList();
             else
             {
@@ -71,11 +71,11 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
         public DriverMapper(DriverLocatorFactory driverLocatorFactory)
             => DriverLocatorFactory = driverLocatorFactory;
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
             {
-                var otherSchemes = urlInfo.Schemes.Where(x => x != "odbc");
+                var otherSchemes = urlInfo.Scheme.Parts.Where(x => !x.Equals("odbc", StringComparison.OrdinalIgnoreCase));
 
                 var secondScheme = string.Empty;
                 switch (otherSchemes.Count(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)))
@@ -139,7 +139,7 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);

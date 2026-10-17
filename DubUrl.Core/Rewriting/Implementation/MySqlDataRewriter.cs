@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Rewriting.Tokening;
 using System;
@@ -31,7 +31,7 @@ internal class MySqlDataRewriter : MySqlConnectorRewriter
 
     internal new class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
