@@ -90,16 +90,11 @@ public sealed partial class SchemaDocumentValidator
                 continue;
             }
 
-            var key = ValidateIdentity(view.Identity, $"{path}.identity", diagnostics);
-            if (key is null)
-                continue;
-            if (!viewLookup.TryAdd(key, (view, viewIndex)))
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateView,
-                    $"View '{FormatIdentity(view.Identity)}' is declared more than once.", $"{path}.identity"));
-            if (tables.ContainsKey(key))
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateView,
-                    $"Relation '{FormatIdentity(view.Identity)}' is declared as both a table and a view.",
-                    $"{path}.identity"));
+            var key = ValidIdentityKey(view.Identity);
+            var isDuplicate = key is not null && !viewLookup.TryAdd(key, (view, viewIndex));
+            var conflictsWithTable = key is not null && tables.ContainsKey(key);
+            RunRules(new ViewDeclarationValidationContext(view, path, isDuplicate, conflictsWithTable),
+                rules.ViewDeclarationRules, diagnostics);
         }
 
         for (var viewIndex = 0; viewIndex < views.Count; viewIndex++)
@@ -108,59 +103,28 @@ public sealed partial class SchemaDocumentValidator
             if (view is null)
                 continue;
             var path = $"views[{viewIndex}]";
-            if (view.Query is null)
-            {
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                    "A view query is required.", $"{path}.query"));
-                continue;
-            }
-
-            var sourceKey = ValidateIdentity(view.Query.Source, $"{path}.query.source", diagnostics);
+            var sourceKey = ValidIdentityKey(view.Query?.Source);
+            TableDocument? sourceTable = null;
+            ViewDocument? sourceView = null;
             IReadOnlyList<ColumnDocument> sourceColumns = [];
             if (sourceKey is not null && tables.TryGetValue(sourceKey, out var table))
-                sourceColumns = table.Table.Columns ?? [];
-            else if (sourceKey is not null && viewLookup.TryGetValue(sourceKey, out var sourceView))
-                sourceColumns = GetViewOutputColumns(sourceView.View);
-            else if (sourceKey is not null)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MissingReference,
-                    $"View references missing source relation '{FormatIdentity(view.Query.Source)}'.",
-                    $"{path}.query.source"));
-
-            var projections = view.Query.Projections ?? [];
-            if (projections.Count == 0)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidView,
-                    "A view query must contain at least one projection.", $"{path}.query.projections"));
-
-            var aliases = new HashSet<string>(StringComparer.Ordinal);
-            for (var projectionIndex = 0; projectionIndex < projections.Count; projectionIndex++)
             {
-                var projection = projections[projectionIndex];
-                var projectionPath = $"{path}.query.projections[{projectionIndex}]";
-                if (projection is null)
-                {
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                        "A view projection cannot be null.", projectionPath));
-                    continue;
-                }
-                if (projection.Alias is not null && string.IsNullOrWhiteSpace(projection.Alias))
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidView,
-                        "A projection alias cannot be empty or whitespace.", $"{projectionPath}.alias"));
-                else if (projection.Alias is not null && !aliases.Add(projection.Alias))
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateReference,
-                        $"Projection alias '{projection.Alias}' is declared more than once.",
-                        $"{projectionPath}.alias"));
-
-                var validationColumns = sourceKey is not null
-                                        && (tables.ContainsKey(sourceKey) || viewLookup.ContainsKey(sourceKey))
-                    ? sourceColumns
-                    : ExpressionReferences(projection.Expression)
-                        .Select(name => new ColumnDocument { Name = name }).ToArray();
-                ValidateExpression(projection.Expression, $"{projectionPath}.expression", validationColumns,
-                    diagnostics, ValueConverter);
+                sourceTable = table.Table;
+                sourceColumns = table.Table.Columns ?? [];
             }
+            else if (sourceKey is not null && viewLookup.TryGetValue(sourceKey, out var resolvedView))
+            {
+                sourceView = resolvedView.View;
+                sourceColumns = GetViewOutputColumns(resolvedView.View);
+            }
+
+            RunRules(new ViewValidationContext(view, path, sourceTable, sourceView, sourceColumns, ValueConverter),
+                rules.ViewRules, diagnostics);
         }
 
-        ValidateViewCycles(viewLookup, diagnostics);
+        RunRules(new ViewGraphValidationContext(
+                views.Where(view => view is not null).ToArray()!, viewLookup),
+            rules.ViewGraphRules, diagnostics);
     }
 
     private static IReadOnlyList<ColumnDocument> GetViewOutputColumns(ViewDocument view)
@@ -185,7 +149,7 @@ public sealed partial class SchemaDocumentValidator
 
     private static void ValidateViewCycles(
         IReadOnlyDictionary<string, (ViewDocument View, int Index)> views,
-        List<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
     {
         var completed = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (startKey, start) in views)

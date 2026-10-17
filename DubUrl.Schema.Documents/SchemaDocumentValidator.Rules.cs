@@ -35,6 +35,17 @@ public sealed partial class SchemaDocumentValidator
                 new ComparisonCheckRule(),
                 new MembershipCheckRule(),
                 new RegexCheckRule()
+            ],
+            [
+                new ViewDeclarationIdentityRule()
+            ],
+            [
+                new ViewQueryRule(),
+                new ViewSourceRule(),
+                new ViewProjectionsRule()
+            ],
+            [
+                new ViewDependencyCyclesRule()
             ]);
 
     private sealed class ColumnLogicalTypeRule : IValidationRule<ColumnValidationContext>
@@ -338,6 +349,106 @@ public sealed partial class SchemaDocumentValidator
                         "Index column direction must be 'ascending' or 'descending'.", $"{columnPath}.direction"));
             }
         }
+    }
+
+    private sealed class ViewDeclarationIdentityRule : IValidationRule<ViewDeclarationValidationContext>
+    {
+        public string Id => SchemaDocumentValidationRuleIds.ViewDeclarations.Identity;
+
+        public void Validate(
+            ViewDeclarationValidationContext context,
+            ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            var identity = ValidateIdentity(context.View.Identity, $"{context.Path}.identity", diagnostics);
+            if (identity is null)
+                return;
+            if (context.IsDuplicate)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateView,
+                    $"View '{FormatIdentity(context.View.Identity)}' is declared more than once.",
+                    $"{context.Path}.identity"));
+            if (context.ConflictsWithTable)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateView,
+                    $"Relation '{FormatIdentity(context.View.Identity)}' is declared as both a table and a view.",
+                    $"{context.Path}.identity"));
+        }
+    }
+
+    private sealed class ViewQueryRule : IValidationRule<ViewValidationContext>
+    {
+        public string Id => SchemaDocumentValidationRuleIds.Views.Query;
+
+        public void Validate(ViewValidationContext context, ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            if (context.View.Query is null)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
+                    "A view query is required.", $"{context.Path}.query"));
+        }
+    }
+
+    private sealed class ViewSourceRule : IValidationRule<ViewValidationContext>
+    {
+        public string Id => SchemaDocumentValidationRuleIds.Views.Source;
+
+        public void Validate(ViewValidationContext context, ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            if (context.View.Query is null)
+                return;
+            var sourceKey = ValidateIdentity(context.View.Query.Source, $"{context.Path}.query.source", diagnostics);
+            if (sourceKey is not null && !context.HasResolvedSource)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MissingReference,
+                    $"View references missing source relation '{FormatIdentity(context.View.Query.Source)}'.",
+                    $"{context.Path}.query.source"));
+        }
+    }
+
+    private sealed class ViewProjectionsRule : IValidationRule<ViewValidationContext>
+    {
+        public string Id => SchemaDocumentValidationRuleIds.Views.Projections;
+
+        public void Validate(ViewValidationContext context, ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            if (context.View.Query is null)
+                return;
+            var projections = context.View.Query.Projections ?? [];
+            if (projections.Count == 0)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidView,
+                    "A view query must contain at least one projection.", $"{context.Path}.query.projections"));
+
+            var aliases = new HashSet<string>(StringComparer.Ordinal);
+            for (var projectionIndex = 0; projectionIndex < projections.Count; projectionIndex++)
+            {
+                var projection = projections[projectionIndex];
+                var projectionPath = $"{context.Path}.query.projections[{projectionIndex}]";
+                if (projection is null)
+                {
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
+                        "A view projection cannot be null.", projectionPath));
+                    continue;
+                }
+                if (projection.Alias is not null && string.IsNullOrWhiteSpace(projection.Alias))
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidView,
+                        "A projection alias cannot be empty or whitespace.", $"{projectionPath}.alias"));
+                else if (projection.Alias is not null && !aliases.Add(projection.Alias))
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateReference,
+                        $"Projection alias '{projection.Alias}' is declared more than once.",
+                        $"{projectionPath}.alias"));
+
+                var validationColumns = context.HasResolvedSource
+                    ? context.SourceColumns
+                    : ExpressionReferences(projection.Expression)
+                        .Select(name => new ColumnDocument { Name = name }).ToArray();
+                ValidateExpression(projection.Expression, $"{projectionPath}.expression", validationColumns,
+                    diagnostics, context.ValueConverter);
+            }
+        }
+    }
+
+    private sealed class ViewDependencyCyclesRule : IValidationRule<ViewGraphValidationContext>
+    {
+        public string Id => SchemaDocumentValidationRuleIds.ViewGraph.DependencyCycles;
+
+        public void Validate(ViewGraphValidationContext context, ICollection<SchemaDocumentDiagnostic> diagnostics)
+            => ValidateViewCycles(context.ViewLookup, diagnostics);
     }
 
     private sealed class CheckKindRule : IValidationRule<CheckValidationContext>
