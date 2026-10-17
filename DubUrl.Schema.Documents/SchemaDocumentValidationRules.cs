@@ -13,10 +13,31 @@ public interface IValidationRule<in TContext> : IValidationRule
     void Validate(TContext context, ICollection<SchemaDocumentDiagnostic> diagnostics);
 }
 
-public sealed record ColumnValidationContext(
-    ColumnDocument Column,
-    string Path,
-    IReadOnlyList<ColumnDocument> Columns);
+public sealed class ColumnValidationContext
+{
+    internal SchemaDocumentValueConverter ValueConverter { get; }
+
+    public ColumnDocument Column { get; }
+    public string Path { get; }
+    public IReadOnlyList<ColumnDocument> Columns { get; }
+
+    public ColumnValidationContext(ColumnDocument column, string path, IReadOnlyList<ColumnDocument> columns)
+        : this(column, path, columns,
+            new SchemaDocumentValueConverter(SchemaDocumentLiteralConverterRegistry.CreateDefault()))
+    { }
+
+    internal ColumnValidationContext(
+        ColumnDocument column,
+        string path,
+        IReadOnlyList<ColumnDocument> columns,
+        SchemaDocumentValueConverter valueConverter)
+    {
+        Column = column;
+        Path = path;
+        Columns = columns;
+        ValueConverter = valueConverter;
+    }
+}
 
 public sealed record ForeignKeyValidationContext(
     ForeignKeyDocument ForeignKey,
@@ -49,10 +70,31 @@ public sealed class IndexValidationContext
     }
 }
 
-public sealed record CheckValidationContext(
-    CheckDocument Check,
-    string Path,
-    IReadOnlyList<ColumnDocument> Columns);
+public sealed class CheckValidationContext
+{
+    internal SchemaDocumentValueConverter ValueConverter { get; }
+
+    public CheckDocument Check { get; }
+    public string Path { get; }
+    public IReadOnlyList<ColumnDocument> Columns { get; }
+
+    public CheckValidationContext(CheckDocument check, string path, IReadOnlyList<ColumnDocument> columns)
+        : this(check, path, columns,
+            new SchemaDocumentValueConverter(SchemaDocumentLiteralConverterRegistry.CreateDefault()))
+    { }
+
+    internal CheckValidationContext(
+        CheckDocument check,
+        string path,
+        IReadOnlyList<ColumnDocument> columns,
+        SchemaDocumentValueConverter valueConverter)
+    {
+        Check = check;
+        Path = path;
+        Columns = columns;
+        ValueConverter = valueConverter;
+    }
+}
 
 public static class SchemaDocumentValidationRuleIds
 {

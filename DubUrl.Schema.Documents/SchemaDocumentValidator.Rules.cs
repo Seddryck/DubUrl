@@ -160,7 +160,7 @@ public sealed partial class SchemaDocumentValidator
                         "Generated column storage must be 'stored' or 'virtual'.",
                         $"{context.Path}.generated.storage"));
                 ValidateExpression(column.Generated.Expression, $"{context.Path}.generated.expression",
-                    context.Columns, diagnostics);
+                    context.Columns, diagnostics, context.ValueConverter);
             }
         }
     }
@@ -174,7 +174,7 @@ public sealed partial class SchemaDocumentValidator
             var column = context.Column;
             if (column.Default is null)
                 return;
-            ValidateLiteral(column.Default, $"{context.Path}.default", diagnostics);
+            ValidateLiteral(column.Default, $"{context.Path}.default", diagnostics, context.ValueConverter);
             if (column.Default.Type is not null && column.Default.Type != "null" && column.Type is not null
                 && column.Default.Type != column.Type)
                 diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.IncompatibleFacet,
@@ -360,8 +360,10 @@ public sealed partial class SchemaDocumentValidator
         {
             if (context.Check.Kind != "comparison")
                 return;
-            ValidateExpression(context.Check.Left, $"{context.Path}.left", context.Columns, diagnostics);
-            ValidateExpression(context.Check.Right, $"{context.Path}.right", context.Columns, diagnostics);
+            ValidateExpression(context.Check.Left, $"{context.Path}.left", context.Columns, diagnostics,
+                context.ValueConverter);
+            ValidateExpression(context.Check.Right, $"{context.Path}.right", context.Columns, diagnostics,
+                context.ValueConverter);
             if (context.Check.Operator is null || !ComparisonOperators.Contains(context.Check.Operator))
                 diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
                     "Comparison operator must be one of =, <>, !=, <, <=, >, or >=.",
@@ -378,7 +380,8 @@ public sealed partial class SchemaDocumentValidator
             var check = context.Check;
             if (check.Kind != "membership")
                 return;
-            ValidateExpression(check.Expression, $"{context.Path}.expression", context.Columns, diagnostics);
+            ValidateExpression(check.Expression, $"{context.Path}.expression", context.Columns, diagnostics,
+                context.ValueConverter);
             ValidatePredicateExpression(check.Expression, $"{context.Path}.expression", diagnostics);
             if (check.Values is null || check.Values.Count == 0)
                 diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
@@ -386,7 +389,8 @@ public sealed partial class SchemaDocumentValidator
             else
             {
                 for (var valueIndex = 0; valueIndex < check.Values.Count; valueIndex++)
-                    ValidateLiteral(check.Values[valueIndex], $"{context.Path}.values[{valueIndex}]", diagnostics);
+                    ValidateLiteral(check.Values[valueIndex], $"{context.Path}.values[{valueIndex}]", diagnostics,
+                        context.ValueConverter);
                 var types = check.Values.Where(value => value?.Type != "null")
                     .Select(value => value?.Type).Distinct(StringComparer.Ordinal).ToArray();
                 if (types.Length > 1)
@@ -414,7 +418,8 @@ public sealed partial class SchemaDocumentValidator
             var check = context.Check;
             if (check.Kind != "regex")
                 return;
-            ValidateExpression(check.Expression, $"{context.Path}.expression", context.Columns, diagnostics);
+            ValidateExpression(check.Expression, $"{context.Path}.expression", context.Columns, diagnostics,
+                context.ValueConverter);
             ValidatePredicateExpression(check.Expression, $"{context.Path}.expression", diagnostics);
             if (check.Pattern is null)
                 diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,

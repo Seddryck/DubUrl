@@ -7,13 +7,21 @@ namespace DubUrl.Schema.Documents;
 public sealed class SchemaDocumentMapper
 {
     private readonly SchemaDocumentValidator validator;
+    private readonly SchemaDocumentValueConverter valueConverter;
 
     public SchemaDocumentMapper()
         : this(new SchemaDocumentValidator())
     { }
 
+    public SchemaDocumentMapper(SchemaDocumentLiteralConverterRegistry literalConverters)
+        : this(new SchemaDocumentValidator(literalConverters))
+    { }
+
     public SchemaDocumentMapper(SchemaDocumentValidator validator)
-        => this.validator = validator ?? throw new ArgumentNullException(nameof(validator));
+    {
+        this.validator = validator ?? throw new ArgumentNullException(nameof(validator));
+        valueConverter = validator.ValueConverter;
+    }
 
     public RuntimeSchema Map(ISchemaDocument document)
     {
@@ -48,7 +56,7 @@ public sealed class SchemaDocumentMapper
         }
     }
 
-    private static Table MapTable(TableDocument document)
+    private Table MapTable(TableDocument document)
     {
         var columns = document.Columns.Select(MapColumn).ToArray();
         var columnsByName = columns.ToDictionary(column => column.Name, StringComparer.Ordinal);
@@ -66,7 +74,7 @@ public sealed class SchemaDocumentMapper
         return new Table(MapIdentity(document.Identity), columns, constraints.ToArray(), document.Description);
     }
 
-    private static Column MapColumn(ColumnDocument document)
+    private Column MapColumn(ColumnDocument document)
     {
         SchemaDocumentTypes.TryGetDbType(document.Type, out var type);
         var constraints = new List<IConstraint>();
@@ -99,7 +107,7 @@ public sealed class SchemaDocumentMapper
         };
     }
 
-    private static ColumnGeneration? MapGeneration(ColumnDocument document)
+    private ColumnGeneration? MapGeneration(ColumnDocument document)
     {
         if (document.Identity is not null)
             return new IdentityColumnGeneration(document.Identity.Seed, document.Identity.Increment);
@@ -112,7 +120,7 @@ public sealed class SchemaDocumentMapper
         return null;
     }
 
-    private static Constraint MapCheck(CheckDocument document)
+    private Constraint MapCheck(CheckDocument document)
         => document.Kind switch
         {
             "comparison" => new CheckConstraint(
@@ -144,7 +152,7 @@ public sealed class SchemaDocumentMapper
                 $"Expression kind '{document.Kind}' is not supported for membership or regex checks.")
         };
 
-    private static Expression MapExpression(ExpressionDocument document)
+    private Expression MapExpression(ExpressionDocument document)
         => document.Kind switch
         {
             "column" => new ColumnIdentityExpression(document.Name!),
@@ -153,9 +161,9 @@ public sealed class SchemaDocumentMapper
             _ => throw new NotSupportedException($"Expression kind '{document.Kind}' is not supported.")
         };
 
-    private static object? ConvertLiteral(LiteralDocument document)
+    private object? ConvertLiteral(LiteralDocument document)
     {
-        if (!SchemaDocumentValueConverter.TryConvert(document, out var value, out var error))
+        if (!valueConverter.TryConvert(document, out var value, out var error))
             throw new SchemaDocumentMappingException(error!, new InvalidOperationException(error));
         return value;
     }
@@ -174,7 +182,7 @@ public sealed class SchemaDocumentMapper
                 })).ToArray(),
             document.Unique);
 
-    private static View MapView(ViewDocument document)
+    private View MapView(ViewDocument document)
         => new(
             MapIdentity(document.Identity),
             new ViewQuery(

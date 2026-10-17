@@ -9,13 +9,28 @@ public sealed partial class SchemaDocumentValidator
     private static readonly IReadOnlySet<string> ComparisonOperators =
         new HashSet<string>(["=", "<>", "!=", "<", "<=", ">", ">="], StringComparer.Ordinal);
     private readonly SchemaDocumentValidationRuleSet rules;
+    internal SchemaDocumentValueConverter ValueConverter { get; }
 
     public SchemaDocumentValidator()
-        : this(SchemaDocumentValidationRuleSet.CreateDefault())
+        : this(SchemaDocumentValidationRuleSet.CreateDefault(),
+            SchemaDocumentLiteralConverterRegistry.CreateDefault())
     { }
 
     public SchemaDocumentValidator(SchemaDocumentValidationRuleSet rules)
-        => this.rules = (rules ?? throw new ArgumentNullException(nameof(rules))).Snapshot();
+        : this(rules, SchemaDocumentLiteralConverterRegistry.CreateDefault())
+    { }
+
+    public SchemaDocumentValidator(SchemaDocumentLiteralConverterRegistry literalConverters)
+        : this(SchemaDocumentValidationRuleSet.CreateDefault(), literalConverters)
+    { }
+
+    public SchemaDocumentValidator(
+        SchemaDocumentValidationRuleSet rules,
+        SchemaDocumentLiteralConverterRegistry literalConverters)
+    {
+        this.rules = (rules ?? throw new ArgumentNullException(nameof(rules))).Snapshot();
+        ValueConverter = new SchemaDocumentValueConverter(literalConverters);
+    }
 
     public IReadOnlyList<SchemaDocumentDiagnostic> Validate(ISchemaDocument document)
     {
@@ -58,7 +73,7 @@ public sealed partial class SchemaDocumentValidator
         return diagnostics;
     }
 
-    private static void ValidateViews(
+    private void ValidateViews(
         IReadOnlyList<ViewDocument> views,
         IReadOnlyDictionary<string, (TableDocument Table, int Index)> tables,
         List<SchemaDocumentDiagnostic> diagnostics)
@@ -140,7 +155,8 @@ public sealed partial class SchemaDocumentValidator
                     ? sourceColumns
                     : ExpressionReferences(projection.Expression)
                         .Select(name => new ColumnDocument { Name = name }).ToArray();
-                ValidateExpression(projection.Expression, $"{projectionPath}.expression", validationColumns, diagnostics);
+                ValidateExpression(projection.Expression, $"{projectionPath}.expression", validationColumns,
+                    diagnostics, ValueConverter);
             }
         }
 
@@ -249,7 +265,7 @@ public sealed partial class SchemaDocumentValidator
         IReadOnlyList<ColumnDocument> columns,
         List<SchemaDocumentDiagnostic> diagnostics)
     {
-        RunRules(new ColumnValidationContext(column, path, columns), rules.ColumnRules, diagnostics);
+        RunRules(new ColumnValidationContext(column, path, columns, ValueConverter), rules.ColumnRules, diagnostics);
         ValidateChecks(column.Checks ?? [], $"{path}.checks", columns, diagnostics);
     }
 
@@ -356,7 +372,8 @@ public sealed partial class SchemaDocumentValidator
                     "A check declaration cannot be null.", checkPath));
                 continue;
             }
-            RunRules(new CheckValidationContext(check, checkPath, columns), rules.CheckRules, diagnostics);
+            RunRules(new CheckValidationContext(check, checkPath, columns, ValueConverter), rules.CheckRules,
+                diagnostics);
         }
     }
 
@@ -364,7 +381,8 @@ public sealed partial class SchemaDocumentValidator
         ExpressionDocument? expression,
         string path,
         IReadOnlyList<ColumnDocument> columns,
-        ICollection<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics,
+        SchemaDocumentValueConverter valueConverter)
     {
         if (expression is null)
         {
@@ -383,7 +401,7 @@ public sealed partial class SchemaDocumentValidator
                         $"Expression references missing column '{expression.Name}'.", $"{path}.name"));
                 break;
             case "value":
-                ValidateLiteral(expression.Value, $"{path}.value", diagnostics);
+                ValidateLiteral(expression.Value, $"{path}.value", diagnostics, valueConverter);
                 break;
             case "function":
                 if (string.IsNullOrWhiteSpace(expression.Function))
@@ -391,7 +409,8 @@ public sealed partial class SchemaDocumentValidator
                         "A function expression requires a function identifier.", $"{path}.function"));
                 var arguments = expression.Arguments ?? [];
                 for (var index = 0; index < arguments.Count; index++)
-                    ValidateExpression(arguments[index], $"{path}.arguments[{index}]", columns, diagnostics);
+                    ValidateExpression(arguments[index], $"{path}.arguments[{index}]", columns, diagnostics,
+                        valueConverter);
                 break;
             default:
                 diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidExpression,
@@ -403,7 +422,8 @@ public sealed partial class SchemaDocumentValidator
     private static void ValidateLiteral(
         LiteralDocument? literal,
         string path,
-        ICollection<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics,
+        SchemaDocumentValueConverter valueConverter)
     {
         if (literal is null)
         {
@@ -411,7 +431,7 @@ public sealed partial class SchemaDocumentValidator
                 "A typed literal is required.", path));
             return;
         }
-        if (!SchemaDocumentValueConverter.TryConvert(literal, out _, out var error))
+        if (!valueConverter.TryConvert(literal, out _, out var error))
             diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidLiteral, error!, path));
     }
 
