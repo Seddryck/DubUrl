@@ -8,6 +8,14 @@ public sealed partial class SchemaDocumentValidator
 {
     private static readonly IReadOnlySet<string> ComparisonOperators =
         new HashSet<string>(["=", "<>", "!=", "<", "<=", ">", ">="], StringComparer.Ordinal);
+    private readonly SchemaDocumentValidationRuleSet rules;
+
+    public SchemaDocumentValidator()
+        : this(SchemaDocumentValidationRuleSet.CreateDefault())
+    { }
+
+    public SchemaDocumentValidator(SchemaDocumentValidationRuleSet rules)
+        => this.rules = (rules ?? throw new ArgumentNullException(nameof(rules))).Snapshot();
 
     public IReadOnlyList<SchemaDocumentDiagnostic> Validate(ISchemaDocument document)
     {
@@ -201,7 +209,7 @@ public sealed partial class SchemaDocumentValidator
             : string.Join('\u001f', identity.Catalog ?? "<null>", identity.Database ?? "<null>",
                 identity.Schema ?? "<null>", identity.Name);
 
-    private static void ValidateTable(
+    private void ValidateTable(
         TableDocument table,
         int tableIndex,
         IReadOnlyDictionary<string, (TableDocument Table, int Index)> tables,
@@ -235,85 +243,20 @@ public sealed partial class SchemaDocumentValidator
         ValidateForeignKeys(table.ForeignKeys ?? [], tablePath, columnLookup, tables, diagnostics);
     }
 
-    private static void ValidateColumn(
+    private void ValidateColumn(
         ColumnDocument column,
         string path,
         IReadOnlyList<ColumnDocument> columns,
         List<SchemaDocumentDiagnostic> diagnostics)
     {
-        var hasType = SchemaDocumentTypes.TryGetDbType(column.Type, out var type);
-        if (string.IsNullOrWhiteSpace(column.Type))
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                "A logical column type is required.", $"{path}.type"));
-        else if (!hasType)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.UnsupportedType,
-                $"Logical column type '{column.Type}' is not supported.", $"{path}.type"));
-
-        if (column.Length is <= 0)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidFacet,
-                "Column length must be greater than zero.", $"{path}.length"));
-        if (column.Length is not null && hasType && !SchemaDocumentTypes.SupportsLength(type))
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.IncompatibleFacet,
-                $"Logical type '{column.Type}' does not support a length facet.", $"{path}.length"));
-        if (column.Precision is 0)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidFacet,
-                "Column precision must be greater than zero.", $"{path}.precision"));
-        if (column.Scale is not null && column.Precision is null)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidFacet,
-                "Column scale requires a precision.", $"{path}.scale"));
-        if (column.Scale > column.Precision)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidFacet,
-                "Column scale cannot exceed its precision.", $"{path}.scale"));
-        if ((column.Precision is not null || column.Scale is not null) && hasType && !SchemaDocumentTypes.SupportsPrecision(type))
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.IncompatibleFacet,
-                $"Logical type '{column.Type}' does not support precision or scale facets.", $"{path}.precision"));
-        if (column.Length is not null && (column.Precision is not null || column.Scale is not null))
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MutuallyExclusive,
-                "Length and precision/scale facets are mutually exclusive.", path));
-
-        var generationCount = (column.Identity is null ? 0 : 1) + (column.Generated is null ? 0 : 1);
-        if (generationCount > 1)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MutuallyExclusive,
-                "Identity and generated column definitions are mutually exclusive.", path));
-        if (column.Default is not null && generationCount > 0)
-            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MutuallyExclusive,
-                "A generated column cannot also define a default value.", path));
-        if (column.Identity is not null)
-        {
-            if (column.Identity.Increment == 0)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidGeneration,
-                    "Identity increment cannot be zero.", $"{path}.identity.increment"));
-            if (hasType && !SchemaDocumentTypes.SupportsIdentity(type))
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.IncompatibleFacet,
-                    $"Logical type '{column.Type}' cannot be used for an identity column.", $"{path}.identity"));
-        }
-        if (column.Generated is not null)
-        {
-            if (column.Generated.Storage is not ("stored" or "virtual"))
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidGeneration,
-                    "Generated column storage must be 'stored' or 'virtual'.", $"{path}.generated.storage"));
-            ValidateExpression(column.Generated.Expression, $"{path}.generated.expression", columns, diagnostics);
-        }
-
-        if (column.Default is not null)
-        {
-            ValidateLiteral(column.Default, $"{path}.default", diagnostics);
-            if (column.Default.Type is not null && column.Default.Type != "null" && column.Type is not null
-                && column.Default.Type != column.Type)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.IncompatibleFacet,
-                    $"Default literal type '{column.Default.Type}' does not match column type '{column.Type}'.",
-                    $"{path}.default.type"));
-        }
-
-        if (column.NativeType is not null)
-            ValidateNativeType(column.NativeType, $"{path}.nativeType", diagnostics);
+        RunRules(new ColumnValidationContext(column, path, columns), rules.ColumnRules, diagnostics);
         ValidateChecks(column.Checks ?? [], $"{path}.checks", columns, diagnostics);
     }
 
     private static void ValidateNativeType(
         NativeTypeDocument nativeType,
         string path,
-        List<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
     {
         if (string.IsNullOrWhiteSpace(nativeType.Name))
             diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
@@ -349,7 +292,7 @@ public sealed partial class SchemaDocumentValidator
                     $"Primary-key column '{primaryKey.Columns[index]}' cannot be nullable.", $"{path}[{index}]"));
     }
 
-    private static void ValidateForeignKeys(
+    private void ValidateForeignKeys(
         IReadOnlyList<ForeignKeyDocument> foreignKeys,
         string tablePath,
         IReadOnlyDictionary<string, ColumnDocument> sourceColumns,
@@ -366,38 +309,16 @@ public sealed partial class SchemaDocumentValidator
                     "A foreign-key declaration cannot be null.", path));
                 continue;
             }
-            if (string.IsNullOrWhiteSpace(foreignKey.Name))
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                    "A foreign-key name is required.", $"{path}.name"));
-            if (foreignKey.SourceColumns is null || foreignKey.SourceColumns.Count == 0)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                    "A foreign key must reference at least one source column.", $"{path}.sourceColumns"));
-            else
-                ValidateColumnReferences(foreignKey.SourceColumns, $"{path}.sourceColumns", sourceColumns, diagnostics, "foreign key");
-
-            var targetKey = ValidateIdentity(foreignKey.TargetTable, $"{path}.targetTable", diagnostics);
-            var targetColumns = foreignKey.TargetColumns ?? [];
-            if (targetColumns.Count == 0)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                    "A foreign key must reference at least one target column.", $"{path}.targetColumns"));
-            if ((foreignKey.SourceColumns?.Count ?? 0) != targetColumns.Count)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidForeignKey,
-                    "Foreign-key source and target column counts must match.", path));
-            if (targetKey is not null && tables.TryGetValue(targetKey, out var target))
-            {
-                var targetLookup = (target.Table.Columns ?? [])
-                    .Where(column => !string.IsNullOrWhiteSpace(column?.Name))
-                    .GroupBy(column => column.Name!, StringComparer.Ordinal)
-                    .ToDictionary(group => group.Key, group => group.First()!, StringComparer.Ordinal);
-                ValidateColumnReferences(targetColumns, $"{path}.targetColumns", targetLookup, diagnostics, "foreign key");
-            }
-            else if (targetKey is not null)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MissingReference,
-                    $"Foreign key references missing table '{FormatIdentity(foreignKey.TargetTable)}'.", $"{path}.targetTable"));
+            var targetKey = ValidIdentityKey(foreignKey.TargetTable);
+            var targetTable = targetKey is not null && tables.TryGetValue(targetKey, out var target)
+                ? target.Table
+                : null;
+            RunRules(new ForeignKeyValidationContext(foreignKey, path, sourceColumns, targetTable),
+                rules.ForeignKeyRules, diagnostics);
         }
     }
 
-    private static void ValidateIndexes(
+    private void ValidateIndexes(
         IReadOnlyList<IndexDocument> indexes,
         IReadOnlyDictionary<string, (TableDocument Table, int Index)> tables,
         List<SchemaDocumentDiagnostic> diagnostics)
@@ -413,50 +334,13 @@ public sealed partial class SchemaDocumentValidator
                     "An index declaration cannot be null.", path));
                 continue;
             }
-            var identity = ValidateIdentity(index.Identity, $"{path}.identity", diagnostics);
-            if (identity is not null && !identities.Add(identity))
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateIndex,
-                    $"Index '{FormatIdentity(index.Identity)}' is declared more than once.", $"{path}.identity"));
-            var tableIdentity = ValidateIdentity(index.Table, $"{path}.table", diagnostics);
-            IReadOnlyDictionary<string, ColumnDocument>? tableColumns = null;
-            if (tableIdentity is not null && tables.TryGetValue(tableIdentity, out var table))
-                tableColumns = (table.Table.Columns ?? [])
-                    .Where(column => !string.IsNullOrWhiteSpace(column?.Name))
-                    .GroupBy(column => column.Name!, StringComparer.Ordinal)
-                    .ToDictionary(group => group.Key, group => group.First()!, StringComparer.Ordinal);
-            else if (tableIdentity is not null)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MissingReference,
-                    $"Index references missing table '{FormatIdentity(index.Table)}'.", $"{path}.table"));
-
-            var columns = index.Columns ?? [];
-            if (columns.Count == 0)
-                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidIndex,
-                    "An index must reference at least one column.", $"{path}.columns"));
-            var names = new HashSet<string>(StringComparer.Ordinal);
-            for (var columnIndex = 0; columnIndex < columns.Count; columnIndex++)
-            {
-                var column = columns[columnIndex];
-                var columnPath = $"{path}.columns[{columnIndex}]";
-                if (column is null || string.IsNullOrWhiteSpace(column.Name))
-                {
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                        "An index column name is required.", $"{columnPath}.name"));
-                    continue;
-                }
-                if (!names.Add(column.Name))
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateReference,
-                        $"Index column '{column.Name}' is referenced more than once.", $"{columnPath}.name"));
-                if (tableColumns is not null && !tableColumns.ContainsKey(column.Name))
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MissingReference,
-                        $"Index references missing column '{column.Name}'.", $"{columnPath}.name"));
-                if (column.Direction is not null && column.Direction is not ("ascending" or "descending"))
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidIndex,
-                        "Index column direction must be 'ascending' or 'descending'.", $"{columnPath}.direction"));
-            }
+            var tableKey = ValidIdentityKey(index.Table);
+            var table = tableKey is not null && tables.TryGetValue(tableKey, out var target) ? target.Table : null;
+            RunRules(new IndexValidationContext(index, path, table, identities), rules.IndexRules, diagnostics);
         }
     }
 
-    private static void ValidateChecks(
+    private void ValidateChecks(
         IReadOnlyList<CheckDocument> checks,
         string path,
         IReadOnlyList<ColumnDocument> columns,
@@ -472,54 +356,7 @@ public sealed partial class SchemaDocumentValidator
                     "A check declaration cannot be null.", checkPath));
                 continue;
             }
-            switch (check.Kind)
-            {
-                case "comparison":
-                    ValidateExpression(check.Left, $"{checkPath}.left", columns, diagnostics);
-                    ValidateExpression(check.Right, $"{checkPath}.right", columns, diagnostics);
-                    if (check.Operator is null || !ComparisonOperators.Contains(check.Operator))
-                        diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                            "Comparison operator must be one of =, <>, !=, <, <=, >, or >=.", $"{checkPath}.operator"));
-                    break;
-                case "membership":
-                    ValidateExpression(check.Expression, $"{checkPath}.expression", columns, diagnostics);
-                    ValidatePredicateExpression(check.Expression, $"{checkPath}.expression", diagnostics);
-                    if (check.Values is null || check.Values.Count == 0)
-                        diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                            "A membership check requires at least one value.", $"{checkPath}.values"));
-                    else
-                    {
-                        for (var valueIndex = 0; valueIndex < check.Values.Count; valueIndex++)
-                            ValidateLiteral(check.Values[valueIndex], $"{checkPath}.values[{valueIndex}]", diagnostics);
-                        var types = check.Values.Where(value => value?.Type != "null")
-                            .Select(value => value?.Type).Distinct(StringComparer.Ordinal).ToArray();
-                        if (types.Length > 1)
-                            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                                "Membership values must use the same literal type.", $"{checkPath}.values"));
-                        if (check.Values.Any(value => value?.Type == "null") && check.NullBehavior != "match-null")
-                            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                                "Membership checks containing null require nullBehavior 'match-null'.", $"{checkPath}.nullBehavior"));
-                    }
-                    if (check.NullBehavior is not null && check.NullBehavior is not ("sql-three-valued-logic" or "match-null"))
-                        diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                            "Membership null behavior must be 'sql-three-valued-logic' or 'match-null'.",
-                            $"{checkPath}.nullBehavior"));
-                    break;
-                case "regex":
-                    ValidateExpression(check.Expression, $"{checkPath}.expression", columns, diagnostics);
-                    ValidatePredicateExpression(check.Expression, $"{checkPath}.expression", diagnostics);
-                    if (check.Pattern is null)
-                        diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
-                            "A regex pattern is required.", $"{checkPath}.pattern"));
-                    if (check.NullBehavior is not null && check.NullBehavior is not ("allow-null" or "reject-null"))
-                        diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                            "Regex null behavior must be 'allow-null' or 'reject-null'.", $"{checkPath}.nullBehavior"));
-                    break;
-                default:
-                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
-                        "Check kind must be 'comparison', 'membership', or 'regex'.", $"{checkPath}.kind"));
-                    break;
-            }
+            RunRules(new CheckValidationContext(check, checkPath, columns), rules.CheckRules, diagnostics);
         }
     }
 
@@ -527,7 +364,7 @@ public sealed partial class SchemaDocumentValidator
         ExpressionDocument? expression,
         string path,
         IReadOnlyList<ColumnDocument> columns,
-        List<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
     {
         if (expression is null)
         {
@@ -566,7 +403,7 @@ public sealed partial class SchemaDocumentValidator
     private static void ValidateLiteral(
         LiteralDocument? literal,
         string path,
-        List<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
     {
         if (literal is null)
         {
@@ -581,7 +418,7 @@ public sealed partial class SchemaDocumentValidator
     private static void ValidatePredicateExpression(
         ExpressionDocument? expression,
         string path,
-        List<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
     {
         if (expression is null)
             return;
@@ -597,7 +434,7 @@ public sealed partial class SchemaDocumentValidator
         IReadOnlyList<string> references,
         string path,
         IReadOnlyDictionary<string, ColumnDocument> columns,
-        List<SchemaDocumentDiagnostic> diagnostics,
+        ICollection<SchemaDocumentDiagnostic> diagnostics,
         string owner)
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
@@ -622,7 +459,7 @@ public sealed partial class SchemaDocumentValidator
     private static string? ValidateIdentity(
         DatabaseObjectNameDocument? identity,
         string path,
-        List<SchemaDocumentDiagnostic> diagnostics)
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
     {
         if (identity is null || string.IsNullOrWhiteSpace(identity.Name))
         {
@@ -645,6 +482,29 @@ public sealed partial class SchemaDocumentValidator
             }
         return invalid ? null : string.Join('\u001f',
             identity.Catalog ?? "<null>", identity.Database ?? "<null>", identity.Schema ?? "<null>", identity.Name);
+    }
+
+    private static string? ValidIdentityKey(DatabaseObjectNameDocument? identity)
+        => identity is null || string.IsNullOrWhiteSpace(identity.Name)
+            || new[] { identity.Catalog, identity.Database, identity.Schema }
+                .Any(component => component is not null && string.IsNullOrWhiteSpace(component))
+                ? null
+                : IdentityKey(identity);
+
+    private static IReadOnlyDictionary<string, ColumnDocument> ToColumnLookup(
+        IReadOnlyList<ColumnDocument> columns)
+        => columns
+            .Where(column => !string.IsNullOrWhiteSpace(column?.Name))
+            .GroupBy(column => column.Name!, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First()!, StringComparer.Ordinal);
+
+    private static void RunRules<TContext>(
+        TContext context,
+        IReadOnlyList<IValidationRule<TContext>> validationRules,
+        ICollection<SchemaDocumentDiagnostic> diagnostics)
+    {
+        foreach (var rule in validationRules)
+            rule.Validate(context, diagnostics);
     }
 
     private static string FormatIdentity(DatabaseObjectNameDocument identity)
