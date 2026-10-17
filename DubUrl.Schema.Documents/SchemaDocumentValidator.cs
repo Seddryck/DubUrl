@@ -331,6 +331,7 @@ public sealed partial class SchemaDocumentValidator
                     break;
                 case "membership":
                     ValidateExpression(check.Expression, $"{checkPath}.expression", columns, diagnostics);
+                    ValidatePredicateExpression(check.Expression, $"{checkPath}.expression", diagnostics);
                     if (check.Values is null || check.Values.Count == 0)
                         diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidCheck,
                             "A membership check requires at least one value.", $"{checkPath}.values"));
@@ -354,6 +355,7 @@ public sealed partial class SchemaDocumentValidator
                     break;
                 case "regex":
                     ValidateExpression(check.Expression, $"{checkPath}.expression", columns, diagnostics);
+                    ValidatePredicateExpression(check.Expression, $"{checkPath}.expression", diagnostics);
                     if (check.Pattern is null)
                         diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
                             "A regex pattern is required.", $"{checkPath}.pattern"));
@@ -422,6 +424,21 @@ public sealed partial class SchemaDocumentValidator
         }
         if (!SchemaDocumentValueConverter.TryConvert(literal, out _, out var error))
             diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidLiteral, error!, path));
+    }
+
+    private static void ValidatePredicateExpression(
+        ExpressionDocument? expression,
+        string path,
+        List<SchemaDocumentDiagnostic> diagnostics)
+    {
+        if (expression is null)
+            return;
+        var supported = expression.Kind == "column"
+                        || expression is { Kind: "function", Arguments.Count: 1 }
+                        && expression.Arguments[0].Kind == "column";
+        if (!supported)
+            diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidExpression,
+                "Membership and regex checks require a column or a single-column function expression.", path));
     }
 
     private static void ValidateColumnReferences(

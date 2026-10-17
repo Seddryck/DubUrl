@@ -4,6 +4,10 @@
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <PackageId>DubUrl.Schema.Documents</PackageId>
     <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
