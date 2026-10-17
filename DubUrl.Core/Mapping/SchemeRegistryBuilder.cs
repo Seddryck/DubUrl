@@ -31,6 +31,27 @@ public class SchemeRegistryBuilder
             .WithAutoDiscoveredMappings()
             .Build();
 
+    public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)
+    {
+        var mappings = new NativeMapperIntrospector().Locate();
+        var selectedMappings = schemes.Length == 0
+            ? mappings
+            : mappings
+                .Where(mapping => mapping.Aliases.Any(alias => schemes.Contains(alias, StringComparer.OrdinalIgnoreCase)))
+                .ToArray();
+
+        var unknownSchemes = schemes
+            .Where(scheme => !mappings.Any(mapping => mapping.Aliases.Contains(scheme, StringComparer.OrdinalIgnoreCase)))
+            .ToArray();
+        if (unknownSchemes.Length > 0)
+            throw new ArgumentException($"No dialect is mapped to: {string.Join(", ", unknownSchemes)}.", nameof(schemes));
+
+        var builder = new DialectRegistryBuilder();
+        foreach (var mapping in selectedMappings)
+            builder.AddDialect(mapping.DialectType, mapping.Aliases);
+        return builder.Build();
+    }
+
     public SchemeRegistryBuilder WithAssemblies(params Assembly[] assemblies)
     {
         _assemblies.AddRange(assemblies);

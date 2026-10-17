@@ -1,5 +1,6 @@
 using System.Data.Common;
 using DubUrl.Application;
+using DubUrl.Mapping;
 using DubUrl.Querying.Dialects;
 using DubUrl.Registering;
 using DubUrl.Schema.Documents;
@@ -20,6 +21,8 @@ public static class CliComposition
             .Build();
 
         new ProviderFactoriesRegistrator(new CliProviderFactoriesDiscoverer()).Register();
+        var capabilities = new CliCapabilities(DbProviderFactories.GetProviderInvariantNames());
+        var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry([.. capabilities.Dialects]);
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
@@ -34,28 +37,14 @@ public static class CliComposition
         services.AddSingleton<SchemaDocumentReader>();
         services.AddSingleton<ISchemaDocumentValidator, SchemaDocumentValidator>();
         services.AddSingleton<ISchemaDocumentMapper, SchemaDocumentMapper>();
-        services.AddSingleton<ISchemaDialectResolver>(_ => new SchemaDialectResolver(CreateDialectRegistry()));
+        services.AddSingleton<IDialectRegistry>(dialects);
+        services.AddSingleton<ISchemaDialectResolver>(new SchemaDialectResolver(dialects));
         services.AddSingleton<ISchemaDomainRenderer, SchemaDomainRenderer>();
         services.AddSingleton<ISchemaScriptDeploymentExecutor, SchemaScriptDeploymentExecutor>();
         services.AddSingleton<ISchemaDocumentService, SchemaDocumentService>();
         services.AddSingleton<ISchemaDeploymentService, SchemaDeploymentService>();
-        services.AddSingleton(new CliCapabilities(DbProviderFactories.GetProviderInvariantNames()));
+        services.AddSingleton(capabilities);
         return services.BuildServiceProvider();
-    }
-
-    internal static IDialectRegistry CreateDialectRegistry()
-    {
-        var builder = new DialectRegistryBuilder();
-        builder.AddDialect<TSqlDialect>(["mssql", "ms", "sqlserver", "mssqlserver"]);
-        builder.AddDialect<PgsqlDialect>(["pgsql", "postgres", "postgresql"]);
-        builder.AddDialect<CockRoachDialect>(["cockroach", "cockroachdb", "crdb"]);
-        builder.AddDialect<CrateDbDialect>(["crate", "cratedb"]);
-        builder.AddDialect<MySqlDialect>(["mysql", "mariadb"]);
-        builder.AddDialect<SingleStoreDialect>(["singlestore"]);
-        builder.AddDialect<SqliteDialect>(["sqlite"]);
-        builder.AddDialect<DuckDbDialect>(["duck", "duckdb"]);
-        builder.AddDialect<QuestDbDialect>(["questdb"]);
-        return builder.Build();
     }
 
     private sealed class CliProviderFactoriesDiscoverer : IProviderFactoriesDiscoverer
