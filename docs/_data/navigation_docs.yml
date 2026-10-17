@@ -21,6 +21,11 @@
   - dapper
   - dbreader
 
+- title: Schema definition
+  docs:
+  - schema-model
+  - schema-documents
+
 - title: Connection settings
   docs:
   - Adding and overriding some schemes
