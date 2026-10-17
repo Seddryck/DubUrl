@@ -20,10 +20,34 @@ public class CreateSchemaRenderer : RendererEngine
         : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateHelpers(dialect))
     {
         nativeTypes ??= NativeTypeRegistry.Default;
+        AddFormatter("check", value => RenderCheck(value, dialect));
         AddFormatter("membership", value => RenderMembership(value, dialect));
         AddFormatter("regex", value => RenderRegex(value, dialect));
         AddFormatter("columntype", value => RenderColumnType(value, dialect, nativeTypes));
     }
+
+    private static string RenderCheck(object? value, IDialect dialect)
+    {
+        if (value is not CheckConstraint constraint)
+            throw new ArgumentException("The check formatter requires a check constraint.", nameof(value));
+
+        return $"{RenderExpression(constraint.Left, dialect)} {constraint.Operator} {RenderExpression(constraint.Right, dialect)}";
+    }
+
+    private static string RenderExpression(Expression expression, IDialect dialect)
+        => expression switch
+        {
+            ColumnIdentityExpression column => dialect.Renderer.Render(column.Name, "identity"),
+            FunctionColumnIdentityExpression function =>
+                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
+            ValueExpression value => dialect.Renderer.Render(value.Value, "value"),
+            ColumnExpression column => dialect.Renderer.Render(column.Column.Name, "identity"),
+            FunctionExpression function =>
+                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({string.Join(", ", function.Expressions.Select(item => RenderExpression(item, dialect)))})",
+            _ => throw new ArgumentException(
+                $"Expression type '{expression.GetType().Name}' is not supported for checks.",
+                nameof(expression))
+        };
 
     private static string RenderColumnType(object? value, IDialect dialect, NativeTypeRegistry nativeTypes)
     {

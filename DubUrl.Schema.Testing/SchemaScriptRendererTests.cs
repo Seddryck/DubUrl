@@ -741,4 +741,64 @@ public class SchemaScriptRendererTests
             Assert.That(secondDrop, Is.GreaterThan(firstDrop));
         });
     }
+
+    [Test]
+    public void TableViewModel_TableWithoutChecks_ExposesEmptyCollection()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32)]);
+
+        var model = new TableViewModel(table);
+
+        Assert.That(model.Checks, Is.Empty);
+    }
+
+    [Test]
+    public void TableViewModel_TableWithChecks_PreservesMetadataAndOrder()
+    {
+        var first = new CheckConstraint(
+            new ColumnIdentityExpression("Age"), ">=", new ValueExpression(18), "CK_Customer_Adult");
+        var second = new CheckConstraint(
+            new ColumnIdentityExpression("Age"), "<=", new ValueExpression(120));
+        var table = new Table("Customer", [new Column("Age", DbType.Int32)], [first, second]);
+
+        var model = new TableViewModel(table);
+
+        Assert.That(model.Checks, Is.EqualTo(new[] { first, second }));
+        Assert.That(model.Checks[0].Name, Is.EqualTo("CK_Customer_Adult"));
+        Assert.That(model.Checks[1].Name, Is.Null);
+    }
+
+    [Test]
+    public void Render_TableChecks_UsesDialectFormattingAndPreservesOrder()
+    {
+        var table = new Table("Customer", [
+            new Column("Name", DbType.String),
+            new Column("Status", DbType.String)
+        ], [
+            new CheckConstraint(
+                new FunctionColumnIdentityExpression("Length", "Name"),
+                ">=",
+                new ValueExpression(2),
+                "CK_Customer_NameLength"),
+            new CheckConstraint(
+                new ColumnIdentityExpression("Status"),
+                "<>",
+                new ValueExpression("owner's choice"))
+        ]);
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        var namedCheck = result.IndexOf(
+            "CONSTRAINT [CK_Customer_NameLength] CHECK LEN([Name]) >= 2",
+            StringComparison.Ordinal);
+        var unnamedCheck = result.IndexOf(
+            "CHECK [Status] <> 'owner''s choice'",
+            StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(namedCheck, Is.GreaterThanOrEqualTo(0));
+            Assert.That(unnamedCheck, Is.GreaterThan(namedCheck));
+        });
+    }
 }

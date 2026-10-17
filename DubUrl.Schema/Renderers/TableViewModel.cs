@@ -16,7 +16,7 @@ public class TableViewModel
     public NullableConstraint? Nullable { get; }
     public NotNullableConstraint? NotNullable { get; }
     public UniquenessConstraint? Unique { get; }
-    public CheckConstraint[] Checks { get; } = [];
+    public CheckConstraint[] Checks { get; }
     public ForeignKeyConstraintViewModel[] ForeignKeys { get; }
     public bool RenderForeignKeysInline { get; }
     public string? Description { get; }
@@ -30,6 +30,7 @@ public class TableViewModel
         Nullable = table.Constraints.Get<NullableConstraint>();
         NotNullable = table.Constraints.Get<NotNullableConstraint>();
         Unique = table.Constraints.Get<UniquenessConstraint>();
+        Checks = [.. table.Constraints.OfType<CheckConstraint>()];
         ForeignKeys = table.Constraints.OfType<ForeignKeyConstraint>()
             .Select(constraint => new ForeignKeyConstraintViewModel(constraint))
             .ToArray();
