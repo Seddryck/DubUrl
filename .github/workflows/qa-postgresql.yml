@@ -20,23 +20,11 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
-  POSTGRES_IMAGE: public.ecr.aws/docker/library/postgres:17
-
 jobs:
   provider-qa:
-    name: PostgreSQL QA (${{ matrix.framework }})
+    name: PostgreSQL QA
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - framework: net8.0
-            sdk: 8.0.416
-          - framework: net9.0
-            sdk: 9.0.308
-          - framework: net10.0
-            sdk: 10.0.401
+    timeout-minutes: 60
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -44,7 +32,10 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: ${{ matrix.sdk }}
+          dotnet-version: |
+            8.0.416
+            9.0.308
+            10.0.401
 
       - name: Verify Docker Compose
         run: docker compose version
@@ -55,20 +46,21 @@ jobs:
           ./DubUrl.QA/Postgresql/deploy-postgresql-test-env.ps1
           -force
           -config Release
-          -frameworks @('${{ matrix.framework }}')
+          -frameworks @('net8.0', 'net9.0', 'net10.0')
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: qa-postgresql-results-${{ matrix.framework }}-${{ github.sha }}
-          path: .test-results/postgresql/${{ matrix.framework }}
+          name: qa-postgresql-results-${{ github.sha }}
+          path: .test-results/postgresql
           if-no-files-found: error
 
       - name: Upload QA bundle
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: qa-postgresql-bundle-${{ matrix.framework }}-${{ github.sha }}
-          path: DubUrl.Providers.PostgreSql.QA/bin/qa/postgresql/*/${{ matrix.framework }}/**
+          name: qa-postgresql-bundle-${{ github.sha }}
+          path: DubUrl.Providers.PostgreSql.QA/bin/qa/postgresql/*/**
           include-hidden-files: true
           if-no-files-found: error
