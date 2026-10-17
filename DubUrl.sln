@@ -128,9 +128,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.SsasMultid
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers.SsasTabular.QA", "DubUrl.Providers.SsasTabular.QA\\DubUrl.Providers.SsasTabular.QA.csproj", "{0FF2C366-C784-466E-98D4-A56350D13396}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Cli", "DubUrl.Cli\\DubUrl.Cli.csproj", "{74FD7360-AC9F-4420-A3B3-0E89798F9CCB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Cli", "DubUrl.Cli\DubUrl.Cli.csproj", "{74FD7360-AC9F-4420-A3B3-0E89798F9CCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Cli.Testing", "DubUrl.Cli.Testing\\DubUrl.Cli.Testing.csproj", "{5860836D-844A-4AC8-8EC6-3B0CF458A90E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Cli.Testing", "DubUrl.Cli.Testing\DubUrl.Cli.Testing.csproj", "{5860836D-844A-4AC8-8EC6-3B0CF458A90E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
