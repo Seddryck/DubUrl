@@ -10,7 +10,8 @@ internal static class CliRootCommandFactory
     public static RootCommand Create(IServiceProvider services, CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<ICliConsole>();
-        var root = new RootCommand("Reusable command-line host for DubUrl.");
+        var root = new RootCommand("Validate, render, and deploy DubUrl schema documents.");
+        root.Subcommands.Add(SchemaCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CreateCapabilitiesCommand(services));
         root.SetAction(_ =>
         {

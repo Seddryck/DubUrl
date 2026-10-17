@@ -18,6 +18,7 @@ public class CliInfrastructureTests
             Assert.That(version.ExitCode, Is.Zero);
             Assert.That(version.StandardOutput, Does.Match(@"\d+\.\d+\.\d+"));
             Assert.That(help.ExitCode, Is.Zero);
+            Assert.That(help.StandardOutput, Does.Contain("schema"));
             Assert.That(help.StandardOutput, Does.Contain("capabilities"));
         });
     }
