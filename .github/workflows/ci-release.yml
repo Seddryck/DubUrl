@@ -541,14 +541,22 @@ jobs:
           -Executable '.artifacts/cli/publish/${{ matrix.framework }}/${{ matrix.runtime }}/DubUrl.Cli.exe'
 
       - name: Archive CLI
+        id: archive
         shell: pwsh
-        run: >-
-          ./distribution/build-distribution.ps1
-          -Mode Archive
-          -Version '${{ needs.version.outputs.semver }}'
-          -Frameworks '${{ matrix.framework }}'
-          -Runtimes '${{ matrix.runtime }}'
-          -OutputRoot ../.artifacts/cli
+        run: |
+          ./distribution/build-distribution.ps1 `
+            -Mode Archive `
+            -Version '${{ needs.version.outputs.semver }}' `
+            -Frameworks '${{ matrix.framework }}' `
+            -Runtimes '${{ matrix.runtime }}' `
+            -OutputRoot ../.artifacts/cli
+          if ($LASTEXITCODE -ne 0) { throw 'Archiving the CLI distribution failed.' }
+
+          $archives = @(Get-ChildItem .artifacts/cli/archives -File)
+          if ($archives.Count -ne 1) {
+            throw "Expected one CLI distribution archive, found $($archives.Count)."
+          }
+          "path=$($archives[0].FullName)" >> $env:GITHUB_OUTPUT
 
       - name: Install Inno Setup
         if: matrix.installer
@@ -571,13 +579,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force .artifacts/extracted | Out-Null
+          $archive = '${{ steps.archive.outputs.path }}'
           if ('${{ matrix.runtime }}' -like 'win-*') {
-            Expand-Archive ".artifacts/cli/archives/duburl-${{ needs.version.outputs.semver }}-${{ matrix.framework }}-${{ matrix.runtime }}.zip" .artifacts/extracted
+            Expand-Archive -LiteralPath $archive -DestinationPath .artifacts/extracted
             & .artifacts/extracted/duburl.exe --version
             & .artifacts/extracted/duburl.exe --help
           }
           else {
-            tar -xzf ".artifacts/cli/archives/duburl-${{ needs.version.outputs.semver }}-${{ matrix.framework }}-${{ matrix.runtime }}.tar.gz" -C .artifacts/extracted
+            tar -xzf $archive -C .artifacts/extracted
             $mode = & stat -c '%a' .artifacts/extracted/duburl
             if ([int]$mode -band 111 -eq 0) { throw "Linux executable mode '$mode' is not executable." }
             & .artifacts/extracted/duburl --version
