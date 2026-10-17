@@ -122,8 +122,7 @@ public sealed partial class SchemaDocumentValidator
                 rules.ViewRules, diagnostics);
         }
 
-        RunRules(new ViewGraphValidationContext(
-                views.Where(view => view is not null).ToArray()!, viewLookup),
+        RunRules(new ViewGraphValidationContext(views, viewLookup),
             rules.ViewGraphRules, diagnostics);
     }
 
