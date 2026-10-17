@@ -25,6 +25,23 @@ public class DuckdbRewriterTest
     }
 
     [Test]
+    [TestCase("duckdb://", ":memory:")]
+    [TestCase("duckdb:///:memory:", ":memory:")]
+    [TestCase("duckdb://memory", ":memory:")]
+    [TestCase("duckdb://data.duckdb", "data.duckdb")]
+    [TestCase("duckdb:////c:/directory/data.duckdb", "c:/directory/data.duckdb")]
+    public void Map_Url_DataSource(string url, string expected)
+    {
+        var urlInfo = new Parser().Parse(url);
+        var rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
+
+        var result = rewriter.Execute(urlInfo);
+
+        Assert.That(result[DuckdbRewriter.DATABASE_KEYWORD],
+            Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    [Test]
     [TestCase("data.db", "")]
     [TestCase("localhost", "data.db")]
     [TestCase(".", "data.db")]

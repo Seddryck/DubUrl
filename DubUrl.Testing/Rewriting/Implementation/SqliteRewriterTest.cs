@@ -25,6 +25,22 @@ public class SqliteRewriterTest
     }
 
     [Test]
+    [TestCase("sqlite://", ":memory:")]
+    [TestCase("sqlite:///:memory:", ":memory:")]
+    [TestCase("sqlite://data.db", "data.db")]
+    [TestCase("sqlite:////c:/directory/data.db", "c:/directory/data.db")]
+    public void Map_Url_DataSource(string url, string expected)
+    {
+        var urlInfo = new Parser().Parse(url);
+        var rewriter = new SqliteRewriter(ConnectionStringBuilder, string.Empty);
+
+        var result = rewriter.Execute(urlInfo);
+
+        Assert.That(result[SqliteRewriter.DATABASE_KEYWORD],
+            Is.EqualTo(expected.Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    [Test]
     [TestCase("data.db", "")]
     [TestCase("localhost", "data.db")]
     [TestCase(".", "data.db")]

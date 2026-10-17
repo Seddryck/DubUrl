@@ -35,6 +35,12 @@ internal class DuckdbRewriter : ConnectionStringRewriter
 
         public override void Execute(UrlInfo urlInfo)
         {
+            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length == 0)
+            {
+                Specificator.Execute(DATABASE_KEYWORD, ":memory:");
+                return;
+            }
+
             var segments = new List<string>();
             if (StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, "memory") == 0
                     || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ":memory:") == 0
