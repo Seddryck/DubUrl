@@ -29,6 +29,33 @@ var validator = new SchemaDocumentValidator(rules);
 
 Custom rules implement `IValidationRule<TContext>`. Rule sets are immutable, validators snapshot their selected rules, and rule execution follows registration order so diagnostics remain deterministic. The parameterless validator always uses the complete default set.
 
+## Configurable literal conversion
+
+Literal converters are provider-independent: they turn a version 1 logical literal into its canonical CLR value. Database-specific formatting and adaptation remain the renderer's responsibility.
+
+Start from the complete immutable registry and explicitly replace, add, or remove converters. A converter owns one `DbType`, has a stable identifier, and returns a non-throwing `LiteralConversionResult`:
+
+```csharp
+public sealed class HexInt32Converter : ILiteralValueConverter
+{
+    public string Id => "application.hex-int32";
+    public DbType Type => DbType.Int32;
+
+    public LiteralConversionResult TryConvert(string value)
+        => int.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result)
+            ? LiteralConversionResult.Success(result)
+            : LiteralConversionResult.Failure();
+}
+
+var converters = SchemaDocumentLiteralConverterRegistry.CreateDefault()
+    .ReplaceConverter(new HexInt32Converter());
+
+var validator = new SchemaDocumentValidator(converters);
+var mapper = new SchemaDocumentMapper(validator);
+```
+
+Passing the configured validator to the mapper guarantees that validation and mapping use the same converter snapshot. `SchemaDocumentMapper` also accepts a converter registry directly. Duplicate converter identifiers and ambiguous ownership of a `DbType` are rejected; use `ReplaceConverter` when overriding an existing conversion.
+
 ## Editor association
 
 Associate JSON files by URL in VS Code workspace settings:
