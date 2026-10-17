@@ -15,6 +15,9 @@ namespace DubUrl.Schema.Builders;
 /// </summary>
 public interface IIndexColumnBuilder
 {
+    IIndexColumnBuilder Ascending();
+    IIndexColumnBuilder Descending();
+    IIndexColumnBuilder WithSortDirection(IndexSortDirection direction);
     /// <summary>
     /// Builds and returns an Index Column object based on the configured properties.
     /// </summary>

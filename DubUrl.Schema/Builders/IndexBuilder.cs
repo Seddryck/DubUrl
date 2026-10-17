@@ -12,6 +12,7 @@ public class IndexBuilder : IIndexTableBuilder, IIndexColumnCollectionBuilder, I
     private DatabaseObjectName? Identity { get; set; }
     private DatabaseObjectName? TableIdentity { get; set; }
     private IndexColumnCollectionBuilder Columns { get; set; } = [];
+    private bool IsUnique { get; set; }
 
     public IIndexTableBuilder WithName(string name)
     {
@@ -22,6 +23,12 @@ public class IndexBuilder : IIndexTableBuilder, IIndexColumnCollectionBuilder, I
     public IIndexTableBuilder WithIdentity(DatabaseObjectName identity)
     {
         Identity = identity ?? throw new ArgumentNullException(nameof(identity));
+        return this;
+    }
+
+    public IIndexTableBuilder WithUnique(bool unique = true)
+    {
+        IsUnique = unique;
         return this;
     }
 
@@ -51,6 +58,6 @@ public class IndexBuilder : IIndexTableBuilder, IIndexColumnCollectionBuilder, I
         if (columns.GroupBy(c => c.Name).Count() != columns.Length)
             throw new InvalidOperationException("Column names must be unique.");
 
-        return new Index(Identity, TableIdentity, columns);
+        return new Index(Identity, TableIdentity, columns, IsUnique);
     }
 }

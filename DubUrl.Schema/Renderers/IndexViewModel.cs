@@ -14,6 +14,7 @@ public class IndexViewModel
     public DatabaseObjectName Identity { get; }
     public DatabaseObjectName TableIdentity { get; }
     public IndexColumnViewModel[] Columns { get; }
+    public bool IsUnique { get; }
 
     public IndexViewModel(Index index)
     {
@@ -21,6 +22,7 @@ public class IndexViewModel
         TableName = index.TableName;
         Identity = index.Identity;
         TableIdentity = index.TableIdentity;
+        IsUnique = index.IsUnique;
         Columns = index.Columns.Values.Select(c => new IndexColumnViewModel(c)).ToArray();
     }
 }

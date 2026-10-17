@@ -9,10 +9,15 @@ namespace DubUrl.Schema;
 public class IndexColumn
 {
     public string Name { get; }
-    public IndexColumn(string name)
-    {
-        (Name) = (name);
-    }
+    public IndexSortDirection? SortDirection { get; }
 
-    
+    public IndexColumn(string name)
+        : this(name, null)
+    { }
+
+    public IndexColumn(string name, IndexSortDirection? sortDirection)
+    {
+        Name = name;
+        SortDirection = sortDirection;
+    }
 }

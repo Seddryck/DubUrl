@@ -8,6 +8,7 @@ namespace DubUrl.Schema.Builders;
 
 public interface IIndexTableBuilder
 {
+    IIndexTableBuilder WithUnique(bool unique = true);
     IIndexColumnCollectionBuilder OnTable(string name);
     IIndexColumnCollectionBuilder OnTable(DatabaseObjectName identity);
 }

@@ -1,9 +1,7 @@
 ﻿{{#each model.Tables}}
 CREATE TABLE {{objectname Identity}} (
 {{#each Columns}}
-    {{identity Name}} {{columntype this ~}}
-    {{#if Length}}({{Length}}){{/if~}}
-    {{#if Precision}}({{Precision}}, {{Scale}}){{/if~}}
+    {{identity Name}} {{columnspec this ~}}
     {{#if Nullable}} NULL{{/if~}}
     {{#if NotNullable}} NOT NULL{{/if~}}
     {{#if PrimaryKey}} {{#if PrimaryKey.Name}}CONSTRAINT {{identity PrimaryKey.Name}} {{/if}}PRIMARY KEY{{/if~}}

@@ -26,6 +26,7 @@ public class ColumnViewModel
     public string? Description { get; }
     public NativeDatabaseType? NativeType { get; }
     public NativeTypeFallback NativeTypeFallback { get; }
+    public ColumnGeneration? Generation { get; }
 
     public ColumnViewModel(Column column, bool includePrimaryKey = true)
     {
@@ -36,6 +37,7 @@ public class ColumnViewModel
         Description = column.Description;
         NativeType = column.NativeType;
         NativeTypeFallback = column.NativeTypeFallback;
+        Generation = column.Generation;
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
         Unique = column.Constraints.Get<UniquenessConstraint>();

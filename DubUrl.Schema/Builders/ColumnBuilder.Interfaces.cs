@@ -96,6 +96,8 @@ public interface IColumnConstraintBuilder : IColumnBuilder
     /// </summary>
     /// <returns>The settings builder for method chaining.</returns>
     IColumnConstraintBuilder WithPrimaryKey();
+    IColumnConstraintBuilder WithIdentity(long seed = 1, long increment = 1);
+    IColumnConstraintBuilder WithGenerated(Expression expression, GeneratedColumnStorage storage = GeneratedColumnStorage.Stored);
     /// <summary>
     /// Sets the column as being the primary key
     /// </summary>

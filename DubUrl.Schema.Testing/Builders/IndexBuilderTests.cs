@@ -38,4 +38,25 @@ public class IndexBuilderTests
             Assert.That(index.Columns, Does.ContainKey("name"));
         });
     }
+
+    [Test]
+    public void Build_UniqueWithMixedSortDirections_PreservesMetadataAndOrder()
+    {
+        var index = new IndexBuilder()
+            .WithName("idx_customer_name")
+            .WithUnique()
+            .OnTable("customer")
+            .WithColumns(columns => columns
+                .Add(column => column.WithName("last_name").Ascending())
+                .Add(column => column.WithName("first_name").Descending()))
+            .Build();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(index.IsUnique, Is.True);
+            Assert.That(index.Columns.Keys, Is.EqualTo(new[] { "last_name", "first_name" }));
+            Assert.That(index.Columns["last_name"].SortDirection, Is.EqualTo(IndexSortDirection.Ascending));
+            Assert.That(index.Columns["first_name"].SortDirection, Is.EqualTo(IndexSortDirection.Descending));
+        });
+    }
 }

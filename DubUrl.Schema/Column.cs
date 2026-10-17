@@ -15,12 +15,17 @@ public class Column
     public string? Description { get; }
     public NativeDatabaseType? NativeType { get; }
     public NativeTypeFallback NativeTypeFallback { get; }
+    public ColumnGeneration? Generation { get; }
 
     public Column(string name, System.Data.DbType type, object? defaultValue = null, IConstraint[]? constraints = null,
-        string? description = null, NativeDatabaseType? nativeType = null, NativeTypeFallback nativeTypeFallback = NativeTypeFallback.Error)
+        string? description = null, NativeDatabaseType? nativeType = null, NativeTypeFallback nativeTypeFallback = NativeTypeFallback.Error,
+        ColumnGeneration? generation = null)
     {
-        (Name, Type, DefaultValue, Constraints, Description, NativeType, NativeTypeFallback) =
-            (name, type, defaultValue, new ConstraintCollection(constraints ?? []), NormalizeDescription(description), nativeType, nativeTypeFallback);
+        if (defaultValue is not null && generation is not null)
+            throw new ArgumentException("A generated column cannot also define a default value.", nameof(generation));
+
+        (Name, Type, DefaultValue, Constraints, Description, NativeType, NativeTypeFallback, Generation) =
+            (name, type, defaultValue, new ConstraintCollection(constraints ?? []), NormalizeDescription(description), nativeType, nativeTypeFallback, generation);
     }
 
     private static string? NormalizeDescription(string? description)

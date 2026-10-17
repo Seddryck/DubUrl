@@ -12,6 +12,7 @@ namespace DubUrl.Schema.Builders;
 public class IndexColumnBuilder : IIndexColumnBuilder
 {
     public string Name { get; private set; } = string.Empty;
+    private IndexSortDirection? SortDirection { get; set; }
 
     public IIndexColumnBuilder WithName(string name)
     {
@@ -21,11 +22,23 @@ public class IndexColumnBuilder : IIndexColumnBuilder
         return this;
     }
 
+    public IIndexColumnBuilder Ascending()
+        => WithSortDirection(IndexSortDirection.Ascending);
+
+    public IIndexColumnBuilder Descending()
+        => WithSortDirection(IndexSortDirection.Descending);
+
+    public IIndexColumnBuilder WithSortDirection(IndexSortDirection direction)
+    {
+        SortDirection = direction;
+        return this;
+    }
+
     IndexColumn IIndexColumnBuilder.Build()
     {
         if (string.IsNullOrWhiteSpace(Name))
             throw new InvalidOperationException("Column name must be set before building");
 
-        return new IndexColumn(Name);
+        return new IndexColumn(Name, SortDirection);
     }
 }

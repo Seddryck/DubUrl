@@ -47,10 +47,18 @@ public class Schema
             indexes.Select(t => new KeyValuePair<string, Index>(t.Identity.Key, t)));
 
         foreach (var index in indexes)
+        {
             if (!Tables.ContainsKey(index.TableIdentity.Key))
                 throw new ArgumentException(
                     $"Index '{index.Identity}' references missing table '{index.TableIdentity}'.",
                     nameof(indexes));
+            var table = Tables[index.TableIdentity.Key];
+            var missingColumns = index.Columns.Keys.Where(column => !table.Columns.ContainsKey(column)).ToArray();
+            if (missingColumns.Length > 0)
+                throw new ArgumentException(
+                    $"Index '{index.Identity}' references missing column(s) {string.Join(", ", missingColumns)} on table '{table.Identity}'.",
+                    nameof(indexes));
+        }
     }
 
     public Table GetTable(DatabaseObjectName identity)

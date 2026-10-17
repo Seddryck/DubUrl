@@ -1,7 +1,7 @@
 ﻿{{#each model.Indexes}}
-CREATE INDEX {{objectname Identity}} ON {{objectname TableIdentity}} (
+CREATE {{#if IsUnique}}UNIQUE {{/if}}INDEX {{objectname Identity}} ON {{objectname TableIdentity}} (
 {{#each Columns}}
-    {{identity Name}}{{#unless @last}},{{/unless}}
+    {{identity Name}}{{#if IsAscending}} ASC{{/if}}{{#if IsDescending}} DESC{{/if}}{{#unless @last}},{{/unless}}
 {{/each}}
 );
 {{/each}}

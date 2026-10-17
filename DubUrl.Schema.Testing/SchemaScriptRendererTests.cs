@@ -871,4 +871,109 @@ public class SchemaScriptRendererTests
             Assert.That(result, Does.Not.Contain("PK_Legacy_Id"));
         });
     }
+
+    [Test]
+    public void Render_SqlServerIdentity_PreservesSeedAndIncrement()
+    {
+        var table = new Table("Customer", [
+            new Column("Id", DbType.Int64, generation: new IdentityColumnGeneration(100, 5))
+        ]);
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("[Id] BIGINT IDENTITY(100, 5)"));
+    }
+
+    [Test]
+    public void Render_MySqlIdentity_UsesAutoIncrement()
+    {
+        var table = new Table("Customer", [
+            new Column("Id", DbType.Int64, generation: new IdentityColumnGeneration())
+        ]);
+
+        var result = new SchemaScriptRenderer(MySql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("`Id` BIGINT AUTO_INCREMENT"));
+    }
+
+    [Test]
+    public void Render_SqlServerStoredGeneratedColumn_UsesComputedSyntax()
+    {
+        var table = new Table("Customer", [
+            new Column("Name", DbType.String),
+            new Column(
+                "NameLength",
+                DbType.Int32,
+                generation: new GeneratedColumnGeneration(
+                    new FunctionColumnIdentityExpression("Length", "Name")))
+        ]);
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("[NameLength] AS (LEN([Name])) PERSISTED"));
+    }
+
+    [Test]
+    public void Render_PostgresqlStoredGeneratedColumn_UsesStructuredExpression()
+    {
+        var table = new Table("Customer", [
+            new Column("Name", DbType.String),
+            new Column(
+                "NameLength",
+                DbType.Int32,
+                generation: new GeneratedColumnGeneration(
+                    new FunctionColumnIdentityExpression("Length", "Name")))
+        ]);
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain(
+            "\"NameLength\" INTEGER GENERATED ALWAYS AS (LENGTH(\"Name\")) STORED"));
+    }
+
+    [Test]
+    public void Render_DuckDbIdentity_ThrowsActionableDiagnostic()
+    {
+        var table = new Table("Customer", [
+            new Column("Id", DbType.Int64, generation: new IdentityColumnGeneration())
+        ]);
+
+        Assert.That(
+            () => new SchemaScriptRenderer(DuckDb).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>()
+                .With.Message.EqualTo("Identity columns are not supported by dialect 'DuckDbDialect'."));
+    }
+
+    [Test]
+    public void Render_UniqueIndexWithMixedSortDirections_PreservesDeclarationOrder()
+    {
+        var table = new Table("Customer", [
+            new Column("LastName", DbType.String),
+            new Column("FirstName", DbType.String)
+        ]);
+        var index = new Index(
+            "Idx_Customer_Name",
+            "Customer",
+            [
+                new IndexColumn("LastName", IndexSortDirection.Ascending),
+                new IndexColumn("FirstName", IndexSortDirection.Descending)
+            ],
+            true);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], [index]));
+
+        Assert.That(result, Does.Contain(
+            "CREATE UNIQUE INDEX Idx_Customer_Name ON Customer (\r\n    LastName ASC,\r\n    FirstName DESC"));
+    }
+
+    [Test]
+    public void Create_IndexWithUnknownColumn_ThrowsActionableDiagnostic()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32)]);
+        var index = new Index("Idx_Customer_Name", "Customer", [new IndexColumn("Name")]);
+
+        Assert.That(
+            () => new Schema([table], [index]),
+            Throws.ArgumentException.With.Message.Contains("references missing column(s) Name"));
+    }
 }
