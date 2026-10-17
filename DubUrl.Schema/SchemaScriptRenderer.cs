@@ -26,8 +26,8 @@ namespace DubUrl.Schema;
         if (options == SchemaCreationOptions.DropIfExists)
         {
             templates.Add(new DropViewsIfExistsRenderer(dialect));
-            templates.Add(new DropTablesIfExistsRenderer(dialect));
             templates.Add(new DropIndexesIfExistsRenderer(dialect));
+            templates.Add(new DropTablesIfExistsRenderer(dialect));
         }
             
         templates.Add(new CreateSchemaRenderer(dialect, nativeTypes));

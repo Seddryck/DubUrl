@@ -1060,18 +1060,21 @@ public class SchemaScriptRendererTests
             table.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
         var topView = new View("top_view", new ViewQuery(
             baseView.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var index = new Index("customer_id_idx", table.Name, [new IndexColumn("id")]);
 
         var result = new SchemaScriptRenderer(Pgsql, SchemaCreationOptions.DropIfExists)
-            .Render(new Schema([table], [], [topView, baseView]));
+            .Render(new Schema([table], [index], [topView, baseView]));
 
         var topDrop = result.IndexOf("DROP VIEW IF EXISTS \"top_view\";", StringComparison.Ordinal);
         var baseDrop = result.IndexOf("DROP VIEW IF EXISTS \"base_view\";", StringComparison.Ordinal);
+        var indexDrop = result.IndexOf("DROP INDEX IF EXISTS \"customer_id_idx\";", StringComparison.Ordinal);
         var tableDrop = result.IndexOf("DROP TABLE IF EXISTS \"customers\";", StringComparison.Ordinal);
         Assert.Multiple(() =>
         {
             Assert.That(topDrop, Is.GreaterThanOrEqualTo(0));
             Assert.That(baseDrop, Is.GreaterThan(topDrop));
-            Assert.That(tableDrop, Is.GreaterThan(baseDrop));
+            Assert.That(indexDrop, Is.GreaterThan(baseDrop));
+            Assert.That(tableDrop, Is.GreaterThan(indexDrop));
         });
     }
 
