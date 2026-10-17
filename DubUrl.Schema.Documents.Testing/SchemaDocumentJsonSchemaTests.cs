@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DubUrl.Querying.Dialects;
@@ -152,6 +153,32 @@ public class SchemaDocumentJsonSchemaTests
             Assert.That(firstDrop, Is.GreaterThan(secondDrop));
             Assert.That(tableDrop, Is.GreaterThan(firstDrop));
         });
+    }
+
+    [Test]
+    public void YamlWithOmittedNullable_ReadMapRender_ProducesNotNullSqliteColumn()
+    {
+        const string source = """
+            version: 1
+            tables:
+              - identity:
+                  name: customer
+                columns:
+                  - name: is_active
+                    type: boolean
+                    default:
+                      type: boolean
+                      value: "true"
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(source));
+        var document = new SchemaDocumentReader().Read(stream, SchemaDocumentFormat.Yaml);
+        var domain = new SchemaDocumentMapper().Map(document);
+        var dialectBuilder = new DialectRegistryBuilder();
+        dialectBuilder.AddDialect<SqliteDialect>(["sqlite"]);
+
+        var script = new SchemaScriptRenderer(dialectBuilder.Build().Get<SqliteDialect>()).Render(domain);
+
+        Assert.That(script, Does.Contain("is_active INTEGER NOT NULL DEFAULT true"));
     }
 
     private static EvaluationResults Evaluate(string source)

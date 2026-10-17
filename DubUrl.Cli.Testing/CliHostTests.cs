@@ -41,7 +41,7 @@ public class CliHostTests
     }
 
     [Test]
-    public async Task Render_FromYamlStandardInput_WritesSqlOnlyToStandardOutput()
+    public async Task Render_FromYamlStandardInput_WithOmittedNullableWritesNotNullSql()
     {
         const string yaml = """
             version: 1
@@ -49,9 +49,11 @@ public class CliHostTests
               - identity:
                   name: customer
                 columns:
-                  - name: id
-                    type: int32
-                    nullable: false
+                  - name: is_active
+                    type: boolean
+                    default:
+                      type: boolean
+                      value: "true"
             """;
         var console = new TestConsole(yaml);
         await using var services = CliComposition.CreateDefault(console);
@@ -63,6 +65,7 @@ public class CliHostTests
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
             Assert.That(console.StandardOutput, Does.Contain("CREATE TABLE customer"));
+            Assert.That(console.StandardOutput, Does.Contain("is_active INTEGER NOT NULL DEFAULT true"));
             Assert.That(console.StandardError, Is.Empty);
         });
     }

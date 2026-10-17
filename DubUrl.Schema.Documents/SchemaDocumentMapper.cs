@@ -80,7 +80,7 @@ public sealed class SchemaDocumentMapper : ISchemaDocumentMapper
         var constraints = new List<IConstraint>();
         if (document.Nullable is true)
             constraints.Add(new NullableConstraint());
-        else if (document.Nullable is false)
+        else
             constraints.Add(new NotNullableConstraint());
         if (document.Unique is true)
             constraints.Add(new UniquenessConstraint());
