@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 using Oracle.ManagedDataAccess.Client;
@@ -24,7 +24,7 @@ public class OracleManagedDataAccessRewriterTest
     [TestCase("(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host)(PORT=1234))(CONNECT_DATA=(SERVICE_NAME=service-name)))", "host", "service-name", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = string.IsNullOrEmpty(segmentsList) ? [] : segmentsList.Split("/") };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = string.IsNullOrEmpty(segmentsList) ? [] : segmentsList.Split("/") };
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -39,7 +39,7 @@ public class OracleManagedDataAccessRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -60,7 +60,7 @@ public class OracleManagedDataAccessRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -77,9 +77,9 @@ public class OracleManagedDataAccessRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"] };
-        urlInfo.Options.Add("Statement Cache Size", "100");
-        urlInfo.Options.Add("Persist Security Info", "true");
+        var urlInfo = new ConnectionUri() { Segments = ["db"] };
+        urlInfo = urlInfo.WithOption("Statement Cache Size", "100");
+        urlInfo = urlInfo.WithOption("Persist Security Info", "true");
 
         var Rewriter = new OracleManagedDataAccessRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);

@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using DubUrl.Testing.Rewriting;
@@ -27,7 +27,7 @@ public class PowerBiPremiumRewriterTest
     [TestCase("api.powerbi.com/v1.0/myOrganization/myWorkspace", "api.powerbi.com/v1.0/myOrganization/myWorkspace")]
     public void Map_UrlInfo_DataSource(string input, string expected = "api.powerbi.com/v1.0/myorg/myWorkspace")
     {
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new PowerBiPremiumRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -43,7 +43,7 @@ public class PowerBiPremiumRewriterTest
     [TestCase("api.powerbi.com/")]
     public void Map_InvalidUrlInfo_DataSource(string input)
     {
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray() };
         var Rewriter = new PowerBiPremiumRewriter(ConnectionStringBuilder);
 
         Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));

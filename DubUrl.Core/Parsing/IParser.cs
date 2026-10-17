@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +8,7 @@ namespace DubUrl.Parsing;
 
 public interface IParser
 {
-    UrlInfo Parse(string url);
+    ConnectionUri Parse(string url);
+    bool TryParse(string url, out ConnectionUri? connectionUri);
+    bool TryParse(string url, out ConnectionUri? connectionUri, out ConnectionUriDiagnostic? diagnostic);
 }

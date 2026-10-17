@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using Npgsql;
@@ -20,7 +20,7 @@ public class TimescaleRewriterTest
     [TestCase("host", "host", "db", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/') };
         var Rewriter = new TimescaleRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -34,7 +34,7 @@ public class TimescaleRewriterTest
     [TestCase(4567, 4567, "host", "db")]
     public void Map_UrlInfo_Port(int expected, int port = 0, string host = "host", string segmentsList = "db")
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/') };
         var Rewriter = new TimescaleRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -47,7 +47,7 @@ public class TimescaleRewriterTest
     [TestCase("db")]
     public void UrlInfo_Map_InitialCatalog(string segmentsList = "db", string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new TimescaleRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -59,7 +59,7 @@ public class TimescaleRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new TimescaleRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -83,7 +83,7 @@ public class TimescaleRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new TimescaleRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -102,9 +102,9 @@ public class TimescaleRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"] };
-        urlInfo.Options.Add("Application Name", "myApp");
-        urlInfo.Options.Add("Persist Security Info", "true");
+        var urlInfo = new ConnectionUri() { Segments = ["db"] };
+        urlInfo = urlInfo.WithOption("Application Name", "myApp");
+        urlInfo = urlInfo.WithOption("Persist Security Info", "true");
 
         var Rewriter = new TimescaleRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);

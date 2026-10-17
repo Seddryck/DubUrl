@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
 using IBM.Data.Db2;
 using NUnit.Framework;
@@ -26,7 +26,7 @@ public class Db2RewriterTest
     [TestCase("host:1234", "host", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", int port = 0, string segmentsList = "db")
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/') };
         var Rewriter = new Db2Rewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -39,7 +39,7 @@ public class Db2RewriterTest
     [TestCase("db")]
     public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new Db2Rewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -52,7 +52,7 @@ public class Db2RewriterTest
     [TestCase()]
     public void Map_UrlInfoWithUsernamePassword_Authentication(string segmentsList = "db")
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = segmentsList.Split('/') };
         var Rewriter = new Db2Rewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -41,13 +41,13 @@ internal class PostgresqlRewriter : ConnectionStringRewriter
 
     internal class HostMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
     }
 
     internal class PortMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (urlInfo.Port > 0)
                 Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
@@ -56,7 +56,7 @@ internal class PostgresqlRewriter : ConnectionStringRewriter
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
@@ -78,11 +78,11 @@ internal class PostgresqlRewriter : ConnectionStringRewriter
 
     internal class DatabaseMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (urlInfo.Segments==null || !urlInfo.Segments.Any())
                 throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
-            else if (urlInfo.Segments.Length == 1)
+            else if (urlInfo.Segments.Count == 1)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
             else
                 throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);

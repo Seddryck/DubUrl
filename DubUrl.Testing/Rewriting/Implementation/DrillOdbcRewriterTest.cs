@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Rewriting.Implementation;
 using Moq;
@@ -22,7 +22,7 @@ public class DrillOdbcRewriterTest
     [TestCase("", "localhost")]
     public void Map_UrlInfo_ReturnsServer(string host, string expected)
     {
-        var urlInfo = new UrlInfo() { Host = host, Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
+        var urlInfo = new ConnectionUri() { Host = host, Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -42,7 +42,7 @@ public class DrillOdbcRewriterTest
     [TestCase("192.168.222.160, 192.168.222.165, 192.168.222.231", "192.168.222.160:31010, 192.168.222.165:31010, 192.168.222.231:31010")]
     public void Map_UrlInfo_ReturnsZkQuorum(string host, string expected)
     {
-        var urlInfo = new UrlInfo() { Host = host, Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
+        var urlInfo = new ConnectionUri() { Host = host, Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -62,7 +62,7 @@ public class DrillOdbcRewriterTest
     [TestCase(12345, "12345")]
     public void Map_UrlInfo_ReturnsPort(int port, string expected)
     {
-        var urlInfo = new UrlInfo() { Port = port, Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
+        var urlInfo = new ConnectionUri() { Port = port, Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -77,7 +77,7 @@ public class DrillOdbcRewriterTest
     [TestCase("", "")]
     public void Map_UrlInfo_ReturnsSchema(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -89,7 +89,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -111,7 +111,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
+        var urlInfo = new ConnectionUri() { Username = "", Password = "", Options = new Dictionary<string, string>() { { "Driver", "MapR Drill ODBC Driver" } } };
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -125,8 +125,8 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"], Schemes = ["odbc", "drill", "MapR Drill ODBC Driver"] };
-        urlInfo.Options.Add("ZKClusterID", "DrillBit200");
+        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "drill", "MapR Drill ODBC Driver"]) };
+        urlInfo = urlInfo.WithOption("ZKClusterID", "DrillBit200");
 
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -139,7 +139,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_SchemeContainsDriverName_DriverNameReturned()
     {
-        var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill", "{MapR Drill ODBC Driver}"], Segments = ["dfs"] };
+        var urlInfo = new ConnectionUri() { Scheme = new SchemeKey(["odbc", "drill", "{MapR Drill ODBC Driver}"]), Segments = ["dfs"] };
 
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -152,7 +152,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_DriverSpecified_NoDriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill", "{MapR Drill ODBC Driver}"], Segments = ["dfs"] };
+        var urlInfo = new ConnectionUri() { Scheme = new SchemeKey(["odbc", "drill", "{MapR Drill ODBC Driver}"]), Segments = ["dfs"] };
 
         var driverLocationFactoryMock = new Mock<DriverLocatorFactory>();
         driverLocationFactoryMock.Setup(x => x.GetValidAliases()).Returns(["drill", "pgsql"]);
@@ -167,7 +167,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_NoDriverSpecifiedNoAdditionalOption_DriverLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = ["odbc", "drill"], Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Scheme = new SchemeKey(["odbc", "drill"]), Segments = ["db"] };
 
         var driverLocationMock = new Mock<IDriverLocator>();
         driverLocationMock.Setup(x => x.Locate()).Returns("My driver");

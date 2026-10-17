@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using DubUrl.Testing.Rewriting;
@@ -29,7 +29,7 @@ public class PowerBiDesktopRewriterTest
         discoverer.Setup(x => x.GetPowerBiProcesses(false))
                                 .Returns(new[] { new PowerBiProcess("myPowerBiFile", 12345, PowerBiType.PowerBI) });
 
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
         var result = Rewriter.Execute(urlInfo);
 
@@ -46,7 +46,7 @@ public class PowerBiDesktopRewriterTest
     [TestCase("LocalHost:54321")]
     public void Map_UrlInfoWithPort_DataSource(string input)
     {
-        var urlInfo = new UrlInfo() { Host = input.Split(':')[0], Port = Convert.ToInt32(input.Split(':')[1]), Segments= [] };
+        var urlInfo = new ConnectionUri() { Host = input.Split(':')[0], Port = Convert.ToInt32(input.Split(':')[1]), Segments= [] };
         var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -58,7 +58,7 @@ public class PowerBiDesktopRewriterTest
     [TestCase("localhost:54321/foo")]
     public void Map_UrlInfoWithPortAndSegment_DataSource(string input)
     {
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0].Split(':')[0], Port = Convert.ToInt32(input.Split('/')[0].Split(':')[1]), Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0].Split(':')[0], Port = Convert.ToInt32(input.Split('/')[0].Split(':')[1]), Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder);
         Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
     }
@@ -72,7 +72,7 @@ public class PowerBiDesktopRewriterTest
         discoverer.Setup(x => x.GetPowerBiProcesses(false))
                                 .Returns(new[] { new PowerBiProcess("foo", 12345, PowerBiType.PowerBI) });
 
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
         Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
     }
@@ -85,7 +85,7 @@ public class PowerBiDesktopRewriterTest
         discoverer.Setup(x => x.GetPowerBiProcesses(false))
                                 .Returns(new[] { new PowerBiProcess("foo", 12345, PowerBiType.PowerBI) });
 
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
         Assert.Throws<InvalidConnectionUrlTooManySegmentsException>(() => Rewriter.Execute(urlInfo));
     }
@@ -97,7 +97,7 @@ public class PowerBiDesktopRewriterTest
         discoverer.Setup(x => x.GetPowerBiProcesses(false))
                                 .Returns(new[] { new PowerBiProcess("myPowerBiFile", 12345, PowerBiType.PowerBI) });
 
-        var urlInfo = new UrlInfo() { Host = "localhost", Segments = ["myPowerBiFile"] };
+        var urlInfo = new ConnectionUri() { Host = "localhost", Segments = ["myPowerBiFile"] };
         var Rewriter = new PowerBiDesktopRewriter(ConnectionStringBuilder, discoverer.Object);
         var result = Rewriter.Execute(urlInfo);
 

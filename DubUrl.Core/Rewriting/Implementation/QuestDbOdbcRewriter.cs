@@ -1,4 +1,4 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.Options;
 using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
@@ -33,18 +33,18 @@ public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 
     protected internal new class HostMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
     }
     internal class PortMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(PORT_KEYWORD, urlInfo.Port > 0 ? urlInfo.Port : 8812);
     }
 
     protected internal new class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
                 throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");

@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ internal class DuckdbRewriter : ConnectionStringRewriter
             RootPath = rootPath;
         }
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length == 0)
             {
@@ -46,12 +46,12 @@ internal class DuckdbRewriter : ConnectionStringRewriter
                     || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ":memory:") == 0
                    )
             {
-                if (urlInfo.Segments.Length == 0)
+                if (urlInfo.Segments.Count == 0)
                     segments.Add(":memory:");
                 else
-                    throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Length} segments. The list of segments was '{string.Join("', '", urlInfo.Segments)}'");
+                    throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Count} segments. The list of segments was '{string.Join("', '", urlInfo.Segments)}'");
             }
-            else if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
+            else if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
                 segments = urlInfo.Segments.Skip(1).ToList();
             else
             {

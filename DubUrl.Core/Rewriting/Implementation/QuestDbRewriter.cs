@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -31,29 +31,29 @@ internal class QuestDbRewriter : PostgresqlRewriter
 
     internal new class PortMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(PORT_KEYWORD, urlInfo.Port > 0 ? urlInfo.Port : 8812);
     }
 
     internal new class DatabaseMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length == 0)
+            if (urlInfo.Segments.Count == 0)
                 Specificator.Execute(DATABASE_KEYWORD, DEFAULT_DATABASE);
-            else if (urlInfo.Segments.Length == 1)
+            else if (urlInfo.Segments.Count == 1)
                 if (urlInfo.Segments[0] == DEFAULT_DATABASE || urlInfo.Segments[0] == string.Empty)
                     Specificator.Execute(DATABASE_KEYWORD, DEFAULT_DATABASE);
                 else
                     throw new InvalidConnectionUrlException($"One a segment is provided in the connectionUrl it must be '{DEFAULT_DATABASE}'. The segment was '{urlInfo.Segments[0]}'");
             else
-                throw new InvalidConnectionUrlException($"QuestDb is expecting a maximum of 1 segment and it should be '{DEFAULT_DATABASE}'. The connectionUrl has {urlInfo.Segments.Length} segments: '{string.Join(", ", urlInfo.Segments)}'");
+                throw new InvalidConnectionUrlException($"QuestDb is expecting a maximum of 1 segment and it should be '{DEFAULT_DATABASE}'. The connectionUrl has {urlInfo.Segments.Count} segments: '{string.Join(", ", urlInfo.Segments)}'");
         }
     }
 
     internal new class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
                 throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");
@@ -65,7 +65,7 @@ internal class QuestDbRewriter : PostgresqlRewriter
 
     internal class OptionsMapper : Tokening.OptionsMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var unexpected = urlInfo.Options.Keys.Except(new[] { STATEMENT_TIMEOUT, COMMAND_TIMEOUT, SERVER_COMPATIBILITY_MODE });
             if (unexpected.Any())
@@ -74,17 +74,19 @@ internal class QuestDbRewriter : PostgresqlRewriter
                 throw new InvalidConnectionUrlException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' or its alias '{COMMAND_TIMEOUT}' and also an option named '{SERVER_COMPATIBILITY_MODE}'. You cannot specify both of '{COMMAND_TIMEOUT}' and '{STATEMENT_TIMEOUT}'.");
             else
             {
-                if (!urlInfo.Options.TryGetValue(SERVER_COMPATIBILITY_MODE, out var value))
-                    urlInfo.Options.Add(SERVER_COMPATIBILITY_MODE, NO_TYPE_LOADING);
+                var options = new Dictionary<string, string>(urlInfo.Options, StringComparer.OrdinalIgnoreCase);
+                if (!options.TryGetValue(SERVER_COMPATIBILITY_MODE, out var value))
+                    options.Add(SERVER_COMPATIBILITY_MODE, NO_TYPE_LOADING);
                 else if (value != NO_TYPE_LOADING)
                     throw new InvalidConnectionUrlException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{value}' is not supported.");
                 
-                if (urlInfo.Options.TryGetValue(STATEMENT_TIMEOUT, out string? timeout))
+                if (options.TryGetValue(STATEMENT_TIMEOUT, out string? timeout))
                 {
-                    urlInfo.Options.Add(COMMAND_TIMEOUT, timeout);
-                    urlInfo.Options.Remove(STATEMENT_TIMEOUT);
-                } 
-                base.Execute(urlInfo);
+                    options.Add(COMMAND_TIMEOUT, timeout);
+                    options.Remove(STATEMENT_TIMEOUT);
+                }
+                foreach (var option in options)
+                    Specificator.Execute(option.Key, option.Value);
             }                    
         }
     }

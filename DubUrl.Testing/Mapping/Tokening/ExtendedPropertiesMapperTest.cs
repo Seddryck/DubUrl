@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,7 @@ internal class ExtendedPropertiesMapperTest
     [Test]
     public void Execute_ValueNoOption_Value()
     {
-        var urlInfo = new UrlInfo() { Segments = string.Empty.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = string.Empty.Split('/') };
         var mapper = new ExtendedPropertiesMapper(["Excel 8.0"]);
         var specificator = new FakeSpecificator();
         mapper.Accept(specificator);
@@ -42,7 +42,7 @@ internal class ExtendedPropertiesMapperTest
     [Test]
     public void Execute_NoValueButOptions_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = string.Empty.Split('/')
+        var urlInfo = new ConnectionUri() { Segments = string.Empty.Split('/')
             , Options = new Dictionary<string, string>() { { "HDR", "YES" }, { "IMEX", "1" } } };
         var mapper = new ExtendedPropertiesMapper([]);
         var specificator = new FakeSpecificator();
@@ -57,7 +57,7 @@ internal class ExtendedPropertiesMapperTest
     [Test]
     public void Execute_ValueAndOptions_ValueAndOptions()
     {
-        var urlInfo = new UrlInfo()
+        var urlInfo = new ConnectionUri()
         {
             Segments = string.Empty.Split('/')
             , Options = new Dictionary<string, string>() { { "HDR", "YES" }, { "IMEX", "1" } }

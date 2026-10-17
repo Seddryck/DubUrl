@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 using System;
@@ -24,7 +24,7 @@ public class TeradataRewriterTest
     [TestCase("host", "host")]
     public void Map_UrlInfo_DataSource(string expected, string host = "host")
     {
-        var urlInfo = new UrlInfo() { Host = host };
+        var urlInfo = new ConnectionUri() { Host = host };
         var Rewriter = new TeradataRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -37,7 +37,7 @@ public class TeradataRewriterTest
     [TestCase(453, 453)]
     public void Map_UrlInfo_PortNumber(int expected, int port)
     {
-        var urlInfo = new UrlInfo() { Port = port };
+        var urlInfo = new ConnectionUri() { Port = port };
         var Rewriter = new TeradataRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -50,7 +50,7 @@ public class TeradataRewriterTest
     [TestCase("db")]
     public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new TeradataRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -62,7 +62,7 @@ public class TeradataRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
         var Rewriter = new TeradataRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -84,7 +84,7 @@ public class TeradataRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { };
+        var urlInfo = new ConnectionUri() { };
         var Rewriter = new TeradataRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

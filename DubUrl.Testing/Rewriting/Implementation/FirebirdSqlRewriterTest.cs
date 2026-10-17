@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ public class FirebirdSqlRewriterTest
     [TestCase("", "data.fdb")]
     public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "localhost")
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Segments = segmentsList.Split('/') };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -43,7 +43,7 @@ public class FirebirdSqlRewriterTest
     [TestCase("data.fdb")]
     public void Map_DoubleSlash_Database(string host, string expected = "data.fdb")
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = [] };
+        var urlInfo = new ConnectionUri() { Host = host, Segments = [] };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -64,7 +64,7 @@ public class FirebirdSqlRewriterTest
     [TestCase("", "directory/data.fdb")]
     public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.fdb")
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Segments = segmentsList.Split('/') };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -77,7 +77,7 @@ public class FirebirdSqlRewriterTest
     public void Map_QuadrupleSlash_DataSource()
     {
         var path = "c:/directory/data.fdb";
-        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -91,7 +91,7 @@ public class FirebirdSqlRewriterTest
     {
         var rootPath = "c:\\directory\\";
         var path = "data.fdb";
-        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, rootPath);
         var result = Rewriter.Execute(urlInfo);
 
@@ -103,7 +103,7 @@ public class FirebirdSqlRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -120,7 +120,7 @@ public class FirebirdSqlRewriterTest
     [Test]
     public void Map_UrlInfoWithPort_Port()
     {
-        var urlInfo = new UrlInfo() { Host = "localhost", Port = 3001, Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Host = "localhost", Port = 3001, Segments = ["db"] };
         var Rewriter = new FirebirdSqlRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 

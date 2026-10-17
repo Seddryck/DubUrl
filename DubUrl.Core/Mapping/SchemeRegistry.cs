@@ -1,7 +1,8 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -20,10 +21,10 @@ public class SchemeRegistry : ISchemeRegistry
     public SchemeRegistry(Dictionary<string, Func<IMapper>> mapperFactories)
         => _mapperFactories = new(mapperFactories, StringComparer.OrdinalIgnoreCase); // Defensive copy
 
-    public ResolvedConnection Resolve(Parsing.UrlInfo urlInfo)
+    public ResolvedConnection Resolve(ConnectionUri connectionUri)
     {
-        var mapper = GetMapper(urlInfo.Schemes);
-        mapper.Rewrite(urlInfo);
+        var mapper = GetMapper(connectionUri.Scheme);
+        mapper.Rewrite(connectionUri);
 
         return new ResolvedConnection(
             mapper.GetConnectionString(),
@@ -34,12 +35,47 @@ public class SchemeRegistry : ISchemeRegistry
         );
     }
 
+    public bool TryResolve(
+        ConnectionUri connectionUri,
+        out ResolvedConnection? resolvedConnection,
+        out ConnectionResolutionDiagnostic? diagnostic)
+    {
+        try
+        {
+            resolvedConnection = Resolve(connectionUri);
+            diagnostic = null;
+            return true;
+        }
+        catch (DubUrlException exception)
+        {
+            resolvedConnection = null;
+            diagnostic = new(
+                exception switch
+                {
+                    SchemeNotFoundException => ConnectionResolutionDiagnosticCode.SchemeNotFound,
+                    ProviderNotFoundException => ConnectionResolutionDiagnosticCode.ProviderNotFound,
+                    InvalidConnectionUrlException => ConnectionResolutionDiagnosticCode.InvalidConnectionUri,
+                    _ => ConnectionResolutionDiagnosticCode.ResolutionFailed,
+                },
+                Redact(exception.Message, connectionUri.Password));
+            return false;
+        }
+    }
+
+    private static string Redact(string message, string password)
+        => string.IsNullOrEmpty(password)
+            ? message
+            : message.Replace(password, "***", StringComparison.Ordinal);
+
     public IMapper GetMapper(string scheme)
-        => GetMapper([scheme]);
+        => GetMapper(SchemeKey.Parse(scheme));
 
     public IMapper GetMapper(string[] schemes)
+        => GetMapper(new SchemeKey(schemes));
+
+    public IMapper GetMapper(SchemeKey scheme)
     {
-        var alias = SchemeRegistryBuilder.GetAlias(schemes);
+        var alias = SchemeRegistryBuilder.GetAlias(scheme);
 
         if (!_mapperFactories.TryGetValue(alias, out var mapperFactory))
             throw new SchemeNotFoundException(alias, [.. _mapperFactories.Keys]);
@@ -47,10 +83,13 @@ public class SchemeRegistry : ISchemeRegistry
         return mapperFactory();
     }
 
-    public DbProviderFactory GetProviderFactory(string[] schemes)
+    public DbProviderFactory GetProviderFactory(SchemeKey scheme)
     {
-        return GetProviderFactory(GetMapper(schemes));
+        return GetProviderFactory(GetMapper(scheme));
     }
+
+    public DbProviderFactory GetProviderFactory(string[] schemes)
+        => GetProviderFactory(new SchemeKey(schemes));
 
     private static DbProviderFactory GetProviderFactory(IMapper mapper)
     {
@@ -59,5 +98,5 @@ public class SchemeRegistry : ISchemeRegistry
     }
 
     public bool CanHandle(string scheme)
-        => _mapperFactories.ContainsKey(SchemeRegistryBuilder.GetAlias(scheme.Split(['+', ':'])));
+        => _mapperFactories.ContainsKey(SchemeRegistryBuilder.GetAlias(SchemeKey.Parse(scheme)));
 }

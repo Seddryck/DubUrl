@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -48,7 +48,7 @@ public class DuckdbRewriterTest
     [TestCase("", "data.db")]
     public void Map_DoubleSlash_DataSource(string host, string segmentsList, string expected = "data.db")
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Segments = segmentsList.Split('/') };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -63,7 +63,7 @@ public class DuckdbRewriterTest
     [TestCase("", "directory/data.db")]
     public void Map_TripleSlash_DataSource(string host, string segmentsList, string expected = "directory/data.db")
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Segments = segmentsList.Split('/') };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -76,7 +76,7 @@ public class DuckdbRewriterTest
     public void Map_QuadrupleSlash_DataSource()
     {
         var path = "c:/directory/data.db";
-        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 
@@ -90,7 +90,7 @@ public class DuckdbRewriterTest
     {
         var rootPath = "c:\\directory\\";
         var path = "data.db";
-        var urlInfo = new UrlInfo() { Host = string.Empty, Segments = $"//{path}".Split('/') };
+        var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, rootPath);
         var result = Rewriter.Execute(urlInfo);
 
@@ -104,7 +104,7 @@ public class DuckdbRewriterTest
     [TestCase(":memory:")]
     public void Map_InMemory_DataSource(string host)
     {
-        var urlInfo = new UrlInfo() { Host = host, Segments = [] };
+        var urlInfo = new ConnectionUri() { Host = host, Segments = [] };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, string.Empty);
         var result = Rewriter.Execute(urlInfo);
 

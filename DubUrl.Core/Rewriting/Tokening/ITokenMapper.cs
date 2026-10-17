@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +10,5 @@ namespace DubUrl.Rewriting.Tokening;
 public interface ITokenMapper
 {
     void Accept(ISpecificator specificator);
-    void Execute(UrlInfo urlInfo);
+    void Execute(ConnectionUri urlInfo);
 }

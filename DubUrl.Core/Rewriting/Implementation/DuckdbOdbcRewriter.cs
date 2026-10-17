@@ -1,4 +1,4 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.Options;
 using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
@@ -31,7 +31,7 @@ public class DuckdbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 
     protected internal new class HostMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Host))
                 Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);

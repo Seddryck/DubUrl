@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using DubUrl.Testing.Rewriting;
@@ -28,7 +28,7 @@ public class SsasMultidimRewriterTest
     [TestCase("localhost/instance/db/cube", "localhost\\instance")]
     public void Map_UrlInfo_DataSource(string input, string expected)
     {
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new SsasMultidimRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -43,7 +43,7 @@ public class SsasMultidimRewriterTest
     public void Map_InvalidUrlInfo_Throws(string input)
         => Assert.That(() =>
             new SsasMultidimRewriter(ConnectionStringBuilder)
-                    .Execute(new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() })
+                    .Execute(new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() })
             , Throws.TypeOf<InvalidConnectionUrlException>());
 
     [Test]
@@ -56,7 +56,7 @@ public class SsasMultidimRewriterTest
     [TestCase("localhost/instance/db/cube")]
     public void Map_UrlInfo_InitialCatalog(string input, string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new SsasMultidimRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -70,7 +70,7 @@ public class SsasMultidimRewriterTest
     public void Map_InvalidUrlInfo_throws(string input)
         => Assert.That(() =>
             new SsasMultidimRewriter(ConnectionStringBuilder)
-                    .Execute(new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() })
+                    .Execute(new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() })
             , Throws.TypeOf<InvalidConnectionUrlException>());
 
     [Test]
@@ -80,7 +80,7 @@ public class SsasMultidimRewriterTest
     [TestCase("localhost:1234/instance/db/cube")]
     public void Map_UrlInfo_Cube(string input, string expected = "cube")
     {
-        var urlInfo = new UrlInfo() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
+        var urlInfo = new ConnectionUri() { Host = input.Split('/')[0], Segments = input.Split('/').Skip(1).ToArray() };
         var Rewriter = new SsasMultidimRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 

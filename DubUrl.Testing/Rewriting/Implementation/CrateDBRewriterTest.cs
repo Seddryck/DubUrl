@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using MySqlConnector;
@@ -21,7 +21,7 @@ public class CrateDbRewriterTest
     [TestCase("host", "host", "db", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/') };
         var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -35,7 +35,7 @@ public class CrateDbRewriterTest
     [TestCase(4567, 4567, "host", "db")]
     public void Map_UrlInfo_Port(int expected, int port = 0, string host = "host", string segmentsList = "db")
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/') };
         var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -47,7 +47,7 @@ public class CrateDbRewriterTest
     [Test]
     public void Map_UrlInfoDefautPort_NoPort()
     {
-        var urlInfo = new UrlInfo() { Host = "host:5432", Segments = "db".Split('/') };
+        var urlInfo = new ConnectionUri() { Host = "host:5432", Segments = "db".Split('/') };
         var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -59,7 +59,7 @@ public class CrateDbRewriterTest
     [TestCase("db", "db")]
     public void Map_UrlInfo_Database(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -71,7 +71,7 @@ public class CrateDbRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"] };
         var rewriter = new CrateDbRewriter(ConnectionStringBuilder);
         var result = rewriter.Execute(urlInfo);
 
@@ -95,7 +95,7 @@ public class CrateDbRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "", Password = "", Segments = ["db"] };
         var rewriter = new CrateDbRewriter(ConnectionStringBuilder);
         var result = rewriter.Execute(urlInfo);
 
@@ -114,9 +114,9 @@ public class CrateDbRewriterTest
     [Test]
     public void UrlInfo_Map_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"] };
-        urlInfo.Options.Add("Application Name", "myApp");
-        urlInfo.Options.Add("Persist Security Info", "true");
+        var urlInfo = new ConnectionUri() { Segments = ["db"] };
+        urlInfo = urlInfo.WithOption("Application Name", "myApp");
+        urlInfo = urlInfo.WithOption("Persist Security Info", "true");
 
         var mapper = new CrateDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);

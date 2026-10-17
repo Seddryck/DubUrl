@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using System;
@@ -12,7 +12,7 @@ namespace DubUrl.Mapping;
 
 public interface IMapper
 {
-    IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo);
+    IReadOnlyDictionary<string, object> Rewrite(ConnectionUri urlInfo);
     string GetConnectionString();
     IDialect GetDialect();
     IConnectivity GetConnectivity();

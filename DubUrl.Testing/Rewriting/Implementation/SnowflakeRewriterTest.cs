@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ public class SnowflakeRewriterTest
     [TestCase("host", "host")]
     public void Map_UrlInfo_Account(string expected, string host = "host")
     {
-        var urlInfo = new UrlInfo() { Host = host };
+        var urlInfo = new ConnectionUri() { Host = host };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -40,7 +40,7 @@ public class SnowflakeRewriterTest
     [TestCase("db")]
     public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -52,7 +52,7 @@ public class SnowflakeRewriterTest
     [Test]
     public void Map_UrlInfoDatabaseMissing_Database()
     {
-        var urlInfo = new UrlInfo() { Segments = [] };
+        var urlInfo = new ConnectionUri() { Segments = [] };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -63,7 +63,7 @@ public class SnowflakeRewriterTest
     [Test]
     public void Map_UrlInfoWithSchema_DatabaseAndSchema()
     {
-        var urlInfo = new UrlInfo() { Segments = "db/schema".Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = "db/schema".Split('/') };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -80,7 +80,7 @@ public class SnowflakeRewriterTest
     [Test]
     public void Map_UrlInfoSchemaMissing_Database()
     {
-        var urlInfo = new UrlInfo() { Segments = string.Empty.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = string.Empty.Split('/') };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -91,7 +91,7 @@ public class SnowflakeRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
         var Rewriter = new SnowflakeRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
