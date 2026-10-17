@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>DubUrl.Worker</AssemblyName>
+    <RootNamespace>DubUrl.Worker</RootNamespace>
+    <ApplicationIcon>..\misc\icon\duburl.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-musl-x64</RuntimeIdentifiers>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>duburl-worker</ToolCommandName>
+    <PackageId>DubUrl.Worker</PackageId>
+    <PackageReadmeFile>worker-readme.md</PackageReadmeFile>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+    <PackageTags>database;schema;json-rpc;worker;dotnet-tool</PackageTags>
+    <Description>Persistent JSON-RPC worker infrastructure for DubUrl application services.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.12" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageReference Include="MySqlConnector" Version="2.6.2" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
+    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="worker-readme.md" />
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
