@@ -18,6 +18,9 @@ public class SchemaDocumentValidationRuleSetTests
             Assert.That(first.ForeignKeyRules, Has.Count.EqualTo(6));
             Assert.That(first.IndexRules, Has.Count.EqualTo(3));
             Assert.That(first.CheckRules, Has.Count.EqualTo(4));
+            Assert.That(first.ViewDeclarationRules, Has.Count.EqualTo(1));
+            Assert.That(first.ViewRules, Has.Count.EqualTo(3));
+            Assert.That(first.ViewGraphRules, Has.Count.EqualTo(1));
             Assert.That(customized.ColumnRules, Has.Count.EqualTo(8));
             Assert.That(second.ColumnRules.Select(rule => rule.Id),
                 Does.Contain(SchemaDocumentValidationRuleIds.Columns.LogicalType));
@@ -32,7 +35,10 @@ public class SchemaDocumentValidationRuleSetTests
             .WithColumnRule(new CustomColumnRule())
             .WithForeignKeyRule(new CustomForeignKeyRule())
             .WithIndexRule(new CustomIndexRule())
-            .WithCheckRule(new CustomCheckRule());
+            .WithCheckRule(new CustomCheckRule())
+            .WithViewDeclarationRule(new CustomViewDeclarationRule())
+            .WithViewRule(new CustomViewRule())
+            .WithViewGraphRule(new CustomViewGraphRule());
 
         var diagnostics = new SchemaDocumentValidator(ruleSet).Validate(document);
 
@@ -46,6 +52,12 @@ public class SchemaDocumentValidationRuleSetTests
                 item is not null && item.Code == "CUSTOM-INDEX" && item.Path == "indexes[0]"));
             Assert.That(diagnostics, Has.Some.Matches<SchemaDocumentDiagnostic>(item =>
                 item is not null && item.Code == "CUSTOM-CHECK" && item.Path == "tables[1].checks[0]"));
+            Assert.That(diagnostics, Has.Some.Matches<SchemaDocumentDiagnostic>(item =>
+                item is not null && item.Code == "CUSTOM-VIEW-DECLARATION" && item.Path == "views[0]"));
+            Assert.That(diagnostics, Has.Some.Matches<SchemaDocumentDiagnostic>(item =>
+                item is not null && item.Code == "CUSTOM-VIEW" && item.Path == "views[0]"));
+            Assert.That(diagnostics, Has.Some.Matches<SchemaDocumentDiagnostic>(item =>
+                item is not null && item.Code == "CUSTOM-VIEW-GRAPH" && item.Path == "views"));
         });
     }
 
@@ -57,11 +69,17 @@ public class SchemaDocumentValidationRuleSetTests
         document.Tables[1].ForeignKeys[0].Name = null;
         document.Indexes[0].Columns = [];
         document.Tables[1].Checks[0].Kind = "custom";
+        document.Views[0].Query.Source = new DatabaseObjectNameDocument { Name = "missing" };
+        document.Views[0].Query.Projections = [];
+        document.Views.Add(document.Views[0]);
         var ruleSet = SchemaDocumentValidationRuleSet.CreateDefault()
             .WithoutColumnRule(SchemaDocumentValidationRuleIds.Columns.LogicalType)
             .WithoutForeignKeyRule(SchemaDocumentValidationRuleIds.ForeignKeys.Name)
             .WithoutIndexRule(SchemaDocumentValidationRuleIds.Indexes.Columns)
-            .WithoutCheckRule(SchemaDocumentValidationRuleIds.Checks.Kind);
+            .WithoutCheckRule(SchemaDocumentValidationRuleIds.Checks.Kind)
+            .WithoutViewDeclarationRule(SchemaDocumentValidationRuleIds.ViewDeclarations.Identity)
+            .WithoutViewRule(SchemaDocumentValidationRuleIds.Views.Source)
+            .WithoutViewRule(SchemaDocumentValidationRuleIds.Views.Projections);
 
         var diagnostics = new SchemaDocumentValidator(ruleSet).Validate(document);
 
@@ -75,7 +93,46 @@ public class SchemaDocumentValidationRuleSetTests
                 item is not null && item.Path == "indexes[0].columns"));
             Assert.That(diagnostics, Has.None.Matches<SchemaDocumentDiagnostic>(item =>
                 item is not null && item.Path == "tables[1].checks[0].kind"));
+            Assert.That(diagnostics, Has.None.Matches<SchemaDocumentDiagnostic>(item =>
+                item is not null && item.Path == "views[0].query.source"));
+            Assert.That(diagnostics, Has.None.Matches<SchemaDocumentDiagnostic>(item =>
+                item is not null && item.Path == "views[0].query.projections"));
+            Assert.That(diagnostics, Has.None.Matches<SchemaDocumentDiagnostic>(item =>
+                item is not null && item.Code == SchemaDocumentDiagnosticCodes.DuplicateView));
         });
+    }
+
+    [Test]
+    public void Validate_RemovedViewGraphRule_DoesNotReportDependencyCycle()
+    {
+        var document = CreateDocument();
+        document.Views =
+        [
+            CreateView("first", "second", "parent_id"),
+            CreateView("second", "first", "parent_id")
+        ];
+        var ruleSet = SchemaDocumentValidationRuleSet.CreateDefault()
+            .WithoutViewGraphRule(SchemaDocumentValidationRuleIds.ViewGraph.DependencyCycles);
+
+        var diagnostics = new SchemaDocumentValidator(ruleSet).Validate(document);
+
+        Assert.That(diagnostics, Has.None.Matches<SchemaDocumentDiagnostic>(item =>
+            item is not null && item.Code == SchemaDocumentDiagnosticCodes.ViewDependencyCycle));
+    }
+
+    [Test]
+    public void Validate_ForwardViewReference_ResolvesBeforeRulesRun()
+    {
+        var document = CreateDocument();
+        document.Views =
+        [
+            CreateView("first", "second", "parent_id"),
+            CreateView("second", "children", "parent_id")
+        ];
+
+        var diagnostics = new SchemaDocumentValidator().Validate(document);
+
+        Assert.That(diagnostics, Is.Empty);
     }
 
     [Test]
@@ -171,7 +228,25 @@ public class SchemaDocumentValidationRuleSetTests
                     Table = new DatabaseObjectNameDocument { Name = "children" },
                     Columns = [new IndexColumnDocument { Name = "parent_id" }]
                 }
-            ]
+            ],
+            Views = [CreateView("child_parents", "children", "parent_id")]
+        };
+
+    private static ViewDocument CreateView(string name, string source, string column)
+        => new()
+        {
+            Identity = new DatabaseObjectNameDocument { Name = name },
+            Query = new ViewQueryDocument
+            {
+                Source = new DatabaseObjectNameDocument { Name = source },
+                Projections =
+                [
+                    new ViewProjectionDocument
+                    {
+                        Expression = new ExpressionDocument { Kind = "column", Name = column }
+                    }
+                ]
+            }
         };
 
     private abstract class CustomRule<TContext>(string id) : IValidationRule<TContext>
@@ -226,6 +301,43 @@ public class SchemaDocumentValidationRuleSetTests
         {
             if (context.Columns.Any(column => column.Name == "parent_id"))
                 AddDiagnostic(diagnostics, "CUSTOM-CHECK", context.Path);
+        }
+    }
+
+    private sealed class CustomViewDeclarationRule()
+        : CustomRule<ViewDeclarationValidationContext>("custom.view-declaration")
+    {
+        public override void Validate(
+            ViewDeclarationValidationContext context,
+            ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            if (context.View.Identity.Name == "child_parents" && !context.IsDuplicate
+                && !context.ConflictsWithTable)
+                AddDiagnostic(diagnostics, "CUSTOM-VIEW-DECLARATION", context.Path);
+        }
+    }
+
+    private sealed class CustomViewRule() : CustomRule<ViewValidationContext>("custom.view")
+    {
+        public override void Validate(
+            ViewValidationContext context,
+            ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            if (context.SourceTable?.Identity.Name == "children"
+                && context.SourceView is null
+                && context.SourceColumns.Any(column => column.Name == "parent_id"))
+                AddDiagnostic(diagnostics, "CUSTOM-VIEW", context.Path);
+        }
+    }
+
+    private sealed class CustomViewGraphRule() : CustomRule<ViewGraphValidationContext>("custom.view-graph")
+    {
+        public override void Validate(
+            ViewGraphValidationContext context,
+            ICollection<SchemaDocumentDiagnostic> diagnostics)
+        {
+            if (context.Views.Count == 1 && context.Views[0].Identity.Name == "child_parents")
+                AddDiagnostic(diagnostics, "CUSTOM-VIEW-GRAPH", "views");
         }
     }
 

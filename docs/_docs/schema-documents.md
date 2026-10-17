@@ -90,17 +90,20 @@ The JSON Schema verifies document shape and local rules. Run `SchemaDocumentVali
 
 ## Configurable validation
 
-`SchemaDocumentValidator` uses an ordered default set of column, foreign-key, index, and check rules. Create a rule set when an application needs to suppress one of those defaults or append an application-specific rule:
+`SchemaDocumentValidator` uses ordered default sets for columns, foreign keys, indexes, checks, view declarations, resolved views, and the complete view graph. Create a rule set when an application needs to suppress one of those defaults or append an application-specific rule:
 
 ```csharp
 var rules = SchemaDocumentValidationRuleSet.CreateDefault()
     .WithoutColumnRule(SchemaDocumentValidationRuleIds.Columns.NativeType)
+    .WithoutViewGraphRule(SchemaDocumentValidationRuleIds.ViewGraph.DependencyCycles)
     .WithColumnRule(new ApplicationColumnRule());
 
 var validator = new SchemaDocumentValidator(rules);
 ```
 
-Custom rules implement `IValidationRule<TContext>`. Rule sets are immutable, validators snapshot their selected rules, and rule execution follows registration order so diagnostics remain deterministic. The parameterless validator always uses the complete default set.
+Custom rules implement `IValidationRule<TContext>`. View declaration rules receive duplicate and table-collision resolution, view rules receive the resolved source table or view and its output columns, and graph rules receive the complete valid view lookup. This separation keeps forward references valid while allowing dependency-cycle validation to be configured independently.
+
+Rule sets are immutable, validators snapshot their selected rules, and rule execution follows registration order so diagnostics remain deterministic. The parameterless validator always uses the complete default set. Removing referential or graph rules can admit a document that the runtime schema model cannot construct, so applications should remove defaults only when they replace the corresponding guarantees.
 
 ## Configurable literal conversion
 
