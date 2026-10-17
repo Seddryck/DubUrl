@@ -40,6 +40,7 @@ internal static class CliRootCommandFactory
                 console.Out.WriteLine($"Schema commands: {string.Join(", ", capabilities.SchemaCommands)}");
                 console.Out.WriteLine($"Dialects: {string.Join(", ", capabilities.Dialects)}");
                 console.Out.WriteLine($"Providers: {string.Join(", ", capabilities.Providers)}");
+                console.Out.WriteLine($"Deployable schemes: {string.Join(", ", capabilities.DeployableSchemes)}");
                 console.Out.WriteLine($"Deployment available: {capabilities.DeploymentAvailable.ToString().ToLowerInvariant()}");
             }
             return CliExitCodes.Success;

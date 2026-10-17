@@ -13,6 +13,7 @@ namespace DubUrl.Querying.Dialects;
 
 public interface IDialectRegistry
 {
+    IReadOnlyCollection<IDialect> GetAll();
     T Get<T>() where T : IDialect;
     IDialect Get(Type dialectType);
     IDialect Get(string scheme);
