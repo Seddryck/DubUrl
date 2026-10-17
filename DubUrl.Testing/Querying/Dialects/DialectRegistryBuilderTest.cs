@@ -1,4 +1,5 @@
-﻿using DubUrl.Querying.Dialects;
+﻿using DubUrl.Mapping;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Renderers;
 using Google.Apis.Util;
@@ -14,6 +15,25 @@ namespace DubUrl.Testing.Querying.Dialects;
 
 public class DialectRegistryBuilderTest
 {
+    [Test]
+    public void GetDefault_SelectedScheme_LoadsCoreAliasesForDialect()
+    {
+        var registry = SchemeRegistryBuilder.GetDefaultDialectRegistry("mysql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(registry.Get("mysql"), Is.TypeOf<MySqlDialect>());
+            Assert.That(registry.Get("my"), Is.TypeOf<MySqlDialect>());
+            Assert.That(() => registry.Get("pgsql"), Throws.TypeOf<DialectNotFoundException>());
+        });
+    }
+
+    [Test]
+    public void GetDefault_UnknownScheme_ThrowsArgumentException()
+        => Assert.That(
+            () => SchemeRegistryBuilder.GetDefaultDialectRegistry("unknown"),
+            Throws.ArgumentException.With.Property("ParamName").EqualTo("schemes"));
+
     [Test]
     public void Get_DefinedDialect_GetDialect()
     {

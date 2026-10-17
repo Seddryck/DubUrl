@@ -74,7 +74,7 @@ jobs:
           }
 
   build:
-    name: Build (${{ matrix.framework }})
+    name: Build and unit tests (${{ matrix.framework }})
     needs: version
     runs-on: windows-latest
     strategy:
@@ -111,81 +111,6 @@ jobs:
           -p:Version=${{ needs.version.outputs.semver }}
           -p:ContinuousIntegrationBuild=true
 
-      - name: Archive build outputs
-        shell: pwsh
-        run: |
-          $projects = @(
-            dotnet sln DubUrlCi.slnf list |
-              Where-Object { $_ -match '\.csproj$' }
-          )
-          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 16) {
-            throw "Expected sixteen projects in DubUrlCi.slnf, found $($projects.Count)."
-          }
-
-          $paths = @(
-            foreach ($project in $projects) {
-              $directory = Split-Path -Parent $project
-              "$directory/bin"
-              "$directory/obj"
-            }
-          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
-
-          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
-          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to archive ${{ matrix.framework }} build outputs."
-          }
-
-      - name: Upload build outputs
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
-
-  unit-tests:
-    name: Unit tests (${{ matrix.framework }})
-    needs:
-      - version
-      - build
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - framework: net8.0
-            sdk: 8.0.416
-          - framework: net9.0
-            sdk: 9.0.308
-          - framework: net10.0
-            sdk: 10.0.401
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: ${{ matrix.sdk }}
-
-      - name: Download build outputs
-        uses: actions/download-artifact@v7
-        with:
-          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/build
-
-      - name: Extract build outputs
-        shell: pwsh
-        run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
-
-      - name: Restore test dependencies
-        run: >-
-          dotnet restore DubUrlCi.slnf
-          -p:TargetFramework=${{ matrix.framework }}
-          --force-evaluate
-
       - name: Test
         shell: pwsh
         run: |
@@ -197,7 +122,8 @@ jobs:
             'DubUrl.Application',
             'DubUrl.Schema',
             'DubUrl.Schema.Documents',
-            'DubUrl.BulkCopy'
+            'DubUrl.BulkCopy',
+            'DubUrl.Cli'
           )
           $failedProjects = @()
 
@@ -231,7 +157,8 @@ jobs:
             'DubUrl.Application',
             'DubUrl.Schema',
             'DubUrl.Schema.Documents',
-            'DubUrl.BulkCopy'
+            'DubUrl.BulkCopy',
+            'DubUrl.Cli'
           )
           New-Item -ItemType Directory -Force .coverage | Out-Null
 
@@ -247,7 +174,7 @@ jobs:
             Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
           }
 
-      - name: Upload test results and coverage
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -264,9 +191,58 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+      - name: Generate complete CLI dependency lock
+        if: matrix.framework == 'net10.0'
+        run: dotnet restore DubUrl.Cli/DubUrl.Cli.csproj --force-evaluate
+
+      - name: Upload CLI dependency lock
+        if: matrix.framework == 'net10.0'
+        uses: actions/upload-artifact@v7
+        with:
+          name: duburl-cli-dependency-lock
+          path: DubUrl.Cli/packages.lock.json
+          if-no-files-found: error
+
+      - name: Archive build outputs
+        shell: pwsh
+        run: |
+          $projects = @(
+            'DubUrl.Core/DubUrl.csproj'
+            'DubUrl.OleDb/DubUrl.OleDb.csproj'
+            'DubUrl.Extensions/DubUrl.Extensions.csproj'
+            'DubUrl.Adomd/DubUrl.Adomd.csproj'
+            'DubUrl.Schema/DubUrl.Schema.csproj'
+            'DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj'
+            'DubUrl.Application/DubUrl.Application.csproj'
+            'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
+          )
+
+          $paths = @(
+            foreach ($project in $projects) {
+              $directory = Split-Path -Parent $project
+              "$directory/bin"
+              "$directory/obj"
+            }
+          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
+
+          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
+          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to archive ${{ matrix.framework }} build outputs."
+          }
+
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
   coverage-threshold:
     name: Coverage threshold
-    needs: unit-tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download coverage reports
@@ -280,8 +256,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 24) {
-            throw "Expected 24 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 27) {
+            throw "Expected 27 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
@@ -297,7 +273,7 @@ jobs:
 
   coverage-upload:
     name: Upload coverage
-    needs: unit-tests
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -322,7 +298,6 @@ jobs:
     needs:
       - version
       - build
-      - unit-tests
       - coverage-threshold
     runs-on: windows-latest
     strategy:
@@ -422,12 +397,211 @@ jobs:
           -Version '${{ needs.version.outputs.semver }}'
           -NuGetDirectory './.artifacts/nuget'
 
+  package-cli-nuget:
+    name: Package CLI NuGet tool
+    needs:
+      - version
+      - build
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Download CLI dependency lock
+        uses: actions/download-artifact@v7
+        with:
+          name: duburl-cli-dependency-lock
+          path: DubUrl.Cli
+
+      - name: Pack and validate CLI packages
+        shell: pwsh
+        env:
+          GitVersion_SemVer: ${{ needs.version.outputs.semver }}
+        run: ./distribution/build-distribution.ps1 -Mode Pack -Version $env:GitVersion_SemVer -OutputRoot ../.artifacts/cli
+
+      - name: Install and execute local pointer package
+        shell: pwsh
+        run: |
+          dotnet tool install --tool-path .artifacts/tool DubUrl-cli `
+            --version '${{ needs.version.outputs.semver }}' `
+            --add-source .artifacts/cli/packages `
+            --ignore-failed-sources
+          if ($LASTEXITCODE -ne 0) { throw 'Installing the local CLI tool package failed.' }
+          & .artifacts/tool/duburl --version
+          if ($LASTEXITCODE -ne 0) { throw 'Executing the installed CLI tool failed.' }
+
+      - name: Upload CLI packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-nuget-${{ needs.version.outputs.semver }}
+          path: .artifacts/cli/packages/*.nupkg
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (win-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-win-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/win-x64
+            .artifacts/cli/publish/net9.0/win-x64
+            .artifacts/cli/publish/net10.0/win-x64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (win-arm64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-win-arm64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/win-arm64
+            .artifacts/cli/publish/net9.0/win-arm64
+            .artifacts/cli/publish/net10.0/win-arm64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (linux-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-linux-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/linux-x64
+            .artifacts/cli/publish/net9.0/linux-x64
+            .artifacts/cli/publish/net10.0/linux-x64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (linux-musl-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-linux-musl-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/linux-musl-x64
+            .artifacts/cli/publish/net9.0/linux-musl-x64
+            .artifacts/cli/publish/net10.0/linux-musl-x64
+          retention-days: 1
+          if-no-files-found: error
+
+  package-cli-distributions:
+    name: CLI distribution (${{ matrix.framework }}, ${{ matrix.runtime }})
+    needs:
+      - version
+      - build
+      - coverage-threshold
+      - package-cli-nuget
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { framework: net8.0, runtime: win-x64, runner: windows-latest, installer: false, native: true }
+          - { framework: net8.0, runtime: win-arm64, runner: windows-latest, installer: false, native: false }
+          - { framework: net8.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
+          - { framework: net8.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
+          - { framework: net9.0, runtime: win-x64, runner: windows-latest, installer: false, native: true }
+          - { framework: net9.0, runtime: win-arm64, runner: windows-latest, installer: false, native: false }
+          - { framework: net9.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
+          - { framework: net9.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
+          - { framework: net10.0, runtime: win-x64, runner: windows-latest, installer: true, native: true }
+          - { framework: net10.0, runtime: win-arm64, runner: windows-latest, installer: true, native: false }
+          - { framework: net10.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
+          - { framework: net10.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Download CLI publish outputs
+        uses: actions/download-artifact@v7
+        with:
+          name: cli-publish-${{ matrix.runtime }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/cli/publish
+
+      - name: Validate Windows executable icon
+        if: startsWith(matrix.runtime, 'win-')
+        shell: pwsh
+        run: >-
+          ./.github/scripts/Test-WindowsExecutableIcon.ps1
+          -Executable '.artifacts/cli/publish/${{ matrix.framework }}/${{ matrix.runtime }}/DubUrl.Cli.exe'
+
+      - name: Archive CLI
+        id: archive
+        shell: pwsh
+        run: |
+          ./distribution/build-distribution.ps1 `
+            -Mode Archive `
+            -Version '${{ needs.version.outputs.semver }}' `
+            -Frameworks '${{ matrix.framework }}' `
+            -Runtimes '${{ matrix.runtime }}' `
+            -OutputRoot ../.artifacts/cli
+
+          $archives = @(Get-ChildItem .artifacts/cli/archives -File)
+          if ($archives.Count -ne 1) {
+            throw "Expected one CLI distribution archive, found $($archives.Count)."
+          }
+          "path=$($archives[0].FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Install Inno Setup
+        if: matrix.installer
+        shell: pwsh
+        run: ./distribution/Install-Iscc.ps1
+
+      - name: Build Windows installer
+        if: matrix.installer
+        shell: pwsh
+        run: >-
+          ./distribution/build-distribution.ps1
+          -Mode Bundle
+          -Version '${{ needs.version.outputs.semver }}'
+          -Frameworks '${{ matrix.framework }}'
+          -Runtimes '${{ matrix.runtime }}'
+          -OutputRoot ../.artifacts/cli
+
+      - name: Execute extracted native archive
+        if: matrix.native
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .artifacts/extracted | Out-Null
+          $archive = '${{ steps.archive.outputs.path }}'
+          if ('${{ matrix.runtime }}' -like 'win-*') {
+            Expand-Archive -LiteralPath $archive -DestinationPath .artifacts/extracted
+            & .artifacts/extracted/duburl.exe --version
+            & .artifacts/extracted/duburl.exe --help
+          }
+          else {
+            tar -xzf $archive -C .artifacts/extracted
+            $mode = & stat -c '%a' .artifacts/extracted/duburl
+            if ([int]$mode -band 111 -eq 0) { throw "Linux executable mode '$mode' is not executable." }
+            & .artifacts/extracted/duburl --version
+            & .artifacts/extracted/duburl --help
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Executing the extracted CLI archive failed.' }
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-distribution-${{ matrix.framework }}-${{ matrix.runtime }}
+          path: |
+            .artifacts/cli/archives/duburl-*
+            .artifacts/cli/installers/duburl-*-setup.exe
+          if-no-files-found: error
+
   reserve-release:
     name: Reserve release identity
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - version
       - validate-packages
+      - package-cli-nuget
+      - package-cli-distributions
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -436,6 +610,13 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Test release guards
+        shell: pwsh
+        run: ./.github/scripts/Test-CliReleaseGuards.ps1
+
+      - name: Refresh release branch and tags
+        run: git fetch origin +refs/heads/main:refs/remotes/origin/main --force --tags
 
       - name: Block release while AppVeyor is configured
         shell: pwsh
@@ -456,27 +637,32 @@ jobs:
       - name: Validate tested commit and version
         shell: pwsh
         run: |
+          Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
           $testedCommit = git rev-parse HEAD
-          if ($testedCommit -ne '${{ github.sha }}') {
-            throw "Checked-out commit '$testedCommit' does not match tested commit '${{ github.sha }}'."
-          }
-          if ('${{ steps.gitversion.outputs.semVer }}' -ne '${{ needs.version.outputs.semver }}') {
-            throw "Recalculated version '${{ steps.gitversion.outputs.semVer }}' does not match tested version '${{ needs.version.outputs.semver }}'."
-          }
+          Assert-TestedCommit -Actual $testedCommit -Expected '${{ github.sha }}'
+          Assert-VersionUnchanged `
+            -Built '${{ needs.version.outputs.semver }}' `
+            -Recalculated '${{ steps.gitversion.outputs.semVer }}'
 
       - name: Reserve release tag
         if: needs.version.outputs.patch == '0'
         shell: pwsh
         run: |
+          Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
           $tag = 'v${{ needs.version.outputs.semver }}'
-          git fetch origin --force --tags
-          $remote = git ls-remote --tags origin "refs/tags/$tag"
+          function Get-RemoteTagCommit {
+            $refs = @(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}")
+            if ($LASTEXITCODE -ne 0) { throw "Inspecting remote tag '$tag' failed." }
+            if ($refs.Count -eq 0) { return $null }
+            $peeled = @($refs | Where-Object { $_ -like "*refs/tags/$tag^{}" })
+            $ref = if ($peeled.Count -gt 0) { $peeled[0] } else { $refs[0] }
+            return ($ref -split '\s+')[0]
+          }
 
-          if ($remote) {
-            $tagCommit = git rev-list -n 1 $tag
-            if ($tagCommit -ne '${{ github.sha }}') {
-              throw "Tag '$tag' already identifies '$tagCommit', not '${{ github.sha }}'."
-            }
+          $decision = Get-TagReservationDecision `
+            -ExistingCommit (Get-RemoteTagCommit) `
+            -ExpectedCommit '${{ github.sha }}'
+          if ($decision -eq 'reuse') {
             Write-Host "Reusing '$tag' for the tested commit."
           }
           else {
@@ -484,6 +670,13 @@ jobs:
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git tag --annotate $tag --message "DubUrl ${{ needs.version.outputs.semver }}" '${{ github.sha }}'
             git push origin $tag
+            if ($LASTEXITCODE -ne 0) {
+              $decision = Get-TagReservationDecision `
+                -ExistingCommit (Get-RemoteTagCommit) `
+                -ExpectedCommit '${{ github.sha }}'
+              if ($decision -ne 'reuse') { throw "Reserving '$tag' failed." }
+              Write-Host "Tag '$tag' was created concurrently at the expected commit."
+            }
           }
 
   update-documentation:
@@ -612,17 +805,80 @@ jobs:
             }
           }
 
+  publish-cli-nuget:
+    name: Publish CLI NuGet tool
+    needs:
+      - version
+      - reserve-release
+      - package-cli-nuget
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+
+      - name: Download CLI packages
+        uses: actions/download-artifact@v7
+        with:
+          name: cli-nuget-${{ needs.version.outputs.semver }}
+          path: .artifacts/cli
+
+      - name: Revalidate CLI package set
+        shell: pwsh
+        run: ./.github/scripts/Test-CliToolPackages.ps1 -PackageDirectory .artifacts/cli
+
+      - name: Exchange GitHub identity for a NuGet API key
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: Seddryck
+
+      - name: Publish CLI packages
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem .artifacts/cli -Filter *.nupkg -File)
+          if ($packages.Count -ne 5) { throw "Expected five CLI packages, found $($packages.Count)." }
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName `
+              --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
+              --source 'https://api.nuget.org/v3/index.json' `
+              --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { throw "Publishing '$($package.Name)' failed." }
+          }
+
   github-release:
     name: Create GitHub release
     if: needs.version.outputs.patch == '0'
     needs:
       - version
       - publish-nuget
+      - publish-cli-nuget
+      - package-cli-distributions
     runs-on: ubuntu-latest
     permissions:
       contents: write
       discussions: write
     steps:
+      - name: Download CLI distributions
+        uses: actions/download-artifact@v7
+        with:
+          pattern: cli-distribution-*
+          path: .artifacts/release
+          merge-multiple: true
+
+      - name: Validate CLI release assets
+        shell: pwsh
+        run: |
+          $archives = @(Get-ChildItem .artifacts/release -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
+          $installers = @(Get-ChildItem .artifacts/release -Recurse -File -Filter '*-setup.exe')
+          if ($archives.Count -ne 12) { throw "Expected 12 CLI archives, found $($archives.Count)." }
+          if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
+          $mixedCase = @($archives + $installers | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
+          if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
+
       - name: Create release
         shell: pwsh
         env:
@@ -640,3 +896,7 @@ jobs:
               --discussion-category 'Announcements' `
               --verify-tag
           }
+
+          $assets = @(Get-ChildItem .artifacts/release -Recurse -File)
+          gh release upload $tag @($assets.FullName) --clobber --repo '${{ github.repository }}'
+          if ($LASTEXITCODE -ne 0) { throw "Uploading CLI assets to '$tag' failed." }
