@@ -147,12 +147,23 @@ function Invoke-Bundle {
 function Invoke-Pack {
     $packageFrameworks = Get-DeclaredList (Join-Path $RepositoryRoot 'Directory.Build.props') 'TargetFrameworks'
     $packageRuntimes = Get-DeclaredList $Project 'RuntimeIdentifiers'
-    New-Item -ItemType Directory -Path $PackageRoot -Force | Out-Null
+    New-CleanDirectory $PackageRoot
     Invoke-Checked dotnet @('restore', $Project, '--locked-mode')
     Invoke-Checked dotnet @(
         'pack', $Project, '--configuration', $Configuration, '--output', $PackageRoot,
         '--no-restore', "-p:PackageVersion=$Version", "-p:Version=$Version"
     )
+    $projectDirectory = Split-Path -Parent $Project
+    foreach ($framework in $packageFrameworks) {
+        foreach ($runtime in $packageRuntimes) {
+            $source = Join-Path $projectDirectory "bin/$Configuration/$framework/$runtime/publish"
+            Assert-Directory $source 'Packed CLI publish directory'
+            $destination = Get-PublishDirectory $framework $runtime
+            New-CleanDirectory $destination
+            Copy-Item -Path (Join-Path $source '*') -Destination $destination -Recurse -Force
+            Assert-File (Join-Path $destination (Get-ExecutableName $runtime $BuildIdentity)) 'Packed CLI executable'
+        }
+    }
     & (Join-Path $RepositoryRoot '.github/scripts/Test-CliToolPackages.ps1') `
         -PackageDirectory $PackageRoot `
         -TargetFrameworks ($packageFrameworks -join ';') `

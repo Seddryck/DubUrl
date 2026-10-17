@@ -74,7 +74,7 @@ jobs:
           }
 
   build:
-    name: Build (${{ matrix.framework }})
+    name: Build and unit tests (${{ matrix.framework }})
     needs: version
     runs-on: windows-latest
     strategy:
@@ -110,93 +110,6 @@ jobs:
           --nologo
           -p:Version=${{ needs.version.outputs.semver }}
           -p:ContinuousIntegrationBuild=true
-
-      - name: Generate complete CLI dependency lock
-        if: matrix.framework == 'net10.0'
-        run: dotnet restore DubUrl.Cli/DubUrl.Cli.csproj --force-evaluate
-
-      - name: Upload CLI dependency lock
-        if: matrix.framework == 'net10.0'
-        uses: actions/upload-artifact@v7
-        with:
-          name: duburl-cli-dependency-lock
-          path: DubUrl.Cli/packages.lock.json
-          if-no-files-found: error
-
-      - name: Archive build outputs
-        shell: pwsh
-        run: |
-          $projects = @(
-            dotnet sln DubUrlCi.slnf list |
-              Where-Object { $_ -match '\.csproj$' }
-          )
-          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 18) {
-            throw "Expected eighteen projects in DubUrlCi.slnf, found $($projects.Count)."
-          }
-
-          $paths = @(
-            foreach ($project in $projects) {
-              $directory = Split-Path -Parent $project
-              "$directory/bin"
-              "$directory/obj"
-            }
-          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
-
-          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
-          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to archive ${{ matrix.framework }} build outputs."
-          }
-
-      - name: Upload build outputs
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
-
-  unit-tests:
-    name: Unit tests (${{ matrix.framework }})
-    needs:
-      - version
-      - build
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - framework: net8.0
-            sdk: 8.0.416
-          - framework: net9.0
-            sdk: 9.0.308
-          - framework: net10.0
-            sdk: 10.0.401
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: ${{ matrix.sdk }}
-
-      - name: Download build outputs
-        uses: actions/download-artifact@v7
-        with:
-          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/build
-
-      - name: Extract build outputs
-        shell: pwsh
-        run: tar -xzf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" -C .
-
-      - name: Restore test dependencies
-        run: >-
-          dotnet restore DubUrlCi.slnf
-          -p:TargetFramework=${{ matrix.framework }}
-          --force-evaluate
 
       - name: Test
         shell: pwsh
@@ -261,7 +174,7 @@ jobs:
             Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
           }
 
-      - name: Upload test results and coverage
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -278,9 +191,55 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+      - name: Generate complete CLI dependency lock
+        if: matrix.framework == 'net10.0'
+        run: dotnet restore DubUrl.Cli/DubUrl.Cli.csproj --force-evaluate
+
+      - name: Upload CLI dependency lock
+        if: matrix.framework == 'net10.0'
+        uses: actions/upload-artifact@v7
+        with:
+          name: duburl-cli-dependency-lock
+          path: DubUrl.Cli/packages.lock.json
+          if-no-files-found: error
+
+      - name: Archive build outputs
+        shell: pwsh
+        run: |
+          $projects = @(
+            dotnet sln DubUrlCi.slnf list |
+              Where-Object { $_ -match '\.csproj$' }
+          )
+          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 18) {
+            throw "Expected eighteen projects in DubUrlCi.slnf, found $($projects.Count)."
+          }
+
+          $paths = @(
+            foreach ($project in $projects) {
+              $directory = Split-Path -Parent $project
+              "$directory/bin"
+              "$directory/obj"
+            }
+          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
+
+          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
+          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to archive ${{ matrix.framework }} build outputs."
+          }
+
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
   coverage-threshold:
     name: Coverage threshold
-    needs: unit-tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download coverage reports
@@ -311,7 +270,7 @@ jobs:
 
   coverage-upload:
     name: Upload coverage
-    needs: unit-tests
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -336,7 +295,6 @@ jobs:
     needs:
       - version
       - build
-      - unit-tests
       - coverage-threshold
     runs-on: windows-latest
     strategy:
@@ -440,8 +398,7 @@ jobs:
     name: Package CLI NuGet tool
     needs:
       - version
-      - unit-tests
-      - coverage-threshold
+      - build
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -457,9 +414,6 @@ jobs:
         with:
           name: duburl-cli-dependency-lock
           path: DubUrl.Cli
-
-      - name: Restore CLI in locked mode
-        run: dotnet restore DubUrl.Cli/DubUrl.Cli.csproj --locked-mode
 
       - name: Pack and validate CLI packages
         shell: pwsh
@@ -485,12 +439,57 @@ jobs:
           path: .artifacts/cli/packages/*.nupkg
           if-no-files-found: error
 
+      - name: Upload CLI publish outputs (win-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-win-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/win-x64
+            .artifacts/cli/publish/net9.0/win-x64
+            .artifacts/cli/publish/net10.0/win-x64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (win-arm64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-win-arm64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/win-arm64
+            .artifacts/cli/publish/net9.0/win-arm64
+            .artifacts/cli/publish/net10.0/win-arm64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (linux-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-linux-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/linux-x64
+            .artifacts/cli/publish/net9.0/linux-x64
+            .artifacts/cli/publish/net10.0/linux-x64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (linux-musl-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-linux-musl-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/linux-musl-x64
+            .artifacts/cli/publish/net9.0/linux-musl-x64
+            .artifacts/cli/publish/net10.0/linux-musl-x64
+          retention-days: 1
+          if-no-files-found: error
+
   package-cli-distributions:
     name: CLI distribution (${{ matrix.framework }}, ${{ matrix.runtime }})
     needs:
       - version
-      - unit-tests
+      - build
       - coverage-threshold
+      - package-cli-nuget
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -517,21 +516,11 @@ jobs:
         with:
           dotnet-version: 10.0.401
 
-      - name: Download CLI dependency lock
+      - name: Download CLI publish outputs
         uses: actions/download-artifact@v7
         with:
-          name: duburl-cli-dependency-lock
-          path: DubUrl.Cli
-
-      - name: Publish CLI
-        shell: pwsh
-        run: >-
-          ./distribution/build-distribution.ps1
-          -Mode Publish
-          -Version '${{ needs.version.outputs.semver }}'
-          -Frameworks '${{ matrix.framework }}'
-          -Runtimes '${{ matrix.runtime }}'
-          -OutputRoot ../.artifacts/cli
+          name: cli-publish-${{ matrix.runtime }}-${{ needs.version.outputs.semver }}
+          path: .artifacts/cli/publish
 
       - name: Validate Windows executable icon
         if: startsWith(matrix.runtime, 'win-')
