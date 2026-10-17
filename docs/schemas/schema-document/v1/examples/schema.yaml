@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://seddryck.github.io/DubUrl/schemas/schema-document/v1/schema.json
+version: 1
+tables:
+  - identity:
+      schema: sales
+      name: products
+    description: Products with a provider-native type override.
+    columns:
+      - name: id
+        type: int64
+        identity: {}
+      - name: sku
+        type: string
+        length: 40
+        unique: true
+        nativeType:
+          name: CITEXT
+          fallback: logical-type
+      - name: active
+        type: boolean
+        default:
+          type: boolean
+          value: "true"
+    primaryKey:
+      name: pk_products
+      columns: [id]
+indexes:
+  - identity:
+      schema: sales
+      name: ix_products_sku
+    table:
+      schema: sales
+      name: products
+    columns:
+      - name: sku
+        direction: ascending

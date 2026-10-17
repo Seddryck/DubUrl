@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seddryck.github.io/DubUrl/schemas/schema-document/v1/schema.json",
+  "title": "DubUrl schema document version 1",
+  "description": "A portable, ordered database schema description accepted by DubUrl.Schema.Documents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "description": "The schema document format version. Version 1 is the only value accepted by this schema.",
+      "type": "integer",
+      "const": 1
+    },
+    "tables": {
+      "description": "Tables in declaration and rendering order.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/table" },
+      "default": []
+    },
+    "indexes": {
+      "description": "Indexes in declaration and rendering order.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/index" },
+      "default": []
+    }
+  },
+  "$defs": {
+    "logicalType": {
+      "description": "A stable DubUrl logical type identifier.",
+      "type": "string",
+      "enum": [
+        "ansi-string", "binary", "byte", "boolean", "currency", "date", "datetime",
+        "datetime2", "datetime-offset", "decimal", "double", "guid", "int16", "int32",
+        "int64", "object", "sbyte", "single", "string", "time", "uint16", "uint32",
+        "uint64", "varnumeric", "xml", "ansi-string-fixed-length", "string-fixed-length"
+      ]
+    },
+    "databaseObjectName": {
+      "description": "A structured, optionally qualified database object name.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "catalog": { "description": "The optional catalog qualifier.", "type": "string", "minLength": 1 },
+        "database": { "description": "The optional database qualifier.", "type": "string", "minLength": 1 },
+        "schema": { "description": "The optional schema qualifier.", "type": "string", "minLength": 1 },
+        "name": { "description": "The unqualified object name.", "type": "string", "minLength": 1 }
+      }
+    },
+    "table": {
+      "description": "A table declaration.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "columns"],
+      "properties": {
+        "identity": { "description": "The table's structured identity.", "$ref": "#/$defs/databaseObjectName" },
+        "description": { "description": "Optional human-readable table documentation.", "type": "string" },
+        "columns": {
+          "description": "Columns in declaration and rendering order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/column" },
+          "minItems": 1
+        },
+        "primaryKey": { "description": "The canonical table-level primary key.", "$ref": "#/$defs/primaryKey" },
+        "checks": {
+          "description": "Table-level check constraints evaluated in declaration order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" },
+          "default": []
+        },
+        "foreignKeys": {
+          "description": "Named table-level foreign keys in declaration order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/foreignKey" },
+          "default": []
+        }
+      }
+    },
+    "column": {
+      "description": "A column declaration. Primary keys are declared only at table level.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": { "description": "The column name.", "type": "string", "minLength": 1 },
+        "type": { "description": "The portable logical column type.", "$ref": "#/$defs/logicalType" },
+        "length": { "description": "The positive maximum length for string or binary logical types.", "type": "integer", "minimum": 1 },
+        "precision": { "description": "The positive numeric precision for decimal-like logical types.", "type": "integer", "minimum": 1, "maximum": 255 },
+        "scale": { "description": "The numeric scale; precision must also be specified.", "type": "integer", "minimum": 0, "maximum": 255 },
+        "nullable": { "description": "Whether the column accepts null values.", "type": "boolean", "default": false },
+        "unique": { "description": "Whether the column has a single-column unique constraint.", "type": "boolean", "default": false },
+        "default": { "description": "A typed literal default value, separate from column generation.", "$ref": "#/$defs/literal" },
+        "description": { "description": "Optional human-readable column documentation.", "type": "string" },
+        "nativeType": { "description": "An optional provider-native type override and fallback policy.", "$ref": "#/$defs/nativeType" },
+        "identity": { "description": "Identity or auto-increment generation settings.", "$ref": "#/$defs/identityColumn" },
+        "generated": { "description": "Expression-based generated column settings.", "$ref": "#/$defs/generatedColumn" },
+        "checks": {
+          "description": "Column-level check constraints in declaration order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" },
+          "default": []
+        }
+      },
+      "dependentRequired": { "scale": ["precision"] },
+      "allOf": [
+        {
+          "if": { "required": ["length"] },
+          "then": { "properties": { "type": { "enum": ["ansi-string", "binary", "string", "ansi-string-fixed-length", "string-fixed-length"] } } }
+        },
+        {
+          "if": { "anyOf": [{ "required": ["precision"] }, { "required": ["scale"] }] },
+          "then": { "properties": { "type": { "enum": ["currency", "decimal", "varnumeric"] } } }
+        },
+        {
+          "if": { "required": ["identity"] },
+          "then": { "properties": { "type": { "enum": ["byte", "int16", "int32", "int64", "sbyte", "uint16", "uint32", "uint64"] } } }
+        },
+        { "not": { "required": ["length", "precision"] } },
+        { "not": { "required": ["length", "scale"] } },
+        { "not": { "required": ["identity", "generated"] } },
+        { "not": { "required": ["default", "identity"] } },
+        { "not": { "required": ["default", "generated"] } }
+      ]
+    },
+    "nativeType": {
+      "description": "A provider-native type override.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "description": "A native type name containing identifier parts separated by single spaces.", "type": "string", "pattern": "^[A-Za-z0-9_]+(?: [A-Za-z0-9_]+)*$" },
+        "fallback": { "description": "How to behave when the dialect does not recognize the native type.", "type": "string", "enum": ["error", "logical-type"], "default": "error" }
+      }
+    },
+    "identityColumn": {
+      "description": "Identity or auto-increment generation settings.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "seed": { "description": "The first generated integer value.", "type": "integer", "default": 1 },
+        "increment": { "description": "The non-zero step between generated integer values.", "type": "integer", "not": { "const": 0 }, "default": 1 }
+      }
+    },
+    "generatedColumn": {
+      "description": "Expression-based column generation settings.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expression"],
+      "properties": {
+        "expression": { "description": "The structured expression used to generate the column value.", "$ref": "#/$defs/expression" },
+        "storage": { "description": "Whether generated values are stored or evaluated virtually.", "type": "string", "enum": ["stored", "virtual"], "default": "stored" }
+      }
+    },
+    "literal": {
+      "description": "A culture-independent typed literal. Non-null values use their invariant string representation.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "description": "The literal logical type, or null.", "oneOf": [{ "$ref": "#/$defs/logicalType" }, { "const": "null" }] },
+        "value": { "description": "The invariant string representation of the value; omitted for null literals.", "type": "string" }
+      },
+      "oneOf": [
+        { "properties": { "type": { "const": "null" } }, "not": { "required": ["value"] } },
+        { "properties": { "type": { "$ref": "#/$defs/logicalType" } }, "required": ["value"] }
+      ]
+    },
+    "expression": {
+      "description": "A structured column, literal, or function expression.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "description": "The expression variant.", "type": "string", "enum": ["column", "value", "function"] },
+        "name": { "description": "The referenced column name for a column expression.", "type": "string", "minLength": 1 },
+        "function": { "description": "The portable function identifier for a function expression.", "type": "string", "minLength": 1 },
+        "value": { "description": "The typed literal for a value expression.", "$ref": "#/$defs/literal" },
+        "arguments": { "description": "Function arguments in call order.", "type": "array", "items": { "$ref": "#/$defs/expression" }, "default": [] }
+      },
+      "oneOf": [
+        { "properties": { "kind": { "const": "column" } }, "required": ["name"], "not": { "anyOf": [{ "required": ["function"] }, { "required": ["value"] }, { "required": ["arguments"] }] } },
+        { "properties": { "kind": { "const": "value" } }, "required": ["value"], "not": { "anyOf": [{ "required": ["name"] }, { "required": ["function"] }, { "required": ["arguments"] }] } },
+        { "properties": { "kind": { "const": "function" } }, "required": ["function"], "not": { "anyOf": [{ "required": ["name"] }, { "required": ["value"] }] } }
+      ]
+    },
+    "check": {
+      "description": "A named or unnamed comparison, membership, or regular-expression check constraint.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "name": { "description": "The optional constraint name.", "type": "string", "minLength": 1 },
+        "kind": { "description": "The check constraint variant.", "type": "string", "enum": ["comparison", "membership", "regex"] },
+        "left": { "description": "The left expression of a comparison.", "$ref": "#/$defs/expression" },
+        "operator": { "description": "The comparison operator.", "type": "string", "enum": ["=", "<>", "!=", "<", "<=", ">", ">="] },
+        "right": { "description": "The right expression of a comparison.", "$ref": "#/$defs/expression" },
+        "expression": { "description": "The expression tested by a membership or regex check.", "$ref": "#/$defs/expression" },
+        "values": { "description": "Typed membership values.", "type": "array", "items": { "$ref": "#/$defs/literal" }, "minItems": 1 },
+        "nullBehavior": { "description": "The explicit null policy for membership or regex checks.", "type": "string", "enum": ["sql-three-valued-logic", "match-null", "allow-null", "reject-null"] },
+        "pattern": { "description": "The regular-expression pattern.", "type": "string" }
+      },
+      "oneOf": [
+        {
+          "properties": { "kind": { "const": "comparison" } },
+          "required": ["left", "operator", "right"],
+          "not": { "anyOf": [{ "required": ["expression"] }, { "required": ["values"] }, { "required": ["nullBehavior"] }, { "required": ["pattern"] }] }
+        },
+        {
+          "properties": { "kind": { "const": "membership" }, "nullBehavior": { "enum": ["sql-three-valued-logic", "match-null"] } },
+          "required": ["expression", "values"],
+          "not": { "anyOf": [{ "required": ["left"] }, { "required": ["operator"] }, { "required": ["right"] }, { "required": ["pattern"] }] }
+        },
+        {
+          "properties": { "kind": { "const": "regex" }, "nullBehavior": { "enum": ["allow-null", "reject-null"] } },
+          "required": ["expression", "pattern"],
+          "not": { "anyOf": [{ "required": ["left"] }, { "required": ["operator"] }, { "required": ["right"] }, { "required": ["values"] }] }
+        }
+      ]
+    },
+    "primaryKey": {
+      "description": "A canonical table-level primary key, including composite keys.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["columns"],
+      "properties": {
+        "name": { "description": "The optional primary-key constraint name.", "type": "string", "minLength": 1 },
+        "columns": { "description": "Primary-key column names in key order.", "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true }
+      }
+    },
+    "foreignKey": {
+      "description": "A named table-level foreign key, including composite, self-referencing, and cross-table references.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sourceColumns", "targetTable", "targetColumns"],
+      "properties": {
+        "name": { "description": "The foreign-key constraint name.", "type": "string", "minLength": 1 },
+        "sourceColumns": { "description": "Source column names in reference order.", "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true },
+        "targetTable": { "description": "The structured identity of the referenced table.", "$ref": "#/$defs/databaseObjectName" },
+        "targetColumns": { "description": "Target column names in reference order; the count must match sourceColumns.", "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true }
+      }
+    },
+    "index": {
+      "description": "A named index over an ordered list of table columns.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "table", "columns"],
+      "properties": {
+        "identity": { "description": "The index's structured identity.", "$ref": "#/$defs/databaseObjectName" },
+        "table": { "description": "The structured identity of the indexed table.", "$ref": "#/$defs/databaseObjectName" },
+        "unique": { "description": "Whether duplicate index keys are prohibited.", "type": "boolean", "default": false },
+        "columns": { "description": "Index columns in key order.", "type": "array", "items": { "$ref": "#/$defs/indexColumn" }, "minItems": 1 }
+      }
+    },
+    "indexColumn": {
+      "description": "A column participating in an index.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "description": "The indexed column name.", "type": "string", "minLength": 1 },
+        "direction": { "description": "The optional index sort direction.", "type": "string", "enum": ["ascending", "descending"] }
+      }
+    }
+  }
+}

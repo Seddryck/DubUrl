@@ -8,6 +8,12 @@
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\docs\schemas\schema-document\v1\schema.json"
+          Pack="true"
+          PackagePath="schemas\schema-document\v1\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <PackageId>DubUrl.Schema.Documents</PackageId>
     <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>

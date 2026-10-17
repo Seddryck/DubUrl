@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="JsonSchema.Net" Version="9.4.1" />
     <PackageReference Include="NUnit" Version="5.0.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.15.0">
       <PrivateAssets>all</PrivateAssets>
@@ -13,6 +14,15 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Schema.Documents\DubUrl.Schema.Documents.csproj" />
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\docs\schemas\schema-document\v1\schema.json"
+          Link="schemas\schema-document\v1\schema.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\docs\schemas\schema-document\v1\examples\*"
+          Link="schemas\schema-document\v1\examples\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
