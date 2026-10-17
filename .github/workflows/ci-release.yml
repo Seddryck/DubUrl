@@ -130,8 +130,8 @@ jobs:
             dotnet sln DubUrlCi.slnf list |
               Where-Object { $_ -match '\.csproj$' }
           )
-          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 16) {
-            throw "Expected sixteen projects in DubUrlCi.slnf, found $($projects.Count)."
+          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 18) {
+            throw "Expected eighteen projects in DubUrlCi.slnf, found $($projects.Count)."
           }
 
           $paths = @(
