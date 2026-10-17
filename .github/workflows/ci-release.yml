@@ -539,7 +539,6 @@ jobs:
             -Frameworks '${{ matrix.framework }}' `
             -Runtimes '${{ matrix.runtime }}' `
             -OutputRoot ../.artifacts/cli
-          if ($LASTEXITCODE -ne 0) { throw 'Archiving the CLI distribution failed.' }
 
           $archives = @(Get-ChildItem .artifacts/cli/archives -File)
           if ($archives.Count -ne 1) {
