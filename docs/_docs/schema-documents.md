@@ -15,6 +15,20 @@ Set `version` to `1`. Unknown properties are rejected throughout the document so
 
 See the complete [JSON example]({{ site.baseurl }}/schemas/schema-document/v1/examples/schema.json) and [YAML example]({{ site.baseurl }}/schemas/schema-document/v1/examples/schema.yaml).
 
+## Configurable validation
+
+`SchemaDocumentValidator` uses an ordered default set of column, foreign-key, index, and check rules. Create a rule set when an application needs to suppress one of those defaults or append an application-specific rule:
+
+```csharp
+var rules = SchemaDocumentValidationRuleSet.CreateDefault()
+    .WithoutColumnRule(SchemaDocumentValidationRuleIds.Columns.NativeType)
+    .WithColumnRule(new ApplicationColumnRule());
+
+var validator = new SchemaDocumentValidator(rules);
+```
+
+Custom rules implement `IValidationRule<TContext>`. Rule sets are immutable, validators snapshot their selected rules, and rule execution follows registration order so diagnostics remain deterministic. The parameterless validator always uses the complete default set.
+
 ## Editor association
 
 Associate JSON files by URL in VS Code workspace settings:
