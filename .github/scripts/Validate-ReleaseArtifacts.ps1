@@ -15,6 +15,8 @@ $packages = @(
     @{ Id = 'DubUrl.Extensions'; Assembly = 'DubUrl.Extensions' },
     @{ Id = 'DubUrl.Adomd'; Assembly = 'DubUrl.Adomd' },
     @{ Id = 'DubUrl.Schema'; Assembly = 'DubUrl.Schema' },
+    @{ Id = 'DubUrl.Schema.Documents'; Assembly = 'DubUrl.Schema.Documents' },
+    @{ Id = 'DubUrl.Application'; Assembly = 'DubUrl.Application' },
     @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
 )
 $frameworks = @('net8.0', 'net9.0', 'net10.0')
@@ -54,6 +56,11 @@ foreach ($package in $packages) {
         foreach ($framework in $frameworks) {
             $assemblyPath = "lib/$framework/$($package.Assembly).dll"
             Assert-Condition ($entries -contains $assemblyPath) "Package '$($package.Id)' has no assembly at '$assemblyPath'."
+        }
+
+        if ($package.Id -eq 'DubUrl.Schema.Documents') {
+            $schemaPath = 'schemas/schema-document/v1/schema.json'
+            Assert-Condition ($entries -contains $schemaPath) "Package '$($package.Id)' has no schema at '$schemaPath'."
         }
     }
     finally {

@@ -118,8 +118,8 @@ jobs:
             dotnet sln DubUrlCi.slnf list |
               Where-Object { $_ -match '\.csproj$' }
           )
-          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 12) {
-            throw "Expected twelve projects in DubUrlCi.slnf, found $($projects.Count)."
+          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 16) {
+            throw "Expected sixteen projects in DubUrlCi.slnf, found $($projects.Count)."
           }
 
           $paths = @(
@@ -194,7 +194,9 @@ jobs:
             'DubUrl.OleDb',
             'DubUrl.Extensions',
             'DubUrl.Adomd',
+            'DubUrl.Application',
             'DubUrl.Schema',
+            'DubUrl.Schema.Documents',
             'DubUrl.BulkCopy'
           )
           $failedProjects = @()
@@ -226,7 +228,9 @@ jobs:
             'DubUrl.OleDb',
             'DubUrl.Extensions',
             'DubUrl.Adomd',
+            'DubUrl.Application',
             'DubUrl.Schema',
+            'DubUrl.Schema.Documents',
             'DubUrl.BulkCopy'
           )
           New-Item -ItemType Directory -Force .coverage | Out-Null
@@ -276,8 +280,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 18) {
-            throw "Expected 18 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 24) {
+            throw "Expected 24 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
@@ -335,6 +339,10 @@ jobs:
             project: DubUrl.Adomd/DubUrl.Adomd.csproj
           - package-id: DubUrl.Schema
             project: DubUrl.Schema/DubUrl.Schema.csproj
+          - package-id: DubUrl.Schema.Documents
+            project: DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj
+          - package-id: DubUrl.Application
+            project: DubUrl.Application/DubUrl.Application.csproj
           - package-id: DubUrl.BulkCopy
             project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
     steps:

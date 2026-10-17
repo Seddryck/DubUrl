@@ -4,6 +4,8 @@
     "projects": [
       "DubUrl.Adomd.Testing\\DubUrl.Adomd.Testing.csproj",
       "DubUrl.Adomd\\DubUrl.Adomd.csproj",
+      "DubUrl.Application.Testing\\DubUrl.Application.Testing.csproj",
+      "DubUrl.Application\\DubUrl.Application.csproj",
       "DubUrl.BulkCopy.Testing\\DubUrl.BulkCopy.Testing.csproj",
       "DubUrl.BulkCopy\\DubUrl.BulkCopy.csproj",
       "DubUrl.Core\\DubUrl.csproj",
@@ -11,6 +13,8 @@
       "DubUrl.Extensions\\DubUrl.Extensions.csproj",
       "DubUrl.OleDb.Testing\\DubUrl.OleDb.Testing.csproj",
       "Duburl.OleDb\\DubUrl.OleDb.csproj",
+      "DubUrl.Schema.Documents.Testing\\DubUrl.Schema.Documents.Testing.csproj",
+      "DubUrl.Schema.Documents\\DubUrl.Schema.Documents.csproj",
       "DubUrl.Schema.Testing\\DubUrl.Schema.Testing.csproj",
       "DubUrl.Schema\\DubUrl.Schema.csproj",
       "DubUrl.Testing\\DubUrl.Testing.csproj"
