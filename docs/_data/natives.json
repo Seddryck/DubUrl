@@ -118,7 +118,8 @@
     "Aliases": [
       "td",
       "teradata",
-      "tera"
+      "tera",
+      "teradatasql"
     ],
     "ProviderInvariantName": "Teradata.Client",
     "Slug": "Teradata",
@@ -172,7 +173,8 @@
       "sg",
       "sgs",
       "singlestore",
-      "single"
+      "single",
+      "singlestoredb"
     ],
     "ProviderInvariantName": "SingleStoreConnector",
     "Slug": "singlestore",

@@ -10,7 +10,7 @@ namespace DubUrl.Mapping.Database;
 
 [Database<TeradataDialect>(
     "Teradata"
-    , ["td", "teradata", "tera"]
+    , ["td", "teradata", "tera", "teradatasql"]
     , DatabaseCategory.Warehouse
 )]
 [Brand("Teradata", "#F37440")]
