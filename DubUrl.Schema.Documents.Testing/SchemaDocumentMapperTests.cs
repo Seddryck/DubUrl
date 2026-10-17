@@ -63,6 +63,38 @@ public class SchemaDocumentMapperTests
     }
 
     [Test]
+    public void Map_ColumnNullability_AppliesDefaultAndPreservesExplicitValues()
+    {
+        var document = new SchemaDocument
+        {
+            Version = 1,
+            Tables =
+            [
+                new TableDocument
+                {
+                    Identity = new DatabaseObjectNameDocument { Name = "sample" },
+                    Columns =
+                    [
+                        new ColumnDocument { Name = "default", Type = "int32" },
+                        new ColumnDocument { Name = "required", Type = "int32", Nullable = false },
+                        new ColumnDocument { Name = "optional", Type = "int32", Nullable = true }
+                    ]
+                }
+            ]
+        };
+
+        var columns = mapper.Map(document).Tables["sample"].Columns;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(columns["default"].Constraints, Has.Some.TypeOf<NotNullableConstraint>());
+            Assert.That(columns["required"].Constraints, Has.Some.TypeOf<NotNullableConstraint>());
+            Assert.That(columns["optional"].Constraints, Has.Some.TypeOf<NullableConstraint>());
+            Assert.That(columns["optional"].Constraints, Has.None.TypeOf<NotNullableConstraint>());
+        });
+    }
+
+    [Test]
     public void Map_CompleteDocument_PreservesOrderIdentitiesConstraintsGenerationIndexesAndViews()
     {
         var schema = mapper.Map(CreateCompleteDocument());
