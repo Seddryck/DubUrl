@@ -16,39 +16,36 @@ env:
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
 jobs:
   provider-qa:
-    name: CrateDB QA (${{ matrix.framework }})
+    name: CrateDB QA
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { framework: net8.0, sdk: 8.0.416 }
-          - { framework: net9.0, sdk: 9.0.308 }
-          - { framework: net10.0, sdk: 10.0.401 }
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: ${{ matrix.sdk }}
+          dotnet-version: |
+            8.0.416
+            9.0.308
+            10.0.401
       - name: Run provider QA
         shell: pwsh
         run: >-
           ./DubUrl.QA/CrateDB/deploy-cratedb-test-env.ps1
           -force
           -config Release
-          -frameworks @('${{ matrix.framework }}')
+          -frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: qa-cratedb-results-${{ matrix.framework }}-${{ github.sha }}
-          path: .test-results/cratedb/${{ matrix.framework }}
+          name: qa-cratedb-results-${{ github.sha }}
+          path: .test-results/cratedb
           if-no-files-found: error
       - name: Upload QA bundle
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: qa-cratedb-bundle-${{ matrix.framework }}-${{ github.sha }}
-          path: DubUrl.Providers.CrateDb.QA/bin/qa/cratedb/*/${{ matrix.framework }}/**
+          name: qa-cratedb-bundle-${{ github.sha }}
+          path: DubUrl.Providers.CrateDb.QA/bin/qa/cratedb/*/**
           include-hidden-files: true
           if-no-files-found: error

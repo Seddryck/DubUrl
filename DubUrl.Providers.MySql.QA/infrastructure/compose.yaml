@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: public.ecr.aws/docker/library/mysql:8
+    image: mysql:8@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
     environment:
       MYSQL_ROOT_PASSWORD: Password12!
       MYSQL_DATABASE: DubUrl

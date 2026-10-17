@@ -21,39 +21,36 @@ env:
 
 jobs:
   provider-qa:
-    name: DuckDB QA (${{ matrix.framework }})
+    name: DuckDB QA
     runs-on: windows-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { framework: net8.0, sdk: 8.0.416 }
-          - { framework: net9.0, sdk: 9.0.308 }
-          - { framework: net10.0, sdk: 10.0.401 }
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: ${{ matrix.sdk }}
+          dotnet-version: |
+            8.0.416
+            9.0.308
+            10.0.401
       - name: Run provider QA
         shell: pwsh
         run: >-
           ./DubUrl.QA/DuckDB/deploy-duckdb-test-env.ps1
           -force
           -config Release
-          -frameworks @('${{ matrix.framework }}')
+          -frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: qa-duckdb-results-${{ matrix.framework }}-${{ github.sha }}
-          path: .test-results/duckdb/${{ matrix.framework }}
+          name: qa-duckdb-results-${{ github.sha }}
+          path: .test-results/duckdb
           if-no-files-found: error
       - name: Upload QA bundle
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: qa-duckdb-bundle-${{ matrix.framework }}-${{ github.sha }}
-          path: DubUrl.Providers.DuckDb.QA/bin/qa/duckdb/*/${{ matrix.framework }}/**
+          name: qa-duckdb-bundle-${{ github.sha }}
+          path: DubUrl.Providers.DuckDb.QA/bin/qa/duckdb/*/**
           include-hidden-files: true
           if-no-files-found: error
