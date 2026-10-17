@@ -79,7 +79,7 @@ public class EmbeddedResourceCommandTest
     }
 
     [Test]
-    public void Read_AnyExistingResources_InvokeLog()
+    public void Read_AnyExistingResources_DoesNotLogOutsideExecutor()
     {
         var dialect = Mock.Of<IDialect>(x => x.Aliases == new[] { "mssql" } && x.Language == new SqlLanguage());
         var connectivity = Mock.Of<IConnectivity>(x => x.Alias == string.Empty);
@@ -94,6 +94,6 @@ public class EmbeddedResourceCommandTest
         var query = new EmbeddedResourceCommand(resourceManager.Object, "foo", queryLoggerMock.Object);
         var result = query.Read(dialect, connectivity);
 
-        queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));
+        queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()), Times.Never);
     }
 }

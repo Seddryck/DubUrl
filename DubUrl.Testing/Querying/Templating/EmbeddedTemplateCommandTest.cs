@@ -52,7 +52,7 @@ public class EmbeddedTemplateCommandTest
     }
 
     [Test]
-    public void Read_AnyExistingResources_InvokeLog()
+    public void Read_AnyExistingResources_DoesNotLogOutsideExecutor()
     {
         var dialect = Mock.Of<IDialect>(d => d.Aliases == new[] { "duck", "duckdb" });
         var connectivity = Mock.Of<IConnectivity>(c => c.Alias == string.Empty);
@@ -68,6 +68,6 @@ public class EmbeddedTemplateCommandTest
         var query = new EmbeddedTemplateCommand(resourceManager.Object, "queryId", "Foo.Bar", "Foo.Bar", new Dictionary<string, object?>() { { "name", "Cédric" } }, queryLoggerMock.Object);
         var result = query.Read(dialect, connectivity);
 
-        queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));
+        queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()), Times.Never);
     }
 }

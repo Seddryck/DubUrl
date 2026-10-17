@@ -12,6 +12,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DubUrl.MicroOrm;
@@ -41,20 +42,39 @@ public class DatabaseUrl : DubUrl.DatabaseUrl
         => ReadSingle<T>(new InlineCommand(query, QueryLogger));
 
     public T? ReadSingle<T>(ICommandProvider commandProvider) where T : new()
-    {
-        using var dr = PrepareCommand(commandProvider).ExecuteReader();
-        if (!dr.Read())
-            return (T?)(object?)null;
+        => ExecuteReader(commandProvider, reader =>
+        {
+            if (!reader.Read())
+                return (T?)(object?)null;
 
-        var entity = dr.ToEntity<T>(ReflectionCache);
-        return !dr.Read() ? entity : throw new InvalidOperationException();
-    }
+            var entity = reader.ToEntity<T>(ReflectionCache);
+            return !reader.Read() ? entity : throw new InvalidOperationException();
+        });
+
+    public Task<T?> ReadSingleAsync<T>(string query, CancellationToken cancellationToken = default) where T : new()
+        => ReadSingleAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<T?> ReadSingleAsync<T>(ICommandProvider commandProvider, CancellationToken cancellationToken = default) where T : new()
+        => ExecuteReaderAsync(commandProvider, async (reader, token) =>
+        {
+            if (!await reader.ReadAsync(token).ConfigureAwait(false))
+                return (T?)(object?)null;
+
+            var entity = reader.ToEntity<T>(ReflectionCache);
+            return !await reader.ReadAsync(token).ConfigureAwait(false) ? entity : throw new InvalidOperationException();
+        }, cancellationToken);
 
     public T? ReadSingleNonNull<T>(string query) where T : new()
         => ReadSingleNonNull<T>(new InlineCommand(query, QueryLogger));
 
     public T? ReadSingleNonNull<T>(ICommandProvider commandProvider) where T : new()
         => ReadSingle<T>(commandProvider) ?? throw new InvalidOperationException();
+
+    public async Task<T> ReadSingleNonNullAsync<T>(string query, CancellationToken cancellationToken = default) where T : new()
+        => await ReadSingleNonNullAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public async Task<T> ReadSingleNonNullAsync<T>(ICommandProvider commandProvider, CancellationToken cancellationToken = default) where T : new()
+        => await ReadSingleAsync<T>(commandProvider, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException();
 
     #endregion
 
@@ -64,19 +84,26 @@ public class DatabaseUrl : DubUrl.DatabaseUrl
         => ReadFirst<T>(new InlineCommand(query, QueryLogger));
 
     public T? ReadFirst<T>(ICommandProvider commandProvider) where T : new()
-    {
-        using var dr = PrepareCommand(commandProvider).ExecuteReader();
-        if (!dr.Read())
-            return (T?)(object?)null;
+        => ExecuteReader(commandProvider, reader => reader.Read() ? reader.ToEntity<T>(ReflectionCache) : (T?)(object?)null);
 
-        return dr.ToEntity<T>(ReflectionCache);
-    }
+    public Task<T?> ReadFirstAsync<T>(string query, CancellationToken cancellationToken = default) where T : new()
+        => ReadFirstAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<T?> ReadFirstAsync<T>(ICommandProvider commandProvider, CancellationToken cancellationToken = default) where T : new()
+        => ExecuteReaderAsync(commandProvider, async (reader, token) =>
+            await reader.ReadAsync(token).ConfigureAwait(false) ? reader.ToEntity<T>(ReflectionCache) : (T?)(object?)null, cancellationToken);
 
     public T ReadFirstNonNull<T>(string query) where T : new()
         => ReadFirstNonNull<T>(new InlineCommand(query, QueryLogger));
 
     public T ReadFirstNonNull<T>(ICommandProvider commandProvider) where T : new()
         => ReadFirst<T>(commandProvider) ?? throw new InvalidOperationException();
+
+    public async Task<T> ReadFirstNonNullAsync<T>(string query, CancellationToken cancellationToken = default) where T : new()
+        => await ReadFirstNonNullAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public async Task<T> ReadFirstNonNullAsync<T>(ICommandProvider commandProvider, CancellationToken cancellationToken = default) where T : new()
+        => await ReadFirstAsync<T>(commandProvider, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException();
 
     #endregion
 
@@ -86,13 +113,13 @@ public class DatabaseUrl : DubUrl.DatabaseUrl
         => ReadMultiple<T>(new InlineCommand(query, QueryLogger));
 
     public IEnumerable<T> ReadMultiple<T>(ICommandProvider commandProvider) where T : new()
-    {
-        using var cmd = PrepareCommand(commandProvider);
-        var dr = cmd.ExecuteReader();
-        while (dr.Read())
-            yield return dr.ToEntity<T>(ReflectionCache);
-        dr?.Close();
-    }
+        => Stream(commandProvider, reader => reader.ToEntity<T>(ReflectionCache));
+
+    public IAsyncEnumerable<T> ReadMultipleAsync<T>(string query, CancellationToken cancellationToken = default) where T : new()
+        => ReadMultipleAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public IAsyncEnumerable<T> ReadMultipleAsync<T>(ICommandProvider commandProvider, CancellationToken cancellationToken = default) where T : new()
+        => StreamAsync(commandProvider, reader => reader.ToEntity<T>(ReflectionCache), cancellationToken);
 
     #endregion
 

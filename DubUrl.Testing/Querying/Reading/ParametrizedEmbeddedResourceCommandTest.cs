@@ -62,7 +62,7 @@ public class ParametrizedEmbeddedResourceCommandTest
     }
 
     [Test]
-    public void Read_AnyExistingResources_InvokeLog()
+    public void Read_AnyExistingResources_DoesNotLogOutsideExecutor()
     {
         var resourceManager = new Mock<IResourceManager>();
         resourceManager.Setup(x => x.Any(It.IsAny<string>(), It.IsAny<IDialect>(), It.IsAny<string?>())).Returns(true);
@@ -80,6 +80,6 @@ public class ParametrizedEmbeddedResourceCommandTest
         var query = new ParametrizedEmbeddedResourceCommand(resourceManager.Object, "foo", [], queryLoggerMock.Object);
         var result = query.Read(dialectMock.Object, connectivityMock.Object);
 
-        queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()));
+        queryLoggerMock.Verify(log => log.Log(It.IsAny<string>()), Times.Never);
     }
 }

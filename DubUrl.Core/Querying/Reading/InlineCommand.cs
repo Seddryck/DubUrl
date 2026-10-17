@@ -12,17 +12,12 @@ namespace DubUrl.Querying.Reading;
 internal class InlineCommand : ICommandProvider
 {
     protected string Text { get; }
-    private IQueryLogger QueryLogger { get; }
 
     public InlineCommand(string text, IQueryLogger queryLogger) 
-        => (Text, QueryLogger) = (text, queryLogger);
+        => Text = text;
 
     public string Read(IDialect dialect, IConnectivity connectivity)
-    {
-        var text = Render(dialect);
-        QueryLogger.Log(text);
-        return text;
-    }
+        => Render(dialect);
 
     protected virtual string Render(IDialect dialect)
         => Text;
