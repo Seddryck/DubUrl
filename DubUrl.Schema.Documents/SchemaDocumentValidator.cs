@@ -4,7 +4,7 @@ using DubUrl.Schema.Documents.V1;
 
 namespace DubUrl.Schema.Documents;
 
-public sealed partial class SchemaDocumentValidator
+public sealed partial class SchemaDocumentValidator : ISchemaDocumentValidator
 {
     private static readonly IReadOnlySet<string> ComparisonOperators =
         new HashSet<string>(["=", "<>", "!=", "<", "<=", ">", ">="], StringComparer.Ordinal);

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Schema.Documents\DubUrl.Schema.Documents.csproj" />
+    <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageId>DubUrl.Schema.Application</PackageId>
+    <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+    <PackageTags>connection-string;database;sql;schema;application-api</PackageTags>
+    <Description>Transport-neutral application services for validating, rendering, and deploying DubUrl schema documents.</Description>
+  </PropertyGroup>
+
+</Project>

@@ -4,7 +4,7 @@ using RuntimeSchema = DubUrl.Schema.Schema;
 
 namespace DubUrl.Schema.Documents;
 
-public sealed class SchemaDocumentMapper
+public sealed class SchemaDocumentMapper : ISchemaDocumentMapper
 {
     private readonly SchemaDocumentValidator validator;
     private readonly SchemaDocumentValueConverter valueConverter;
