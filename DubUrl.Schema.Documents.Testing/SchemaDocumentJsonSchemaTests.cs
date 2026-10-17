@@ -30,7 +30,10 @@ public class SchemaDocumentJsonSchemaTests
         [typeof(PrimaryKeyDocument)] = "primaryKey",
         [typeof(ForeignKeyDocument)] = "foreignKey",
         [typeof(IndexDocument)] = "index",
-        [typeof(IndexColumnDocument)] = "indexColumn"
+        [typeof(IndexColumnDocument)] = "indexColumn",
+        [typeof(ViewDocument)] = "view",
+        [typeof(ViewQueryDocument)] = "viewQuery",
+        [typeof(ViewProjectionDocument)] = "viewProjection"
     };
 
     [Test]
@@ -87,10 +90,12 @@ public class SchemaDocumentJsonSchemaTests
     {
         var path = ExamplePath(fileName);
         var source = ReadExampleAsJson(path);
+        var schemaResult = Evaluate(source);
 
         Assert.Multiple(() =>
         {
-            Assert.That(Evaluate(source).IsValid, Is.True, $"JSON Schema validation failed for {fileName}");
+            Assert.That(schemaResult.IsValid, Is.True,
+                $"JSON Schema validation failed for {fileName}: {JsonSerializer.Serialize(schemaResult)}");
             var document = new SchemaDocumentReader().Read(path);
             Assert.That(new SchemaDocumentValidator().Validate(document), Is.Empty,
                 $"Document validation failed for {fileName}");
@@ -98,8 +103,8 @@ public class SchemaDocumentJsonSchemaTests
     }
 
     [TestCase("{\"version\":2}")]
-    [TestCase("{\"version\":1,\"views\":[]}")]
     [TestCase("{\"version\":1,\"unknown\":true}")]
+    [TestCase("{\"version\":1,\"views\":[{\"identity\":{\"name\":\"v\"}}]}")]
     [TestCase("{\"version\":1,\"tables\":[{\"identity\":{\"name\":\"t\"},\"columns\":[{\"name\":\"id\",\"type\":\"int32\",\"primaryKey\":true}]}]}")]
     [TestCase("{\"version\":1,\"tables\":[{\"identity\":{\"name\":\"t\"},\"columns\":[{\"name\":\"value\",\"type\":\"string\",\"length\":0}]}]}")]
     [TestCase("{\"version\":1,\"indexes\":[{\"identity\":{\"name\":\"i\"},\"table\":{\"name\":\"t\"},\"columns\":[{\"name\":\"c\",\"direction\":\"sideways\"}]}]}")]
@@ -116,6 +121,8 @@ public class SchemaDocumentJsonSchemaTests
         var dialects = dialectBuilder.Build();
 
         var script = new SchemaScriptRenderer(dialects.Get<PgsqlDialect>()).Render(domain);
+        var dropScript = new SchemaScriptRenderer(
+            dialects.Get<PgsqlDialect>(), SchemaCreationOptions.DropIfExists).Render(domain);
 
         Assert.Multiple(() =>
         {
@@ -128,6 +135,22 @@ public class SchemaDocumentJsonSchemaTests
             Assert.That(script.IndexOf("CREATE UNIQUE INDEX", StringComparison.Ordinal),
                 Is.GreaterThan(script.LastIndexOf("CREATE TABLE", StringComparison.Ordinal)),
                 "Indexes must be rendered after table definitions, not inside CREATE TABLE.");
+            var firstView = script.IndexOf(
+                "CREATE VIEW \"reporting\".\"customer_names\"", StringComparison.Ordinal);
+            var secondView = script.IndexOf(
+                "CREATE VIEW \"reporting\".\"customer_name_lengths\"", StringComparison.Ordinal);
+            Assert.That(firstView, Is.GreaterThan(script.IndexOf("CREATE UNIQUE INDEX", StringComparison.Ordinal)));
+            Assert.That(secondView, Is.GreaterThan(firstView));
+            Assert.That(script, Does.Contain("LENGTH(\"name\") AS \"name_length\""));
+
+            var secondDrop = dropScript.IndexOf(
+                "DROP VIEW IF EXISTS \"reporting\".\"customer_name_lengths\"", StringComparison.Ordinal);
+            var firstDrop = dropScript.IndexOf(
+                "DROP VIEW IF EXISTS \"reporting\".\"customer_names\"", StringComparison.Ordinal);
+            var tableDrop = dropScript.IndexOf("DROP TABLE IF EXISTS", StringComparison.Ordinal);
+            Assert.That(secondDrop, Is.GreaterThanOrEqualTo(0));
+            Assert.That(firstDrop, Is.GreaterThan(secondDrop));
+            Assert.That(tableDrop, Is.GreaterThan(firstDrop));
         });
     }
 

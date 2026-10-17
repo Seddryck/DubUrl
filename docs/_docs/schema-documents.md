@@ -3,7 +3,9 @@ title: Schema documents
 permalink: /schema-documents/
 ---
 
-DubUrl schema documents describe a database schema in ordered, provider-independent JSON or YAML. Version 1 covers tables, columns, primary and foreign keys, check constraints, generated columns, and indexes. It does not include views or column-level primary-key flags.
+DubUrl schema documents describe a database schema in ordered, provider-independent JSON or YAML. Version 1 covers tables, columns, primary and foreign keys, check constraints, generated columns, indexes, and views. It does not include column-level primary-key flags.
+
+Views use a deliberately small structured query model: one table-or-view source and an ordered list of column, value, or function projections with optional aliases. View dependencies are derived from their sources, so creation and removal can be rendered in dependency-safe order. Raw SQL, joins, aggregation, grouping, ordering, pagination, common table expressions, and set operations are not part of version 1.
 
 ## JSON Schema
 

@@ -78,5 +78,33 @@
         { "name": "amount", "direction": "descending" }
       ]
     }
+  ],
+  "views": [
+    {
+      "identity": { "schema": "reporting", "name": "customer_names" },
+      "query": {
+        "source": { "schema": "sales", "name": "customers" },
+        "projections": [
+          { "expression": { "kind": "column", "name": "name" } },
+          {
+            "expression": {
+              "kind": "function",
+              "function": "Length",
+              "arguments": [{ "kind": "column", "name": "name" }]
+            },
+            "alias": "name_length"
+          }
+        ]
+      }
+    },
+    {
+      "identity": { "schema": "reporting", "name": "customer_name_lengths" },
+      "query": {
+        "source": { "schema": "reporting", "name": "customer_names" },
+        "projections": [
+          { "expression": { "kind": "column", "name": "name_length" } }
+        ]
+      }
+    }
   ]
 }

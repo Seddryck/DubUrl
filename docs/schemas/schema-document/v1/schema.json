@@ -23,6 +23,12 @@
       "type": "array",
       "items": { "$ref": "#/$defs/index" },
       "default": []
+    },
+    "views": {
+      "description": "Views in declaration order; dependency-safe rendering order is derived from their sources.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/view" },
+      "default": []
     }
   },
   "$defs": {
@@ -179,8 +185,8 @@
         "arguments": { "description": "Function arguments in call order.", "type": "array", "items": { "$ref": "#/$defs/expression" }, "default": [] }
       },
       "oneOf": [
-        { "properties": { "kind": { "const": "column" } }, "required": ["name"], "not": { "anyOf": [{ "required": ["function"] }, { "required": ["value"] }, { "required": ["arguments"] }] } },
-        { "properties": { "kind": { "const": "value" } }, "required": ["value"], "not": { "anyOf": [{ "required": ["name"] }, { "required": ["function"] }, { "required": ["arguments"] }] } },
+        { "properties": { "kind": { "const": "column" }, "arguments": { "maxItems": 0 } }, "required": ["name"], "not": { "anyOf": [{ "required": ["function"] }, { "required": ["value"] }] } },
+        { "properties": { "kind": { "const": "value" }, "arguments": { "maxItems": 0 } }, "required": ["value"], "not": { "anyOf": [{ "required": ["name"] }, { "required": ["function"] }] } },
         { "properties": { "kind": { "const": "function" } }, "required": ["function"], "not": { "anyOf": [{ "required": ["name"] }, { "required": ["value"] }] } }
       ]
     },
@@ -260,6 +266,41 @@
       "properties": {
         "name": { "description": "The indexed column name.", "type": "string", "minLength": 1 },
         "direction": { "description": "The optional index sort direction.", "type": "string", "enum": ["ascending", "descending"] }
+      }
+    },
+    "view": {
+      "description": "A provider-neutral view declaration.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "query"],
+      "properties": {
+        "identity": { "description": "The view's structured identity.", "$ref": "#/$defs/databaseObjectName" },
+        "query": { "description": "The structured query defining the view.", "$ref": "#/$defs/viewQuery" }
+      }
+    },
+    "viewQuery": {
+      "description": "A single-source query with ordered projections.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "projections"],
+      "properties": {
+        "source": { "description": "The structured identity of the source table or view.", "$ref": "#/$defs/databaseObjectName" },
+        "projections": {
+          "description": "Projected expressions in output-column order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/viewProjection" },
+          "minItems": 1
+        }
+      }
+    },
+    "viewProjection": {
+      "description": "An expression projected by a view query with an optional output alias.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expression"],
+      "properties": {
+        "expression": { "description": "The structured expression to project.", "$ref": "#/$defs/expression" },
+        "alias": { "description": "An optional explicit output-column name.", "type": "string", "minLength": 1 }
       }
     }
   }

@@ -34,3 +34,26 @@ indexes:
     columns:
       - name: sku
         direction: ascending
+views:
+  - identity:
+      schema: reporting
+      name: product_skus
+    query:
+      source:
+        schema: sales
+        name: products
+      projections:
+        - expression:
+            kind: column
+            name: sku
+  - identity:
+      schema: reporting
+      name: product_skus_copy
+    query:
+      source:
+        schema: reporting
+        name: product_skus
+      projections:
+        - expression:
+            kind: column
+            name: sku
