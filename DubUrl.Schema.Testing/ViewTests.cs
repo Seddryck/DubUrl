@@ -60,4 +60,19 @@ public class ViewTests
                 new ViewProjection(new ColumnIdentityExpression("id"), "value"),
                 new ViewProjection(new ColumnIdentityExpression("name"), "value")),
             Throws.ArgumentException.With.Message.Contains("View projection aliases must be unique: value"));
+
+    [Test]
+    public void Create_ViewDependencyCycle_ReportsCycle()
+    {
+        var firstIdentity = new DatabaseObjectName("first");
+        var secondIdentity = new DatabaseObjectName("second");
+        var first = new View(firstIdentity, new ViewQuery(
+            secondIdentity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var second = new View(secondIdentity, new ViewQuery(
+            firstIdentity, new ViewProjection(new ColumnIdentityExpression("id"))));
+
+        Assert.That(
+            () => new Schema([], [], [first, second]),
+            Throws.ArgumentException.With.Message.Contains("View dependency cycle detected: first -> second -> first"));
+    }
 }

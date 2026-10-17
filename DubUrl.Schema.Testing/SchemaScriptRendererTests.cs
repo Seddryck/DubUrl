@@ -21,6 +21,8 @@ public class SchemaScriptRendererTests
     private IDialect Pgsql { get; set; }
     private IDialect Sqlite { get; set; }
     private IDialect MySql { get; set; }
+    private IDialect CockRoach { get; set; }
+    private IDialect Text { get; set; }
 
     [SetUp]
     public void Setup()
@@ -31,12 +33,16 @@ public class SchemaScriptRendererTests
         builder.AddDialect<PgsqlDialect>(["pgsql"]);
         builder.AddDialect<SqliteDialect>(["sqlite"]);
         builder.AddDialect<MySqlDialect>(["mysql"]);
+        builder.AddDialect<CockRoachDialect>(["cockroach"]);
+        builder.AddDialect<TextDialect>(["text"]);
         var registry = builder.Build();
         DuckDb = registry.Get<DuckDbDialect>();
         TSql = registry.Get<TSqlDialect>();
         Pgsql = registry.Get<PgsqlDialect>();
         Sqlite = registry.Get<SqliteDialect>();
         MySql = registry.Get<MySqlDialect>();
+        CockRoach = registry.Get<CockRoachDialect>();
+        Text = registry.Get<TextDialect>();
     }
 
     [Test]
@@ -975,5 +981,110 @@ public class SchemaScriptRendererTests
         Assert.That(
             () => new Schema([table], [index]),
             Throws.ArgumentException.With.Message.Contains("references missing column(s) Name"));
+    }
+
+    [Test]
+    public void Render_PostgresqlView_RendersQualifiedStructuredQuery()
+    {
+        var table = new Table(new DatabaseObjectName("customers", schema: "sales"), [
+            new Column("name", DbType.String)
+        ]);
+        var view = new View(
+            new DatabaseObjectName("customer_names", schema: "reporting"),
+            new ViewQuery(table.Identity,
+                new ViewProjection(
+                    new FunctionExpression("Length", new ColumnIdentityExpression("name")),
+                    "name_length")));
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], [], [view]));
+
+        Assert.That(result, Does.Contain(
+            "CREATE VIEW \"reporting\".\"customer_names\" AS\r\n" +
+            "SELECT\r\n" +
+            "    LENGTH(\"name\") AS \"name_length\"\r\n" +
+            "FROM \"sales\".\"customers\";"));
+    }
+
+    [Test]
+    public void Render_SupportedViewDialects_RenderCreateView()
+    {
+        var table = new Table("customers", [new Column("id", DbType.Int32)]);
+        var view = new View("customer_ids", new ViewQuery(
+            table.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var schema = new Schema([table], [], [view]);
+
+        Assert.Multiple(() =>
+        {
+            foreach (var dialect in new[] { TSql, Pgsql, MySql, Sqlite, DuckDb, CockRoach })
+                Assert.That(
+                    () => new SchemaScriptRenderer(dialect).Render(schema),
+                    Throws.Nothing,
+                    dialect.GetType().Name);
+        });
+    }
+
+    [Test]
+    public void Render_ViewChain_UsesStableDependencyOrder()
+    {
+        var table = new Table("customers", [new Column("id", DbType.Int32)]);
+        var baseView = new View("base_view", new ViewQuery(
+            table.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var middleView = new View("middle_view", new ViewQuery(
+            baseView.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var topView = new View("top_view", new ViewQuery(
+            middleView.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var independentView = new View("independent_view", new ViewQuery(
+            table.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+
+        var result = new SchemaScriptRenderer(Pgsql).Render(
+            new Schema([table], [], [topView, independentView, middleView, baseView]));
+
+        var independent = result.IndexOf("CREATE VIEW \"independent_view\"", StringComparison.Ordinal);
+        var @base = result.IndexOf("CREATE VIEW \"base_view\"", StringComparison.Ordinal);
+        var middle = result.IndexOf("CREATE VIEW \"middle_view\"", StringComparison.Ordinal);
+        var top = result.IndexOf("CREATE VIEW \"top_view\"", StringComparison.Ordinal);
+        Assert.Multiple(() =>
+        {
+            Assert.That(independent, Is.GreaterThanOrEqualTo(0));
+            Assert.That(@base, Is.GreaterThan(independent));
+            Assert.That(middle, Is.GreaterThan(@base));
+            Assert.That(top, Is.GreaterThan(middle));
+        });
+    }
+
+    [Test]
+    public void Render_DropIfExists_DropsViewsInReverseDependencyOrderBeforeTables()
+    {
+        var table = new Table("customers", [new Column("id", DbType.Int32)]);
+        var baseView = new View("base_view", new ViewQuery(
+            table.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+        var topView = new View("top_view", new ViewQuery(
+            baseView.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+
+        var result = new SchemaScriptRenderer(Pgsql, SchemaCreationOptions.DropIfExists)
+            .Render(new Schema([table], [], [topView, baseView]));
+
+        var topDrop = result.IndexOf("DROP VIEW IF EXISTS \"top_view\";", StringComparison.Ordinal);
+        var baseDrop = result.IndexOf("DROP VIEW IF EXISTS \"base_view\";", StringComparison.Ordinal);
+        var tableDrop = result.IndexOf("DROP TABLE IF EXISTS \"customers\";", StringComparison.Ordinal);
+        Assert.Multiple(() =>
+        {
+            Assert.That(topDrop, Is.GreaterThanOrEqualTo(0));
+            Assert.That(baseDrop, Is.GreaterThan(topDrop));
+            Assert.That(tableDrop, Is.GreaterThan(baseDrop));
+        });
+    }
+
+    [Test]
+    public void Render_ViewsWithUnsupportedDialect_ThrowsActionableDiagnostic()
+    {
+        var table = new Table("customers", [new Column("id", DbType.Int32)]);
+        var view = new View("customer_ids", new ViewQuery(
+            table.Identity, new ViewProjection(new ColumnIdentityExpression("id"))));
+
+        Assert.That(
+            () => new SchemaScriptRenderer(Text).Render(new Schema([table], [], [view])),
+            Throws.TypeOf<NotSupportedException>()
+                .With.Message.EqualTo("Database views are not supported for CREATE VIEW by dialect 'TextDialect'."));
     }
 }

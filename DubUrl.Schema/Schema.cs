@@ -91,6 +91,8 @@ public class Schema
                 throw new ArgumentException(
                     $"View '{view.Identity}' references missing source relation '{view.Query.Source}'.",
                     nameof(views));
+
+        _ = ViewDependencyPlanner.Order(Views.Values);
     }
 
     public Table GetTable(DatabaseObjectName identity)

@@ -36,19 +36,7 @@ public class CreateSchemaRenderer : RendererEngine
     }
 
     private static string RenderExpression(Expression expression, IDialect dialect)
-        => expression switch
-        {
-            ColumnIdentityExpression column => dialect.Renderer.Render(column.Name, "identity"),
-            FunctionColumnIdentityExpression function =>
-                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
-            ValueExpression value => dialect.Renderer.Render(value.Value, "value"),
-            ColumnExpression column => dialect.Renderer.Render(column.Column.Name, "identity"),
-            FunctionExpression function =>
-                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({string.Join(", ", function.Expressions.Select(item => RenderExpression(item, dialect)))})",
-            _ => throw new ArgumentException(
-                $"Expression type '{expression.GetType().Name}' is not supported for checks.",
-                nameof(expression))
-        };
+        => SqlExpressionRenderer.Render(expression, dialect);
 
     private static string RenderColumnType(object? value, IDialect dialect, NativeTypeRegistry nativeTypes)
     {
@@ -144,7 +132,7 @@ public class CreateSchemaRenderer : RendererEngine
         {
             ColumnIdentityExpression column => dialect.Renderer.Render(column.Name, "identity"),
             FunctionColumnIdentityExpression function =>
-                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
+                $"{SqlExpressionRenderer.ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
             _ => throw new ArgumentException(
                 $"Expression type '{constraint.Expression.GetType().Name}' is not supported for membership checks.",
                 nameof(value))
@@ -163,11 +151,6 @@ public class CreateSchemaRenderer : RendererEngine
         return matchNull ? $"({membership} OR {expression} IS NULL)" : membership;
     }
 
-    private static string ResolveFunction(string function, ISqlFunctionMapper mapper)
-        => mapper.ToDictionary().TryGetValue(function, out var mapped)
-            ? mapped.ToString()!
-            : throw new ArgumentException($"Function '{function}' is not supported by the selected dialect.", nameof(function));
-
     private static string RenderRegex(object? value, IDialect dialect)
     {
         if (value is not RegexCheckConstraint constraint)
@@ -177,7 +160,7 @@ public class CreateSchemaRenderer : RendererEngine
         {
             ColumnIdentityExpression column => dialect.Renderer.Render(column.Name, "identity"),
             FunctionColumnIdentityExpression function =>
-                $"{ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
+                $"{SqlExpressionRenderer.ResolveFunction(function.Function, dialect.SqlFunctionMapper)}({dialect.Renderer.Render(function.Name, "identity")})",
             _ => throw new ArgumentException(
                 $"Expression type '{constraint.Expression.GetType().Name}' is not supported for regex checks.",
                 nameof(value))

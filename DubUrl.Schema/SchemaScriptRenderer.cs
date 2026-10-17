@@ -25,6 +25,7 @@ namespace DubUrl.Schema;
         var templates = new List<RendererEngine>();
         if (options == SchemaCreationOptions.DropIfExists)
         {
+            templates.Add(new DropViewsIfExistsRenderer(dialect));
             templates.Add(new DropTablesIfExistsRenderer(dialect));
             templates.Add(new DropIndexesIfExistsRenderer(dialect));
         }
@@ -34,6 +35,7 @@ namespace DubUrl.Schema;
         if (SupportsComments)
             templates.Add(new CommentRenderer(dialect));
         templates.Add(new CreateIndexRenderer(dialect));
+        templates.Add(new CreateViewsRenderer(dialect));
         Templates = [.. templates];
     }
 
@@ -46,7 +48,18 @@ namespace DubUrl.Schema;
             tables.Add(tableRenderer);
         }
         var indexes = schema.Indexes.Values.Select(index => new IndexViewModel(index)).ToArray();
-        var model = new { model = new { Tables = tables.ToArray(), Indexes = indexes } };
+        var orderedViews = ViewDependencyPlanner.Order(schema.Views.Values)
+            .Select(view => new ViewViewModel(view)).ToArray();
+        var model = new
+        {
+            model = new
+            {
+                Tables = tables.ToArray(),
+                Indexes = indexes,
+                Views = orderedViews,
+                ViewsToDrop = orderedViews.Reverse().ToArray()
+            }
+        };
 
         var script = new StringBuilder();
         foreach (var renderer in Templates)
