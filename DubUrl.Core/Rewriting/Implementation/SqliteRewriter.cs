@@ -37,7 +37,7 @@ internal class SqliteRewriter : ConnectionStringRewriter
 
         public override void Execute(ConnectionUri urlInfo)
         {
-            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length == 0)
+            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count == 0)
             {
                 Specificator.Execute(DATABASE_KEYWORD, ":memory:");
                 return;
