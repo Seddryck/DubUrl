@@ -11,9 +11,14 @@ public interface ITableCollectionBuilder
     IIndexCollectionBuilder WithTables(Func<TableCollectionBuilder, TableCollectionBuilder> tables);
 }
 
-public interface IIndexCollectionBuilder : ISchemaBuilder
+public interface IIndexCollectionBuilder : IViewCollectionBuilder, ISchemaBuilder
 {
-    ISchemaBuilder WithIndexes(Func<IndexCollectionBuilder, IndexCollectionBuilder> indexes);
+    IViewCollectionBuilder WithIndexes(Func<IndexCollectionBuilder, IndexCollectionBuilder> indexes);
+}
+
+public interface IViewCollectionBuilder : ISchemaBuilder
+{
+    ISchemaBuilder WithViews(Func<ViewCollectionBuilder, ViewCollectionBuilder> views);
 }
 
 /// <summary>

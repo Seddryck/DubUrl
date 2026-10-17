@@ -9,13 +9,22 @@ public class Schema
 {
     public OrderedImmutableDictionary<string, Table> Tables { get; }
     public OrderedImmutableDictionary<string, Index> Indexes { get; }
+    public OrderedImmutableDictionary<string, View> Views { get; }
 
     public Schema(Table[] tables)
-        : this(tables, [])
+        : this(tables, [], [])
     { }
 
     public Schema(Table[] tables, Index[] indexes)
+        : this(tables, indexes, [])
+    { }
+
+    public Schema(Table[] tables, Index[] indexes, View[] views)
     {
+        ArgumentNullException.ThrowIfNull(tables);
+        ArgumentNullException.ThrowIfNull(indexes);
+        ArgumentNullException.ThrowIfNull(views);
+
         // Check for duplicate table names
         var duplicates = tables.GroupBy(t => t.Identity).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
         if (duplicates.Length > 0)
@@ -59,6 +68,29 @@ public class Schema
                     $"Index '{index.Identity}' references missing column(s) {string.Join(", ", missingColumns)} on table '{table.Identity}'.",
                     nameof(indexes));
         }
+
+        var duplicatedViews = views.GroupBy(view => view.Identity).Where(group => group.Count() > 1)
+            .Select(group => group.Key).ToArray();
+        if (duplicatedViews.Length > 0)
+            throw new ArgumentException(
+                $"Duplicate view names found: {string.Join(", ", duplicatedViews.Select(identity => identity.ToString()))}",
+                nameof(views));
+
+        var tableViewCollisions = views.Where(view => Tables.ContainsKey(view.Identity.Key))
+            .Select(view => view.Identity).ToArray();
+        if (tableViewCollisions.Length > 0)
+            throw new ArgumentException(
+                $"Table and view identities must be unique: {string.Join(", ", tableViewCollisions.Select(identity => identity.ToString()))}",
+                nameof(views));
+
+        Views = OrderedImmutableDictionary<string, View>.From(
+            views.Select(view => new KeyValuePair<string, View>(view.Identity.Key, view)));
+
+        foreach (var view in views)
+            if (!Tables.ContainsKey(view.Query.Source.Key) && !Views.ContainsKey(view.Query.Source.Key))
+                throw new ArgumentException(
+                    $"View '{view.Identity}' references missing source relation '{view.Query.Source}'.",
+                    nameof(views));
     }
 
     public Table GetTable(DatabaseObjectName identity)
@@ -66,4 +98,7 @@ public class Schema
 
     public Index GetIndex(DatabaseObjectName identity)
         => Indexes[identity?.Key ?? throw new ArgumentNullException(nameof(identity))];
+
+    public View GetView(DatabaseObjectName identity)
+        => Views[identity?.Key ?? throw new ArgumentNullException(nameof(identity))];
 }

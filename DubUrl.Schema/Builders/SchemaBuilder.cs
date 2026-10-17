@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Schema.Builders;
 
-public class SchemaBuilder : ISchemaBuilder, ITableCollectionBuilder, IIndexCollectionBuilder
+public class SchemaBuilder : ISchemaBuilder, ITableCollectionBuilder, IIndexCollectionBuilder, IViewCollectionBuilder
 {
     private TableCollectionBuilder Tables { get; set; } = new();
     private IndexCollectionBuilder Indexes { get; set; } = new();
+    private ViewCollectionBuilder Views { get; set; } = new();
 
     public IIndexCollectionBuilder WithTables(Func<TableCollectionBuilder, TableCollectionBuilder> tables)
     {
@@ -17,9 +18,15 @@ public class SchemaBuilder : ISchemaBuilder, ITableCollectionBuilder, IIndexColl
         return this;
     }
 
-    ISchemaBuilder IIndexCollectionBuilder.WithIndexes(Func<IndexCollectionBuilder, IndexCollectionBuilder> indexes)
+    IViewCollectionBuilder IIndexCollectionBuilder.WithIndexes(Func<IndexCollectionBuilder, IndexCollectionBuilder> indexes)
     {
         Indexes = indexes(Indexes);
+        return this;
+    }
+
+    ISchemaBuilder IViewCollectionBuilder.WithViews(Func<ViewCollectionBuilder, ViewCollectionBuilder> views)
+    {
+        Views = views(Views);
         return this;
     }
 
@@ -35,6 +42,11 @@ public class SchemaBuilder : ISchemaBuilder, ITableCollectionBuilder, IIndexColl
         if (indexes.GroupBy(c => c.Identity).Count() != indexes.Length)
             throw new InvalidOperationException("Index names must be unique.");
 
-        return new Schema(tables, indexes);
+        var views = Views.Select(view => view.Build()).ToArray();
+
+        if (views.GroupBy(view => view.Identity).Count() != views.Length)
+            throw new InvalidOperationException("View names must be unique.");
+
+        return new Schema(tables, indexes, views);
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.Schema.Builders;
+using DubUrl.Schema.Constraints;
 using NUnit.Framework;
 
 namespace DubUrl.Schema.Testing.Builders;
@@ -60,6 +61,39 @@ public class SchemaBuilderTests
         {
             Assert.That(schema.Tables, Has.Count.EqualTo(2));
             Assert.That(schema.Indexes, Has.Count.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void Build_WithQualifiedViewChain_PreservesDefinitions()
+    {
+        var source = new DatabaseObjectName("customers", schema: "sales");
+        var first = new DatabaseObjectName("customer_names", schema: "reporting");
+        var schema = new SchemaBuilder()
+            .WithTables(tables => tables.Add(table => table
+                .WithIdentity(source)
+                .WithColumns(columns => columns
+                    .Add(column => column.WithName("id").WithType(DbType.Int32))
+                    .Add(column => column.WithName("name").WithType(DbType.String)))))
+            .WithViews(views => views
+                .Add(view => view.WithIdentity(first)
+                    .From(source)
+                    .WithProjections(projections => projections
+                        .Add(projection => projection.WithColumn("id"))
+                        .Add(projection => projection.WithFunction(
+                            "Lower", new ColumnIdentityExpression("name")).As("normalized_name"))))
+                .Add(view => view.WithName("customer_names_copy")
+                    .From(first)
+                    .WithProjections(projections => projections
+                        .Add(projection => projection.WithColumn("normalized_name")))))
+            .Build();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(schema.Views, Has.Count.EqualTo(2));
+            Assert.That(schema.Views.Values.First().Identity, Is.EqualTo(first));
+            Assert.That(schema.Views.Values.Last().Query.Source, Is.EqualTo(first));
+            Assert.That(schema.Views.Values.First().Query.Projections.Last().Alias, Is.EqualTo("normalized_name"));
         });
     }
 }
