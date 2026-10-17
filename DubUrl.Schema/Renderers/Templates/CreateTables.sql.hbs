@@ -6,7 +6,7 @@ CREATE TABLE {{objectname Identity}} (
     {{#if Precision}}({{Precision}}, {{Scale}}){{/if~}}
     {{#if Nullable}} NULL{{/if~}}
     {{#if NotNullable}} NOT NULL{{/if~}}
-    {{#if PrimaryKey}} PRIMARY KEY{{/if~}}
+    {{#if PrimaryKey}} {{#if PrimaryKey.Name}}CONSTRAINT {{identity PrimaryKey.Name}} {{/if}}PRIMARY KEY{{/if~}}
     {{#if Unique}} UNIQUE{{/if~}}
     {{#if HasDefaultValue}} DEFAULT {{value DefaultValue}}{{/if~}}
     {{#each Checks}} CHECK {{check this}}
@@ -18,7 +18,7 @@ CREATE TABLE {{objectname Identity}} (
     {{#unless @last}},{{/unless}}
 {{/each}}
 {{#if PrimaryKey}}
-    , CONSTRAINT {{identity ([String.Append] 'PK_' Name)}} PRIMARY KEY (
+    , CONSTRAINT {{#if PrimaryKey.Name}}{{identity PrimaryKey.Name}}{{else}}{{identity ([String.Append] 'PK_' Name)}}{{/if}} PRIMARY KEY (
 {{~ #each PrimaryKey.Columns}}
 {{identity Name}}{{#unless @last}}, {{/unless~}}
 {{/each~}}

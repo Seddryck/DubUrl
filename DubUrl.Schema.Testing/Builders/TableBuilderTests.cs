@@ -175,9 +175,57 @@ public class TableBuilderTests
         Assert.Multiple(() =>
         {
             Assert.That(pkConstraint.Columns, Has.Count.EqualTo(2));
-            Assert.That(pkConstraint.Columns.ContainsKey("foo"), Is.True);
-            Assert.That(pkConstraint.Columns.ContainsKey("bar"), Is.True);
+            Assert.That(pkConstraint.Columns.Keys, Is.EqualTo(new[] { "foo", "bar" }));
+            Assert.That(pkConstraint.Columns["foo"], Is.SameAs(table.Columns["foo"]));
+            Assert.That(pkConstraint.Columns["bar"], Is.SameAs(table.Columns["bar"]));
         });
+    }
+
+    [Test]
+    public void Build_NamedPrimaryKey_PreservesName()
+    {
+        var table = new TableBuilder()
+            .WithName("OrderLine")
+            .WithColumns(columns => columns
+                .Add(column => column.WithName("OrderId").WithType(DbType.Int32))
+                .Add(column => column.WithName("LineNumber").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints.AddPrimaryKey(primaryKey => primaryKey
+                .WithName("PK_OrderLine")
+                .WithColumnNames("OrderId", "LineNumber")))
+            .Build();
+
+        var primaryKey = table.Constraints.Get<PrimaryKeyConstraint>();
+
+        Assert.That(primaryKey, Is.Not.Null);
+        Assert.That(primaryKey!.Name, Is.EqualTo("PK_OrderLine"));
+        Assert.That(primaryKey.Columns.Keys, Is.EqualTo(new[] { "OrderId", "LineNumber" }));
+    }
+
+    [Test]
+    public void Build_PrimaryKeyWithoutColumns_Throws()
+    {
+        var builder = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column.WithName("Id").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints.AddPrimaryKey(primaryKey => primaryKey));
+
+        var exception = Assert.Throws<InvalidDataException>(() => builder.Build());
+
+        Assert.That(exception.Message, Is.EqualTo("Column names must be provided."));
+    }
+
+    [Test]
+    public void Build_PrimaryKeyWithDuplicateColumns_Throws()
+    {
+        var builder = new TableBuilder()
+            .WithName("Customer")
+            .WithColumns(columns => columns.Add(column => column.WithName("Id").WithType(DbType.Int32)))
+            .WithConstraints(constraints => constraints.AddPrimaryKey(primaryKey => primaryKey
+                .WithColumnNames("Id", "Id")));
+
+        var exception = Assert.Throws<ArgumentException>(() => builder.Build());
+
+        Assert.That(exception.Message, Does.Contain("Primary key column names must be unique: Id."));
     }
 
     [Test]

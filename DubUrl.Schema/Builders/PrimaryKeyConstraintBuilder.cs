@@ -9,6 +9,13 @@ namespace DubUrl.Schema.Builders;
 public class PrimaryKeyConstraintBuilder : IConstraintBuilder
 {
     private string[]? Names { get; set; }
+    private string? Name { get; set; }
+
+    public PrimaryKeyConstraintBuilder WithName(string? name)
+    {
+        Name = name;
+        return this;
+    }
 
     public IConstraintBuilder WithColumnNames(params string[] names)
     {
@@ -26,6 +33,6 @@ public class PrimaryKeyConstraintBuilder : IConstraintBuilder
 
         var columns = Names.Select(name => new Column(name, System.Data.DbType.Object));
 
-        return new PrimaryKeyConstraint([.. columns]);
+        return new PrimaryKeyConstraint([.. columns], Name);
     }
 }

@@ -27,7 +27,7 @@ public class ColumnViewModel
     public NativeDatabaseType? NativeType { get; }
     public NativeTypeFallback NativeTypeFallback { get; }
 
-    public ColumnViewModel(Column column)
+    public ColumnViewModel(Column column, bool includePrimaryKey = true)
     {
         Name = column.Name;
         Type = column.Type.ToString();
@@ -39,6 +39,8 @@ public class ColumnViewModel
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
         Unique = column.Constraints.Get<UniquenessConstraint>();
+        var primaryKey = includePrimaryKey ? column.Constraints.Get<PrimaryKeyConstraint>() : null;
+        PrimaryKey = primaryKey is null ? null : new PrimaryKeyConstraintViewModel(primaryKey);
         Checks = [.. column.Constraints.OfType<CheckConstraint>()];
         MembershipChecks = [.. column.Constraints.OfType<MembershipCheckConstraint>()];
         RegexChecks = [.. column.Constraints.OfType<RegexCheckConstraint>()];

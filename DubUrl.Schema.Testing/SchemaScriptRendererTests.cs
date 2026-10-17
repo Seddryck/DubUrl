@@ -181,7 +181,7 @@ public class SchemaScriptRendererTests
         var schema = new SchemaScriptRenderer(DuckDb);
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
-                                    "\r\n    Id INTEGER," +
+                                    "\r\n    Id INTEGER PRIMARY KEY," +
                                     "\r\n    Name VARCHAR(50) NOT NULL UNIQUE" +
                                     "\r\n);" +
                                     "\r\n"));
@@ -211,7 +211,7 @@ public class SchemaScriptRendererTests
         var schema = new SchemaScriptRenderer(TSql);
         var result = schema.Render(GetModel());
         Assert.That(result, Is.EqualTo("CREATE TABLE [Customer] (" +
-                                    "\r\n    [Id] INTEGER," +
+                                    "\r\n    [Id] INTEGER PRIMARY KEY," +
                                     "\r\n    [Name] VARCHAR(50) CHECK LEN([Name]) >= 10" +
                                     "\r\n);" +
                                     "\r\n"));
@@ -223,7 +223,7 @@ public class SchemaScriptRendererTests
         var schema = new SchemaScriptRenderer(DuckDb);
         var result = schema.Render(GetModel());
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
-                                    "\r\n    Id INTEGER," +
+                                    "\r\n    Id INTEGER PRIMARY KEY," +
                                     "\r\n    Name VARCHAR(50) CHECK LENGTH(Name) >= 10" +
                                     "\r\n);" +
                                     "\r\n"));
@@ -248,7 +248,7 @@ public class SchemaScriptRendererTests
         var schema = new SchemaScriptRenderer(DuckDb);
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
-                                    "\r\n    Id INTEGER," +
+                                    "\r\n    Id INTEGER PRIMARY KEY," +
                                     "\r\n    Age SMALLINT CHECK Age >= 18" +
                                     "\r\n);" +
                                     "\r\n"));
@@ -799,6 +799,76 @@ public class SchemaScriptRendererTests
         {
             Assert.That(namedCheck, Is.GreaterThanOrEqualTo(0));
             Assert.That(unnamedCheck, Is.GreaterThan(namedCheck));
+        });
+    }
+
+    [Test]
+    public void ColumnViewModel_ColumnWithoutPrimaryKey_LeavesPrimaryKeyNull()
+    {
+        var model = new ColumnViewModel(new Column("Id", DbType.Int32));
+
+        Assert.That(model.PrimaryKey, Is.Null);
+    }
+
+    [Test]
+    public void ColumnViewModel_ColumnWithPrimaryKey_PopulatesPrimaryKey()
+    {
+        var model = new ColumnViewModel(new Column(
+            "Id",
+            DbType.Int32,
+            constraints: [new PrimaryKeyConstraint("PK_Customer_Id")]));
+
+        Assert.That(model.PrimaryKey, Is.Not.Null);
+        Assert.That(model.PrimaryKey!.Name, Is.EqualTo("PK_Customer_Id"));
+    }
+
+    [Test]
+    public void Render_NamedColumnPrimaryKey_PreservesConstraintName()
+    {
+        var id = new Column(
+            "Id",
+            DbType.Int32,
+            constraints: [new PrimaryKeyConstraint("PK_Customer_Id")]);
+
+        var result = new SchemaScriptRenderer(TSql).Render(new Schema([new Table("Customer", [id])], []));
+
+        Assert.That(result, Does.Contain("[Id] INTEGER CONSTRAINT [PK_Customer_Id] PRIMARY KEY"));
+    }
+
+    [Test]
+    public void Render_NamedCompositePrimaryKey_PreservesNameAndColumnOrder()
+    {
+        var orderId = new Column("OrderId", DbType.Int32);
+        var lineNumber = new Column("LineNumber", DbType.Int32);
+        var table = new Table(
+            "OrderLine",
+            [orderId, lineNumber],
+            [new PrimaryKeyConstraint([orderId, lineNumber], "PK_OrderLine")]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Contain("CONSTRAINT PK_OrderLine PRIMARY KEY (OrderId, LineNumber)"));
+    }
+
+    [Test]
+    public void Render_TableAndColumnPrimaryKeys_EmitsOnlyCanonicalTableConstraint()
+    {
+        var id = new Column(
+            "Id",
+            DbType.Int32,
+            constraints: [new PrimaryKeyConstraint("PK_Legacy_Id")]);
+        var table = new Table(
+            "Customer",
+            [id],
+            [new PrimaryKeyConstraint([id], "PK_Customer")]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Does.Contain("CONSTRAINT PK_Customer PRIMARY KEY (Id)"));
+            Assert.That(result, Does.Not.Contain("Id INTEGER PRIMARY KEY"));
+            Assert.That(result, Does.Not.Contain("PK_Legacy_Id"));
         });
     }
 }

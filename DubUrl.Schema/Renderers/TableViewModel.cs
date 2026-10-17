@@ -12,7 +12,7 @@ public class TableViewModel
     public string Name { get; }
     public DatabaseObjectName Identity { get; }
     public ColumnViewModel[] Columns { get; }
-    public PrimaryKeyConstraint? PrimaryKey { get; }
+    public PrimaryKeyConstraintViewModel? PrimaryKey { get; }
     public NullableConstraint? Nullable { get; }
     public NotNullableConstraint? NotNullable { get; }
     public UniquenessConstraint? Unique { get; }
@@ -25,8 +25,9 @@ public class TableViewModel
     {
         Name = table.Name;
         Identity = table.Identity;
-        Columns = table.Columns.Values.Select(c => new ColumnViewModel(c)).ToArray();
-        PrimaryKey = table.Constraints.Get<PrimaryKeyConstraint>();
+        var primaryKey = table.Constraints.Get<PrimaryKeyConstraint>();
+        PrimaryKey = primaryKey is null ? null : new PrimaryKeyConstraintViewModel(primaryKey);
+        Columns = table.Columns.Values.Select(c => new ColumnViewModel(c, primaryKey is null)).ToArray();
         Nullable = table.Constraints.Get<NullableConstraint>();
         NotNullable = table.Constraints.Get<NotNullableConstraint>();
         Unique = table.Constraints.Get<UniquenessConstraint>();
