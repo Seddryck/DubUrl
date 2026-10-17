@@ -108,6 +108,50 @@ public class CliHostTests
     }
 
     [Test]
+    public async Task Deploy_DryRun_UsesDialectAliasesFromCore()
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:test"] = "postgresql://user:password@localhost/database"
+        }).Build();
+        var console = new TestConsole(JsonSchema);
+        await using var services = CliComposition.CreateDefault(console, configuration);
+
+        var exitCode = await CliHost.InvokeAsync(
+            ["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--dry-run"], services);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
+            Assert.That(console.StandardOutput, Does.Contain("CREATE TABLE \"customer\""));
+            Assert.That(console.StandardError, Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task Capabilities_ReportsDiscoveredProviders()
+    {
+        var console = new TestConsole(string.Empty);
+        await using var services = CliComposition.CreateDefault(console);
+
+        var exitCode = await CliHost.InvokeAsync(["capabilities", "--json"], services);
+
+        using var result = JsonDocument.Parse(console.StandardOutput);
+        var providers = result.RootElement.GetProperty("providers")
+            .EnumerateArray()
+            .Select(item => item.GetString())
+            .ToArray();
+        Assert.Multiple(() =>
+        {
+            Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
+            Assert.That(providers, Is.EquivalentTo(new[]
+            {
+                "Microsoft.Data.SqlClient", "Microsoft.Data.Sqlite", "MySqlConnector", "Npgsql"
+            }));
+        });
+    }
+
+    [Test]
     public async Task Render_OutputFile_WritesSqlWithoutMixingStandardOutput()
     {
         var output = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"schema-{Guid.NewGuid():N}.sql");

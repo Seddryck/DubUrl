@@ -136,7 +136,9 @@ internal static class SchemaCommand
             try
             {
                 var connection = new ConnectionUrl(connectionUrl);
-                var dialect = GetCanonicalDialect(connection.Dialect);
+                var dialect = services.GetRequiredService<CliCapabilities>().FindDialect(connection.Dialect)
+                    ?? throw new CliInputException(
+                        $"Dialect '{connection.Dialect.GetType().Name}' is not available for schema rendering.");
                 var rendered = services.GetRequiredService<ISchemaDocumentService>().Render(document, dialect,
                     new SchemaRenderOptions { CreationOptions = creationOptions });
                 WriteRenderResult(services, rendered, json, outputPath: null, command: "deploy", dryRun: true);
@@ -249,21 +251,6 @@ internal static class SchemaCommand
             ? configuredValue
             : throw new CliInputException($"Named connection '{name}' was not found in configuration.");
     }
-
-    private static string GetCanonicalDialect(IDialect dialect)
-        => dialect switch
-        {
-            TSqlDialect => "mssql",
-            CockRoachDialect => "cockroachdb",
-            CrateDbDialect => "cratedb",
-            QuestDbDialect => "questdb",
-            PgsqlDialect => "pgsql",
-            SingleStoreDialect => "singlestore",
-            MySqlDialect => "mysql",
-            SqliteDialect => "sqlite",
-            DuckDbDialect => "duckdb",
-            _ => throw new CliInputException($"Dialect '{dialect.GetType().Name}' is not available for schema rendering.")
-        };
 
     private static void WriteValidationResult(IServiceProvider services, SchemaValidationResult result, bool json)
     {

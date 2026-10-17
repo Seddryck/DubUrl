@@ -1,8 +1,8 @@
 using System.Data.Common;
 using DubUrl.Application;
 using DubUrl.Querying.Dialects;
+using DubUrl.Registering;
 using DubUrl.Schema.Documents;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,7 +19,7 @@ public static class CliComposition
             .AddEnvironmentVariables("DUBURL_")
             .Build();
 
-        DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", SqliteFactory.Instance);
+        new ProviderFactoriesRegistrator(new CliProviderFactoriesDiscoverer()).Register();
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
@@ -39,7 +39,7 @@ public static class CliComposition
         services.AddSingleton<ISchemaScriptDeploymentExecutor, SchemaScriptDeploymentExecutor>();
         services.AddSingleton<ISchemaDocumentService, SchemaDocumentService>();
         services.AddSingleton<ISchemaDeploymentService, SchemaDeploymentService>();
-        services.AddSingleton<CliCapabilities>();
+        services.AddSingleton(new CliCapabilities(DbProviderFactories.GetProviderInvariantNames()));
         return services.BuildServiceProvider();
     }
 
@@ -56,5 +56,17 @@ public static class CliComposition
         builder.AddDialect<DuckDbDialect>(["duck", "duckdb"]);
         builder.AddDialect<QuestDbDialect>(["questdb"]);
         return builder.Build();
+    }
+
+    private sealed class CliProviderFactoriesDiscoverer : IProviderFactoriesDiscoverer
+    {
+        public IEnumerable<Type> Execute()
+            =>
+            [
+                typeof(Microsoft.Data.SqlClient.SqlClientFactory),
+                typeof(Microsoft.Data.Sqlite.SqliteFactory),
+                typeof(MySqlConnector.MySqlConnectorFactory),
+                typeof(Npgsql.NpgsqlFactory)
+            ];
     }
 }
