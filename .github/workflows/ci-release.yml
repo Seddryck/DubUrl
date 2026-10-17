@@ -872,8 +872,8 @@ jobs:
       - name: Validate CLI release assets
         shell: pwsh
         run: |
-          $archives = @(Get-ChildItem .artifacts/release -File | Where-Object Extension -In @('.zip', '.gz'))
-          $installers = @(Get-ChildItem .artifacts/release -File -Filter '*-setup.exe')
+          $archives = @(Get-ChildItem .artifacts/release -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
+          $installers = @(Get-ChildItem .artifacts/release -Recurse -File -Filter '*-setup.exe')
           if ($archives.Count -ne 12) { throw "Expected 12 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
           $mixedCase = @($archives + $installers | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
@@ -897,6 +897,6 @@ jobs:
               --verify-tag
           }
 
-          $assets = @(Get-ChildItem .artifacts/release -File)
+          $assets = @(Get-ChildItem .artifacts/release -Recurse -File)
           gh release upload $tag @($assets.FullName) --clobber --repo '${{ github.repository }}'
           if ($LASTEXITCODE -ne 0) { throw "Uploading CLI assets to '$tag' failed." }
