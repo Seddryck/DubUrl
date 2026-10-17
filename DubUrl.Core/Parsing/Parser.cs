@@ -21,10 +21,14 @@ internal class Parser : IParser
 
         if (!string.IsNullOrEmpty(uri.UserInfo))
         {
+            var separatorIndex = uri.UserInfo.IndexOf(':');
+            var username = separatorIndex >= 0 ? uri.UserInfo[..separatorIndex] : uri.UserInfo;
+            var password = separatorIndex >= 0 ? uri.UserInfo[(separatorIndex + 1)..] : string.Empty;
+
             urlInfo = urlInfo with
             {
-                Username = uri.UserInfo.Split(':')[0],
-                Password = uri.UserInfo.Contains(':') ? uri.UserInfo.Split(':')[1] : string.Empty,
+                Username = Uri.UnescapeDataString(username),
+                Password = Uri.UnescapeDataString(password),
             };
         }
         urlInfo = urlInfo with { Host = uri.Host };

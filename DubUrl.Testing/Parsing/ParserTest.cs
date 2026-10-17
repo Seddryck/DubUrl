@@ -78,6 +78,9 @@ public class ParserTest
     [Test]
     [TestCase("mssql://user:pwd@host/db")]
     [TestCase("mssql://user:pwd@host:1234/db")]
+    [TestCase("mssql://us%40er:p%40ss%3Aword@host/db", "us@er", "p@ss:word")]
+    [TestCase("mssql://user:p:a:ss@host/db", "user", "p:a:ss")]
+    [TestCase("mssql://user+name:p+ss@host/db", "user+name", "p+ss")]
     public void Url_Parser_UserInfoParsed(string url, string username = "user", string password = "pwd")
     {
         var parser = new Parser();
