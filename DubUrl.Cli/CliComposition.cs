@@ -21,8 +21,8 @@ public static class CliComposition
             .Build();
 
         new ProviderFactoriesRegistrator(new CliProviderFactoriesDiscoverer()).Register();
-        var capabilities = new CliCapabilities(DbProviderFactories.GetProviderInvariantNames());
-        var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry([.. capabilities.Dialects]);
+        var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry();
+        var capabilities = new CliCapabilities(dialects, DbProviderFactories.GetProviderInvariantNames());
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);

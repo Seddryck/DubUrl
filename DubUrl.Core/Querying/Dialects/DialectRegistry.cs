@@ -19,6 +19,9 @@ public class DialectRegistry : IDialectRegistry
     public DialectRegistry(Dictionary<Type, IDialect> dialects, Dictionary<Type, List<string>>? aliases = null)
         => (_dialects, _aliases) = (dialects, aliases ?? []);
 
+    public IReadOnlyCollection<IDialect> GetAll()
+        => _dialects.Values.ToArray();
+
     public T Get<T>() where T : IDialect
         => (T)Get(typeof(T));
 

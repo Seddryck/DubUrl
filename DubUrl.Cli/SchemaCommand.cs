@@ -136,9 +136,7 @@ internal static class SchemaCommand
             try
             {
                 var connection = new ConnectionUrl(connectionUrl);
-                var dialect = services.GetRequiredService<CliCapabilities>().FindDialect(connection.Dialect)
-                    ?? throw new CliInputException(
-                        $"Dialect '{connection.Dialect.GetType().Name}' is not available for schema rendering.");
+                var dialect = connection.Dialect.Aliases.First();
                 var rendered = services.GetRequiredService<ISchemaDocumentService>().Render(document, dialect,
                     new SchemaRenderOptions { CreationOptions = creationOptions });
                 WriteRenderResult(services, rendered, json, outputPath: null, command: "deploy", dryRun: true);

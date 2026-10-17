@@ -35,6 +35,19 @@ public class DialectRegistryBuilderTest
             Throws.ArgumentException.With.Property("ParamName").EqualTo("schemes"));
 
     [Test]
+    public void GetAll_DefaultRegistry_ReturnsEveryRegisteredDialect()
+    {
+        var registry = SchemeRegistryBuilder.GetDefaultDialectRegistry();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(registry.GetAll(), Does.Contain(registry.Get("firebird")));
+            Assert.That(registry.GetAll(), Does.Contain(registry.Get("mssql")));
+            Assert.That(registry.GetAll(), Does.Contain(registry.Get("sqlite")));
+        });
+    }
+
+    [Test]
     public void Get_DefinedDialect_GetDialect()
     {
         var builder = new DialectRegistryBuilder();

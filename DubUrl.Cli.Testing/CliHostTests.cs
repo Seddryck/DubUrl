@@ -144,6 +144,14 @@ public class CliHostTests
             .EnumerateArray()
             .Select(item => item.GetString())
             .ToArray();
+        var dialects = result.RootElement.GetProperty("dialects")
+            .EnumerateArray()
+            .Select(item => item.GetString())
+            .ToArray();
+        var deployableSchemes = result.RootElement.GetProperty("deployableSchemes")
+            .EnumerateArray()
+            .Select(item => item.GetString())
+            .ToArray();
         Assert.Multiple(() =>
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
@@ -151,6 +159,26 @@ public class CliHostTests
             {
                 "Microsoft.Data.SqlClient", "Microsoft.Data.Sqlite", "MySqlConnector", "Npgsql"
             }));
+            Assert.That(dialects, Does.Contain("firebird"));
+            Assert.That(deployableSchemes, Does.Contain("mssql"));
+            Assert.That(deployableSchemes, Does.Not.Contain("firebird"));
+        });
+    }
+
+    [Test]
+    public async Task Render_FirebirdAlias_UsesCoreDialectRegistry()
+    {
+        var console = new TestConsole(JsonSchema);
+        await using var services = CliComposition.CreateDefault(console);
+
+        var exitCode = await CliHost.InvokeAsync(
+            ["schema", "render", "-", "--input-format", "json", "--dialect", "firebird"], services);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
+            Assert.That(console.StandardOutput, Does.Contain("CREATE TABLE \"customer\""));
+            Assert.That(console.StandardError, Is.Empty);
         });
     }
 
