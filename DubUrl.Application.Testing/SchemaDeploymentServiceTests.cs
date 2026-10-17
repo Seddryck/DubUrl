@@ -2,7 +2,7 @@ using DubUrl.Querying.Dialects;
 using DubUrl.Schema.Documents;
 using NUnit.Framework;
 
-namespace DubUrl.Schema.Application.Testing;
+namespace DubUrl.Application.Testing;
 
 public class SchemaDeploymentServiceTests
 {

@@ -76,9 +76,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Schema.Documents", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Schema.Documents.Testing", "DubUrl.Schema.Documents.Testing\DubUrl.Schema.Documents.Testing.csproj", "{D32B90F7-B2AF-4C37-BCCF-16EB4F472550}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Schema.Application", "DubUrl.Schema.Application\DubUrl.Schema.Application.csproj", "{79C8D13C-BA05-491D-BE97-4F5BA54CA9C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Application", "DubUrl.Application\DubUrl.Application.csproj", "{79C8D13C-BA05-491D-BE97-4F5BA54CA9C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Schema.Application.Testing", "DubUrl.Schema.Application.Testing\DubUrl.Schema.Application.Testing.csproj", "{05B241A5-4C85-4413-870B-5EC42A121A78}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Application.Testing", "DubUrl.Application.Testing\DubUrl.Application.Testing.csproj", "{05B241A5-4C85-4413-870B-5EC42A121A78}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BulkCopy", "BulkCopy", "{39D8D8CC-CE82-4316-85FF-1C63006A93CA}"
 EndProject

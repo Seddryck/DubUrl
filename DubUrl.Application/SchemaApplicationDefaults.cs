@@ -1,8 +1,9 @@
 using System.Data.Common;
 using DubUrl.Querying.Dialects;
+using DubUrl.Schema;
 using RuntimeSchema = DubUrl.Schema.Schema;
 
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 /// <summary>Default adapters for the existing DubUrl dialect, renderer, and connection APIs.</summary>
 public sealed class SchemaDialectResolver(IDialectRegistry dialects) : ISchemaDialectResolver

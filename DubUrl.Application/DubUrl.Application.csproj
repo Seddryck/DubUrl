@@ -6,7 +6,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageId>DubUrl.Schema.Application</PackageId>
+    <PackageId>DubUrl.Application</PackageId>
     <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
     <PackageTags>connection-string;database;sql;schema;application-api</PackageTags>
     <Description>Transport-neutral application services for validating, rendering, and deploying DubUrl schema documents.</Description>

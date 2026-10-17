@@ -1,10 +1,11 @@
 using DubUrl.Querying.Dialects;
+using DubUrl.Schema;
 using DubUrl.Schema.Documents;
 using DubUrl.Schema.Documents.V1;
 using NUnit.Framework;
 using RuntimeSchema = DubUrl.Schema.Schema;
 
-namespace DubUrl.Schema.Application.Testing;
+namespace DubUrl.Application.Testing;
 
 public class SchemaDocumentServiceTests
 {

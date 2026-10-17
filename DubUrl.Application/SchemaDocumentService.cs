@@ -1,7 +1,8 @@
 using DubUrl.Querying.Dialects;
+using DubUrl.Schema;
 using DubUrl.Schema.Documents;
 
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 /// <summary>
 /// Coordinates document validation, mapping, and SQL rendering for in-process and transport-hosted consumers.

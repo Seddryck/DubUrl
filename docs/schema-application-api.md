@@ -1,6 +1,12 @@
 # Schema application API
 
-`DubUrl.Schema.Application` is the supported transport-neutral application boundary for schema-document operations. It lets command-line tools, persistent workers, HTTP services, and ordinary .NET applications share the same validation, rendering, and deployment behavior without placing transport concerns in the schema projects.
+`DubUrl.Application` is the supported transport-neutral application boundary for schema-document operations. It lets command-line tools, persistent workers, HTTP services, and ordinary .NET applications share the same validation, rendering, and deployment behavior without placing transport concerns in the schema projects.
+
+Install the application boundary from NuGet:
+
+```shell
+dotnet add package DubUrl.Application
+```
 
 ## Supported boundary
 

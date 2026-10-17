@@ -1,8 +1,9 @@
 using DubUrl.Querying.Dialects;
+using DubUrl.Schema;
 using DubUrl.Schema.Documents;
 using RuntimeSchema = DubUrl.Schema.Schema;
 
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 internal sealed class SchemaOperationPipeline(
     ISchemaDocumentValidator validator,

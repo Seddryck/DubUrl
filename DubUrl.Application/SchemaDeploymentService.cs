@@ -1,7 +1,8 @@
+using DubUrl.Schema;
 using DubUrl.Schema.Documents;
 using System.Data.Common;
 
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 /// <summary>Coordinates validation, mapping, rendering, and live database deployment.</summary>
 public sealed class SchemaDeploymentService : ISchemaDeploymentService

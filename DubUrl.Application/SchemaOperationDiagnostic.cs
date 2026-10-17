@@ -1,6 +1,6 @@
 using DubUrl.Schema.Documents;
 
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 /// <summary>A transport-neutral diagnostic produced by a schema application service.</summary>
 public sealed record SchemaOperationDiagnostic(

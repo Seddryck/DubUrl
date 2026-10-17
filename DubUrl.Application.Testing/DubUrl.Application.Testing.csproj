@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DubUrl.Schema.Application\DubUrl.Schema.Application.csproj" />
+    <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
   </ItemGroup>
 
 </Project>

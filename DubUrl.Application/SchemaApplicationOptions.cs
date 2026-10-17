@@ -1,6 +1,6 @@
 using DubUrl.Schema;
 
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 /// <summary>Options controlling schema script rendering.</summary>
 public sealed record SchemaRenderOptions

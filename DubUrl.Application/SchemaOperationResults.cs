@@ -1,4 +1,4 @@
-namespace DubUrl.Schema.Application;
+namespace DubUrl.Application;
 
 /// <summary>The result of validating a schema document.</summary>
 public sealed record SchemaValidationResult(
