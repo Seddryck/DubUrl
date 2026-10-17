@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,6 @@ namespace DubUrl.Rewriting;
 
 public interface IConnectionStringRewriter
 {
-    IReadOnlyDictionary<string, object> Execute(UrlInfo urlInfo);
+    IReadOnlyDictionary<string, object> Execute(ConnectionUri urlInfo);
     string ConnectionString { get; }
 }

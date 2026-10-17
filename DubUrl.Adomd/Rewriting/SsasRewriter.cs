@@ -1,4 +1,4 @@
-﻿using DubUrl.Adomd.Discovery;
+using DubUrl.Adomd.Discovery;
 using DubUrl.Parsing;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Implementation;
@@ -37,19 +37,19 @@ internal abstract class SsasRewriter : ConnectionStringRewriter
 
     protected internal class DataSourceMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var fullHost = new StringBuilder();
             fullHost.Append(urlInfo.Host);
-            if (urlInfo.Segments.Length == 0 || urlInfo.Segments.Length > 3)
-                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments)}'");
+            if (urlInfo.Segments.Count == 0 || urlInfo.Segments.Count > 3)
+                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Count} segments: '{string.Join("', '", urlInfo.Segments)}'");
             if (urlInfo.Port != 0)
             {
                 fullHost.Append(':').Append(urlInfo.Port);
                 if (!urlInfo.Segments.First().Equals('~'))
                     throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' cannot specify both a port and an instance name. This connection-url is containing the following port {urlInfo.Port} and instance name '{urlInfo.Segments.First()}'. To specify the default instance use the '~' character.");
             }
-            if (urlInfo.Segments.Length > 1 && !urlInfo.Segments.First().Equals("~"))
+            if (urlInfo.Segments.Count > 1 && !urlInfo.Segments.First().Equals("~"))
                 fullHost.Append('\\').Append(urlInfo.Segments.First());
 
             Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
@@ -58,7 +58,7 @@ internal abstract class SsasRewriter : ConnectionStringRewriter
 
     protected internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
@@ -71,24 +71,24 @@ internal abstract class SsasRewriter : ConnectionStringRewriter
 
     protected internal class InitialCatalogMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length == 1 && !urlInfo.Segments.First().Equals("~"))
+            if (urlInfo.Segments.Count == 1 && !urlInfo.Segments.First().Equals("~"))
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
-            else if (urlInfo.Segments.Length == 1)
+            else if (urlInfo.Segments.Count == 1)
                 throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' must specify a Database/Initial Catalog. This connection-url is containing a reference to the default instance ('~') but not to a database/initial catalog.");
-            else if (urlInfo.Segments.Length >= 2 && urlInfo.Segments.Length <= 3)
+            else if (urlInfo.Segments.Count >= 2 && urlInfo.Segments.Count <= 3)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Skip(1).First());
             else
-                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments)}'");
+                throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' is expecting one to three segments. This connection-url is containing {urlInfo.Segments.Count} segments: '{string.Join("', '", urlInfo.Segments)}'");
         }
     }
 
     protected internal class CubeMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length == 3)
+            if (urlInfo.Segments.Count == 3)
                 Specificator.Execute(CUBE_KEYWORD, urlInfo.Segments.Last());
         }
     }

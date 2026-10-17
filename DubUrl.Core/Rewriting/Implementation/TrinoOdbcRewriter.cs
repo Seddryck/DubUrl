@@ -1,4 +1,4 @@
-﻿using DubUrl.Locating.OdbcDriver;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
@@ -37,30 +37,30 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 
     internal new class HostMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(HOST_KEYWORD, string.IsNullOrEmpty(urlInfo.Host) ? "localhost" : urlInfo.Host);
     }
 
     internal class PortMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
             => Specificator.Execute(PORT_KEYWORD, urlInfo.Port==0  ? PORT_DEFAULT_VALUE : urlInfo.Port);
     }
 
     internal class CatalogMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length >= 1)
+            if (urlInfo.Segments.Count >= 1)
                 Specificator.Execute(CATALOG_KEYWORD, urlInfo.Segments[0]);
         }
     }
 
     internal class SchemaMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length >= 2)
+            if (urlInfo.Segments.Count >= 2)
                 Specificator.Execute(SCHEMA_KEYWORD, urlInfo.Segments[1]);
         }
     }

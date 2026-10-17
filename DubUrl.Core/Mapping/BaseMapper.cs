@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping.Connectivity;
+using DubUrl.Mapping.Connectivity;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
@@ -41,6 +41,6 @@ public abstract class BaseMapper : IMapper
         
     public IParametrizer GetParametrizer()
         => Parametrizer;
-    public IReadOnlyDictionary<string, object> Rewrite(UrlInfo urlInfo)
+    public IReadOnlyDictionary<string, object> Rewrite(ConnectionUri urlInfo)
         => Rewriter.Execute(urlInfo);
 }

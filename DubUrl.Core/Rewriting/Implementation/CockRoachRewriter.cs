@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ internal class CockRoachRewriter : PostgresqlRewriter
 
     internal new class PortMapper : PostgresqlRewriter.PortMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             base.Execute(urlInfo);
             if (urlInfo.Port == 0)

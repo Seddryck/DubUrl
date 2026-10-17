@@ -14,11 +14,11 @@ public class InvalidConnectionUrlException : DubUrlException
 
 public class InvalidConnectionUrlTooManySegmentsException : InvalidConnectionUrlException
 {
-    public InvalidConnectionUrlTooManySegmentsException(string database, string[] segments)
-        : base($"Connection-url for {database} is not expecting more than a single segment. This connection-url is containing {segments.Length} segments: '{string.Join("', '", segments)}'.") { }
+    public InvalidConnectionUrlTooManySegmentsException(string database, IReadOnlyCollection<string> segments)
+        : base($"Connection-url for {database} is not expecting more than a single segment. This connection-url is containing {segments.Count} segments: '{string.Join("', '", segments)}'.") { }
 
-    public InvalidConnectionUrlTooManySegmentsException(string database, string[] segments, int countMaxExpected)
-        : base($"Connection-url for {database} is not expecting more than {countMaxExpected} segments. This connection-url is containing {segments.Length} segments: '{string.Join("', '", segments)}'.") { }
+    public InvalidConnectionUrlTooManySegmentsException(string database, IReadOnlyCollection<string> segments, int countMaxExpected)
+        : base($"Connection-url for {database} is not expecting more than {countMaxExpected} segments. This connection-url is containing {segments.Count} segments: '{string.Join("', '", segments)}'.") { }
 }
 
 public class InvalidConnectionUrlMissingSegmentsException : InvalidConnectionUrlException
@@ -26,6 +26,6 @@ public class InvalidConnectionUrlMissingSegmentsException : InvalidConnectionUrl
     public InvalidConnectionUrlMissingSegmentsException(string database)
         : base($"Connection-url for {database} is expecting a minimum of one segment. This connection-url is not containing any segment") { }
 
-    public InvalidConnectionUrlMissingSegmentsException(string database, string[] segments, int countMinExpected)
-        : base($"Connection-url for {database} is expecting a minimum of {countMinExpected} segments. This connection-url is {(segments.Length==0 ? "not containing any segment" :  $"{segments.Length} segments: '{string.Join("', '", segments)}'")}") { }
+    public InvalidConnectionUrlMissingSegmentsException(string database, IReadOnlyCollection<string> segments, int countMinExpected)
+        : base($"Connection-url for {database} is expecting a minimum of {countMinExpected} segments. This connection-url is {(segments.Count==0 ? "not containing any segment" :  $"{segments.Count} segments: '{string.Join("', '", segments)}'")}") { }
 }

@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ namespace DubUrl.Rewriting.Tokening;
 
 public class OptionsMapper : BaseTokenMapper
 {
-    public override void Execute(UrlInfo urlInfo)
+    public override void Execute(ConnectionUri urlInfo)
     {
         foreach (var option in urlInfo.Options)
             Specificator.Execute(option.Key, option.Value);

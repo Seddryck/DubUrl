@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Tokening;
 using System;
@@ -30,7 +30,7 @@ internal class AsAzureRewriter : ConnectionStringRewriter
 
     internal class DataSourceMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var fullHost = new StringBuilder();
             var segments = urlInfo.Segments.ToList();
@@ -46,7 +46,7 @@ internal class AsAzureRewriter : ConnectionStringRewriter
                 if (urlInfo.Host.Split('.').Length == 1)
                     fullHost.Append('.').Append(DEFAULT_ASAZURE_HOST);
 
-                if (urlInfo.Segments.Length == 0)
+                if (urlInfo.Segments.Count == 0)
                     throw new InvalidConnectionUrlException($"Missing, at least, the name of the instance for a Azure Analysis Services.");
 
                 fullHost.Append('/').Append(Encode(segments.First()));
@@ -60,7 +60,7 @@ internal class AsAzureRewriter : ConnectionStringRewriter
             Specificator.Execute(SERVER_KEYWORD, fullHost.ToString());
         }
 
-        protected virtual bool IsAsAzure(UrlInfo urlInfo)
+        protected virtual bool IsAsAzure(ConnectionUri urlInfo)
             => urlInfo.Host.Split('.').Length == 1
                 || urlInfo.Host.EndsWith(DEFAULT_ASAZURE_HOST, StringComparison.InvariantCultureIgnoreCase);
 
@@ -73,21 +73,21 @@ internal class AsAzureRewriter : ConnectionStringRewriter
 
     protected internal class CubeMapper : DataSourceMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var isAsAzure = IsAsAzure(urlInfo);
             if (isAsAzure)
             {
-                if (urlInfo.Segments.Length > 2)
-                    throw new InvalidConnectionUrlException($"A connection-url to Azure Analysis Services must contain at least one segment and maximum two. Current value contains {urlInfo.Segments.Length} segments: '{string.Join(", ", urlInfo.Segments)}'");
-                if (urlInfo.Segments.Length == 2)
+                if (urlInfo.Segments.Count > 2)
+                    throw new InvalidConnectionUrlException($"A connection-url to Azure Analysis Services must contain at least one segment and maximum two. Current value contains {urlInfo.Segments.Count} segments: '{string.Join(", ", urlInfo.Segments)}'");
+                if (urlInfo.Segments.Count == 2)
                     Specificator.Execute(CUBE_KEYWORD, urlInfo.Segments.Last());
             }
             else
             {
-                if (urlInfo.Segments.Length > 1)
-                    throw new InvalidConnectionUrlException($"A connection-url to Azure Analysis Services using server name alias must contain zero to one segment. The segment represents the cube. Current value contains {urlInfo.Segments.Length} segments: '{string.Join(", ", urlInfo.Segments)}'");
-                else if (urlInfo.Segments.Length == 1)
+                if (urlInfo.Segments.Count > 1)
+                    throw new InvalidConnectionUrlException($"A connection-url to Azure Analysis Services using server name alias must contain zero to one segment. The segment represents the cube. Current value contains {urlInfo.Segments.Count} segments: '{string.Join(", ", urlInfo.Segments)}'");
+                else if (urlInfo.Segments.Count == 1)
                     Specificator.Execute(CUBE_KEYWORD, urlInfo.Segments.Last());
             }
         }

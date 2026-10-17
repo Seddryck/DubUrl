@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using MySqlConnector;
@@ -20,7 +20,7 @@ public class SingleStoreRewriterTest
     [TestCase("host", "host", "db", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Username = "user" };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/'), Username = "user" };
         var Rewriter = new SingleStoreRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -33,7 +33,7 @@ public class SingleStoreRewriterTest
     [TestCase("db")]
     public void Map_UrlInfo_Database(string segmentsList = "db", string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Username = "user" };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/'), Username = "user" };
         var Rewriter = new SingleStoreRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -46,7 +46,7 @@ public class SingleStoreRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new SingleStoreRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -67,7 +67,7 @@ public class SingleStoreRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new SingleStoreRewriter(ConnectionStringBuilder);
         Assert.Catch<UsernameNotFoundException>(() => Rewriter.Execute(urlInfo));
     }
@@ -75,9 +75,9 @@ public class SingleStoreRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Segments = ["db"] };
-        urlInfo.Options.Add("Application Name", "myApp");
-        urlInfo.Options.Add("Persist Security Info", "true");
+        var urlInfo = new ConnectionUri() { Username = "user", Segments = ["db"] };
+        urlInfo = urlInfo.WithOption("Application Name", "myApp");
+        urlInfo = urlInfo.WithOption("Persist Security Info", "true");
 
         var Rewriter = new SingleStoreRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);

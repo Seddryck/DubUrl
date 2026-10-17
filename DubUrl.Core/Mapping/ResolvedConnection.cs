@@ -10,4 +10,13 @@ public sealed record ResolvedConnection(
     IConnectivity Connectivity,
     IParametrizer Parametrizer,
     DbProviderFactory ProviderFactory
-);
+)
+{
+    /// <summary>Formats resolution metadata without exposing the connection string.</summary>
+    public override string ToString() => ToString(redactConnectionString: true);
+
+    public string ToString(bool redactConnectionString)
+        => $"{nameof(ResolvedConnection)} {{ ConnectionString = {(redactConnectionString ? "[REDACTED]" : ConnectionString)}, " +
+           $"Dialect = {Dialect.GetType().Name}, Connectivity = {Connectivity.GetType().Name}, " +
+           $"Parametrizer = {Parametrizer.GetType().Name}, ProviderFactory = {ProviderFactory.GetType().Name} }}";
+}

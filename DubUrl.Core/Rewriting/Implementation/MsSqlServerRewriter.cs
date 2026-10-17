@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -34,11 +34,11 @@ public class MsSqlServerRewriter : ConnectionStringRewriter
 
     protected internal class DataSourceMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var fullHost = new StringBuilder();
             fullHost.Append(urlInfo.Host);
-            if (urlInfo.Segments.Length == 2)
+            if (urlInfo.Segments.Count == 2)
                 fullHost.Append('\\').Append(urlInfo.Segments.First());
             if (urlInfo.Port != 0)
                 fullHost.Append(',').Append(urlInfo.Port);
@@ -49,7 +49,7 @@ public class MsSqlServerRewriter : ConnectionStringRewriter
 
     protected internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
@@ -65,12 +65,12 @@ public class MsSqlServerRewriter : ConnectionStringRewriter
 
     protected internal class InitialCatalogMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length > 0 && urlInfo.Segments.Length <= 2)
+            if (urlInfo.Segments.Count > 0 && urlInfo.Segments.Count <= 2)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
             else
-                throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Length} segments: '{string.Join("', '", urlInfo.Segments)}'");
+                throw new InvalidConnectionUrlException($"The connection-url for Microsoft SQL Server is expecting one or two segments. This connection-url is containing {urlInfo.Segments.Count} segments: '{string.Join("', '", urlInfo.Segments)}'");
         }
     }
 }

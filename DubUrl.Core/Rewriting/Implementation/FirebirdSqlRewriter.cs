@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -31,12 +31,12 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
 
     internal class DataSourceMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (string.IsNullOrEmpty(urlInfo.Host) ||
                  StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, "localhost") == 0 ||
                  StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ".") == 0 ||
-                 urlInfo.Segments.Length == 0
+                 urlInfo.Segments.Count == 0
             )
                 Specificator.Execute(SERVER_KEYWORD, "localhost");
             else
@@ -48,7 +48,7 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
 
     internal class PortMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (urlInfo.Port > 0)
                 Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
@@ -66,9 +66,9 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
             RootPath = rootPath;
         }
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length == 0)
+            if (urlInfo.Segments.Count == 0)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Host);
             else
             {
@@ -83,7 +83,7 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);

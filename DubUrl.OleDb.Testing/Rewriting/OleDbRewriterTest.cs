@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Parsing;
 using NUnit.Framework;
 using System;
@@ -44,7 +44,7 @@ public class OleDbRewriterTest
             var mapper = new OleDbRewriter.ServerMapper();
             mapper.Accept(specificator);
 
-            var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+            var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
             mapper.Execute(urlInfo);
 
             Assert.That(csb, Is.Not.Null);
@@ -67,7 +67,7 @@ public class OleDbRewriterTest
             var mapper = new OleDbRewriter.DataSourceMapper();
             mapper.Accept(specificator);
 
-            var urlInfo = new UrlInfo() { Host = string.Empty, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+            var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
             mapper.Execute(urlInfo);
 
             Assert.That(csb, Is.Not.Null);
@@ -89,7 +89,7 @@ public class OleDbRewriterTest
             var mapper = new OleDbRewriter.InitialCatalogMapper();
             mapper.Accept(specificator);
 
-            var urlInfo = new UrlInfo() { Host = string.Empty, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+            var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = segmentsList.Split('/'), Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
             mapper.Execute(urlInfo);
 
             Assert.That(csb, Is.Not.Null);
@@ -102,7 +102,7 @@ public class OleDbRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"], Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
         var mapper = new OleDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
 
@@ -119,8 +119,8 @@ public class OleDbRewriterTest
     [Test]
     public void Map_UrlInfoContainsOptions_OptionsReturned()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"], Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
-        urlInfo.Options.Add("Persist Security Info", "true");
+        var urlInfo = new ConnectionUri() { Segments = ["db"], Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+        urlInfo = urlInfo.WithOption("Persist Security Info", "true");
 
         var mapper = new OleDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -134,8 +134,8 @@ public class OleDbRewriterTest
     [TestCase("MSOLAP.11")]
     public void Map_ProviderSpecified_ProviderAssigned(string driver)
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"] };
-        urlInfo.Options.Add("Provider", driver);
+        var urlInfo = new ConnectionUri() { Segments = ["db"] };
+        urlInfo = urlInfo.WithOption("Provider", driver);
 
         var mapper = new OleDbRewriter(ConnectionStringBuilder);
         var result = mapper.Execute(urlInfo);
@@ -148,7 +148,7 @@ public class OleDbRewriterTest
     [Test]
     public void Map_ProviderSpecified_NoProviderLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"], Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
+        var urlInfo = new ConnectionUri() { Segments = ["db"], Options = new Dictionary<string, string>() { { "Provider", "OleDb Provider 18 for SQL Server" } } };
 
         var providerLocatorFactoryMock = new Mock<ProviderLocatorFactory>();
         providerLocatorFactoryMock.Setup(x => x.Instantiate(It.IsAny<string>()));
@@ -162,7 +162,7 @@ public class OleDbRewriterTest
     [Test]
     public void Map_NoProviderSpecified_ProviderLocationCalled()
     {
-        var urlInfo = new UrlInfo() { Schemes = ["oledb", "myprovider"], Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Scheme = new SchemeKey(["oledb", "myprovider"]), Segments = ["db"] };
 
         var providerLocatorMock = new Mock<IProviderLocator>();
         providerLocatorMock.Setup(x => x.Locate()).Returns("My provider");

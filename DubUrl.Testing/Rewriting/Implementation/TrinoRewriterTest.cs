@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping.Implementation;
+using DubUrl.Mapping.Implementation;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
@@ -28,7 +28,7 @@ public class TrinoRewriterTest
     [TestCase("", "localhost")]
     public void Map_UrlInfo_Host(string host, string expected)
     {
-        var urlInfo = new UrlInfo() { Host = host };
+        var urlInfo = new ConnectionUri() { Host = host };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -42,7 +42,7 @@ public class TrinoRewriterTest
     [TestCase(0, "8080")]
     public void Map_UrlInfo_Port(int port, string expected)
     {
-        var urlInfo = new UrlInfo() { Port = port };
+        var urlInfo = new ConnectionUri() { Port = port };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -55,7 +55,7 @@ public class TrinoRewriterTest
     [TestCase("catalog", "catalog")]
     public void Map_UrlInfo_Catalog(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -67,7 +67,7 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfo_MissingCatalog()
     {
-        var urlInfo = new UrlInfo() { Segments = [] };
+        var urlInfo = new ConnectionUri() { Segments = [] };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -79,7 +79,7 @@ public class TrinoRewriterTest
     [TestCase("catalog/schema", "schema")]
     public void Map_UrlInfo_Schema(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -91,7 +91,7 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfo_MissingSchema()
     {
-        var urlInfo = new UrlInfo() { Segments = ["catalog"] };
+        var urlInfo = new ConnectionUri() { Segments = ["catalog"] };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -102,7 +102,7 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -120,8 +120,8 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfo_HeaderOptions()
     {
-        var urlInfo = new UrlInfo() { };
-        urlInfo.Options.Add("TrinoHeaders", "2");
+        var urlInfo = new ConnectionUri() { };
+        urlInfo = urlInfo.WithOption("TrinoHeaders", "2");
 
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
@@ -137,7 +137,7 @@ public class TrinoRewriterTest
     [Test]
     public void Map_UrlInfo_MissingHeaderOptions()
     {
-        var urlInfo = new UrlInfo() { };
+        var urlInfo = new ConnectionUri() { };
 
         var Rewriter = new TrinoRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);

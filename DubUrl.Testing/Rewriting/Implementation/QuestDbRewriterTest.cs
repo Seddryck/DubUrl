@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
 using Npgsql;
@@ -20,7 +20,7 @@ public class QuestDbRewriterTest
     [TestCase("host", "host")]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "qdb", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/'), Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/'), Username = "user", Password = "pwd" };
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -34,7 +34,7 @@ public class QuestDbRewriterTest
     [TestCase("host", 0, 8812)]
     public void Map_UrlInfo_Port(string host, int port, int expected)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Username = "user", Password = "pwd" };
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -48,7 +48,7 @@ public class QuestDbRewriterTest
     [TestCase("", "qdb")]
     public void UrlInfo_Map_InitialCatalog(string segmentsList, string expected)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/'), Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/'), Username = "user", Password = "pwd" };
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -61,7 +61,7 @@ public class QuestDbRewriterTest
     [TestCase("anydb")]
     public void Map_UnexpectedUrlInfo_Throws(string segmentsList)
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
     }
@@ -69,7 +69,7 @@ public class QuestDbRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd"};
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd"};
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -89,7 +89,7 @@ public class QuestDbRewriterTest
     [TestCase("", "")]
     public void Map_UrlInfoWithoutUsernamePassword_Throws(string username, string password)
     {
-        var urlInfo = new UrlInfo() { Username = username, Password = password };
+        var urlInfo = new ConnectionUri() { Username = username, Password = password };
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
     }
@@ -99,8 +99,8 @@ public class QuestDbRewriterTest
     [TestCase("Command Timeout")]
     public void Map_UrlInfo_Options(string optionName)
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-        urlInfo.Options.Add(optionName, "60000");
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
+        urlInfo = urlInfo.WithOption(optionName, "60000");
 
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
@@ -113,8 +113,8 @@ public class QuestDbRewriterTest
     [Test]
     public void Map_UrlInfoServerCompatibilityMode_Options()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-        urlInfo.Options.Add("ServerCompatibilityMode", "NoTypeLoading");
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
+        urlInfo = urlInfo.WithOption("ServerCompatibilityMode", "NoTypeLoading");
 
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
@@ -127,7 +127,7 @@ public class QuestDbRewriterTest
     [Test]
     public void Map_UrlInfoServerCompatibilityModeNotSpecified_Options()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
 
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
@@ -140,8 +140,8 @@ public class QuestDbRewriterTest
     [Test]
     public void Map_UnexpectedServerCompatibilityMode_Throws()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-        urlInfo.Options.Add("ServerCompatibilityMode", "ANY VALUE");
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
+        urlInfo = urlInfo.WithOption("ServerCompatibilityMode", "ANY VALUE");
 
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));
@@ -150,8 +150,8 @@ public class QuestDbRewriterTest
     [Test]
     public void Map_UnexpectedOption_Throws()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd" };
-        urlInfo.Options.Add("any_other_option", "value");
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd" };
+        urlInfo = urlInfo.WithOption("any_other_option", "value");
 
         var Rewriter = new QuestDbRewriter(ConnectionStringBuilder);
         var ex = Assert.Throws<InvalidConnectionUrlException>(() => Rewriter.Execute(urlInfo));

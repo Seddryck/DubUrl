@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 using System.Data.Common;
@@ -22,7 +22,7 @@ public class MsSqlServerRewriterTest
     [TestCase("host,1234", "host", "db", 1234)]
     public void Map_UrlInfo_DataSource(string expected, string host = "host", string segmentsList = "db", int port = 0)
     {
-        var urlInfo = new UrlInfo() { Host = host, Port = port, Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Host = host, Port = port, Segments = segmentsList.Split('/') };
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -36,7 +36,7 @@ public class MsSqlServerRewriterTest
     [TestCase("instance/db")]
     public void Map_UrlInfo_InitialCatalog(string segmentsList = "db", string expected = "db")
     {
-        var urlInfo = new UrlInfo() { Segments = segmentsList.Split('/') };
+        var urlInfo = new ConnectionUri() { Segments = segmentsList.Split('/') };
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -49,7 +49,7 @@ public class MsSqlServerRewriterTest
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "user", Password = "pwd", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "user", Password = "pwd", Segments = ["db"] };
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -69,7 +69,7 @@ public class MsSqlServerRewriterTest
     [Test]
     public void Map_UrlInfoWithoutUsernamePassword_Authentication()
     {
-        var urlInfo = new UrlInfo() { Username = "", Password = "", Segments = ["db"] };
+        var urlInfo = new ConnectionUri() { Username = "", Password = "", Segments = ["db"] };
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);
 
@@ -88,9 +88,9 @@ public class MsSqlServerRewriterTest
     [Test]
     public void Map_UrlInfo_Options()
     {
-        var urlInfo = new UrlInfo() { Segments = ["db"] };
-        urlInfo.Options.Add("Application Name", "myApp");
-        urlInfo.Options.Add("Enlist", "False");
+        var urlInfo = new ConnectionUri() { Segments = ["db"] };
+        urlInfo = urlInfo.WithOption("Application Name", "myApp");
+        urlInfo = urlInfo.WithOption("Enlist", "False");
 
         var Rewriter = new MsSqlServerRewriter(ConnectionStringBuilder);
         var result = Rewriter.Execute(urlInfo);

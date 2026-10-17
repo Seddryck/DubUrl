@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ internal class SqliteRewriter : ConnectionStringRewriter
             RootPath = rootPath;
         }
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length == 0)
             {
@@ -44,7 +44,7 @@ internal class SqliteRewriter : ConnectionStringRewriter
             }
 
             var segments = new List<string>();
-            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
+            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
                 segments = urlInfo.Segments.Skip(1).ToList();
             else
             {

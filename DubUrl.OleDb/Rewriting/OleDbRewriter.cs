@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -34,10 +34,10 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
 
     internal class DataSourceMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var segments = new List<string>();
-            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Length > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
+            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
                 segments = urlInfo.Segments.Skip(1).ToList();
             else
             {
@@ -69,11 +69,11 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
 
     internal class ServerMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var fullHost = new StringBuilder();
             fullHost.Append(urlInfo.Host);
-            if (urlInfo.Segments.Length == 2)
+            if (urlInfo.Segments.Count == 2)
                 fullHost.Append('\\').Append(urlInfo.Segments.First());
             if (urlInfo.Port != 0)
                 fullHost.Append(',').Append(urlInfo.Port);
@@ -89,12 +89,12 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
         public ProviderMapper(ProviderLocatorFactory ProviderLocatorFactory)
             => this.ProviderLocatorFactory = ProviderLocatorFactory;
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
 
             if (!urlInfo.Options.ContainsKey(PROVIDER_KEYWORD))
             {
-                var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").First();
+                var otherScheme = urlInfo.Scheme.Parts.SkipWhile(x => x.Equals("oledb", StringComparison.OrdinalIgnoreCase)).First();
                 var providerLocator = ProviderLocatorFactory.Instantiate(otherScheme);
                 var provider = providerLocator.Locate();
                 Specificator.Execute(PROVIDER_KEYWORD, provider);
@@ -104,7 +104,7 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
 
     internal class AuthentificationMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             if (!string.IsNullOrEmpty(urlInfo.Username))
                 Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
@@ -115,9 +115,9 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
 
     internal class InitialCatalogMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Segments.Length <= 2)
+            if (urlInfo.Segments.Count <= 2)
                 Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.Last());
             else
                 throw new ArgumentOutOfRangeException(nameof(urlInfo));
@@ -131,9 +131,9 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
         public AdditionalMappers(ProviderLocatorFactory ProviderLocatorFactory)
             => this.ProviderLocatorFactory = ProviderLocatorFactory;
 
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
-            var otherScheme = urlInfo.Schemes.SkipWhile(x => x == "oledb").FirstOrDefault();
+            var otherScheme = urlInfo.Scheme.Parts.SkipWhile(x => x.Equals("oledb", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             var additionalMappers = string.IsNullOrEmpty(otherScheme) ? new[] { new OptionsMapper() } : ProviderLocatorFactory.Instantiate(otherScheme).AdditionalMappers;
             foreach (var mapper in additionalMappers)
             {

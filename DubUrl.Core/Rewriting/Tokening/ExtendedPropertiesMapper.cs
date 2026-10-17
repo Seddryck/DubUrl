@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +16,7 @@ public class ExtendedPropertiesMapper : BaseTokenMapper
     public ExtendedPropertiesMapper(string[] values)
         => Values = values;
 
-    public override void Execute(UrlInfo urlInfo)
+    public override void Execute(ConnectionUri urlInfo)
     {
         var internalStringBuilder = new StringBuilder();
         //internalStringBuilder.Append('\"');

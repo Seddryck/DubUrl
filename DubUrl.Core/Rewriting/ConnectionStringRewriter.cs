@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ public class ConnectionStringRewriter : IConnectionStringRewriter
     public ConnectionStringRewriter(ISpecificator specificator, BaseTokenMapper[] tokenMappers)
         => (Specificator, TokenMappers) = (specificator, tokenMappers);
 
-    public IReadOnlyDictionary<string, object> Execute(UrlInfo urlInfo)
+    public IReadOnlyDictionary<string, object> Execute(ConnectionUri urlInfo)
     {
         foreach (var tokenMapper in TokenMappers)
         {

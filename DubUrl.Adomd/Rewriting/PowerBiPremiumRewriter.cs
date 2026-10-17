@@ -1,4 +1,4 @@
-﻿using DubUrl.Parsing;
+using DubUrl.Parsing;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Tokening;
 using System;
@@ -30,7 +30,7 @@ internal class PowerBiPremiumRewriter : ConnectionStringRewriter
 
     internal class DataSourceMapper : BaseTokenMapper
     {
-        public override void Execute(UrlInfo urlInfo)
+        public override void Execute(ConnectionUri urlInfo)
         {
             var fullHost = new StringBuilder();
             var segments = urlInfo.Segments.ToList();
@@ -43,7 +43,7 @@ internal class PowerBiPremiumRewriter : ConnectionStringRewriter
             else
                 throw new InvalidConnectionUrlException($"The host of a Power BI Premium url must be '{DEFAULT_POWERBI_HOST}' or empty.");
 
-            if (urlInfo.Segments.Length == 0)
+            if (urlInfo.Segments.Count == 0)
                 throw new InvalidConnectionUrlException($"Missing, at least, the name of the dataset for a Power BI Premium connection-url.");
             if (!urlInfo.Segments[0].Equals(DEFAULT_POWERBI_VERSION, StringComparison.InvariantCultureIgnoreCase))
                 segments.Insert(1, DEFAULT_POWERBI_VERSION);
