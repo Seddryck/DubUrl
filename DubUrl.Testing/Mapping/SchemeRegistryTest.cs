@@ -1,6 +1,8 @@
 using DubUrl.Mapping;
+using DubUrl.Mapping.Implementation;
 using Microsoft.Data.SqlClient;
 using NUnit.Framework;
+using SingleStoreConnector;
 using System.Data.Common;
 
 namespace DubUrl.Testing.Mapping;
@@ -8,8 +10,35 @@ namespace DubUrl.Testing.Mapping;
 public class SchemeRegistryTest
 {
     [SetUp]
-    public void RegisterProvider()
-        => DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
+    public void RegisterProviders()
+    {
+        DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
+        DbProviderFactories.RegisterFactory("Teradata.Client", Teradata.Client.Provider.TdFactory.Instance);
+        DbProviderFactories.RegisterFactory("SingleStoreConnector", SingleStoreConnectorFactory.Instance);
+    }
+
+    [TestCase("TERADATASQL", "teradata", typeof(TeradataMapper), "Teradata.Client")]
+    [TestCase("SINGLESTOREDB", "singlestore", typeof(SingleStoreMapper), "SingleStoreConnector")]
+    public void GetMapper_SqlAlchemyAlias_ResolvesLikeCanonicalScheme(
+        string alias,
+        string canonicalScheme,
+        Type expectedMapperType,
+        string expectedProviderName)
+    {
+        var registry = new SchemeRegistryBuilder().WithAutoDiscoveredMappings().Build();
+
+        var aliasMapper = registry.GetMapper(alias);
+        var canonicalMapper = registry.GetMapper(canonicalScheme);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(aliasMapper, Is.TypeOf(expectedMapperType));
+            Assert.That(canonicalMapper, Is.TypeOf(expectedMapperType));
+            Assert.That(aliasMapper.GetProviderName(), Is.EqualTo(expectedProviderName));
+            Assert.That(canonicalMapper.GetProviderName(), Is.EqualTo(expectedProviderName));
+            Assert.That(registry.GetProviderFactory([alias]), Is.SameAs(registry.GetProviderFactory([canonicalScheme])));
+        });
+    }
 
     [Test]
     public void Resolve_UrlWithoutOptionalValues_DoesNotReuseValuesFromPreviousResolution()

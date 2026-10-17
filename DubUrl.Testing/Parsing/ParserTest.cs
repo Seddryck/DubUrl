@@ -108,6 +108,8 @@ public class ParserTest
     [Test]
     [TestCase("mssql://user:pwd@host/db", "mssql")]
     [TestCase("pgsql://user:pwd@host:1234/db", "pgsql")]
+    [TestCase("TERADATASQL://user:pwd@host/db", "teradatasql")]
+    [TestCase("SINGLESTOREDB://user:pwd@host/db", "singlestoredb")]
     [TestCase("odbc+mssql://localhost/db?Driver={ODBC Driver 13 for SQL Server}", "odbc,mssql")]
     [TestCase("mssql+odbc://localhost/db?Driver={ODBC Driver 13 for SQL Server}", "odbc,mssql")]
     public void Url_Parser_SchemeParsed(string url, string expectedList)
