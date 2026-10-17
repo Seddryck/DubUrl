@@ -664,4 +664,81 @@ public class SchemaScriptRendererTests
                                     "\r\n"
             ));
     }
+
+    [Test]
+    public void Render_SchemaWithMultipleIndexes_PreservesIndexAndColumnOrder()
+    {
+        var table = new Table("Customer", [
+            new Column("Id", DbType.Int32),
+            new Column("LastName", DbType.String),
+            new Column("FirstName", DbType.String),
+            new Column("BirthDate", DbType.Date)
+        ]);
+        var indexes = new[]
+        {
+            new Index("Idx_Customer_Name", "Customer", [
+                new IndexColumn("LastName"),
+                new IndexColumn("FirstName")
+            ]),
+            new Index("Idx_Customer_BirthDate_Id", "Customer", [
+                new IndexColumn("BirthDate"),
+                new IndexColumn("Id")
+            ])
+        };
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], indexes));
+
+        var firstIndex = result.IndexOf("CREATE INDEX Idx_Customer_Name", StringComparison.Ordinal);
+        var firstIndexFirstColumn = result.IndexOf("\r\n    LastName,", firstIndex, StringComparison.Ordinal);
+        var firstIndexSecondColumn = result.IndexOf("\r\n    FirstName", firstIndex, StringComparison.Ordinal);
+        var secondIndex = result.IndexOf("CREATE INDEX Idx_Customer_BirthDate_Id", StringComparison.Ordinal);
+        var secondIndexFirstColumn = result.IndexOf("\r\n    BirthDate,", secondIndex, StringComparison.Ordinal);
+        var secondIndexSecondColumn = result.IndexOf("\r\n    Id", secondIndex, StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstIndex, Is.GreaterThanOrEqualTo(0));
+            Assert.That(firstIndexFirstColumn, Is.GreaterThan(firstIndex));
+            Assert.That(firstIndexSecondColumn, Is.GreaterThan(firstIndexFirstColumn));
+            Assert.That(secondIndex, Is.GreaterThan(firstIndexSecondColumn));
+            Assert.That(secondIndexFirstColumn, Is.GreaterThan(secondIndex));
+            Assert.That(secondIndexSecondColumn, Is.GreaterThan(secondIndexFirstColumn));
+        });
+    }
+
+    [Test]
+    public void Render_SchemaWithoutIndexes_DoesNotRenderIndexStatements()
+    {
+        var table = new Table("Customer", [new Column("Id", DbType.Int32)]);
+
+        var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+
+        Assert.That(result, Does.Not.Contain("INDEX"));
+    }
+
+    [Test]
+    public void Render_DropIfExistsWithMultipleIndexes_PreservesIndexOrder()
+    {
+        var table = new Table("Customer", [
+            new Column("Id", DbType.Int32),
+            new Column("Name", DbType.String)
+        ]);
+        var indexes = new[]
+        {
+            new Index("Idx_Customer_Name", "Customer", [new IndexColumn("Name")]),
+            new Index("Idx_Customer_Id", "Customer", [new IndexColumn("Id")])
+        };
+
+        var result = new SchemaScriptRenderer(DuckDb, SchemaCreationOptions.DropIfExists)
+            .Render(new Schema([table], indexes));
+
+        var firstDrop = result.IndexOf("DROP INDEX IF EXISTS Idx_Customer_Name;", StringComparison.Ordinal);
+        var secondDrop = result.IndexOf("DROP INDEX IF EXISTS Idx_Customer_Id;", StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstDrop, Is.GreaterThanOrEqualTo(0));
+            Assert.That(secondDrop, Is.GreaterThan(firstDrop));
+        });
+    }
 }
