@@ -33,4 +33,7 @@ public static class SchemaDocumentDiagnosticCodes
     public const string InvalidForeignKey = "SDV017";
     public const string InvalidIndex = "SDV018";
     public const string InvalidNativeType = "SDV019";
+    public const string DuplicateView = "SDV020";
+    public const string InvalidView = "SDV021";
+    public const string ViewDependencyCycle = "SDV022";
 }

@@ -34,7 +34,8 @@ public sealed class SchemaDocumentMapper
         {
             var tables = document.Tables.Select(MapTable).ToArray();
             var indexes = document.Indexes.Select(MapIndex).ToArray();
-            return new RuntimeSchema(tables, indexes);
+            var views = document.Views.Select(MapView).ToArray();
+            return new RuntimeSchema(tables, indexes, views);
         }
         catch (SchemaDocumentMappingException)
         {
@@ -172,6 +173,15 @@ public sealed class SchemaDocumentMapper
                     _ => null
                 })).ToArray(),
             document.Unique);
+
+    private static View MapView(ViewDocument document)
+        => new(
+            MapIdentity(document.Identity),
+            new ViewQuery(
+                MapIdentity(document.Query.Source),
+                document.Query.Projections.Select(projection => new ViewProjection(
+                    MapExpression(projection.Expression),
+                    projection.Alias)).ToArray()));
 
     private static DatabaseObjectName MapIdentity(DatabaseObjectNameDocument document)
         => new(document.Name!, document.Schema, document.Database, document.Catalog);

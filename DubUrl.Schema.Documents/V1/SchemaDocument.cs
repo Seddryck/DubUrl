@@ -7,6 +7,7 @@ public sealed class SchemaDocument : ISchemaDocument
     public int Version { get; set; }
     public List<TableDocument> Tables { get; set; } = [];
     public List<IndexDocument> Indexes { get; set; } = [];
+    public List<ViewDocument> Views { get; set; } = [];
 }
 
 public sealed class DatabaseObjectNameDocument
@@ -116,4 +117,22 @@ public sealed class IndexColumnDocument
 {
     public string? Name { get; set; }
     public string? Direction { get; set; }
+}
+
+public sealed class ViewDocument
+{
+    public DatabaseObjectNameDocument Identity { get; set; } = new();
+    public ViewQueryDocument Query { get; set; } = new();
+}
+
+public sealed class ViewQueryDocument
+{
+    public DatabaseObjectNameDocument Source { get; set; } = new();
+    public List<ViewProjectionDocument> Projections { get; set; } = [];
+}
+
+public sealed class ViewProjectionDocument
+{
+    public ExpressionDocument Expression { get; set; } = new();
+    public string? Alias { get; set; }
 }

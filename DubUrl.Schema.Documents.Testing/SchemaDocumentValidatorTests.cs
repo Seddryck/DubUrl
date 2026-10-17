@@ -24,6 +24,8 @@ public class SchemaDocumentValidatorTests
                 Is.EqualTo(new[] { "id", "customer_id", "amount", "taxed_amount" }));
             Assert.That(document.Indexes[0].Columns.Select(column => column.Name),
                 Is.EqualTo(new[] { "customer_id", "amount" }));
+            Assert.That(document.Views.Select(view => view.Identity.Name),
+                Is.EqualTo(new[] { "customer_names", "customer_names_copy" }));
         });
     }
 
@@ -254,6 +256,58 @@ public class SchemaDocumentValidatorTests
         });
     }
 
+    [Test]
+    public void Validate_Views_ReportsIdentitySourceProjectionAndAliasErrors()
+    {
+        var document = CreateValidDocument();
+        document.Views[0].Identity = new DatabaseObjectNameDocument { Schema = "sales", Name = "customers" };
+        document.Views[0].Query.Source = new DatabaseObjectNameDocument { Name = "missing" };
+        document.Views[0].Query.Projections =
+        [
+            new ViewProjectionDocument
+            {
+                Expression = new ExpressionDocument { Kind = "column", Name = "missing" },
+                Alias = "value"
+            },
+            new ViewProjectionDocument
+            {
+                Expression = new ExpressionDocument { Kind = "column", Name = "missing" },
+                Alias = "value"
+            }
+        ];
+        document.Views[1].Query.Projections = [];
+        document.Views.Add(document.Views[1]);
+
+        var diagnostics = validator.Validate(document);
+
+        Assert.Multiple(() =>
+        {
+            AssertDiagnostic(diagnostics, SchemaDocumentDiagnosticCodes.DuplicateView, "views[0].identity");
+            AssertDiagnostic(diagnostics, SchemaDocumentDiagnosticCodes.MissingReference, "views[0].query.source");
+            AssertDiagnostic(diagnostics, SchemaDocumentDiagnosticCodes.DuplicateReference,
+                "views[0].query.projections[1].alias");
+            AssertDiagnostic(diagnostics, SchemaDocumentDiagnosticCodes.InvalidView, "views[1].query.projections");
+            AssertDiagnostic(diagnostics, SchemaDocumentDiagnosticCodes.DuplicateView, "views[2].identity");
+        });
+    }
+
+    [Test]
+    public void Validate_ViewDependencyCycle_ReportsActionablePath()
+    {
+        var document = CreateValidDocument();
+        document.Views[0].Query.Source = document.Views[1].Identity;
+        document.Views[1].Query.Source = document.Views[0].Identity;
+
+        var diagnostics = validator.Validate(document);
+
+        Assert.That(diagnostics, Has.Some.Matches<SchemaDocumentDiagnostic>(diagnostic =>
+            diagnostic is not null
+            && diagnostic.Code == SchemaDocumentDiagnosticCodes.ViewDependencyCycle
+            && diagnostic.Path == "views[0].query.source"
+            && diagnostic.Message.Contains(
+                "reporting.customer_names -> reporting.customer_names_copy -> reporting.customer_names")));
+    }
+
     private static SchemaDocument CreateValidDocument()
         => new()
         {
@@ -374,6 +428,44 @@ public class SchemaDocumentValidatorTests
                         new IndexColumnDocument { Name = "customer_id", Direction = "ascending" },
                         new IndexColumnDocument { Name = "amount", Direction = "descending" }
                     ]
+                }
+            ],
+            Views =
+            [
+                new ViewDocument
+                {
+                    Identity = new DatabaseObjectNameDocument { Schema = "reporting", Name = "customer_names" },
+                    Query = new ViewQueryDocument
+                    {
+                        Source = new DatabaseObjectNameDocument { Schema = "sales", Name = "customers" },
+                        Projections =
+                        [
+                            new ViewProjectionDocument
+                            {
+                                Expression = new ExpressionDocument { Kind = "column", Name = "id" }
+                            },
+                            new ViewProjectionDocument
+                            {
+                                Expression = new ExpressionDocument { Kind = "column", Name = "name" },
+                                Alias = "customer_name"
+                            }
+                        ]
+                    }
+                },
+                new ViewDocument
+                {
+                    Identity = new DatabaseObjectNameDocument { Schema = "reporting", Name = "customer_names_copy" },
+                    Query = new ViewQueryDocument
+                    {
+                        Source = new DatabaseObjectNameDocument { Schema = "reporting", Name = "customer_names" },
+                        Projections =
+                        [
+                            new ViewProjectionDocument
+                            {
+                                Expression = new ExpressionDocument { Kind = "column", Name = "customer_name" }
+                            }
+                        ]
+                    }
                 }
             ]
         };

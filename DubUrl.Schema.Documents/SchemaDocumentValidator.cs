@@ -46,8 +46,160 @@ public sealed partial class SchemaDocumentValidator
                     "A table declaration cannot be null.", $"tables[{tableIndex}]"));
 
         ValidateIndexes(document.Indexes ?? [], tableLookup, diagnostics);
+        ValidateViews(document.Views ?? [], tableLookup, diagnostics);
         return diagnostics;
     }
+
+    private static void ValidateViews(
+        IReadOnlyList<ViewDocument> views,
+        IReadOnlyDictionary<string, (TableDocument Table, int Index)> tables,
+        List<SchemaDocumentDiagnostic> diagnostics)
+    {
+        var viewLookup = new Dictionary<string, (ViewDocument View, int Index)>(StringComparer.Ordinal);
+        for (var viewIndex = 0; viewIndex < views.Count; viewIndex++)
+        {
+            var view = views[viewIndex];
+            var path = $"views[{viewIndex}]";
+            if (view is null)
+            {
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
+                    "A view declaration cannot be null.", path));
+                continue;
+            }
+
+            var key = ValidateIdentity(view.Identity, $"{path}.identity", diagnostics);
+            if (key is null)
+                continue;
+            if (!viewLookup.TryAdd(key, (view, viewIndex)))
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateView,
+                    $"View '{FormatIdentity(view.Identity)}' is declared more than once.", $"{path}.identity"));
+            if (tables.ContainsKey(key))
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateView,
+                    $"Relation '{FormatIdentity(view.Identity)}' is declared as both a table and a view.",
+                    $"{path}.identity"));
+        }
+
+        for (var viewIndex = 0; viewIndex < views.Count; viewIndex++)
+        {
+            var view = views[viewIndex];
+            if (view is null)
+                continue;
+            var path = $"views[{viewIndex}]";
+            if (view.Query is null)
+            {
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
+                    "A view query is required.", $"{path}.query"));
+                continue;
+            }
+
+            var sourceKey = ValidateIdentity(view.Query.Source, $"{path}.query.source", diagnostics);
+            IReadOnlyList<ColumnDocument> sourceColumns = [];
+            if (sourceKey is not null && tables.TryGetValue(sourceKey, out var table))
+                sourceColumns = table.Table.Columns ?? [];
+            else if (sourceKey is not null && viewLookup.TryGetValue(sourceKey, out var sourceView))
+                sourceColumns = GetViewOutputColumns(sourceView.View);
+            else if (sourceKey is not null)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.MissingReference,
+                    $"View references missing source relation '{FormatIdentity(view.Query.Source)}'.",
+                    $"{path}.query.source"));
+
+            var projections = view.Query.Projections ?? [];
+            if (projections.Count == 0)
+                diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidView,
+                    "A view query must contain at least one projection.", $"{path}.query.projections"));
+
+            var aliases = new HashSet<string>(StringComparer.Ordinal);
+            for (var projectionIndex = 0; projectionIndex < projections.Count; projectionIndex++)
+            {
+                var projection = projections[projectionIndex];
+                var projectionPath = $"{path}.query.projections[{projectionIndex}]";
+                if (projection is null)
+                {
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.RequiredValue,
+                        "A view projection cannot be null.", projectionPath));
+                    continue;
+                }
+                if (projection.Alias is not null && string.IsNullOrWhiteSpace(projection.Alias))
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.InvalidView,
+                        "A projection alias cannot be empty or whitespace.", $"{projectionPath}.alias"));
+                else if (projection.Alias is not null && !aliases.Add(projection.Alias))
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.DuplicateReference,
+                        $"Projection alias '{projection.Alias}' is declared more than once.",
+                        $"{projectionPath}.alias"));
+
+                var validationColumns = sourceKey is not null
+                                        && (tables.ContainsKey(sourceKey) || viewLookup.ContainsKey(sourceKey))
+                    ? sourceColumns
+                    : ExpressionReferences(projection.Expression)
+                        .Select(name => new ColumnDocument { Name = name }).ToArray();
+                ValidateExpression(projection.Expression, $"{projectionPath}.expression", validationColumns, diagnostics);
+            }
+        }
+
+        ValidateViewCycles(viewLookup, diagnostics);
+    }
+
+    private static IReadOnlyList<ColumnDocument> GetViewOutputColumns(ViewDocument view)
+        => (view.Query?.Projections ?? [])
+            .Where(projection => projection is not null)
+            .Select(projection => projection.Alias ??
+                (projection.Expression?.Kind == "column" ? projection.Expression.Name : null))
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => new ColumnDocument { Name = name })
+            .ToArray();
+
+    private static IEnumerable<string> ExpressionReferences(ExpressionDocument? expression)
+    {
+        if (expression is null)
+            yield break;
+        if (expression.Kind == "column" && !string.IsNullOrWhiteSpace(expression.Name))
+            yield return expression.Name;
+        foreach (var argument in expression.Arguments ?? [])
+            foreach (var reference in ExpressionReferences(argument))
+                yield return reference;
+    }
+
+    private static void ValidateViewCycles(
+        IReadOnlyDictionary<string, (ViewDocument View, int Index)> views,
+        List<SchemaDocumentDiagnostic> diagnostics)
+    {
+        var completed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (startKey, start) in views)
+        {
+            if (completed.Contains(startKey))
+                continue;
+            var positions = new Dictionary<string, int>(StringComparer.Ordinal);
+            var path = new List<(string Key, ViewDocument View, int Index)>();
+            var currentKey = startKey;
+            var current = start;
+            while (true)
+            {
+                if (positions.TryGetValue(currentKey, out var cycleStart))
+                {
+                    var cycle = path.Skip(cycleStart).Select(item => FormatIdentity(item.View.Identity))
+                        .Append(FormatIdentity(current.View.Identity)).ToArray();
+                    diagnostics.Add(Error(SchemaDocumentDiagnosticCodes.ViewDependencyCycle,
+                        $"View dependency cycle detected: {string.Join(" -> ", cycle)}.",
+                        $"views[{current.Index}].query.source"));
+                    break;
+                }
+
+                positions[currentKey] = path.Count;
+                path.Add((currentKey, current.View, current.Index));
+                completed.Add(currentKey);
+                var sourceKey = IdentityKey(current.View.Query?.Source);
+                if (sourceKey is null || !views.TryGetValue(sourceKey, out current))
+                    break;
+                currentKey = sourceKey;
+            }
+        }
+    }
+
+    private static string? IdentityKey(DatabaseObjectNameDocument? identity)
+        => identity is null || string.IsNullOrWhiteSpace(identity.Name)
+            ? null
+            : string.Join('\u001f', identity.Catalog ?? "<null>", identity.Database ?? "<null>",
+                identity.Schema ?? "<null>", identity.Name);
 
     private static void ValidateTable(
         TableDocument table,

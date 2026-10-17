@@ -81,6 +81,32 @@ public class SchemaDocumentReaderTests
                 { "name": "total", "direction": "descending" }
               ]
             }
+          ],
+          "views": [
+            {
+              "identity": { "schema": "reporting", "name": "order_totals" },
+              "query": {
+                "source": { "schema": "sales", "name": "orders" },
+                "projections": [
+                  { "expression": { "kind": "column", "name": "tenant_id" } },
+                  {
+                    "expression": {
+                      "kind": "function",
+                      "function": "round",
+                      "arguments": [{ "kind": "column", "name": "total" }]
+                    },
+                    "alias": "rounded_total"
+                  }
+                ]
+              }
+            },
+            {
+              "identity": { "schema": "reporting", "name": "rounded_order_totals" },
+              "query": {
+                "source": { "schema": "reporting", "name": "order_totals" },
+                "projections": [{ "expression": { "kind": "column", "name": "rounded_total" } }]
+              }
+            }
           ]
         }
         """;
@@ -139,6 +165,23 @@ public class SchemaDocumentReaderTests
             columns:
               - { name: tenant_id, direction: ascending }
               - { name: total, direction: descending }
+        views:
+          - identity: { schema: reporting, name: order_totals }
+            query:
+              source: { schema: sales, name: orders }
+              projections:
+                - expression: { kind: column, name: tenant_id }
+                - expression:
+                    kind: function
+                    function: round
+                    arguments:
+                      - { kind: column, name: total }
+                  alias: rounded_total
+          - identity: { schema: reporting, name: rounded_order_totals }
+            query:
+              source: { schema: reporting, name: order_totals }
+              projections:
+                - expression: { kind: column, name: rounded_total }
         """;
 
     private readonly SchemaDocumentReader reader = new();
@@ -154,6 +197,7 @@ public class SchemaDocumentReaderTests
         {
             Assert.That(document.Tables, Is.Empty);
             Assert.That(document.Indexes, Is.Empty);
+            Assert.That(document.Views, Is.Empty);
             Assert.That(table.Columns, Is.Empty);
             Assert.That(table.Checks, Is.Empty);
             Assert.That(table.ForeignKeys, Is.Empty);
@@ -186,6 +230,11 @@ public class SchemaDocumentReaderTests
                 Is.EqualTo(new[] { "ascending", "descending" }));
             Assert.That(yaml.Indexes[0].Columns.Select(column => column.Direction),
                 Is.EqualTo(json.Indexes[0].Columns.Select(column => column.Direction)));
+            Assert.That(json.Views.Select(view => view.Identity.Name),
+                Is.EqualTo(new[] { "order_totals", "rounded_order_totals" }));
+            Assert.That(yaml.Views[0].Query.Projections.Select(projection => projection.Alias),
+                Is.EqualTo(json.Views[0].Query.Projections.Select(projection => projection.Alias)));
+            Assert.That(json.Views[1].Query.Source.Name, Is.EqualTo("order_totals"));
         });
     }
 

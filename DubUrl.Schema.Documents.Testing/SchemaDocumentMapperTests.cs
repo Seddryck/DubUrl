@@ -63,12 +63,13 @@ public class SchemaDocumentMapperTests
     }
 
     [Test]
-    public void Map_CompleteDocument_PreservesOrderIdentitiesConstraintsGenerationAndIndexes()
+    public void Map_CompleteDocument_PreservesOrderIdentitiesConstraintsGenerationIndexesAndViews()
     {
         var schema = mapper.Map(CreateCompleteDocument());
         var customers = schema.GetTable(new DatabaseObjectName("customers", "sales"));
         var orders = schema.GetTable(new DatabaseObjectName("orders", "sales"));
         var index = schema.GetIndex(new DatabaseObjectName("ux_orders_amount", "sales"));
+        var customerNames = schema.GetView(new DatabaseObjectName("customer_names", "reporting"));
 
         Assert.Multiple(() =>
         {
@@ -99,6 +100,15 @@ public class SchemaDocumentMapperTests
             Assert.That(index.Columns.Keys, Is.EqualTo(new[] { "tenant_id", "amount" }));
             Assert.That(index.Columns["tenant_id"].SortDirection, Is.EqualTo(IndexSortDirection.Ascending));
             Assert.That(index.Columns["amount"].SortDirection, Is.EqualTo(IndexSortDirection.Descending));
+            Assert.That(schema.Views.Values.Select(view => view.Name),
+                Is.EqualTo(new[] { "customer_names", "customer_names_copy" }));
+            Assert.That(customerNames.Query.Source,
+                Is.EqualTo(new DatabaseObjectName("customers", "sales")));
+            Assert.That(customerNames.Query.Projections[0].Expression,
+                Is.TypeOf<ColumnIdentityExpression>());
+            Assert.That(customerNames.Query.Projections[1].Expression,
+                Is.TypeOf<FunctionExpression>());
+            Assert.That(customerNames.Query.Projections[1].Alias, Is.EqualTo("name_length"));
         });
     }
 
@@ -321,6 +331,49 @@ public class SchemaDocumentMapperTests
                         new IndexColumnDocument { Name = "tenant_id", Direction = "ascending" },
                         new IndexColumnDocument { Name = "amount", Direction = "descending" }
                     ]
+                }
+            ],
+            Views =
+            [
+                new ViewDocument
+                {
+                    Identity = new DatabaseObjectNameDocument { Schema = "reporting", Name = "customer_names" },
+                    Query = new ViewQueryDocument
+                    {
+                        Source = new DatabaseObjectNameDocument { Schema = "sales", Name = "customers" },
+                        Projections =
+                        [
+                            new ViewProjectionDocument
+                            {
+                                Expression = new ExpressionDocument { Kind = "column", Name = "id" }
+                            },
+                            new ViewProjectionDocument
+                            {
+                                Expression = new ExpressionDocument
+                                {
+                                    Kind = "function",
+                                    Function = "Length",
+                                    Arguments = [new ExpressionDocument { Kind = "column", Name = "code" }]
+                                },
+                                Alias = "name_length"
+                            }
+                        ]
+                    }
+                },
+                new ViewDocument
+                {
+                    Identity = new DatabaseObjectNameDocument { Schema = "reporting", Name = "customer_names_copy" },
+                    Query = new ViewQueryDocument
+                    {
+                        Source = new DatabaseObjectNameDocument { Schema = "reporting", Name = "customer_names" },
+                        Projections =
+                        [
+                            new ViewProjectionDocument
+                            {
+                                Expression = new ExpressionDocument { Kind = "column", Name = "name_length" }
+                            }
+                        ]
+                    }
                 }
             ]
         };
