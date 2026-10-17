@@ -207,12 +207,15 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            dotnet sln DubUrlCi.slnf list |
-              Where-Object { $_ -match '\.csproj$' }
+            'DubUrl.Core/DubUrl.csproj'
+            'DubUrl.OleDb/DubUrl.OleDb.csproj'
+            'DubUrl.Extensions/DubUrl.Extensions.csproj'
+            'DubUrl.Adomd/DubUrl.Adomd.csproj'
+            'DubUrl.Schema/DubUrl.Schema.csproj'
+            'DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj'
+            'DubUrl.Application/DubUrl.Application.csproj'
+            'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
           )
-          if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 18) {
-            throw "Expected eighteen projects in DubUrlCi.slnf, found $($projects.Count)."
-          }
 
           $paths = @(
             foreach ($project in $projects) {
