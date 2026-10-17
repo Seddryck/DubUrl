@@ -72,4 +72,4 @@ completed = subprocess.run(
 result = json.loads(completed.stdout)
 ```
 
-Use `duburl capabilities --json` to discover supported document versions, commands, dialects, installed providers, and whether deployment is available.
+Use `duburl capabilities --json` to discover supported document versions, commands, renderable dialect aliases, installed providers, deployable schemes, and whether deployment is available. Rendering only requires a registered dialect; deployment additionally requires the corresponding ADO.NET provider to be bundled and registered.
