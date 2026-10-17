@@ -8,6 +8,8 @@
       "DubUrl.Application\\DubUrl.Application.csproj",
       "DubUrl.BulkCopy.Testing\\DubUrl.BulkCopy.Testing.csproj",
       "DubUrl.BulkCopy\\DubUrl.BulkCopy.csproj",
+      "DubUrl.Cli.Testing\\DubUrl.Cli.Testing.csproj",
+      "DubUrl.Cli\\DubUrl.Cli.csproj",
       "DubUrl.Core\\DubUrl.csproj",
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",
       "DubUrl.Extensions\\DubUrl.Extensions.csproj",
