@@ -16,20 +16,8 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
 
 ########### Generate JSON file #############
 
-$assemblyPath = "DubUrl.Adomd\bin"
-Set-Location $assemblyPath
-$dllfile = "net8.0\DubUrl.Adomd.dll"
+& "$PSScriptRoot/build/Import-DocumentationAssemblies.ps1"
 
-If ((-not (Test-Path -Path "Release\$dllfile")) -or ("Release\$dllfile".CreationTime -lt "Debug\$dllfile".CreationTime)) {
-    $directory = "Debug"    
-} else {
-    $directory = "Release"   
-}
-Add-Type -Path "$directory\$dllfile"
-
-Set-Location "..\..\"
-
-Write-Host "Generating JSON for ADOMD.NET data providers based on $assemblyPath\$directory\$dllfile"
 $elapsed = Measure-Command -Expression {
     $introspector = New-Object  DubUrl.Adomd.Mapping.AdomdMapperIntrospector
     $mappers = $introspector.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.MapperType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, ProviderInvariantName, Slug, MainColor, SecondaryColor

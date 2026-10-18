@@ -1217,7 +1217,8 @@ jobs:
       - package-cli-distributions
       - package-worker-distributions
       - package-connectors
-    runs-on: ubuntu-latest
+    # Lifecycle validation includes Windows-only Access, Excel, and OLE DB packs.
+    runs-on: windows-latest
     permissions:
       contents: write
       discussions: write
