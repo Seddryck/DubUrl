@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DubUrl.Mapping;
 using NUnit.Framework;
 using Moq;
 
@@ -20,7 +21,7 @@ public class SchemaScriptDeployerTests
         var connection = new Mock<IDbConnection>();
         connection.Setup(c => c.CreateCommand()).Returns(cmd.Object);
 
-        var connectionUrl = new Mock<ConnectionUrl>("mssql://./db");
+        var connectionUrl = new Mock<ConnectionUrl>("mssql://./db", Mock.Of<ISchemeRegistry>());
         connectionUrl.Setup(c => c.Open()).Returns(connection.Object);
 
         var deployer = new SchemaScriptDeployer();
