@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class PostgresqlRewriter : ConnectionStringRewriter
+internal class PostgresqlRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.PostgreSqlConnectionStringReverser.Convert(scheme, source);
+
     private const string EXCEPTION_DATABASE_NAME = "Postgresql";
     protected internal const string SERVER_KEYWORD = "Host";
     protected internal const string PORT_KEYWORD = "Port";

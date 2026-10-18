@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class TrinoRewriter : ConnectionStringRewriter
+internal class TrinoRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.TrinoConnectionStringReverser.Convert(scheme, source);
+
     protected internal const string HOST_KEYWORD = "Host";
     protected internal const string HOST_DEFAULT_VALUE = "localhost";
     protected internal const string PORT_KEYWORD = "Port";

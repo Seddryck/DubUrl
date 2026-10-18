@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class SingleStoreRewriter : ConnectionStringRewriter
+internal class SingleStoreRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.MySqlConnectionStringReverser.Convert(scheme, source);
     private const string EXCEPTION_DATABASE_NAME = "SingleStore";
     protected internal const string SERVER_KEYWORD = "Server";
     protected internal const string PORT_KEYWORD = "Port";

@@ -11,8 +11,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class SqliteRewriter : ConnectionStringRewriter
+internal class SqliteRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.SqliteConnectionStringReverser.Convert(scheme, source);
+
     protected internal const string DATABASE_KEYWORD = "Data Source";
 
     public SqliteRewriter(DbConnectionStringBuilder csb, string rootPath)

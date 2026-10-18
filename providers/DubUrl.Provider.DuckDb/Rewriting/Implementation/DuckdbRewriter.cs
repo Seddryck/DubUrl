@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class DuckdbRewriter : ConnectionStringRewriter
+internal class DuckdbRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.DuckDbConnectionStringReverser.Convert(scheme, source);
+
     protected internal const string DATABASE_KEYWORD = "DataSource";
     
     public DuckdbRewriter(DbConnectionStringBuilder csb, string rootPath)

@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class OracleManagedDataAccessRewriter : ConnectionStringRewriter
+internal class OracleManagedDataAccessRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.OracleConnectionStringReverser.Convert(scheme, source);
+
     private const string EXCEPTION_DATABASE_NAME = "Oracle Managed Data Access";
     protected internal const string DATASOURCE_KEYWORD = "DATA SOURCE";
     protected internal const string SERVER_KEYWORD = "HOST";

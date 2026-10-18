@@ -11,8 +11,16 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewriter
+internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source) { Host = "localhost" };
+        p.Segments.Add(p.Take("DBQ"));
+        p.TakeCredentials("Uid", "Pwd");
+        return p.ToUri(scheme);
+    }
+
     protected internal const string SERVER_KEYWORD = "DBQ";
     protected internal const string USERNAME_KEYWORD = "Uid";
     protected internal const string PASSWORD_KEYWORD = "Pwd";

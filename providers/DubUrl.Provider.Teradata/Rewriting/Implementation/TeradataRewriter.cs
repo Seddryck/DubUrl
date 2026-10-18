@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class TeradataRewriter : ConnectionStringRewriter
+internal class TeradataRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.TeradataConnectionStringReverser.Convert(scheme, source);
+
     private const string EXCEPTION_DATABASE_NAME = "Teradata";
     internal const string SERVER_KEYWORD = "Data Source";
     internal const string PORT_KEYWORD = "Port Number";

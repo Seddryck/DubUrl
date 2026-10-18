@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-public class MsSqlServerRewriter : ConnectionStringRewriter
+public class MsSqlServerRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.SqlServerConnectionStringReverser.Convert(scheme, source);
+
     protected internal const string SERVER_KEYWORD = "Data Source";
     protected internal const string DATABASE_KEYWORD = "Initial Catalog";
     protected internal const string USERNAME_KEYWORD = "User ID";

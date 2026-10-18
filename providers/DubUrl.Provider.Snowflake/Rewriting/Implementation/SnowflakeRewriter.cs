@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class SnowflakeRewriter : ConnectionStringRewriter
+internal class SnowflakeRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.SnowflakeConnectionStringReverser.Convert(scheme, source);
+
     internal const string SERVER_KEYWORD = "ACCOUNT";
     internal const string DATABASE_KEYWORD = "DB";
     internal const string SCHEMA_KEYWORD = "SCHEMA";

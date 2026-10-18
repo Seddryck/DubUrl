@@ -15,6 +15,15 @@ namespace DubUrl.Rewriting.Implementation;
 
 public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 {
+    public override ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source);
+        p.TakeHost("Server");
+        p.TakePort("Port");
+        p.TakeCredentials("Uid", "Pwd");
+        return p.ToUri(scheme);
+    }
+
     protected internal const string PORT_KEYWORD = "Port";
 
     public QuestDbOdbcRewriter(DbConnectionStringBuilder csb)

@@ -10,8 +10,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class Db2Rewriter : ConnectionStringRewriter
+internal class Db2Rewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.Db2ConnectionStringReverser.Convert(scheme, source);
+
     private const string EXCEPTION_DATABASE_NAME = "DB2";
     internal const string SERVER_KEYWORD = "Server";
     internal const string DATABASE_KEYWORD = "Database";

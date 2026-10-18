@@ -11,6 +11,18 @@ namespace DubUrl.Rewriting.Implementation;
 
 internal class QuestDbRewriter : PostgresqlRewriter
 {
+    public override ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var parts = new DubUrl.Conversion.ConnectionStringParts(source);
+        parts.TakeHost("Host");
+        parts.TakePort("Port");
+        parts.Segments.Add(parts.Take("Database"));
+        parts.TakeCredentials("Username", "Password");
+        var compatibility = parts.Take("Server Compatibility Mode", SERVER_COMPATIBILITY_MODE);
+        if (compatibility.Length > 0)
+            parts.Options[SERVER_COMPATIBILITY_MODE] = compatibility;
+        return parts.ToUri(scheme);
+    }
     public const string COMMAND_TIMEOUT = "Command Timeout";
     public const string STATEMENT_TIMEOUT = "statement_timeout";
     public const string SERVER_COMPATIBILITY_MODE = "ServerCompatibilityMode";

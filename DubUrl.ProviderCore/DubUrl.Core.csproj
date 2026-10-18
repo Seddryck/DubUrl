@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\DubUrl.Core\Conversion\**\*.cs" Link="Conversion\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\*.cs" Link="%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Extensions\**\*.cs" Link="Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\MicroOrm\**\*.cs" Link="MicroOrm\%(RecursiveDir)%(Filename)%(Extension)" />

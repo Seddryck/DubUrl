@@ -10,8 +10,33 @@ using DubUrl.Rewriting;
 
 namespace DubUrl.OleDb.Mapping;
 
-public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRewriter
+public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        // Provider-specific additional mappers still validate representability on the round trip.
+        var p = new DubUrl.Conversion.ConnectionStringParts(source) { Host = "localhost" };
+        var path = p.Take("Data Source");
+        if (scheme.Parts.Any(part => new[] { "mssql", "ms", "sqlserver", "mssqlserver", "mysql", "my" }
+            .Contains(part, StringComparer.OrdinalIgnoreCase)))
+        {
+            var endpoint = path.Split(',');
+            var instance = endpoint[0].Split('\\');
+            if (endpoint.Length > 2 || instance.Length > 2) throw new NotSupportedException();
+            p.Host = instance[0];
+            if (instance.Length == 2) p.Segments.Add(instance[1]);
+            if (endpoint.Length == 2) p.Port = int.Parse(endpoint[1].Trim(), System.Globalization.CultureInfo.InvariantCulture);
+            p.Segments.Add(p.Take("Database"));
+        }
+        else
+        {
+            p.Segments.Add(path);
+            p.Options["Data Source"] = path;
+        }
+        p.TakeCredentials("User ID", "Password");
+        return p.ToUri(scheme);
+    }
+
     protected internal const string PROVIDER_KEYWORD = "Provider";
     protected internal const string SERVER_KEYWORD = "Data Source";
     protected internal const string DATABASE_KEYWORD = "Database";

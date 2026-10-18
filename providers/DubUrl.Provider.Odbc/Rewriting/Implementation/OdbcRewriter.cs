@@ -11,8 +11,17 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewriter
+public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source);
+        p.TakeHost("Server");
+        p.Segments.Add(p.Take("Database"));
+        p.TakeCredentials("Uid", "Pwd");
+        return p.ToUri(scheme);
+    }
+
     private const string EXCEPTION_DATABASE_NAME = "ODBC";
     protected internal const string SERVER_KEYWORD = "Server";
     protected internal const string DATABASE_KEYWORD = "Database";

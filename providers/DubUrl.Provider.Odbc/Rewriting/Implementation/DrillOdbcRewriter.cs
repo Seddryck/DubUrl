@@ -17,6 +17,16 @@ namespace DubUrl.Rewriting.Implementation;
 
 public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 {
+    public override ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source);
+        p.TakeHost("Server");
+        p.TakePort("Port");
+        p.TakeCredentials("Uid", "Pwd");
+        p.Segments.Add(p.Take("Schema"));
+        return p.ToUri(scheme);
+    }
+
     private const string EXCEPTION_DATABASE_NAME = "ODBC for Apache Drill";
     protected internal const string PORT_KEYWORD = "Port";
     protected internal const string SCHEMA_KEYWORD = "Schema";

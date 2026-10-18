@@ -12,6 +12,18 @@ namespace DubUrl.Rewriting.Implementation;
 
 internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 {
+    public override ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source);
+        p.TakeHost("Host");
+        p.TakePort("Port");
+        p.TakeCredentials("Uid", "Pwd");
+        p.Segments.Add(p.Take("Catalog"));
+        var schema = p.Take("Schema");
+        if (schema.Length > 0) p.Segments.Add(schema);
+        return p.ToUri(scheme);
+    }
+
     protected internal const string HOST_KEYWORD = "Host";
     protected internal const string HOST_DEFAULT_VALUE = "localhost";
     protected internal const string PORT_KEYWORD = "Port";

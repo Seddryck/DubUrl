@@ -1,0 +1,15 @@
+using DubUrl.Mapping.Implementation;
+using DubUrl.Testing.Conversion;
+using NUnit.Framework;
+
+namespace DubUrl.Testing.Conversion.MySql;
+
+public class SingleStoreConversionTest
+{
+    [TestCase(@"Server=localhost;Database=db;User ID=example;Password=example;Pooling=False")]
+    public void Convert_PreservesProviderSettings(string input)
+    {
+        ConversionTestSupport.RoundTrip("singlestore", input, global::SingleStoreConnector.SingleStoreConnectorFactory.Instance,
+            csb => new SingleStoreMapper(csb, ConversionTestSupport.Dialect, ConversionTestSupport.Parametrizer));
+    }
+}

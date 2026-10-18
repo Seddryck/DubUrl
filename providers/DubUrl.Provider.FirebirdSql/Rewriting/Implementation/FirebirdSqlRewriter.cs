@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Rewriting.Implementation;
 
-internal class FirebirdSqlRewriter : ConnectionStringRewriter
+internal class FirebirdSqlRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.FirebirdSqlConnectionStringReverser.Convert(scheme, source);
+
     internal const string SERVER_KEYWORD = "DataSource";
     internal const string PORT_KEYWORD = "Port";
     internal const string DATABASE_KEYWORD = "Database";
