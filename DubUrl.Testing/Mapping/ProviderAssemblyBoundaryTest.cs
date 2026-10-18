@@ -88,6 +88,34 @@ public class ProviderAssemblyBoundaryTest
         });
     }
 
+    [TestCase("Db2", "Db2Rewriter")]
+    [TestCase("DuckDb", "DuckdbRewriter")]
+    [TestCase("FirebirdSql", "FirebirdSqlRewriter")]
+    [TestCase("MySql", "MySqlConnectorRewriter,MySqlDataRewriter,MariaDbConnectorRewriter,MariaDbDataRewriter,SingleStoreRewriter")]
+    [TestCase("Odbc", "OdbcRewriter,OdbcDbqRewriter,DrillOdbcRewriter,DuckdbOdbcRewriter,QuestDbOdbcRewriter,TrinoOdbcRewriter")]
+    [TestCase("Oracle", "OracleManagedDataAccessRewriter")]
+    [TestCase("PostgreSql", "PostgresqlRewriter,CockRoachRewriter,CrateDbRewriter,QuestDbRewriter,TimescaleRewriter")]
+    [TestCase("Snowflake", "SnowflakeRewriter")]
+    [TestCase("Sqlite", "SqliteRewriter")]
+    [TestCase("SqlServer", "MsSqlServerRewriter")]
+    [TestCase("Teradata", "TeradataRewriter")]
+    [TestCase("Trino", "TrinoRewriter")]
+    public void Rewriters_RetainTheirProviderAssemblyIdentity(string family, string rewriters)
+    {
+        var assemblyName = $"DubUrl.Provider.{family}";
+        var assembly = System.Reflection.Assembly.Load(assemblyName);
+        foreach (var rewriter in rewriters.Split(','))
+        {
+            var fullName = $"DubUrl.Rewriting.Implementation.{rewriter}";
+            var type = assembly.GetType(fullName, throwOnError: true)!;
+            Assert.Multiple(() =>
+            {
+                Assert.That(type.Assembly.GetName().Name, Is.EqualTo(assemblyName));
+                Assert.That(typeof(DubUrl.Rewriting.ConnectionStringRewriter).IsAssignableFrom(type), Is.True);
+                Assert.That(typeof(ProviderCatalog).Assembly.GetType(fullName), Is.Null);
+            });
+        }
+    }
     [Test]
     public void PostgreSqlConnector_UsesCoreFamilyProviderAndDriverOnly()
     {

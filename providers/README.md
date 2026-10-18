@@ -24,3 +24,15 @@ DubUrl keeps provider-neutral contracts and runtime behavior in `DubUrl.Core`. D
 Each package depends on `DubUrl.Core` but not on a concrete ADO.NET driver. Connector packages combine one or more provider implementation packages with a particular driver and an explicit `IDubUrlProviderModule`. The `DubUrl` package remains the 0.x compatibility aggregate and references every provider implementation package.
 
 Provider and connector project-reference dependencies are packed with a lower bound equal to their release version and an exclusive `1.0.0` upper bound. This keeps the modular packages on the compatible 0.x API line.
+
+Provider-specific rewriting source files are physically owned by each package under
+`Rewriting/Implementation`, including their nested token mappers. PostgreSQL and
+MySQL derivatives stay with their database family; ODBC adapters stay in
+`DubUrl.Provider.Odbc`. The shared rewriter, token-mapping contracts, specificators,
+and URL model remain in `DubUrl.Core`. Namespaces and assembly identities are
+unchanged by this source organization.
+
+Provider rewriting fixtures live under each package's `Tests/Rewriting/Implementation`
+directory. Production projects exclude `Tests/**/*.cs`; `DubUrl.Testing` includes
+these fixtures explicitly so the shared test runner and provider registrations are
+preserved. Shared rewriting and cross-provider boundary tests remain central.

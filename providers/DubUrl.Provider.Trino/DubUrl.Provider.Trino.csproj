@@ -3,7 +3,6 @@
   <ItemGroup>
     <Compile Include="..\..\DubUrl.Core\Mapping\Database\TrinoDatabase.cs" Link="Mapping\Database\TrinoDatabase.cs" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\TrinoMapper.cs" Link="Mapping\Implementation\TrinoMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\TrinoRewriter.cs" Link="Rewriting\Implementation\TrinoRewriter.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\TrinoDialect.cs" Link="Querying\Dialects\TrinoDialect.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Casters\TrinoTimeSpanParser.cs" Link="Querying\Dialects\Casters\TrinoTimeSpanParser.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Formatters\IntervalTrinoFormatter.cs" Link="Querying\Dialects\Formatters\IntervalTrinoFormatter.cs" />

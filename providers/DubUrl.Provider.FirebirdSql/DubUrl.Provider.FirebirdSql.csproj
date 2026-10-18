@@ -3,7 +3,6 @@
   <ItemGroup>
     <Compile Include="..\..\DubUrl.Core\Mapping\Database\FirebirdSqlDatabase.cs" Link="Mapping\Database\FirebirdSqlDatabase.cs" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\FirebirdSqlMapper.cs" Link="Mapping\Implementation\FirebirdSqlMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\FirebirdSqlRewriter.cs" Link="Rewriting\Implementation\FirebirdSqlRewriter.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\FirebirdSqlDialect.cs" Link="Querying\Dialects\FirebirdSqlDialect.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\FirebirdSqlFunctionMapper.cs" Link="Querying\Dialects\Functions\FirebirdSqlFunctionMapper.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\FirebirdSqlRenderer.cs" Link="Querying\Dialects\Renderers\FirebirdSqlRenderer.cs" />
