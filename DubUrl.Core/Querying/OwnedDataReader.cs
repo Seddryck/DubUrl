@@ -6,17 +6,17 @@ using System.Threading;
 namespace DubUrl.Querying;
 
 /// <summary>
-/// A reader that owns the underlying reader, command, and connection. Disposing or closing it releases all three.
+/// A reader that owns the underlying reader, command, and connection lease. Closing it releases all three.
 /// </summary>
 public sealed class OwnedDataReader : DbDataReader
 {
     private readonly IDataReader _reader;
     private readonly IDbCommand _command;
-    private readonly IDbConnection _connection;
+    private readonly IDisposable _owner;
     private int _disposed;
 
-    internal OwnedDataReader(IDataReader reader, IDbCommand command, IDbConnection connection)
-        => (_reader, _command, _connection) = (reader, command, connection);
+    internal OwnedDataReader(IDataReader reader, IDbCommand command, IDisposable owner)
+        => (_reader, _command, _owner) = (reader, command, owner);
 
     public override int Depth => _reader.Depth;
     public override int FieldCount => _reader.FieldCount;
@@ -81,7 +81,7 @@ public sealed class OwnedDataReader : DbDataReader
                 }
                 finally
                 {
-                    _connection.Dispose();
+                    _owner.Dispose();
                 }
             }
         }
@@ -110,10 +110,10 @@ public sealed class OwnedDataReader : DbDataReader
             }
             finally
             {
-                if (_connection is DbConnection dbConnection)
-                    await dbConnection.DisposeAsync().ConfigureAwait(false);
+                if (_owner is IAsyncDisposable asyncOwner)
+                    await asyncOwner.DisposeAsync().ConfigureAwait(false);
                 else
-                    _connection.Dispose();
+                    _owner.Dispose();
             }
         }
     }

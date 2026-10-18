@@ -54,3 +54,28 @@ sealed class MyReusePolicy : IConnectionReusePolicyResolver
 // new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto,
 //     PolicyResolvers = [new MyReusePolicy()] }
 ```
+
+## DatabaseUrl integration
+
+URL/factory constructors remain available. Dispose each `DatabaseUrl` instance: it lazily owns one provider-managed source and reuses that source across queries. Its sync/async scalar, first/single, streaming and raw-reader paths all acquire leases. MicroOrm shares this execution path.
+
+```csharp
+await using var database = new DatabaseUrl(url);
+var count = await database.ReadScalarAsync<long>("SELECT COUNT(*) FROM Customer");
+```
+
+To choose a strategy or share a source across database instances, inject it. The source carries its resolved query metadata, so there is no separate URL that could mismatch its dialect/parameterization. DatabaseUrl borrows the injected source and never disposes it.
+
+```csharp
+await using var source = new ConnectionSourceUrl(url).Create(
+    new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto });
+await using var database = new DatabaseUrl(source);
+var first = database.ReadFirst("SELECT CustomerId FROM Customer");
+var second = await database.ReadScalarAsync<long>("SELECT COUNT(*) FROM Customer");
+```
+
+Disposing the database prevents further query execution through that instance, including deferred enumeration, but other borrowers can still use the source. Disposal of a database-owned source waits for its outstanding operations. Close raw readers and dispose enumerators before disposing their database/source. `ReadMultiple` acquires only when enumeration begins; finishing, throwing, or disposing the enumerator releases its lease. Async streaming follows the same rule. Never-enumerated results acquire nothing.
+
+An `ExecuteReader` result owns its reader, command, and lease. `Close`, `Dispose`, or `DisposeAsync` releases them once in that order. While a reader/enumerator holds a retained lease, another query on that source waits. Nested querying on a retained source while consuming its reader is unsupported. Different DatabaseUrl calls do not form a transaction; use one explicit source lease for transaction-dependent work.
+
+For subclasses, `PrepareCommand` remains a protected compatibility helper returning an owning command. Dispose it or its returned reader. Query execution uses the shared executor, as before; overriding `PrepareCommand` does not intercept all public query methods. Resource lifetime customization belongs in source policy, not direct connection disposal. `IDatabaseUrl` now exposes `IDisposable` and `IAsyncDisposable`; external implementations must implement that lifecycle.

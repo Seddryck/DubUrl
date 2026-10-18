@@ -7,11 +7,12 @@ internal sealed class OwnedDbCommand : IDbCommand
 {
     private readonly IDbCommand _command;
     private IDbConnection _connection;
+    private readonly IDisposable _owner;
     private int _ownershipTransferred;
     private int _disposed;
 
-    public OwnedDbCommand(IDbCommand command, IDbConnection connection)
-        => (_command, _connection) = (command, connection);
+    public OwnedDbCommand(IDbCommand command, IDbConnection connection, IDisposable? owner = null)
+        => (_command, _connection, _owner) = (command, connection, owner ?? connection);
 
     [AllowNull]
     public string CommandText { get => _command.CommandText; set => _command.CommandText = value; }
@@ -42,9 +43,9 @@ internal sealed class OwnedDbCommand : IDbCommand
     {
         try
         {
-            var reader = _command.ExecuteReader(behavior);
+            var reader = _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection);
             Interlocked.Exchange(ref _ownershipTransferred, 1);
-            return new OwnedDataReader(reader, _command, _connection);
+            return new OwnedDataReader(reader, _command, _owner);
         }
         catch
         {
@@ -64,7 +65,7 @@ internal sealed class OwnedDbCommand : IDbCommand
         }
         finally
         {
-            _connection.Dispose();
+            _owner.Dispose();
         }
     }
 }

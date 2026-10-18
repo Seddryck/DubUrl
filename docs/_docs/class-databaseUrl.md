@@ -11,14 +11,22 @@ The `DatabaseUrl` class provides a high-level API for executing SQL queries from
 To start using the DatabaseUrl class, you first need to create an instance. This instance encapsulates the database connection and dialect, automatically inferred from the URL scheme (e.g., PostgreSQL, MySQL). You can use a simple connection string, or provide a factory if you need advanced control over supported schemes and dialect behavior.
 
 ```csharp
-var db = new DatabaseUrl("postgresql://user:pass@host:5432/database");
+using var db = new DatabaseUrl("postgresql://user:pass@host:5432/database");
 ```
 
 For custom schemes or dialect mappings:
 
 ```csharp
 var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
-var db = new DatabaseUrl(factory, "mysql://user:pass@localhost/db");
+using var db = new DatabaseUrl(factory, "mysql://user:pass@localhost/db");
+```
+
+Each instance owns one lazily created provider-managed connection source. Dispose the instance when finished. To choose retained reuse or automatic strategy selection, inject a `ConnectionSource`; the database borrows that source and its bound query metadata. See [Connection sources](connection-source) for configuration, ownership, and streaming/reader lifetime details.
+
+```csharp
+await using var source = new ConnectionSourceUrl(url).Create(
+    new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto });
+await using var db = new DatabaseUrl(source);
 ```
 
 ## Using Templated SQL

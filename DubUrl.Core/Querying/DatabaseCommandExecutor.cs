@@ -10,49 +10,50 @@ internal sealed class DatabaseCommandExecutor
     private readonly ConnectionUrl _connectionUrl;
     private readonly CommandProvisionerFactory _commandProvisionerFactory;
     private readonly IQueryLogger _queryLogger;
+    private readonly Func<ConnectionSource> _source;
 
-    public DatabaseCommandExecutor(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger queryLogger)
-        => (_connectionUrl, _commandProvisionerFactory, _queryLogger) = (connectionUrl, commandProvisionerFactory, queryLogger);
+    public DatabaseCommandExecutor(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger queryLogger, Func<ConnectionSource> source)
+        => (_connectionUrl, _commandProvisionerFactory, _queryLogger, _source) = (connectionUrl, commandProvisionerFactory, queryLogger, source);
 
     public T ExecuteScalar<T>(ICommandProvider commandProvider, Func<IDbCommand, T> consume)
     {
-        using var connection = _connectionUrl.Open();
-        using var command = CreateCommand(commandProvider, connection);
+        using var lease = _source().Acquire();
+        using var command = CreateCommand(commandProvider, lease.Handle);
         return consume(command);
     }
 
     public T ExecuteReader<T>(ICommandProvider commandProvider, Func<IDataReader, T> consume)
     {
-        using var connection = _connectionUrl.Open();
-        using var command = CreateCommand(commandProvider, connection);
+        using var lease = _source().Acquire();
+        using var command = CreateCommand(commandProvider, lease.Handle);
         using var reader = command.ExecuteReader();
         return consume(reader);
     }
 
     public IDbCommand PrepareOwnedCommand(ICommandProvider commandProvider)
     {
-        var connection = _connectionUrl.Open();
+        var lease = _source().Acquire();
         try
         {
-            return new OwnedDbCommand(CreateCommand(commandProvider, connection), connection);
+            return new OwnedDbCommand(CreateCommand(commandProvider, lease.Handle), lease.Handle, lease);
         }
         catch
         {
-            connection.Dispose();
+            lease.Dispose();
             throw;
         }
     }
 
     public OwnedDataReader ExecuteOwnedReader(ICommandProvider commandProvider)
     {
-        var connection = _connectionUrl.Open();
+        var lease = _source().Acquire();
         try
         {
-            var command = CreateCommand(commandProvider, connection);
+            var command = CreateCommand(commandProvider, lease.Handle);
             try
             {
                 var reader = command.ExecuteReader();
-                return new OwnedDataReader(reader, command, connection);
+                return new OwnedDataReader(reader, command, lease);
             }
             catch
             {
@@ -62,22 +63,21 @@ internal sealed class DatabaseCommandExecutor
         }
         catch
         {
-            connection.Dispose();
+            lease.Dispose();
             throw;
         }
     }
 
     public async Task<OwnedDataReader> ExecuteOwnedReaderAsync(ICommandProvider commandProvider, CancellationToken cancellationToken)
     {
-        var connection = CreateDbConnection();
+        var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-            var command = CreateDbCommand(commandProvider, connection);
+            var command = CreateDbCommand(commandProvider, lease.Connection);
             try
             {
                 var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                return new OwnedDataReader(reader, command, connection);
+                return new OwnedDataReader(reader, command, lease);
             }
             catch
             {
@@ -87,7 +87,7 @@ internal sealed class DatabaseCommandExecutor
         }
         catch
         {
-            await connection.DisposeAsync().ConfigureAwait(false);
+            await lease.DisposeAsync().ConfigureAwait(false);
             throw;
         }
     }
@@ -97,9 +97,8 @@ internal sealed class DatabaseCommandExecutor
         Func<DbCommand, CancellationToken, Task<T>> consume,
         CancellationToken cancellationToken)
     {
-        await using var connection = CreateDbConnection();
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using var command = CreateDbCommand(commandProvider, connection);
+        await using var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = CreateDbCommand(commandProvider, lease.Connection);
         return await consume(command, cancellationToken).ConfigureAwait(false);
     }
 
@@ -108,17 +107,16 @@ internal sealed class DatabaseCommandExecutor
         Func<DbDataReader, CancellationToken, Task<T>> consume,
         CancellationToken cancellationToken)
     {
-        await using var connection = CreateDbConnection();
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using var command = CreateDbCommand(commandProvider, connection);
+        await using var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = CreateDbCommand(commandProvider, lease.Connection);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         return await consume(reader, cancellationToken).ConfigureAwait(false);
     }
 
     public IEnumerable<T> Stream<T>(ICommandProvider commandProvider, Func<IDataReader, T> project)
     {
-        using var connection = _connectionUrl.Open();
-        using var command = CreateCommand(commandProvider, connection);
+        using var lease = _source().Acquire();
+        using var command = CreateCommand(commandProvider, lease.Handle);
         using var reader = command.ExecuteReader();
 
         while (reader.Read())
@@ -130,9 +128,8 @@ internal sealed class DatabaseCommandExecutor
         Func<DbDataReader, T> project,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        await using var connection = CreateDbConnection();
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using var command = CreateDbCommand(commandProvider, connection);
+        await using var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = CreateDbCommand(commandProvider, lease.Connection);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
 
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -176,7 +173,4 @@ internal sealed class DatabaseCommandExecutor
         _queryLogger.Log(command.CommandText);
     }
 
-    private DbConnection CreateDbConnection()
-        => _connectionUrl.Connect() as DbConnection
-            ?? throw new NotSupportedException("Asynchronous execution requires a DbConnection provider.");
 }
