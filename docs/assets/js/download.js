@@ -72,6 +72,7 @@
 
     const kind = match[1] ? "worker" : "cli";
     if (kind === "worker" && match[6]) return null;
+    if (kind === "worker" && match[2] !== "net10.0") return null;
     return {
       kind,
       framework: match[2],
@@ -138,9 +139,9 @@
       return `<button class="download-option" type="button" data-product="${product}" data-choice="${group}" data-value="${escapeHtml(value)}" aria-pressed="${selected === value}">${escapeHtml(text)}</button>`;
     }
 
-    function choiceStep(title, key, candidates, product, description = "") {
+    function choiceStep(title, key, candidates, product, description = "", showSingleValue = false) {
       const values = [...new Set(candidates.map((item) => item[key]))].filter((value) => value !== null);
-      if (values.length < 2) return "";
+      if (!values.length || (values.length < 2 && !showSingleValue)) return "";
       const options = values.map((value) => button(
         value, key, key === "framework" ? value.replace("net", ".NET ").replace(".0", "") : undefined, product
       )).join("");
@@ -163,7 +164,14 @@
         [".NET target", "framework", "These distributions require the matching .NET runtime."],
         ["Package type", "packageType", ""]
       ]) {
-        html += choiceStep(title, key, candidates, product, key === "libc" || key === "framework" ? description : "");
+        html += choiceStep(
+          title,
+          key,
+          candidates,
+          product,
+          key === "libc" || key === "framework" ? description : "",
+          product === "worker"
+        );
         if (state.choices[product][key]) candidates = candidates.filter((item) => item[key] === state.choices[product][key]);
       }
 
@@ -198,7 +206,10 @@
       const description = isCli
         ? "Validate schemas, render SQL, and deploy database structures from a terminal, script, or pipeline."
         : "Host persistent DubUrl application services for integrations over JSON-RPC standard input and output.";
-      return `<h2>${title}</h2><p>${description}</p><h3>How do you want to install it?</h3><div class="download-options">${button("tool", "method", ".NET global tool", product)}${button("native", "method", "Native / portable", product)}</div>${state.methods[product] === "tool" ? renderTool(product) : renderNative(product)}`;
+      const availability = isCli
+        ? '<p class="download-help">The .NET global tool works on macOS today. Native macOS choices will appear automatically when matching release archives are published.</p>'
+        : '<p class="download-help">The JSON-RPC worker offers the same installation choices as the CLI and targets .NET 10 only.</p>';
+      return `<h2>${title}</h2><p>${description}</p>${availability}<h3>How do you want to install it?</h3><div class="download-options">${button("tool", "method", ".NET global tool", product)}${button("native", "method", "Native / portable", product)}</div>${state.methods[product] === "tool" ? renderTool(product) : renderNative(product)}`;
     }
 
     function renderPackageCard(item) {

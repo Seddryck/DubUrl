@@ -20,8 +20,9 @@ test("parses Linux musl and future macOS CLI archives", () => {
   assert.equal(download.parseAsset(asset("duburl-1.1.0-net10.0-osx-arm64.tar.gz"), "1.1.0").os, "osx");
 });
 
-test("parses worker archives and ignores unknown assets", () => {
+test("parses only .NET 10 worker archives and ignores unknown assets", () => {
   assert.equal(download.parseAsset(asset("duburl-worker-1.1.0-net10.0-win-arm64.zip"), "1.1.0").kind, "worker");
+  assert.equal(download.parseAsset(asset("duburl-worker-1.1.0-net9.0-linux-x64.tar.gz"), "1.1.0"), null);
   assert.equal(download.parseAsset(asset("checksums.txt"), "1.1.0"), null);
 });
 

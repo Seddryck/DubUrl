@@ -86,7 +86,7 @@
 .download-help,
 .download-filename,
 .download-package__description { color: var(--download-muted); font-size: 0.9rem; }
-.download-card { margin-top: 1.25rem; padding: 1rem; background: #fbfcfc; }
+.download-card { min-width: 0; margin-top: 1.25rem; padding: 1rem; background: #fbfcfc; }
 .download-card--recommended { border-color: var(--download-accent); }
 .download-badge {
   display: inline-block;
@@ -131,12 +131,21 @@
 .download-package-version .download-help { margin-bottom: 0; }
 .download-command {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  flex-direction: column;
   gap: 0.5rem;
   margin-top: 0.6rem;
 }
-.download-command code { flex: 1; overflow-wrap: anywhere; }
-.download-copy { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
+.download-command code {
+  display: block;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
+}
+.download-copy { align-self: flex-end; padding: 0.35rem 0.6rem; font-size: 0.8rem; }
 .download-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
 .download-package h3 { margin: 0; font-size: 1.05rem; }
 .download-notice { padding: 1rem; background: #f5f7f8; }
@@ -146,5 +155,4 @@
 @media (max-width: 40rem) {
   .download-tab { flex: 1 1 45%; }
   .download-toolbar select { display: block; width: 100%; margin: 0.4rem 0 0; }
-  .download-command { align-items: stretch; flex-direction: column; }
 }
