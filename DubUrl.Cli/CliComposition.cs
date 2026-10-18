@@ -76,12 +76,7 @@ public static class CliComposition
     {
         var entries = new List<ProviderPackCatalogEntry>();
         var configuredPath = configuration["ProviderPacks:CatalogPath"];
-        var catalogPath = Path.GetFullPath(
-            string.IsNullOrWhiteSpace(configuredPath)
-                ? Path.Combine(AppContext.BaseDirectory, "connector-catalog.json")
-                : Path.IsPathRooted(configuredPath)
-                    ? configuredPath
-                    : Path.Combine(AppContext.BaseDirectory, configuredPath));
+        var catalogPath = Path.GetFullPath(GetCatalogPath(configuredPath));
         if (File.Exists(catalogPath))
         {
             using var stream = File.OpenRead(catalogPath);
@@ -110,5 +105,14 @@ public static class CliComposition
                     section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? []));
         }
         return new(entries);
+    }
+
+    private static string GetCatalogPath(string? configuredPath)
+    {
+        if (string.IsNullOrWhiteSpace(configuredPath))
+            return Path.Combine(AppContext.BaseDirectory, "connector-catalog.json");
+        return Path.IsPathRooted(configuredPath)
+            ? configuredPath
+            : Path.Combine(AppContext.BaseDirectory, configuredPath);
     }
 }

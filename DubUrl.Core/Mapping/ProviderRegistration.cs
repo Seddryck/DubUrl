@@ -30,8 +30,7 @@ public sealed class ProviderRegistration
         Func<DbProviderFactory?> providerFactory,
         IDialect dialect,
         Func<IParametrizer> parametrizerFactory,
-        Func<ProviderCompilationContext, IMapper> compile,
-        IEnumerable<object>? capabilities = null)
+        Func<ProviderCompilationContext, IMapper> compile)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(providerInvariantName);
@@ -41,12 +40,7 @@ public sealed class ProviderRegistration
         ArgumentNullException.ThrowIfNull(parametrizerFactory);
         ArgumentNullException.ThrowIfNull(compile);
 
-        var normalizedAliases = aliases
-            .Select(alias => alias?.Trim())
-            .Where(alias => !string.IsNullOrWhiteSpace(alias))
-            .Cast<string>()
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        var normalizedAliases = NormalizeAliases(aliases);
         if (normalizedAliases.Length == 0)
             throw new ArgumentException("At least one non-empty scheme alias is required.", nameof(aliases));
 
@@ -57,8 +51,18 @@ public sealed class ProviderRegistration
         Dialect = dialect;
         ParametrizerFactory = parametrizerFactory;
         Compile = compile;
-        _capabilities = (capabilities ?? [])
-            .ToDictionary(capability => capability.GetType());
+        _capabilities = [];
+    }
+
+    public ProviderRegistration WithCapabilities(params object[] capabilities)
+    {
+        ArgumentNullException.ThrowIfNull(capabilities);
+        foreach (var capability in capabilities)
+        {
+            ArgumentNullException.ThrowIfNull(capability);
+            _capabilities.Add(capability.GetType(), capability);
+        }
+        return this;
     }
 
     public bool TryGetCapability<TCapability>(out TCapability? capability) where TCapability : class
@@ -71,6 +75,18 @@ public sealed class ProviderRegistration
 
         capability = null;
         return false;
+    }
+
+    private static string[] NormalizeAliases(IEnumerable<string> aliases)
+    {
+        var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var alias in aliases)
+        {
+            var value = alias?.Trim();
+            if (!string.IsNullOrWhiteSpace(value))
+                normalized.Add(value);
+        }
+        return [.. normalized];
     }
 }
 

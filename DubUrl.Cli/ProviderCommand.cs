@@ -54,7 +54,8 @@ internal static class ConnectorCommand
         command.Options.Add(json);
         command.SetAction(result => ExecuteSafelyAsync(services, async () =>
         {
-            var requested = result.GetValue(connector)!;
+            var requested = result.GetValue(connector)
+                ?? throw new InvalidOperationException("A connector ID is required.");
             var installed = await services.GetRequiredService<IProviderPackService>()
                 .InstallAsync(requested, cancellationToken)
                 .ConfigureAwait(false);
@@ -90,7 +91,8 @@ internal static class ConnectorCommand
         command.Options.Add(json);
         command.SetAction(result => ExecuteSafelyAsync(services, () =>
         {
-            var requested = result.GetValue(connector)!;
+            var requested = result.GetValue(connector)
+                ?? throw new InvalidOperationException("A connector ID is required.");
             var id = services.GetRequiredService<IProviderPackService>().Uninstall(requested);
             var console = services.GetRequiredService<ICliConsole>();
             if (result.GetValue(json))
@@ -121,7 +123,9 @@ internal static class ConnectorCommand
         }
         catch (ProviderPackCommandException exception)
         {
-            services.GetRequiredService<ICliConsole>().Error.WriteLine($"{exception.Code}: {exception.Message}");
+            await services.GetRequiredService<ICliConsole>().Error
+                .WriteLineAsync($"{exception.Code}: {exception.Message}")
+                .ConfigureAwait(false);
             return exception.ExitCode;
         }
     }

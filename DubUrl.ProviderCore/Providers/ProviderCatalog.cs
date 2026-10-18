@@ -19,15 +19,14 @@ public sealed class ProviderCatalog
             .ThenBy(provider => provider.Source, StringComparer.Ordinal)
             .ToArray();
         var byScheme = new Dictionary<string, ProviderDescriptor>(StringComparer.OrdinalIgnoreCase);
-        foreach (var provider in ordered)
+        var registrations = ordered.SelectMany(provider =>
+            provider.Schemes.Select(scheme => (Scheme: scheme, Provider: provider)));
+        foreach (var registration in registrations)
         {
-            foreach (var scheme in provider.Schemes)
-            {
-                if (!byScheme.TryAdd(scheme, provider))
-                    throw new ArgumentException(
-                        $"Scheme '{scheme}' is registered by both '{byScheme[scheme].Name}' and '{provider.Name}'.",
-                        nameof(providers));
-            }
+            if (!byScheme.TryAdd(registration.Scheme, registration.Provider))
+                throw new ArgumentException(
+                    $"Scheme '{registration.Scheme}' is registered by both '{byScheme[registration.Scheme].Name}' and '{registration.Provider.Name}'.",
+                    nameof(providers));
         }
 
         Providers = Array.AsReadOnly(ordered);

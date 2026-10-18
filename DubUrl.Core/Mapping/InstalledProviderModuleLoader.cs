@@ -25,7 +25,8 @@ public sealed class InstalledProviderModuleLoader : IDisposable
                 var context = new ProviderPackLoadContext(assemblyPath);
                 using var assemblyStream = File.OpenRead(assemblyPath);
                 var assembly = context.LoadFromStream(assemblyStream);
-                var type = assembly.GetType(pack.Manifest.Module.Type, throwOnError: true, ignoreCase: false)!;
+                var type = assembly.GetType(pack.Manifest.Module.Type, throwOnError: true, ignoreCase: false)
+                    ?? throw new TypeLoadException($"Module type '{pack.Manifest.Module.Type}' was not found.");
                 if (!typeof(IDubUrlProviderModule).IsAssignableFrom(type))
                     throw new InvalidOperationException($"Module type '{type.FullName}' does not implement {nameof(IDubUrlProviderModule)}.");
                 var module = Activator.CreateInstance(type) as IDubUrlProviderModule

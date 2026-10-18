@@ -1,11 +1,11 @@
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 
-return await ConnectorArtifactVerifier.RunAsync(args);
+namespace DubUrl.ConnectorArtifactVerifier;
 
-internal static class ConnectorArtifactVerifier
+internal static class Program
 {
-    public static async Task<int> RunAsync(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         ValidateArguments(args);
         var context = await CreateContextAsync(args);
@@ -35,7 +35,7 @@ internal static class ConnectorArtifactVerifier
         var catalogPath = Path.GetFullPath(args[1]);
         await using var catalogStream = File.OpenRead(catalogPath);
         var entry = ProviderPackCatalog.Read(catalogStream).Entries.Single();
-        var apiVersion = Version.Parse(entry.Version.Split('-', '+')[0]);
+        var apiVersion = Version.Parse(entry.Version.Split(['-', '+'], StringSplitOptions.None)[0]);
         return new(
             entry,
             Path.GetFullPath(args[2]),

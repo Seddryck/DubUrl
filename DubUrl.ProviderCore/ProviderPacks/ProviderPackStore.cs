@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -9,6 +10,8 @@ namespace DubUrl.Core.ProviderPacks;
 /// </summary>
 public sealed class ProviderPackStore
 {
+    private const string ManifestInvalid = "manifest-invalid";
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -53,14 +56,21 @@ public sealed class ProviderPackStore
             if (!FixedEquals(archiveHash, catalogEntry.Sha256))
                 throw new ProviderPackException("pack-integrity", "The provider pack archive does not match its curated catalog digest.");
 
-            using var package = ZipFile.OpenRead(archivePath);
+            await using var packageStream = new FileStream(
+                archivePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 4096,
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
+            using var package = new ZipArchive(packageStream, ZipArchiveMode.Read);
             var manifestEntry = package.GetEntry(ProviderPackManifest.FileName)
                 ?? throw new ProviderPackException("manifest-missing", $"The provider pack does not contain {ProviderPackManifest.FileName}.");
             ProviderPackManifest manifest;
-            await using (var manifestStream = manifestEntry.Open())
+            await using (var manifestStream = await OpenEntryAsync(manifestEntry, cancellationToken).ConfigureAwait(false))
             {
                 manifest = await JsonSerializer.DeserializeAsync<ProviderPackManifest>(manifestStream, JsonOptions, cancellationToken).ConfigureAwait(false)
-                    ?? throw new ProviderPackException("manifest-invalid", "The provider pack manifest is empty.");
+                    ?? throw new ProviderPackException(ManifestInvalid, "The provider pack manifest is empty.");
             }
 
             ValidateManifest(manifest, catalogEntry);
@@ -74,8 +84,10 @@ public sealed class ProviderPackStore
                     ?? throw new ProviderPackException("asset-missing", $"Required asset '{asset.Path}' is missing.");
                 var destinationPath = Path.GetFullPath(Path.Combine(contentRoot, relativePath));
                 EnsureWithin(contentRoot, destinationPath);
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                await using (var source = entry.Open())
+                var destinationDirectory = Path.GetDirectoryName(destinationPath)
+                    ?? throw new ProviderPackException("path-invalid", $"Asset '{asset.Path}' has no parent directory.");
+                Directory.CreateDirectory(destinationDirectory);
+                await using (var source = await OpenEntryAsync(entry, cancellationToken).ConfigureAwait(false))
                 await using (var destination = File.Create(destinationPath))
                     await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
                 var hash = await ComputeHashAsync(destinationPath, cancellationToken).ConfigureAwait(false);
@@ -160,12 +172,14 @@ public sealed class ProviderPackStore
         var invalidManifest = TryReadManifest(installPath, out var manifest);
         if (invalidManifest is not null)
             return invalidManifest;
+        if (manifest is null)
+            throw new InvalidOperationException("Manifest inspection succeeded without returning a manifest.");
 
-        var compatibility = GetCompatibilityDiagnostic(manifest!);
+        var compatibility = GetCompatibilityDiagnostic(manifest);
         if (compatibility is not null)
-            return new(manifest!, installPath, ProviderPackStatus.Incompatible, [compatibility]);
+            return new(manifest, installPath, ProviderPackStatus.Incompatible, [compatibility]);
 
-        foreach (var asset in manifest!.Assets)
+        foreach (var asset in manifest.Assets)
         {
             var invalidAsset = InspectAsset(manifest, installPath, asset);
             if (invalidAsset is not null)
@@ -192,11 +206,11 @@ public sealed class ProviderPackStore
                 ?? throw new JsonException("Empty manifest.");
             return IsManifestStructurallyValid(manifest)
                 ? null
-                : InvalidPack(installPath, ProviderPackStatus.Corrupt, "manifest-invalid", "The installed pack manifest is incomplete.");
+                : InvalidPack(installPath, ProviderPackStatus.Corrupt, ManifestInvalid, "The installed pack manifest is incomplete.");
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
-            return InvalidPack(installPath, ProviderPackStatus.Corrupt, "manifest-invalid", exception.Message);
+            return InvalidPack(installPath, ProviderPackStatus.Corrupt, ManifestInvalid, exception.Message);
         }
     }
 
@@ -224,7 +238,7 @@ public sealed class ProviderPackStore
     private void ValidateManifest(ProviderPackManifest manifest, ProviderPackCatalogEntry entry)
     {
         if (!IsManifestStructurallyValid(manifest))
-            throw new ProviderPackException("manifest-invalid", "The provider pack manifest is incomplete.");
+            throw new ProviderPackException(ManifestInvalid, "The provider pack manifest is incomplete.");
         ValidateManifestIdentity(manifest, entry);
         ValidateModuleAsset(manifest);
 
@@ -268,7 +282,9 @@ public sealed class ProviderPackStore
     private void Activate(string provider, string version)
     {
         var activationPath = GetActivationPath(provider);
-        Directory.CreateDirectory(Path.GetDirectoryName(activationPath)!);
+        var activationDirectory = Path.GetDirectoryName(activationPath)
+            ?? throw new InvalidOperationException("The activation path has no parent directory.");
+        Directory.CreateDirectory(activationDirectory);
         var temporaryPath = $"{activationPath}.{Guid.NewGuid():N}.tmp";
         File.WriteAllText(temporaryPath, JsonSerializer.Serialize(new Activation(version), JsonOptions));
         File.Move(temporaryPath, activationPath, overwrite: true);
@@ -342,9 +358,26 @@ public sealed class ProviderPackStore
 
     private static void ValidateIdentifier(string value, string parameterName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(value, parameterName);
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("Provider and version identifiers cannot be empty.", parameterName);
         if (value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || value is "." or "..")
             throw new ArgumentException("Provider and version identifiers must be valid path segments.", parameterName);
+    }
+
+    [SuppressMessage(
+        "Reliability",
+        "S6966:Awaitable method should be used",
+        Justification = "ZipArchiveEntry.OpenAsync is only available when targeting .NET 10 or later.")]
+    private static async ValueTask<Stream> OpenEntryAsync(
+        ZipArchiveEntry entry,
+        CancellationToken cancellationToken)
+    {
+#if NET10_0
+        return await entry.OpenAsync(cancellationToken).ConfigureAwait(false);
+#else
+        cancellationToken.ThrowIfCancellationRequested();
+        return entry.Open();
+#endif
     }
 
     private static void EnsureWithin(string root, string path)

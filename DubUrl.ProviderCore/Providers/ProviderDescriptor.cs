@@ -15,17 +15,24 @@ public sealed record ProviderDescriptor
         ArgumentException.ThrowIfNullOrWhiteSpace(source);
         ArgumentNullException.ThrowIfNull(schemes);
 
-        var normalizedSchemes = schemes
-            .Select(scheme => scheme?.Trim())
-            .Where(scheme => !string.IsNullOrWhiteSpace(scheme))
-            .Cast<string>()
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        var normalizedSchemes = NormalizeSchemes(schemes);
         if (normalizedSchemes.Length == 0)
             throw new ArgumentException("At least one non-empty scheme is required.", nameof(schemes));
 
         Name = name;
         Source = source;
         Schemes = normalizedSchemes;
+    }
+
+    private static string[] NormalizeSchemes(IEnumerable<string> schemes)
+    {
+        var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var scheme in schemes)
+        {
+            var value = scheme?.Trim();
+            if (!string.IsNullOrWhiteSpace(value))
+                normalized.Add(value);
+        }
+        return [.. normalized];
     }
 }

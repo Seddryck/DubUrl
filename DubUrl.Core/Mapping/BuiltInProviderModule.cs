@@ -16,6 +16,7 @@ namespace DubUrl.Mapping;
 /// </summary>
 public sealed class BuiltInProviderModule : IDubUrlProviderModule
 {
+    private const string NpgsqlProvider = "Npgsql";
     private const string OdbcProvider = "System.Data.Odbc";
 
     [RequiresUnreferencedCode("Built-in dialect composition still reads dialect attributes. Register preconstructed dialects in a custom provider module for Native AOT.")]
@@ -25,9 +26,9 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
 
         var dialects = CreateDialects();
 
-        Add<PositionalParametrizer>(catalog, dialects, "CockRoachDB", ["cr", "cockroach", "cockroachdb", "crdb", "cdb"], "Npgsql", typeof(CockRoachDialect),
+        Add<PositionalParametrizer>(catalog, dialects, "CockRoachDB", ["cr", "cockroach", "cockroachdb", "crdb", "cdb"], NpgsqlProvider, typeof(CockRoachDialect),
             context => new CockRoachMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
-        Add<NamedParametrizer>(catalog, dialects, "CrateDB", ["crt", "crate", "cratedb"], "Npgsql", typeof(CrateDbDialect),
+        Add<NamedParametrizer>(catalog, dialects, "CrateDB", ["crt", "crate", "cratedb"], NpgsqlProvider, typeof(CrateDbDialect),
             context => new CrateDbMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "IBM DB2", ["db2"], "IBM.Data.Db2", typeof(Db2Dialect),
             context => new Db2Mapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
@@ -43,9 +44,9 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
             context => new MySqlConnectorMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "Oracle Database", ["oracle", "or", "ora"], "Oracle.ManagedDataAccess", typeof(OracleDialect),
             context => new OracleManagedDataAccessMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
-        Add<PositionalParametrizer>(catalog, dialects, "PostgreSQL", ["pg", "pgx", "pgsql", "postgres", "postgresql"], "Npgsql", typeof(PgsqlDialect),
+        Add<PositionalParametrizer>(catalog, dialects, "PostgreSQL", ["pg", "pgx", "pgsql", "postgres", "postgresql"], NpgsqlProvider, typeof(PgsqlDialect),
             context => new PostgresqlMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
-        Add<PositionalParametrizer>(catalog, dialects, "QuestDb", ["quest", "questdb"], "Npgsql", typeof(QuestDbDialect),
+        Add<PositionalParametrizer>(catalog, dialects, "QuestDb", ["quest", "questdb"], NpgsqlProvider, typeof(QuestDbDialect),
             context => new QuestDbMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "SingleStore", ["sg", "sgs", "singlestore", "single", "singlestoredb"], "SingleStoreConnector", typeof(SingleStoreDialect),
             context => new SingleStoreMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
@@ -55,7 +56,7 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
             context => new SqliteMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath));
         Add<PositionalParametrizer>(catalog, dialects, "Teradata", ["td", "teradata", "tera", "teradatasql"], "Teradata.Client", typeof(TeradataDialect),
             context => new TeradataMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
-        Add<PositionalParametrizer>(catalog, dialects, "Timescale", ["ts", "timescale"], "Npgsql", typeof(PgsqlDialect),
+        Add<PositionalParametrizer>(catalog, dialects, "Timescale", ["ts", "timescale"], NpgsqlProvider, typeof(PgsqlDialect),
             context => new TimescaleMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "Trino", ["tr", "trino"], "NReco.PrestoAdo", typeof(TrinoDialect),
             context => new TrinoMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));

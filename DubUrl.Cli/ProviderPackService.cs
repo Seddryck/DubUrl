@@ -62,10 +62,12 @@ public sealed class ProviderPackService(
                 "connector-not-curated",
                 $"Connector '{connector}' is not available in the curated catalog.",
                 CliExitCodes.ProviderNotFound);
+        if (entry is null)
+            throw new InvalidOperationException("The connector catalog returned an empty entry.");
 
         try
         {
-            await using var archive = await httpClient.GetStreamAsync(entry!.DownloadUri, cancellationToken).ConfigureAwait(false);
+            await using var archive = await httpClient.GetStreamAsync(entry.DownloadUri, cancellationToken).ConfigureAwait(false);
             var installed = await store.InstallAsync(entry, archive, cancellationToken).ConfigureAwait(false);
             return ToCliPack(installed, entry);
         }
@@ -77,7 +79,7 @@ public sealed class ProviderPackService(
         {
             throw new ProviderPackCommandException(
                 "connector-download-failed",
-                $"Connector '{entry!.Provider}' could not be downloaded from the curated catalog.",
+                $"Connector '{entry.Provider}' could not be downloaded from the curated catalog.",
                 CliExitCodes.ProviderOperationFailed,
                 exception);
         }
@@ -85,7 +87,7 @@ public sealed class ProviderPackService(
         {
             throw new ProviderPackCommandException(
                 "connector-install-failed",
-                $"Connector '{entry!.Provider}' could not be installed in the user-scoped store.",
+                $"Connector '{entry.Provider}' could not be installed in the user-scoped store.",
                 CliExitCodes.ProviderOperationFailed,
                 exception);
         }
@@ -93,7 +95,9 @@ public sealed class ProviderPackService(
 
     public string Uninstall(string connector)
     {
-        var id = catalog.TryGet(connector, out var entry) ? entry!.Provider : connector;
+        var id = catalog.TryGet(connector, out var entry) && entry is not null
+            ? entry.Provider
+            : connector;
         try
         {
             if (store.Remove(id))
@@ -131,7 +135,7 @@ public sealed class ProviderPackService(
             pack.Manifest.Provider,
             pack.Manifest.Version,
             "user-store",
-            unhealthy ? "unhealthy" : active ? "active" : "installed",
+            GetState(active, unhealthy),
             catalogEntry is not null,
             true,
             active,
@@ -139,6 +143,13 @@ public sealed class ProviderPackService(
             catalogEntry?.Aliases ?? [],
             pack.Manifest.Schemes,
             pack.Diagnostics);
+    }
+
+    private static string GetState(bool active, bool unhealthy)
+    {
+        if (unhealthy)
+            return "unhealthy";
+        return active ? "active" : "installed";
     }
 }
 

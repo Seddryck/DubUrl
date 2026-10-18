@@ -122,8 +122,8 @@ public class ProviderCatalogBuilderTest
                 {
                     LastContext = context;
                     return mapper;
-                },
-                [new StubCapability("available")]));
+                })
+                .WithCapabilities(new StubCapability("available")));
         }
     }
 }
