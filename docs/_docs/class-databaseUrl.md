@@ -1,255 +1,149 @@
 ---
-title: DatabaseUrl Class
-subtitle: Instantiate and manipulate the DatabaseUrl class
+title: Querying with DatabaseUrl
+subtitle: Run queries without managing connections for each call
 tags: [connection, quick-start]
---- 
+---
 
-The `DatabaseUrl` class provides a high-level API for executing SQL queries from a connection URL. It supports templated queries, scalar values, reading rows, and efficient reuse of pre-parsed SQL templates.
+`DatabaseUrl` opens a connection when a query needs one and releases it when the query finishes. Use it to read values and rows without writing ADO.NET command and connection code for every query.
 
-## Instantiating
+The examples assume your database provider is [installed and registered](installation-ado-net-provider), and `url` contains your connection URL. SQL examples using `Customer` assume that table already exists.
 
-To start using the DatabaseUrl class, you first need to create an instance. This instance encapsulates the database connection and dialect, automatically inferred from the URL scheme (e.g., PostgreSQL, MySQL). You can use a simple connection string, or provide a factory if you need advanced control over supported schemes and dialect behavior.
-
-```csharp
-using var db = new DatabaseUrl("postgresql://user:pass@host:5432/database");
-```
-
-For custom schemes or dialect mappings:
+## Read a value
 
 ```csharp
-var factory = new ConnectionUrlFactory(new SchemeMapperBuilder());
-using var db = new DatabaseUrl(factory, "mysql://user:pass@localhost/db");
+await using var database = new DatabaseUrl(url);
+
+var count = await database.ReadScalarAsync(
+    "SELECT COUNT(*) FROM Customer");
+
+Console.WriteLine(count);
 ```
 
-Each instance owns one lazily created provider-managed connection source. Dispose the instance when finished. To choose retained reuse or automatic strategy selection, inject a `ConnectionSource`; the database borrows that source and its bound query metadata. See [Connection sources](connection-source) for configuration, ownership, and streaming/reader lifetime details.
+Keep the database object for the queries you want to run, and dispose it when finished. `await using` handles disposal at the end of the surrounding scope. For synchronous code:
+
+```csharp
+using var database = new DatabaseUrl(url);
+var count = database.ReadScalar("SELECT COUNT(*) FROM Customer");
+```
+
+You can also use typed overloads, such as `ReadScalar<long>`. Choose a type that matches your provider's SQL result: some providers return `COUNT(*)` as a 32-bit integer and others as a 64-bit integer.
+
+## Choose how connections are reused
+
+With `new DatabaseUrl(url)`, each operation opens and disposes its connection object. The provider's pool can reuse the underlying database connection.
+
+To let DubUrl choose how to reuse connections, create a source with `Auto` and pass it to `DatabaseUrl`:
 
 ```csharp
 await using var source = new ConnectionSourceUrl(url).Create(
-    new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto });
-await using var db = new DatabaseUrl(source);
+    new ConnectionSourceOptions
+    {
+        ReuseMode = ConnectionReuseMode.Auto
+    });
+
+await using var database = new DatabaseUrl(source);
+
+var first = await database.ReadScalarAsync("SELECT 1");
+var second = await database.ReadScalarAsync("SELECT 2");
 ```
 
-## Using Templated SQL
+For local DuckDB, `Auto` keeps one connection open between these calls. For Npgsql, it lets the provider handle pooling. You can also choose `ProviderManaged` or `RetainedExclusive` explicitly. See [Reusing database connections](connection-source) for the modes and complete examples.
 
-DubUrl supports named parameters in SQL templates. Templates are parsed once and can be rendered multiple times with different parameter values, making them both efficient and expressive. This approach supports dynamic elements such as column names, while also enabling features like escaping identifiers and handling dialect-specific quirks in a consistent way.
+You own a source you pass into `DatabaseUrl`. Disposing the database object leaves that source available for other database objects. In the example, the declarations dispose `database` first, then `source`.
 
-### Best Practice
+If you use a custom scheme registry, you can still construct a database with `new DatabaseUrl(factory, url)`, where `factory` is your configured `ConnectionUrlFactory`.
 
-1. **Create a template once**
+## Choose a query method
 
-   ```csharp
-   var template = db.CreateTemplate("SELECT COUNT(*) FROM users WHERE {{ column }} = {{ value }}");
-   ```
+| What you need | Method | Empty result | More than one row |
+| --- | --- | --- | --- |
+| One value, such as a count | `ReadScalar<T>` | Read SQL NULL with a suitable nullable/reference type | Uses the first column of the first row |
+| A value that must be present | `ReadScalarNonNull<T>` | Throws `InvalidOperationException` for a missing/null value | Uses the first column of the first row |
+| The first row, if any | `ReadFirst` | Returns null | Uses the first row |
+| The first row, which must exist | `ReadFirstNonNull` | Throws `InvalidOperationException` | Uses the first row |
+| At most one row | `ReadSingle` | Returns null | Throws `InvalidOperationException` |
+| Exactly one row | `ReadSingleNonNull` | Throws `InvalidOperationException` | Throws `InvalidOperationException` |
+| All rows, read one at a time | `ReadMultiple` | Produces no rows | Produces each row |
 
-2. **Render with varying parameters**
+The corresponding asynchronous methods have an `Async` suffix. Pass a cancellation token as the last argument when needed.
 
-   ```csharp
-   var activeCount = db.ReadScalar<int>(template, new Dictionary<string, object?>
-   {
-       ["column"] = "is_active",
-       ["value"] = true
-   });
-
-   var cityCount = db.ReadScalar<int>(template, new Dictionary<string, object?>
-   {
-       ["column"] = "city",
-       ["value"] = "Brussels"
-   });
-   ```
-
-⚠️ *Note:* Be cautious when injecting column names or table names — DubUrl's template system is string-based, not parameterized at the SQL engine level. Always validate or whitelist such inputs to avoid SQL injection.
-
-### Reusability Pattern
-
-- Use `CreateTemplate(...)` once at app startup or class construction.
-- Pass new parameters with `.Render(...)` each time you execute.
-- This pattern avoids parsing overhead and promotes safety and readability.
-
-## Scalar Queries
-
-**DubUrl** provides several `ReadScalar` methods to retrieve a single scalar value from the database (e.g., `COUNT(*)`, `MAX(...)`, etc.). You can choose between variants that tolerate `null` results and those that require non-null values.
-
-### Scalar Queries with Null Support
-
-These methods return `default(T?)`or `null` if the result is missing or `DBNull`. You can use them when `null` is an expected and valid outcome:
+For SQL values that may be NULL, choose a nullable result type:
 
 ```csharp
-var count = db.ReadScalar<int>("SELECT COUNT(*) FROM users");
+var oldest = await database.ReadScalarAsync<DateTime?>(
+    "SELECT MIN(BirthDate) FROM Customer");
 ```
 
-If the query returns `NULL`, the result will be `null`.
+## Read rows
 
-#### Supported methods and overloads with null
-
-These methods are designed for scenarios where the query might legitimately return no result or a `NULL value` — for example, aggregations over empty sets or optional lookups. Instead of throwing an exception, they return `null` (or `default(T)`), allowing you to handle missing data gracefully in your code.
+Row methods return objects whose properties match the result column names. Use `dynamic` to access them:
 
 ```csharp
-object? ReadScalar(string query)
-object? ReadScalar(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-object? ReadScalar(string template, IDictionary<string, object?> parameters)
-object? ReadScalar(ICommandProvider commandProvider)
+dynamic customer = database.ReadFirstNonNull(
+    "SELECT CustomerId, FullName FROM Customer ORDER BY CustomerId");
 
-T? ReadScalar<T>(string query)
-T? ReadScalar<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-T? ReadScalar<T>(string template, IDictionary<string, object?> parameters)
-T? ReadScalar<T>(ICommandProvider commandProvider)
+Console.WriteLine(customer.FullName);
 ```
 
-### Scalar Queries without Null Support
-
-These methods are intended for cases where a non-null result is expected and required. If the query returns NULL or no result, they will throw a NullReferenceException. Use them when your logic depends on guaranteed values — such as COUNT(*), MAX(id) on non-empty tables, or columns with NOT NULL constraints.
-
-These methods throw a `NullReferenceException` if the result is `NULL` or missing:
+To read every row:
 
 ```csharp
-var count = db.ReadScalarNonNull<int>("SELECT MAX(id) FROM users");
-```
-
-Use this when you know the result must be non-null (e.g., `COUNT` queries, `NOT NULL` columns).
-
-#### Supported methods and overloads without null
-
-These methods are designed for scenarios where the query might legitimately return no result or a `NULL value` — for example, aggregations over empty sets or optional lookups. Instead of throwing an exception, they return `null` (or `default(T)`), allowing you to handle missing data gracefully in your code.
-
-```csharp
-object ReadScalarNonNull(string query)
-object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-object ReadScalarNonNull(string template, IDictionary<string, object?> parameters)
-object ReadScalarNonNull(ICommandProvider commandProvider)
-
-T ReadScalarNonNull<T>(string query)
-T ReadScalarNonNull<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-T ReadScalarNonNull<T>(string template, IDictionary<string, object?> parameters)
-T ReadScalarNonNull<T>(ICommandProvider commandProvider)
-```
-
-### Templated version of Scalar Queries
-
-For reusability and efficiency, DubUrl allows scalar queries to be defined as templates. Templates are parsed once using `CreateTemplate(...)`, then rendered with different parameters as needed. This is especially useful for dynamic conditions, safer query construction, and avoiding repeated string parsing.
-
-```csharp
-var template = db.CreateTemplate("SELECT COUNT(*) FROM users WHERE {{ column }} = {{ value }}");
-var count = db.ReadScalar<int>(template, new Dictionary<string, object?>
+foreach (dynamic customer in database.ReadMultiple(
+    "SELECT CustomerId, FullName FROM Customer"))
 {
-    ["column"] = "status",
-    ["value"] = "active"
-});
-```
-
-## Reading Rows
-
-DubUrl provides flexible methods for reading one or more rows from a query result. Rows are returned as dynamic objects, allowing access by property name. You can read the **first row, a single expected row, or stream multiple rows** — either from raw SQL or rendered templates.
-
-### First row (if any)
-
-Use `ReadFirst` when you want to retrieve the first row of a result set, but it's acceptable for the query to return nothing. If no rows are found, it simply returns null, making it suitable for optional data retrieval.
-
-```csharp
-var template = db.CreateTemplate("SELECT * FROM users WHERE {{ column }} = {{ value }}");
-var user = db.ReadFirst(template.Render(new Dictionary<string, object?>
-{
-    ["column"] = "email",
-    ["value"] = "alice@example.com"
-}));
-```
-
-**List of overloads:**
-
-```csharp
-object ReadFirst(string query)
-object ReadFirst(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-object ReadFirst(string template, IDictionary<string, object?> parameters)
-object ReadFirst(ICommandProvider commandProvider)
-```
-
-### First row (mandatory)
-
-Use `ReadFirstNonNull` when at least one row is expected. If the result set is empty, it throws an `InvalidOperationException`. This is useful when the absence of data indicates a logical error or an unexpected state.
-
-```csharp
-var template = db.CreateTemplate("SELECT * FROM users WHERE {{ column }} = {{ value }}");
-var user = db.ReadFirstNonNull(template.Render(new Dictionary<string, object?>
-{
-    ["column"] = "email",
-    ["value"] = "alice@example.com"
-}));
-```
-
-**List of overloads:**
-
-```csharp
-object ReadFirstNonNull(string query)
-object ReadFirstNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-object ReadFirstNonNull(string template, IDictionary<string, object?> parameters)
-object ReadFirstNonNull(ICommandProvider commandProvider)
-```
-
-### Single Row (exactly one)
-
-Use `ReadSingle` when you expect exactly one row to be returned by the query. If the query returns no rows, it returns null. If it returns more than one row, it throws an `InvalidOperationException`. This makes it suitable for queries that enforce uniqueness, such as lookups by primary key or queries with `LIMIT 2`.
-
-```csharp
-var template = db.CreateTemplate("SELECT * FROM users WHERE {{ column }} = {{ value }}");
-var user = db.ReadSingle(template.Render(new Dictionary<string, object?>
-{
-    ["column"] = "email",
-    ["value"] = "alice@example.com"
-}));
-```
-
-**List of overloads:**
-
-```csharp
-object ReadSingle(string query)
-object ReadSingle(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-object ReadSingle(string template, IDictionary<string, object?> parameters)
-object ReadSingle(ICommandProvider commandProvider)
-```
-
-### Multiple Rows
-
-Use `ReadMultiple` to stream rows as dynamic objects (`ExpandoObject`), one by one:
-
-```csharp
-foreach (var row in db.ReadMultiple("SELECT * FROM users"))
-{
-    dynamic user = row;
-    Console.WriteLine(user.name);
+    Console.WriteLine(customer.FullName);
 }
 ```
 
-This is a recommended method for iterating large result sets efficiently without materializing all rows into memory.
-
-**List of overloads:**
+`ReadMultiple` starts the query when iteration begins, and keeps its connection until the loop finishes. A `break` also releases it. Async iteration works the same way:
 
 ```csharp
-IEnumerable<object> ReadMultiple(string query)
-IEnumerable<object> ReadMultiple(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-IEnumerable<object> ReadMultiple(string template, IDictionary<string, object?> parameters)
-IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
-```
-
-### Using IDataReader
-
-For low-level access and fine-grained control, use `ExecuteReader`:
-
-```csharp
-using var reader = db.ExecuteReader("SELECT id, name FROM users");
-while (reader.Read())
+await foreach (dynamic customer in database.ReadMultipleAsync(
+    "SELECT CustomerId, FullName FROM Customer"))
 {
-    var id = reader.GetInt32(0);
-    var name = reader.GetString(1);
-    Console.WriteLine($"{id}: {name}");
+    Console.WriteLine(customer.FullName);
 }
 ```
 
-⚠️ Don't forget to Dispose or use using to ensure proper connection cleanup when using IDataReader.
-
-**List of overloads:**
+When using `RetainedExclusive`, finish this loop before running another query on the same source. To run more queries for the returned rows, read them into a list first:
 
 ```csharp
-IDataReader ExecuteReader(string query)
-IDataReader ExecuteReader(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-IDataReader ExecuteReader(string template, IDictionary<string, object?> parameters)
-IDataReader ExecuteReader(ICommandProvider commandProvider)
+var customers = database.ReadMultiple(
+    "SELECT CustomerId, FullName FROM Customer").ToList();
+// The connection has been released. You can now run another query.
 ```
+
+## Read with an ADO.NET reader
+
+Use `ExecuteReader` when you want to work with column values yourself:
+
+```csharp
+using (var reader = database.ExecuteReader(
+    "SELECT CustomerId, FullName FROM Customer"))
+{
+    while (reader.Read())
+        Console.WriteLine(reader.GetString(1));
+} // Dispose the reader, its command, and its connection lease.
+```
+
+The reader holds the connection until you close or dispose it. Put it in a `using` block so it is released before the next operation. `ExecuteReaderAsync` returns a reader you can use with `await using` and `ReadAsync`.
+
+## Reuse a SQL template
+
+Create a template once and supply different values for each query. DubUrl uses `$...$` template expressions:
+
+```csharp
+var template = database.CreateTemplate("SELECT $value; format=\"value\"$");
+
+var first = database.ReadScalar(template,
+    new Dictionary<string, object?> { ["value"] = 1 });
+
+var second = database.ReadScalar(template,
+    new Dictionary<string, object?> { ["value"] = 2 });
+```
+
+The `value` format renders a SQL literal using the database dialect. This produces SQL text; it is not a bound ADO.NET parameter. Do not insert untrusted text directly into a query. The string, template, and `ICommandProvider` overloads all use the same connection handling described above.
+
+## When several commands need one transaction
+
+Separate `DatabaseUrl` calls do not share a transaction. Acquire one connection lease from your source and execute all commands in the transaction on that connection. The [connection source guide](connection-source) shows how.
