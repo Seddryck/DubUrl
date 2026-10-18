@@ -1,0 +1,10 @@
+Database SVG logos from Devicon (MIT), copied without modification.
+Source revision: 6a37858047b0e8d9c9c0e68f4a071fc410652e89
+https://github.com/devicons/devicon/tree/6a37858047b0e8d9c9c0e68f4a071fc410652e89/icons
+
+Sources: microsoftsqlserver/microsoftsqlserver-original.svg,
+postgresql/postgresql-original.svg, mysql/mysql-original.svg,
+sqlite/sqlite-original.svg, duckdb/duckdb-original.svg.
+
+See LICENSE.devicon for the Devicon license.
+Product names and logos belong to their respective owners.

@@ -69,8 +69,7 @@
 .workbench-sql-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .workbench-sql .workbench-editor-bar { padding-inline: 2px; gap: 4px; font-size: .75rem; }
 .workbench-sql .workbench-editor-bar > span { gap: 8px; overflow-wrap: anywhere; }
-.workbench-file-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
-.workbench-sql:last-child .workbench-file-dot { background: var(--blue-gray); }
+.workbench-file-icon { display: block; width: 24px; height: 24px; padding: 2px; border-radius: 4px; background: #f5f5f5; object-fit: contain; flex-shrink: 0; }
 .workbench-sql pre { padding: 17px 18px; font-size: .85rem; }
 .workbench-example-note { margin: 18px 0 14px !important; color: var(--muted); font-size: .9rem; text-align: center; }
 .workbench-result { display: flex; align-items: center; justify-content: center; gap: 18px; width: fit-content; margin-inline: auto !important; border: 1px solid var(--border); border-radius: 8px; padding: 8px 22px; background: #26313a; font-size: .9rem; }
@@ -88,7 +87,7 @@
 .workbench-database-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 22px; }
 .workbench-database-row ul { display: flex; flex-wrap: wrap; gap: 24px; margin: 0; padding: 0; list-style: none; }
 .workbench-database-row li { display: flex; align-items: center; gap: 9px; font-weight: 550; font-size: .9rem; }
-.workbench-database-row li::before { content: ""; width: 6px; height: 6px; border: 1px solid var(--gold); border-radius: 50%; }
+.workbench-database-row li img { display: block; width: 32px; height: 32px; padding: 3px; border-radius: 6px; background: #f5f5f5; object-fit: contain; flex-shrink: 0; }
 .workbench-database-row > a { padding-left: 24px; border-left: 1px solid var(--border); font-size: .8rem; white-space: nowrap; }
 .workbench-capabilities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 36px 0; }
 .workbench-capabilities article { display: flex; align-items: flex-start; gap: 14px; padding: 0 22px; border-left: 1px solid var(--border); }

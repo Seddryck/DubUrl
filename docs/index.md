@@ -30,14 +30,14 @@ var fullName = db.ReadScalarNonNull<string>(
   <div class="workbench-connectors" aria-hidden="true"><span></span><span></span></div>
   <div class="workbench-sql-grid">
     <article class="workbench-editor workbench-sql" aria-labelledby="sql-server-file">
-      <div class="workbench-editor-bar"><span id="sql-server-file"><span class="workbench-file-dot" aria-hidden="true"></span>SelectFirstCustomer.mssql.sql</span><button class="workbench-copy" type="button" data-copy-target="mssql-example" aria-label="Copy SQL Server query" hidden><svg aria-hidden="true"><use href="#workbench-copy"/></svg><span>Copy</span></button></div>
+      <div class="workbench-editor-bar"><span id="sql-server-file"><img class="workbench-file-icon" src="{{ '/assets/icons/databases/microsoftsqlserver.svg' | relative_url }}" alt="" width="24" height="24">SelectFirstCustomer.mssql.sql</span><button class="workbench-copy" type="button" data-copy-target="mssql-example" aria-label="Copy SQL Server query" hidden><svg aria-hidden="true"><use href="#workbench-copy"/></svg><span>Copy</span></button></div>
       <div class="workbench-code" id="mssql-example">{% highlight sql %}
 select [FullName] from [Customer]
 where [CustomerId]=1
 {% endhighlight %}</div>
     </article>
     <article class="workbench-editor workbench-sql" aria-labelledby="postgres-file">
-      <div class="workbench-editor-bar"><span id="postgres-file"><span class="workbench-file-dot" aria-hidden="true"></span>SelectFirstCustomer.pgsql.sql</span><button class="workbench-copy" type="button" data-copy-target="pgsql-example" aria-label="Copy PostgreSQL query" hidden><svg aria-hidden="true"><use href="#workbench-copy"/></svg><span>Copy</span></button></div>
+      <div class="workbench-editor-bar"><span id="postgres-file"><img class="workbench-file-icon" src="{{ '/assets/icons/databases/postgresql.svg' | relative_url }}" alt="" width="24" height="24">SelectFirstCustomer.pgsql.sql</span><button class="workbench-copy" type="button" data-copy-target="pgsql-example" aria-label="Copy PostgreSQL query" hidden><svg aria-hidden="true"><use href="#workbench-copy"/></svg><span>Copy</span></button></div>
       <div class="workbench-code" id="pgsql-example">{% highlight sql %}
 select "FullName" from "Customer"
 where "CustomerId"=1
@@ -58,7 +58,13 @@ where "CustomerId"=1
 <section class="workbench-databases" aria-labelledby="databases-title">
   <h2 id="databases-title">Connect across your database stack</h2>
   <div class="workbench-database-row">
-    <ul aria-label="Examples of supported databases"><li>SQL Server</li><li>PostgreSQL</li><li>MySQL</li><li>SQLite</li><li>DuckDB</li></ul>
+    <ul aria-label="Examples of supported databases">
+      <li><img src="{{ '/assets/icons/databases/microsoftsqlserver.svg' | relative_url }}" alt="" width="32" height="32">SQL Server</li>
+      <li><img src="{{ '/assets/icons/databases/postgresql.svg' | relative_url }}" alt="" width="32" height="32">PostgreSQL</li>
+      <li><img src="{{ '/assets/icons/databases/mysql.svg' | relative_url }}" alt="" width="32" height="32">MySQL</li>
+      <li><img src="{{ '/assets/icons/databases/sqlite.svg' | relative_url }}" alt="" width="32" height="32">SQLite</li>
+      <li><img src="{{ '/assets/icons/databases/duckdb.svg' | relative_url }}" alt="" width="32" height="32">DuckDB</li>
+    </ul>
     <a href="{{ '/docs/native-ado-net-providers/' | relative_url }}">Explore supported databases <span aria-hidden="true">→</span></a>
   </div>
 </section>
