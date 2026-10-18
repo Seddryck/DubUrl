@@ -15,11 +15,7 @@ These features are available on .NET 8, 9, and 10. The examples assume you have 
 If you use `DatabaseUrl`, it handles acquiring and releasing connections for you:
 
 ```csharp
-await using var source = new ConnectionSourceUrl(url).Create(
-    new ConnectionSourceOptions
-    {
-        ReuseMode = ConnectionReuseMode.Auto
-    });
+await using var source = new ConnectionSourceUrl(url).Create();
 
 await using var database = new DatabaseUrl(source);
 
@@ -41,7 +37,7 @@ Set `ReuseMode` when creating the source:
 | `RetainedExclusive` | Keep the connection open in the source. | Reuse that same connection, provided it is still open and healthy. Only one operation can use it at a time. |
 | `Auto` | Use the behavior selected by DubUrl's provider rules. | Follow the selected mode. |
 
-If you omit the options, the default is `ProviderManaged`. To explicitly keep a connection open between operations, use:
+If you omit the options, or pass options without setting `ReuseMode`, the default is `Auto`. Unknown providers fall back to `ProviderManaged`. To explicitly keep a connection open between operations, use:
 
 ```csharp
 await using var source = new ConnectionSourceUrl(url).Create(

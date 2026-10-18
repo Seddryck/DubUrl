@@ -37,6 +37,8 @@ await using var source = new ConnectionSourceUrl(url).Create(
 
 Rules run once, when the source is created. DubUrl does not open a connection to choose the mode.
 
+`Auto` is the default for `ConnectionSourceOptions` and for `new ConnectionSourceUrl(url).Create()`. The example sets it explicitly to show when these rules apply. Existing `DatabaseUrl` constructors that create their own source continue to use `ProviderManaged`; passing a source into `DatabaseUrl` uses that source's selected mode.
+
 Selection follows this order:
 
 1. If you explicitly choose `ProviderManaged` or `RetainedExclusive`, use that mode and skip all rules.

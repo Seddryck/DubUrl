@@ -47,14 +47,16 @@ public class ConnectionReusePolicyTest
         Assert.That(source.SelectionReason, Is.EqualTo(reason));
     }
 
-    [Test]
-    public void ExplicitMode_SkipsRegisteredPolicies()
+    [TestCase(ConnectionReuseMode.ProviderManaged)]
+    [TestCase(ConnectionReuseMode.RetainedExclusive)]
+    public void ExplicitMode_SkipsRegisteredPolicies(ConnectionReuseMode mode)
     {
         var policy = new Policy(ConnectionReuseMode.RetainedExclusive);
         using var source = ConnectionSourceTest.CreateUrl(() => new ConnectionSourceTest.TestConnection()).Create(
-            new() { PolicyResolvers = [policy] });
+            new() { ReuseMode = mode, PolicyResolvers = [policy] });
         Assert.That(policy.Calls, Is.Zero);
-        Assert.That(source.ReuseMode, Is.EqualTo(ConnectionReuseMode.ProviderManaged));
+        Assert.That(source.ReuseMode, Is.EqualTo(mode));
+        Assert.That(source.SelectionReason, Is.EqualTo("explicit"));
     }
 
     [Test]
@@ -62,7 +64,7 @@ public class ConnectionReusePolicyTest
     {
         var policy = new Policy(ConnectionReuseMode.RetainedExclusive);
         using var source = ConnectionSourceTest.CreateUrl(() => new ConnectionSourceTest.TestConnection()).Create(
-            new() { ReuseMode = ConnectionReuseMode.Auto, PolicyResolvers = [new Policy(null), policy] });
+            new() { PolicyResolvers = [new Policy(null), policy] });
         DbConnection connection;
         using (var first = source.Acquire()) connection = first.Connection;
         await using (var second = await source.AcquireAsync())
@@ -86,8 +88,7 @@ public class ConnectionReusePolicyTest
     public async Task UnknownProvider_FallsBackToIndependentLeasesWithoutProbing()
     {
         var creates = 0;
-        await using var source = ConnectionSourceTest.CreateUrl(() => { creates++; return new ConnectionSourceTest.TestConnection(); }).Create(
-            new() { ReuseMode = ConnectionReuseMode.Auto });
+        await using var source = ConnectionSourceTest.CreateUrl(() => { creates++; return new ConnectionSourceTest.TestConnection(); }).Create();
         Assert.That(creates, Is.Zero);
         DbConnection connection;
         using (var first = source.Acquire()) connection = first.Connection;
@@ -126,10 +127,13 @@ public class ConnectionReusePolicyTest
             .Create(new() { ReuseMode = ConnectionReuseMode.Auto, PolicyResolvers = [new Policy(ConnectionReuseMode.Auto)] }));
     }
 
-    [Test]
-    public async Task DuckDbLocal_AutomaticallyRetainsDatabaseAcrossSequentialLeases()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task DuckDbLocal_DefaultOptionsRetainDatabaseAcrossSequentialLeases(bool supplyOptions)
     {
-        await using var source = CreateSource(DuckDBClientFactory.Instance, "DataSource=:memory:", new() { ReuseMode = ConnectionReuseMode.Auto });
+        await using var source = CreateSource(DuckDBClientFactory.Instance, "DataSource=:memory:",
+            supplyOptions ? new ConnectionSourceOptions() : null);
+        Assert.That(source.ReuseMode, Is.EqualTo(ConnectionReuseMode.RetainedExclusive));
         using (var lease = source.Acquire())
         using (var command = lease.Connection.CreateCommand())
         {

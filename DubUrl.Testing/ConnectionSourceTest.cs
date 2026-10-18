@@ -80,7 +80,7 @@ public class ConnectionSourceTest
     [Test]
     public async Task ProviderManaged_OverlappingLeasesHaveIndependentConnections()
     {
-        await using var source = CreateUrl(() => new TestConnection()).Create();
+        await using var source = CreateUrl(() => new TestConnection()).Create(new() { ReuseMode = ConnectionReuseMode.ProviderManaged });
         await using var first = await source.AcquireAsync();
         await using var second = await source.AcquireAsync();
         Assert.That(second.Connection, Is.Not.SameAs(first.Connection));
@@ -154,7 +154,7 @@ public class ConnectionSourceTest
     [Test]
     public async Task ProviderManaged_ReleaseFailureStillAllowsSourceDisposal()
     {
-        var source = CreateUrl(() => new TestConnection { FailDispose = true }).Create();
+        var source = CreateUrl(() => new TestConnection { FailDispose = true }).Create(new() { ReuseMode = ConnectionReuseMode.ProviderManaged });
         var lease = source.Acquire();
         Assert.Throws<InvalidOperationException>(() => lease.Dispose());
         await source.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
