@@ -12,9 +12,8 @@ public sealed class ConnectionSourceUrl : BaseConnectionUrl
 
     public ConnectionSource Create(ConnectionSourceOptions? options = null)
     {
-        var mode = (options ?? new()).ReuseMode;
-        if (mode != ConnectionReuseMode.ProviderManaged && mode != ConnectionReuseMode.RetainedExclusive)
-            throw new ArgumentOutOfRangeException(nameof(options));
+        var (mode, reason) = ConnectionReusePolicy.Select(options ?? new(),
+            new ConnectionReuseContext(Result.ProviderFactory, Result.ConnectionString));
         // Bind both the connection and query metadata to this exact resolution.
         var context = new ConnectionUrl(Url, new ResolvedRegistry(Result, Registry));
         DbDataSource? dataSource;
@@ -24,7 +23,7 @@ public sealed class ConnectionSourceUrl : BaseConnectionUrl
         }
         catch (NotSupportedException) { dataSource = null; }
         catch (NotImplementedException) { dataSource = null; }
-        return new ConnectionSource(context, mode, dataSource);
+        return new ConnectionSource(context, mode, dataSource, reason);
     }
 
     private sealed class ResolvedRegistry(ResolvedConnection resolved, ISchemeRegistry registry) : ISchemeRegistry

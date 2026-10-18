@@ -26,13 +26,16 @@ public sealed class ConnectionSource : IConnectionSource
 
     internal ConnectionUrl QueryContext { get; }
     public ConnectionReuseMode ReuseMode { get; }
+    /// <summary>A credential-free identifier explaining strategy selection.</summary>
+    public string SelectionReason { get; }
 
-    internal ConnectionSource(ConnectionUrl context, ConnectionReuseMode mode, DbDataSource? dataSource = null)
+    internal ConnectionSource(ConnectionUrl context, ConnectionReuseMode mode, DbDataSource? dataSource = null, string selectionReason = "explicit")
     {
         if (mode != ConnectionReuseMode.ProviderManaged && mode != ConnectionReuseMode.RetainedExclusive)
             throw new ArgumentOutOfRangeException(nameof(mode));
         QueryContext = context;
         ReuseMode = mode;
+        SelectionReason = selectionReason;
         _dataSource = dataSource;
         _open = dataSource is null ? context.Open : () => dataSource.OpenConnection();
         _openAsync = dataSource is null ? OpenContextAsync : OpenDataSourceAsync;

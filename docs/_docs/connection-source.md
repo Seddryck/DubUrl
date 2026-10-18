@@ -24,3 +24,33 @@ Dispose readers, commands, and transactions before their lease. Never directly c
 Release leases before disposing their owning source: disposal rejects new acquisitions, wakes queued waiters with `ObjectDisposedException`, waits for active leases, and disposes owned connections and provider sources. Both source and lease disposal are idempotent. A second retained acquisition while holding a lease waits; nested acquisition is unsupported. Pass cancellation to bound waiting; cancellation of a waiter does not affect the active lease.
 
 Failed opens dispose partial resources. A retained connection observed as closed or broken is discarded before the next acquisition. No generic connectivity probe or command replay is performed. All strategies share this contract; choose retention only for a workload that accepts serialized access and retained session state.
+
+## Automatic strategy selection
+
+Set `ReuseMode = ConnectionReuseMode.Auto` to select once at source creation without opening a connection. Explicit concrete modes always win. In Auto mode, the first registered `PolicyResolvers` entry returning a concrete mode wins, followed by the built-in policy, followed by `ProviderManaged` for unknown configurations. `null` means a resolver declines the configuration. A resolver returning `Auto` is invalid. The ordinary default remains `ProviderManaged`.
+
+| Resolved native factory | Recognized configuration | Automatic decision |
+| --- | --- | --- |
+| Npgsql (validated with 10.x) | Provider builder's Pooling setting/default | ProviderManaged; enabled pooling reason or disabled-without-retention-policy reason |
+| Microsoft.Data.SqlClient (validated with 7.x) | Provider builder's Pooling setting/default, including yes/no values | ProviderManaged with the corresponding reason |
+| Microsoft.Data.Sqlite (validated with 10.x; Pooling available since 6.x) | Provider builder's Pooling setting/default | ProviderManaged with the corresponding reason |
+| DuckDB.NET.Data (validated with 1.5.x) | Local file or in-memory DataSource/Data Source; excludes md: MotherDuck | RetainedExclusive |
+| ODBC, OLE DB, MotherDuck, other factories | No recognized lifetime policy | ProviderManaged fallback |
+
+Builders handle their provider's option aliases, defaults, and validation. Disabled pooling alone never enables retention. DuckDB local retention is an explicit DubUrl policy: it preserves the database instance for isolated in-memory connections and connection caches for repeated queries, at the cost of serialized access and retained state. See [DuckDB.NET connection strings](https://github.com/Giorgi/DuckDB.NET-Docs/blob/main/docs/connection-string.md) and [DuckDB connection performance guidance](https://duckdb.org/docs/stable/guides/performance/how_to_tune_workloads). Pooling defaults are documented by [Npgsql](https://www.npgsql.org/doc/connection-string-parameters), [SqlClient](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql-server-connection-pooling), and [Sqlite](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/connection-strings).
+
+Inspect `source.ReuseMode` and `source.SelectionReason` for the concrete decision and a credential-free policy identifier. Custom policies receive a `ConnectionReuseContext` with provider identity and `CreateConnectionStringBuilder()` for effective configuration. Never log that builder or its credential-bearing values. The context's default string representation redacts configuration. Unknown underlying drivers/proxies are not probed. For custom retention policies, explicitly establish that serialized reuse and retained session state are appropriate for your workload.
+
+```csharp
+sealed class MyReusePolicy : IConnectionReusePolicyResolver
+{
+    public ConnectionReuseMode? Resolve(ConnectionReuseContext context)
+        => context.ProviderName == "MyProvider.MyFactory"
+            ? ConnectionReuseMode.RetainedExclusive
+            : null;
+}
+
+// Pass policy instances in source options (including from provider extension packages).
+// new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto,
+//     PolicyResolvers = [new MyReusePolicy()] }
+```
