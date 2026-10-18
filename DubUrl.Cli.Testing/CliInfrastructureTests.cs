@@ -12,6 +12,7 @@ public class CliInfrastructureTests
         var assembly = typeof(CliHost).Assembly.Location;
         var version = await RunProcessAsync(assembly, "--version");
         var help = await RunProcessAsync(assembly, "--help");
+        var providerHelp = await RunProcessAsync(assembly, "provider --help");
 
         Assert.Multiple(() =>
         {
@@ -20,6 +21,11 @@ public class CliInfrastructureTests
             Assert.That(help.ExitCode, Is.Zero);
             Assert.That(help.StandardOutput, Does.Contain("schema"));
             Assert.That(help.StandardOutput, Does.Contain("capabilities"));
+            Assert.That(help.StandardOutput, Does.Contain("provider"));
+            Assert.That(providerHelp.ExitCode, Is.Zero);
+            Assert.That(providerHelp.StandardOutput, Does.Contain("not database servers"));
+            Assert.That(providerHelp.StandardOutput, Does.Contain("add"));
+            Assert.That(providerHelp.StandardOutput, Does.Contain("remove"));
         });
     }
 

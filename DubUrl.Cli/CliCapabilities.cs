@@ -12,7 +12,10 @@ public sealed class CliCapabilities
     public IReadOnlyList<string> DeployableSchemes { get; }
     public bool DeploymentAvailable => DeployableSchemes.Count > 0;
 
-    public CliCapabilities(IDialectRegistry dialects, IEnumerable<string> providers)
+    public CliCapabilities(
+        IDialectRegistry dialects,
+        IEnumerable<string> providers,
+        IEnumerable<string>? optionalProviderSchemes = null)
     {
         ArgumentNullException.ThrowIfNull(dialects);
         ArgumentNullException.ThrowIfNull(providers);
@@ -26,7 +29,11 @@ public sealed class CliCapabilities
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        DeployableSchemes = GetDeployableSchemes(Providers);
+        DeployableSchemes = GetDeployableSchemes(Providers)
+            .Concat(optionalProviderSchemes ?? [])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private static string[] GetDeployableSchemes(IEnumerable<string> providers)

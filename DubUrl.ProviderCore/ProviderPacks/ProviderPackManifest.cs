@@ -10,6 +10,7 @@ public sealed record ProviderPackManifest
     public required string Version { get; init; }
     public required string DubUrlApiRange { get; init; }
     public required ProviderPackModuleEntry Module { get; init; }
+    public required IReadOnlyList<string> Schemes { get; init; }
     public required IReadOnlyList<string> TargetFrameworks { get; init; }
     public required IReadOnlyList<string> RuntimeIdentifiers { get; init; }
     public required IReadOnlyList<ProviderPackAsset> Assets { get; init; }

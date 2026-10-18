@@ -25,3 +25,22 @@ At startup, `ProviderCatalogBuilder.AddInstalledPacks` inspects active packs and
 points through `IDubUrlProviderModule`. Incompatible, incomplete, corrupt, or unloadable packs produce
 diagnostics without preventing other valid packs from loading. Pack changes affect new processes and new
 catalogs; an application should not assume that assemblies can be replaced after they have been loaded.
+
+## CLI management
+
+The CLI manages only the user-scoped optional store:
+
+```text
+duburl provider list
+duburl provider add duckdb
+duburl provider remove duckdb
+```
+
+`list --json` emits stable name, version, source, activation, status, schemes, and diagnostics fields for
+bundled and optional packs. Bundled providers cannot be removed. Add and remove operations affect new
+processes and newly created provider catalogs; already loaded assemblies keep running.
+
+Distributors configure the allow-list under `ProviderPacks:Catalog`; each entry has `Provider`, `Version`,
+`DownloadUri`, and `Sha256`. `ProviderPacks:StorePath` can override the user-store location for managed
+deployments and tests. The CLI accepts provider names from this catalog only and never accepts an arbitrary
+URL, feed, or package ID.

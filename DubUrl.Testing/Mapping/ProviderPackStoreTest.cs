@@ -172,6 +172,7 @@ public class ProviderPackStoreTest
             Version = version,
             DubUrlApiRange = apiRange,
             Module = new() { Assembly = "lib/module.dll", Type = moduleType },
+            Schemes = [provider],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = ["win-x64"],
             Assets =

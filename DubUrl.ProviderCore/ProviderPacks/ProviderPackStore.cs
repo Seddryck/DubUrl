@@ -135,15 +135,20 @@ public sealed class ProviderPackStore
     public bool Remove(string provider)
     {
         ValidateIdentifier(provider, nameof(provider));
-        var providerPath = Path.Combine(RootPath, "packs", provider);
-        if (!Directory.Exists(providerPath))
+        var packsRoot = Path.Combine(RootPath, "packs");
+        var providerPath = Directory.Exists(packsRoot)
+            ? Directory.EnumerateDirectories(packsRoot)
+                .FirstOrDefault(path => Path.GetFileName(path).Equals(provider, StringComparison.OrdinalIgnoreCase))
+            : null;
+        if (providerPath is null)
             return false;
 
         var stagingRoot = Path.Combine(RootPath, ".staging");
         Directory.CreateDirectory(stagingRoot);
-        var removedPath = Path.Combine(stagingRoot, $"removed-{provider}-{Guid.NewGuid():N}");
+        var installedProvider = Path.GetFileName(providerPath);
+        var removedPath = Path.Combine(stagingRoot, $"removed-{installedProvider}-{Guid.NewGuid():N}");
         Directory.Move(providerPath, removedPath);
-        var activationPath = GetActivationPath(provider);
+        var activationPath = GetActivationPath(installedProvider);
         if (File.Exists(activationPath))
             File.Delete(activationPath);
         Directory.Delete(removedPath, recursive: true);
@@ -266,6 +271,7 @@ public sealed class ProviderPackStore
                 Version = Path.GetFileName(path),
                 DubUrlApiRange = string.Empty,
                 Module = new() { Assembly = string.Empty, Type = string.Empty },
+                Schemes = [],
                 TargetFrameworks = [],
                 RuntimeIdentifiers = [],
                 Assets = [],
@@ -281,6 +287,8 @@ public sealed class ProviderPackStore
             && manifest.Module is not null
             && !string.IsNullOrWhiteSpace(manifest.Module.Assembly)
             && !string.IsNullOrWhiteSpace(manifest.Module.Type)
+            && manifest.Schemes is not null
+            && manifest.Schemes.Count > 0
             && manifest.TargetFrameworks is not null
             && manifest.RuntimeIdentifiers is not null
             && manifest.Assets is not null;
