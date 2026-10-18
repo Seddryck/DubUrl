@@ -75,6 +75,19 @@ public static class CliComposition
     private static ProviderPackCatalog CreateProviderPackCatalog(IConfiguration configuration)
     {
         var entries = new List<ProviderPackCatalogEntry>();
+        var configuredPath = configuration["ProviderPacks:CatalogPath"];
+        var catalogPath = Path.GetFullPath(
+            string.IsNullOrWhiteSpace(configuredPath)
+                ? Path.Combine(AppContext.BaseDirectory, "connector-catalog.json")
+                : Path.IsPathRooted(configuredPath)
+                    ? configuredPath
+                    : Path.Combine(AppContext.BaseDirectory, configuredPath));
+        if (File.Exists(catalogPath))
+        {
+            using var stream = File.OpenRead(catalogPath);
+            entries.AddRange(ProviderPackCatalog.Read(stream).Entries);
+        }
+
         foreach (var section in configuration.GetSection("ProviderPacks:Catalog").GetChildren())
         {
             var provider = section["Provider"];
@@ -91,7 +104,10 @@ public static class CliComposition
                     uri,
                     sha256,
                     section.GetSection("Aliases").Get<string[]>() ?? [],
-                    section.GetSection("Schemes").Get<string[]>() ?? []));
+                    section.GetSection("Schemes").Get<string[]>() ?? [],
+                    section["DubUrlApiRange"],
+                    section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
+                    section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? []));
         }
         return new(entries);
     }

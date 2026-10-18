@@ -6,8 +6,8 @@ tags: [installation, providers, security]
 
 A provider pack is a ZIP archive with `provider-pack.json` at its root. The versioned manifest identifies
 the provider and pack version, the compatible DubUrl API range, its `IDubUrlProviderModule` assembly and
-type, supported target frameworks and runtime identifiers, and every managed or native asset with a SHA-256
-digest. Native assets declare the runtime identifier to which they belong.
+type, supported target frameworks and runtime identifiers, and every managed, native, or documentation
+asset with a SHA-256 digest. Native assets declare the runtime identifier to which they belong.
 
 DubUrl installs packs only from a curated catalog supplied by the application distributor. The catalog
 binds a provider name and version to a download URI and SHA-256 archive digest. Arbitrary NuGet feeds,
@@ -52,8 +52,12 @@ processes and newly created provider catalogs; already loaded assemblies keep ru
 bundle selected database drivers: installing a connector installs its DubUrl module, ADO.NET driver,
 managed dependencies, and required native assets.
 
-Distributors configure the allow-list under `ProviderPacks:Catalog`; each entry has `Provider` (the
-canonical connector ID), `Version`, `DownloadUri`, `Sha256`, `Aliases`, and `Schemes`.
+The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
+Each entry has `Provider` (the canonical connector ID), `Version`, `DownloadUri`, `Sha256`, `Aliases`,
+`Schemes`, `DubUrlApiRange`, `TargetFrameworks`, and `RuntimeIdentifiers`. The release workflow generates
+this file only after ready connector archives have been built, hashed, and exercised through installation,
+new-process activation, and uninstallation. `ProviderPacks:CatalogPath` selects the catalog file;
+`ProviderPacks:Catalog` remains available for distributor-supplied inline entries.
 `ProviderPacks:StorePath` can override the user-store location for managed deployments and tests. The CLI
-accepts canonical IDs and aliases from this catalog only and never accepts an arbitrary URL, feed, or
-package ID.
+accepts canonical IDs and aliases from these curated entries only and never accepts an arbitrary URL, feed,
+or package ID.

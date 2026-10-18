@@ -412,11 +412,49 @@ jobs:
           -Version '${{ needs.version.outputs.semver }}'
           -NuGetDirectory './.artifacts/nuget'
 
+  package-connectors:
+    name: Package connector packs and official catalog
+    needs:
+      - version
+      - build
+      - coverage-threshold
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Build connector artifacts
+        shell: pwsh
+        run: >-
+          ./connectors/Build-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -OutputDirectory '../.artifacts/connectors'
+
+      - name: Validate connector artifacts and catalog
+        shell: pwsh
+        run: >-
+          ./connectors/Test-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -ArtifactDirectory './.artifacts/connectors'
+
+      - name: Upload connector artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/connectors
+          if-no-files-found: error
+
   package-cli-nuget:
     name: Package CLI NuGet tool
     needs:
       - version
       - build
+      - package-connectors
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -432,6 +470,16 @@ jobs:
         with:
           name: duburl-cli-dependency-lock
           path: DubUrl.Cli
+
+      - name: Download official connector catalog
+        uses: actions/download-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/connectors
+
+      - name: Include official connector catalog
+        shell: pwsh
+        run: Copy-Item .artifacts/connectors/connector-catalog.json DubUrl.Cli/connector-catalog.json
 
       - name: Pack and validate CLI packages
         shell: pwsh
@@ -449,6 +497,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installing the local CLI tool package failed.' }
           & .artifacts/tool/duburl --version
           if ($LASTEXITCODE -ne 0) { throw 'Executing the installed CLI tool failed.' }
+          $env:DUBURL_ProviderPacks__StorePath = (Join-Path $PWD '.artifacts/fresh-connector-store')
+          $listed = & .artifacts/tool/duburl connector list --json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Listing the official connector catalog failed.' }
+          $connector = @($listed.connectors | Where-Object id -eq 'postgresql-npgsql')
+          if ($connector.Count -ne 1 `
+              -or -not $connector[0].listed `
+              -or $connector[0].installed `
+              -or $connector[0].active `
+              -or $connector[0].unhealthy) {
+            throw 'The packaged CLI did not report PostgreSQL as listed and not installed.'
+          }
 
       - name: Upload CLI packages
         uses: actions/upload-artifact@v7
@@ -776,6 +835,7 @@ jobs:
       - package-worker-nuget
       - package-worker-distributions
       - package-cli-distributions
+      - package-connectors
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1095,17 +1155,32 @@ jobs:
       - publish-worker-nuget
       - package-cli-distributions
       - package-worker-distributions
+      - package-connectors
     runs-on: ubuntu-latest
     permissions:
       contents: write
       discussions: write
     steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
       - name: Download CLI distributions
         uses: actions/download-artifact@v7
         with:
           pattern: cli-distribution-*
           path: .artifacts/release/cli
           merge-multiple: true
+
+      - name: Download connector packs and catalog
+        uses: actions/download-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/release
 
       - name: Download worker distributions
         uses: actions/download-artifact@v7
@@ -1120,11 +1195,20 @@ jobs:
           $archives = @(Get-ChildItem .artifacts/release/cli -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
           $installers = @(Get-ChildItem .artifacts/release/cli -Recurse -File -Filter '*-setup.exe')
           $workerArchives = @(Get-ChildItem .artifacts/release/worker -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
+          $connectorArchives = @(Get-ChildItem .artifacts/release -File -Filter 'duburl-connector-*.zip')
           if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
           if ($workerArchives.Count -ne 6) { throw "Expected six worker archives, found $($workerArchives.Count)." }
-          $mixedCase = @($archives + $installers + $workerArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
+          if ($connectorArchives.Count -ne 1) { throw "Expected one connector archive, found $($connectorArchives.Count)." }
+          $mixedCase = @($archives + $installers + $workerArchives + $connectorArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
           if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
+
+      - name: Revalidate connector release assets
+        shell: pwsh
+        run: >-
+          ./connectors/Test-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -ArtifactDirectory './.artifacts/release'
 
       - name: Create release
         shell: pwsh

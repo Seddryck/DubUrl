@@ -1,5 +1,6 @@
 using DubUrl.Cli;
 using DubUrl.Core.ProviderPacks;
+using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using System.Text.Json;
 
@@ -7,6 +8,60 @@ namespace DubUrl.Cli.Testing;
 
 public class ConnectorCommandTests
 {
+    [Test]
+    public async Task List_FreshStore_LoadsVersionedOfficialCatalogWithoutInstallingConnector()
+    {
+        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-catalog-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            var catalogPath = Path.Combine(root, "connector-catalog.json");
+            var storePath = Path.Combine(root, "store");
+            await File.WriteAllTextAsync(catalogPath, """
+                {
+                  "schemaVersion": 1,
+                  "entries": [{
+                    "provider": "postgresql-npgsql",
+                    "version": "1.2.3",
+                    "downloadUri": "https://example.test/postgresql-npgsql.zip",
+                    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+                    "aliases": ["postgresql", "postgres", "pg", "npgsql"],
+                    "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
+                    "dubUrlApiRange": "[1.0.0,2.0.0)",
+                    "targetFrameworks": ["net8.0", "net9.0", "net10.0"],
+                    "runtimeIdentifiers": []
+                  }]
+                }
+                """);
+            var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ProviderPacks:CatalogPath"] = catalogPath,
+                ["ProviderPacks:StorePath"] = storePath,
+            }).Build();
+            var console = new TestConsole();
+            await using var services = CliComposition.CreateDefault(console, configuration);
+
+            var exitCode = await CliHost.InvokeAsync(["connector", "list", "--json"], services);
+
+            using var json = JsonDocument.Parse(console.StandardOutput);
+            var connector = json.RootElement.GetProperty("connectors")[0];
+            Assert.Multiple(() =>
+            {
+                Assert.That(exitCode, Is.Zero);
+                Assert.That(connector.GetProperty("id").GetString(), Is.EqualTo("postgresql-npgsql"));
+                Assert.That(connector.GetProperty("listed").GetBoolean(), Is.True);
+                Assert.That(connector.GetProperty("installed").GetBoolean(), Is.False);
+                Assert.That(connector.GetProperty("active").GetBoolean(), Is.False);
+                Assert.That(connector.GetProperty("unhealthy").GetBoolean(), Is.False);
+                Assert.That(Directory.Exists(storePath), Is.False);
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Test]
     public async Task List_Json_ReportsStableConnectorStateFields()
     {
