@@ -1,0 +1,150 @@
+.download-app {
+  --download-accent: #d78f12;
+  --download-accent-dark: #7a4d00;
+  --download-border: #d9dde0;
+  --download-muted: #536b78;
+  max-width: 70rem;
+}
+
+.download-toolbar,
+.download-panel,
+.download-card,
+.download-notice {
+  border: 1px solid var(--download-border);
+  border-radius: 0.65rem;
+}
+
+.download-toolbar,
+.download-panel { padding: 1.25rem; }
+.download-toolbar { background: #f5f7f8; }
+.download-toolbar__row,
+.download-tabs,
+.download-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.download-toolbar__row { justify-content: space-between; }
+.download-toolbar label { font-weight: 650; }
+.download-toolbar select {
+  min-width: 13rem;
+  margin-left: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--download-border);
+  border-radius: 0.35rem;
+  background: #fff;
+}
+.download-release-links { font-size: 0.9rem; }
+.download-release-links a + a::before {
+  content: "·";
+  margin: 0 0.55rem;
+  color: var(--download-muted);
+}
+
+.download-tabs { margin: 1.25rem 0; }
+.download-tab,
+.download-option,
+.download-copy {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--download-border);
+  border-radius: 0.45rem;
+  color: #27343b;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+.download-tab:hover,
+.download-tab:focus-visible,
+.download-tab[aria-selected="true"] {
+  border-color: var(--download-accent);
+  color: #1f1e23;
+  background: #fec156;
+}
+.download-option {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.download-option:hover,
+.download-option:focus-visible {
+  border-color: var(--download-accent);
+  color: var(--download-accent-dark);
+  background: #fff8ea;
+}
+.download-option[aria-pressed="true"] {
+  border-color: var(--download-accent);
+  color: #4b3207;
+  background: #ffe4ae;
+  box-shadow: inset 0 0 0 1px rgba(215, 143, 18, 0.15);
+}
+.download-panel h2 { margin-top: 0; }
+.download-panel h3 { margin-top: 1.5rem; }
+.download-step { margin: 1rem 0; }
+.download-step__label { margin-bottom: 0.55rem; font-weight: 700; }
+.download-help,
+.download-filename,
+.download-package__description { color: var(--download-muted); font-size: 0.9rem; }
+.download-card { margin-top: 1.25rem; padding: 1rem; background: #fbfcfc; }
+.download-card--recommended { border-color: var(--download-accent); }
+.download-badge {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  color: #1f1e23;
+  background: #fec156;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.download-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.4rem;
+  color: #1f1e23 !important;
+  background: #fec156;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+.download-action:hover,
+.download-action:focus-visible { background: #fbb418; }
+.download-icon { width: 1rem; height: 1rem; flex: none; }
+.download-package-version {
+  max-width: 40rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-left: 0.25rem solid var(--download-accent);
+  background: #f5f7f8;
+}
+.download-package-version label { display: block; margin-bottom: 0.4rem; font-weight: 700; }
+.download-package-version select {
+  min-width: 9rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--download-border);
+  border-radius: 0.35rem;
+  background: #fff;
+  font: inherit;
+}
+.download-package-version .download-help { margin-bottom: 0; }
+.download-command {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.download-command code { flex: 1; overflow-wrap: anywhere; }
+.download-copy { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
+.download-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+.download-package h3 { margin: 0; font-size: 1.05rem; }
+.download-notice { padding: 1rem; background: #f5f7f8; }
+.download-notice--error { border-color: #b94a48; background: #fff2f2; }
+.download-loading { padding: 2rem; color: var(--download-muted); text-align: center; }
+
+@media (max-width: 40rem) {
+  .download-tab { flex: 1 1 45%; }
+  .download-toolbar select { display: block; width: 100%; margin: 0.4rem 0 0; }
+  .download-command { align-items: stretch; flex-direction: column; }
+}
