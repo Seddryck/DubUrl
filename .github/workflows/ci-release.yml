@@ -123,7 +123,8 @@ jobs:
             'DubUrl.Schema',
             'DubUrl.Schema.Documents',
             'DubUrl.BulkCopy',
-            'DubUrl.Cli'
+            'DubUrl.Cli',
+            'DubUrl.Worker'
           )
           $failedProjects = @()
 
@@ -158,7 +159,8 @@ jobs:
             'DubUrl.Schema',
             'DubUrl.Schema.Documents',
             'DubUrl.BulkCopy',
-            'DubUrl.Cli'
+            'DubUrl.Cli',
+            'DubUrl.Worker'
           )
           New-Item -ItemType Directory -Force .coverage | Out-Null
 
@@ -215,6 +217,7 @@ jobs:
             'DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj'
             'DubUrl.Application/DubUrl.Application.csproj'
             'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
+            'DubUrl.Worker/DubUrl.Worker.csproj'
           )
 
           $paths = @(
@@ -256,8 +259,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 27) {
-            throw "Expected 27 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 30) {
+            throw "Expected 30 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
@@ -486,6 +489,124 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+  package-worker-nuget:
+    name: Package Worker NuGet tool
+    needs:
+      - version
+      - build
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Restore worker package project
+        run: dotnet restore DubUrl.Worker/DubUrl.Worker.csproj --locked-mode
+
+      - name: Pack worker tool
+        run: >-
+          dotnet pack DubUrl.Worker/DubUrl.Worker.csproj
+          --configuration Release
+          --no-restore
+          --nologo
+          --output .artifacts/worker
+          -p:Version=${{ needs.version.outputs.semver }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Validate worker package set
+        shell: pwsh
+        run: >-
+          ./.github/scripts/Test-CliToolPackages.ps1
+          -PackageDirectory .artifacts/worker
+          -PackageId DubUrl.Worker
+          -CommandName duburl-worker
+          -BuildIdentity DubUrl.Worker
+
+      - name: Install and execute worker tool
+        shell: pwsh
+        run: |
+          dotnet tool install --tool-path .artifacts/worker-tool DubUrl.Worker `
+            --version '${{ needs.version.outputs.semver }}' `
+            --add-source .artifacts/worker `
+            --ignore-failed-sources
+          if ($LASTEXITCODE -ne 0) { throw 'Installing the local worker tool package failed.' }
+          & .artifacts/worker-tool/duburl-worker --version
+          if ($LASTEXITCODE -ne 0) { throw 'Executing the installed worker tool failed.' }
+
+      - name: Upload worker package
+        uses: actions/upload-artifact@v7
+        with:
+          name: worker-nuget-${{ needs.version.outputs.semver }}
+          path: .artifacts/worker/*.nupkg
+          if-no-files-found: error
+
+  package-worker-distributions:
+    name: Worker distribution (${{ matrix.runtime }})
+    needs:
+      - version
+      - build
+      - package-worker-nuget
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runtime: win-x64, runner: windows-latest, native: true }
+          - { runtime: win-arm64, runner: windows-latest, native: false }
+          - { runtime: linux-x64, runner: ubuntu-latest, native: true }
+          - { runtime: linux-musl-x64, runner: ubuntu-latest, native: false }
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Build worker distribution
+        id: distribution
+        shell: pwsh
+        run: |
+          ./distribution/build-worker-distribution.ps1 `
+            -Version '${{ needs.version.outputs.semver }}' `
+            -Runtime '${{ matrix.runtime }}' `
+            -OutputRoot ../.artifacts/worker-distribution
+          $archives = @(Get-ChildItem .artifacts/worker-distribution/archives -File)
+          if ($archives.Count -ne 1) {
+            throw "Expected one worker distribution archive, found $($archives.Count)."
+          }
+          "path=$($archives[0].FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Execute extracted native archive
+        if: matrix.native
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .artifacts/worker-extracted | Out-Null
+          $archive = '${{ steps.distribution.outputs.path }}'
+          if ('${{ matrix.runtime }}' -like 'win-*') {
+            Expand-Archive -LiteralPath $archive -DestinationPath .artifacts/worker-extracted
+            & .artifacts/worker-extracted/duburl-worker.exe --version
+          }
+          else {
+            tar -xzf $archive -C .artifacts/worker-extracted
+            $mode = & stat -c '%a' .artifacts/worker-extracted/duburl-worker
+            if ([int]$mode -band 111 -eq 0) { throw "Linux executable mode '$mode' is not executable." }
+            & .artifacts/worker-extracted/duburl-worker --version
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Executing the extracted worker archive failed.' }
+
+      - name: Upload worker distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: worker-distribution-net10.0-${{ matrix.runtime }}
+          path: .artifacts/worker-distribution/archives/duburl-worker-*
+          if-no-files-found: error
+
   package-cli-distributions:
     name: CLI distribution (${{ matrix.framework }}, ${{ matrix.runtime }})
     needs:
@@ -601,6 +722,8 @@ jobs:
       - version
       - validate-packages
       - package-cli-nuget
+      - package-worker-nuget
+      - package-worker-distributions
       - package-cli-distributions
     runs-on: ubuntu-latest
     permissions:
@@ -849,6 +972,67 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Publishing '$($package.Name)' failed." }
           }
 
+  publish-worker-nuget:
+    name: Publish Worker NuGet tool
+    needs:
+      - version
+      - reserve-release
+      - package-worker-nuget
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Download worker package
+        uses: actions/download-artifact@v7
+        with:
+          name: worker-nuget-${{ needs.version.outputs.semver }}
+          path: .artifacts/worker
+
+      - name: Revalidate worker package
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem .artifacts/worker -Filter *.nupkg -File)
+          if ($packages.Count -ne 5) { throw "Expected five worker packages, found $($packages.Count)." }
+          ./.github/scripts/Test-CliToolPackages.ps1 `
+            -PackageDirectory .artifacts/worker `
+            -PackageId DubUrl.Worker `
+            -CommandName duburl-worker `
+            -BuildIdentity DubUrl.Worker
+          dotnet tool install --tool-path .artifacts/worker-tool DubUrl.Worker `
+            --version '${{ needs.version.outputs.semver }}' `
+            --add-source .artifacts/worker `
+            --ignore-failed-sources
+          if ($LASTEXITCODE -ne 0) { throw 'Reinstalling the worker tool package failed.' }
+          & .artifacts/worker-tool/duburl-worker --version
+          if ($LASTEXITCODE -ne 0) { throw 'Re-executing the worker tool failed.' }
+
+      - name: Exchange GitHub identity for a NuGet API key
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: Seddryck
+
+      - name: Publish worker package
+        shell: pwsh
+        run: |
+          Get-ChildItem .artifacts/worker -Filter *.nupkg -File | ForEach-Object {
+            dotnet nuget push $_.FullName `
+              --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
+              --source 'https://api.nuget.org/v3/index.json' `
+              --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { throw "Publishing '$($_.Name)' failed." }
+          }
+
   github-release:
     name: Create GitHub release
     if: needs.version.outputs.patch == '0'
@@ -856,7 +1040,9 @@ jobs:
       - version
       - publish-nuget
       - publish-cli-nuget
+      - publish-worker-nuget
       - package-cli-distributions
+      - package-worker-distributions
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -866,17 +1052,26 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           pattern: cli-distribution-*
-          path: .artifacts/release
+          path: .artifacts/release/cli
           merge-multiple: true
 
-      - name: Validate CLI release assets
+      - name: Download worker distributions
+        uses: actions/download-artifact@v7
+        with:
+          pattern: worker-distribution-*
+          path: .artifacts/release/worker
+          merge-multiple: true
+
+      - name: Validate release assets
         shell: pwsh
         run: |
-          $archives = @(Get-ChildItem .artifacts/release -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
-          $installers = @(Get-ChildItem .artifacts/release -Recurse -File -Filter '*-setup.exe')
+          $archives = @(Get-ChildItem .artifacts/release/cli -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
+          $installers = @(Get-ChildItem .artifacts/release/cli -Recurse -File -Filter '*-setup.exe')
+          $workerArchives = @(Get-ChildItem .artifacts/release/worker -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
           if ($archives.Count -ne 12) { throw "Expected 12 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
-          $mixedCase = @($archives + $installers | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
+          if ($workerArchives.Count -ne 4) { throw "Expected four worker archives, found $($workerArchives.Count)." }
+          $mixedCase = @($archives + $installers + $workerArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
           if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
 
       - name: Create release

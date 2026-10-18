@@ -10,6 +10,8 @@
       "DubUrl.BulkCopy\\DubUrl.BulkCopy.csproj",
       "DubUrl.Cli.Testing\\DubUrl.Cli.Testing.csproj",
       "DubUrl.Cli\\DubUrl.Cli.csproj",
+      "DubUrl.Worker.Testing\\DubUrl.Worker.Testing.csproj",
+      "DubUrl.Worker\\DubUrl.Worker.csproj",
       "DubUrl.Core\\DubUrl.csproj",
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",
       "DubUrl.Extensions\\DubUrl.Extensions.csproj",
