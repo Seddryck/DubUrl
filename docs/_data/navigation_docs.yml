@@ -5,6 +5,7 @@
   - installation-ado-net-provider
   - basics-connection-url
   - class-connectionUrl
+  - connection-source
   - executing-query
   - class-databaseUrl
 

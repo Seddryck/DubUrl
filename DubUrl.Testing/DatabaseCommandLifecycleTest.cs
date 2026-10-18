@@ -101,7 +101,7 @@ public class DatabaseCommandLifecycleTest
         command.Setup(x => x.DisposeAsync()).Returns(ValueTask.CompletedTask);
 
         var connection = new Mock<DbConnection>();
-        connection.Setup(x => x.OpenAsync(token)).Returns(Task.CompletedTask);
+        connection.Setup(x => x.OpenAsync(It.Is<CancellationToken>(t => t.CanBeCanceled))).Returns(Task.CompletedTask);
         connection.Protected().Setup<DbCommand>("CreateDbCommand").Returns(command.Object);
         connection.Setup(x => x.DisposeAsync()).Returns(ValueTask.CompletedTask);
 
@@ -111,7 +111,8 @@ public class DatabaseCommandLifecycleTest
 
         Assert.That(await database.ReadFirstAsync("SELECT 1", token), Is.Not.Null);
 
-        connection.Verify(x => x.OpenAsync(token), Times.Once);
+        // Acquisition links caller cancellation with source shutdown; commands/readers keep the original token.
+        connection.Verify(x => x.OpenAsync(It.Is<CancellationToken>(t => t.CanBeCanceled)), Times.Once);
         reader.Verify(x => x.ReadAsync(token), Times.Once);
         reader.Verify(x => x.DisposeAsync(), Times.Once);
         command.Verify(x => x.DisposeAsync(), Times.Once);

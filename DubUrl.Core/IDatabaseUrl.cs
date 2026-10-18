@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl;
 
-public interface IDatabaseUrl
+public interface IDatabaseUrl : IDisposable, IAsyncDisposable
 {
     IQueryLogger QueryLogger { get; }
     IDialect Dialect { get; }
