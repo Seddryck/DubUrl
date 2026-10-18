@@ -52,7 +52,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
         : base(new StraightSpecificator(csb), tokenMappers) { }
 
     internal DriverLocatorFactory DriverLocatorFactory
-        => (TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
+        => (this.TokenMappers.Single(x => x is DriverMapper) as DriverMapper)?.DriverLocatorFactory
             ?? throw new NullReferenceException();
 
     protected internal class HostMapper : BaseTokenMapper
@@ -74,7 +74,6 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
     protected internal class DriverMapper : BaseTokenMapper
     {
         internal DriverLocatorFactory DriverLocatorFactory { get; } = new BuiltInDriverLocatorFactory();
-        protected virtual string ConnectionName => "ODBC";
         private IReadOnlyList<Type> ConfiguredOptions { get; }
         private IList<Type>? AvailableOptions { get; set; }
 
@@ -136,8 +135,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
                 foreach (var optionType in AvailableOptions.Where(type => !options.ContainsKey(type)))
                 {
                     if (Enum.TryParse(optionType, scheme, out var value))
-                        options.Add(optionType, value ?? throw new InvalidConnectionUrlException(
-                            $"Connection Url for {ConnectionName} is specifying an unexpected value 'null' for option '{optionType.Name}'"));
+                        options.Add(optionType, value);
                 }
             }
             return options;

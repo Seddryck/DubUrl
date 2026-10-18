@@ -38,7 +38,7 @@ internal class PostgresqlRewriter : ConnectionStringRewriter, DubUrl.Conversion.
         : base(specificator, tokenMappers) { }
 
     internal bool IsIntegratedSecurityAllowed
-        => (TokenMappers.Single(x => x is AuthentificationMapper) as AuthentificationMapper)
+        => (this.TokenMappers.Single(x => x is AuthentificationMapper) as AuthentificationMapper)
                 ?.IsIntegratedSecurityAllowed
                 ?? throw new InvalidOperationException();
 
