@@ -2,7 +2,7 @@ namespace DubUrl.Core.ProviderPacks;
 
 public enum ProviderPackStatus
 {
-    Available,
+    Installed,
     Active,
     Incompatible,
     Incomplete,

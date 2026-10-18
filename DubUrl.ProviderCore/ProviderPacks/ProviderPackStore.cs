@@ -94,7 +94,7 @@ public sealed class ProviderPackStore
             if (Directory.Exists(installPath))
             {
                 var existing = InspectPath(installPath, GetActiveVersion(manifest.Provider));
-                if (existing.Status is ProviderPackStatus.Available or ProviderPackStatus.Active)
+                if (existing.Status is ProviderPackStatus.Installed or ProviderPackStatus.Active)
                 {
                     Activate(manifest.Provider, manifest.Version);
                     return InspectPath(installPath, manifest.Version);
@@ -174,7 +174,7 @@ public sealed class ProviderPackStore
 
         var status = string.Equals(manifest.Version, activeVersion, StringComparison.OrdinalIgnoreCase)
             ? ProviderPackStatus.Active
-            : ProviderPackStatus.Available;
+            : ProviderPackStatus.Installed;
         return new(manifest, installPath, status, []);
     }
 

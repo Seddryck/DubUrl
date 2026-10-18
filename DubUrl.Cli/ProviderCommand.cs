@@ -36,9 +36,9 @@ internal static class ConnectorCommand
             }
             else
             {
-                console.Out.WriteLine("ID\tVERSION\tSOURCE\tACTIVATION\tSTATUS\tALIASES");
+                console.Out.WriteLine("ID\tVERSION\tSOURCE\tSTATE\tLISTED\tINSTALLED\tACTIVE\tUNHEALTHY\tALIASES");
                 foreach (var connector in connectors)
-                    console.Out.WriteLine($"{connector.Id}\t{connector.Version}\t{connector.Source}\t{connector.Activation}\t{connector.Status}\t{string.Join(',', connector.Aliases)}");
+                    console.Out.WriteLine($"{connector.Id}\t{connector.Version}\t{connector.Source}\t{connector.State}\t{connector.Listed}\t{connector.Installed}\t{connector.Active}\t{connector.Unhealthy}\t{string.Join(',', connector.Aliases)}");
             }
             return CliExitCodes.Success;
         });

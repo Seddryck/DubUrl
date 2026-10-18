@@ -42,8 +42,12 @@ duburl connector install postgresql
 duburl connector uninstall postgresql
 ```
 
-`list --json` emits stable canonical ID, version, source, activation, status, aliases, schemes, and
-diagnostics fields for curated and installed connectors. Install and uninstall operations affect new
+`list --json` emits stable canonical ID, version, source, state, aliases, schemes, diagnostics, and four
+independent state facts: `listed`, `installed`, `active`, and `unhealthy`. A listed connector is present in
+the curated catalog and available for download. An installed connector exists in the local store regardless
+of compatibility. An active connector is installed, compatible, and selected for loading. An unhealthy
+connector is installed but incompatible, incomplete, or corrupt. The summary `state` uses the most specific
+applicable value (`unhealthy`, `active`, `installed`, then `listed`). Install and uninstall operations affect new
 processes and newly created provider catalogs; already loaded assemblies keep running. The CLI does not
 bundle selected database drivers: installing a connector installs its DubUrl module, ADO.NET driver,
 managed dependencies, and required native assets.

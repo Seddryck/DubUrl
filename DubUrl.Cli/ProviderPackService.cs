@@ -6,8 +6,11 @@ public sealed record CliProviderPack(
     string Id,
     string Version,
     string Source,
-    string Activation,
-    string Status,
+    string State,
+    bool Listed,
+    bool Installed,
+    bool Active,
+    bool Unhealthy,
     IReadOnlyList<string> Aliases,
     IReadOnlyList<string> Schemes,
     IReadOnlyList<ProviderPackDiagnostic> Diagnostics);
@@ -26,15 +29,9 @@ public sealed class ProviderPackService(
 {
     public IReadOnlyList<CliProviderPack> List()
     {
-        var installed = store.Inspect().Select(pack => new CliProviderPack(
-            pack.Manifest.Provider,
-            pack.Manifest.Version,
-            "user-store",
-            pack.Status == ProviderPackStatus.Active ? "active" : "inactive",
-            pack.Status.ToString().ToLowerInvariant(),
-            GetAliases(pack.Manifest.Provider),
-            pack.Manifest.Schemes,
-            pack.Diagnostics));
+        var installed = store.Inspect()
+            .Select(pack => ToCliPack(pack, FindExactCatalogEntry(pack.Manifest.Provider, pack.Manifest.Version)))
+            .ToArray();
         var available = catalog.Entries
             .Where(entry => !installed.Any(pack =>
                 pack.Id.Equals(entry.Provider, StringComparison.OrdinalIgnoreCase)
@@ -43,8 +40,11 @@ public sealed class ProviderPackService(
                 entry.Provider,
                 entry.Version,
                 "catalog",
-                "inactive",
-                "available",
+                "listed",
+                true,
+                false,
+                false,
+                false,
                 entry.Aliases ?? [],
                 entry.Schemes ?? [],
                 []));
@@ -67,7 +67,7 @@ public sealed class ProviderPackService(
         {
             await using var archive = await httpClient.GetStreamAsync(entry!.DownloadUri, cancellationToken).ConfigureAwait(false);
             var installed = await store.InstallAsync(entry, archive, cancellationToken).ConfigureAwait(false);
-            return ToCliPack(installed, entry.Aliases ?? []);
+            return ToCliPack(installed, entry);
         }
         catch (ProviderPackException exception)
         {
@@ -114,19 +114,32 @@ public sealed class ProviderPackService(
             CliExitCodes.ProviderNotFound);
     }
 
-    private IReadOnlyList<string> GetAliases(string id)
-        => catalog.TryGet(id, out var entry) ? entry!.Aliases ?? [] : [];
+    private ProviderPackCatalogEntry? FindExactCatalogEntry(string id, string version)
+        => catalog.Entries.FirstOrDefault(entry =>
+            entry.Provider.Equals(id, StringComparison.OrdinalIgnoreCase)
+            && entry.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
 
-    private static CliProviderPack ToCliPack(InstalledProviderPack pack, IReadOnlyList<string> aliases)
-        => new(
+    internal static CliProviderPack ToCliPack(
+        InstalledProviderPack pack,
+        ProviderPackCatalogEntry? catalogEntry = null)
+    {
+        var active = pack.Status == ProviderPackStatus.Active;
+        var unhealthy = pack.Status is ProviderPackStatus.Incompatible
+            or ProviderPackStatus.Incomplete
+            or ProviderPackStatus.Corrupt;
+        return new(
             pack.Manifest.Provider,
             pack.Manifest.Version,
             "user-store",
-            pack.Status == ProviderPackStatus.Active ? "active" : "inactive",
-            pack.Status.ToString().ToLowerInvariant(),
-            aliases,
+            unhealthy ? "unhealthy" : active ? "active" : "installed",
+            catalogEntry is not null,
+            true,
+            active,
+            unhealthy,
+            catalogEntry?.Aliases ?? [],
             pack.Manifest.Schemes,
             pack.Diagnostics);
+    }
 }
 
 public sealed class ProviderPackCommandException : Exception

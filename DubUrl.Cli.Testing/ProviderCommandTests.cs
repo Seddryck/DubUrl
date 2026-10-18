@@ -8,14 +8,14 @@ namespace DubUrl.Cli.Testing;
 public class ConnectorCommandTests
 {
     [Test]
-    public async Task List_Json_ReportsStableProviderFields()
+    public async Task List_Json_ReportsStableConnectorStateFields()
     {
         var console = new TestConsole();
         var service = new StubProviderPackService
         {
             Packs =
             [
-                new("postgresql-npgsql", "1.2.3", "user-store", "active", "active", ["postgresql", "pg"], ["postgresql"], []),
+                new("postgresql-npgsql", "1.2.3", "user-store", "active", true, true, true, false, ["postgresql", "pg"], ["postgresql"], []),
             ],
         };
         await using var services = CliComposition.CreateDefault(console, providerPackService: service);
@@ -32,8 +32,11 @@ public class ConnectorCommandTests
             Assert.That(installed.GetProperty("aliases")[0].GetString(), Is.EqualTo("postgresql"));
             Assert.That(installed.GetProperty("version").GetString(), Is.EqualTo("1.2.3"));
             Assert.That(installed.GetProperty("source").GetString(), Is.EqualTo("user-store"));
-            Assert.That(installed.GetProperty("activation").GetString(), Is.EqualTo("active"));
-            Assert.That(installed.GetProperty("status").GetString(), Is.EqualTo("active"));
+            Assert.That(installed.GetProperty("state").GetString(), Is.EqualTo("active"));
+            Assert.That(installed.GetProperty("listed").GetBoolean(), Is.True);
+            Assert.That(installed.GetProperty("installed").GetBoolean(), Is.True);
+            Assert.That(installed.GetProperty("active").GetBoolean(), Is.True);
+            Assert.That(installed.GetProperty("unhealthy").GetBoolean(), Is.False);
         });
     }
 
@@ -85,7 +88,7 @@ public class ConnectorCommandTests
         {
             Installed = connector;
             return Task.FromResult(new CliProviderPack(
-                "postgresql-npgsql", "1.0.0", "user-store", "active", "active", ["postgresql", "pg"], ["postgresql"], []));
+                "postgresql-npgsql", "1.0.0", "user-store", "active", true, true, true, false, ["postgresql", "pg"], ["postgresql"], []));
         }
 
         public string Uninstall(string connector)
