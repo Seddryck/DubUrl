@@ -58,12 +58,15 @@ where "CustomerId"=1
 <section class="workbench-databases" aria-labelledby="databases-title">
   <h2 id="databases-title">Connect across your database stack</h2>
   <div class="workbench-database-row">
-    <ul aria-label="Examples of supported databases">
+    <ul aria-label="Supported and upcoming databases">
       <li><img src="{{ '/assets/icons/databases/microsoftsqlserver.svg' | relative_url }}" alt="" width="32" height="32">SQL Server</li>
       <li><img src="{{ '/assets/icons/databases/postgresql.svg' | relative_url }}" alt="" width="32" height="32">PostgreSQL</li>
       <li><img src="{{ '/assets/icons/databases/mysql.svg' | relative_url }}" alt="" width="32" height="32">MySQL</li>
       <li><img src="{{ '/assets/icons/databases/sqlite.svg' | relative_url }}" alt="" width="32" height="32">SQLite</li>
       <li><img src="{{ '/assets/icons/databases/duckdb.svg' | relative_url }}" alt="" width="32" height="32">DuckDB</li>
+      <li><img src="{{ '/assets/icons/databases/snowflake.svg' | relative_url }}" alt="" width="32" height="32">Snowflake</li>
+      <li><img src="{{ '/assets/icons/databases/oracle.svg' | relative_url }}" alt="" width="32" height="32">Oracle</li>
+      <li><img src="{{ '/assets/icons/databases/databricks.svg' | relative_url }}" alt="" width="32" height="32"><span>Databricks<small class="workbench-coming-soon">Coming soon</small></span></li>
     </ul>
     <a href="{{ '/docs/native-ado-net-providers/' | relative_url }}">Explore supported databases <span aria-hidden="true">→</span></a>
   </div>

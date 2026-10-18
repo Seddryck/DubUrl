@@ -86,9 +86,10 @@
 .workbench-databases { padding: 28px 0 32px; border-block: 1px solid var(--border); }
 .workbench h2 { font-size: 1.45rem; line-height: 1.4; font-weight: 700; letter-spacing: -.025em; }
 .workbench-database-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 22px; }
-.workbench-database-row ul { display: flex; flex-wrap: wrap; gap: 24px; margin: 0; padding: 0; list-style: none; }
+.workbench-database-row ul { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .workbench-database-row li { display: flex; align-items: center; gap: 9px; font-weight: 550; font-size: .9rem; }
 .workbench-database-row li img { display: block; width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+.workbench-coming-soon { display: block; color: var(--muted); font-size: .65rem; font-weight: 400; line-height: 1.4; }
 .workbench-database-row > a { padding-left: 24px; border-left: 1px solid var(--border); font-size: .8rem; white-space: nowrap; }
 .workbench-capabilities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 36px 0; }
 .workbench-capabilities article { display: flex; align-items: flex-start; gap: 14px; padding: 0 22px; border-left: 1px solid var(--border); }

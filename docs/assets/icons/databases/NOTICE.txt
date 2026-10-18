@@ -4,7 +4,15 @@ https://github.com/devicons/devicon/tree/6a37858047b0e8d9c9c0e68f4a071fc410652e8
 
 Sources: microsoftsqlserver/microsoftsqlserver-original.svg,
 postgresql/postgresql-original.svg, mysql/mysql-original.svg,
-sqlite/sqlite-original.svg, duckdb/duckdb-original.svg.
+sqlite/sqlite-original.svg, duckdb/duckdb-original.svg,
+oracle/oracle-original.svg.
 
 See LICENSE.devicon for the Devicon license.
+
+Databricks and Snowflake SVG paths from Simple Icons (CC0).
+Source revision: 955f17f35634cd58de1748204059bce380d379af
+https://github.com/simple-icons/simple-icons/tree/955f17f35634cd58de1748204059bce380d379af/icons
+Sources: databricks.svg and snowflake.svg, with brand-color fills added.
+See LICENSE.simple-icons for the Simple Icons license.
+
 Product names and logos belong to their respective owners.
