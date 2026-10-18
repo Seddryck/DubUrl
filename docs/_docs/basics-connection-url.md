@@ -19,7 +19,7 @@ If the `port` is not the standard port it can be specified after the **host** an
 string connectionUrl = "mssql://{server}:{port}/{database_name}";
 ```
 
-If you don't want to use the Windows authentication but you prefer to specify a SQL Server login, you can specify the **SQL login** and its **password** before the host. The seperation between QL Login and its password is provided by a colon `:` and the separation between the password and the host is marked by an arrobas `@`.
+If you don't want to use the Windows authentication but you prefer to specify a SQL Server login, you can specify the **SQL login** and its **password** before the host. The separation between SQL login and its password is provided by a colon `:` and the separation between the password and the host is marked by an at sign `@`.
 ```csharp
 string connectionUrl = "mssql://{sql_login}:{password}@{server}/{database_name}";
 ```
@@ -27,5 +27,7 @@ string connectionUrl = "mssql://{sql_login}:{password}@{server}/{database_name}"
 Additional information can be provided as **options** in the connection URL. The separation between the segments and the first option is marked with a question mark `?`. Use the specific keywords expected by the connection string of the *Ado.Net Data Provider* (specified by the `scheme`) as the **key** (left-side) followed by the symbol equal `=` and then the expected value. Two different options are separated by the symbol ampersand `&`. If you want to specify that the `ConnectRetryCount` should be set to 5 and the   `ConnectRetryInterval` should be of 3 seconds, then apply the following connection URL:
 
 ```csharp
-string connectionUrl = "mssql://{server}:/{database_name}?ConnectRetryCount=5&ConnectRetryInterval=3";
+string connectionUrl = "mssql://{server}/{database_name}?ConnectRetryCount=5&ConnectRetryInterval=3";
 ```
+
+Braced names in these examples are placeholders, not literal URL text. Percent-encode reserved characters in usernames, passwords, and path values (for example, use `%40` for an at sign inside a password).

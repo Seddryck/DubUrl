@@ -27,30 +27,8 @@ To embrace the world of DubUrl, you need to follow some conventions regarding th
 
 ### Additional packages
 
-SQLite3 is expecting additional libraries (.dll) to work properly. If these libraries are missing, you ‘ll receive an exception `You need to call SQLitePCL.raw.SetProvider()`. To avoid this exception, you must include the package `SQLitePCLRaw_bundle_e_sqlite3` into your solution or copy the following dlls:
-
-* `SQLitePCLRaw.batteries_v2.dll`
-* `SQLitePCLRaw.core.dll`
-* `SQLitePCLRaw.provider.e_sqlite3.dll`
+For SQLite, install the full `Microsoft.Data.Sqlite` package to include the default native SQLite bundle. If you deliberately use `Microsoft.Data.Sqlite.Core`, configure its SQLitePCLRaw provider separately. Do not copy DLLs manually as a general installation procedure.
 
 ### Example
 
-Following example shows how to use DubUrl to connect to a PostgreSQL database.
-
-Referencing the package of the ADO.Net data provider, using the *package name* described in the 3rd column of the table
-
-```bash
-dotnet add package Npgsql
-```
-
-Registering the factory of the ADO.Net data provider
-
-```csharp
-DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
-```
-
-Open a connection to the database named *dbname* and hosted on a server named *serverName*. Note that the scheme of the URL is set to *pgsql* to specify that the database is a PostgreSQL (other options than *pgsql* such as *pg* or *postgres* could have been used).
-
-```csharp
-var conn = new ConnectionUrl("pgsql://{serverName}/{dbName}").Open();
-```
+See [Your first database connection]({{ '/docs/first-connection/' | relative_url }}) for a complete PostgreSQL example, including package installation, explicit factory registration, and disposal. Other native providers follow the same sequence using the package, invariant name, and scheme listed above.

@@ -31,3 +31,9 @@ GitHub Pages must use **GitHub Actions** as its build source to deploy this gem-
 Documentation is grouped by user task: Getting started, Connecting to databases, Querying data, Working with schemas, Tools and automation, and Reference. Downloads and Branding are separate public shortcuts; contributor and QA guidance is reached from the sidebar footer.
 
 Keep tutorials focused on one outcome, link prerequisites instead of repeating setup, and keep exact API/format rules in Reference. Query guides cover scalar values, row cardinality/streaming, and SQL templates. Schema guides cover writing, validating, generating SQL, deploying, C# builders, and customization. Existing collection, CLI, and schema URLs are preserved with explicit permalinks where needed.
+
+## Verify documentation examples
+
+Run `pwsh ./build/verify-doc-examples.ps1` from the repository root with the .NET 10 SDK. It extracts the current C# fences directly from the Markdown pages, compiles them against the local projects, and runs database-independent and SQLite examples with a temporary fixture. Generated source lives under `build/DocumentationExamples/obj/`.
+
+Examples requiring PostgreSQL, Analysis Services, ODBC, OLE DB, or live deployment are compiled but not executed. This focused runner does not install global tools or contact live database servers. The CLI validate/render/dry-run commands and the Python worker client can be verified separately against locally built executables; live deployment remains a separate integration check.

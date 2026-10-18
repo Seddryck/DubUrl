@@ -21,6 +21,8 @@ The JSON Schema checks document shape and local constraints. The document valida
 Install `DubUrl.Schema.Documents`, then read and validate the document:
 
 ```csharp
+using DubUrl.Schema.Documents;
+
 var document = new SchemaDocumentReader().Read("schema.yaml");
 var validator = new SchemaDocumentValidator();
 var diagnostics = validator.Validate(document);

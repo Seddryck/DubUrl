@@ -9,12 +9,6 @@ DubUrl schema documents describe a database schema in ordered, provider-independ
 
 Views use a deliberately small structured query model: one table-or-view source and an ordered list of column, value, or function projections with optional aliases. View dependencies are derived from their sources, so creation and removal can be rendered in dependency-safe order. Raw SQL, joins, aggregation, grouping, ordering, pagination, common table expressions, and set operations are not part of version 1.
 
-Install the document package; it brings the runtime `DubUrl.Schema` dependency with it:
-
-```shell
-dotnet add package DubUrl.Schema.Documents
-```
-
 For a tutorial, start with [Write a schema document]({{ '/docs/write-schema/' | relative_url }}). This page specifies the version 1 format.
 
 ## Version 1 model
@@ -56,20 +50,8 @@ Set `version` to `1`. Unknown properties are rejected throughout the document so
 
 See the complete [JSON example]({{ site.baseurl }}/schemas/schema-document/v1/examples/schema.json) and [YAML example]({{ site.baseurl }}/schemas/schema-document/v1/examples/schema.yaml).
 
-The JSON Schema verifies document shape and local rules. Run `SchemaDocumentValidator` as well: cross-reference checks, duplicate identities, missing columns, incompatible facets, view cycles, and similar relationships require the full document graph.
+## Related guides
 
-## Read, validate, map, and render
-
-See [Generate SQL in .NET]({{ '/docs/generate-sql/#read-validate-map-and-render-in-net' | relative_url }}).
-
-## Configurable validation
-
-See [Customize validation]({{ '/docs/customize-schema/#configurable-validation' | relative_url }}).
-
-## Configurable literal conversion
-
-See [Customize literal conversion]({{ '/docs/customize-schema/#configurable-literal-conversion' | relative_url }}).
-
-## Editor association
-
-See [Write a schema document]({{ '/docs/write-schema/#editor-association' | relative_url }}).
+- <span id="read-validate-map-and-render"></span>[Read, validate, map, and render in .NET]({{ '/docs/generate-sql/#read-validate-map-and-render-in-net' | relative_url }}).
+- <span id="configurable-validation"></span><span id="configurable-literal-conversion"></span>[Customize validation and literal conversion]({{ '/docs/customize-schema/' | relative_url }}).
+- <span id="editor-association"></span>[Configure your editor]({{ '/docs/write-schema/#editor-association' | relative_url }}).

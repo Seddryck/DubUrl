@@ -23,35 +23,26 @@ On Windows, DubUrl is fixing these troubles by analyzing the OLE DB providers re
 
 ### Basic example
 
-Following example shows how to use DubUrl to connect to a MySQL database with the OLE DB provider. We suppose that this OLE DB provider is installed on your client.
-
-Referencing the package `System.Data.OleDb` related to the ADO.Net data provider
-
-```bash
-dotnet add package System.Data.OleDb
-```
-
-Registering the factory of the ADO.Net data provider `System.Data.OleDb`. As OLE DB is an extension of DubUrl, the manual registration is a bit more verbose. You first need to specify that you're looking for the assembly containing the class `OleDbRewriter` and that you're looking into the `bin` folder. This give you access to the `Registrator` to register the ADO.Net for OLE DB provider.
+OLE DB requires Windows and an installed native provider. Add `DubUrl`, `DubUrl.OleDb`, and `System.Data.OleDb` to your project. Explicitly register the factory and include the extension's mappings:
 
 ```csharp
-var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
-var discovery = new BinFolderDiscover(assemblies);
-var registrator = new ProviderFactoriesRegistrator(discovery);
-registrator.Register();
+using System.Data.Common;
+using DubUrl;
+using DubUrl.Mapping;
+using DubUrl.OleDb.Mapping;
+
+DbProviderFactories.RegisterFactory(
+    "System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
+var registry = new SchemeRegistryBuilder()
+    .WithAssemblies(typeof(OleDbRewriter).Assembly)
+    .WithAutoDiscoveredMappings()
+    .Build();
+var url = Environment.GetEnvironmentVariable("DUBURL_OLEDB_URL")
+    ?? throw new InvalidOperationException("Set DUBURL_OLEDB_URL first.");
+using var connection = new ConnectionUrl(url, registry).Open();
 ```
 
-You also need to pass the assembly containing the class `OleDbRewriter` to your SchemeMapperBuilder.
-
-```csharp
-var schemeMapperBuilder = new SchemeMapperBuilder(assemblies);
-```
-
-Open a connection to the database named *dbname* and hosted on a server named *serverName*. Note that the scheme of the URL is set to *mysql* to specify that the database is a MySQL. **Don't forget to pass the `SchemeMapperBuilder` that you previously instantiated. If you forget, DubUrl will instantiate a new instantiate which will not contain *OLE DB* extension**
-
-```csharp
-var conn = new ConnectionUrl("oledb+mysql://{serverName}/{dbName}", schemeMapperBuilder).Open();
-```
-
+Use an installed-provider URL such as `oledb+mssql://{server}/{database}` with your actual server and database. An `ISchemeRegistry` is required; the old `SchemeMapperBuilder` examples do not match this constructor.
 ## Additional options for selecting the right driver
 
 Some provider manufacturers allow you to install multiple versions of their drivers in parallel. The version could be a different release (e.g. version `10.0` and version `11.3`). As such more than a single driver can be identified by DubUrl to be a valid candidate. By default, DubUrl use the following conventions when selecting a driver:
@@ -62,8 +53,6 @@ This behaviour can be overriden in multiple ways explained here under.
 
 ### Full name specification
 
-Sometimes, you wan to stick to a really specific version of the OLE DB provider, in that case, you can specify the name by yourself in the scheme. The name of the OLE DB provider must be specified between curly braces. If this option is selected you cannot combine it with other options.
+Provider names containing spaces or braces cannot be embedded as URI scheme components. The previous `{provider name}` scheme examples were invalid URLs. Use an available provider alias and the selected provider's supported connection options; installing a native provider is still required.
 
-```text
-"odbc+mysql+{provider name}//serverName/dbName"
-```
+For example, `oledb+mssql://server/database?Provider=MSOLEDBSQL` explicitly selects the installed `MSOLEDBSQL` provider through its `Provider` option.

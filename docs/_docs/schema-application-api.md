@@ -30,6 +30,11 @@ Validation and rendering depend only on the document, mapping, schema-domain, an
 ## Registration and use
 
 ```csharp
+using DubUrl.Application;
+using DubUrl.Schema;
+using DubUrl.Schema.Documents;
+using DubUrl.Querying.Dialects;
+
 var dialects = new DialectRegistryBuilder();
 dialects.AddDialect<PgsqlDialect>(["pgsql", "postgresql"]);
 

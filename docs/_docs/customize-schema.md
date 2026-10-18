@@ -12,12 +12,33 @@ This guide is for applications embedding `DubUrl.Schema.Documents`. Start with [
 `SchemaDocumentValidator` uses ordered default sets for columns, foreign keys, indexes, checks, view declarations, resolved views, and the complete view graph. Create a rule set when an application needs to suppress one of those defaults or append an application-specific rule:
 
 ```csharp
+using System.Data;
+using System.Globalization;
+using DubUrl.Schema.Documents;
+
 var rules = SchemaDocumentValidationRuleSet.CreateDefault()
-    .WithoutColumnRule(SchemaDocumentValidationRuleIds.Columns.NativeType)
-    .WithoutViewGraphRule(SchemaDocumentValidationRuleIds.ViewGraph.DependencyCycles)
     .WithColumnRule(new ApplicationColumnRule());
 
 var validator = new SchemaDocumentValidator(rules);
+```
+
+The application rule below reports a warning when a column description is missing. Declare this type separately from the setup statements:
+
+```csharp
+using DubUrl.Schema.Documents;
+
+public sealed class ApplicationColumnRule : IValidationRule<ColumnValidationContext>
+{
+    public string Id => "application.column-description";
+
+    public void Validate(ColumnValidationContext context, ICollection<SchemaDocumentDiagnostic> diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(context.Column.Description))
+            diagnostics.Add(new SchemaDocumentDiagnostic(
+                "APP001", SchemaDocumentDiagnosticSeverity.Warning,
+                "Add a column description.", context.Path));
+    }
+}
 ```
 
 Custom rules implement `IValidationRule<TContext>`. View declaration rules receive duplicate and table-collision resolution, view rules receive the resolved source table or view and its output columns, and graph rules receive the complete valid view lookup. This separation keeps forward references valid while allowing dependency-cycle validation to be configured independently.
@@ -41,7 +62,11 @@ public sealed class HexInt32Converter : ILiteralValueConverter
             ? LiteralConversionResult.Success(result)
             : LiteralConversionResult.Failure();
 }
+```
 
+Apply the converter before reading its validation and mapping results:
+
+```csharp
 var converters = SchemaDocumentLiteralConverterRegistry.CreateDefault()
     .ReplaceConverter(new HexInt32Converter());
 

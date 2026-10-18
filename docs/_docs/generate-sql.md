@@ -20,6 +20,10 @@ Without `--output`, SQL is written to standard output. Use `duburl capabilities 
 `SchemaDocumentReader` infers JSON from `.json` and YAML from `.yaml` or `.yml`. It requires an explicit supported version, rejects unknown properties, reports malformed input with source and location information, and leaves caller-owned streams open.
 
 ```csharp
+using DubUrl.Schema;
+using DubUrl.Schema.Documents;
+using DubUrl.Querying.Dialects;
+
 var reader = new SchemaDocumentReader();
 var document = reader.Read("schema.yaml");
 

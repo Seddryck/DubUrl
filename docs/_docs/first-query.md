@@ -29,25 +29,7 @@ You can also use typed overloads, such as `ReadScalar<long>`. Choose a type that
 
 ## Choose how connections are reused
 
-With `new DatabaseUrl(url)`, each operation opens and disposes its connection object. The provider's pool can reuse the underlying database connection. Existing constructors that take a URL, factory, or `ConnectionUrl` keep this `ProviderManaged` behavior.
-
-To let DubUrl choose how to reuse connections, create a source and pass it to `DatabaseUrl`. Sources use `Auto` by default:
-
-```csharp
-await using var source = new ConnectionSourceUrl(url).Create();
-
-await using var database = new DatabaseUrl(source);
-
-var first = await database.ReadScalarAsync("SELECT 1");
-var second = await database.ReadScalarAsync("SELECT 2");
-```
-
-For local DuckDB, `Auto` keeps one connection open between these calls. For Npgsql, it lets the provider handle pooling. You can also choose `ProviderManaged` or `RetainedExclusive` explicitly. See [Reusing database connections]({{ '/docs/connection-source/' | relative_url }}) for the modes and complete examples.
-
-You own a source you pass into `DatabaseUrl`. Disposing the database object leaves that source available for other database objects. In the example, the declarations dispose `database` first, then `source`.
-
-If you use a custom scheme registry, you can still construct a database with `new DatabaseUrl(factory, url)`, where `factory` is your configured `ConnectionUrlFactory`.
-
+The URL-based constructor uses per-operation `ProviderManaged` ownership. To use `Auto` selection or retain a connection between calls, [create and reuse a connection source]({{ '/docs/connection-source/' | relative_url }}). That guide covers lifetime, pooling, and transactions.
 ## Next steps
 
 - [Read scalar values]({{ '/docs/read-scalars/' | relative_url }}) for NULL handling.

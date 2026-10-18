@@ -14,7 +14,7 @@ var count = await database.ReadScalarAsync(
     "SELECT COUNT(*) FROM Customer");
 ```
 
-For a typed result, choose the CLR type returned by your provider. For example, SQL `COUNT(*)` may be a 32-bit or 64-bit integer depending on the provider.
+For a typed result, choose the CLR type returned by your provider. The nullable `ReadScalar<T>` overload casts the provider result; it does not convert every SQL value to an arbitrary CLR type. For example, SQL `COUNT(*)` may be a 32-bit or 64-bit integer depending on the provider.
 
 ## Handle SQL NULL
 

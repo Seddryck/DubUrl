@@ -9,25 +9,13 @@ DatabaseUrl executes SQL from a connection URL or a reusable connection source. 
 
 ## Construction and ownership
 
-With `new DatabaseUrl(url)`, each operation opens and disposes its connection object. The provider's pool can reuse the underlying database connection. Existing constructors that take a URL, factory, or `ConnectionUrl` keep this `ProviderManaged` behavior.
+| Constructor | Connection management | Source ownership |
+|---|---|---|
+| `DatabaseUrl(string url)` or `DatabaseUrl(factory, url)` | Per-operation `ProviderManaged` | DatabaseUrl owns its lazily created source |
+| `DatabaseUrl(connectionUrl, provisionerFactory, logger)` | Per-operation `ProviderManaged` | DatabaseUrl owns its lazily created source |
+| `DatabaseUrl(ConnectionSource source)` | Uses the source's selected mode | Caller owns the source |
 
-To let DubUrl choose how to reuse connections, create a source and pass it to `DatabaseUrl`. Sources use `Auto` by default:
-
-```csharp
-await using var source = new ConnectionSourceUrl(url).Create();
-
-await using var database = new DatabaseUrl(source);
-
-var first = await database.ReadScalarAsync("SELECT 1");
-var second = await database.ReadScalarAsync("SELECT 2");
-```
-
-For local DuckDB, `Auto` keeps one connection open between these calls. For Npgsql, it lets the provider handle pooling. You can also choose `ProviderManaged` or `RetainedExclusive` explicitly. See [Reusing database connections]({{ '/docs/connection-source/' | relative_url }}) for the modes and complete examples.
-
-You own a source you pass into `DatabaseUrl`. Disposing the database object leaves that source available for other database objects. In the example, the declarations dispose `database` first, then `source`.
-
-If you use a custom scheme registry, you can still construct a database with `new DatabaseUrl(factory, url)`, where `factory` is your configured `ConnectionUrlFactory`.
-
+Dispose DatabaseUrl when finished. A borrowed source remains caller-owned; dispose all readers and finish enumerating rows before disposing the source. See [Reuse connections and transactions]({{ '/docs/connection-source/' | relative_url }}) for examples and policy selection.
 ## Choose a query method
 
 | What you need | Method | Empty result | More than one row |
@@ -42,36 +30,11 @@ If you use a custom scheme registry, you can still construct a database with `ne
 
 The corresponding asynchronous methods have an `Async` suffix. Pass a cancellation token as the last argument when needed.
 
-For SQL values that may be NULL, choose a nullable result type:
-
-```csharp
-var oldest = await database.ReadScalarAsync<DateTime?>(
-    "SELECT MIN(BirthDate) FROM Customer");
-```
+For nullable results and provider-specific CLR types, see [Read scalar values]({{ '/docs/read-scalars/' | relative_url }}).
 
 ## Task guides
 
-- [Read scalar values]({{ '/docs/read-scalars/' | relative_url }}).
-- [Read one or many rows]({{ '/docs/read-rows/' | relative_url }}).
-- [Use SQL templates]({{ '/docs/sql-templates/' | relative_url }}).
-- [Reuse connections and transactions]({{ '/docs/connection-source/' | relative_url }}).
-
-## Read a value
-
-See [Read scalar values]({{ '/docs/read-scalars/' | relative_url }}).
-
-## Read rows
-
-See [Read one or many rows]({{ '/docs/read-rows/' | relative_url }}).
-
-## Read with an ADO.NET reader
-
-See [Read with an ADO.NET reader]({{ '/docs/read-rows/#read-with-an-adonet-reader' | relative_url }}).
-
-## Reuse a SQL template
-
-See [Use SQL templates]({{ '/docs/sql-templates/' | relative_url }}).
-
-## When several commands need one transaction
-
-See [the connection source guide]({{ '/docs/connection-source/' | relative_url }}).
+- <span id="read-a-value"></span>[Read scalar values]({{ '/docs/read-scalars/' | relative_url }}).
+- <span id="read-rows"></span><span id="read-with-an-adonet-reader"></span>[Read one or many rows]({{ '/docs/read-rows/' | relative_url }}).
+- <span id="reuse-a-sql-template"></span>[Use SQL templates]({{ '/docs/sql-templates/' | relative_url }}).
+- <span id="when-several-commands-need-one-transaction"></span>[Reuse connections and transactions]({{ '/docs/connection-source/' | relative_url }}).
