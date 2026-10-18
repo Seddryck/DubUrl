@@ -1,81 +1,133 @@
 ---
-title: Connection sources
+title: Reusing database connections
+subtitle: Let DubUrl decide when to keep a connection open
+tags: [connection, quick-start]
 ---
 
-`ConnectionSourceUrl` creates a long-lived `ConnectionSource` on .NET 8, 9, and 10. A source lends open connections through short-lived leases. Existing `ConnectionUrl` and `DataSourceUrl` ownership semantics are unchanged.
+A `ConnectionSource` lets you run separate operations without deciding, each time, whether to close the connection or keep it open for the next operation.
+
+Create the source once and reuse it. DubUrl can then either let the provider's connection pool handle reuse, or keep one connection open itself.
+
+These features are available on .NET 8, 9, and 10. The examples assume you have [installed and registered your database provider](installation-ado-net-provider) and stored your connection URL in `url`.
+
+## Run queries with DatabaseUrl
+
+If you use `DatabaseUrl`, it handles acquiring and releasing connections for you:
 
 ```csharp
 await using var source = new ConnectionSourceUrl(url).Create(
-    new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.RetainedExclusive });
+    new ConnectionSourceOptions
+    {
+        ReuseMode = ConnectionReuseMode.Auto
+    });
 
-await using (var lease = await source.AcquireAsync(cancellationToken))
+await using var database = new DatabaseUrl(source);
+
+var first = await database.ReadScalarAsync("SELECT 1");
+var second = await database.ReadScalarAsync("SELECT 2");
+```
+
+Both queries use the same source. In `Auto` mode, DubUrl chooses how that source manages connections. For example, it lets Npgsql handle PostgreSQL pooling, but keeps one connection open for a local DuckDB database.
+
+The `await using` declarations clean up in reverse order: first `database`, then `source`, at the end of the surrounding scope. Keep the source around for the operations that should benefit from reuse. Creating a new source for every query defeats that purpose.
+
+## Choose what happens between operations
+
+Set `ReuseMode` when creating the source:
+
+| Mode | After an operation finishes | When the next operation starts |
+| --- | --- | --- |
+| `ProviderManaged` | Dispose the connection object. If the provider has pooling enabled, it can keep the underlying database connection in its pool. | Ask the provider for an open connection. It may reuse one from its pool. |
+| `RetainedExclusive` | Keep the connection open in the source. | Reuse that same connection, provided it is still open and healthy. Only one operation can use it at a time. |
+| `Auto` | Use the behavior selected by DubUrl's provider rules. | Follow the selected mode. |
+
+If you omit the options, the default is `ProviderManaged`. To explicitly keep a connection open between operations, use:
+
+```csharp
+await using var source = new ConnectionSourceUrl(url).Create(
+    new ConnectionSourceOptions
+    {
+        ReuseMode = ConnectionReuseMode.RetainedExclusive
+    });
+```
+
+With this mode, the source closes the retained connection when you dispose the source.
+
+## Use an ADO.NET connection directly
+
+For direct ADO.NET access, call `AcquireAsync()`. It returns a **lease**: permission to use a connection until you dispose the lease.
+
+```csharp
+await using var source = new ConnectionSourceUrl(url).Create(
+    new ConnectionSourceOptions
+    {
+        ReuseMode = ConnectionReuseMode.RetainedExclusive
+    });
+
+await using (var lease = await source.AcquireAsync())
 {
     await using var command = lease.Connection.CreateCommand();
     command.CommandText = "SELECT 1";
-    var result = await command.ExecuteScalarAsync(cancellationToken);
-}
-// A later lease reuses the retained healthy open connection.
-```
+    var first = await command.ExecuteScalarAsync();
+} // Release the connection for the next operation. Keep it open.
 
-The default `ProviderManaged` mode opens a logical connection for each lease and disposes it when released. Physical pooling and reuse remain the provider's responsibility. `RetainedExclusive` keeps one healthy connection open between leases and serializes access. Source creation opens no connection. Sources use the provider's `DbDataSource` when available, with a factory-based fallback for providers that do not implement it. `Acquire()` and `Dispose()` are synchronous alternatives.
-
-Dispose readers, commands, and transactions before their lease. Never directly close/dispose a borrowed connection or use it after lease release. Keep all work requiring one transaction or session within one lease. Retained connections may preserve session settings across leases; DubUrl cannot generically reset them. Separate leases do not guarantee transaction or session continuity.
-
-Release leases before disposing their owning source: disposal rejects new acquisitions, wakes queued waiters with `ObjectDisposedException`, waits for active leases, and disposes owned connections and provider sources. Both source and lease disposal are idempotent. A second retained acquisition while holding a lease waits; nested acquisition is unsupported. Pass cancellation to bound waiting; cancellation of a waiter does not affect the active lease.
-
-Failed opens dispose partial resources. A retained connection observed as closed or broken is discarded before the next acquisition. No generic connectivity probe or command replay is performed. All strategies share this contract; choose retention only for a workload that accepts serialized access and retained session state.
-
-## Automatic strategy selection
-
-Set `ReuseMode = ConnectionReuseMode.Auto` to select once at source creation without opening a connection. Explicit concrete modes always win. In Auto mode, the first registered `PolicyResolvers` entry returning a concrete mode wins, followed by the built-in policy, followed by `ProviderManaged` for unknown configurations. `null` means a resolver declines the configuration. A resolver returning `Auto` is invalid. The ordinary default remains `ProviderManaged`.
-
-| Resolved native factory | Recognized configuration | Automatic decision |
-| --- | --- | --- |
-| Npgsql (validated with 10.x) | Provider builder's Pooling setting/default | ProviderManaged; enabled pooling reason or disabled-without-retention-policy reason |
-| Microsoft.Data.SqlClient (validated with 7.x) | Provider builder's Pooling setting/default, including yes/no values | ProviderManaged with the corresponding reason |
-| Microsoft.Data.Sqlite (validated with 10.x; Pooling available since 6.x) | Provider builder's Pooling setting/default | ProviderManaged with the corresponding reason |
-| DuckDB.NET.Data (validated with 1.5.x) | Local file or in-memory DataSource/Data Source; excludes md: MotherDuck | RetainedExclusive |
-| ODBC, OLE DB, MotherDuck, other factories | No recognized lifetime policy | ProviderManaged fallback |
-
-Builders handle their provider's option aliases, defaults, and validation. Disabled pooling alone never enables retention. DuckDB local retention is an explicit DubUrl policy: it preserves the database instance for isolated in-memory connections and connection caches for repeated queries, at the cost of serialized access and retained state. See [DuckDB.NET connection strings](https://github.com/Giorgi/DuckDB.NET-Docs/blob/main/docs/connection-string.md) and [DuckDB connection performance guidance](https://duckdb.org/docs/stable/guides/performance/how_to_tune_workloads). Pooling defaults are documented by [Npgsql](https://www.npgsql.org/doc/connection-string-parameters), [SqlClient](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql-server-connection-pooling), and [Sqlite](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/connection-strings).
-
-Inspect `source.ReuseMode` and `source.SelectionReason` for the concrete decision and a credential-free policy identifier. Custom policies receive a `ConnectionReuseContext` with provider identity and `CreateConnectionStringBuilder()` for effective configuration. Never log that builder or its credential-bearing values. The context's default string representation redacts configuration. Unknown underlying drivers/proxies are not probed. For custom retention policies, explicitly establish that serialized reuse and retained session state are appropriate for your workload.
-
-```csharp
-sealed class MyReusePolicy : IConnectionReusePolicyResolver
+await using (var lease = await source.AcquireAsync())
 {
-    public ConnectionReuseMode? Resolve(ConnectionReuseContext context)
-        => context.ProviderName == "MyProvider.MyFactory"
-            ? ConnectionReuseMode.RetainedExclusive
-            : null;
-}
-
-// Pass policy instances in source options (including from provider extension packages).
-// new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto,
-//     PolicyResolvers = [new MyReusePolicy()] }
+    await using var command = lease.Connection.CreateCommand();
+    command.CommandText = "SELECT 2";
+    var second = await command.ExecuteScalarAsync();
+} // Release the same connection again.
 ```
 
-## DatabaseUrl integration
+The braces matter: the first lease must end before the second starts. Disposing the lease tells the source that the operation has finished. The source decides whether to dispose the connection or retain it.
 
-URL/factory constructors remain available. Dispose each `DatabaseUrl` instance: it lazily owns one provider-managed source and reuses that source across queries. Its sync/async scalar, first/single, streaming and raw-reader paths all acquire leases. MicroOrm shares this execution path.
+Dispose your commands, readers, and transactions inside the lease's braces. Do not dispose `lease.Connection` yourself or use it after the lease ends. For synchronous code, use `source.Acquire()` and ordinary `using` blocks.
+
+## What Auto currently chooses
+
+| Provider | Selected mode |
+| --- | --- |
+| Npgsql / PostgreSQL | `ProviderManaged` |
+| Microsoft.Data.SqlClient / SQL Server | `ProviderManaged` |
+| Microsoft.Data.Sqlite / SQLite | `ProviderManaged` |
+| DuckDB.NET.Data / local DuckDB, including in-memory databases | `RetainedExclusive` |
+| ODBC, OLE DB, MotherDuck, and other unrecognized providers | `ProviderManaged` |
+
+Disabling a provider's pooling does not automatically make DubUrl retain its connections. Choose `RetainedExclusive` explicitly if your workload needs that behavior, or register a custom rule.
+
+To inspect the decision:
 
 ```csharp
-await using var database = new DatabaseUrl(url);
-var count = await database.ReadScalarAsync<long>("SELECT COUNT(*) FROM Customer");
+Console.WriteLine(source.ReuseMode);
+Console.WriteLine(source.SelectionReason);
 ```
 
-To choose a strategy or share a source across database instances, inject it. The source carries its resolved query metadata, so there is no separate URL that could mismatch its dialect/parameterization. DatabaseUrl borrows the injected source and never disposes it.
+See the [connection source reference](connection-source-reference) for custom rules and provider details.
+
+## When operations need the same transaction
+
+Keep all commands in that transaction inside **one lease**. Separate `DatabaseUrl` calls do not form a transaction, even if the source happens to reuse the same connection.
 
 ```csharp
-await using var source = new ConnectionSourceUrl(url).Create(
-    new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.Auto });
-await using var database = new DatabaseUrl(source);
-var first = database.ReadFirst("SELECT CustomerId FROM Customer");
-var second = await database.ReadScalarAsync<long>("SELECT COUNT(*) FROM Customer");
+await using var lease = await source.AcquireAsync();
+await using var transaction = await lease.Connection.BeginTransactionAsync();
+
+await using var command = lease.Connection.CreateCommand();
+command.Transaction = transaction;
+
+command.CommandText = "SELECT 1";
+await command.ExecuteScalarAsync();
+
+command.CommandText = "SELECT 2";
+await command.ExecuteScalarAsync();
+
+await transaction.CommitAsync();
 ```
 
-Disposing the database prevents further query execution through that instance, including deferred enumeration, but other borrowers can still use the source. Disposal of a database-owned source waits for its outstanding operations. Close raw readers and dispose enumerators before disposing their database/source. `ReadMultiple` acquires only when enumeration begins; finishing, throwing, or disposing the enumerator releases its lease. Async streaming follows the same rule. Never-enumerated results acquire nothing.
+## When another operation is still reading
 
-An `ExecuteReader` result owns its reader, command, and lease. `Close`, `Dispose`, or `DisposeAsync` releases them once in that order. While a reader/enumerator holds a retained lease, another query on that source waits. Nested querying on a retained source while consuming its reader is unsupported. Different DatabaseUrl calls do not form a transaction; use one explicit source lease for transaction-dependent work.
+`RetainedExclusive` lends its one connection to one operation at a time. If another operation asks for it, that operation waits.
 
-For subclasses, `PrepareCommand` remains a protected compatibility helper returning an owning command. Dispose it or its returned reader. Query execution uses the shared executor, as before; overriding `PrepareCommand` does not intercept all public query methods. Resource lifetime customization belongs in source policy, not direct connection disposal. `IDatabaseUrl` now exposes `IDisposable` and `IAsyncDisposable`; external implementations must implement that lifecycle.
+Finish reading or dispose the reader before starting another query on that source. In particular, do not start a query inside a loop that is still reading from the same retained connection. Read the rows into a list first if you need to run more queries for those rows.
+
+For details about cancellation, failures, and shutdown, see the [connection source reference](connection-source-reference).
