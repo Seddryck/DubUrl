@@ -63,9 +63,10 @@ public sealed class ConnectionSource : IConnectionSource
     }
 
     private async ValueTask<IDbConnection> OpenDataSourceAsync(CancellationToken token)
-        => await _dataSource!.OpenConnectionAsync(token).ConfigureAwait(false);
+        => await (_dataSource ?? throw new InvalidOperationException("No native data source is configured."))
+            .OpenConnectionAsync(token).ConfigureAwait(false);
 
-    public ConnectionLease Acquire() => AcquireCoreAsync(false, default).GetAwaiter().GetResult();
+    public ConnectionLease Acquire() => AcquireCoreAsync(false, CancellationToken.None).GetAwaiter().GetResult();
     public ValueTask<ConnectionLease> AcquireAsync(CancellationToken cancellationToken = default)
         => AcquireCoreAsync(true, cancellationToken);
 
@@ -88,7 +89,7 @@ public sealed class ConnectionSource : IConnectionSource
                 if (asynchronous)
                     await _exclusive.WaitAsync(effectiveToken).ConfigureAwait(false);
                 else
-                    _exclusive.Wait(effectiveToken);
+                    WaitForExclusiveConnection(effectiveToken);
                 entered = true;
                 if (_retained is not null && _retained.State != ConnectionState.Open)
                 {
@@ -135,6 +136,9 @@ public sealed class ConnectionSource : IConnectionSource
             throw;
         }
     }
+
+    // The synchronous API must block without depending on an asynchronous provider implementation.
+    private void WaitForExclusiveConnection(CancellationToken token) => _exclusive.Wait(token);
 
     private async ValueTask AbandonAsync(IDbConnection? connection, bool entered, bool asynchronous)
     {

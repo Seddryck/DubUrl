@@ -77,10 +77,23 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
 
     public void Dispose()
     {
-        TakeOwnedSource()?.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
-    public ValueTask DisposeAsync() => TakeOwnedSource()?.DisposeAsync() ?? default;
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing) TakeOwnedSource()?.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore().ConfigureAwait(false);
+        Dispose(false);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual ValueTask DisposeAsyncCore() => TakeOwnedSource()?.DisposeAsync() ?? default;
 
     private ConnectionSource? TakeOwnedSource()
     {
