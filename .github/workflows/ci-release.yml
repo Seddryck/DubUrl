@@ -727,10 +727,14 @@ jobs:
           }
           else {
             tar -xzf $archive -C .artifacts/extracted
-            & /usr/bin/test -x .artifacts/extracted/duburl
-            if ($LASTEXITCODE -ne 0) { throw 'Unix executable is not executable.' }
-            & .artifacts/extracted/duburl --version
-            & .artifacts/extracted/duburl --help
+            $executable = (Resolve-Path -LiteralPath .artifacts/extracted/duburl).Path
+            $mode = [IO.File]::GetUnixFileMode($executable)
+            $executeBits = [IO.UnixFileMode]::UserExecute `
+              -bor [IO.UnixFileMode]::GroupExecute `
+              -bor [IO.UnixFileMode]::OtherExecute
+            if (($mode -band $executeBits) -eq 0) { throw "Unix executable mode '$mode' is not executable." }
+            & $executable --version
+            & $executable --help
           }
           if ($LASTEXITCODE -ne 0) { throw 'Executing the extracted CLI archive failed.' }
 
