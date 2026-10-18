@@ -1,9 +1,7 @@
-using System.Data.Common;
 using DubUrl.Application;
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 using DubUrl.Querying.Dialects;
-using DubUrl.Registering;
 using DubUrl.Schema.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +14,8 @@ public static class CliComposition
     public static ServiceProvider CreateDefault(
         ICliConsole? console = null,
         IConfiguration? configuration = null,
-        IProviderPackService? providerPackService = null)
+        IProviderPackService? providerPackService = null,
+        IEnumerable<IDubUrlProviderModule>? providerModules = null)
     {
         configuration ??= new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -24,19 +23,17 @@ public static class CliComposition
             .AddEnvironmentVariables("DUBURL_")
             .Build();
 
-        new ProviderFactoriesRegistrator(new CliProviderFactoriesDiscoverer()).Register();
         var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry();
         var store = new ProviderPackStore(configuration["ProviderPacks:StorePath"]);
         var optionalSchemes = store.Inspect()
             .Where(pack => pack.Status == ProviderPackStatus.Active)
             .SelectMany(pack => pack.Manifest.Schemes);
-        var capabilities = new CliCapabilities(dialects, DbProviderFactories.GetProviderInvariantNames(), optionalSchemes);
+        var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
         var providerDiagnostics = new List<ProviderPackDiagnostic>();
-        var schemes = new ProviderCatalogBuilder()
-            .WithRootPath(string.Empty)
-            .AddModule(new BuiltInProviderModule())
-            .AddInstalledPacks(store, providerDiagnostics)
-            .Build();
+        var catalogBuilder = new ProviderCatalogBuilder().WithRootPath(string.Empty);
+        foreach (var module in providerModules ?? [])
+            catalogBuilder.AddModule(module);
+        var schemes = catalogBuilder.AddInstalledPacks(store, providerDiagnostics).Build();
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
@@ -88,20 +85,14 @@ public static class CliComposition
                 && !string.IsNullOrWhiteSpace(version)
                 && Uri.TryCreate(downloadUri, UriKind.Absolute, out var uri)
                 && !string.IsNullOrWhiteSpace(sha256))
-                entries.Add(new(provider, version, uri, sha256));
+                entries.Add(new(
+                    provider,
+                    version,
+                    uri,
+                    sha256,
+                    section.GetSection("Aliases").Get<string[]>() ?? [],
+                    section.GetSection("Schemes").Get<string[]>() ?? []));
         }
         return new(entries);
-    }
-
-    private sealed class CliProviderFactoriesDiscoverer : IProviderFactoriesDiscoverer
-    {
-        public IEnumerable<Type> Execute()
-            =>
-            [
-                typeof(Microsoft.Data.SqlClient.SqlClientFactory),
-                typeof(Microsoft.Data.Sqlite.SqliteFactory),
-                typeof(MySqlConnector.MySqlConnectorFactory),
-                typeof(Npgsql.NpgsqlFactory)
-            ];
     }
 }

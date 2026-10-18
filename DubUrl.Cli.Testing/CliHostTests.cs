@@ -1,5 +1,7 @@
 using System.Text.Json;
+using System.Data.Common;
 using DubUrl.Cli;
+using DubUrl.Mapping;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
@@ -97,7 +99,11 @@ public class CliHostTests
             ["ConnectionStrings:test"] = $"sqlite:///{databasePath.Replace('\\', '/')}"
         }).Build();
         var console = new TestConsole(JsonSchema);
-        await using var services = CliComposition.CreateDefault(console, configuration);
+        RegisterSqlite();
+        await using var services = CliComposition.CreateDefault(
+            console,
+            configuration,
+            providerModules: [new BuiltInProviderModule()]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--dry-run"], services);
@@ -111,17 +117,13 @@ public class CliHostTests
     }
 
     [Test]
-    public async Task Deploy_DryRun_UsesDialectAliasesFromCore()
+    public async Task Render_UsesDialectAliasesFromCoreWithoutInstalledConnector()
     {
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["ConnectionStrings:test"] = "postgresql://user:password@localhost/database"
-        }).Build();
         var console = new TestConsole(JsonSchema);
-        await using var services = CliComposition.CreateDefault(console, configuration);
+        await using var services = CliComposition.CreateDefault(console);
 
         var exitCode = await CliHost.InvokeAsync(
-            ["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--dry-run"], services);
+            ["schema", "render", "-", "--input-format", "json", "--dialect", "postgresql"], services);
 
         Assert.Multiple(() =>
         {
@@ -132,7 +134,7 @@ public class CliHostTests
     }
 
     [Test]
-    public async Task Capabilities_ReportsDiscoveredProviders()
+    public async Task Capabilities_FreshCliHasNoInstalledConnectors()
     {
         var console = new TestConsole(string.Empty);
         await using var services = CliComposition.CreateDefault(console);
@@ -155,12 +157,9 @@ public class CliHostTests
         Assert.Multiple(() =>
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
-            Assert.That(providers, Is.EquivalentTo(new[]
-            {
-                "Microsoft.Data.SqlClient", "Microsoft.Data.Sqlite", "MySqlConnector", "Npgsql"
-            }));
+            Assert.That(providers, Is.Empty);
             Assert.That(dialects, Does.Contain("firebird"));
-            Assert.That(deployableSchemes, Does.Contain("mssql"));
+            Assert.That(deployableSchemes, Is.Empty);
             Assert.That(deployableSchemes, Does.Not.Contain("firebird"));
         });
     }
@@ -234,7 +233,11 @@ public class CliHostTests
         {
             var configuration = CreateConnectionConfiguration(databasePath);
             var console = new TestConsole(JsonSchema);
-            await using var services = CliComposition.CreateDefault(console, configuration);
+            RegisterSqlite();
+            await using var services = CliComposition.CreateDefault(
+                console,
+                configuration,
+                providerModules: [new BuiltInProviderModule()]);
 
             var exitCode = await CliHost.InvokeAsync(
                 ["schema", "deploy", "-", "--input-format", "json", "--connection", "test"], services);
@@ -315,6 +318,9 @@ public class CliHostTests
         {
             ["ConnectionStrings:test"] = $"sqlite:///{databasePath.Replace('\\', '/')}"
         }).Build();
+
+    private static void RegisterSqlite()
+        => DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", SqliteFactory.Instance);
 
     private sealed class TestConsole(string input) : global::DubUrl.Cli.ICliConsole
     {

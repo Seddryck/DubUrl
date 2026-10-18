@@ -1,22 +1,22 @@
 using DubUrl.Core.ProviderPacks;
-using DubUrl.Providers;
 
 namespace DubUrl.Cli;
 
 public sealed record CliProviderPack(
-    string Name,
+    string Id,
     string Version,
     string Source,
     string Activation,
     string Status,
+    IReadOnlyList<string> Aliases,
     IReadOnlyList<string> Schemes,
     IReadOnlyList<ProviderPackDiagnostic> Diagnostics);
 
 public interface IProviderPackService
 {
     IReadOnlyList<CliProviderPack> List();
-    Task<CliProviderPack> AddAsync(string provider, CancellationToken cancellationToken);
-    bool Remove(string provider);
+    Task<CliProviderPack> InstallAsync(string connector, CancellationToken cancellationToken);
+    string Uninstall(string connector);
 }
 
 public sealed class ProviderPackService(
@@ -26,42 +26,48 @@ public sealed class ProviderPackService(
 {
     public IReadOnlyList<CliProviderPack> List()
     {
-        var bundled = BuiltInProviderCatalog.Create().Providers.Select(provider => new CliProviderPack(
-            provider.Name,
-            provider.Version,
-            "bundled",
-            "active",
-            "available",
-            provider.Schemes,
-            []));
-        var optional = store.Inspect().Select(pack => new CliProviderPack(
+        var installed = store.Inspect().Select(pack => new CliProviderPack(
             pack.Manifest.Provider,
             pack.Manifest.Version,
             "user-store",
             pack.Status == ProviderPackStatus.Active ? "active" : "inactive",
             pack.Status.ToString().ToLowerInvariant(),
+            GetAliases(pack.Manifest.Provider),
             pack.Manifest.Schemes,
             pack.Diagnostics));
-        return bundled.Concat(optional)
-            .OrderBy(provider => provider.Name, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(provider => provider.Source, StringComparer.Ordinal)
-            .ThenBy(provider => provider.Version, StringComparer.Ordinal)
+        var available = catalog.Entries
+            .Where(entry => !installed.Any(pack =>
+                pack.Id.Equals(entry.Provider, StringComparison.OrdinalIgnoreCase)
+                && pack.Version.Equals(entry.Version, StringComparison.OrdinalIgnoreCase)))
+            .Select(entry => new CliProviderPack(
+                entry.Provider,
+                entry.Version,
+                "catalog",
+                "inactive",
+                "available",
+                entry.Aliases ?? [],
+                entry.Schemes ?? [],
+                []));
+        return installed.Concat(available)
+            .OrderBy(connector => connector.Id, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(connector => connector.Source, StringComparer.Ordinal)
+            .ThenBy(connector => connector.Version, StringComparer.Ordinal)
             .ToArray();
     }
 
-    public async Task<CliProviderPack> AddAsync(string provider, CancellationToken cancellationToken)
+    public async Task<CliProviderPack> InstallAsync(string connector, CancellationToken cancellationToken)
     {
-        if (!catalog.TryGet(provider, out var entry))
+        if (!catalog.TryGet(connector, out var entry))
             throw new ProviderPackCommandException(
-                "provider-not-curated",
-                $"Provider pack '{provider}' is not available in the curated catalog.",
+                "connector-not-curated",
+                $"Connector '{connector}' is not available in the curated catalog.",
                 CliExitCodes.ProviderNotFound);
 
         try
         {
             await using var archive = await httpClient.GetStreamAsync(entry!.DownloadUri, cancellationToken).ConfigureAwait(false);
             var installed = await store.InstallAsync(entry, archive, cancellationToken).ConfigureAwait(false);
-            return ToCliPack(installed);
+            return ToCliPack(installed, entry.Aliases ?? []);
         }
         catch (ProviderPackException exception)
         {
@@ -70,59 +76,55 @@ public sealed class ProviderPackService(
         catch (HttpRequestException exception)
         {
             throw new ProviderPackCommandException(
-                "provider-download-failed",
-                $"Provider pack '{provider}' could not be downloaded from the curated catalog.",
+                "connector-download-failed",
+                $"Connector '{entry!.Provider}' could not be downloaded from the curated catalog.",
                 CliExitCodes.ProviderOperationFailed,
                 exception);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             throw new ProviderPackCommandException(
-                "provider-install-failed",
-                $"Provider pack '{provider}' could not be installed in the user-scoped store.",
+                "connector-install-failed",
+                $"Connector '{entry!.Provider}' could not be installed in the user-scoped store.",
                 CliExitCodes.ProviderOperationFailed,
                 exception);
         }
     }
 
-    public bool Remove(string provider)
+    public string Uninstall(string connector)
     {
+        var id = catalog.TryGet(connector, out var entry) ? entry!.Provider : connector;
         try
         {
-            if (store.Remove(provider))
-                return true;
+            if (store.Remove(id))
+                return id;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             throw new ProviderPackCommandException(
-                "provider-remove-failed",
-                $"Optional provider pack '{provider}' could not be removed from the user-scoped store.",
+                "connector-uninstall-failed",
+                $"Connector '{id}' could not be removed from the user-scoped store.",
                 CliExitCodes.ProviderOperationFailed,
                 exception);
         }
 
-        var bundled = BuiltInProviderCatalog.Create().Providers.Any(item =>
-            item.Name.Equals(provider, StringComparison.OrdinalIgnoreCase)
-            || item.Schemes.Contains(provider, StringComparer.OrdinalIgnoreCase));
-        if (bundled)
-            throw new ProviderPackCommandException(
-                "provider-bundled",
-                $"Provider '{provider}' is bundled with DubUrl and cannot be removed. Remove the DubUrl provider package from the application instead.",
-                CliExitCodes.InvalidInput);
-
         throw new ProviderPackCommandException(
-            "provider-not-installed",
-            $"Optional provider pack '{provider}' is not installed.",
+            "connector-not-installed",
+            $"Connector '{id}' is not installed.",
             CliExitCodes.ProviderNotFound);
     }
 
-    private static CliProviderPack ToCliPack(InstalledProviderPack pack)
+    private IReadOnlyList<string> GetAliases(string id)
+        => catalog.TryGet(id, out var entry) ? entry!.Aliases ?? [] : [];
+
+    private static CliProviderPack ToCliPack(InstalledProviderPack pack, IReadOnlyList<string> aliases)
         => new(
             pack.Manifest.Provider,
             pack.Manifest.Version,
             "user-store",
             pack.Status == ProviderPackStatus.Active ? "active" : "inactive",
             pack.Status.ToString().ToLowerInvariant(),
+            aliases,
             pack.Manifest.Schemes,
             pack.Diagnostics);
 }

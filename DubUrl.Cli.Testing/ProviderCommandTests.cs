@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace DubUrl.Cli.Testing;
 
-public class ProviderCommandTests
+public class ConnectorCommandTests
 {
     [Test]
     public async Task List_Json_ReportsStableProviderFields()
@@ -15,86 +15,87 @@ public class ProviderCommandTests
         {
             Packs =
             [
-                new("SQLite", "bundled", "bundled", "active", "available", ["sqlite"], []),
-                new("duckdb", "1.2.3", "user-store", "active", "active", ["duckdb"], []),
+                new("postgresql-npgsql", "1.2.3", "user-store", "active", "active", ["postgresql", "pg"], ["postgresql"], []),
             ],
         };
         await using var services = CliComposition.CreateDefault(console, providerPackService: service);
 
-        var exitCode = await CliHost.InvokeAsync(["provider", "list", "--json"], services);
+        var exitCode = await CliHost.InvokeAsync(["connector", "list", "--json"], services);
 
         using var json = JsonDocument.Parse(console.StandardOutput);
-        var optional = json.RootElement.GetProperty("providers")[1];
+        var installed = json.RootElement.GetProperty("connectors")[0];
         Assert.Multiple(() =>
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
-            Assert.That(json.RootElement.GetProperty("command").GetString(), Is.EqualTo("provider list"));
-            Assert.That(optional.GetProperty("name").GetString(), Is.EqualTo("duckdb"));
-            Assert.That(optional.GetProperty("version").GetString(), Is.EqualTo("1.2.3"));
-            Assert.That(optional.GetProperty("source").GetString(), Is.EqualTo("user-store"));
-            Assert.That(optional.GetProperty("activation").GetString(), Is.EqualTo("active"));
-            Assert.That(optional.GetProperty("status").GetString(), Is.EqualTo("active"));
+            Assert.That(json.RootElement.GetProperty("command").GetString(), Is.EqualTo("connector list"));
+            Assert.That(installed.GetProperty("id").GetString(), Is.EqualTo("postgresql-npgsql"));
+            Assert.That(installed.GetProperty("aliases")[0].GetString(), Is.EqualTo("postgresql"));
+            Assert.That(installed.GetProperty("version").GetString(), Is.EqualTo("1.2.3"));
+            Assert.That(installed.GetProperty("source").GetString(), Is.EqualTo("user-store"));
+            Assert.That(installed.GetProperty("activation").GetString(), Is.EqualTo("active"));
+            Assert.That(installed.GetProperty("status").GetString(), Is.EqualTo("active"));
         });
     }
 
     [Test]
-    public async Task Add_CuratedProvider_ReportsNewProcessActivation()
+    public async Task Install_Alias_ReportsCanonicalConnectorAndNewProcessActivation()
     {
         var console = new TestConsole();
         var service = new StubProviderPackService();
         await using var services = CliComposition.CreateDefault(console, providerPackService: service);
 
-        var exitCode = await CliHost.InvokeAsync(["provider", "add", "duckdb", "--json"], services);
+        var exitCode = await CliHost.InvokeAsync(["connector", "install", "postgresql", "--json"], services);
 
         using var json = JsonDocument.Parse(console.StandardOutput);
         Assert.Multiple(() =>
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
-            Assert.That(service.Added, Is.EqualTo("duckdb"));
+            Assert.That(service.Installed, Is.EqualTo("postgresql"));
+            Assert.That(json.RootElement.GetProperty("connector").GetProperty("id").GetString(), Is.EqualTo("postgresql-npgsql"));
             Assert.That(json.RootElement.GetProperty("activationAppliesTo").GetString(), Is.EqualTo("new-processes"));
         });
     }
 
     [Test]
-    public async Task Remove_MissingProvider_ReturnsDeterministicExitCode()
+    public async Task Uninstall_MissingConnector_ReturnsDeterministicExitCode()
     {
         var console = new TestConsole();
-        var service = new StubProviderPackService { FailRemove = true };
+        var service = new StubProviderPackService { FailUninstall = true };
         await using var services = CliComposition.CreateDefault(console, providerPackService: service);
 
-        var exitCode = await CliHost.InvokeAsync(["provider", "remove", "secret-provider"], services);
+        var exitCode = await CliHost.InvokeAsync(["connector", "uninstall", "secret-connector"], services);
 
         Assert.Multiple(() =>
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.ProviderNotFound));
             Assert.That(console.StandardOutput, Is.Empty);
-            Assert.That(console.StandardError, Does.Contain("provider-not-installed"));
+            Assert.That(console.StandardError, Does.Contain("connector-not-installed"));
         });
     }
 
     private sealed class StubProviderPackService : IProviderPackService
     {
         public IReadOnlyList<CliProviderPack> Packs { get; init; } = [];
-        public string? Added { get; private set; }
-        public bool FailRemove { get; init; }
+        public string? Installed { get; private set; }
+        public bool FailUninstall { get; init; }
 
         public IReadOnlyList<CliProviderPack> List() => Packs;
 
-        public Task<CliProviderPack> AddAsync(string provider, CancellationToken cancellationToken)
+        public Task<CliProviderPack> InstallAsync(string connector, CancellationToken cancellationToken)
         {
-            Added = provider;
+            Installed = connector;
             return Task.FromResult(new CliProviderPack(
-                provider, "1.0.0", "user-store", "active", "active", [provider], []));
+                "postgresql-npgsql", "1.0.0", "user-store", "active", "active", ["postgresql", "pg"], ["postgresql"], []));
         }
 
-        public bool Remove(string provider)
+        public string Uninstall(string connector)
         {
-            if (FailRemove)
+            if (FailUninstall)
                 throw new ProviderPackCommandException(
-                    "provider-not-installed",
-                    $"Optional provider pack '{provider}' is not installed.",
+                    "connector-not-installed",
+                    $"Connector '{connector}' is not installed.",
                     CliExitCodes.ProviderNotFound);
-            return true;
+            return connector;
         }
     }
 

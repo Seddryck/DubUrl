@@ -14,6 +14,12 @@ binds a provider name and version to a download URI and SHA-256 archive digest. 
 package IDs, and unlisted URLs are intentionally not accepted. A digest proves catalog integrity, not
 publisher identity: distributors are responsible for authenticating and signing their catalog delivery.
 
+The CLI presents a provider pack as a **connector**. A connector combines a DubUrl database mapping with
+one connection technology and its dependencies. Its canonical ID names both sides explicitly, such as
+`postgresql-npgsql`, `postgresql-odbc`, or `access-oledb`. Catalog aliases provide convenient defaults:
+for example, `postgresql`, `postgres`, `pg`, and `npgsql` can all resolve to `postgresql-npgsql`. Catalog
+construction rejects an alias assigned to more than one connector.
+
 The default user store is `%LOCALAPPDATA%\DubUrl\providers` on Windows and
 `$XDG_DATA_HOME/duburl/providers` on Linux, falling back to `~/.local/share/duburl/providers`. Installation
 copies into a same-volume staging directory, validates the archive and every declared asset, and then uses
@@ -28,19 +34,22 @@ catalogs; an application should not assume that assemblies can be replaced after
 
 ## CLI management
 
-The CLI manages only the user-scoped optional store:
+The provider-neutral CLI manages only the user-scoped connector store:
 
 ```text
-duburl provider list
-duburl provider add duckdb
-duburl provider remove duckdb
+duburl connector list
+duburl connector install postgresql
+duburl connector uninstall postgresql
 ```
 
-`list --json` emits stable name, version, source, activation, status, schemes, and diagnostics fields for
-bundled and optional packs. Bundled providers cannot be removed. Add and remove operations affect new
-processes and newly created provider catalogs; already loaded assemblies keep running.
+`list --json` emits stable canonical ID, version, source, activation, status, aliases, schemes, and
+diagnostics fields for curated and installed connectors. Install and uninstall operations affect new
+processes and newly created provider catalogs; already loaded assemblies keep running. The CLI does not
+bundle selected database drivers: installing a connector installs its DubUrl module, ADO.NET driver,
+managed dependencies, and required native assets.
 
-Distributors configure the allow-list under `ProviderPacks:Catalog`; each entry has `Provider`, `Version`,
-`DownloadUri`, and `Sha256`. `ProviderPacks:StorePath` can override the user-store location for managed
-deployments and tests. The CLI accepts provider names from this catalog only and never accepts an arbitrary
-URL, feed, or package ID.
+Distributors configure the allow-list under `ProviderPacks:Catalog`; each entry has `Provider` (the
+canonical connector ID), `Version`, `DownloadUri`, `Sha256`, `Aliases`, and `Schemes`.
+`ProviderPacks:StorePath` can override the user-store location for managed deployments and tests. The CLI
+accepts canonical IDs and aliases from this catalog only and never accepts an arbitrary URL, feed, or
+package ID.

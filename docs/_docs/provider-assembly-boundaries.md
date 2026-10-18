@@ -8,8 +8,8 @@ DubUrl now publishes three deliberately acyclic package layers:
 
 1. `DubUrl.Core` contains provider-neutral value types and immutable catalog logic. It does not reference
    provider implementations.
-2. `DubUrl.Providers` references `DubUrl.Core` and supplies the catalog and modules for databases bundled
-   by the project.
+2. `DubUrl.Providers` references `DubUrl.Core` and supplies shared provider metadata and implementations
+   used by the compatibility package and provider packs.
 3. `DubUrl` remains the compatibility package. Existing consumers keep their source-compatible public API
    and receive both lower layers transitively.
 

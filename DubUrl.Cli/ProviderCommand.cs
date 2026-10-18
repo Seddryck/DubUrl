@@ -4,104 +4,109 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DubUrl.Cli;
 
-internal static class ProviderCommand
+internal static class ConnectorCommand
 {
     public static Command Create(IServiceProvider services, CancellationToken cancellationToken)
     {
         var command = new Command(
-            "provider",
-            "Manage client-side ADO.NET provider packs. Provider packs are integrations, not database servers.");
+            "connector",
+            "Manage client-side connector packs. Connectors are integrations, not database servers.");
         command.Subcommands.Add(CreateList(services));
-        command.Subcommands.Add(CreateAdd(services, cancellationToken));
-        command.Subcommands.Add(CreateRemove(services));
+        command.Subcommands.Add(CreateInstall(services, cancellationToken));
+        command.Subcommands.Add(CreateUninstall(services));
         return command;
     }
 
     private static Command CreateList(IServiceProvider services)
     {
         var json = new Option<bool>("--json") { Description = "Write a stable JSON document." };
-        var command = new Command("list", "List bundled and optional provider packs with activation and health status.");
+        var command = new Command("list", "List curated and installed connectors with activation and health status.");
         command.Options.Add(json);
         command.SetAction(result =>
         {
             var console = services.GetRequiredService<ICliConsole>();
-            var providers = services.GetRequiredService<IProviderPackService>().List();
+            var connectors = services.GetRequiredService<IProviderPackService>().List();
             if (result.GetValue(json))
             {
                 console.Out.WriteLine(JsonSerializer.Serialize(new
                 {
-                    command = "provider list",
-                    providers,
+                    command = "connector list",
+                    connectors,
                 }, CliJson.Options));
             }
             else
             {
-                console.Out.WriteLine("NAME\tVERSION\tSOURCE\tACTIVATION\tSTATUS");
-                foreach (var provider in providers)
-                    console.Out.WriteLine($"{provider.Name}\t{provider.Version}\t{provider.Source}\t{provider.Activation}\t{provider.Status}");
+                console.Out.WriteLine("ID\tVERSION\tSOURCE\tACTIVATION\tSTATUS\tALIASES");
+                foreach (var connector in connectors)
+                    console.Out.WriteLine($"{connector.Id}\t{connector.Version}\t{connector.Source}\t{connector.Activation}\t{connector.Status}\t{string.Join(',', connector.Aliases)}");
             }
             return CliExitCodes.Success;
         });
         return command;
     }
 
-    private static Command CreateAdd(IServiceProvider services, CancellationToken cancellationToken)
+    private static Command CreateInstall(IServiceProvider services, CancellationToken cancellationToken)
     {
-        var provider = new Argument<string>("provider") { Description = "Provider name from the curated catalog (for example duckdb)." };
+        var connector = new Argument<string>("connector") { Description = "Canonical connector ID or alias (for example postgresql)." };
         var json = new Option<bool>("--json") { Description = "Write a stable JSON document." };
-        var command = new Command("add", "Download, verify, install, and activate a curated provider pack for this user.");
-        command.Arguments.Add(provider);
+        var command = new Command("install", "Download, verify, install, and activate a curated connector pack for this user.");
+        command.Arguments.Add(connector);
         command.Options.Add(json);
         command.SetAction(result => ExecuteSafelyAsync(services, async () =>
         {
+            var requested = result.GetValue(connector)!;
             var installed = await services.GetRequiredService<IProviderPackService>()
-                .AddAsync(result.GetValue(provider)!, cancellationToken)
+                .InstallAsync(requested, cancellationToken)
                 .ConfigureAwait(false);
             var console = services.GetRequiredService<ICliConsole>();
             if (result.GetValue(json))
             {
                 console.Out.WriteLine(JsonSerializer.Serialize(new
                 {
-                    command = "provider add",
+                    command = "connector install",
                     success = true,
-                    provider = installed,
+                    requestedConnector = requested,
+                    connector = installed,
                     activationAppliesTo = "new-processes",
                 }, CliJson.Options));
             }
             else
             {
-                console.Out.WriteLine($"Provider pack '{installed.Name}' {installed.Version} is active for new processes and newly created provider catalogs.");
+                if (!requested.Equals(installed.Id, StringComparison.OrdinalIgnoreCase))
+                    console.Out.WriteLine($"Resolved '{requested}' to connector '{installed.Id}'.");
+                console.Out.WriteLine($"Connector '{installed.Id}' {installed.Version} is active for new processes and newly created provider catalogs.");
             }
             return CliExitCodes.Success;
         }));
         return command;
     }
 
-    private static Command CreateRemove(IServiceProvider services)
+    private static Command CreateUninstall(IServiceProvider services)
     {
-        var provider = new Argument<string>("provider") { Description = "Installed optional provider name." };
+        var connector = new Argument<string>("connector") { Description = "Installed connector ID or catalog alias." };
         var json = new Option<bool>("--json") { Description = "Write a stable JSON document." };
-        var command = new Command("remove", "Atomically deactivate and remove an optional user-scoped provider pack.");
-        command.Arguments.Add(provider);
+        var command = new Command("uninstall", "Atomically deactivate and remove a user-scoped connector pack.");
+        command.Arguments.Add(connector);
         command.Options.Add(json);
         command.SetAction(result => ExecuteSafelyAsync(services, () =>
         {
-            var name = result.GetValue(provider)!;
-            services.GetRequiredService<IProviderPackService>().Remove(name);
+            var requested = result.GetValue(connector)!;
+            var id = services.GetRequiredService<IProviderPackService>().Uninstall(requested);
             var console = services.GetRequiredService<ICliConsole>();
             if (result.GetValue(json))
             {
                 console.Out.WriteLine(JsonSerializer.Serialize(new
                 {
-                    command = "provider remove",
+                    command = "connector uninstall",
                     success = true,
-                    provider = name,
+                    requestedConnector = requested,
+                    connectorId = id,
                     activationAppliesTo = "new-processes",
                 }, CliJson.Options));
             }
             else
             {
-                console.Out.WriteLine($"Optional provider pack '{name}' was removed. Running processes are unchanged.");
+                console.Out.WriteLine($"Connector '{id}' was uninstalled. Running processes are unchanged.");
             }
             return Task.FromResult(CliExitCodes.Success);
         }));
