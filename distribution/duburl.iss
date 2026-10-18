@@ -52,8 +52,8 @@ ChangesEnvironment=yes
 Name: "addtopath"; Description: "Add DubUrl to the system PATH"; Flags: checkedonce
 
 [Files]
-Source: "{#PublishDirectory}\DubUrl.Cli.exe"; DestDir: "{app}"; DestName: "duburl.exe"; Flags: ignoreversion
-Source: "{#PublishDirectory}\*"; DestDir: "{app}"; Excludes: "DubUrl.Cli.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#PublishDirectory}\duburl.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PublishDirectory}\*"; DestDir: "{app}"; Excludes: "duburl.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\DubUrl Command Prompt"; Filename: "{cmd}"; Parameters: "/K cd /d ""{app}"""

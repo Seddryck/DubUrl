@@ -68,6 +68,22 @@ function Get-ExecutableName([string] $Runtime, [string] $Name) {
     if ($Runtime.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { "$Name.exe" } else { $Name }
 }
 
+function Set-CommandExecutableName([string] $Directory, [string] $Runtime) {
+    $publishedExecutable = Join-Path $Directory (Get-ExecutableName $Runtime $BuildIdentity)
+    $commandExecutable = Join-Path $Directory (Get-ExecutableName $Runtime $CommandName)
+    Assert-File $publishedExecutable 'Published executable'
+    Move-Item -LiteralPath $publishedExecutable -Destination $commandExecutable -Force
+    Assert-File $commandExecutable 'Command executable'
+
+    # Framework-dependent outputs keep their managed identity and host manifests.
+    # Single-file outputs have no managed DLL sidecar, so only the bundled host is renamed.
+    if (Test-Path -LiteralPath (Join-Path $Directory "$BuildIdentity.dll") -PathType Leaf) {
+        foreach ($extension in @('dll', 'deps.json', 'runtimeconfig.json', 'pdb')) {
+            Assert-File (Join-Path $Directory "$BuildIdentity.$extension") "Managed $extension sidecar"
+        }
+    }
+}
+
 function Invoke-Publish {
     Invoke-Checked dotnet @('restore', $Project, '--locked-mode')
     foreach ($framework in $Frameworks) {
@@ -79,7 +95,7 @@ function Invoke-Publish {
                 '--runtime', $runtime, '--output', $output, '--no-self-contained', '--no-restore',
                 "-p:Version=$Version"
             )
-            Assert-File (Join-Path $output (Get-ExecutableName $runtime $BuildIdentity)) 'Published executable'
+            Set-CommandExecutableName $output $runtime
         }
     }
 }
@@ -94,24 +110,22 @@ function Invoke-Archive {
             $stage = Join-Path $StagingRoot "$framework-$runtime"
             New-CleanDirectory $stage
             Copy-Item -Path (Join-Path $publish '*') -Destination $stage -Recurse -Force
-            $sourceExecutable = Join-Path $stage (Get-ExecutableName $runtime $BuildIdentity)
             $commandExecutable = Join-Path $stage (Get-ExecutableName $runtime $CommandName)
-            Assert-File $sourceExecutable 'Published executable'
-            Move-Item -LiteralPath $sourceExecutable -Destination $commandExecutable -Force
-            if ($runtime.StartsWith('linux-') -and -not $IsWindows) {
+            Assert-File $commandExecutable 'Command executable'
+            if (-not $runtime.StartsWith('win-') -and -not $IsWindows) {
                 Invoke-Checked chmod @('+x', $commandExecutable)
             }
 
             $baseName = "duburl-$Version-$framework-$runtime".ToLowerInvariant()
-            if ($runtime.StartsWith('linux-')) {
-                $archive = Join-Path $ArchiveRoot "$baseName.tar.gz"
-                Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
-                Invoke-Checked tar @('-czf', $archive, '-C', $stage, '.')
-            }
-            else {
+            if ($runtime.StartsWith('win-')) {
                 $archive = Join-Path $ArchiveRoot "$baseName.zip"
                 Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
                 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -CompressionLevel Optimal
+            }
+            else {
+                $archive = Join-Path $ArchiveRoot "$baseName.tar.gz"
+                Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+                Invoke-Checked tar @('-czf', $archive, '-C', $stage, '.')
             }
             Assert-File $archive 'Distribution archive'
         }
@@ -132,7 +146,7 @@ function Invoke-Bundle {
     $framework = $Frameworks[-1]
     foreach ($runtime in $Runtimes | Where-Object { $_ -like 'win-*' }) {
         $publish = Get-PublishDirectory $framework $runtime
-        Assert-File (Join-Path $publish "$BuildIdentity.exe") 'Published Windows executable'
+        Assert-File (Join-Path $publish "$CommandName.exe") 'Published Windows executable'
         $name = "duburl-$Version-$framework-$runtime-setup".ToLowerInvariant()
         Invoke-Checked $InnoSetupCompiler @(
             "/DAppVersion=$Version", "/DTargetFramework=$framework", "/DRuntimeIdentifier=$runtime",
@@ -161,7 +175,7 @@ function Invoke-Pack {
             $destination = Get-PublishDirectory $framework $runtime
             New-CleanDirectory $destination
             Copy-Item -Path (Join-Path $source '*') -Destination $destination -Recurse -Force
-            Assert-File (Join-Path $destination (Get-ExecutableName $runtime $BuildIdentity)) 'Packed CLI executable'
+            Set-CommandExecutableName $destination $runtime
         }
     }
     & (Join-Path $RepositoryRoot '.github/scripts/Test-CliToolPackages.ps1') `
