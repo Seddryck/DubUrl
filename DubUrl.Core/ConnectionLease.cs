@@ -6,7 +6,8 @@ namespace DubUrl;
 /// <summary>Exclusive borrowed use of a connection. Dispose commands and readers before releasing the lease.</summary>
 public sealed class ConnectionLease : IDisposable, IAsyncDisposable
 {
-    private Func<bool, ValueTask>? _release;
+    private readonly Func<bool, ValueTask> _release;
+    private readonly DisposalCompletion _disposal = new();
     internal IDbConnection Handle { get; }
 
     /// <summary>The borrowed connection. Do not close or dispose it, or use it after releasing this lease.</summary>
@@ -20,5 +21,5 @@ public sealed class ConnectionLease : IDisposable, IAsyncDisposable
     public ValueTask DisposeAsync() => Release(true);
 
     private ValueTask Release(bool asynchronous)
-        => Interlocked.Exchange(ref _release, null)?.Invoke(asynchronous) ?? default;
+        => _disposal.Run(() => _release(asynchronous));
 }

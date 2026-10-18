@@ -13,7 +13,7 @@ public sealed class OwnedDataReader : DbDataReader
     private readonly IDataReader _reader;
     private readonly IDbCommand _command;
     private readonly IDisposable _owner;
-    private int _disposed;
+    private readonly DisposalCompletion _disposal = new();
 
     internal OwnedDataReader(IDataReader reader, IDbCommand command, IDisposable owner)
         => (_reader, _command, _owner) = (reader, command, owner);
@@ -67,53 +67,27 @@ public sealed class OwnedDataReader : DbDataReader
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing && Interlocked.Exchange(ref _disposed, 1) == 0)
-        {
-            try
-            {
-                _reader.Dispose();
-            }
-            finally
-            {
-                try
-                {
-                    _command.Dispose();
-                }
-                finally
-                {
-                    _owner.Dispose();
-                }
-            }
-        }
+        if (disposing)
+            _disposal.Run(() => DisposeOwnedAsync(false)).GetAwaiter().GetResult();
     }
 
-    public override async ValueTask DisposeAsync()
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
+    public override ValueTask DisposeAsync() => _disposal.Run(() => DisposeOwnedAsync(true));
 
+    private async ValueTask DisposeOwnedAsync(bool asynchronous)
+    {
         try
         {
-            if (_reader is IAsyncDisposable asyncReader)
-                await asyncReader.DisposeAsync().ConfigureAwait(false);
-            else
-                _reader.Dispose();
+            await ConnectionSource.DisposeConnectionAsync(_reader, asynchronous).ConfigureAwait(false);
         }
         finally
         {
             try
             {
-                if (_command is DbCommand dbCommand)
-                    await dbCommand.DisposeAsync().ConfigureAwait(false);
-                else
-                    _command.Dispose();
+                await ConnectionSource.DisposeConnectionAsync(_command, asynchronous).ConfigureAwait(false);
             }
             finally
             {
-                if (_owner is IAsyncDisposable asyncOwner)
-                    await asyncOwner.DisposeAsync().ConfigureAwait(false);
-                else
-                    _owner.Dispose();
+                await ConnectionSource.DisposeConnectionAsync(_owner, asynchronous).ConfigureAwait(false);
             }
         }
     }

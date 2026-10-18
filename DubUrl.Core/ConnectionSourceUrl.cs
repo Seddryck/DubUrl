@@ -16,13 +16,20 @@ public sealed class ConnectionSourceUrl : BaseConnectionUrl
             new ConnectionReuseContext(Result.ProviderFactory, Result.ConnectionString));
         // Bind both the connection and query metadata to this exact resolution.
         var context = new ConnectionUrl(Url, new ResolvedRegistry(Result, Registry));
-        DbDataSource? dataSource;
-        try
+        DbDataSource? dataSource = null;
+        var factory = Result.ProviderFactory;
+        // The inherited implementation is only a framework shim. Use our guarded factory
+        // path instead, so failure to set ConnectionString cannot lose the new connection.
+        var dataSourceMethod = factory.GetType().GetMethod(nameof(DbProviderFactory.CreateDataSource), [typeof(string)]);
+        if (dataSourceMethod is not null && dataSourceMethod.DeclaringType != typeof(DbProviderFactory))
         {
-            dataSource = Result.ProviderFactory.CreateDataSource(Result.ConnectionString);
+            try
+            {
+                dataSource = factory.CreateDataSource(Result.ConnectionString);
+            }
+            catch (NotSupportedException) { }
+            catch (NotImplementedException) { }
         }
-        catch (NotSupportedException) { dataSource = null; }
-        catch (NotImplementedException) { dataSource = null; }
         return new ConnectionSource(context, mode, dataSource, reason);
     }
 
