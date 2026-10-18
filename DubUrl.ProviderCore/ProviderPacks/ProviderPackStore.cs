@@ -157,41 +157,19 @@ public sealed class ProviderPackStore
 
     private InstalledProviderPack InspectPath(string installPath, string? activeVersion)
     {
-        ProviderPackManifest manifest;
-        try
-        {
-            var manifestPath = Path.Combine(installPath, ProviderPackManifest.FileName);
-            if (!File.Exists(manifestPath))
-                return InvalidPack(installPath, ProviderPackStatus.Incomplete, "manifest-missing", "The installed pack manifest is missing.");
-            manifest = JsonSerializer.Deserialize<ProviderPackManifest>(File.ReadAllText(manifestPath), JsonOptions)
-                ?? throw new JsonException("Empty manifest.");
-            if (!IsManifestStructurallyValid(manifest))
-                return InvalidPack(installPath, ProviderPackStatus.Corrupt, "manifest-invalid", "The installed pack manifest is incomplete.");
-        }
-        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
-        {
-            return InvalidPack(installPath, ProviderPackStatus.Corrupt, "manifest-invalid", exception.Message);
-        }
+        var invalidManifest = TryReadManifest(installPath, out var manifest);
+        if (invalidManifest is not null)
+            return invalidManifest;
 
-        var compatibility = GetCompatibilityDiagnostic(manifest);
+        var compatibility = GetCompatibilityDiagnostic(manifest!);
         if (compatibility is not null)
-            return new(manifest, installPath, ProviderPackStatus.Incompatible, [compatibility]);
+            return new(manifest!, installPath, ProviderPackStatus.Incompatible, [compatibility]);
 
-        foreach (var asset in manifest.Assets)
+        foreach (var asset in manifest!.Assets)
         {
-            try
-            {
-                var path = Path.GetFullPath(Path.Combine(installPath, ValidateRelativePath(asset.Path)));
-                EnsureWithin(installPath, path);
-                if (!File.Exists(path))
-                    return new(manifest, installPath, ProviderPackStatus.Incomplete, [new("asset-missing", $"Required asset '{asset.Path}' is missing.")]);
-                if (!FixedEquals(ComputeHash(path), asset.Sha256))
-                    return new(manifest, installPath, ProviderPackStatus.Corrupt, [new("asset-integrity", $"Asset '{asset.Path}' failed integrity verification.")]);
-            }
-            catch (ProviderPackException exception)
-            {
-                return new(manifest, installPath, ProviderPackStatus.Corrupt, [new(exception.Code, exception.Message)]);
-            }
+            var invalidAsset = InspectAsset(manifest, installPath, asset);
+            if (invalidAsset is not null)
+                return invalidAsset;
         }
 
         var status = string.Equals(manifest.Version, activeVersion, StringComparison.OrdinalIgnoreCase)
@@ -200,17 +178,72 @@ public sealed class ProviderPackStore
         return new(manifest, installPath, status, []);
     }
 
+    private static InstalledProviderPack? TryReadManifest(
+        string installPath,
+        out ProviderPackManifest? manifest)
+    {
+        manifest = null;
+        try
+        {
+            var manifestPath = Path.Combine(installPath, ProviderPackManifest.FileName);
+            if (!File.Exists(manifestPath))
+                return InvalidPack(installPath, ProviderPackStatus.Incomplete, "manifest-missing", "The installed pack manifest is missing.");
+            manifest = JsonSerializer.Deserialize<ProviderPackManifest>(File.ReadAllText(manifestPath), JsonOptions)
+                ?? throw new JsonException("Empty manifest.");
+            return IsManifestStructurallyValid(manifest)
+                ? null
+                : InvalidPack(installPath, ProviderPackStatus.Corrupt, "manifest-invalid", "The installed pack manifest is incomplete.");
+        }
+        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return InvalidPack(installPath, ProviderPackStatus.Corrupt, "manifest-invalid", exception.Message);
+        }
+    }
+
+    private static InstalledProviderPack? InspectAsset(
+        ProviderPackManifest manifest,
+        string installPath,
+        ProviderPackAsset asset)
+    {
+        try
+        {
+            var path = Path.GetFullPath(Path.Combine(installPath, ValidateRelativePath(asset.Path)));
+            EnsureWithin(installPath, path);
+            if (!File.Exists(path))
+                return new(manifest, installPath, ProviderPackStatus.Incomplete, [new("asset-missing", $"Required asset '{asset.Path}' is missing.")]);
+            return FixedEquals(ComputeHash(path), asset.Sha256)
+                ? null
+                : new(manifest, installPath, ProviderPackStatus.Corrupt, [new("asset-integrity", $"Asset '{asset.Path}' failed integrity verification.")]);
+        }
+        catch (ProviderPackException exception)
+        {
+            return new(manifest, installPath, ProviderPackStatus.Corrupt, [new(exception.Code, exception.Message)]);
+        }
+    }
+
     private void ValidateManifest(ProviderPackManifest manifest, ProviderPackCatalogEntry entry)
     {
         if (!IsManifestStructurallyValid(manifest))
             throw new ProviderPackException("manifest-invalid", "The provider pack manifest is incomplete.");
+        ValidateManifestIdentity(manifest, entry);
+        ValidateModuleAsset(manifest);
+
+        var compatibility = GetCompatibilityDiagnostic(manifest);
+        if (compatibility is not null)
+            throw new ProviderPackException(compatibility.Code, compatibility.Message);
+    }
+
+    private static void ValidateManifestIdentity(ProviderPackManifest manifest, ProviderPackCatalogEntry entry)
+    {
         ValidateIdentifier(manifest.Provider, nameof(manifest.Provider));
         ValidateIdentifier(manifest.Version, nameof(manifest.Version));
         if (!string.Equals(manifest.Provider, entry.Provider, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(manifest.Version, entry.Version, StringComparison.OrdinalIgnoreCase))
             throw new ProviderPackException("catalog-mismatch", "The provider pack identity does not match the curated catalog entry.");
-        if (manifest.Module is null || string.IsNullOrWhiteSpace(manifest.Module.Assembly) || string.IsNullOrWhiteSpace(manifest.Module.Type))
-            throw new ProviderPackException("module-invalid", "The provider module entry point is incomplete.");
+    }
+
+    private static void ValidateModuleAsset(ProviderPackManifest manifest)
+    {
         if (manifest.Assets is null || manifest.Assets.Count == 0)
             throw new ProviderPackException("assets-empty", "The provider pack does not declare any assets.");
         var modulePath = ValidateRelativePath(manifest.Module.Assembly);
@@ -218,10 +251,6 @@ public sealed class ProviderPackStore
                 asset.Kind == ProviderPackAssetKind.Managed
                 && string.Equals(ValidateRelativePath(asset.Path), modulePath, StringComparison.OrdinalIgnoreCase)))
             throw new ProviderPackException("module-missing", "The module assembly must be declared as a managed asset.");
-
-        var compatibility = GetCompatibilityDiagnostic(manifest);
-        if (compatibility is not null)
-            throw new ProviderPackException(compatibility.Code, compatibility.Message);
     }
 
     private ProviderPackDiagnostic? GetCompatibilityDiagnostic(ProviderPackManifest manifest)
@@ -281,14 +310,22 @@ public sealed class ProviderPackStore
             [new(code, message)]);
 
     private static bool IsManifestStructurallyValid(ProviderPackManifest manifest)
+        => HasManifestIdentity(manifest)
+            && HasModuleEntry(manifest)
+            && HasManifestCollections(manifest);
+
+    private static bool HasManifestIdentity(ProviderPackManifest manifest)
         => !string.IsNullOrWhiteSpace(manifest.Provider)
             && !string.IsNullOrWhiteSpace(manifest.Version)
-            && !string.IsNullOrWhiteSpace(manifest.DubUrlApiRange)
-            && manifest.Module is not null
+            && !string.IsNullOrWhiteSpace(manifest.DubUrlApiRange);
+
+    private static bool HasModuleEntry(ProviderPackManifest manifest)
+        => manifest.Module is not null
             && !string.IsNullOrWhiteSpace(manifest.Module.Assembly)
-            && !string.IsNullOrWhiteSpace(manifest.Module.Type)
-            && manifest.Schemes is not null
-            && manifest.Schemes.Count > 0
+            && !string.IsNullOrWhiteSpace(manifest.Module.Type);
+
+    private static bool HasManifestCollections(ProviderPackManifest manifest)
+        => manifest.Schemes is { Count: > 0 }
             && manifest.TargetFrameworks is not null
             && manifest.RuntimeIdentifiers is not null
             && manifest.Assets is not null;
@@ -369,18 +406,17 @@ internal static class VersionRange
         var limits = range[1..^1].Split(',', 2);
         if (limits.Length != 2)
             return false;
-        if (Version.TryParse(limits[0].Trim(), out var minimum))
-        {
-            var comparison = version.CompareTo(minimum);
-            if (comparison < 0 || (comparison == 0 && range[0] == '('))
-                return false;
-        }
-        if (Version.TryParse(limits[1].Trim(), out var maximum))
-        {
-            var comparison = version.CompareTo(maximum);
-            if (comparison > 0 || (comparison == 0 && range[^1] == ')'))
-                return false;
-        }
-        return true;
+        return MeetsMinimum(limits[0], range[0], version)
+            && MeetsMaximum(limits[1], range[^1], version);
     }
+
+    private static bool MeetsMinimum(string value, char boundary, Version version)
+        => !Version.TryParse(value.Trim(), out var minimum)
+            || version.CompareTo(minimum) > 0
+            || (version == minimum && boundary == '[');
+
+    private static bool MeetsMaximum(string value, char boundary, Version version)
+        => !Version.TryParse(value.Trim(), out var maximum)
+            || version.CompareTo(maximum) < 0
+            || (version == maximum && boundary == ']');
 }
