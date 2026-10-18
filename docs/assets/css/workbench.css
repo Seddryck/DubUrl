@@ -62,14 +62,15 @@
 .workbench .highlight .c, .workbench .highlight .c1, .workbench .highlight .cm { color: #a5b7c4; }
 .workbench .highlight .mi { color: var(--gold); }
 .workbench-editor-caption { text-align: center; padding: 14px 12px 2px; font-size: .95rem; }
-.workbench-connectors { display: flex; justify-content: center; height: 42px; }
+.workbench-connectors { position: relative; display: flex; justify-content: center; height: 42px; }
+.workbench-connectors::before { content: ""; position: absolute; top: 0; left: 50%; height: 21px; border-left: 1px solid var(--gold); }
 .workbench-connectors span { width: 25%; border-top: 1px solid var(--gold); margin-top: 20px; }
 .workbench-connectors span:first-child { border-left: 1px solid var(--gold); border-top-left-radius: 16px; }
 .workbench-connectors span:last-child { border-right: 1px solid var(--gold); border-top-right-radius: 16px; }
 .workbench-sql-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .workbench-sql .workbench-editor-bar { padding-inline: 2px; gap: 4px; font-size: .75rem; }
 .workbench-sql .workbench-editor-bar > span { gap: 8px; overflow-wrap: anywhere; }
-.workbench-file-icon { display: block; width: 24px; height: 24px; padding: 2px; border-radius: 4px; background: #f5f5f5; object-fit: contain; flex-shrink: 0; }
+.workbench-file-icon { display: block; width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
 .workbench-sql pre { padding: 17px 18px; font-size: .85rem; }
 .workbench-example-note { margin: 18px 0 14px !important; color: var(--muted); font-size: .9rem; text-align: center; }
 .workbench-result { display: flex; align-items: center; justify-content: center; gap: 18px; width: fit-content; margin-inline: auto !important; border: 1px solid var(--border); border-radius: 8px; padding: 8px 22px; background: #26313a; font-size: .9rem; }
@@ -87,7 +88,7 @@
 .workbench-database-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 22px; }
 .workbench-database-row ul { display: flex; flex-wrap: wrap; gap: 24px; margin: 0; padding: 0; list-style: none; }
 .workbench-database-row li { display: flex; align-items: center; gap: 9px; font-weight: 550; font-size: .9rem; }
-.workbench-database-row li img { display: block; width: 32px; height: 32px; padding: 3px; border-radius: 6px; background: #f5f5f5; object-fit: contain; flex-shrink: 0; }
+.workbench-database-row li img { display: block; width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
 .workbench-database-row > a { padding-left: 24px; border-left: 1px solid var(--border); font-size: .8rem; white-space: nowrap; }
 .workbench-capabilities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 36px 0; }
 .workbench-capabilities article { display: flex; align-items: flex-start; gap: 14px; padding: 0 22px; border-left: 1px solid var(--border); }
@@ -136,7 +137,7 @@
   .workbench-editor-bar { padding-inline: 4px; font-size: .75rem; }
   .workbench-sql-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .workbench-connectors { height: 24px; }
-  .workbench-connectors span { display: none; }
+  .workbench-connectors span, .workbench-connectors::before { display: none; }
   .workbench-editor-caption { font-size: .85rem; }
   .workbench-example-note { font-size: .8rem; }
   .workbench-install { margin-bottom: 32px; padding: 14px; gap: 8px; }
