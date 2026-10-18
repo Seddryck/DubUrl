@@ -65,21 +65,21 @@ $stage = Join-Path $StagingRoot "$Framework-$Runtime"
 New-CleanDirectory $stage
 Copy-Item -Path (Join-Path $publish '*') -Destination $stage -Recurse -Force
 Move-Item -LiteralPath (Join-Path $stage $sourceName) -Destination (Join-Path $stage $commandName) -Force
-if ($Runtime.StartsWith('linux-') -and -not $IsWindows) {
+if (-not $Runtime.StartsWith('win-') -and -not $IsWindows) {
     Invoke-Checked chmod @('+x', (Join-Path $stage $commandName))
 }
 
 New-Item -ItemType Directory -Path $ArchiveRoot -Force | Out-Null
 $baseName = "duburl-worker-$Version-$Framework-$Runtime".ToLowerInvariant()
-if ($Runtime.StartsWith('linux-')) {
-    $archive = Join-Path $ArchiveRoot "$baseName.tar.gz"
-    Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
-    Invoke-Checked tar @('-czf', $archive, '-C', $stage, '.')
-}
-else {
+if ($Runtime.StartsWith('win-')) {
     $archive = Join-Path $ArchiveRoot "$baseName.zip"
     Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -CompressionLevel Optimal
+}
+else {
+    $archive = Join-Path $ArchiveRoot "$baseName.tar.gz"
+    Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+    Invoke-Checked tar @('-czf', $archive, '-C', $stage, '.')
 }
 Assert-File $archive 'Worker distribution archive'
 

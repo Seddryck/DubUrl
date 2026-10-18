@@ -547,7 +547,7 @@ jobs:
           -PackageId DubUrl.Worker
           -CommandName duburl-worker
           -BuildIdentity DubUrl.Worker
-          -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64'
+          -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64;osx-x64;osx-arm64'
 
       - name: Install and execute worker tool
         shell: pwsh
@@ -582,6 +582,8 @@ jobs:
           - { runtime: win-arm64, runner: windows-latest, native: false }
           - { runtime: linux-x64, runner: ubuntu-latest, native: true }
           - { runtime: linux-musl-x64, runner: ubuntu-latest, native: false }
+          - { runtime: osx-x64, runner: macos-15-intel, native: true }
+          - { runtime: osx-arm64, runner: macos-latest, native: true }
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -617,9 +619,13 @@ jobs:
           }
           else {
             tar -xzf $archive -C .artifacts/worker-extracted
-            $mode = & stat -c '%a' .artifacts/worker-extracted/duburl-worker
-            if ([int]$mode -band 111 -eq 0) { throw "Linux executable mode '$mode' is not executable." }
-            & .artifacts/worker-extracted/duburl-worker --version
+            $executable = (Resolve-Path -LiteralPath .artifacts/worker-extracted/duburl-worker).Path
+            $mode = [IO.File]::GetUnixFileMode($executable)
+            $executeBits = [IO.UnixFileMode]::UserExecute `
+              -bor [IO.UnixFileMode]::GroupExecute `
+              -bor [IO.UnixFileMode]::OtherExecute
+            if (($mode -band $executeBits) -eq 0) { throw "Unix executable mode '$mode' is not executable." }
+            & $executable --version
           }
           if ($LASTEXITCODE -ne 0) { throw 'Executing the extracted worker archive failed.' }
 
@@ -1035,13 +1041,13 @@ jobs:
         shell: pwsh
         run: |
           $packages = @(Get-ChildItem .artifacts/worker -Filter *.nupkg -File)
-          if ($packages.Count -ne 5) { throw "Expected five worker packages, found $($packages.Count)." }
+          if ($packages.Count -ne 7) { throw "Expected seven worker packages, found $($packages.Count)." }
           ./.github/scripts/Test-CliToolPackages.ps1 `
             -PackageDirectory .artifacts/worker `
             -PackageId DubUrl.Worker `
             -CommandName duburl-worker `
             -BuildIdentity DubUrl.Worker `
-            -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64'
+            -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64;osx-x64;osx-arm64'
           dotnet tool install --tool-path .artifacts/worker-tool DubUrl.Worker `
             --version '${{ needs.version.outputs.semver }}' `
             --add-source .artifacts/worker `
@@ -1104,7 +1110,7 @@ jobs:
           $workerArchives = @(Get-ChildItem .artifacts/release/worker -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
           if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
-          if ($workerArchives.Count -ne 4) { throw "Expected four worker archives, found $($workerArchives.Count)." }
+          if ($workerArchives.Count -ne 6) { throw "Expected six worker archives, found $($workerArchives.Count)." }
           $mixedCase = @($archives + $installers + $workerArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
           if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
 
