@@ -6,7 +6,7 @@ namespace DubUrl.Querying;
 internal sealed class OwnedDbCommand : IDbCommand
 {
     private readonly IDbCommand _command;
-    private readonly IDbConnection _connection;
+    private IDbConnection _connection;
     private int _ownershipTransferred;
     private int _disposed;
 
@@ -24,6 +24,7 @@ internal sealed class OwnedDbCommand : IDbCommand
         {
             if (!ReferenceEquals(value, _connection))
                 throw new InvalidOperationException("The connection owned by this command cannot be replaced.");
+            _connection = value ?? throw new InvalidOperationException("The owned connection cannot be null.");
         }
     }
     public IDataParameterCollection Parameters => _command.Parameters;
