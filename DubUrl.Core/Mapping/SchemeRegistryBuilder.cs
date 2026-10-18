@@ -25,11 +25,11 @@ public class SchemeRegistryBuilder
     public SchemeRegistryBuilder()
     { }
 
+    [RequiresUnreferencedCode("The built-in module composes dialects from attributes. Use ProviderCatalogBuilder with a custom explicit module for Native AOT.")]
     public static SchemeRegistry GetDefault()
-        => new SchemeRegistryBuilder()
+        => new ProviderCatalogBuilder()
             .WithRootPath(string.Empty)
-            .WithAssemblies(typeof(SchemeRegistryBuilder).Assembly)
-            .WithAutoDiscoveredMappings()
+            .AddModule(new BuiltInProviderModule())
             .Build();
 
     public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)

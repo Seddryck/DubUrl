@@ -24,7 +24,10 @@ public class DuckdbOdbcMapper : BaseMapper, IOdbcMapper
         : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
 
     public DuckdbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new DuckdbOdbcRewriter(csb),
+        : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public DuckdbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new DuckdbOdbcRewriter(csb, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )

@@ -31,6 +31,24 @@ public static class DubUrlServiceExtensions
             .AddDubUrlCore();
 
     /// <summary>
+    /// Adds DubUrl using explicitly registered provider modules.
+    /// </summary>
+    public static IServiceCollection AddDubUrl(
+        this IServiceCollection services,
+        IDubUrlProviderModule module,
+        params IDubUrlProviderModule[] additionalModules)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(module);
+        ArgumentNullException.ThrowIfNull(additionalModules);
+
+        var catalog = new ProviderCatalogBuilder().AddModule(module);
+        foreach (var additionalModule in additionalModules)
+            catalog.AddModule(additionalModule);
+        return services.AddDubUrlCore(catalog.Build());
+    }
+
+    /// <summary>
     /// Adds a singleton <see cref="DubUrl" /> service implementation to the services collection
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add the services to.</param>
@@ -73,7 +91,7 @@ public static class DubUrlServiceExtensions
     /// </summary>
     /// <param name="services">The services.</param>
     /// <exception cref="ArgumentNullException">services</exception>
-    private static IServiceCollection AddDubUrlCore(this IServiceCollection services)
+    private static IServiceCollection AddDubUrlCore(this IServiceCollection services, ISchemeRegistry? schemeRegistry = null)
     {
         ArgumentNullException.ThrowIfNull(services, nameof(services));
 
@@ -91,7 +109,7 @@ public static class DubUrlServiceExtensions
                     //Let's put up some configuration options here ;-)
                 }
             });
-        services.AddSingleton<ISchemeRegistry>(SchemeRegistryBuilder.GetDefault());
+        services.AddSingleton(schemeRegistry ?? SchemeRegistryBuilder.GetDefault());
         services.AddSingleton<IDialectRegistry>(new DialectRegistryBuilder().Build());
         services.AddSingleton<ConnectionUrlFactory>();
         services.AddSingleton<IDatabaseUrlFactory, DatabaseUrlFactory>();

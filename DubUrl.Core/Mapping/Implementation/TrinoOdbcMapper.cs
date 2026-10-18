@@ -24,7 +24,10 @@ public class TrinoOdbcMapper : BaseMapper, IOdbcMapper
         : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
 
     public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new TrinoOdbcRewriter(csb),
+        : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new TrinoOdbcRewriter(csb, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )

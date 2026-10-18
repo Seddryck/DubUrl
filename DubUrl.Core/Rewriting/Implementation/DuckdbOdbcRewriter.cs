@@ -18,12 +18,14 @@ public class DuckdbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     public DuckdbOdbcRewriter(DbConnectionStringBuilder csb)
         : this(csb, new DriverLocatorFactory()) { }
     public DuckdbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
+        : this(csb, driverLocatorFactory, DefaultLocatorOptions) { }
+    public DuckdbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
         : base(csb,
               [
                 new HostMapper(),
                 new DatabaseMapper(),
                 new AuthentificationMapper(),
-                new DriverMapper(driverLocatorFactory),
+                new DriverMapper(driverLocatorFactory, locatorOptions),
                 new OptionsMapper(),
               ]
         )

@@ -17,5 +17,7 @@ public interface ISchemeRegistry
     IMapper GetMapper(string alias);
     IMapper GetMapper(SchemeKey scheme);
     DbProviderFactory GetProviderFactory(SchemeKey scheme);
+    bool TryGetCapability<TCapability>(SchemeKey scheme, out TCapability? capability)
+        where TCapability : class;
     bool CanHandle(string scheme);
 }

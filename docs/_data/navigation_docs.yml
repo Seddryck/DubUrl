@@ -36,6 +36,7 @@
 
 - title: Extending to other ADO.Net providers
   docs:
+  - provider-modules
   - Create a new ShemeMapper
   - Create a new SQL dialect
   - Create a new Odbc driver locator

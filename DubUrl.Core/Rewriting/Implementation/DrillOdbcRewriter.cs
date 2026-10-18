@@ -28,13 +28,15 @@ public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     public DrillOdbcRewriter(DbConnectionStringBuilder csb)
         : this(csb, new DriverLocatorFactory()) { }
     public DrillOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
+        : this(csb, driverLocatorFactory, DefaultLocatorOptions) { }
+    public DrillOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
         : base(csb,
               [
                 new HostMapper(),
                 new PortMapper(),
                 new SchemaMapper(),
                 new AuthentificationMapper(),
-                new DriverMapper(driverLocatorFactory),
+                new DriverMapper(driverLocatorFactory, locatorOptions),
                 new OptionsMapper(),
               ]
         )

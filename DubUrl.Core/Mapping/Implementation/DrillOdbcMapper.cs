@@ -24,7 +24,10 @@ public class DrillOdbcMapper : BaseMapper, IOdbcMapper
         : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
 
     public DrillOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new DrillOdbcRewriter(csb),
+        : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public DrillOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new DrillOdbcRewriter(csb, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )

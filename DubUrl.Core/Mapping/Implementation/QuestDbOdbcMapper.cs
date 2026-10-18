@@ -24,7 +24,10 @@ public class QuestDbOdbcMapper : BaseMapper, IOdbcMapper
         : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
 
     public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new QuestDbOdbcRewriter(csb),
+        : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new QuestDbOdbcRewriter(csb, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )
