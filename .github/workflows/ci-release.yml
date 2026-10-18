@@ -489,6 +489,28 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+      - name: Upload CLI publish outputs (osx-x64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-osx-x64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/osx-x64
+            .artifacts/cli/publish/net9.0/osx-x64
+            .artifacts/cli/publish/net10.0/osx-x64
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload CLI publish outputs (osx-arm64)
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-publish-osx-arm64-${{ needs.version.outputs.semver }}
+          path: |
+            .artifacts/cli/publish/net8.0/osx-arm64
+            .artifacts/cli/publish/net9.0/osx-arm64
+            .artifacts/cli/publish/net10.0/osx-arm64
+          retention-days: 1
+          if-no-files-found: error
+
   package-worker-nuget:
     name: Package Worker NuGet tool
     needs:
@@ -623,14 +645,20 @@ jobs:
           - { framework: net8.0, runtime: win-arm64, runner: windows-latest, installer: false, native: false }
           - { framework: net8.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
           - { framework: net8.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
+          - { framework: net8.0, runtime: osx-x64, runner: macos-15-intel, installer: false, native: true }
+          - { framework: net8.0, runtime: osx-arm64, runner: macos-latest, installer: false, native: true }
           - { framework: net9.0, runtime: win-x64, runner: windows-latest, installer: false, native: true }
           - { framework: net9.0, runtime: win-arm64, runner: windows-latest, installer: false, native: false }
           - { framework: net9.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
           - { framework: net9.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
+          - { framework: net9.0, runtime: osx-x64, runner: macos-15-intel, installer: false, native: true }
+          - { framework: net9.0, runtime: osx-arm64, runner: macos-latest, installer: false, native: true }
           - { framework: net10.0, runtime: win-x64, runner: windows-latest, installer: true, native: true }
           - { framework: net10.0, runtime: win-arm64, runner: windows-latest, installer: true, native: false }
           - { framework: net10.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
           - { framework: net10.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
+          - { framework: net10.0, runtime: osx-x64, runner: macos-15-intel, installer: false, native: true }
+          - { framework: net10.0, runtime: osx-arm64, runner: macos-latest, installer: false, native: true }
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -651,7 +679,7 @@ jobs:
         shell: pwsh
         run: >-
           ./.github/scripts/Test-WindowsExecutableIcon.ps1
-          -Executable '.artifacts/cli/publish/${{ matrix.framework }}/${{ matrix.runtime }}/DubUrl.Cli.exe'
+          -Executable '.artifacts/cli/publish/${{ matrix.framework }}/${{ matrix.runtime }}/duburl.exe'
 
       - name: Archive CLI
         id: archive
@@ -699,8 +727,8 @@ jobs:
           }
           else {
             tar -xzf $archive -C .artifacts/extracted
-            $mode = & stat -c '%a' .artifacts/extracted/duburl
-            if ([int]$mode -band 111 -eq 0) { throw "Linux executable mode '$mode' is not executable." }
+            & /usr/bin/test -x .artifacts/extracted/duburl
+            if ($LASTEXITCODE -ne 0) { throw 'Unix executable is not executable.' }
             & .artifacts/extracted/duburl --version
             & .artifacts/extracted/duburl --help
           }
@@ -963,7 +991,7 @@ jobs:
         shell: pwsh
         run: |
           $packages = @(Get-ChildItem .artifacts/cli -Filter *.nupkg -File)
-          if ($packages.Count -ne 5) { throw "Expected five CLI packages, found $($packages.Count)." }
+          if ($packages.Count -ne 7) { throw "Expected seven CLI packages, found $($packages.Count)." }
           foreach ($package in $packages) {
             dotnet nuget push $package.FullName `
               --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
@@ -1068,7 +1096,7 @@ jobs:
           $archives = @(Get-ChildItem .artifacts/release/cli -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
           $installers = @(Get-ChildItem .artifacts/release/cli -Recurse -File -Filter '*-setup.exe')
           $workerArchives = @(Get-ChildItem .artifacts/release/worker -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
-          if ($archives.Count -ne 12) { throw "Expected 12 CLI archives, found $($archives.Count)." }
+          if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
           if ($workerArchives.Count -ne 4) { throw "Expected four worker archives, found $($workerArchives.Count)." }
           $mixedCase = @($archives + $installers + $workerArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
