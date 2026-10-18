@@ -6,10 +6,10 @@ public interface IAsyncDatabaseUrl : IDatabaseUrl
 {
     Task<object?> ReadScalarAsync(string query, CancellationToken cancellationToken = default);
     Task<object?> ReadScalarAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default);
-    Task<object> ReadScalarNonNullAsync(string query, CancellationToken cancellationToken = default);
-    Task<object> ReadScalarNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default);
     Task<T?> ReadScalarAsync<T>(string query, CancellationToken cancellationToken = default);
     Task<T?> ReadScalarAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default);
+    Task<object> ReadScalarNonNullAsync(string query, CancellationToken cancellationToken = default);
+    Task<object> ReadScalarNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default);
     Task<T> ReadScalarNonNullAsync<T>(string query, CancellationToken cancellationToken = default);
     Task<T> ReadScalarNonNullAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default);
 

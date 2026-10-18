@@ -53,7 +53,6 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         _executor = new DatabaseCommandExecutor(connectionUrl, commandProvisionerFactory, logger);
     }
 
-    [Obsolete("Use the DatabaseUrl execution methods so that command and connection ownership remains explicit.")]
     protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
         => _executor.PrepareOwnedCommand(commandProvider);
 
@@ -86,50 +85,6 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
     public object? ReadScalar(ICommandProvider commandProvider)
         => _executor.ExecuteScalar(commandProvider, command => command.ExecuteScalar());
 
-    public Task<object?> ReadScalarAsync(string query, CancellationToken cancellationToken = default)
-        => ReadScalarAsync(new InlineCommand(query, QueryLogger), cancellationToken);
-
-    public Task<object?> ReadScalarAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarAsync(CreateTemplate(template), parameters, cancellationToken);
-
-    public Task<object?> ReadScalarAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarAsync(template.Render(parameters), cancellationToken);
-
-    public Task<object?> ReadScalarAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
-        => _executor.ExecuteScalarAsync(commandProvider, (command, token) => command.ExecuteScalarAsync(token), cancellationToken);
-
-    public object ReadScalarNonNull(string query)
-        => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
-
-    public object ReadScalarNonNull(string template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull(CreateTemplate(template), parameters);
-
-    public object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull(template.Render(parameters));
-
-    public object ReadScalarNonNull(ICommandProvider commandProvider)
-    {
-        var result = ReadScalar(commandProvider);
-        var typedResult = result == DBNull.Value ? null : result;
-        return typedResult ?? throw new NullReferenceException();
-    }
-
-    public async Task<object> ReadScalarNonNullAsync(string query, CancellationToken cancellationToken = default)
-        => await ReadScalarNonNullAsync(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
-
-    public Task<object> ReadScalarNonNullAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
-
-    public Task<object> ReadScalarNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarNonNullAsync(template.Render(parameters), cancellationToken);
-
-    public async Task<object> ReadScalarNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
-    {
-        var result = await ReadScalarAsync(commandProvider, cancellationToken).ConfigureAwait(false);
-        var typedResult = result == DBNull.Value ? null : result;
-        return typedResult ?? throw new NullReferenceException();
-    }
-
     public T? ReadScalar<T>(string query)
       => ReadScalar<T>(new InlineCommand(query, QueryLogger));
 
@@ -145,19 +100,20 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         return (T?)(result == DBNull.Value ? null : result);
     }
 
-    public async Task<T?> ReadScalarAsync<T>(string query, CancellationToken cancellationToken = default)
-        => await ReadScalarAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+    public object ReadScalarNonNull(string query)
+        => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
 
-    public Task<T?> ReadScalarAsync<T>(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarAsync<T>(CreateTemplate(template), parameters, cancellationToken);
+    public object ReadScalarNonNull(string template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull(CreateTemplate(template), parameters);
 
-    public Task<T?> ReadScalarAsync<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarAsync<T>(template.Render(parameters), cancellationToken);
+    public object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull(template.Render(parameters));
 
-    public async Task<T?> ReadScalarAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default)
+    public object ReadScalarNonNull(ICommandProvider commandProvider)
     {
-        var result = await ReadScalarAsync(query, cancellationToken).ConfigureAwait(false);
-        return (T?)(result == DBNull.Value ? null : result);
+        var result = ReadScalar(commandProvider);
+        var typedResult = result == DBNull.Value ? null : result;
+        return typedResult ?? throw new InvalidOperationException("The scalar query returned null.");
     }
 
     public T ReadScalarNonNull<T>(string query)
@@ -175,7 +131,50 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         if (result is T t)
             return t;
 
-        return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
+        return NormalizeReturnType<T>(result) ?? throw new InvalidOperationException("The scalar caster returned null.");
+    }
+
+    public Task<object?> ReadScalarAsync(string query, CancellationToken cancellationToken = default)
+        => ReadScalarAsync(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<object?> ReadScalarAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object?> ReadScalarAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync(template.Render(parameters), cancellationToken);
+
+    public Task<object?> ReadScalarAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => _executor.ExecuteScalarAsync(commandProvider, (command, token) => command.ExecuteScalarAsync(token), cancellationToken);
+
+    public async Task<T?> ReadScalarAsync<T>(string query, CancellationToken cancellationToken = default)
+        => await ReadScalarAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<T?> ReadScalarAsync<T>(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync<T>(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<T?> ReadScalarAsync<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync<T>(template.Render(parameters), cancellationToken);
+
+    public async Task<T?> ReadScalarAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default)
+    {
+        var result = await ReadScalarAsync(query, cancellationToken).ConfigureAwait(false);
+        return (T?)(result == DBNull.Value ? null : result);
+    }
+
+    public async Task<object> ReadScalarNonNullAsync(string query, CancellationToken cancellationToken = default)
+        => await ReadScalarNonNullAsync(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<object> ReadScalarNonNullAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object> ReadScalarNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarNonNullAsync(template.Render(parameters), cancellationToken);
+
+    public async Task<object> ReadScalarNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+    {
+        var result = await ReadScalarAsync(commandProvider, cancellationToken).ConfigureAwait(false);
+        var typedResult = result == DBNull.Value ? null : result;
+        return typedResult ?? throw new InvalidOperationException("The scalar query returned null.");
     }
 
     public async Task<T> ReadScalarNonNullAsync<T>(string query, CancellationToken cancellationToken = default)
@@ -193,7 +192,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         if (result is T typed)
             return typed;
 
-        return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
+        return NormalizeReturnType<T>(result) ?? throw new InvalidOperationException("The scalar caster returned null.");
     }
 
     #endregion

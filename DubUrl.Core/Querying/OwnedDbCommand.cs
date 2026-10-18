@@ -17,7 +17,15 @@ internal sealed class OwnedDbCommand : IDbCommand
     public string CommandText { get => _command.CommandText; set => _command.CommandText = value; }
     public int CommandTimeout { get => _command.CommandTimeout; set => _command.CommandTimeout = value; }
     public CommandType CommandType { get => _command.CommandType; set => _command.CommandType = value; }
-    public IDbConnection? Connection { get => _command.Connection; set => _command.Connection = value; }
+    public IDbConnection? Connection
+    {
+        get => _connection;
+        set
+        {
+            if (!ReferenceEquals(value, _connection))
+                throw new InvalidOperationException("The connection owned by this command cannot be replaced.");
+        }
+    }
     public IDataParameterCollection Parameters => _command.Parameters;
     public IDbTransaction? Transaction { get => _command.Transaction; set => _command.Transaction = value; }
     public UpdateRowSource UpdatedRowSource { get => _command.UpdatedRowSource; set => _command.UpdatedRowSource = value; }
