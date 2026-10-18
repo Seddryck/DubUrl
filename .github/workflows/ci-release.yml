@@ -22,6 +22,18 @@ env:
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
 
 jobs:
+  documentation-examples:
+    name: Documentation examples
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+      - name: Compile and run documentation examples
+        shell: pwsh
+        run: ./build/verify-doc-examples.ps1
+
   version:
     name: Calculate version
     runs-on: ubuntu-latest
