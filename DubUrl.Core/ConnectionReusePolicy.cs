@@ -27,7 +27,7 @@ public sealed class ConnectionReuseContext
             builder.ConnectionString = _connectionString;
             return builder;
         }
-        catch (ArgumentException)
+        catch (Exception exception) when (exception is ArgumentException or FormatException or InvalidCastException or OverflowException)
         {
             // Provider errors may interpolate credential-bearing keys or values.
             throw new ArgumentException("The provider connection configuration is invalid.");
