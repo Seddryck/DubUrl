@@ -38,7 +38,7 @@ DubUrl provides a standard, URL style mechanism for parsing database connection 
 <!-- START BADGES -->
 [![Mappers for ADO.Net Provider implemented badge](https://img.shields.io/badge/Mappers%20for%20ADO.Net%20Provider-17%20implemented-green)](https://seddryck.github.io/DubUrl/docs/native-ado-net-providers)
 [![Mappers for ODBC drivers implemented badge](https://img.shields.io/badge/Mappers%20for%20ODBC%20drivers-12%20implemented-green)](https://seddryck.github.io/DubUrl/docs/odbc-driver-locators)
-[![Mappers for OLE DB providers implemented badge](https://img.shields.io/badge/Mappers%20for%20OLE%20DB%20providers-7%20implemented-green)](https://seddryck.github.io/DubUrl/docs/oledb-provider-locators)
+[![Mappers for OLE DB providers implemented badge](https://img.shields.io/badge/Mappers%20for%20OLE%20DB%20providers-8%20implemented-green)](https://seddryck.github.io/DubUrl/docs/oledb-provider-locators)
 [![Mappers for ADOMD.NET providers implemented badge](https://img.shields.io/badge/Mappers%20for%20ADOMD.NET%20providers-5%20implemented-green)](https://seddryck.github.io/DubUrl/docs/adomd-providers)
 <!-- END BADGES -->
 
@@ -121,23 +121,23 @@ The following databases and their associated schemes are supported out of the bo
 <!-- START ADONET TABLE -->
 |Database                                                                                                                                         | Aliases                                     | Provider Invariant Name        |
 |------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | -------------------------------|
-|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver           | Microsoft.Data.SqlClient       |
 |![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                                   | MySqlConnector                 |
+|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver           | Microsoft.Data.SqlClient       |
 |![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=ffffff&style=flat-square)                                 | pg, pgx, pgsql, postgres, postgresql        | Npgsql                         |
-|![Oracle Database](https://img.shields.io/badge/Oracle%20Database-F80000?logo=oracle&logoColor=ffffff&style=flat-square)                         | oracle, or, ora                             | Oracle.ManagedDataAccess       |
 |![IBM DB2](https://img.shields.io/badge/IBM%20DB2-052FAD?logo=ibm&logoColor=ffffff&style=flat-square)                                            | db2                                         | IBM.Data.Db2                   |
 |![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=ffffff&style=flat-square)                                          | maria, mariadb                              | MySqlConnector                 |
+|![Oracle Database](https://img.shields.io/badge/Oracle%20Database-F80000?logo=oracle&logoColor=ffffff&style=flat-square)                         | oracle, or, ora                             | Oracle.ManagedDataAccess       |
 |![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=000000&style=flat-square)                                             | duck, duckdb                                | DuckDB.NET.Data                |
 |![Firebird SQL](https://img.shields.io/badge/Firebird%20SQL-333333?logo=&logoColor=ffffff&style=flat-square)                                     | fb, firebird                                | FirebirdSql.Data.FirebirdClient|
 |![SQLite3](https://img.shields.io/badge/SQLite3-003B57?logo=sqlite&logoColor=ffffff&style=flat-square)                                           | sq, sqlite                                  | Microsoft.Data.Sqlite          |
-|![Teradata](https://img.shields.io/badge/Teradata-F37440?logo=Teradata&logoColor=ffffff&style=flat-square)                                       | td, teradata, tera, teradatasql             | Teradata.Client                |
 |![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?logo=snowflake&logoColor=ffffff&style=flat-square)                                    | sf, snowflake                               | Snowflake.Data                 |
-|![CockRoachDB](https://img.shields.io/badge/CockRoachDB-6933FF?logo=cockroachlabs&logoColor=ffffff&style=flat-square)                            | cr, cockroach, cockroachdb, crdb, cdb       | Npgsql                         |
 |![CrateDB](https://img.shields.io/badge/CrateDB-009DC7?logo=cratedb&logoColor=ffffff&style=flat-square)                                          | crt, crate, cratedb                         | Npgsql                         |
+|![Teradata](https://img.shields.io/badge/Teradata-F37440?logo=Teradata&logoColor=ffffff&style=flat-square)                                       | td, teradata, tera, teradatasql             | Teradata.Client                |
+|![CockRoachDB](https://img.shields.io/badge/CockRoachDB-6933FF?logo=cockroachlabs&logoColor=ffffff&style=flat-square)                            | cr, cockroach, cockroachdb, crdb, cdb       | Npgsql                         |
 |![SingleStore](https://img.shields.io/badge/SingleStore-AA00FF?logo=singlestore&logoColor=ffffff&style=flat-square)                              | sg, sgs, singlestore, single, singlestoredb | SingleStoreConnector           |
 |![Trino](https://img.shields.io/badge/Trino-DD00A1?logo=trino&logoColor=ffffff&style=flat-square)                                                | tr, trino                                   | NReco.PrestoAdo                |
-|![QuestDb](https://img.shields.io/badge/QuestDb-A23154?logo=questdb&logoColor=ffffff&style=flat-square)                                          | quest, questdb                              | Npgsql                         |
 |![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                               | Npgsql                         |
+|![QuestDb](https://img.shields.io/badge/QuestDb-A23154?logo=questdb&logoColor=ffffff&style=flat-square)                                          | quest, questdb                              | Npgsql                         |
 <!-- END ADONET TABLE -->
 
 ### ODBC driver locators
@@ -170,6 +170,7 @@ The following databases and their associated schemes are supported through the O
 |------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------------|
 |![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver | ^\bMSOLEDBSQL$                                              |
 |![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                         | ^\bMySQL Provider$                                          |
+|![Oracle Database](https://img.shields.io/badge/Oracle%20Database-F80000?logo=oracle&logoColor=ffffff&style=flat-square)                         | oracle, or, ora                   | ^\bOraOLEDB\.Oracle$                                        |
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls                               | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsx                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xlsm                              | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|

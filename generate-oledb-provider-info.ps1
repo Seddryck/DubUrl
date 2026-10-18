@@ -1,4 +1,4 @@
-﻿#requires -PSEdition Core
+#requires -PSEdition Core
 
 $destinationPath = ".\Docs\_data"
 $destinationFile = "oledb.json"
@@ -15,23 +15,8 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
 
 ########### Generate JSON file #############
 
-$assemblyPath = "DubUrl.QA\bin"
-Set-Location $assemblyPath
-$dllfile = "net8.0\DubUrl.OleDb.dll"
+& "$PSScriptRoot/build/Import-DocumentationAssemblies.ps1"
 
-If ((-not (Test-Path -Path "Release\$dllfile")) -or ("Release\$dllfile".CreationTime -lt "Debug\$dllfile".CreationTime)) {
-    $directory = "Debug"    
-} else {
-    $directory = "Release"   
-}
-
-Add-Type -Path "$directory\net8.0\Antlr4.StringTemplate.dll"
-Add-Type -Path "$directory\$dllfile"
-
-
-Set-Location "..\..\"
-
-Write-Host "Generating JSON for Oledb provider locators based on $assemblyPath\$directory\$dllfile"
 $elapsed = Measure-Command -Expression {
     $locator = New-Object  DubUrl.OleDb.ProviderLocatorIntrospector
     $providerLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.ProviderLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, Slug, MainColor, SecondaryColor, @{label='Options'; expression={$_.Options.Name}}

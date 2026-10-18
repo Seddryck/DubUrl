@@ -1,5 +1,17 @@
 [
   {
+    "Class": "MySqlConnectorMapper",
+    "Database": "MySQL",
+    "Aliases": [
+      "mysql",
+      "my"
+    ],
+    "ProviderInvariantName": "MySqlConnector",
+    "Slug": "mysql",
+    "MainColor": "#4479A1",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "MsSqlServerMapper",
     "Database": "Microsoft SQL Server",
     "Aliases": [
@@ -11,18 +23,6 @@
     "ProviderInvariantName": "Microsoft.Data.SqlClient",
     "Slug": "microsoftsqlserver",
     "MainColor": "#CC2927",
-    "SecondaryColor": "#ffffff"
-  },
-  {
-    "Class": "MySqlConnectorMapper",
-    "Database": "MySQL",
-    "Aliases": [
-      "mysql",
-      "my"
-    ],
-    "ProviderInvariantName": "MySqlConnector",
-    "Slug": "mysql",
-    "MainColor": "#4479A1",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -38,19 +38,6 @@
     "ProviderInvariantName": "Npgsql",
     "Slug": "postgresql",
     "MainColor": "#4169E1",
-    "SecondaryColor": "#ffffff"
-  },
-  {
-    "Class": "OracleManagedDataAccessMapper",
-    "Database": "Oracle Database",
-    "Aliases": [
-      "oracle",
-      "or",
-      "ora"
-    ],
-    "ProviderInvariantName": "Oracle.ManagedDataAccess",
-    "Slug": "oracle",
-    "MainColor": "#F80000",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -74,6 +61,19 @@
     "ProviderInvariantName": "MySqlConnector",
     "Slug": "mariadb",
     "MainColor": "#003545",
+    "SecondaryColor": "#ffffff"
+  },
+  {
+    "Class": "OracleManagedDataAccessMapper",
+    "Database": "Oracle Database",
+    "Aliases": [
+      "oracle",
+      "or",
+      "ora"
+    ],
+    "ProviderInvariantName": "Oracle.ManagedDataAccess",
+    "Slug": "oracle",
+    "MainColor": "#F80000",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -113,6 +113,31 @@
     "SecondaryColor": "#ffffff"
   },
   {
+    "Class": "SnowflakeMapper",
+    "Database": "Snowflake",
+    "Aliases": [
+      "sf",
+      "snowflake"
+    ],
+    "ProviderInvariantName": "Snowflake.Data",
+    "Slug": "snowflake",
+    "MainColor": "#29B5E8",
+    "SecondaryColor": "#ffffff"
+  },
+  {
+    "Class": "CrateDbMapper",
+    "Database": "CrateDB",
+    "Aliases": [
+      "crt",
+      "crate",
+      "cratedb"
+    ],
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "cratedb",
+    "MainColor": "#009DC7",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "TeradataMapper",
     "Database": "Teradata",
     "Aliases": [
@@ -124,18 +149,6 @@
     "ProviderInvariantName": "Teradata.Client",
     "Slug": "Teradata",
     "MainColor": "#F37440",
-    "SecondaryColor": "#ffffff"
-  },
-  {
-    "Class": "SnowflakeMapper",
-    "Database": "Snowflake",
-    "Aliases": [
-      "sf",
-      "snowflake"
-    ],
-    "ProviderInvariantName": "Snowflake.Data",
-    "Slug": "snowflake",
-    "MainColor": "#29B5E8",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -151,19 +164,6 @@
     "ProviderInvariantName": "Npgsql",
     "Slug": "cockroachlabs",
     "MainColor": "#6933FF",
-    "SecondaryColor": "#ffffff"
-  },
-  {
-    "Class": "CrateDbMapper",
-    "Database": "CrateDB",
-    "Aliases": [
-      "crt",
-      "crate",
-      "cratedb"
-    ],
-    "ProviderInvariantName": "Npgsql",
-    "Slug": "cratedb",
-    "MainColor": "#009DC7",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -194,18 +194,6 @@
     "SecondaryColor": "#ffffff"
   },
   {
-    "Class": "QuestDbMapper",
-    "Database": "QuestDb",
-    "Aliases": [
-      "quest",
-      "questdb"
-    ],
-    "ProviderInvariantName": "Npgsql",
-    "Slug": "questdb",
-    "MainColor": "#A23154",
-    "SecondaryColor": "#ffffff"
-  },
-  {
     "Class": "TimescaleMapper",
     "Database": "Timescale",
     "Aliases": [
@@ -216,5 +204,17 @@
     "Slug": "timescale",
     "MainColor": "#FDB515",
     "SecondaryColor": "#000000"
+  },
+  {
+    "Class": "QuestDbMapper",
+    "Database": "QuestDb",
+    "Aliases": [
+      "quest",
+      "questdb"
+    ],
+    "ProviderInvariantName": "Npgsql",
+    "Slug": "questdb",
+    "MainColor": "#A23154",
+    "SecondaryColor": "#ffffff"
   }
 ]

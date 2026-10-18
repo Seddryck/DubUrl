@@ -28,6 +28,20 @@
     "Options": null
   },
   {
+    "Class": "OracleProviderLocator",
+    "Database": "Oracle Database",
+    "Aliases": [
+      "oracle",
+      "or",
+      "ora"
+    ],
+    "NamePattern": "^\\bOraOLEDB\\.Oracle$",
+    "Slug": "oracle",
+    "MainColor": "#F80000",
+    "SecondaryColor": "#ffffff",
+    "Options": null
+  },
+  {
     "Class": "AceXlsProviderLocator",
     "Database": "Microsoft Excel",
     "Aliases": [
