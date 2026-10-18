@@ -36,8 +36,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\misc\icon\DubUrl-icon-128.png" Pack="true" PackagePath="icon\" />
-		<None Include="..\README.md">
+		<None Include="$(MSBuildThisFileDirectory)misc\icon\DubUrl-icon-128.png" Pack="true" PackagePath="icon\" />
+		<None Include="$(MSBuildThisFileDirectory)README.md">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>

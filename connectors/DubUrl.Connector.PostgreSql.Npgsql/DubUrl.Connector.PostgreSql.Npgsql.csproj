@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>DubUrl.Connector.PostgreSql.Npgsql</PackageId>
+    <AssemblyName>DubUrl.Connector.PostgreSql.Npgsql</AssemblyName>
+    <RootNamespace>DubUrl.Connector.PostgreSql.Npgsql</RootNamespace>
+    <Description>PostgreSQL connector module for DubUrl backed by Npgsql.</Description>
+    <PackageTags>connection-string;database;postgresql;npgsql;ado-net;adonet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <ProjectReference Include="..\..\DubUrl.Core\DubUrl.csproj" />
+  </ItemGroup>
+
+  <Target Name="BoundDubUrlDependencyVersion" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions
+        Update="%(_ProjectReferencesWithVersions.Identity)"
+        Condition="'%(_ProjectReferencesWithVersions.Filename)' == 'DubUrl'">
+        <ProjectVersion>[$(Version),1.0.0)</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+
+</Project>

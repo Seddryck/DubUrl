@@ -335,6 +335,8 @@ jobs:
             project: DubUrl.Application/DubUrl.Application.csproj
           - package-id: DubUrl.BulkCopy
             project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
+          - package-id: DubUrl.Connector.PostgreSql.Npgsql
+            project: connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
