@@ -11,6 +11,7 @@ namespace DubUrl.Core.ProviderPacks;
 public sealed class ProviderPackStore
 {
     private const string ManifestInvalid = "manifest-invalid";
+    private const string PathInvalid = "path-invalid";
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -85,7 +86,7 @@ public sealed class ProviderPackStore
                 var destinationPath = Path.GetFullPath(Path.Combine(contentRoot, relativePath));
                 EnsureWithin(contentRoot, destinationPath);
                 var destinationDirectory = Path.GetDirectoryName(destinationPath)
-                    ?? throw new ProviderPackException("path-invalid", $"Asset '{asset.Path}' has no parent directory.");
+                    ?? throw new ProviderPackException(PathInvalid, $"Asset '{asset.Path}' has no parent directory.");
                 Directory.CreateDirectory(destinationDirectory);
                 await using (var source = await OpenEntryAsync(entry, cancellationToken).ConfigureAwait(false))
                 await using (var destination = File.Create(destinationPath))
@@ -349,10 +350,10 @@ public sealed class ProviderPackStore
     private static string ValidateRelativePath(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path))
-            throw new ProviderPackException("path-invalid", "Provider pack asset paths must be relative.");
+            throw new ProviderPackException(PathInvalid, "Provider pack asset paths must be relative.");
         var normalized = path.Replace('/', Path.DirectorySeparatorChar);
         if (normalized.Split(Path.DirectorySeparatorChar).Any(part => part is ".." or "." or ""))
-            throw new ProviderPackException("path-invalid", $"Provider pack asset path '{path}' is invalid.");
+            throw new ProviderPackException(PathInvalid, $"Provider pack asset path '{path}' is invalid.");
         return normalized;
     }
 
@@ -384,7 +385,7 @@ public sealed class ProviderPackStore
     {
         var normalizedRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         if (!path.StartsWith(normalizedRoot, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-            throw new ProviderPackException("path-invalid", "A provider pack asset escapes the installation directory.");
+            throw new ProviderPackException(PathInvalid, "A provider pack asset escapes the installation directory.");
     }
 
     private static async Task<string> ComputeHashAsync(string path, CancellationToken cancellationToken)
