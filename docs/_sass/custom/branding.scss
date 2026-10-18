@@ -2,9 +2,9 @@
 // 5ddce57f8de371d9a2f4e46552be6bb541ffa356, using DubUrl theme tokens.
 .brand-colors {
   box-sizing: border-box;
-  max-width: 60rem;
+  max-width: none;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1F1E23;
   line-height: 1.6;
@@ -174,5 +174,3 @@
     .brand-color__copy { transition: none; }
   }
 }
-
-.brand-colors { padding: 0; max-width: none; }
