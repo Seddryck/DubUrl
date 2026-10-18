@@ -36,7 +36,6 @@ public class DrillOdbcRewriterTest
         });
     }
 
-
     [Test]
     [TestCase("192.168.222.160:31010, 192.168.222.165:31010, 192.168.222.231:31010", "192.168.222.160:31010, 192.168.222.165:31010, 192.168.222.231:31010")]
     [TestCase("192.168.222.160, 192.168.222.165, 192.168.222.231", "192.168.222.160:31010, 192.168.222.165:31010, 192.168.222.231:31010")]
@@ -187,5 +186,4 @@ public class DrillOdbcRewriterTest
         Assert.That(result, Does.ContainKey("Driver"));
         Assert.That(result["Driver"], Is.EqualTo("{My driver}"));
     }
-
 }

@@ -163,5 +163,4 @@ public class OdbcDbqRewriterTest
         Assert.That(result, Does.ContainKey("Driver"));
         Assert.That(result["Driver"], Is.EqualTo("{My driver}"));
     }
-
 }

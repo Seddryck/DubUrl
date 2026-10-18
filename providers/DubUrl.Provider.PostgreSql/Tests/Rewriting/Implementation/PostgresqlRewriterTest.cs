@@ -118,6 +118,4 @@ public class PostrgresqlRewriterTest
         });
         Assert.That(result["Persist Security Info"], Is.True);
     }
-
-
 }

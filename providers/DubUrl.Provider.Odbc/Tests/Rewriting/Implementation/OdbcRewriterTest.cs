@@ -47,7 +47,6 @@ public class OdbcRewriterTest
         Assert.That(result[OdbcRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
-
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {

@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace DubUrl.Rewriting.Implementation;
 
 public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
@@ -79,7 +78,6 @@ public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
                 if (!urlInfo.Options.ContainsKey(CONNECTION_KEYWORD))
                     Specificator.Execute(CONNECTION_KEYWORD, "Direct");
             }
-                
         }
     }
 

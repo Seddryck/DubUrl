@@ -57,7 +57,6 @@ public class TrinoOdbcRewriterTest
         Assert.That(result[TrinoOdbcRewriter.CATALOG_KEYWORD], Is.EqualTo(expected));
     }
 
-
     [Test]
     [TestCase("catalog/schema", "schema")]
     public void Map_UrlInfo_ReturnsSchema(string segmentsList, string expected)

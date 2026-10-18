@@ -38,14 +38,6 @@ internal class TrinoRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReve
         )
     { }
 
-
-
-
-
-
-
-
-
     internal class AuthentificationMapper : BaseTokenMapper
     {
         public override void Execute(ConnectionUri urlInfo)

@@ -114,7 +114,6 @@ public class TrinoRewriterTest
             Assert.That(result, Does.ContainKey(TrinoRewriter.PASSWORD_KEYWORD));
             Assert.That(result[TrinoRewriter.PASSWORD_KEYWORD], Is.EqualTo("pwd"));
         });
-
     }
 
     [Test]

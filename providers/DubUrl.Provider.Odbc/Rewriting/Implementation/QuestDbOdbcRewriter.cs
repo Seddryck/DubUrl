@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace DubUrl.Rewriting.Implementation;
 
 public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter

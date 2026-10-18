@@ -45,7 +45,6 @@ public class MsSqlServerRewriterTest
         Assert.That(result[MsSqlServerRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
-
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {
@@ -63,7 +62,6 @@ public class MsSqlServerRewriterTest
             Assert.That(result, Does.ContainKey(MsSqlServerRewriter.SSPI_KEYWORD));
             Assert.That(result[MsSqlServerRewriter.SSPI_KEYWORD], Is.EqualTo(false));
         });
-
     }
 
     [Test]
@@ -104,6 +102,4 @@ public class MsSqlServerRewriterTest
             Assert.That(result["Enlist"], Is.EqualTo(false));
         });
     }
-
-    
 }

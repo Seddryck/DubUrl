@@ -58,7 +58,6 @@ public class CockRoachRewriterTest
         Assert.That(result[PostgresqlRewriter.PORT_KEYWORD], Is.EqualTo(26257));
     }
 
-
     [Test]
     [TestCase("db", "db")]
     public void Map_UrlInfo_Database(string segmentsList, string expected)

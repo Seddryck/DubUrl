@@ -92,52 +92,55 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
 
         public override void Execute(ConnectionUri urlInfo)
         {
-            if (!urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
+            if (urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
+                return;
+
+            var schemes = urlInfo.Scheme.Parts.Where(x => !x.Equals("odbc", StringComparison.OrdinalIgnoreCase)).ToArray();
+            var database = GetDatabaseScheme(schemes);
+            var remaining = schemes.Where(s => s != database).ToArray();
+            var namedDriver = remaining.FirstOrDefault(IsDriverName);
+            if (namedDriver is not null)
             {
-                var otherSchemes = urlInfo.Scheme.Parts.Where(x => !x.Equals("odbc", StringComparison.OrdinalIgnoreCase));
+                if (remaining.Length > 1)
+                    throw new UnexpectedSchemesWithDriverNameException(schemes.Where(s => !IsDriverName(s)).ToArray(), namedDriver);
+                Specificator.Execute(DRIVER_KEYWORD, namedDriver);
+                return;
+            }
 
-                var secondScheme = string.Empty;
-                switch (otherSchemes.Count(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)))
-                {
-                    case 0: throw new SchemeNotFoundException(otherSchemes.ToArray(), DriverLocatorFactory.GetValidAliases());
-                    case 1: secondScheme = otherSchemes.First(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)); break;
-                    case > 1: throw new MultipleSchemeFoundException(otherSchemes.Where(s => DriverLocatorFactory.GetValidAliases().Any(v => v == s)).ToArray());
-                }
-                var remainingSchemes = otherSchemes.Where(x => x != secondScheme);
+            var locator = remaining.Length == 0
+                ? DriverLocatorFactory.Instantiate(database)
+                : DriverLocatorFactory.Instantiate(database, ParseOptions(remaining));
+            Specificator.Execute(DRIVER_KEYWORD, "{" + locator.Locate() + "}");
+        }
 
-                //Case of the full driver name is specified
-                if (!remainingSchemes.Any())
-                {
-                    var driverLocator = DriverLocatorFactory.Instantiate(secondScheme);
-                    Specificator.Execute(DRIVER_KEYWORD, "{" + driverLocator.Locate() + "}");
-                }
-                else if (remainingSchemes.Any(s => s.StartsWith("{") && s.EndsWith("}")))
-                {
-                    if (remainingSchemes.Count() > 1)
-                        throw new UnexpectedSchemesWithDriverNameException(
-                            otherSchemes.Where(s => !s.StartsWith("{") || !s.EndsWith("}")).ToArray()
-                            , otherSchemes.First(s => s.StartsWith("{") && s.EndsWith("}"))
-                        );
+        private string GetDatabaseScheme(string[] schemes)
+        {
+            var aliases = DriverLocatorFactory.GetValidAliases();
+            var matches = schemes.Where(aliases.Contains).ToArray();
+            return matches.Length switch
+            {
+                0 => throw new SchemeNotFoundException(schemes, aliases),
+                1 => matches[0],
+                _ => throw new MultipleSchemeFoundException(matches),
+            };
+        }
 
-                    Specificator.Execute(DRIVER_KEYWORD, otherSchemes.First(s => s.StartsWith("{") && s.EndsWith("}")));
-                }
-                else
+        private static bool IsDriverName(string scheme) => scheme.StartsWith('{') && scheme.EndsWith('}');
+
+        private Dictionary<Type, object> ParseOptions(IEnumerable<string> schemes)
+        {
+            AvailableOptions ??= InitializeOptions();
+            var options = new Dictionary<Type, object>();
+            foreach (var scheme in schemes)
+            {
+                foreach (var optionType in AvailableOptions.Where(type => !options.ContainsKey(type)))
                 {
-                    AvailableOptions ??= InitializeOptions();
-                    var options = new Dictionary<Type, object>();
-                    foreach (var scheme in remainingSchemes)
-                    {
-                        var remainingOptions = AvailableOptions.Where(x => !options.Keys.ToArray().Any(z => z == x));
-                        foreach (var remainingOption in remainingOptions)
-                        {
-                            if (Enum.TryParse(remainingOption, scheme, out var value))
-                                options.Add(remainingOption, value ?? throw new InvalidConnectionUrlException($"Connection Url for {ConnectionName} is specifying an unexpected value 'null' for option '{remainingOption.Name}'"));
-                        }
-                    }
-                    var driverLocator = DriverLocatorFactory.Instantiate(secondScheme, options);
-                    Specificator.Execute(DRIVER_KEYWORD, "{" + driverLocator.Locate() + "}");
+                    if (Enum.TryParse(optionType, scheme, out var value))
+                        options.Add(optionType, value ?? throw new InvalidConnectionUrlException(
+                            $"Connection Url for {ConnectionName} is specifying an unexpected value 'null' for option '{optionType.Name}'"));
                 }
             }
+            return options;
         }
 
         protected internal virtual List<Type> InitializeOptions() => [.. ConfiguredOptions];

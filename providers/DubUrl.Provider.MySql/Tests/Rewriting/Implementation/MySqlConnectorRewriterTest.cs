@@ -43,7 +43,6 @@ public class MySqlConnectorRewriterTest
         Assert.That(result[MySqlConnectorRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
-
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {

@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 
-
-
 namespace DubUrl.Testing.Rewriting.Implementation;
 
 public class OracleManagedDataAccessRewriterTest

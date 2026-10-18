@@ -52,6 +52,4 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
         public DriverMapper(DriverLocatorFactory factory, IEnumerable<Type> options) : base(factory, options) { }
         protected override string ConnectionName => "ODBC DBQ";
     }
-
-
 }

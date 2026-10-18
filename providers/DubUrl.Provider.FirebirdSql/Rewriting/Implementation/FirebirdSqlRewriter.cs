@@ -80,7 +80,6 @@ internal class FirebirdSqlRewriter : ConnectionStringRewriter, DubUrl.Conversion
 
                 Specificator.Execute(DATABASE_KEYWORD, PathHelper.Create(RootPath, urlInfo.Segments));
             }
-                
         }
     }
 

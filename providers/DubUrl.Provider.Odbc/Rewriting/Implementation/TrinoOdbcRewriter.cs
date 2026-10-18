@@ -48,12 +48,4 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
               ]
         )
     { }
-
-
-
-
-
-
-
-
 }

@@ -50,8 +50,6 @@ internal class TeradataRewriter : ConnectionStringRewriter, DubUrl.Conversion.IR
         }
     }
 
-
-
     internal class AuthentificationMapper : BaseTokenMapper
     {
         public override void Execute(ConnectionUri urlInfo)

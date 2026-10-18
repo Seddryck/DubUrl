@@ -42,7 +42,6 @@ public class SingleStoreRewriterTest
         Assert.That(result[SingleStoreRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
-
     [Test]
     public void Map_UrlInfoWithUsernamePassword_Authentication()
     {

@@ -57,7 +57,6 @@ public class FirebirdSqlRewriterTest
         Assert.That(result[FirebirdSqlRewriter.DATABASE_KEYWORD], Is.EqualTo(expected));
     }
 
-
     [Test]
     [TestCase("localhost", "directory/data.fdb")]
     [TestCase(".", "directory/data.fdb")]
@@ -128,5 +127,4 @@ public class FirebirdSqlRewriterTest
         Assert.That(result, Does.ContainKey(FirebirdSqlRewriter.PORT_KEYWORD));
         Assert.That(result[FirebirdSqlRewriter.PORT_KEYWORD], Is.EqualTo("3001"));
     }
-
 }

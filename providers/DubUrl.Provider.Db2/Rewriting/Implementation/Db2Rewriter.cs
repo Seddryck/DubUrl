@@ -42,8 +42,6 @@ internal class Db2Rewriter : ConnectionStringRewriter, DubUrl.Conversion.IRevers
         }
     }
 
-
-
     internal class AuthentificationMapper : BaseTokenMapper
     {
         public override void Execute(ConnectionUri urlInfo)

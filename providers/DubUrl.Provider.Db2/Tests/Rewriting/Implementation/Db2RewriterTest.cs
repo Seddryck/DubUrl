@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace DubUrl.Testing.Rewriting.Implementation;
 
 public class Db2RewriterTest
