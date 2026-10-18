@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>DubUrl.Providers</AssemblyName>
+    <RootNamespace>DubUrl.Providers</RootNamespace>
+    <PackageId>DubUrl.Providers</PackageId>
+    <Description>Metadata and modules for the database providers bundled with DubUrl.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+  </ItemGroup>
+
+</Project>

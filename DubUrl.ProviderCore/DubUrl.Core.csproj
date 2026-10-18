@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>DubUrl.Core</AssemblyName>
+    <RootNamespace>DubUrl.Core</RootNamespace>
+    <PackageId>DubUrl.Core</PackageId>
+    <Description>Provider-neutral contracts and deterministic provider catalog for DubUrl.</Description>
+  </PropertyGroup>
+
+</Project>
