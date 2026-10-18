@@ -16,15 +16,17 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DubUrl;
 
-public partial class DatabaseUrl : IDatabaseUrl
+public partial class DatabaseUrl : IAsyncDatabaseUrl
 {
     protected ConnectionUrl ConnectionUrl { get; }
     protected CommandProvisionerFactory CommandProvisionerFactory { get; }
     protected readonly InlineTemplateCommandFactory _inlineTemplateCommandFactory;
+    private readonly DatabaseCommandExecutor _executor;
 
     protected ICaster[] Casters { get; } = [];
 
@@ -45,18 +47,26 @@ public partial class DatabaseUrl : IDatabaseUrl
     { }
 
     public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
-        => (ConnectionUrl, CommandProvisionerFactory, QueryLogger, _inlineTemplateCommandFactory) =
-                (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect));
+    {
+        (ConnectionUrl, CommandProvisionerFactory, QueryLogger, _inlineTemplateCommandFactory) =
+            (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect));
+        _executor = new DatabaseCommandExecutor(connectionUrl, commandProvisionerFactory, logger);
+    }
 
     protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
-    {
-        var conn = ConnectionUrl.Open();
-        var cmd = conn.CreateCommand();
-        var provisioners = CommandProvisionerFactory.Instantiate(commandProvider, ConnectionUrl);
-        foreach (var provisioner in provisioners)
-            provisioner.Execute(cmd);
-        return cmd;
-    }
+        => _executor.PrepareOwnedCommand(commandProvider);
+
+    protected T ExecuteReader<T>(ICommandProvider commandProvider, Func<IDataReader, T> consume)
+        => _executor.ExecuteReader(commandProvider, consume);
+
+    protected Task<T> ExecuteReaderAsync<T>(ICommandProvider commandProvider, Func<DbDataReader, CancellationToken, Task<T>> consume, CancellationToken cancellationToken)
+        => _executor.ExecuteReaderAsync(commandProvider, consume, cancellationToken);
+
+    protected IEnumerable<T> Stream<T>(ICommandProvider commandProvider, Func<IDataReader, T> project)
+        => _executor.Stream(commandProvider, project);
+
+    protected IAsyncEnumerable<T> StreamAsync<T>(ICommandProvider commandProvider, Func<DbDataReader, T> project, CancellationToken cancellationToken)
+        => _executor.StreamAsync(commandProvider, project, cancellationToken);
 
     public InlineTemplateCommand CreateTemplate(string source)
         => _inlineTemplateCommandFactory.Create(source);
@@ -73,23 +83,7 @@ public partial class DatabaseUrl : IDatabaseUrl
        => ReadScalar(template.Render(parameters));
 
     public object? ReadScalar(ICommandProvider commandProvider)
-        => PrepareCommand(commandProvider).ExecuteScalar();
-
-    public object ReadScalarNonNull(string query)
-        => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
-
-    public object ReadScalarNonNull(string template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull(CreateTemplate(template), parameters);
-
-    public object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull(template.Render(parameters));
-
-    public object ReadScalarNonNull(ICommandProvider commandProvider)
-    {
-        var result = ReadScalar(commandProvider);
-        var typedResult = result == DBNull.Value ? null : result;
-        return typedResult ?? throw new NullReferenceException();
-    }
+        => _executor.ExecuteScalar(commandProvider, command => command.ExecuteScalar());
 
     public T? ReadScalar<T>(string query)
       => ReadScalar<T>(new InlineCommand(query, QueryLogger));
@@ -104,6 +98,22 @@ public partial class DatabaseUrl : IDatabaseUrl
     {
         var result = ReadScalar(query);
         return (T?)(result == DBNull.Value ? null : result);
+    }
+
+    public object ReadScalarNonNull(string query)
+        => ReadScalarNonNull(new InlineCommand(query, QueryLogger));
+
+    public object ReadScalarNonNull(string template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull(CreateTemplate(template), parameters);
+
+    public object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+       => ReadScalarNonNull(template.Render(parameters));
+
+    public object ReadScalarNonNull(ICommandProvider commandProvider)
+    {
+        var result = ReadScalar(commandProvider);
+        var typedResult = result == DBNull.Value ? null : result;
+        return typedResult ?? throw new InvalidOperationException("The scalar query returned null.");
     }
 
     public T ReadScalarNonNull<T>(string query)
@@ -121,20 +131,73 @@ public partial class DatabaseUrl : IDatabaseUrl
         if (result is T t)
             return t;
 
-        return NormalizeReturnType<T>(result) ?? throw new NullReferenceException();
+        return NormalizeReturnType<T>(result) ?? throw new InvalidOperationException("The scalar caster returned null.");
+    }
+
+    public Task<object?> ReadScalarAsync(string query, CancellationToken cancellationToken = default)
+        => ReadScalarAsync(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<object?> ReadScalarAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object?> ReadScalarAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync(template.Render(parameters), cancellationToken);
+
+    public Task<object?> ReadScalarAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => _executor.ExecuteScalarAsync(commandProvider, (command, token) => command.ExecuteScalarAsync(token), cancellationToken);
+
+    public async Task<T?> ReadScalarAsync<T>(string query, CancellationToken cancellationToken = default)
+        => await ReadScalarAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<T?> ReadScalarAsync<T>(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync<T>(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<T?> ReadScalarAsync<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarAsync<T>(template.Render(parameters), cancellationToken);
+
+    public async Task<T?> ReadScalarAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default)
+    {
+        var result = await ReadScalarAsync(query, cancellationToken).ConfigureAwait(false);
+        return (T?)(result == DBNull.Value ? null : result);
+    }
+
+    public async Task<object> ReadScalarNonNullAsync(string query, CancellationToken cancellationToken = default)
+        => await ReadScalarNonNullAsync(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<object> ReadScalarNonNullAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object> ReadScalarNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarNonNullAsync(template.Render(parameters), cancellationToken);
+
+    public async Task<object> ReadScalarNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+    {
+        var result = await ReadScalarAsync(commandProvider, cancellationToken).ConfigureAwait(false);
+        var typedResult = result == DBNull.Value ? null : result;
+        return typedResult ?? throw new InvalidOperationException("The scalar query returned null.");
+    }
+
+    public async Task<T> ReadScalarNonNullAsync<T>(string query, CancellationToken cancellationToken = default)
+        => await ReadScalarNonNullAsync<T>(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<T> ReadScalarNonNullAsync<T>(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarNonNullAsync<T>(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<T> ReadScalarNonNullAsync<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadScalarNonNullAsync<T>(template.Render(parameters), cancellationToken);
+
+    public async Task<T> ReadScalarNonNullAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default)
+    {
+        var result = await ReadScalarNonNullAsync(query, cancellationToken).ConfigureAwait(false);
+        if (result is T typed)
+            return typed;
+
+        return NormalizeReturnType<T>(result) ?? throw new InvalidOperationException("The scalar caster returned null.");
     }
 
     #endregion
 
     #region Single
-
-    protected (object?, IDataReader) ReadInternal(ICommandProvider commandProvider)
-    {
-        using var dr = PrepareCommand(commandProvider).ExecuteReader();
-        if (!dr.Read())
-            return (null, dr);
-        return (dr.ToExpandoObject(), dr);
-    }
 
     public object? ReadSingle(string query)
         => ReadSingle(new InlineCommand(query, QueryLogger));
@@ -146,10 +209,31 @@ public partial class DatabaseUrl : IDatabaseUrl
        => ReadSingle(template.Render(parameters));
 
     public object? ReadSingle(ICommandProvider commandProvider)
-    {
-        (var dyn, var dr) = ReadInternal(commandProvider);
-        return !dr.Read() ? dyn : throw new InvalidOperationException();
-    }
+        => ExecuteReader(commandProvider, reader =>
+        {
+            if (!reader.Read())
+                return null;
+            var result = reader.ToExpandoObject();
+            return !reader.Read() ? result : throw new InvalidOperationException();
+        });
+
+    public Task<object?> ReadSingleAsync(string query, CancellationToken cancellationToken = default)
+        => ReadSingleAsync(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<object?> ReadSingleAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadSingleAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object?> ReadSingleAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadSingleAsync(template.Render(parameters), cancellationToken);
+
+    public Task<object?> ReadSingleAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => ExecuteReaderAsync(commandProvider, async (reader, token) =>
+        {
+            if (!await reader.ReadAsync(token).ConfigureAwait(false))
+                return null;
+            var result = reader.ToExpandoObject();
+            return !await reader.ReadAsync(token).ConfigureAwait(false) ? result : throw new InvalidOperationException();
+        }, cancellationToken);
 
     public object ReadSingleNonNull(string query)
         => ReadSingleNonNull(new InlineCommand(query, QueryLogger));
@@ -162,6 +246,18 @@ public partial class DatabaseUrl : IDatabaseUrl
 
     public object ReadSingleNonNull(ICommandProvider commandProvider)
         => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
+
+    public async Task<object> ReadSingleNonNullAsync(string query, CancellationToken cancellationToken = default)
+        => await ReadSingleNonNullAsync(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<object> ReadSingleNonNullAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadSingleNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object> ReadSingleNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadSingleNonNullAsync(template.Render(parameters), cancellationToken);
+
+    public async Task<object> ReadSingleNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => await ReadSingleAsync(commandProvider, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException();
 
     #endregion
 
@@ -177,10 +273,20 @@ public partial class DatabaseUrl : IDatabaseUrl
        => ReadFirst(template.Render(parameters));
 
     public object? ReadFirst(ICommandProvider commandProvider)
-    {
-        (var dyn, _) = ReadInternal(commandProvider);
-        return dyn;
-    }
+        => ExecuteReader(commandProvider, reader => reader.Read() ? reader.ToExpandoObject() : null);
+
+    public Task<object?> ReadFirstAsync(string query, CancellationToken cancellationToken = default)
+        => ReadFirstAsync(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<object?> ReadFirstAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadFirstAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object?> ReadFirstAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadFirstAsync(template.Render(parameters), cancellationToken);
+
+    public Task<object?> ReadFirstAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => ExecuteReaderAsync(commandProvider, async (reader, token) =>
+            await reader.ReadAsync(token).ConfigureAwait(false) ? reader.ToExpandoObject() : null, cancellationToken);
 
     public object ReadFirstNonNull(string query)
         => ReadFirstNonNull(new InlineCommand(query, QueryLogger));
@@ -193,6 +299,18 @@ public partial class DatabaseUrl : IDatabaseUrl
 
     public object ReadFirstNonNull(ICommandProvider commandProvider)
         => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
+
+    public async Task<object> ReadFirstNonNullAsync(string query, CancellationToken cancellationToken = default)
+        => await ReadFirstNonNullAsync(new InlineCommand(query, QueryLogger), cancellationToken).ConfigureAwait(false);
+
+    public Task<object> ReadFirstNonNullAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadFirstNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<object> ReadFirstNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadFirstNonNullAsync(template.Render(parameters), cancellationToken);
+
+    public async Task<object> ReadFirstNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => await ReadFirstAsync(commandProvider, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException();
 
     #endregion
 
@@ -208,28 +326,51 @@ public partial class DatabaseUrl : IDatabaseUrl
        => ReadMultiple(template.Render(parameters));
     
     public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
-    {
-        using var dr = PrepareCommand(commandProvider).ExecuteReader();
-        while (dr.Read())
-            yield return dr.ToExpandoObject();
-        dr?.Close();
-    }
+        => Stream(commandProvider, reader => reader.ToExpandoObject());
+
+    public IAsyncEnumerable<object> ReadMultipleAsync(string query, CancellationToken cancellationToken = default)
+        => ReadMultipleAsync(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public IAsyncEnumerable<object> ReadMultipleAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadMultipleAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public IAsyncEnumerable<object> ReadMultipleAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ReadMultipleAsync(template.Render(parameters), cancellationToken);
+
+    public IAsyncEnumerable<object> ReadMultipleAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => StreamAsync(commandProvider, reader => reader.ToExpandoObject(), cancellationToken);
 
     #endregion
 
     #region ExecuteReader
 
-    public IDataReader ExecuteReader(string query)
+    public OwnedDataReader ExecuteReader(string query)
        => ExecuteReader(new InlineCommand(query, QueryLogger));
 
-    public IDataReader ExecuteReader(string template, IDictionary<string, object?> parameters)
+    public OwnedDataReader ExecuteReader(string template, IDictionary<string, object?> parameters)
        => ExecuteReader(CreateTemplate(template), parameters);
 
-    public IDataReader ExecuteReader(InlineTemplateCommand template, IDictionary<string, object?> parameters)
+    public OwnedDataReader ExecuteReader(InlineTemplateCommand template, IDictionary<string, object?> parameters)
        => ExecuteReader(template.Render(parameters));
 
-    public IDataReader ExecuteReader(ICommandProvider commandProvider)
-        => PrepareCommand(commandProvider).ExecuteReader();
+    public OwnedDataReader ExecuteReader(ICommandProvider commandProvider)
+        => _executor.ExecuteOwnedReader(commandProvider);
+
+    IDataReader IDatabaseUrl.ExecuteReader(string query) => ExecuteReader(query);
+
+    IDataReader IDatabaseUrl.ExecuteReader(ICommandProvider commandProvider) => ExecuteReader(commandProvider);
+
+    public Task<OwnedDataReader> ExecuteReaderAsync(string query, CancellationToken cancellationToken = default)
+        => ExecuteReaderAsync(new InlineCommand(query, QueryLogger), cancellationToken);
+
+    public Task<OwnedDataReader> ExecuteReaderAsync(string template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ExecuteReaderAsync(CreateTemplate(template), parameters, cancellationToken);
+
+    public Task<OwnedDataReader> ExecuteReaderAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
+        => ExecuteReaderAsync(template.Render(parameters), cancellationToken);
+
+    public Task<OwnedDataReader> ExecuteReaderAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
+        => _executor.ExecuteOwnedReaderAsync(commandProvider, cancellationToken);
 
     #endregion
 

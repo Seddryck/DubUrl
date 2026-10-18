@@ -16,20 +16,15 @@ public class EmbeddedResourceCommand: ICommandProvider
 {
     protected internal string BasePath { get; }
     protected IResourceManager ResourceManager { get; }
-    private IQueryLogger QueryLogger { get; }
 
     public EmbeddedResourceCommand(string basePath, IQueryLogger queryLogger)
         : this(new EmbeddedResourceManager(Assembly.GetCallingAssembly()), basePath, queryLogger) { }
 
     internal EmbeddedResourceCommand(IResourceManager resourceManager, string basePath, IQueryLogger queryLogger)
-        => (BasePath, ResourceManager, QueryLogger) = (basePath, resourceManager, queryLogger);
+        => (BasePath, ResourceManager) = (basePath, resourceManager);
 
     public string Read(IDialect dialect, IConnectivity connectivity)
-    {
-        var text = Render(dialect, connectivity);
-        QueryLogger.Log(text);
-        return text;
-    }
+        => Render(dialect, connectivity);
 
     protected virtual string Render(IDialect dialect, IConnectivity connectivity)
         => ReadResource(dialect, connectivity);

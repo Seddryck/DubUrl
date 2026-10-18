@@ -36,7 +36,15 @@ public class ConnectionUrl : BaseConnectionUrl
     public virtual IDbConnection Open()
     {
         var connection = Connect();
-        connection.Open();
-        return connection;
+        try
+        {
+            connection.Open();
+            return connection;
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
     }
 }
