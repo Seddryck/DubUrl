@@ -39,6 +39,7 @@
     <Compile Include="..\DubUrl.Core\Mapping\Connectivity\NativeConnectivity.cs" Link="Mapping\Connectivity\NativeConnectivity.cs" />
     <Compile Include="..\DubUrl.Core\Locating\*.cs" Link="Locating\%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Locating\OdbcDriver\DriverLocatorFactory.cs;..\DubUrl.Core\Locating\OdbcDriver\IDriverLocator.cs" Link="Locating\OdbcDriver\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Locating\Options\**\*.cs" Link="Locating\Options\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Locating\RegexUtils\**\*.cs" Link="Locating\RegexUtils\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Registering\**\*.cs" Link="Registering\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>

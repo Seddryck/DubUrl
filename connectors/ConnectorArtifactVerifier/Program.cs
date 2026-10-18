@@ -1,5 +1,6 @@
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
+using DubUrl.Parsing;
 
 namespace DubUrl.ConnectorArtifactVerifier;
 
@@ -26,15 +27,17 @@ internal static class Program
 
     private static void ValidateArguments(string[] args)
     {
-        if (args.Length != 4 || args[0] is not ("install" or "verify" or "uninstall"))
-            throw new ArgumentException("Usage: ConnectorArtifactVerifier <install|verify|uninstall> <catalog> <archive> <store>");
+        if (args.Length != 5 || args[0] is not ("install" or "verify" or "uninstall"))
+            throw new ArgumentException("Usage: ConnectorArtifactVerifier <install|verify|uninstall> <catalog> <archive> <store> <provider>");
     }
 
     private static async Task<VerificationContext> CreateContextAsync(string[] args)
     {
         var catalogPath = Path.GetFullPath(args[1]);
         await using var catalogStream = File.OpenRead(catalogPath);
-        var entry = ProviderPackCatalog.Read(catalogStream).Entries.Single();
+        var provider = args[4];
+        var entry = ProviderPackCatalog.Read(catalogStream).Entries.Single(item =>
+            item.Provider.Equals(provider, StringComparison.OrdinalIgnoreCase));
         var apiVersion = Version.Parse(entry.Version.Split(['-', '+'], StringSplitOptions.None)[0]);
         return new(
             entry,
@@ -64,8 +67,11 @@ internal static class Program
             throw new InvalidOperationException($"Connector module loading failed: {string.Join("; ", diagnostics.Select(item => item.Message))}");
 
         var schemes = new ProviderCatalogBuilder().AddModule(modules.Single()).Build();
-        if (schemes.GetProviderFactory(["postgresql"]).GetType().FullName != "Npgsql.NpgsqlFactory")
-            throw new InvalidOperationException("The PostgreSQL scheme did not resolve to NpgsqlFactory.");
+        var scheme = context.Entry.Schemes?.FirstOrDefault()
+            ?? throw new InvalidOperationException("The connector has no scheme to verify.");
+        var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));
+        if (factory.GetType().FullName is null)
+            throw new InvalidOperationException($"Connector scheme '{scheme}' did not resolve to a provider factory.");
         Console.WriteLine($"Loaded {context.Entry.Provider} {context.Entry.Version} in a new process.");
     }
 

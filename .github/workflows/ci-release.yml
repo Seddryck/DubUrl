@@ -240,6 +240,7 @@ jobs:
             'providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
             'providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
             'providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
+            'connectors/DubUrl.Connector.Generated/DubUrl.Connector.Generated.csproj'
             'connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj'
             'DubUrl.OleDb/DubUrl.OleDb.csproj'
             'DubUrl.Extensions/DubUrl.Extensions.csproj'
@@ -557,6 +558,9 @@ jobs:
           $env:DUBURL_ProviderPacks__StorePath = (Join-Path $PWD '.artifacts/fresh-connector-store')
           $listed = & .artifacts/tool/duburl connector list --json | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Listing the official connector catalog failed.' }
+          if (@($listed.connectors).Count -ne 32) {
+            throw "The packaged CLI listed $(@($listed.connectors).Count) connectors instead of 32."
+          }
           $connector = @($listed.connectors | Where-Object id -eq 'postgresql-npgsql')
           if ($connector.Count -ne 1 `
               -or -not $connector[0].listed `
@@ -1256,7 +1260,7 @@ jobs:
           if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
           if ($workerArchives.Count -ne 6) { throw "Expected six worker archives, found $($workerArchives.Count)." }
-          if ($connectorArchives.Count -ne 1) { throw "Expected one connector archive, found $($connectorArchives.Count)." }
+          if ($connectorArchives.Count -ne 32) { throw "Expected 32 connector archives, found $($connectorArchives.Count)." }
           $mixedCase = @($archives + $installers + $workerArchives + $connectorArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
           if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
 

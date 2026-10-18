@@ -24,6 +24,7 @@
       "DubUrl.Schema.Testing\\DubUrl.Schema.Testing.csproj",
       "DubUrl.Schema\\DubUrl.Schema.csproj",
       "DubUrl.Testing\\DubUrl.Testing.csproj",
+      "connectors\\DubUrl.Connector.Generated\\DubUrl.Connector.Generated.csproj",
       "connectors\\DubUrl.Connector.PostgreSql.Npgsql\\DubUrl.Connector.PostgreSql.Npgsql.csproj",
       "providers\\DubUrl.Provider.Access\\DubUrl.Provider.Access.csproj",
       "providers\\DubUrl.Provider.Db2\\DubUrl.Provider.Db2.csproj",

@@ -1,11 +1,13 @@
 # Connector publication matrix
 
-`connector-matrix.json` is the source inventory for DubUrl connector packs. A row is `planned` until its redistribution rights, dependencies, native assets, target frameworks, runtime identifiers, and external prerequisites have been verified. Only `ready` rows may be emitted into the official catalog, and only after the release workflow has built and validated their immutable archives.
+`connector-matrix.json` is the authoritative inventory and build definition for DubUrl connector packs. Every row is emitted into the official catalog only after its archive, dependency closure, manifest integrity, module loading, activation, and removal lifecycle have been validated.
 
-The first ready connector is `postgresql-npgsql`. Its pack contains an explicit provider module and Npgsql's managed dependency closure. It is portable across the CLI's `net8.0`, `net9.0`, and `net10.0` hosts and has no machine-level database-driver prerequisite.
+All 32 existing database/technology combinations are available. Managed connectors carry their ADO.NET dependency closure. DuckDB and SQLite additionally carry the native assets published by their upstream binding packages, with explicit runtime compatibility metadata.
 
-The same module is also published as the `DubUrl.Connector.PostgreSql.Npgsql` NuGet package for applications that choose their connectors at build time. It depends only on `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and Npgsql; it does not depend on the `DubUrl` compatibility aggregate. Its DubUrl package dependencies start at the connector's build version and stop before `1.0.0`; the downloadable connector pack and NuGet package are built from the same project output.
+ODBC and OLE DB connectors carry the .NET bridge but do not redistribute database-vendor drivers or providers. Their archives include an external-prerequisite notice, and the matching machine-level driver must be installed separately. Access and Excel connectors are restricted to supported Windows runtime identifiers.
 
-ODBC and OLE DB rows remain separate because their machine-installed drivers or providers are not pack-owned assets. Before those rows become ready, activation must probe the external prerequisite and return an actionable diagnostic when it is absent.
+The connector assemblies are generated from the matrix through a single explicit `IDubUrlProviderModule` implementation. Each build selects exactly one database family, mapper, dialect, parametrizer, and driver technology. `DubUrl.Core` is supplied by the host and is deliberately excluded from connector archives.
 
-The official `connector-catalog.json` uses schema version 1. Every entry contains the canonical connector ID, pack version, aliases, schemes, immutable HTTPS URL, archive SHA-256, DubUrl API range, target frameworks, and runtime identifiers. It is generated from validated release artifacts; known mappings are never copied into it merely because DubUrl recognizes their URL schemes.
+`DubUrl.Connector.PostgreSql.Npgsql` is also published as a NuGet package for applications that choose PostgreSQL/Npgsql at build time. It depends only on `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and Npgsql, with DubUrl dependency bounds from the current build version through, but excluding, `1.0.0`.
+
+The official `connector-catalog.json` uses schema version 1. Every entry contains its canonical connector ID, optional command aliases, supported schemes, immutable HTTPS URL, archive SHA-256, DubUrl API range, target frameworks, and runtime identifiers.

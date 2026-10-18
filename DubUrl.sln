@@ -184,6 +184,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Sqlite", "p
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Teradata", "providers\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj", "{80839A7F-CF1C-47F7-8CFF-4F1372904B7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.Generated", "connectors\DubUrl.Connector.Generated\DubUrl.Connector.Generated.csproj", "{2619EAA0-119A-486B-B6C0-ADE2692C586C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -922,6 +924,18 @@ Global
 		{80839A7F-CF1C-47F7-8CFF-4F1372904B7C}.Release|x64.Build.0 = Release|Any CPU
 		{80839A7F-CF1C-47F7-8CFF-4F1372904B7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{80839A7F-CF1C-47F7-8CFF-4F1372904B7C}.Release|x86.Build.0 = Release|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Debug|x64.Build.0 = Debug|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Debug|x86.Build.0 = Debug|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Release|x64.ActiveCfg = Release|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Release|x64.Build.0 = Release|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Release|x86.ActiveCfg = Release|Any CPU
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -968,6 +982,7 @@ Global
 		{0FFBE84E-C1B6-46AD-8BFA-AE77B474B452} = {D9007A03-FD03-1159-6598-E081D0A1BEBA}
 		{19517C7F-1610-4701-BE71-615AF4549D36} = {D9007A03-FD03-1159-6598-E081D0A1BEBA}
 		{80839A7F-CF1C-47F7-8CFF-4F1372904B7C} = {D9007A03-FD03-1159-6598-E081D0A1BEBA}
+		{2619EAA0-119A-486B-B6C0-ADE2692C586C} = {A328B835-4990-6931-34B9-ABE689D5831A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}

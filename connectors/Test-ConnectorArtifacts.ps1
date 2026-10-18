@@ -19,7 +19,6 @@ if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
 $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json
 if ($catalog.schemaVersion -ne 1) { throw "Expected connector catalog schema version 1." }
 $entries = @($catalog.entries)
-if ($entries.Count -ne 1) { throw "Expected one ready connector, found $($entries.Count)." }
 
 $matrix = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'connector-matrix.json') -Raw | ConvertFrom-Json
 if ($matrix.schemaVersion -ne 1) { throw "Expected connector matrix schema version 1." }
@@ -28,6 +27,7 @@ if (@($matrixIds | Select-Object -Unique).Count -ne $matrixIds.Count) { throw "C
 $readyIds = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object id)
 $catalogIds = @($entries | ForEach-Object provider)
 if (Compare-Object $readyIds $catalogIds) { throw "The catalog must contain exactly the ready connector matrix rows." }
+if ($entries.Count -ne $readyIds.Count) { throw "Expected $($readyIds.Count) ready connectors, found $($entries.Count)." }
 
 $names = @{}
 foreach ($entry in $entries) {
@@ -77,28 +77,29 @@ foreach ($entry in $entries) {
     }
 }
 
-$entry = $entries[0]
-$archivePath = Join-Path $root ([IO.Path]::GetFileName($entry.downloadUri))
-$storePath = Join-Path ([IO.Path]::GetTempPath()) "duburl-connector-verifier-$([Guid]::NewGuid().ToString('N'))"
 $verifier = Join-Path $PSScriptRoot 'ConnectorArtifactVerifier/ConnectorArtifactVerifier.csproj'
-try {
-    & dotnet restore $verifier -p:TargetFramework=net8.0 --disable-parallel --nologo
-    if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier restore failed." }
-    & dotnet build $verifier --configuration Release --framework net8.0 --no-restore --nologo --disable-build-servers -m:1 `
-        -p:Version=$Version
-    if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier build failed." }
-    & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
-        install $catalogPath $archivePath $storePath
-    if ($LASTEXITCODE -ne 0) { throw "Connector installation lifecycle validation failed." }
-    & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
-        verify $catalogPath $archivePath $storePath
-    if ($LASTEXITCODE -ne 0) { throw "Connector activation lifecycle validation failed." }
-    & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
-        uninstall $catalogPath $archivePath $storePath
-    if ($LASTEXITCODE -ne 0) { throw "Connector uninstall lifecycle validation failed." }
-}
-finally {
-    if (Test-Path -LiteralPath $storePath) { Remove-Item -LiteralPath $storePath -Recurse -Force }
+& dotnet restore $verifier -p:TargetFramework=net8.0 --disable-parallel --nologo
+if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier restore failed." }
+& dotnet build $verifier --configuration Release --framework net8.0 --no-restore --nologo --disable-build-servers -m:1 `
+    -p:Version=$Version
+if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier build failed." }
+foreach ($entry in $entries) {
+    $archivePath = Join-Path $root ([IO.Path]::GetFileName($entry.downloadUri))
+    $storePath = Join-Path ([IO.Path]::GetTempPath()) "duburl-connector-verifier-$([Guid]::NewGuid().ToString('N'))"
+    try {
+        & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
+            install $catalogPath $archivePath $storePath $entry.provider
+        if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' installation lifecycle validation failed." }
+        & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
+            verify $catalogPath $archivePath $storePath $entry.provider
+        if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' activation lifecycle validation failed." }
+        & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
+            uninstall $catalogPath $archivePath $storePath $entry.provider
+        if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' uninstall lifecycle validation failed." }
+    }
+    finally {
+        if (Test-Path -LiteralPath $storePath) { Remove-Item -LiteralPath $storePath -Recurse -Force }
+    }
 }
 
-Write-Host "Validated $($entries.Count) connector archive, lifecycle, and the schema-v1 official catalog."
+Write-Host "Validated $($entries.Count) connector archives, lifecycles, and the schema-v1 official catalog."

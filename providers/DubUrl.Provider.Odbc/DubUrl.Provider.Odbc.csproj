@@ -4,7 +4,6 @@
     <Compile Include="..\..\DubUrl.Core\Locating\OdbcDriver\**\*.cs"
              Exclude="..\..\DubUrl.Core\Locating\OdbcDriver\DriverLocatorFactory.cs;..\..\DubUrl.Core\Locating\OdbcDriver\IDriverLocator.cs"
              Link="Locating\OdbcDriver\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="..\..\DubUrl.Core\Locating\Options\**\*.cs" Link="Locating\Options\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Connectivity\OdbcConnectivity.cs" Link="Mapping\Connectivity\OdbcConnectivity.cs" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\DrillOdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\DuckdbOdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\OdbcDbqMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\OdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\QuestDbOdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\TrinoOdbcMapper.cs" Link="Mapping\Implementation\%(Filename)%(Extension)" />
     <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\DrillOdbcRewriter.cs;..\..\DubUrl.Core\Rewriting\Implementation\DuckdbOdbcRewriter.cs;..\..\DubUrl.Core\Rewriting\Implementation\OdbcDbqRewriter.cs;..\..\DubUrl.Core\Rewriting\Implementation\OdbcRewriter.cs;..\..\DubUrl.Core\Rewriting\Implementation\QuestDbOdbcRewriter.cs;..\..\DubUrl.Core\Rewriting\Implementation\TrinoOdbcRewriter.cs" Link="Rewriting\Implementation\%(Filename)%(Extension)" />
