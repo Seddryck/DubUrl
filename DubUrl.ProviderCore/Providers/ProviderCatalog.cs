@@ -16,7 +16,7 @@ public sealed class ProviderCatalog
         ArgumentNullException.ThrowIfNull(providers);
         var ordered = providers
             .OrderBy(provider => provider.Name, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(provider => provider.Version, StringComparer.Ordinal)
+            .ThenBy(provider => provider.Source, StringComparer.Ordinal)
             .ToArray();
         var byScheme = new Dictionary<string, ProviderDescriptor>(StringComparer.OrdinalIgnoreCase);
         foreach (var provider in ordered)

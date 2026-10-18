@@ -27,6 +27,7 @@ public enum ProviderPackAssetKind
 {
     Managed,
     Native,
+    Content,
 }
 
 public sealed record ProviderPackAsset

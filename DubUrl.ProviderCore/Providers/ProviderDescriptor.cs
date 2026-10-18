@@ -6,13 +6,13 @@ namespace DubUrl.Core.Providers;
 public sealed record ProviderDescriptor
 {
     public string Name { get; }
-    public string Version { get; }
+    public string Source { get; }
     public IReadOnlyList<string> Schemes { get; }
 
-    public ProviderDescriptor(string name, string version, IEnumerable<string> schemes)
+    public ProviderDescriptor(string name, string source, IEnumerable<string> schemes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(version);
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
         ArgumentNullException.ThrowIfNull(schemes);
 
         var normalizedSchemes = schemes
@@ -25,7 +25,7 @@ public sealed record ProviderDescriptor
             throw new ArgumentException("At least one non-empty scheme is required.", nameof(schemes));
 
         Name = name;
-        Version = version;
+        Source = source;
         Schemes = normalizedSchemes;
     }
 }
