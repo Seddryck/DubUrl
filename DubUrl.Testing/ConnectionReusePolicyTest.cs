@@ -120,6 +120,27 @@ public class ConnectionReusePolicyTest
         Assert.That(context.ToString(), Does.Not.Contain("not-a-boolean-secret"));
     }
 
+    [TestCase(typeof(ArgumentException))]
+    [TestCase(typeof(FormatException))]
+    [TestCase(typeof(InvalidCastException))]
+    [TestCase(typeof(OverflowException))]
+    public void ConnectionStringAssignment_ParsingFailureIsRedacted(Type exceptionType)
+    {
+        const string configuration = "Password=redaction-test-marker";
+        var failure = (Exception)Activator.CreateInstance(exceptionType, configuration)!;
+        var builder = new Mock<DbConnectionStringBuilder>();
+        builder.SetupSet(x => x.ConnectionString = configuration).Throws(failure);
+        var factory = new Mock<DbProviderFactory>();
+        factory.Setup(x => x.CreateConnectionStringBuilder()).Returns(builder.Object);
+        var context = new ConnectionReuseContext(factory.Object, configuration);
+
+        var exception = Assert.Throws<ArgumentException>(() => context.CreateConnectionStringBuilder());
+
+        Assert.That(exception!.Message, Is.EqualTo("The provider connection configuration is invalid."));
+        Assert.That(exception.InnerException, Is.Null);
+        Assert.That(exception.ToString(), Does.Not.Contain("redaction-test-marker"));
+    }
+
     [Test]
     public void ResolverMustReturnConcreteMode()
     {
