@@ -30,16 +30,12 @@ You can also use typed overloads, such as `ReadScalar<long>`. Choose a type that
 
 ## Choose how connections are reused
 
-With `new DatabaseUrl(url)`, each operation opens and disposes its connection object. The provider's pool can reuse the underlying database connection.
+With `new DatabaseUrl(url)`, each operation opens and disposes its connection object. The provider's pool can reuse the underlying database connection. Existing constructors that take a URL, factory, or `ConnectionUrl` keep this `ProviderManaged` behavior.
 
-To let DubUrl choose how to reuse connections, create a source with `Auto` and pass it to `DatabaseUrl`:
+To let DubUrl choose how to reuse connections, create a source and pass it to `DatabaseUrl`. Sources use `Auto` by default:
 
 ```csharp
-await using var source = new ConnectionSourceUrl(url).Create(
-    new ConnectionSourceOptions
-    {
-        ReuseMode = ConnectionReuseMode.Auto
-    });
+await using var source = new ConnectionSourceUrl(url).Create();
 
 await using var database = new DatabaseUrl(source);
 

@@ -10,6 +10,42 @@ namespace DubUrl.Testing;
 
 public class DatabaseConnectionSourceTest
 {
+    [TestCase("url")]
+    [TestCase("factory")]
+    [TestCase("connection")]
+    [TestCase("factory-with-provisioners")]
+    [TestCase("micro-orm")]
+    public void ExistingConstructors_KeepProviderManagedBehaviorForDuckDb(string constructor)
+    {
+        DbProviderFactories.RegisterFactory("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance);
+        const string url = "duckdb://memory";
+        var factory = new ConnectionUrlFactory(DubUrl.Mapping.SchemeRegistryBuilder.GetDefault());
+        using var database = constructor switch
+        {
+            "url" => new DatabaseUrl(url),
+            "factory" => new DatabaseUrl(factory, url),
+            "connection" => new DatabaseUrl(factory.Instantiate(url), new(), NullQueryLogger.Instance),
+            "factory-with-provisioners" => new DatabaseUrl(factory, new(), url),
+            _ => new DubUrl.MicroOrm.DatabaseUrl(factory.Instantiate(url), new(), new DubUrl.MicroOrm.ReflectionCache(), NullQueryLogger.Instance)
+        };
+
+        using (database.ExecuteReader("CREATE TABLE connection_default_test (value INTEGER)")) { }
+        // A new connection gets a fresh in-memory database. Auto would retain the table.
+        var tables = database.ReadScalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'connection_default_test'");
+        Assert.That(Convert.ToInt32(tables), Is.Zero);
+    }
+
+    [Test]
+    public async Task InjectedDefaultSource_UsesAutomaticRetentionForDuckDb()
+    {
+        DbProviderFactories.RegisterFactory("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance);
+        await using var source = new ConnectionSourceUrl("duckdb://memory").Create();
+        await using var database = new DatabaseUrl(source);
+        using (database.ExecuteReader("CREATE TABLE connection_default_test (value INTEGER)")) { }
+        var tables = await database.ReadScalarAsync("SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'connection_default_test'");
+        Assert.That(Convert.ToInt32(tables), Is.EqualTo(1));
+    }
+
     private sealed class Rig : IDisposable
     {
         public readonly Mock<DbConnection> Connection = new();

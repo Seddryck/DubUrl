@@ -70,6 +70,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         lock (_lifetimeSync)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            // Existing constructors preserve per-operation connection ownership, independently of source defaults.
             return _source ??= new ConnectionSource(ConnectionUrl, ConnectionReuseMode.ProviderManaged);
         }
     }
