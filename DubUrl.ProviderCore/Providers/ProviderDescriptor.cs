@@ -25,14 +25,9 @@ public sealed record ProviderDescriptor
     }
 
     private static string[] NormalizeSchemes(IEnumerable<string> schemes)
-    {
-        var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var scheme in schemes)
-        {
-            var value = scheme?.Trim();
-            if (!string.IsNullOrWhiteSpace(value))
-                normalized.Add(value);
-        }
-        return [.. normalized];
-    }
+        => schemes
+            .Where(scheme => !string.IsNullOrWhiteSpace(scheme))
+            .Select(scheme => scheme.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 }

@@ -78,16 +78,11 @@ public sealed class ProviderRegistration
     }
 
     private static string[] NormalizeAliases(IEnumerable<string> aliases)
-    {
-        var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var alias in aliases)
-        {
-            var value = alias?.Trim();
-            if (!string.IsNullOrWhiteSpace(value))
-                normalized.Add(value);
-        }
-        return [.. normalized];
-    }
+        => aliases
+            .Where(alias => !string.IsNullOrWhiteSpace(alias))
+            .Select(alias => alias.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 }
 
 /// <summary>

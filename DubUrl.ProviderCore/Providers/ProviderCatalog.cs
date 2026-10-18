@@ -23,10 +23,11 @@ public sealed class ProviderCatalog
             provider.Schemes.Select(scheme => (Scheme: scheme, Provider: provider)));
         foreach (var registration in registrations)
         {
-            if (!byScheme.TryAdd(registration.Scheme, registration.Provider))
-                throw new ArgumentException(
-                    $"Scheme '{registration.Scheme}' is registered by both '{byScheme[registration.Scheme].Name}' and '{registration.Provider.Name}'.",
-                    nameof(providers));
+            if (byScheme.TryAdd(registration.Scheme, registration.Provider))
+                continue;
+            throw new ArgumentException(
+                $"Scheme '{registration.Scheme}' is registered by both '{byScheme[registration.Scheme].Name}' and '{registration.Provider.Name}'.",
+                nameof(providers));
         }
 
         Providers = Array.AsReadOnly(ordered);
