@@ -16,13 +16,14 @@ Python users who do not want to install .NET can download a self-contained archi
 
 - `win-x64` or `win-arm64` for Windows;
 - `linux-x64` for glibc-based Linux distributions;
-- `linux-musl-x64` for musl-based distributions such as Alpine Linux.
+- `linux-musl-x64` for musl-based distributions such as Alpine Linux;
+- `osx-x64` for Intel Macs or `osx-arm64` for Apple silicon Macs.
 
-Each archive contains `duburl-worker.exe` on Windows or `duburl-worker` on Linux. Python can extract that archive and launch the executable directly with `subprocess.Popen`; neither a shell nor a separately installed .NET runtime is required.
+Each archive contains `duburl-worker.exe` on Windows or `duburl-worker` on Linux and macOS. Python can extract that archive and launch the executable directly with `subprocess.Popen`; neither a shell nor a separately installed .NET runtime is required.
 
 ### Manual release download
 
-Open the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest), expand **Assets**, and download the archive named `duburl-worker-<version>-net10.0-<runtime>` for the target machine. Windows archives use `.zip`; Linux archives use `.tar.gz`. You can rename the downloaded file in the commands below to avoid substituting the version number.
+Open the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest), expand **Assets**, and download the archive named `duburl-worker-<version>-net10.0-<runtime>` for the target machine. Windows archives use `.zip`; Linux and macOS archives use `.tar.gz`. You can rename the downloaded file in the commands below to avoid substituting the version number.
 
 On Windows, save it as `duburl-worker.zip`, then extract and verify it with PowerShell:
 
@@ -32,7 +33,7 @@ Expand-Archive .\duburl-worker.zip -DestinationPath .\tools\duburl-worker
 .\tools\duburl-worker\duburl-worker.exe --version
 ```
 
-On Linux, save it as `duburl-worker.tar.gz`, then extract and verify it:
+On Linux or macOS, save it as `duburl-worker.tar.gz`, then extract and verify it:
 
 ```bash
 mkdir -p ./tools/duburl-worker

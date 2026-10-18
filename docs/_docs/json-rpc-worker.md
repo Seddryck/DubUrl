@@ -13,11 +13,11 @@ dotnet tool install --global DubUrl.Worker
 duburl-worker
 ```
 
-The tool supports .NET 8, 9, and 10. Python and other clients that do not want to require a .NET installation can instead download a self-contained archive from the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest). Choose `win-x64` or `win-arm64` for Windows, `linux-x64` for glibc-based Linux distributions, or `linux-musl-x64` for distributions such as Alpine Linux.
+The tool supports .NET 8, 9, and 10. Python and other clients that do not want to require a .NET installation can instead download a self-contained archive from the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest). Choose `win-x64` or `win-arm64` for Windows, `linux-x64` for glibc-based Linux distributions, `linux-musl-x64` for distributions such as Alpine Linux, `osx-x64` for Intel Macs, or `osx-arm64` for Apple silicon Macs.
 
 ### Download manually from a release
 
-Open the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest), expand **Assets**, and download the archive named `duburl-worker-<version>-net10.0-<runtime>` for the target machine. Windows archives use `.zip`; Linux archives use `.tar.gz`. You can rename the downloaded file in the commands below to avoid substituting the version number.
+Open the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest), expand **Assets**, and download the archive named `duburl-worker-<version>-net10.0-<runtime>` for the target machine. Windows archives use `.zip`; Linux and macOS archives use `.tar.gz`. You can rename the downloaded file in the commands below to avoid substituting the version number.
 
 On Windows, save it as `duburl-worker.zip`, then extract and verify it with PowerShell:
 
@@ -27,7 +27,7 @@ Expand-Archive .\duburl-worker.zip -DestinationPath .\tools\duburl-worker
 .\tools\duburl-worker\duburl-worker.exe --version
 ```
 
-On Linux, save it as `duburl-worker.tar.gz`, then extract and verify it:
+On Linux or macOS, save it as `duburl-worker.tar.gz`, then extract and verify it:
 
 ```bash
 mkdir -p ./tools/duburl-worker
