@@ -27,19 +27,21 @@ public sealed class ConnectionSourceUrl : BaseConnectionUrl
             {
                 dataSource = factory.CreateDataSource(Result.ConnectionString);
             }
-            catch (NotSupportedException) { }
-            catch (NotImplementedException) { }
+            catch (Exception exception) when (exception is NotSupportedException or NotImplementedException)
+            {
+                return new ConnectionSource(context, mode, selectionReason: reason);
+            }
         }
         return new ConnectionSource(context, mode, dataSource, reason);
     }
 
     private sealed class ResolvedRegistry(ResolvedConnection resolved, ISchemeRegistry registry) : ISchemeRegistry
     {
-        public ResolvedConnection Resolve(ConnectionUri uri) => resolved;
+        public ResolvedConnection Resolve(ConnectionUri connectionUri) => resolved;
         public DbProviderFactory GetProviderFactory(SchemeKey scheme) => resolved.ProviderFactory;
-        public bool TryResolve(ConnectionUri uri, out ResolvedConnection? connection, out ConnectionResolutionDiagnostic? diagnostic)
+        public bool TryResolve(ConnectionUri connectionUri, out ResolvedConnection? resolvedConnection, out ConnectionResolutionDiagnostic? diagnostic)
         {
-            connection = resolved;
+            resolvedConnection = resolved;
             diagnostic = null;
             return true;
         }

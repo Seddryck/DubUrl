@@ -10,6 +10,36 @@ namespace DubUrl.Testing;
 
 public class DatabaseConnectionSourceTest
 {
+    private sealed class DerivedDatabase(ConnectionSource source) : DatabaseUrl(source)
+    {
+        public List<string> CleanupCalls { get; } = [];
+
+        protected override void Dispose(bool disposing)
+        {
+            CleanupCalls.Add(disposing ? "sync" : "unmanaged");
+            base.Dispose(disposing);
+        }
+
+        protected override async ValueTask DisposeAsyncCore()
+        {
+            CleanupCalls.Add("async");
+            await base.DisposeAsyncCore().ConfigureAwait(false);
+        }
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task DerivedDatabase_DisposalCallsMatchingHookAndPreservesBorrowedSource(bool asynchronous)
+    {
+        await using var source = ConnectionSourceTest.CreateUrl(() => new ConnectionSourceTest.TestConnection()).Create();
+        var database = new DerivedDatabase(source);
+        if (asynchronous) await database.DisposeAsync();
+        else database.Dispose();
+        Assert.That(database.CleanupCalls, Is.EqualTo(asynchronous ? new[] { "async", "unmanaged" } : new[] { "sync" }));
+        Assert.Throws<ObjectDisposedException>(() => database.ReadScalar("SELECT 1"));
+        await using var lease = await source.AcquireAsync();
+    }
+
     [TestCase("url")]
     [TestCase("factory")]
     [TestCase("connection")]

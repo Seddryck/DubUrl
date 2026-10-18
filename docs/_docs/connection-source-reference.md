@@ -94,4 +94,6 @@ Sources use the provider's `DbDataSource` when supported, with a connection-fact
 
 `DatabaseUrl` and MicroOrm use the shared query executor for public query methods. Overriding the protected `PrepareCommand` helper does not intercept all those methods. Code using that helper must dispose its returned owning command or reader.
 
+Subclasses that own additional resources can override `Dispose(bool)` for synchronous cleanup and `DisposeAsyncCore()` for asynchronous cleanup. Call the matching base implementation from each override.
+
 `IDatabaseUrl` now extends `IDisposable` and `IAsyncDisposable`. If you implement that interface yourself, implement those lifecycle methods too.

@@ -172,5 +172,4 @@ internal sealed class DatabaseCommandExecutor
             provisioner.Execute(command);
         _queryLogger.Log(command.CommandText);
     }
-
 }
