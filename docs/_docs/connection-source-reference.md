@@ -72,6 +72,8 @@ Provider background: [Npgsql pooling options](https://www.npgsql.org/doc/connect
 
 Pass a cancellation token to `AcquireAsync(token)` to cancel waiting for a retained connection or opening a new connection. Canceling a waiting operation does not cancel the operation currently using the connection.
 
+Canceling an acquisition also leaves an existing healthy retained connection available for later operations. It does not discard that connection or its in-memory data.
+
 If opening a connection fails, DubUrl disposes resources created for that attempt. A later acquisition can try again. If a retained connection is found closed or broken, DubUrl discards it and opens a replacement. It does not test server reachability on every acquisition or rerun failed commands.
 
 ## Session settings and transactions
@@ -83,6 +85,8 @@ A retained connection can keep settings from one lease to the next. DubUrl does 
 Finish using each lease before disposing its source. Calling source disposal while holding a lease in the same scope can make disposal wait for a lease that your code has not yet released.
 
 When source disposal starts, it rejects new acquisitions, wakes queued waiters with `ObjectDisposedException`, and waits for outstanding leases to finish. It then disposes the retained connection and any provider data source it owns. Repeated disposal of a lease or source releases its resources only once.
+
+Repeated disposal calls wait for the same cleanup and report the same failure, if cleanup fails. Reader disposal follows the same rule. `Dispose()` uses the provider's synchronous cleanup; `DisposeAsync()` uses its asynchronous cleanup when available. A throwing provider cancellation callback does not stop source cleanup: the disposal operation reports that failure after cleanup finishes. If several cleanup steps fail, it reports them together in an `AggregateException`.
 
 Sources use the provider's `DbDataSource` when supported, with a connection-factory fallback for providers that do not implement data source creation. Existing `ConnectionUrl` and `DataSourceUrl` APIs keep their existing ownership behavior.
 

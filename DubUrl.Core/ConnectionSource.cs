@@ -140,8 +140,9 @@ public sealed class ConnectionSource : IConnectionSource
     {
         try
         {
-            if (ReferenceEquals(connection, _retained) && entered) _retained = null;
-            if (connection is not null)
+            // An unsuccessful borrower does not own an existing retained connection. Leave it
+            // available for the next borrower (or for shutdown to dispose after all users drain).
+            if (connection is not null && (!entered || !ReferenceEquals(connection, _retained)))
                 await DisposeConnectionAsync(connection, asynchronous).ConfigureAwait(false);
         }
         finally
@@ -157,9 +158,11 @@ public sealed class ConnectionSource : IConnectionSource
             if (--_active == 0 && _disposed) _drained.TrySetResult();
     }
 
-    public void Dispose() => DisposeAsync().GetAwaiter().GetResult();
+    public void Dispose() => StartDisposal(false).GetAwaiter().GetResult();
 
-    public ValueTask DisposeAsync()
+    public ValueTask DisposeAsync() => StartDisposal(true);
+
+    private ValueTask StartDisposal(bool asynchronous)
     {
         bool start;
         lock (_sync)
@@ -170,38 +173,46 @@ public sealed class ConnectionSource : IConnectionSource
         }
         if (start)
         {
-            _shutdown.Cancel();
-            _ = FinishAsync();
+            Exception? cancellationFailure = null;
+            try { _shutdown.Cancel(); }
+            catch (Exception exception) { cancellationFailure = exception; }
+            // Even a provider's throwing cancellation callback must not strand shutdown.
+            _ = FinishAsync(asynchronous, cancellationFailure);
         }
         return new ValueTask(_finished.Task);
     }
 
-    private async Task FinishAsync()
+    private async Task FinishAsync(bool asynchronous, Exception? cancellationFailure)
     {
+        var failures = new List<Exception>();
+        if (cancellationFailure is not null) failures.Add(cancellationFailure);
         try
         {
             await _drained.Task.ConfigureAwait(false);
             try
             {
                 if (_retained is not null)
-                    await DisposeConnectionAsync(_retained, true).ConfigureAwait(false);
+                    await DisposeConnectionAsync(_retained, asynchronous).ConfigureAwait(false);
             }
-            finally
+            catch (Exception exception) { failures.Add(exception); }
+            try
             {
                 if (_dataSource is not null)
-                    await _dataSource.DisposeAsync().ConfigureAwait(false);
+                    await DisposeConnectionAsync(_dataSource, asynchronous).ConfigureAwait(false);
             }
-            _finished.TrySetResult();
+            catch (Exception exception) { failures.Add(exception); }
         }
         catch (Exception exception)
         {
-            _finished.TrySetException(exception);
+            failures.Add(exception);
         }
         finally
         {
             _exclusive.Dispose();
             _shutdown.Dispose();
         }
+        if (failures.Count == 0) _finished.TrySetResult();
+        else _finished.TrySetException(failures.Count == 1 ? failures[0] : new AggregateException(failures));
     }
 
     internal static async ValueTask DisposeConnectionAsync(IDisposable connection, bool asynchronous)

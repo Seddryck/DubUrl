@@ -8,8 +8,10 @@ internal sealed class OwnedDbCommand : IDbCommand
     private readonly IDbCommand _command;
     private IDbConnection _connection;
     private readonly IDisposable _owner;
-    private int _ownershipTransferred;
-    private int _disposed;
+    private readonly object _sync = new();
+    private bool _ownershipTransferred;
+    private bool _disposed;
+    private readonly DisposalCompletion _disposal = new();
 
     public OwnedDbCommand(IDbCommand command, IDbConnection connection, IDisposable? owner = null)
         => (_command, _connection, _owner) = (command, connection, owner ?? connection);
@@ -34,38 +36,59 @@ internal sealed class OwnedDbCommand : IDbCommand
 
     public void Cancel() => _command.Cancel();
     public IDbDataParameter CreateParameter() => _command.CreateParameter();
-    public int ExecuteNonQuery() => _command.ExecuteNonQuery();
-    public object? ExecuteScalar() => _command.ExecuteScalar();
-    public void Prepare() => _command.Prepare();
+    public int ExecuteNonQuery() => Execute(_command.ExecuteNonQuery);
+    public object? ExecuteScalar() => Execute(_command.ExecuteScalar);
+    public void Prepare() => Execute(() => { _command.Prepare(); return 0; });
     public IDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
 
     public IDataReader ExecuteReader(CommandBehavior behavior)
     {
-        try
+        lock (_sync)
         {
-            var reader = _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection);
-            Interlocked.Exchange(ref _ownershipTransferred, 1);
-            return new OwnedDataReader(reader, _command, _owner);
+            EnsureActive();
+            try
+            {
+                var reader = _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection);
+                _ownershipTransferred = true;
+                return new OwnedDataReader(reader, _command, _owner);
+            }
+            catch
+            {
+                Dispose();
+                throw;
+            }
         }
-        catch
+    }
+
+    private T Execute<T>(Func<T> action)
+    {
+        lock (_sync)
         {
-            Dispose();
-            throw;
+            EnsureActive();
+            return action();
         }
+    }
+
+    private void EnsureActive()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_ownershipTransferred)
+            throw new InvalidOperationException("The reader owns this command and its connection lease.");
     }
 
     public void Dispose()
     {
-        if (Volatile.Read(ref _ownershipTransferred) != 0 || Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
+        lock (_sync)
+        {
+            if (_ownershipTransferred) return;
+            _disposed = true;
+        }
 
-        try
+        _disposal.Run(() =>
         {
-            _command.Dispose();
-        }
-        finally
-        {
-            _owner.Dispose();
-        }
+            try { _command.Dispose(); }
+            finally { _owner.Dispose(); }
+            return default;
+        }).GetAwaiter().GetResult();
     }
 }

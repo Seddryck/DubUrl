@@ -75,9 +75,14 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         }
     }
 
-    public void Dispose() => DisposeAsync().GetAwaiter().GetResult();
+    public void Dispose()
+    {
+        TakeOwnedSource()?.Dispose();
+    }
 
-    public ValueTask DisposeAsync()
+    public ValueTask DisposeAsync() => TakeOwnedSource()?.DisposeAsync() ?? default;
+
+    private ConnectionSource? TakeOwnedSource()
     {
         ConnectionSource? owned;
         lock (_lifetimeSync)
@@ -85,7 +90,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
             _disposed = true;
             owned = _ownsSource ? _source : null;
         }
-        return owned?.DisposeAsync() ?? default;
+        return owned;
     }
 
     protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)
