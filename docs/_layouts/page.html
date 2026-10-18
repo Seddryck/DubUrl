@@ -1,23 +1,7 @@
 ---
 layout: default
 ---
-
-{% if page.width == 'expand' %}
-    {{ content }}
-{% else %}
-<div class="uk-section">
-    <div class="uk-container{% if page.width %} uk-container-{{page.width}}{% endif %}">
-
-        <article class="uk-article">
-
-            <h1 class="uk-article-title">{{ page.title | escape }}</h1>
-
-            <div class="article-content link-primary">
-                {{ content }}
-            </div>
-
-        </article>
-
-    </div>
-</div>
-{% endif %}
+{% unless content contains '<h1' %}
+<header class="page-header"><h1 class="page-title">{{ page.title | escape }}</h1></header>
+{% endunless %}
+{{ content }}

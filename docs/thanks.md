@@ -1,4 +1,5 @@
 ---
+search_exclude: true
 layout: page
 title: Thanks
 permalink: /thanks/

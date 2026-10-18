@@ -1,3 +1,4 @@
-<div{% if include.style %} class="uk-alert-{{ include.style }}"{% endif %} data-uk-alert>
-    <p>{{ include.text }}</p>
+<div class="doc-callout" role="note">
+  <strong>Before you connect</strong>
+  <div>{{ include.text | markdownify }}</div>
 </div>

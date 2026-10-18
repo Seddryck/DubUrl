@@ -1,8 +1,10 @@
 ---
-title: DubUrl command line
+title: Command-line tool
+parent: Tools and automation
+nav_order: 1
+permalink: /cli/
 ---
 
-# DubUrl command line
 
 `duburl` validates versioned schema documents, renders deterministic SQL, and deploys schemas through the same application services used by other DubUrl hosts.
 
@@ -49,27 +51,4 @@ duburl schema deploy .\schema.yaml --connection-env DUBURL_PRODUCTION_URL
 
 ## Automation
 
-GitHub Actions or another CI shell can consume the stable JSON envelope:
-
-```yaml
-- name: Validate database schema
-  shell: bash
-  run: duburl schema validate schema.yaml --output-format json > schema-validation.json
-```
-
-Python can invoke the tool without a shell:
-
-```python
-import json
-import subprocess
-
-completed = subprocess.run(
-    ["duburl", "schema", "validate", "schema.yaml", "--output-format", "json"],
-    check=True,
-    capture_output=True,
-    text=True,
-)
-result = json.loads(completed.stdout)
-```
-
-Use `duburl capabilities --json` to discover supported document versions, commands, renderable dialect aliases, installed providers, deployable schemes, and whether deployment is available. Rendering only requires a registered dialect; deployment additionally requires the corresponding ADO.NET provider to be bundled and registered.
+See [Automate schema deployment]({{ '/docs/automate-schemas/' | relative_url }}) for CI and Python examples.

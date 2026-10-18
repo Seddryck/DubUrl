@@ -1,9 +1,12 @@
 ---
-title: Connection source reference
+title: Connection source API
+parent: Reference
+nav_order: 6
+
 subtitle: Custom selection rules, provider support, and resource lifetime
 ---
 
-Start with [Reusing database connections](connection-source) for examples. This page covers configuration and behavior in more detail.
+Start with [Reusing database connections]({{ '/docs/connection-source/' | relative_url }}) for examples. This page covers configuration and behavior in more detail.
 
 ## Add a custom selection rule
 

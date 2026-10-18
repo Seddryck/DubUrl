@@ -1,14 +1,16 @@
 ---
-title: Reusing database connections
+title: Reuse connections and transactions
+parent: Connecting to databases
+nav_order: 4
+
 subtitle: Let DubUrl decide when to keep a connection open
-tags: [connection, quick-start]
 ---
 
 A `ConnectionSource` lets you run separate operations without deciding, each time, whether to close the connection or keep it open for the next operation.
 
 Create the source once and reuse it. DubUrl can then either let the provider's connection pool handle reuse, or keep one connection open itself.
 
-These features are available on .NET 8, 9, and 10. The examples assume you have [installed and registered your database provider](installation-ado-net-provider) and stored your connection URL in `url`.
+These features are available on .NET 8, 9, and 10. The examples assume you have [installed and registered your database provider]({{ '/docs/installation-ado-net-provider/' | relative_url }}) and stored your connection URL in `url`.
 
 ## Run queries with DatabaseUrl
 
@@ -98,7 +100,7 @@ Console.WriteLine(source.ReuseMode);
 Console.WriteLine(source.SelectionReason);
 ```
 
-See the [connection source reference](connection-source-reference) for custom rules and provider details.
+See the [connection source reference]({{ '/docs/connection-source-reference/' | relative_url }}) for custom rules and provider details.
 
 ## When operations need the same transaction
 
@@ -126,4 +128,4 @@ await transaction.CommitAsync();
 
 Finish reading or dispose the reader before starting another query on that source. In particular, do not start a query inside a loop that is still reading from the same retained connection. Read the rows into a list first if you need to run more queries for those rows.
 
-For details about cancellation, failures, and shutdown, see the [connection source reference](connection-source-reference).
+For details about cancellation, failures, and shutdown, see the [connection source reference]({{ '/docs/connection-source-reference/' | relative_url }}).

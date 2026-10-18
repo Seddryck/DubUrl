@@ -1,47 +1,41 @@
 ---
-title: Install ADO.Net data providers
+title: Configure and register your provider
+parent: Connecting to databases
+nav_order: 2
+
 subtitle: Add the package references and register the factories for the ADO.Net data providers
-tags: [installation, quick-start]
 ---
 
-{% include alert.html style="warning" text="DubUrl doesn't remove the need to add a reference to the package containing the ADO.Net provider, neither the need to register the factory of the ADO.Net provider" %}
+DubUrl parses database URLs and resolves providers. The ADO.NET provider package supplies the actual connection implementation; native drivers may be required separately.
 
-### Adding a reference to the ADO.Net data provider
+## Add a provider package
 
-The easiest, and usually the fastest way, to connect from .NET to a RDBMS is the usage of the native ADO.Net providers. Most major databases have a specific package, available on [Nuget](https://nuget.org), that must be added to your solution to connect to a specific database. The list bellow specifies the package that must be added depending on the databases that you're targeting. To add a reference to the package use the following commands where *Provider.Package.Name* must be replaced by the name of a package containing your ADO.Net data provider. Click [here](/docs/native-ado-net-providers/) for a list of supported providers and the corresponding name of the package.
+Choose the package listed for your database in [Supported databases and aliases]({{ '/docs/native-ado-net-providers/' | relative_url }}). For example:
 
-Install the package with *Package Manager*:
-```bash
-Install-Package Provider.Package.Name
+```shell
+dotnet add package Microsoft.Data.SqlClient
+dotnet add package MySqlConnector
+dotnet add package Npgsql
 ```
 
-Install the package with *.NET CLI* :
-```bash
-dotnet add package Provider.Package.Name
-```
+Install only the providers your application uses. For SQLite, the full `Microsoft.Data.Sqlite` package includes its default native SQLite bundle. `Microsoft.Data.Sqlite.Core` requires you to configure a compatible SQLitePCLRaw provider separately.
 
-One of the big advantage of DubUrl is to be able to really support multiple relational databases and especially multiple SQL dialects. Most of the time, you'll add more than a single ADO.Net data provider. The following example shows the referencing of the ADO.Net providers for Microsoft SQL Server, MySQL and PostgreSQL with the *.NET CLI*.
+## Register the provider factory
 
-```bash
-dotnet add package System.Data.SqlClient #Microsoft SQL Server
-dotnet add package MySqlConnector #MySQL
-dotnet add package Npgsql #PostgreSQL
-```
-
-### Registering the factory of the ADO.Net provider
-
-In addition to the need of adding the package to your solution at design time, don't forget to also register your ADO.Net providers at the start of your program. The invariant name of the provider (first expected parameter of the method `DbProviderFactories.RegisterFactory`) must be the ADO.Net data provider package name. The static method returning the factory is depending on the package but is usually named `Instance`.
+Register each selected factory at application startup, before resolving its connection URL:
 
 ```csharp
-DbProviderFactories.RegisterFactory(
-    "Provider.Package.Name"
-    , Provider.Package.Name.XyzFactory.Instance
-);
-```
-To come back to the previous example, registering the factories for Microsoft SQL Server, MySQL and PostgreSQL requires the following lines:
+using System.Data.Common;
 
-```csharp
-DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance); //Microsoft SQL Server
-DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance); //MySQL
-DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance); //PostgreSQL
+DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnector.MySqlConnectorFactory.Instance);
+DbProviderFactories.RegisterFactory("Npgsql", Npgsql.NpgsqlFactory.Instance);
 ```
+
+The invariant name is the provider identifier expected by DubUrl's mapping. It is not universally the NuGet package name: some providers have different package and invariant names. The catalog lists the expected values.
+
+Use explicit registration for predictable startup. `DubUrl.Registering.ProviderFactoriesRegistrator` is also available for assembly discovery, but it does not install missing packages or native drivers.
+
+## Continue
+
+[Open your first connection]({{ '/docs/first-connection/' | relative_url }}), or configure an [ODBC driver]({{ '/docs/odbc-driver-locators/' | relative_url }}) or [OLE DB provider]({{ '/docs/oledb-provider-locators/' | relative_url }}) when required.

@@ -1,54 +1,47 @@
 ---
-title: ConnectionUrl Class
+title: ConnectionUrl API
+parent: Reference
+nav_order: 4
+
+permalink: /docs/class-connectionUrl/
 subtitle: Instantiate and manipulate the class ConnectionUrl
-tags: [connection, quick-start]
 ---
 
-As we'll use the [ADO.Net provider for SQL Server](https://docs.microsoft.com/en-us/sql/connect/ado-net/microsoft-ado-net-sql-server) in this example, we should add it as a reference of the .NET project.
+`ConnectionUrl` resolves a URL using a scheme registry. Install and register the selected provider first; see [provider setup]({{ '/docs/installation-ado-net-provider/' | relative_url }}).
 
-```bash
-# With Package Manager
-Install-Package System.Data.SqlClient
-# or With .NET CLI
-dotnet add package System.Data.SqlClient
-```
+## Parse a URL
 
-If you're using .NET Core (and not .NET Framework), don't forget to register the ADO.Net providers before trying to use them. With .NET Framework, this step is facultative as the providers, installed at the machine-level, are automatically registered. In the code of your .NET project, add the following registration before trying to use DubUrl.
+`Parse()` returns the provider-specific connection string. Resolution requires the provider factory to be registered even when no connection is opened. This example uses the full `Microsoft.Data.Sqlite` package:
 
 ```csharp
-DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
+using System.Data.Common;
+using DubUrl;
+using Microsoft.Data.Sqlite;
+
+DbProviderFactories.RegisterFactory(
+    "Microsoft.Data.Sqlite", SqliteFactory.Instance);
+var connectionUrl = new ConnectionUrl("sqlite:///:memory:");
+Console.WriteLine(connectionUrl.Parse());
 ```
 
-Once the string representation of a connectionUrl is specified, you can instantiate an object of the class `ConnectionUrl` and use the function `Parse` to transform the connection URL into a classical *connection string*.
+Do not print connection strings containing real credentials in application logs.
+
+## Connect and open
+
+Both methods return `IDbConnection`. `Connect()` creates a closed connection; `Open()` also opens it. The caller owns and must dispose the returned connection.
 
 ```csharp
-string connectionUrl = "mssql://{server}/{database_name}";
-string connectionString = new ConnectionUrl(connectionUrl).Parse();
-// returns Data Source={server};Initial Catalog={database_name}
+using var closed = connectionUrl.Connect();
+using var opened = connectionUrl.Open();
+using var command = opened.CreateCommand();
+command.CommandText = "SELECT 1";
+Console.WriteLine(command.ExecuteScalar());
 ```
 
-You can also directly create a connection object. To achieve this, you need to use one of the functions `Connect` or `Open`. Both returns a connection object but the latest is also opening the connection, which is not the case for the former. Both connection objects are initialized with a `ConnectionString` property equal to the return of the `Parse` function.
+The default registry resolves factories that normally produce `DbConnection` instances, but the public return contract is `IDbConnection`. Use an explicit cast/type check before depending on provider-specific or asynchronous `DbConnection` members.
 
-```csharp
-string connectionUrl = "mssql://{server}:{port}/{database_name}";
-var firstConnection = new ConnectionUrl(connectionUrl).Connect();
-// the firstConnection is not open
+## Custom mappings and dialects
 
-var secondConnection = new ConnectionUrl(connectionUrl).Open();
-// the secondConnection is open
-```
+The constructor `ConnectionUrl(string url, ISchemeRegistry registry)` accepts a built registry, not a `SchemeMapperBuilder`. Create registries with `DubUrl.Mapping.SchemeRegistryBuilder`; see the [OLE DB guide]({{ '/docs/oledb-provider-locators/' | relative_url }}) for extension-assembly registration.
 
-You can use the created connection in a `using` statement to be sure that it's properly disposed when leaving the scope and you can also use the created connection to create a new command.
-
-```csharp
-DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
-string connectionUrl = "mssql://{server}/{database_name}";
-using (var connection = new ConnectionUrl(connectionUrl).Open())
-{
-    var command = connection.CreateCommand();
-    command.CommandText = "SELECT @@version"; //returns SQL Server version
-    return command.ExecuteScalar();
-}
-```
-
-The exact type of the connection object returned by the functions `Connect` or `Open` is depending of the scheme provided in the connection URL but it's always inheriting of the type `DbConnection`. As such, you can use it the same way than your classical `SqlConnection`, `OleDbConnection` or `OdbcConnection` or any other type of connection return by ADO.NET providers.
+`Dialect`, `Connectivity`, and `Parametrizer` expose the metadata resolved for the URL. For connection leases and reusable sources, see the [connection source API]({{ '/docs/connection-source-reference/' | relative_url }}).

@@ -1,10 +1,12 @@
 ---
-title: Install DubUrl
+title: Install the .NET library
+parent: Getting started
+nav_order: 3
+
 subtitle: Add the package reference to your project
-tags: [installation, quick-start]
 ---
 
-### Package Manager
+## Package Manager
 
 Install the package with *Package Manager* from [Nuget](http://nuget.org/packages/DubUrl):
 ```bash
@@ -16,7 +18,7 @@ Run the following to update to the latest version:
 Update-Package DubUrl
 ```
 
-### .NET CLI
+## .NET CLI
 
 Install the package with *.NET CLI* from [Nuget](http://nuget.org/packages/DubUrl):
 ```bash

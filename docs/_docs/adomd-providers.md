@@ -1,12 +1,14 @@
 ---
-title: ADOMD.NET data provider
+title: Connect to Analysis Services
+parent: Connecting to databases
+nav_order: 7
+
 subtitle: List of databases supported by the native ADOMD.NET data provider and how to load them
-tags: [quick-start]
 ---
 
 ADOMD.NET data provider connects to an analytics data source such as Power BI Premium, Power BI Desktop or SQL Server Analysis Services and provides a way to execute queries against that data source in a consistent manner that is independent of the data source and data source-specific functionality.
 
-{% include alert.html style="warning" text="To add the extension for ADOMD.NET add a reference to the package `DubUrl.Adomd`.</a> " %}
+{% include alert.html text="To add the ADOMD.NET extension, reference the package `DubUrl.Adomd`." %}
 
 ### List of databases supported by ADOMD.NET data provider
 
@@ -21,22 +23,24 @@ ADOMD.NET data provider connects to an analytics data source such as Power BI Pr
 
 ### Example
 
-Following example shows how to use DubUrl to connect to a Power BI Premium database.
-
-Referencing the package of the ADOMD.NET data provider:
-
-```bash
-dotnet add package DubUrl.Adomd
-```
-
-Registering the factory of the ADOMD.NET data provider
+Install `DubUrl` and `DubUrl.Adomd`, and configure access to your Power BI Premium dataset. The extension supplies both its mappings and its factory wrapper:
 
 ```csharp
-DbProviderFactories.RegisterFactory("Microsoft.AnalysisServices.AdomdClient", DubUrl.Adomd.AdomdFactory.Instance);
+using System.Data.Common;
+using DubUrl;
+using DubUrl.Adomd.Mapping;
+using DubUrl.Adomd.Wrappers;
+using DubUrl.Mapping;
+
+DbProviderFactories.RegisterFactory(
+    "Microsoft.AnalysisServices.AdomdClient", AdomdFactory.Instance);
+var registry = new SchemeRegistryBuilder()
+    .WithAssemblies(typeof(PowerBiPremiumMapper).Assembly)
+    .WithAutoDiscoveredMappings()
+    .Build();
+var url = Environment.GetEnvironmentVariable("DUBURL_POWERBI_URL")
+    ?? throw new InvalidOperationException("Set DUBURL_POWERBI_URL first.");
+using var connection = new ConnectionUrl(url, registry).Open();
 ```
 
-Open a connection to the dataset of your tenant named *dataset*. Note that the scheme of the URL is set to *pbiazure* to specify that the database is a Power BI Premium (other options than *pbipremium* such as *pbi* or *powerbipremium* could have been used).
-
-```csharp
-var conn = new ConnectionUrl("pbiazure://api.powerbi.com/v1.0/myorg/{dataset}").Open();
-```
+Use a URL such as `powerbi://api.powerbi.com/v1.0/myorg/{dataset}`, replacing the dataset placeholder and configuring authentication for your environment. `powerbi`, `pbi`, `pbiazure`, `pbipremium`, and `powerbipremium` select the same Power BI mapping.

@@ -1,5 +1,7 @@
 ---
-title: Schema model and rendering
+title: Build schemas in C#
+parent: Working with schemas
+nav_order: 6
 permalink: /schema-model/
 ---
 
@@ -10,6 +12,11 @@ permalink: /schema-model/
 The fluent API keeps primary keys at table level, supports identity and expression-generated columns, records index uniqueness and sort direction, and describes views as structured projections:
 
 ```csharp
+using System.Data;
+using DubUrl.Schema;
+using DubUrl.Schema.Builders;
+using DubUrl.Schema.Constraints;
+
 var products = new DatabaseObjectName("products", schema: "sales");
 
 var schema = new SchemaBuilder()
@@ -22,25 +29,24 @@ var schema = new SchemaBuilder()
             .Add(column => column.WithName("name")
                 .WithType(DbType.String)
                 .WithLength(120))
-            .Add(column => column.WithName("normalized_name")
-                .WithType(DbType.String)
+            .Add(column => column.WithName("name_length")
+                .WithType(DbType.Int32)
                 .WithGenerated(
-                    new FunctionColumnIdentityExpression("Lower", "name"),
+                    new FunctionColumnIdentityExpression("Length", "name"),
                     GeneratedColumnStorage.Stored)))
         .WithConstraints(constraints => constraints
             .AddPrimaryKey(key => key.WithName("pk_products").WithColumnName("id")))))
     .WithIndexes(indexes => indexes.Add(index => index
-        .WithName("ux_products_name")
-        .WithUnique()
+        .WithName("ix_products_name_length")
         .OnTable(products)
         .WithColumns(columns => columns
-            .Add(column => column.WithName("normalized_name").Ascending()))))
+            .Add(column => column.WithName("name_length").Ascending()))))
     .WithViews(views => views.Add(view => view
-        .WithName("product_names")
+        .WithName("product_name_lengths")
         .From(products)
         .WithProjections(projections => projections
             .Add(projection => projection.WithColumn("id"))
-            .Add(projection => projection.WithColumn("normalized_name").As("name")))))
+            .Add(projection => projection.WithColumn("name_length").As("length")))))
     .Build();
 ```
 
@@ -80,19 +86,4 @@ DubUrl validates source relations, output aliases, table/view identity collision
 
 ## Render the lifecycle
 
-```csharp
-var dialects = new DialectRegistryBuilder();
-dialects.AddDialect<PgsqlDialect>(["pgsql"]);
-
-var renderer = new SchemaScriptRenderer(
-    dialects.Build().Get<PgsqlDialect>(),
-    SchemaCreationOptions.DropIfExists);
-
-var sql = renderer.Render(schema);
-```
-
-Creation renders tables and their constraints first, followed by deferred foreign keys, comments, indexes, and dependency-ordered views. With `DropIfExists`, dependent views are dropped first, then indexes, then tables. This ordering prevents the generated teardown from removing a source before its dependants.
-
-Provider capabilities still apply. The renderer throws when the selected dialect cannot faithfully represent a requested identity, generated-column storage mode, regular-expression check, view, native type, or function.
-
-For a portable JSON or YAML representation of the same model, see [Schema documents]({{ site.baseurl }}/schema-documents/).
+See [Generate SQL]({{ '/docs/generate-sql/#render-the-lifecycle' | relative_url }}) for renderer construction, creation options, ordering, and provider capability limits.

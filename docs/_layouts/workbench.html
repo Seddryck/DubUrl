@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f1e23">
+  <title>{{ page.title | escape }} | {{ site.title | escape }}</title>
+  {% seo title=false %}
+  <link rel="icon" href="{{ site.favicon_ico | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/workbench.css' | relative_url }}">
+  <script src="{{ '/assets/js/workbench.js' | relative_url }}" defer></script>
+</head>
+<body class="workbench">
+  <a class="workbench-skip" href="#main-content">Skip to main content</a>
+  <svg class="workbench-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="workbench-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="workbench-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></symbol>
+    <symbol id="workbench-code" viewBox="0 0 24 24"><path d="m7 7-5 5 5 5m10-10 5 5-5 5M14 3l-4 18"/></symbol>
+    <symbol id="workbench-result-icon" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-8z"/></symbol>
+    <symbol id="workbench-settings" viewBox="0 0 24 24"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 2 3 3-1 2 3h3l1-3 3-1 2-3-2-2 1-3-2-3-3 1-2-3z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="workbench-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.64-1.25-1.64-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.72.39-1.22.71-1.5-2.5-.28-5.12-1.25-5.12-5.57 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.16a10.7 10.7 0 0 1 5.6 0c2.14-1.46 3.08-1.16 3.08-1.16.61 1.55.23 2.69.12 2.98.72.79 1.15 1.79 1.15 3.02 0 4.33-2.63 5.28-5.13 5.56.4.35.76 1.03.76 2.08v3.1c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/></symbol>
+  </svg>
+  <div class="workbench-shell">
+    <header class="workbench-header">
+      <a class="workbench-brand" href="{{ '/' | relative_url }}" aria-label="DubUrl home"><img src="{{ site.logo | relative_url }}" alt="" width="48" height="48"><span>DubUrl</span></a>
+      <nav aria-label="Main navigation">
+        <a href="{{ '/docs/why-duburl/' | relative_url }}">Documentation</a>
+        <a href="{{ '/docs/native-ado-net-providers/' | relative_url }}">Databases</a>
+        <a href="{{ '/cli/' | relative_url }}">CLI</a>
+        <a href="https://github.com/Seddryck/DubUrl">GitHub <svg aria-hidden="true"><use href="#workbench-github"/></svg></a>
+      </nav>
+    </header>
+    <main id="main-content" tabindex="-1">{{ content }}</main>
+    <footer class="workbench-footer">
+      <a class="workbench-brand" href="{{ '/' | relative_url }}"><img src="{{ site.logo | relative_url }}" alt="" width="40" height="40"><span>DubUrl</span></a>
+      <nav aria-label="Footer navigation">
+        <a href="{{ '/docs/why-duburl/' | relative_url }}">Documentation</a>
+        <a href="{{ '/download/' | relative_url }}">Downloads</a>
+        <a href="{{ '/brand-colors/' | relative_url }}">Branding</a>
+        <a href="https://github.com/Seddryck/DubUrl">GitHub</a>
+      </nav>
+      <p>Database tools for .NET <span aria-hidden="true">·</span> <a href="https://github.com/Seddryck/DubUrl/blob/main/LICENSE">Apache 2.0</a></p>
+    </footer>
+  </div>
+  <output class="workbench-status" aria-live="polite"></output>
+</body>
+</html>

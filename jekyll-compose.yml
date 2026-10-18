@@ -1,0 +1,15 @@
+services:
+  jekyll:
+    image: ruby:3.3
+    working_dir: /site
+    command: >-
+      bash -lc "bundle install && bundle exec jekyll serve
+      --host 0.0.0.0 --port 4000 --force_polling --watch
+      --config _config.yml,_config.localhost.yml"
+    ports:
+      - "127.0.0.1:${JEKYLL_PORT:-4001}:4000"
+    volumes:
+      - ./docs:/site
+      - bundle_cache:/usr/local/bundle
+volumes:
+  bundle_cache:

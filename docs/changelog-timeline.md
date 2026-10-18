@@ -1,9 +1,7 @@
 ---
-layout: page
-title: Timeline
-width: small
+layout: changelog
+title: Changelog
+toc: false
 ---
 
-A bit of history ...
-
-{% include changelog.html %}
+See the [GitHub releases](https://github.com/Seddryck/DubUrl/releases) for the latest changes.

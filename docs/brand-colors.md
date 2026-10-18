@@ -1,5 +1,7 @@
 ---
-title: Brand colors
+nav_exclude: false
+nav_order: 3
+title: Branding
 layout: page
 width: expand
 permalink: /brand-colors/
@@ -7,7 +9,7 @@ description: The official DubUrl color palette, semantic roles, and implementati
 ---
 
 <!-- Adapted from Seddryck/Expressif docs/brand-colors.md at 5ddce57f8de371d9a2f4e46552be6bb541ffa356. -->
-<main class="brand-colors" id="main-content">
+<div class="brand-colors">
   <h1>Brand colors</h1>
   <p class="brand-colors__intro">Warm gold, balanced with slate and charcoal. Use these colors consistently to keep DubUrl interfaces recognizable, readable, and focused.</p>
 
@@ -19,7 +21,7 @@ description: The official DubUrl color palette, semantic roles, and implementati
       <article class="brand-color">
         <div class="brand-color__swatch" style="--swatch: {{ color.hex }}"><span class="brand-color__role">{{ color.role }}</span></div>
         <div class="brand-color__body">
-          <div><h3 class="brand-color__name">{{ color.name }}</h3><p class="brand-color__usage">{{ color.usage }}</p></div>
+          <div><h3 class="brand-color__name" id="color-{{ color.name | slugify }}">{{ color.name }}</h3><p class="brand-color__usage">{{ color.usage }}</p></div>
           <button class="brand-color__copy" type="button" data-color="{{ color.hex }}" aria-label="Copy {{ color.name }} hex code">{{ color.hex }}</button>
         </div>
       </article>
@@ -49,19 +51,19 @@ description: The official DubUrl color palette, semantic roles, and implementati
 
   <section class="brand-colors__section" aria-labelledby="implementation">
     <h2 id="implementation">Implementation</h2>
-    <p class="brand-colors__section-copy">Reference the shared Sass tokens in <code>_sass/theme/variables.scss</code> instead of repeating literal values in components.</p>
+    <p class="brand-colors__section-copy">The theme maps the palette to Just the Docs roles in <code>_sass/color_schemes/duburl.scss</code> instead of repeating literal values in components.</p>
     <div class="brand-colors__code">
       <button class="brand-color__copy" type="button" data-copy-code="brand-sass" aria-label="Copy Sass example">Copy code</button>
       <pre><code id="brand-sass">// Brand
-$global-primary-background: #FEC156;
-$global-secondary-background: #8399A6;
-$global-muted-color: #3A515F;
-$global-color: #1F1E23;
+$btn-primary-color: #FEC156;
+// Decorative blue-gray: #8399A6
+$sidebar-color: #3A515F;
+$body-text-color: #1F1E23;
 
 // Example
 .primary-action {
-  color: $global-color;
-  background: $global-primary-background;
+  color: $body-text-color;
+  background: $btn-primary-color;
 }</code></pre>
     </div>
   </section>
@@ -72,5 +74,5 @@ $global-color: #1F1E23;
   </aside>
   <p class="brand-colors__status" role="status" aria-live="polite" aria-atomic="true"></p>
   <noscript><p>Hex values and the Sass example can be selected and copied manually. Copy buttons require JavaScript.</p></noscript>
-</main>
+</div>
 <script src="{{ '/assets/js/brand-colors.js' | relative_url }}" defer></script>
