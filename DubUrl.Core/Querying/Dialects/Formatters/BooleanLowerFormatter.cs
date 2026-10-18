@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class BooleanLowerFormatter : BooleanFormatter
+public class BooleanLowerFormatter : BooleanFormatter
 {
     public override string Format(bool value)
         => base.Format(value).ToLowerInvariant();

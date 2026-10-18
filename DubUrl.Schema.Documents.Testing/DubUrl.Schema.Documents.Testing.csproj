@@ -18,6 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Schema.Documents\DubUrl.Schema.Documents.csproj" />
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" />
   </ItemGroup>
 
   <ItemGroup>

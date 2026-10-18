@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>Text-file database metadata and dialect for DubUrl.</Description></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\DubUrl.Core\Mapping\Database\TextDatabase.cs" Link="Mapping\Database\TextDatabase.cs" />
+    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\TextDialect.cs" Link="Querying\Dialects\TextDialect.cs" />
+  </ItemGroup>
+  <Import Project="..\Provider.Build.props" />
+</Project>

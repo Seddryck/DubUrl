@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters;
 
-internal class Parser<T> : BaseCaster<T, string>
+public class Parser<T> : BaseCaster<T, string>
 {
     public Parser()
         : base("Parse", [typeof(string)]) { }

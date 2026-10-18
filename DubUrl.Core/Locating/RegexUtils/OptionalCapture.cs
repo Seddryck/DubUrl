@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.RegexUtils;
 
-internal class OptionalCapture : BaseRegex
+public class OptionalCapture : BaseRegex
 {
     private string Option { get; }
     public OptionalCapture(string option)
@@ -16,7 +16,7 @@ internal class OptionalCapture : BaseRegex
         => stringBuilder.Append('(').AppendEscaped(Option).Append(@")?");
 }
 
-internal class OptionalCapture<T> : OptionalCapture
+public class OptionalCapture<T> : OptionalCapture
 {
     public OptionalCapture(string option) : base(option) { }
 }

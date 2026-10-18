@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Text.Json;
 using DubUrl.Application;
+using DubUrl.Mapping;
 using DubUrl.Querying.Dialects;
 using DubUrl.Schema;
 using DubUrl.Schema.Documents;
@@ -135,7 +136,7 @@ internal static class SchemaCommand
         {
             try
             {
-                var connection = new ConnectionUrl(connectionUrl);
+                var connection = new ConnectionUrl(connectionUrl, services.GetRequiredService<ISchemeRegistry>());
                 var dialect = connection.Dialect.Aliases.First();
                 var rendered = services.GetRequiredService<ISchemaDocumentService>().Render(document, dialect,
                     new SchemaRenderOptions { CreationOptions = creationOptions });
@@ -163,7 +164,7 @@ internal static class SchemaCommand
         {
             operation = await services.GetRequiredService<ISchemaDeploymentService>().DeployAsync(
                 document,
-                new ConnectionUrl(connectionUrl),
+                new ConnectionUrl(connectionUrl, services.GetRequiredService<ISchemeRegistry>()),
                 new SchemaDeploymentOptions { CreationOptions = creationOptions },
                 cancellationToken).ConfigureAwait(false);
         }

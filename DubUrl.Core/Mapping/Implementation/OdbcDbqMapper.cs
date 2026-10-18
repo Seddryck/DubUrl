@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace DubUrl.Mapping.Implementation;
 
 [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
@@ -19,7 +18,10 @@ namespace DubUrl.Mapping.Implementation;
 public class OdbcDbqMapper : BaseMapper, IOdbcMapper, IFileBasedMapper
 { 
     public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)
-        : base(new OdbcDbqRewriter(csb, rootPath),
+        : this(csb, dialect, parametrizer, rootPath, new BuiltInDriverLocatorFactory(), OdbcRewriter.DefaultLocatorOptions) { }
+
+    public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new OdbcDbqRewriter(csb, rootPath, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )

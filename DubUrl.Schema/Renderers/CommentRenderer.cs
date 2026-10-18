@@ -6,7 +6,7 @@ namespace DubUrl.Schema.Renderers;
 public sealed class CommentRenderer : RendererEngine
 {
     public static bool Supports(IDialect dialect)
-        => dialect is PgsqlDialect or CockRoachDialect or CrateDbDialect or DuckDbDialect;
+        => (dialect.Capabilities ?? DialectCapabilities.Default).SupportsComments;
 
     public CommentRenderer(IDialect dialect)
         : base(typeof(CommentRenderer).Assembly, $"{typeof(CommentRenderer).Namespace}.Templates.CreateComments.sql.hbs")

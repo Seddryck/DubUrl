@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class IdentifierUnquotedFormatter : IIdentifierFormatter
+public class IdentifierUnquotedFormatter : IIdentifierFormatter
 {
     public string Format(string value)
         => $"{value}";

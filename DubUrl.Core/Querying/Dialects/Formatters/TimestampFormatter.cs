@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class TimestampFormatter : IValueFormatter<DateTime>
+public class TimestampFormatter : IValueFormatter<DateTime>
 {
     public string Format(DateTime value)
 #if NET7_0_OR_GREATER

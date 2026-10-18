@@ -32,11 +32,11 @@ completed = subprocess.run(
 result = json.loads(completed.stdout)
 ```
 
-Use `duburl capabilities --json` to discover supported document versions, commands, renderable dialect aliases, installed providers, deployable schemes, and whether deployment is available. Rendering only requires a registered dialect; deployment additionally requires the corresponding ADO.NET provider to be bundled and registered.
+Use `duburl capabilities --json` to discover supported document versions, commands, renderable dialect aliases, active connectors, deployable schemes, and whether deployment is available. Rendering only requires a registered dialect; deployment additionally requires an installed connector containing the corresponding DubUrl module and ADO.NET driver.
 
 ## Deployment in CI
 
-Provide the target connection URL through the CI environment and select its variable name with `--connection-env`. Run a dry run first. Live deployment requires the corresponding provider to be installed and registered; render-only jobs require only the dialect.
+Provide the target connection URL through the CI environment and select its variable name with `--connection-env`. Run a dry run first. Live deployment requires the corresponding connector to be installed and active; render-only jobs require only the dialect.
 
 ## Persistent clients
 

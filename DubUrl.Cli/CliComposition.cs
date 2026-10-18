@@ -1,8 +1,7 @@
-using System.Data.Common;
 using DubUrl.Application;
+using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 using DubUrl.Querying.Dialects;
-using DubUrl.Registering;
 using DubUrl.Schema.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,11 @@ namespace DubUrl.Cli;
 
 public static class CliComposition
 {
-    public static ServiceProvider CreateDefault(ICliConsole? console = null, IConfiguration? configuration = null)
+    public static ServiceProvider CreateDefault(
+        ICliConsole? console = null,
+        IConfiguration? configuration = null,
+        IProviderPackService? providerPackService = null,
+        IEnumerable<IDubUrlProviderModule>? providerModules = null)
     {
         configuration ??= new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -20,9 +23,18 @@ public static class CliComposition
             .AddEnvironmentVariables("DUBURL_")
             .Build();
 
-        new ProviderFactoriesRegistrator(new CliProviderFactoriesDiscoverer()).Register();
-        var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry();
-        var capabilities = new CliCapabilities(dialects, DbProviderFactories.GetProviderInvariantNames());
+        var store = new ProviderPackStore(configuration["ProviderPacks:StorePath"]);
+        var optionalSchemes = store.Inspect()
+            .Where(pack => pack.Status == ProviderPackStatus.Active)
+            .SelectMany(pack => pack.Manifest.Schemes);
+        var providerDiagnostics = new List<ProviderPackDiagnostic>();
+        var catalogBuilder = new ProviderCatalogBuilder().WithRootPath(string.Empty);
+        foreach (var module in providerModules ?? [])
+            catalogBuilder.AddModule(module);
+        catalogBuilder.AddInstalledPacks(store, providerDiagnostics);
+        var dialects = catalogBuilder.BuildDialects();
+        var schemes = catalogBuilder.Build();
+        var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
@@ -38,24 +50,70 @@ public static class CliComposition
         services.AddSingleton<ISchemaDocumentValidator, SchemaDocumentValidator>();
         services.AddSingleton<ISchemaDocumentMapper, SchemaDocumentMapper>();
         services.AddSingleton<IDialectRegistry>(dialects);
+        services.AddSingleton<ISchemeRegistry>(schemes);
+        services.AddSingleton<IReadOnlyList<ProviderPackDiagnostic>>(providerDiagnostics);
         services.AddSingleton<ISchemaDialectResolver>(new SchemaDialectResolver(dialects));
         services.AddSingleton<ISchemaDomainRenderer, SchemaDomainRenderer>();
         services.AddSingleton<ISchemaScriptDeploymentExecutor, SchemaScriptDeploymentExecutor>();
         services.AddSingleton<ISchemaDocumentService, SchemaDocumentService>();
         services.AddSingleton<ISchemaDeploymentService, SchemaDeploymentService>();
         services.AddSingleton(capabilities);
+        if (providerPackService is not null)
+        {
+            services.AddSingleton(providerPackService);
+        }
+        else
+        {
+            var httpClient = new HttpClient();
+            services.AddSingleton(httpClient);
+            services.AddSingleton(store);
+            services.AddSingleton(CreateProviderPackCatalog(configuration));
+            services.AddSingleton<IProviderPackService, ProviderPackService>();
+        }
         return services.BuildServiceProvider();
     }
 
-    private sealed class CliProviderFactoriesDiscoverer : IProviderFactoriesDiscoverer
+    private static ProviderPackCatalog CreateProviderPackCatalog(IConfiguration configuration)
     {
-        public IEnumerable<Type> Execute()
-            =>
-            [
-                typeof(Microsoft.Data.SqlClient.SqlClientFactory),
-                typeof(Microsoft.Data.Sqlite.SqliteFactory),
-                typeof(MySqlConnector.MySqlConnectorFactory),
-                typeof(Npgsql.NpgsqlFactory)
-            ];
+        var entries = new List<ProviderPackCatalogEntry>();
+        var configuredPath = configuration["ProviderPacks:CatalogPath"];
+        var catalogPath = Path.GetFullPath(GetCatalogPath(configuredPath));
+        if (File.Exists(catalogPath))
+        {
+            using var stream = File.OpenRead(catalogPath);
+            entries.AddRange(ProviderPackCatalog.Read(stream).Entries);
+        }
+
+        foreach (var section in configuration.GetSection("ProviderPacks:Catalog").GetChildren())
+        {
+            var provider = section["Provider"];
+            var version = section["Version"];
+            var downloadUri = section["DownloadUri"];
+            var sha256 = section["Sha256"];
+            if (!string.IsNullOrWhiteSpace(provider)
+                && !string.IsNullOrWhiteSpace(version)
+                && Uri.TryCreate(downloadUri, UriKind.Absolute, out var uri)
+                && !string.IsNullOrWhiteSpace(sha256))
+                entries.Add(new(
+                    provider,
+                    version,
+                    uri,
+                    sha256,
+                    section.GetSection("Aliases").Get<string[]>() ?? [],
+                    section.GetSection("Schemes").Get<string[]>() ?? [],
+                    section["DubUrlApiRange"],
+                    section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
+                    section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? []));
+        }
+        return new(entries);
+    }
+
+    private static string GetCatalogPath(string? configuredPath)
+    {
+        if (string.IsNullOrWhiteSpace(configuredPath))
+            return Path.Combine(AppContext.BaseDirectory, "connector-catalog.json");
+        return Path.IsPathRooted(configuredPath)
+            ? configuredPath
+            : Path.Combine(AppContext.BaseDirectory, configuredPath);
     }
 }

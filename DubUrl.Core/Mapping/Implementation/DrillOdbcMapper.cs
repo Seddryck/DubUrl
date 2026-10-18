@@ -21,10 +21,13 @@ namespace DubUrl.Mapping.Implementation;
 public class DrillOdbcMapper : BaseMapper, IOdbcMapper
 {
     public DrillOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+        : this (csb, dialect, parametrizer, new BuiltInDriverLocatorFactory()) { }
 
     public DrillOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new DrillOdbcRewriter(csb),
+        : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public DrillOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new DrillOdbcRewriter(csb, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )

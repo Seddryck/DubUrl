@@ -12,18 +12,6 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-function_name.txt" />
-    <None Remove="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-reserved.txt" />
-    <None Remove="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-type_name.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-reserved.txt" />
-    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-function_name.txt" />
-    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\DuckDB-type_name.txt" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Testing" />
 		<InternalsVisibleTo Include="$(AssemblyName).OleDb.Testing" />
@@ -31,7 +19,54 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Didot.Core" Version="0.34.0" />
+    <Compile Remove="*.cs" />
+    <Compile Remove="Extensions\**\*.cs" />
+    <Compile Remove="Locating\*.cs" />
+    <Compile Remove="Locating\OdbcDriver\**\*.cs" />
+    <Compile Remove="Locating\Options\**\*.cs" />
+    <Compile Remove="Locating\RegexUtils\**\*.cs" />
+    <Compile Remove="Mapping\*.cs" />
+    <Compile Include="Mapping\BuiltInProviderModule.cs" />
+    <Compile Remove="Mapping\Connectivity\**\*.cs" />
+    <Compile Remove="Mapping\Database\**\*.cs" />
+    <Compile Remove="Mapping\Implementation\**\*.cs" />
+    <Compile Remove="Parsing\**\*.cs" />
+    <Compile Remove="MicroOrm\**\*.cs" />
+    <Compile Remove="Querying\*.cs" />
+    <Compile Remove="Querying\Dialects\*.cs" />
+    <Compile Remove="Querying\Dialects\Casters\**\*.cs" />
+    <Compile Remove="Querying\Dialects\Formatters\**\*.cs" />
+    <Compile Remove="Querying\Dialects\Functions\**\*.cs" />
+    <Compile Remove="Querying\Dialects\Renderers\**\*.cs" />
+    <Compile Remove="Querying\Parametrizing\**\*.cs" />
+    <Compile Remove="Querying\Reading\**\*.cs" />
+    <Compile Remove="Querying\Templating\**\*.cs" />
+    <Compile Remove="Querying\TypeMapping\**\*.cs" />
+    <Compile Remove="Registering\**\*.cs" />
+    <Compile Remove="Rewriting\*.cs" />
+    <Compile Remove="Rewriting\Implementation\**\*.cs" />
+    <Compile Remove="Rewriting\Tokening\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\DubUrl.Providers\DubUrl.Providers.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.FirebirdSql\DubUrl.Provider.FirebirdSql.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Odbc\DubUrl.Provider.Odbc.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Snowflake\DubUrl.Provider.Snowflake.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.Trino\DubUrl.Provider.Trino.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,4 +75,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <Target Name="BoundDubUrlDependencyVersions" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="%(_ProjectReferencesWithVersions.Identity)">
+        <ProjectVersion>[$(Version),1.0.0)</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
 </Project>

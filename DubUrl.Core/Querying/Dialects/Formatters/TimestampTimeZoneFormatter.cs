@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class TimestampTimeZoneFormatter : IValueFormatter<DateTimeOffset>
+public class TimestampTimeZoneFormatter : IValueFormatter<DateTimeOffset>
 {
     public string Format(DateTimeOffset value)
 #if NET7_0_OR_GREATER

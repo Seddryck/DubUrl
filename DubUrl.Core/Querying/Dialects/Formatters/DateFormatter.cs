@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class DateFormatter : IValueFormatter<DateOnly>
+public class DateFormatter : IValueFormatter<DateOnly>
 {
     public string Format(DateOnly value)
         => $"'{value:yyyy-MM-dd}'";

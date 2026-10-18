@@ -5,8 +5,21 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+		<ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+		<ProjectReference Include="..\providers\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
+		<ProjectReference Include="..\providers\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
+		<ProjectReference Include="..\providers\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
+		<ProjectReference Include="..\providers\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" />
+		<ProjectReference Include="..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
 	</ItemGroup>
+
+	<Target Name="BoundDubUrlDependencyVersions" AfterTargets="_GetProjectReferenceVersions">
+		<ItemGroup>
+			<_ProjectReferencesWithVersions Update="%(_ProjectReferencesWithVersions.Identity)">
+				<ProjectVersion>[$(Version),1.0.0)</ProjectVersion>
+			</_ProjectReferencesWithVersions>
+		</ItemGroup>
+	</Target>
 
 	<ItemGroup>
 	  <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">

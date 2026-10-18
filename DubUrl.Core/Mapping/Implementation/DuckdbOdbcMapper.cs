@@ -21,10 +21,13 @@ namespace DubUrl.Mapping.Implementation;
 public class DuckdbOdbcMapper : BaseMapper, IOdbcMapper
 {
     public DuckdbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+        : this (csb, dialect, parametrizer, new BuiltInDriverLocatorFactory()) { }
 
     public DuckdbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
-        : base(new DuckdbOdbcRewriter(csb),
+        : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public DuckdbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        : base(new DuckdbOdbcRewriter(csb, driverLocatorFactory, locatorOptions),
               dialect,
               parametrizer
         )

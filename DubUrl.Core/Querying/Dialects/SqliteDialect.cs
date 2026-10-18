@@ -22,6 +22,15 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class SqliteDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.Sqlite,
+        IdentityColumns = IdentityColumnSyntax.SqliteTableConstraint,
+        GeneratedColumns = GeneratedColumnSyntax.MySql,
+        SupportsViews = true,
+        NativeTypes = new HashSet<string>(["TEXT", "BLOB", "INTEGER", "REAL", "NUMERIC"], StringComparer.OrdinalIgnoreCase),
+    };
+
     internal SqliteDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

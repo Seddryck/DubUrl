@@ -13,6 +13,8 @@
       "DubUrl.Worker.Testing\\DubUrl.Worker.Testing.csproj",
       "DubUrl.Worker\\DubUrl.Worker.csproj",
       "DubUrl.Core\\DubUrl.csproj",
+      "DubUrl.ProviderCore\\DubUrl.Core.csproj",
+      "DubUrl.Providers\\DubUrl.Providers.csproj",
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",
       "DubUrl.Extensions\\DubUrl.Extensions.csproj",
       "DubUrl.OleDb.Testing\\DubUrl.OleDb.Testing.csproj",
@@ -21,7 +23,25 @@
       "DubUrl.Schema.Documents\\DubUrl.Schema.Documents.csproj",
       "DubUrl.Schema.Testing\\DubUrl.Schema.Testing.csproj",
       "DubUrl.Schema\\DubUrl.Schema.csproj",
-      "DubUrl.Testing\\DubUrl.Testing.csproj"
+      "DubUrl.Testing\\DubUrl.Testing.csproj",
+      "connectors\\DubUrl.Connector.Generated\\DubUrl.Connector.Generated.csproj",
+      "connectors\\DubUrl.Connector.PostgreSql.Npgsql\\DubUrl.Connector.PostgreSql.Npgsql.csproj",
+      "providers\\DubUrl.Provider.Access\\DubUrl.Provider.Access.csproj",
+      "providers\\DubUrl.Provider.Db2\\DubUrl.Provider.Db2.csproj",
+      "providers\\DubUrl.Provider.Drill\\DubUrl.Provider.Drill.csproj",
+      "providers\\DubUrl.Provider.DuckDb\\DubUrl.Provider.DuckDb.csproj",
+      "providers\\DubUrl.Provider.Excel\\DubUrl.Provider.Excel.csproj",
+      "providers\\DubUrl.Provider.FirebirdSql\\DubUrl.Provider.FirebirdSql.csproj",
+      "providers\\DubUrl.Provider.MySql\\DubUrl.Provider.MySql.csproj",
+      "providers\\DubUrl.Provider.Odbc\\DubUrl.Provider.Odbc.csproj",
+      "providers\\DubUrl.Provider.Oracle\\DubUrl.Provider.Oracle.csproj",
+      "providers\\DubUrl.Provider.PostgreSql\\DubUrl.Provider.PostgreSql.csproj",
+      "providers\\DubUrl.Provider.Snowflake\\DubUrl.Provider.Snowflake.csproj",
+      "providers\\DubUrl.Provider.Sqlite\\DubUrl.Provider.Sqlite.csproj",
+      "providers\\DubUrl.Provider.SqlServer\\DubUrl.Provider.SqlServer.csproj",
+      "providers\\DubUrl.Provider.Teradata\\DubUrl.Provider.Teradata.csproj",
+      "providers\\DubUrl.Provider.Text\\DubUrl.Provider.Text.csproj",
+      "providers\\DubUrl.Provider.Trino\\DubUrl.Provider.Trino.csproj"
     ]
   }
 }

@@ -47,6 +47,9 @@ public sealed class ConnectionSourceUrl : BaseConnectionUrl
         }
         public IMapper GetMapper(string alias) => registry.GetMapper(alias);
         public IMapper GetMapper(SchemeKey scheme) => registry.GetMapper(scheme);
+        public bool TryGetCapability<TCapability>(SchemeKey scheme, out TCapability? capability)
+            where TCapability : class
+            => registry.TryGetCapability(scheme, out capability);
         public bool CanHandle(string scheme) => registry.CanHandle(scheme);
     }
 }

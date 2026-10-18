@@ -17,12 +17,29 @@ namespace DubUrl.Mapping;
 public class SchemeRegistry : ISchemeRegistry
 {
     private readonly Dictionary<string, Func<IMapper>> _mapperFactories;
+    private readonly Dictionary<string, SchemeRegistration> _registrations;
 
     public SchemeRegistry(Dictionary<string, Func<IMapper>> mapperFactories)
-        => _mapperFactories = new(mapperFactories, StringComparer.OrdinalIgnoreCase); // Defensive copy
+    {
+        _mapperFactories = new(mapperFactories, StringComparer.OrdinalIgnoreCase); // Defensive copy
+        _registrations = [];
+    }
+
+    private SchemeRegistry(Dictionary<string, SchemeRegistration> registrations)
+    {
+        _registrations = new(registrations, StringComparer.OrdinalIgnoreCase);
+        _mapperFactories = registrations.ToDictionary(
+            item => item.Key,
+            item => item.Value.MapperFactory,
+            StringComparer.OrdinalIgnoreCase);
+    }
+
+    internal static SchemeRegistry FromRegistrations(Dictionary<string, SchemeRegistration> registrations)
+        => new(registrations);
 
     public ResolvedConnection Resolve(ConnectionUri connectionUri)
     {
+        var alias = GetAlias(connectionUri.Scheme);
         var mapper = GetMapper(connectionUri.Scheme);
         mapper.Rewrite(connectionUri);
 
@@ -31,7 +48,9 @@ public class SchemeRegistry : ISchemeRegistry
             mapper.GetDialect(),
             mapper.GetConnectivity(),
             mapper.GetParametrizer(),
-            GetProviderFactory(mapper)
+            _registrations.TryGetValue(alias, out var registration)
+                ? registration.ProviderFactory
+                : GetProviderFactory(mapper)
         );
     }
 
@@ -75,7 +94,7 @@ public class SchemeRegistry : ISchemeRegistry
 
     public IMapper GetMapper(SchemeKey scheme)
     {
-        var alias = SchemeRegistryBuilder.GetAlias(scheme);
+        var alias = GetAlias(scheme);
 
         if (!_mapperFactories.TryGetValue(alias, out var mapperFactory))
             throw new SchemeNotFoundException(alias, [.. _mapperFactories.Keys]);
@@ -85,6 +104,9 @@ public class SchemeRegistry : ISchemeRegistry
 
     public DbProviderFactory GetProviderFactory(SchemeKey scheme)
     {
+        var alias = GetAlias(scheme);
+        if (_registrations.TryGetValue(alias, out var registration))
+            return registration.ProviderFactory;
         return GetProviderFactory(GetMapper(scheme));
     }
 
@@ -93,10 +115,44 @@ public class SchemeRegistry : ISchemeRegistry
 
     private static DbProviderFactory GetProviderFactory(IMapper mapper)
     {
-        return SchemeRegistryBuilder.GetProvider(mapper.GetProviderName())
+        return GetProvider(mapper.GetProviderName())
             ?? throw new ProviderNotFoundException(mapper.GetProviderName(), DbProviderFactories.GetProviderInvariantNames().ToArray());
     }
 
+    public bool TryGetCapability<TCapability>(SchemeKey scheme, out TCapability? capability)
+        where TCapability : class
+    {
+        var alias = GetAlias(scheme);
+        if (_registrations.TryGetValue(alias, out var registration)
+            && registration.Capabilities.TryGetValue(typeof(TCapability), out var value))
+        {
+            capability = (TCapability)value;
+            return true;
+        }
+
+        capability = null;
+        return false;
+    }
+
     public bool CanHandle(string scheme)
-        => _mapperFactories.ContainsKey(SchemeRegistryBuilder.GetAlias(SchemeKey.Parse(scheme)));
+        => _mapperFactories.ContainsKey(GetAlias(SchemeKey.Parse(scheme)));
+
+    private static string GetAlias(SchemeKey scheme)
+    {
+        var aliases = scheme.Parts;
+        var main = aliases.Count == 1
+            ? aliases[0]
+            : aliases.Contains("oledb", StringComparer.OrdinalIgnoreCase) ? "oledb"
+            : aliases.Contains("odbc", StringComparer.OrdinalIgnoreCase) ? "odbc"
+            : throw new ArgumentOutOfRangeException(nameof(scheme));
+
+        var second = aliases.FirstOrDefault(alias => !alias.Equals(main, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrEmpty(second) ? main : $"{main}+{second}";
+    }
+
+    private static DbProviderFactory? GetProvider(string providerName)
+    {
+        DbProviderFactories.TryGetFactory(providerName, out var factory);
+        return factory;
+    }
 }

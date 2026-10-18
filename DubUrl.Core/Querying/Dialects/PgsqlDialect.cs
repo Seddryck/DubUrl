@@ -18,6 +18,17 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class PgsqlDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.PostgreSql,
+        IdentityColumns = IdentityColumnSyntax.PostgreSql,
+        GeneratedColumns = GeneratedColumnSyntax.PostgreSql,
+        RegularExpressions = RegularExpressionSyntax.TildeOperator,
+        SupportsComments = true,
+        SupportsViews = true,
+        NativeTypes = new HashSet<string>(["JSON", "JSONB", "UUID", "TEXT", "CITEXT"], StringComparer.OrdinalIgnoreCase),
+    };
+
     internal PgsqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

@@ -8,7 +8,7 @@ using DubUrl.Querying.Dialects.Formatters;
 
 namespace DubUrl.Querying.Dialects.Renderers;
 
-internal class AnsiRenderer : IRenderer
+public class AnsiRenderer : IRenderer
 {
     protected NullFormatter Null { get; }
     protected BaseValueFormatter Value { get; }

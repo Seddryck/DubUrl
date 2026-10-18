@@ -7,11 +7,30 @@ namespace DubUrl.Cli.Testing;
 public class CliInfrastructureTests
 {
     [Test]
+    public void Assembly_DoesNotReferenceCompatibilityProvidersOrDatabaseDrivers()
+    {
+        var references = typeof(CliHost).Assembly.GetReferencedAssemblies()
+            .Select(reference => reference.Name)
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(references, Does.Not.Contain("DubUrl"));
+            Assert.That(references, Has.None.StartsWith("DubUrl.Provider."));
+            Assert.That(references, Does.Not.Contain("Npgsql"));
+            Assert.That(references, Does.Not.Contain("Microsoft.Data.SqlClient"));
+            Assert.That(references, Does.Not.Contain("Microsoft.Data.Sqlite"));
+            Assert.That(references, Does.Not.Contain("MySqlConnector"));
+        });
+    }
+
+    [Test]
     public async Task Process_VersionAndHelp_AreAvailable()
     {
         var assembly = typeof(CliHost).Assembly.Location;
         var version = await RunProcessAsync(assembly, "--version");
         var help = await RunProcessAsync(assembly, "--help");
+        var connectorHelp = await RunProcessAsync(assembly, "connector --help");
 
         Assert.Multiple(() =>
         {
@@ -20,6 +39,11 @@ public class CliInfrastructureTests
             Assert.That(help.ExitCode, Is.Zero);
             Assert.That(help.StandardOutput, Does.Contain("schema"));
             Assert.That(help.StandardOutput, Does.Contain("capabilities"));
+            Assert.That(help.StandardOutput, Does.Contain("connector"));
+            Assert.That(connectorHelp.ExitCode, Is.Zero);
+            Assert.That(connectorHelp.StandardOutput, Does.Contain("not database servers"));
+            Assert.That(connectorHelp.StandardOutput, Does.Contain("install"));
+            Assert.That(connectorHelp.StandardOutput, Does.Contain("uninstall"));
         });
     }
 

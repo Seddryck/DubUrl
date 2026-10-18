@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters;
 
-internal class BooleanConverter : Converter<bool>
+public class BooleanConverter : Converter<bool>
 {
     public override bool Cast(object value)
         => Convert.ToBoolean(value);

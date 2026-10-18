@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters;
 
-internal class NumericParser<T> : BaseCaster<T, string>
+public class NumericParser<T> : BaseCaster<T, string>
 {
     public NumericParser()
         : base("Parse", [typeof(string), typeof(IFormatProvider)]) { }

@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
   </ItemGroup>
 
   <ItemGroup>

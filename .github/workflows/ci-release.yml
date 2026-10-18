@@ -222,6 +222,26 @@ jobs:
         run: |
           $projects = @(
             'DubUrl.Core/DubUrl.csproj'
+            'DubUrl.ProviderCore/DubUrl.Core.csproj'
+            'DubUrl.Providers/DubUrl.Providers.csproj'
+            'providers/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
+            'providers/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
+            'providers/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj'
+            'providers/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj'
+            'providers/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj'
+            'providers/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj'
+            'providers/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj'
+            'providers/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj'
+            'providers/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj'
+            'providers/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj'
+            'providers/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj'
+            'providers/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj'
+            'providers/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj'
+            'providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
+            'providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
+            'providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
+            'connectors/DubUrl.Connector.Generated/DubUrl.Connector.Generated.csproj'
+            'connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj'
             'DubUrl.OleDb/DubUrl.OleDb.csproj'
             'DubUrl.Extensions/DubUrl.Extensions.csproj'
             'DubUrl.Adomd/DubUrl.Adomd.csproj'
@@ -321,6 +341,42 @@ jobs:
         include:
           - package-id: DubUrl
             project: DubUrl.Core/DubUrl.csproj
+          - package-id: DubUrl.Core
+            project: DubUrl.ProviderCore/DubUrl.Core.csproj
+          - package-id: DubUrl.Providers
+            project: DubUrl.Providers/DubUrl.Providers.csproj
+          - package-id: DubUrl.Provider.Access
+            project: providers/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
+          - package-id: DubUrl.Provider.Db2
+            project: providers/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj
+          - package-id: DubUrl.Provider.Drill
+            project: providers/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj
+          - package-id: DubUrl.Provider.DuckDb
+            project: providers/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj
+          - package-id: DubUrl.Provider.Excel
+            project: providers/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj
+          - package-id: DubUrl.Provider.FirebirdSql
+            project: providers/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj
+          - package-id: DubUrl.Provider.MySql
+            project: providers/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj
+          - package-id: DubUrl.Provider.Odbc
+            project: providers/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj
+          - package-id: DubUrl.Provider.Oracle
+            project: providers/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj
+          - package-id: DubUrl.Provider.PostgreSql
+            project: providers/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj
+          - package-id: DubUrl.Provider.Snowflake
+            project: providers/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj
+          - package-id: DubUrl.Provider.Sqlite
+            project: providers/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj
+          - package-id: DubUrl.Provider.SqlServer
+            project: providers/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj
+          - package-id: DubUrl.Provider.Teradata
+            project: providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj
+          - package-id: DubUrl.Provider.Text
+            project: providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj
+          - package-id: DubUrl.Provider.Trino
+            project: providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj
           - package-id: DubUrl.OleDb
             project: DubUrl.OleDb/DubUrl.OleDb.csproj
           - package-id: DubUrl.Extensions
@@ -335,6 +391,8 @@ jobs:
             project: DubUrl.Application/DubUrl.Application.csproj
           - package-id: DubUrl.BulkCopy
             project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
+          - package-id: DubUrl.Connector.PostgreSql.Npgsql
+            project: connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -412,11 +470,49 @@ jobs:
           -Version '${{ needs.version.outputs.semver }}'
           -NuGetDirectory './.artifacts/nuget'
 
+  package-connectors:
+    name: Package connector packs and official catalog
+    needs:
+      - version
+      - build
+      - coverage-threshold
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
+      - name: Build connector artifacts
+        shell: pwsh
+        run: >-
+          ./connectors/Build-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -OutputDirectory '../.artifacts/connectors'
+
+      - name: Validate connector artifacts and catalog
+        shell: pwsh
+        run: >-
+          ./connectors/Test-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -ArtifactDirectory './.artifacts/connectors'
+
+      - name: Upload connector artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/connectors
+          if-no-files-found: error
+
   package-cli-nuget:
     name: Package CLI NuGet tool
     needs:
       - version
       - build
+      - package-connectors
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -432,6 +528,16 @@ jobs:
         with:
           name: duburl-cli-dependency-lock
           path: DubUrl.Cli
+
+      - name: Download official connector catalog
+        uses: actions/download-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/connectors
+
+      - name: Include official connector catalog
+        shell: pwsh
+        run: Copy-Item .artifacts/connectors/connector-catalog.json DubUrl.Cli/connector-catalog.json
 
       - name: Pack and validate CLI packages
         shell: pwsh
@@ -449,6 +555,20 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installing the local CLI tool package failed.' }
           & .artifacts/tool/duburl --version
           if ($LASTEXITCODE -ne 0) { throw 'Executing the installed CLI tool failed.' }
+          $env:DUBURL_ProviderPacks__StorePath = (Join-Path $PWD '.artifacts/fresh-connector-store')
+          $listed = & .artifacts/tool/duburl connector list --json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Listing the official connector catalog failed.' }
+          if (@($listed.connectors).Count -ne 32) {
+            throw "The packaged CLI listed $(@($listed.connectors).Count) connectors instead of 32."
+          }
+          $connector = @($listed.connectors | Where-Object id -eq 'postgresql-npgsql')
+          if ($connector.Count -ne 1 `
+              -or -not $connector[0].listed `
+              -or $connector[0].installed `
+              -or $connector[0].active `
+              -or $connector[0].unhealthy) {
+            throw 'The packaged CLI did not report PostgreSQL as listed and not installed.'
+          }
 
       - name: Upload CLI packages
         uses: actions/upload-artifact@v7
@@ -776,6 +896,7 @@ jobs:
       - package-worker-nuget
       - package-worker-distributions
       - package-cli-distributions
+      - package-connectors
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1095,17 +1216,32 @@ jobs:
       - publish-worker-nuget
       - package-cli-distributions
       - package-worker-distributions
+      - package-connectors
     runs-on: ubuntu-latest
     permissions:
       contents: write
       discussions: write
     steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+
       - name: Download CLI distributions
         uses: actions/download-artifact@v7
         with:
           pattern: cli-distribution-*
           path: .artifacts/release/cli
           merge-multiple: true
+
+      - name: Download connector packs and catalog
+        uses: actions/download-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/release
 
       - name: Download worker distributions
         uses: actions/download-artifact@v7
@@ -1120,11 +1256,20 @@ jobs:
           $archives = @(Get-ChildItem .artifacts/release/cli -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
           $installers = @(Get-ChildItem .artifacts/release/cli -Recurse -File -Filter '*-setup.exe')
           $workerArchives = @(Get-ChildItem .artifacts/release/worker -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
+          $connectorArchives = @(Get-ChildItem .artifacts/release -File -Filter 'duburl-connector-*.zip')
           if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
           if ($workerArchives.Count -ne 6) { throw "Expected six worker archives, found $($workerArchives.Count)." }
-          $mixedCase = @($archives + $installers + $workerArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
+          if ($connectorArchives.Count -ne 32) { throw "Expected 32 connector archives, found $($connectorArchives.Count)." }
+          $mixedCase = @($archives + $installers + $workerArchives + $connectorArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
           if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
+
+      - name: Revalidate connector release assets
+        shell: pwsh
+        run: >-
+          ./connectors/Test-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -ArtifactDirectory './.artifacts/release'
 
       - name: Create release
         shell: pwsh

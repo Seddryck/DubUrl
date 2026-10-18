@@ -24,7 +24,7 @@ public class DriverLocatorFactoryTest
     [TestCase("tsv", typeof(TextDriverLocator))]
     public void Instantiate_SchemeWithoutOptions_CorrectType(string scheme, Type expected)
     {
-        var factory = new DriverLocatorFactory();
+        var factory = new BuiltInDriverLocatorFactory();
         var result = factory.Instantiate(scheme);
 
         Assert.That(result, Is.Not.Null);
@@ -42,7 +42,7 @@ public class DriverLocatorFactoryTest
             { typeof(EncodingOption), encoding }
         };
 
-        var factory = new DriverLocatorFactory();
+        var factory = new BuiltInDriverLocatorFactory();
         var result = factory.Instantiate("mysql", options);
 
         Assert.That(result, Is.Not.Null);
@@ -65,7 +65,7 @@ public class DriverLocatorFactoryTest
             { typeof(EncodingOption), encoding },
         };
 
-        var factory = new DriverLocatorFactory();
+        var factory = new BuiltInDriverLocatorFactory();
         var result = factory.Instantiate("pgsql", options);
 
         Assert.That(result, Is.Not.Null);

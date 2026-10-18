@@ -575,7 +575,24 @@
       "duburl": {
         "type": "Project",
         "dependencies": {
-          "Didot.Core": "[0.34.0, )"
+          "DubUrl.Core": "[0.0.0, )",
+          "DubUrl.Provider.Access": "[0.0.0, )",
+          "DubUrl.Provider.Db2": "[0.0.0, )",
+          "DubUrl.Provider.Drill": "[0.0.0, )",
+          "DubUrl.Provider.DuckDb": "[0.0.0, )",
+          "DubUrl.Provider.Excel": "[0.0.0, )",
+          "DubUrl.Provider.FirebirdSql": "[0.0.0, )",
+          "DubUrl.Provider.MySql": "[0.0.0, )",
+          "DubUrl.Provider.Odbc": "[0.0.0, )",
+          "DubUrl.Provider.Oracle": "[0.0.0, )",
+          "DubUrl.Provider.PostgreSql": "[0.0.0, )",
+          "DubUrl.Provider.Snowflake": "[0.0.0, )",
+          "DubUrl.Provider.SqlServer": "[0.0.0, )",
+          "DubUrl.Provider.Sqlite": "[0.0.0, )",
+          "DubUrl.Provider.Teradata": "[0.0.0, )",
+          "DubUrl.Provider.Text": "[0.0.0, )",
+          "DubUrl.Provider.Trino": "[0.0.0, )",
+          "DubUrl.Providers": "[0.0.0, )"
         }
       },
       "duburl.application": {
@@ -585,11 +602,128 @@
           "DubUrl.Schema.Documents": "[0.0.0, )"
         }
       },
+      "duburl.core": {
+        "type": "Project",
+        "dependencies": {
+          "Didot.Core": "[0.34.0, )"
+        }
+      },
+      "duburl.provider.access": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.db2": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.drill": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.duckdb": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.excel": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.firebirdsql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.mysql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.odbc": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )",
+          "DubUrl.Provider.Access": "[0.0.0, )",
+          "DubUrl.Provider.Drill": "[0.0.0, )",
+          "DubUrl.Provider.DuckDb": "[0.0.0, )",
+          "DubUrl.Provider.Excel": "[0.0.0, )",
+          "DubUrl.Provider.MySql": "[0.0.0, )",
+          "DubUrl.Provider.PostgreSql": "[0.0.0, )",
+          "DubUrl.Provider.SqlServer": "[0.0.0, )",
+          "DubUrl.Provider.Text": "[0.0.0, )",
+          "DubUrl.Provider.Trino": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.oracle": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.snowflake": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.sqlite": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.sqlserver": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.teradata": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.text": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.trino": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.providers": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
       "duburl.schema": {
         "type": "Project",
         "dependencies": {
           "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
+          "DubUrl.Core": "[0.0.0, )"
         }
       },
       "duburl.schema.documents": {
@@ -1473,7 +1607,24 @@
       "duburl": {
         "type": "Project",
         "dependencies": {
-          "Didot.Core": "[0.34.0, )"
+          "DubUrl.Core": "[0.0.0, )",
+          "DubUrl.Provider.Access": "[0.0.0, )",
+          "DubUrl.Provider.Db2": "[0.0.0, )",
+          "DubUrl.Provider.Drill": "[0.0.0, )",
+          "DubUrl.Provider.DuckDb": "[0.0.0, )",
+          "DubUrl.Provider.Excel": "[0.0.0, )",
+          "DubUrl.Provider.FirebirdSql": "[0.0.0, )",
+          "DubUrl.Provider.MySql": "[0.0.0, )",
+          "DubUrl.Provider.Odbc": "[0.0.0, )",
+          "DubUrl.Provider.Oracle": "[0.0.0, )",
+          "DubUrl.Provider.PostgreSql": "[0.0.0, )",
+          "DubUrl.Provider.Snowflake": "[0.0.0, )",
+          "DubUrl.Provider.SqlServer": "[0.0.0, )",
+          "DubUrl.Provider.Sqlite": "[0.0.0, )",
+          "DubUrl.Provider.Teradata": "[0.0.0, )",
+          "DubUrl.Provider.Text": "[0.0.0, )",
+          "DubUrl.Provider.Trino": "[0.0.0, )",
+          "DubUrl.Providers": "[0.0.0, )"
         }
       },
       "duburl.application": {
@@ -1483,11 +1634,128 @@
           "DubUrl.Schema.Documents": "[0.0.0, )"
         }
       },
+      "duburl.core": {
+        "type": "Project",
+        "dependencies": {
+          "Didot.Core": "[0.34.0, )"
+        }
+      },
+      "duburl.provider.access": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.db2": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.drill": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.duckdb": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.excel": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.firebirdsql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.mysql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.odbc": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )",
+          "DubUrl.Provider.Access": "[0.0.0, )",
+          "DubUrl.Provider.Drill": "[0.0.0, )",
+          "DubUrl.Provider.DuckDb": "[0.0.0, )",
+          "DubUrl.Provider.Excel": "[0.0.0, )",
+          "DubUrl.Provider.MySql": "[0.0.0, )",
+          "DubUrl.Provider.PostgreSql": "[0.0.0, )",
+          "DubUrl.Provider.SqlServer": "[0.0.0, )",
+          "DubUrl.Provider.Text": "[0.0.0, )",
+          "DubUrl.Provider.Trino": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.oracle": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.snowflake": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.sqlite": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.sqlserver": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.teradata": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.text": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.trino": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.providers": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
       "duburl.schema": {
         "type": "Project",
         "dependencies": {
           "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
+          "DubUrl.Core": "[0.0.0, )"
         }
       },
       "duburl.schema.documents": {
@@ -2404,7 +2672,24 @@
       "duburl": {
         "type": "Project",
         "dependencies": {
-          "Didot.Core": "[0.34.0, )"
+          "DubUrl.Core": "[0.0.0, )",
+          "DubUrl.Provider.Access": "[0.0.0, )",
+          "DubUrl.Provider.Db2": "[0.0.0, )",
+          "DubUrl.Provider.Drill": "[0.0.0, )",
+          "DubUrl.Provider.DuckDb": "[0.0.0, )",
+          "DubUrl.Provider.Excel": "[0.0.0, )",
+          "DubUrl.Provider.FirebirdSql": "[0.0.0, )",
+          "DubUrl.Provider.MySql": "[0.0.0, )",
+          "DubUrl.Provider.Odbc": "[0.0.0, )",
+          "DubUrl.Provider.Oracle": "[0.0.0, )",
+          "DubUrl.Provider.PostgreSql": "[0.0.0, )",
+          "DubUrl.Provider.Snowflake": "[0.0.0, )",
+          "DubUrl.Provider.SqlServer": "[0.0.0, )",
+          "DubUrl.Provider.Sqlite": "[0.0.0, )",
+          "DubUrl.Provider.Teradata": "[0.0.0, )",
+          "DubUrl.Provider.Text": "[0.0.0, )",
+          "DubUrl.Provider.Trino": "[0.0.0, )",
+          "DubUrl.Providers": "[0.0.0, )"
         }
       },
       "duburl.application": {
@@ -2414,11 +2699,128 @@
           "DubUrl.Schema.Documents": "[0.0.0, )"
         }
       },
+      "duburl.core": {
+        "type": "Project",
+        "dependencies": {
+          "Didot.Core": "[0.34.0, )"
+        }
+      },
+      "duburl.provider.access": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.db2": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.drill": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.duckdb": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.excel": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.firebirdsql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.mysql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.odbc": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )",
+          "DubUrl.Provider.Access": "[0.0.0, )",
+          "DubUrl.Provider.Drill": "[0.0.0, )",
+          "DubUrl.Provider.DuckDb": "[0.0.0, )",
+          "DubUrl.Provider.Excel": "[0.0.0, )",
+          "DubUrl.Provider.MySql": "[0.0.0, )",
+          "DubUrl.Provider.PostgreSql": "[0.0.0, )",
+          "DubUrl.Provider.SqlServer": "[0.0.0, )",
+          "DubUrl.Provider.Text": "[0.0.0, )",
+          "DubUrl.Provider.Trino": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.oracle": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.snowflake": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.sqlite": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.sqlserver": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.teradata": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.text": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.provider.trino": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
+      "duburl.providers": {
+        "type": "Project",
+        "dependencies": {
+          "DubUrl.Core": "[0.0.0, )"
+        }
+      },
       "duburl.schema": {
         "type": "Project",
         "dependencies": {
           "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
+          "DubUrl.Core": "[0.0.0, )"
         }
       },
       "duburl.schema.documents": {

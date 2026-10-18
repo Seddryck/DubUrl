@@ -20,8 +20,10 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     protected internal const string SCHEMA_KEYWORD = "Schema";
 
     public TrinoOdbcRewriter(DbConnectionStringBuilder csb)
-        : this(csb, new DriverLocatorFactory()) { }
+        : this(csb, new BuiltInDriverLocatorFactory()) { }
     public TrinoOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
+        : this(csb, driverLocatorFactory, DefaultLocatorOptions) { }
+    public TrinoOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
         : base(csb,
               [
                 new HostMapper(),
@@ -29,7 +31,7 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
                 new CatalogMapper(),
                 new SchemaMapper(),
                 new AuthentificationMapper(),
-                new DriverMapper(driverLocatorFactory),
+                new DriverMapper(driverLocatorFactory, locatorOptions),
                 new OptionsMapper(),
               ]
         )

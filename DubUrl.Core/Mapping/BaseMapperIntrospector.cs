@@ -36,10 +36,30 @@ public abstract class BaseIntrospector
 
 public class AssemblyTypesProbe : ITypesProbe
 {
-    public Assembly[] Assemblies { get; } = [typeof(SchemeRegistry).Assembly];
+    public Assembly[] Assemblies { get; }
 
     public AssemblyTypesProbe()
-    { }
+        => Assemblies = GetDefaultAssemblies();
+
+    private static Assembly[] GetDefaultAssemblies()
+    {
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(assembly =>
+                assembly == typeof(SchemeRegistry).Assembly
+                || assembly.GetName().Name?.StartsWith("DubUrl.Provider.", StringComparison.Ordinal) == true)
+            .ToList();
+
+        var compatibilityAssembly = Type.GetType("DubUrl.Mapping.BuiltInProviderModule, DubUrl", throwOnError: false)?.Assembly;
+        if (compatibilityAssembly is not null)
+        {
+            assemblies.AddRange(compatibilityAssembly.GetReferencedAssemblies()
+                .Where(name => name.Name?.StartsWith("DubUrl.Provider.", StringComparison.Ordinal) == true)
+                .Select(Assembly.Load));
+        }
+
+        assemblies.Add(typeof(SchemeRegistry).Assembly);
+        return assemblies.Distinct().ToArray();
+    }
 
     public AssemblyTypesProbe(Assembly[] assemblies)
         => Assemblies = assemblies;

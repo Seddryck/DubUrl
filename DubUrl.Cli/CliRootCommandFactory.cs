@@ -12,6 +12,7 @@ internal static class CliRootCommandFactory
         var console = services.GetRequiredService<ICliConsole>();
         var root = new RootCommand("Validate, render, and deploy DubUrl schema documents.");
         root.Subcommands.Add(SchemaCommand.Create(services, cancellationToken));
+        root.Subcommands.Add(ConnectorCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CreateCapabilitiesCommand(services));
         root.SetAction(_ =>
         {

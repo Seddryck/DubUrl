@@ -2,7 +2,7 @@ using System.Web;
 
 namespace DubUrl.Parsing;
 
-internal class Parser : IParser
+public class Parser : IParser
 {
     public virtual ConnectionUri Parse(string url)
         => TryParse(url, out var connectionUri, out var diagnostic)

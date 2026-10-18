@@ -17,7 +17,7 @@ namespace DubUrl.Mapping;
 public class SchemeRegistryBuilder
 {
     private string _rootPath = string.Empty;
-    private readonly List<Assembly> _assemblies = [typeof(SchemeRegistryBuilder).Assembly];
+    private readonly List<Assembly> _assemblies = [.. new AssemblyTypesProbe().Assemblies];
     private readonly List<Type> _mapperIntrospectors = [];
     private readonly List<MapperInfo> _mapperInfos = [];
     private readonly List<string> _exclusions = [];
@@ -25,31 +25,60 @@ public class SchemeRegistryBuilder
     public SchemeRegistryBuilder()
     { }
 
+    [RequiresUnreferencedCode("The built-in module composes dialects from attributes. Use ProviderCatalogBuilder with a custom explicit module for Native AOT.")]
     public static SchemeRegistry GetDefault()
-        => new SchemeRegistryBuilder()
+        => new ProviderCatalogBuilder()
             .WithRootPath(string.Empty)
-            .WithAssemblies(typeof(SchemeRegistryBuilder).Assembly)
-            .WithAutoDiscoveredMappings()
+            .AddModule(CreateBuiltInProviderModule())
             .Build();
+
+    private static IDubUrlProviderModule CreateBuiltInProviderModule()
+    {
+        var moduleType = GetBuiltInProviderModuleType();
+        return moduleType is not null && Activator.CreateInstance(moduleType) is IDubUrlProviderModule module
+            ? module
+            : throw new InvalidOperationException(
+                "The default provider set is supplied by the DubUrl compatibility package. " +
+                "Reference that package or construct a ProviderCatalogBuilder with explicit connector modules.");
+    }
+
+    private static Type? GetBuiltInProviderModuleType()
+        => Type.GetType("DubUrl.Mapping.BuiltInProviderModule, DubUrl", throwOnError: false);
 
     public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)
     {
-        var mappings = new NativeMapperIntrospector().Locate();
-        var selectedMappings = schemes.Length == 0
-            ? mappings
-            : mappings
-                .Where(mapping => mapping.Aliases.Any(alias => schemes.Contains(alias, StringComparer.OrdinalIgnoreCase)))
-                .ToArray();
+        var moduleType = GetBuiltInProviderModuleType()
+            ?? throw new InvalidOperationException(
+                "The default dialect set is supplied by the DubUrl compatibility package. " +
+                "Reference that package or construct a dialect registry from explicit connector modules.");
+        var registry = moduleType.GetMethod(
+                "GetDialectRegistry",
+                BindingFlags.Public | BindingFlags.Static)
+            ?.Invoke(null, null) as IDialectRegistry
+            ?? throw new InvalidOperationException("The DubUrl compatibility package does not expose its built-in dialect registry.");
 
-        var unknownSchemes = schemes
-            .Where(scheme => !mappings.Any(mapping => mapping.Aliases.Contains(scheme, StringComparer.OrdinalIgnoreCase)))
-            .ToArray();
-        if (unknownSchemes.Length > 0)
+        if (schemes.Length == 0)
+            return registry;
+
+        var selectedDialects = new List<IDialect>();
+        var unknownSchemes = new List<string>();
+        foreach (var scheme in schemes)
+        {
+            try
+            {
+                selectedDialects.Add(registry.Get(scheme));
+            }
+            catch (DialectNotFoundException)
+            {
+                unknownSchemes.Add(scheme);
+            }
+        }
+        if (unknownSchemes.Count > 0)
             throw new ArgumentException($"No dialect is mapped to: {string.Join(", ", unknownSchemes)}.", nameof(schemes));
 
         var builder = new DialectRegistryBuilder();
-        foreach (var mapping in selectedMappings)
-            builder.AddDialect(mapping.DialectType, mapping.Aliases);
+        foreach (var dialect in selectedDialects.DistinctBy(dialect => dialect.GetType()))
+            builder.AddDialect(dialect.GetType(), dialect.Aliases);
         return builder.Build();
     }
 

@@ -19,15 +19,18 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
     protected internal const string DRIVER_KEYWORD = "Driver";
 
     public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath)
-        : this(csb, rootPath, new DriverLocatorFactory())
+        : this(csb, rootPath, new BuiltInDriverLocatorFactory())
     { }
 
     public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath, DriverLocatorFactory driverLocatorFactory)
+        : this(csb, rootPath, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+    public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
         : base(new StraightSpecificator(csb),
               [
                 new DbqMapper(rootPath),
                 new AuthentificationMapper(),
-                new DriverMapper(driverLocatorFactory),
+                new DriverMapper(driverLocatorFactory, locatorOptions),
                 new OptionsMapper(),
               ]
         )
@@ -65,11 +68,21 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
 
     internal class DriverMapper : BaseTokenMapper
     {
-        internal DriverLocatorFactory DriverLocatorFactory { get; } = new DriverLocatorFactory();
+        internal DriverLocatorFactory DriverLocatorFactory { get; } = new BuiltInDriverLocatorFactory();
+        private IReadOnlyList<Type> ConfiguredOptions { get; }
         private IList<Type>? AvailableOptions { get; set; }
 
         public DriverMapper(DriverLocatorFactory driverLocatorFactory)
-            => DriverLocatorFactory = driverLocatorFactory;
+            : this(driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }
+
+        public DriverMapper(DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
+        {
+            DriverLocatorFactory = driverLocatorFactory;
+            ConfiguredOptions = locatorOptions?.Distinct().ToArray()
+                ?? throw new ArgumentNullException(nameof(locatorOptions));
+            if (ConfiguredOptions.Any(type => !type.IsEnum))
+                throw new ArgumentException("ODBC locator option types must be enums.", nameof(locatorOptions));
+        }
 
         public override void Execute(ConnectionUri urlInfo)
         {
@@ -121,20 +134,7 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
             }
         }
 
-            protected internal virtual List<Type> InitializeOptions()
-            {
-                var types = new List<Type>();
-                AppDomain.CurrentDomain.GetAssemblies()
-#if NET7_0_OR_GREATER
-                    .SelectMany(assembly => assembly.GetExportedTypes())
-#else
-                    .SelectMany(assembly => assembly.GetTypes())
-#endif
-                    .Where(x => x.IsEnum && x.GetCustomAttributes(typeof(LocatorOptionAttribute), true).Length > 0)
-                    .ToList()
-                    .ForEach(x => types.Add(x));
-                return types;
-            }
+        protected internal virtual List<Type> InitializeOptions() => [.. ConfiguredOptions];
         }
 
     internal class AuthentificationMapper : BaseTokenMapper

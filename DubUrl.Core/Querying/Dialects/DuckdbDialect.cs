@@ -20,6 +20,16 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class DuckDbDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.DuckDb,
+        GeneratedColumns = GeneratedColumnSyntax.DuckDb,
+        RegularExpressions = RegularExpressionSyntax.RegexpMatchesFunction,
+        SupportsComments = true,
+        SupportsViews = true,
+        NativeTypes = new HashSet<string>(["JSON", "UUID", "HUGEINT"], StringComparer.OrdinalIgnoreCase),
+    };
+
     internal DuckDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

@@ -26,15 +26,17 @@ public class DrillOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     protected internal const string ZKCLUSTERID_KEYWORD = "ZKClusterID";
 
     public DrillOdbcRewriter(DbConnectionStringBuilder csb)
-        : this(csb, new DriverLocatorFactory()) { }
+        : this(csb, new BuiltInDriverLocatorFactory()) { }
     public DrillOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
+        : this(csb, driverLocatorFactory, DefaultLocatorOptions) { }
+    public DrillOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
         : base(csb,
               [
                 new HostMapper(),
                 new PortMapper(),
                 new SchemaMapper(),
                 new AuthentificationMapper(),
-                new DriverMapper(driverLocatorFactory),
+                new DriverMapper(driverLocatorFactory, locatorOptions),
                 new OptionsMapper(),
               ]
         )

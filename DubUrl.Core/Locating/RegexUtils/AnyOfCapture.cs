@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Locating.RegexUtils;
 
-internal class AnyOfCapture : BaseRegex
+public class AnyOfCapture : BaseRegex
 {
     private string[] Options { get; }
     public AnyOfCapture(string[] options)
@@ -26,7 +26,7 @@ internal class AnyOfCapture : BaseRegex
     }
 }
 
-internal class AnyOfCapture<T> : AnyOfCapture
+public class AnyOfCapture<T> : AnyOfCapture
 {
     public AnyOfCapture(string[] options) : base(options) { }
 }

@@ -12,7 +12,7 @@ internal class DuckDBQuotedIdentifierFormatter : IdentifierQuotedFormatter
 
     public DuckDBQuotedIdentifierFormatter()
     {
-        using var reader = new ReservedKeywordsReader("DuckDB");
+        using var reader = new ReservedKeywordsReader(typeof(DuckDBQuotedIdentifierFormatter).Assembly, "DuckDB");
         ReservedKeywords = reader.ReadAll().ToArray();
     }
 

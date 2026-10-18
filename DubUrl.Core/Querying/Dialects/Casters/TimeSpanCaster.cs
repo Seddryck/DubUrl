@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Casters;
 
-internal class TimeSpanCaster<T> : BaseCaster<T, TimeSpan>
+public class TimeSpanCaster<T> : BaseCaster<T, TimeSpan>
 {
     public TimeSpanCaster()
         : base("FromTimeSpan", [typeof(TimeSpan)]) { }

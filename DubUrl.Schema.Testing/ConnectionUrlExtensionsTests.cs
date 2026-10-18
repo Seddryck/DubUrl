@@ -9,6 +9,7 @@ using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
 using DubUrl.Schema.Builders;
+using DubUrl.Mapping;
 using Moq;
 using NUnit.Framework;
 
@@ -41,7 +42,7 @@ public class ConnectionUrlExtensionsTests
         dialect.Setup(x => x.SqlFunctionMapper).Returns(sqlFunctionMapper.Object);
         dialect.Setup(x => x.Renderer).Returns(renderer.Object);
 
-        var connectionUrl = new Mock<ConnectionUrl>(It.IsAny<string>());
+        var connectionUrl = new Mock<ConnectionUrl>("mssql://./db", Mock.Of<ISchemeRegistry>());
         connectionUrl.Setup(c => c.Open()).Returns(dbConnection.Object);
         connectionUrl.SetupGet(c => c.Dialect).Returns(dialect.Object);
 

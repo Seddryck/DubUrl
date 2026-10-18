@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Parametrizing;
 
-internal interface IParametrizedCommand
+public interface IParametrizedCommand
 {
     ImmutableArray<DubUrlParameter> Parameters { get; }
 }
