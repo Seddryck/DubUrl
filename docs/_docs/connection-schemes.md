@@ -1,8 +1,8 @@
 ---
-title: Connection schemes
+title: Connecting to databases
 nav_order: 2
 has_children: true
 toc: false
 ---
 
-Choose a native provider, ODBC driver, or OLE DB provider.
+Choose a provider, configure your connection, and decide how connections should be reused.

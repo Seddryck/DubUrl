@@ -1,4 +1,9 @@
-# Schema application API
+---
+title: Schema application API
+parent: Reference
+nav_order: 7
+permalink: /schema-application-api/
+---
 
 `DubUrl.Application` is the supported transport-neutral application boundary for schema-document operations. It lets command-line tools, persistent workers, HTTP services, and ordinary .NET applications share the same validation, rendering, and deployment behavior without placing transport concerns in the schema projects.
 

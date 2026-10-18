@@ -27,6 +27,10 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
     protected CommandProvisionerFactory CommandProvisionerFactory { get; }
     protected readonly InlineTemplateCommandFactory _inlineTemplateCommandFactory;
     private readonly DatabaseCommandExecutor _executor;
+    private readonly object _lifetimeSync = new();
+    private ConnectionSource? _source;
+    private readonly bool _ownsSource = true;
+    private bool _disposed;
 
     protected ICaster[] Casters { get; } = [];
 
@@ -50,7 +54,56 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
     {
         (ConnectionUrl, CommandProvisionerFactory, QueryLogger, _inlineTemplateCommandFactory) =
             (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect));
-        _executor = new DatabaseCommandExecutor(connectionUrl, commandProvisionerFactory, logger);
+        _executor = new DatabaseCommandExecutor(connectionUrl, commandProvisionerFactory, logger, GetSource);
+    }
+
+    /// <summary>Uses a borrowed source with its bound dialect and parameterization context.</summary>
+    public DatabaseUrl(ConnectionSource source)
+        : this(source, new CommandProvisionerFactory(), NullQueryLogger.Instance) { }
+
+    public DatabaseUrl(ConnectionSource source, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
+        : this(source?.QueryContext ?? throw new ArgumentNullException(nameof(source)), commandProvisionerFactory, logger)
+        => (_source, _ownsSource) = (source, false);
+
+    private ConnectionSource GetSource()
+    {
+        lock (_lifetimeSync)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            // Existing constructors preserve per-operation connection ownership, independently of source defaults.
+            return _source ??= new ConnectionSource(ConnectionUrl, ConnectionReuseMode.ProviderManaged);
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing) TakeOwnedSource()?.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore().ConfigureAwait(false);
+        Dispose(false);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual ValueTask DisposeAsyncCore() => TakeOwnedSource()?.DisposeAsync() ?? default;
+
+    private ConnectionSource? TakeOwnedSource()
+    {
+        ConnectionSource? owned;
+        lock (_lifetimeSync)
+        {
+            _disposed = true;
+            owned = _ownsSource ? _source : null;
+        }
+        return owned;
     }
 
     protected virtual IDbCommand PrepareCommand(ICommandProvider commandProvider)

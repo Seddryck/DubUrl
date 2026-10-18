@@ -1,8 +1,8 @@
 ---
-title: Integrations
-nav_order: 4
+title: Tools and automation
+nav_order: 5
 has_children: true
 toc: false
 ---
 
-Connect DubUrl to the tools you already use.
+Use the command-line tool interactively or host the persistent JSON-RPC worker from another application.

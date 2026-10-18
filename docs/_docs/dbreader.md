@@ -1,9 +1,9 @@
 ---
-parent: Integrations
-nav_order: 2
-title: DbReader
+title: Use DbReader
+parent: Querying data
+nav_order: 6
+
 subtitle: Integration of DubUrl with the rows/classes mapper DbReader
-tags: [integration, dbreader]
 ---
 
 You can use DubUrl without needing to opt out of [DbReader](https://github.com/seesharper/DbReader/). BBoth can be used together without any degradation in experience or performance.

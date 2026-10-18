@@ -6,17 +6,17 @@ using System.Threading;
 namespace DubUrl.Querying;
 
 /// <summary>
-/// A reader that owns the underlying reader, command, and connection. Disposing or closing it releases all three.
+/// A reader that owns the underlying reader, command, and connection lease. Closing it releases all three.
 /// </summary>
 public sealed class OwnedDataReader : DbDataReader
 {
     private readonly IDataReader _reader;
     private readonly IDbCommand _command;
-    private readonly IDbConnection _connection;
-    private int _disposed;
+    private readonly IDisposable _owner;
+    private readonly DisposalCompletion _disposal = new();
 
-    internal OwnedDataReader(IDataReader reader, IDbCommand command, IDbConnection connection)
-        => (_reader, _command, _connection) = (reader, command, connection);
+    internal OwnedDataReader(IDataReader reader, IDbCommand command, IDisposable owner)
+        => (_reader, _command, _owner) = (reader, command, owner);
 
     public override int Depth => _reader.Depth;
     public override int FieldCount => _reader.FieldCount;
@@ -67,53 +67,27 @@ public sealed class OwnedDataReader : DbDataReader
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing && Interlocked.Exchange(ref _disposed, 1) == 0)
-        {
-            try
-            {
-                _reader.Dispose();
-            }
-            finally
-            {
-                try
-                {
-                    _command.Dispose();
-                }
-                finally
-                {
-                    _connection.Dispose();
-                }
-            }
-        }
+        if (disposing)
+            _disposal.Run(() => DisposeOwnedAsync(false)).GetAwaiter().GetResult();
     }
 
-    public override async ValueTask DisposeAsync()
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
+    public override ValueTask DisposeAsync() => _disposal.Run(() => DisposeOwnedAsync(true));
 
+    private async ValueTask DisposeOwnedAsync(bool asynchronous)
+    {
         try
         {
-            if (_reader is IAsyncDisposable asyncReader)
-                await asyncReader.DisposeAsync().ConfigureAwait(false);
-            else
-                _reader.Dispose();
+            await ConnectionSource.DisposeConnectionAsync(_reader, asynchronous).ConfigureAwait(false);
         }
         finally
         {
             try
             {
-                if (_command is DbCommand dbCommand)
-                    await dbCommand.DisposeAsync().ConfigureAwait(false);
-                else
-                    _command.Dispose();
+                await ConnectionSource.DisposeConnectionAsync(_command, asynchronous).ConfigureAwait(false);
             }
             finally
             {
-                if (_connection is DbConnection dbConnection)
-                    await dbConnection.DisposeAsync().ConfigureAwait(false);
-                else
-                    _connection.Dispose();
+                await ConnectionSource.DisposeConnectionAsync(_owner, asynchronous).ConfigureAwait(false);
             }
         }
     }

@@ -1,9 +1,9 @@
 ---
-parent: Connection schemes
-nav_order: 4
-title: ADOMD.NET data provider
+title: Connect to Analysis Services
+parent: Connecting to databases
+nav_order: 7
+
 subtitle: List of databases supported by the native ADOMD.NET data provider and how to load them
-tags: [quick-start]
 ---
 
 ADOMD.NET data provider connects to an analytics data source such as Power BI Premium, Power BI Desktop or SQL Server Analysis Services and provides a way to execute queries against that data source in a consistent manner that is independent of the data source and data source-specific functionality.

@@ -1,9 +1,9 @@
 ---
+title: Install the .NET library
 parent: Getting started
-nav_order: 2
-title: Install DubUrl
+nav_order: 3
+
 subtitle: Add the package reference to your project
-tags: [installation, quick-start]
 ---
 
 ## Package Manager

@@ -1,8 +1,8 @@
 ---
-title: Schema definition
-nav_order: 5
+title: Working with schemas
+nav_order: 4
 has_children: true
 toc: false
 ---
 
-Model database schemas and exchange them as documents.
+Write or build a schema, validate it, generate SQL, and review a deployment before applying it.

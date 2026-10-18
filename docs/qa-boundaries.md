@@ -1,4 +1,8 @@
-# Provider QA boundaries
+---
+layout: doc
+title: Provider QA boundaries
+permalink: /qa-boundaries/
+---
 
 Provider QA follows the same ownership boundary as provider production code. A provider named `XYZ` uses these projects:
 

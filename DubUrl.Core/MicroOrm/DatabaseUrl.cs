@@ -25,6 +25,13 @@ public class DatabaseUrl : DubUrl.DatabaseUrl
         : base(connectionUrl, commandProvisionerFactory, logger)
     { ReflectionCache = reflectionCache; }
 
+    public DatabaseUrl(ConnectionSource source)
+        : base(source) { }
+
+    public DatabaseUrl(ConnectionSource source, CommandProvisionerFactory commandProvisionerFactory, IReflectionCache reflectionCache, IQueryLogger logger)
+        : base(source, commandProvisionerFactory, logger)
+    { ReflectionCache = reflectionCache; }
+
     public DatabaseUrl WithoutCache()
     {
         ReflectionCache = new NoneReflectionCache();

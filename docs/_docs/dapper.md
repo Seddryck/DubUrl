@@ -1,9 +1,9 @@
 ---
-parent: Integrations
-nav_order: 1
-title: Dapper
+title: Use Dapper
+parent: Querying data
+nav_order: 5
+
 subtitle: Integration of DubUrl with the micro-orm Dapper
-tags: [integration, dapper]
 ---
 
 You can use DubUrl without having to opt out of [Dapper](https://github.com/DapperLib/Dapper). Both can be used in conjonction without any depreciation of the experience or performance.

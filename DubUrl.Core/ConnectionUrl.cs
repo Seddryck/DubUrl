@@ -29,8 +29,16 @@ public class ConnectionUrl : BaseConnectionUrl
     public virtual IDbConnection Connect()
     {
         var connection = GetProviderFactory().CreateConnection() ?? throw new ArgumentNullException();
-        connection.ConnectionString = Result.ConnectionString;
-        return connection;
+        try
+        {
+            connection.ConnectionString = Result.ConnectionString;
+            return connection;
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
     }
 
     public virtual IDbConnection Open()

@@ -1,10 +1,11 @@
 ---
+title: What is DubUrl?
 parent: Getting started
 nav_order: 1
-title: Why did we create DubUrl?
+
 subtitle: The impossible quest of building database-vendors agnostic solutions in .NET
-tags: [quick-start]
 ---
+
 We started the development of DubUrl to compensate the lack of tooling regarding real support for building applications targeting databases with different SQL dialects. DubUrl is not a micro-ORM, neither an ORM, there are great tools already available in the .NET ecosystem, we don't need to reinvent the wheel. DubUrl is focussing on providing a great experience to developers to be sure that their code .NET is fully agnostic of the vendor database SQL dialects and drivers.
 
 DubUrl's primary design goals are to:

@@ -101,3 +101,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .sidebar-caption { font-family: system-ui, sans-serif; }
 
 @import 'theme/download';
+
+@import 'custom/branding';
+
+.sidebar-caption a { color: #f3f3f3; text-decoration: underline; text-underline-offset: .2em; }

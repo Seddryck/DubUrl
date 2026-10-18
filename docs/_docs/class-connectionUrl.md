@@ -1,10 +1,10 @@
 ---
+title: ConnectionUrl API
+parent: Reference
+nav_order: 4
+
 permalink: /docs/class-connectionUrl/
-parent: .NET API
-nav_order: 1
-title: ConnectionUrl Class
 subtitle: Instantiate and manipulate the class ConnectionUrl
-tags: [connection, quick-start]
 ---
 
 As we'll use the [ADO.Net provider for SQL Server](https://docs.microsoft.com/en-us/sql/connect/ado-net/microsoft-ado-net-sql-server) in this example, we should add it as a reference of the .NET project.

@@ -15,7 +15,7 @@ Connect to your databases with a consistent URL syntax. Use familiar ADO.NET pro
 {: .lead }
 
 <div class="landing-actions">
-  <a class="btn btn-primary" href="{{ '/docs/installation-duburl/' | relative_url }}">Get started →</a>
+  <a class="btn btn-primary" href="{{ '/docs/choose-installation/' | relative_url }}">Get started →</a>
   <a class="btn" href="https://github.com/Seddryck/DubUrl">View on GitHub</a>
 </div>
 </div>
@@ -23,8 +23,8 @@ Connect to your databases with a consistent URL syntax. Use familiar ADO.NET pro
 ## Find your starting point
 
 <div class="quick-links">
-  <a class="quick-link" href="{{ '/docs/basics-connection-url/' | relative_url }}"><strong>Connection URLs →</strong><span>Understand schemes, hosts, credentials, and options.</span></a>
-  <a class="quick-link" href="{{ '/docs/native-ado-net-providers/' | relative_url }}"><strong>Database providers →</strong><span>Find the scheme for your ADO.NET provider.</span></a>
-  <a class="quick-link" href="{{ '/schema-documents/' | relative_url }}"><strong>Schema documents →</strong><span>Describe database schemas with JSON or YAML.</span></a>
-  <a class="quick-link" href="{{ '/cli/' | relative_url }}"><strong>Command line →</strong><span>Validate, render, and deploy schema documents.</span></a>
+  <a class="quick-link" href="{{ '/docs/first-connection/' | relative_url }}"><strong>Connect to a database →</strong><span>Open your first connection and read a result.</span></a>
+  <a class="quick-link" href="{{ '/docs/first-query/' | relative_url }}"><strong>Query your data →</strong><span>Read values and rows, then reuse SQL templates.</span></a>
+  <a class="quick-link" href="{{ '/docs/schema-overview/' | relative_url }}"><strong>Work with schemas →</strong><span>Write, validate, render, and deploy a schema.</span></a>
+  <a class="quick-link" href="{{ '/docs/integrations/' | relative_url }}"><strong>Tools and automation →</strong><span>Use the CLI or call the persistent JSON-RPC worker.</span></a>
 </div>

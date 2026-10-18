@@ -1,7 +1,7 @@
 ---
-parent: Schema definition
-nav_order: 1
-title: Schema model and rendering
+title: Build schemas in C#
+parent: Working with schemas
+nav_order: 6
 permalink: /schema-model/
 ---
 
@@ -82,19 +82,4 @@ DubUrl validates source relations, output aliases, table/view identity collision
 
 ## Render the lifecycle
 
-```csharp
-var dialects = new DialectRegistryBuilder();
-dialects.AddDialect<PgsqlDialect>(["pgsql"]);
-
-var renderer = new SchemaScriptRenderer(
-    dialects.Build().Get<PgsqlDialect>(),
-    SchemaCreationOptions.DropIfExists);
-
-var sql = renderer.Render(schema);
-```
-
-Creation renders tables and their constraints first, followed by deferred foreign keys, comments, indexes, and dependency-ordered views. With `DropIfExists`, dependent views are dropped first, then indexes, then tables. This ordering prevents the generated teardown from removing a source before its dependants.
-
-Provider capabilities still apply. The renderer throws when the selected dialect cannot faithfully represent a requested identity, generated-column storage mode, regular-expression check, view, native type, or function.
-
-For a portable JSON or YAML representation of the same model, see [Schema documents]({{ site.baseurl }}/schema-documents/).
+See [Generate SQL]({{ '/docs/generate-sql/#render-the-lifecycle' | relative_url }}) for renderer construction, creation options, ordering, and provider capability limits.

@@ -1,9 +1,9 @@
 ---
-parent: Connection schemes
-nav_order: 2
-title: ODBC driver locators
+title: Connect through ODBC
+parent: Connecting to databases
+nav_order: 5
+
 subtitle: List the ODBC driver locators and potential options to load them
-tags: [quick-start]
 ---
 
 When selecting the ADO.Net data provider for ODBC with the scheme `odbc://`, you still need to specify the name of the driver and the SQL dialect to use. When use a classical connection-string, the driver is specified in a token and you must specify the fullname. This point is tricky as it's usually difficult to remember the exact name of the driver. It's also painful to have to manually change all your connection-strings because a new version of the driver has been released and installed on your client.

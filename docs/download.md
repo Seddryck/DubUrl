@@ -3,7 +3,7 @@ nav_order: 2
 nav_exclude: false
 layout: page
 width: large
-title: Download DubUrl
+title: Downloads
 permalink: /download/
 description: Guided downloads for the DubUrl CLI, .NET libraries, and JSON-RPC worker.
 ---

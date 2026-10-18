@@ -1,8 +1,8 @@
 ---
-title: .NET API
+title: Querying data
 nav_order: 3
 has_children: true
 toc: false
 ---
 
-Use connection URLs in your .NET applications.
+Read values and rows with DatabaseUrl, reuse SQL templates, or work with Dapper and DbReader.

@@ -1,9 +1,9 @@
 ---
-parent: Getting started
-nav_order: 3
-title: Install ADO.Net data providers
+title: Configure and register your provider
+parent: Connecting to databases
+nav_order: 2
+
 subtitle: Add the package references and register the factories for the ADO.Net data providers
-tags: [installation, quick-start]
 ---
 
 {% include alert.html text="DubUrl still requires the ADO.NET provider package and registration of its provider factory." %}

@@ -1,9 +1,9 @@
 ---
-parent: Getting started
-nav_order: 4
-title: Basics of a connection URL
+title: Connection URL syntax
+parent: Reference
+nav_order: 1
+
 subtitle: Specify information about your database
-tags: [connection, quick-start]
 ---
 
 Each connection URL must specify the selected *ADO.Net Data Provider* to connect to the database. This information is provided in the URL **scheme** (the part of the URL preceding the symbols `://`). If you want to connect to a database hosted on Microsoft SQL Server, you can specify the scheme `mssql`. The scheme for other databases or other ADO.Net providers such as ODBC drivers and OleDb providers can be found [here]({{ '/docs/native-ado-net-providers/' | relative_url }}).

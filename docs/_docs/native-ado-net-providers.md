@@ -1,9 +1,9 @@
 ---
-parent: Connection schemes
-nav_order: 1
-title: Native ADO.Net data providers
+title: Supported databases and aliases
+parent: Reference
+nav_order: 2
+
 subtitle: List the native ADO.Net providers and how to load them
-tags: [quick-start]
 ---
 
 An ADO.Net data provider connects to a data source such as SQL Server, MySQL, PostgreSQL but also ODBC and OLE DB data source, and provides a way to execute queries against that data source in a consistent manner that is independent of the data source and data source-specific functionality.
