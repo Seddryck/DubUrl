@@ -1,0 +1,176 @@
+// Adapted from Expressif's _brand-colors.scss at
+// 5ddce57f8de371d9a2f4e46552be6bb541ffa356, using DubUrl theme tokens.
+.brand-colors {
+  box-sizing: border-box;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: $global-color;
+  line-height: 1.6;
+
+  *, *::before, *::after { box-sizing: inherit; }
+
+  h1, h2, h3 { font-family: inherit; color: $global-color; }
+  h1 { margin: 0 0 1rem; font-size: 2rem; line-height: 1.2; }
+  h2 { margin: 0 0 0.35rem; font-size: 1.5rem; line-height: 1.3; }
+  code { color: inherit; }
+
+  .brand-colors__intro {
+    max-width: 44rem;
+    margin: 0;
+    color: $global-muted-color;
+    font-size: 1.1rem;
+    line-height: 1.65;
+  }
+
+  .brand-colors__section { margin-top: 3rem; }
+  .brand-colors__section-copy {
+    max-width: 42rem;
+    margin: 0;
+    color: $global-muted-color;
+  }
+
+  .brand-colors__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.35rem;
+  }
+
+  .brand-color {
+    min-width: 0;
+    overflow: hidden;
+    background: $global-background;
+    border: 1px solid $global-border;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba($global-color, 0.04);
+  }
+
+  .brand-color__swatch {
+    min-height: 7rem;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    background: var(--swatch);
+  }
+
+  .brand-color__role {
+    padding: 0.25rem 0.55rem;
+    color: $global-background;
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: $global-color;
+    border-radius: 999px;
+  }
+
+  .brand-color__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem 1rem;
+  }
+
+  .brand-color__name { margin: 0; font-size: 0.95rem; font-weight: 700; }
+  .brand-color__usage {
+    margin: 0.15rem 0 0;
+    color: $global-muted-color;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .brand-color__copy {
+    flex: 0 0 auto;
+    min-height: 2.75rem;
+    padding: 0.4rem 0.55rem;
+    color: $global-muted-color;
+    font-family: $base-code-font-family;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: $global-background;
+    border: 1px solid $global-muted-color;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: background-color 140ms ease, transform 140ms ease;
+
+    &:hover { background: $global-primary-background; }
+    &:active { transform: translateY(1px); }
+    &:focus-visible { outline: 3px solid $global-muted-color; outline-offset: 3px; }
+    &:disabled { cursor: default; }
+  }
+
+  .brand-colors__scale {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 1.35rem;
+    overflow: hidden;
+    border: 1px solid $global-border;
+    border-radius: 0.75rem;
+  }
+
+  .brand-colors__scale--neutral { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .brand-scale-color {
+    min-width: 0;
+    padding: 5.5rem 0.7rem 0.75rem;
+    color: $global-color;
+    background: var(--swatch);
+  }
+  .brand-scale-color--light-text { color: $global-background; }
+  .brand-scale-color__name, .brand-scale-color__hex { display: block; }
+  .brand-scale-color__name { font-size: 0.72rem; font-weight: 700; }
+  .brand-scale-color__hex {
+    margin-top: 0.1rem;
+    font-family: $base-code-font-family;
+    font-size: 0.67rem;
+  }
+
+  .brand-colors__code {
+    margin-top: 1.35rem;
+    padding: 1rem;
+    background: $border-xlight;
+    border: 1px solid $global-border;
+    border-radius: 0.5rem;
+
+    pre {
+      margin: 0.75rem 0 0;
+      padding: 0;
+      color: $global-color;
+      background: transparent;
+      border: 0;
+      font-family: $base-code-font-family;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+  }
+
+  .brand-colors__note {
+    margin-top: 2.5rem;
+    padding: 1.15rem 1.25rem;
+    color: $global-color;
+    background: $border-xlight;
+    border: 1px solid $global-border;
+    border-left: 4px solid $global-primary-background;
+    border-radius: 0.5rem;
+    p { margin: 0.75rem 0 0; }
+  }
+  .brand-colors__status { margin: 1rem 0 0; min-height: 1.6em; }
+
+  @media (max-width: 50rem) {
+    .brand-colors__scale--neutral { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (max-width: 36rem) {
+    padding: 2rem 1rem;
+    .brand-colors__grid { grid-template-columns: 1fr; }
+    .brand-colors__scale, .brand-colors__scale--neutral {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .brand-color__copy { transition: none; }
+  }
+}

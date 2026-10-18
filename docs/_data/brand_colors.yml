@@ -1,0 +1,49 @@
+# Keep these documented values aligned with _sass/theme/variables.scss and
+# _sass/syntax-highlighting/bw.scss. No new global palette is introduced here.
+core:
+  - name: DubUrl Gold
+    role: Primary
+    hex: '#FEC156'
+    usage: Primary actions and active indicators
+  - name: Blue-gray
+    role: Secondary
+    hex: '#8399A6'
+    usage: Secondary accents and decorative borders
+  - name: Slate
+    role: Interactive
+    hex: '#3A515F'
+    usage: Links, navigation, and dark surfaces
+  - name: Charcoal
+    role: Ink
+    hex: '#1F1E23'
+    usage: Headings, body text, and text on gold
+
+brand:
+  - name: Gold
+    hex: '#FEC156'
+  - name: Amber
+    hex: '#FBB418'
+  - name: Blue-gray
+    hex: '#8399A6'
+  - name: Slate
+    hex: '#3A515F'
+    light_text: true
+
+neutral:
+  - name: White
+    hex: '#FFFFFF'
+  - name: Surface
+    hex: '#F5F5F5'
+  - name: Soft border
+    hex: '#EBECEE'
+  - name: Border
+    hex: '#E5E5E5'
+  - name: Muted
+    hex: '#6E747C'
+    light_text: true
+  - name: Code
+    hex: '#393939'
+    light_text: true
+  - name: Ink
+    hex: '#1F1E23'
+    light_text: true
