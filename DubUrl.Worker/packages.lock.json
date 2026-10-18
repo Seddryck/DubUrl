@@ -598,6 +598,7 @@
       "duburl.application": {
         "type": "Project",
         "dependencies": {
+          "DubUrl.Core": "[0.0.0, )",
           "DubUrl.Schema": "[0.0.0, )",
           "DubUrl.Schema.Documents": "[0.0.0, )"
         }
@@ -1630,6 +1631,7 @@
       "duburl.application": {
         "type": "Project",
         "dependencies": {
+          "DubUrl.Core": "[0.0.0, )",
           "DubUrl.Schema": "[0.0.0, )",
           "DubUrl.Schema.Documents": "[0.0.0, )"
         }
@@ -2695,6 +2697,7 @@
       "duburl.application": {
         "type": "Project",
         "dependencies": {
+          "DubUrl.Core": "[0.0.0, )",
           "DubUrl.Schema": "[0.0.0, )",
           "DubUrl.Schema.Documents": "[0.0.0, )"
         }
