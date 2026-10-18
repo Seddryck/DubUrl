@@ -547,6 +547,7 @@ jobs:
           -PackageId DubUrl.Worker
           -CommandName duburl-worker
           -BuildIdentity DubUrl.Worker
+          -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64'
 
       - name: Install and execute worker tool
         shell: pwsh
@@ -1039,7 +1040,8 @@ jobs:
             -PackageDirectory .artifacts/worker `
             -PackageId DubUrl.Worker `
             -CommandName duburl-worker `
-            -BuildIdentity DubUrl.Worker
+            -BuildIdentity DubUrl.Worker `
+            -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64'
           dotnet tool install --tool-path .artifacts/worker-tool DubUrl.Worker `
             --version '${{ needs.version.outputs.semver }}' `
             --add-source .artifacts/worker `
