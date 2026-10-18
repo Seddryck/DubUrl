@@ -25,8 +25,8 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
     public BinFolderDiscoverer(Assembly[] assemblies)
         : this(assemblies,
             [
-                new NativeMapperIntrospector([.. assemblies, .. new[] {typeof(NativeMapperIntrospector).Assembly }])
-                , new WrapperMapperIntrospector([.. assemblies, .. new[] {typeof(WrapperMapperIntrospector).Assembly }]) 
+                new NativeMapperIntrospector([.. assemblies, .. new AssemblyTypesProbe().Assemblies])
+                , new WrapperMapperIntrospector([.. assemblies, .. new AssemblyTypesProbe().Assemblies])
             ]
         ) { }
 
@@ -65,7 +65,7 @@ public class BinFolderDiscoverer : IProviderFactoriesDiscoverer
                 continue;
             Debug.WriteLine($"Mapper found for assembly {asmName}");
 
-            var asm = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(x => x.GetName().Name == asmName)
+            var asm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == asmName)
                 ?? AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(asmPath));
 
             //Check if assembly contains a DbProviderFactory

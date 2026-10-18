@@ -71,6 +71,7 @@ $dependencyFile = "$moduleName.deps.json"
 $requiredFiles = @(
     $moduleFile,
     $dependencyFile,
+    'DubUrl.Provider.PostgreSql.dll',
     'Npgsql.dll',
     'Microsoft.Extensions.Logging.Abstractions.dll',
     'Microsoft.Extensions.DependencyInjection.Abstractions.dll',

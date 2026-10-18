@@ -19,6 +19,16 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class SingleStoreDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.MySql,
+        IdentityColumns = IdentityColumnSyntax.MySql,
+        GeneratedColumns = GeneratedColumnSyntax.MySql,
+        RegularExpressions = RegularExpressionSyntax.RegexpOperator,
+        SupportsViews = true,
+        NativeTypes = new HashSet<string>(["JSON", "GEOGRAPHYPOINT", "GEOGRAPHY"], StringComparer.OrdinalIgnoreCase),
+    };
+
      internal SingleStoreDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

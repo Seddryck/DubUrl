@@ -7,6 +7,24 @@ namespace DubUrl.Cli.Testing;
 public class CliInfrastructureTests
 {
     [Test]
+    public void Assembly_DoesNotReferenceCompatibilityProvidersOrDatabaseDrivers()
+    {
+        var references = typeof(CliHost).Assembly.GetReferencedAssemblies()
+            .Select(reference => reference.Name)
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(references, Does.Not.Contain("DubUrl"));
+            Assert.That(references, Has.None.StartsWith("DubUrl.Provider."));
+            Assert.That(references, Does.Not.Contain("Npgsql"));
+            Assert.That(references, Does.Not.Contain("Microsoft.Data.SqlClient"));
+            Assert.That(references, Does.Not.Contain("Microsoft.Data.Sqlite"));
+            Assert.That(references, Does.Not.Contain("MySqlConnector"));
+        });
+    }
+
+    [Test]
     public async Task Process_VersionAndHelp_AreAvailable()
     {
         var assembly = typeof(CliHost).Assembly.Location;

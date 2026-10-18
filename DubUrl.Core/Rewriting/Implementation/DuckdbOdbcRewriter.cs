@@ -16,7 +16,7 @@ namespace DubUrl.Rewriting.Implementation;
 public class DuckdbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
 {
     public DuckdbOdbcRewriter(DbConnectionStringBuilder csb)
-        : this(csb, new DriverLocatorFactory()) { }
+        : this(csb, new BuiltInDriverLocatorFactory()) { }
     public DuckdbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : this(csb, driverLocatorFactory, DefaultLocatorOptions) { }
     public DuckdbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)

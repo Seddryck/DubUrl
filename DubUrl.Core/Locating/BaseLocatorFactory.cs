@@ -10,7 +10,7 @@ public abstract class BaseLocatorFactory
 {
     protected readonly Dictionary<string, Type> Schemes = [];
 
-    protected internal virtual string[] GetValidAliases() => Schemes.Keys.ToArray();
+    public virtual string[] GetValidAliases() => Schemes.Keys.ToArray();
 
     #region Add, remove aliases and mappings
 

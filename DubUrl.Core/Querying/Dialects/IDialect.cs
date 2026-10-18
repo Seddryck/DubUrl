@@ -19,4 +19,5 @@ public interface IDialect
     ILanguage Language { get; }
     IDbTypeMapper DbTypeMapper { get; }
     ISqlFunctionMapper SqlFunctionMapper { get; }
+    DialectCapabilities Capabilities { get; }
 }

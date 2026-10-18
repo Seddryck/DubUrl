@@ -58,7 +58,9 @@ public class CliHostTests
                       value: "true"
             """;
         var console = new TestConsole(yaml);
-        await using var services = CliComposition.CreateDefault(console);
+        await using var services = CliComposition.CreateDefault(
+            console,
+            providerModules: [new BuiltInProviderModule()]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "render", "-", "--input-format", "yaml", "--dialect", "sqlite"], services);
@@ -117,10 +119,12 @@ public class CliHostTests
     }
 
     [Test]
-    public async Task Render_UsesDialectAliasesFromCoreWithoutInstalledConnector()
+    public async Task Render_UsesDialectAliasesFromExplicitProviderModule()
     {
         var console = new TestConsole(JsonSchema);
-        await using var services = CliComposition.CreateDefault(console);
+        await using var services = CliComposition.CreateDefault(
+            console,
+            providerModules: [new BuiltInProviderModule()]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "render", "-", "--input-format", "json", "--dialect", "postgresql"], services);
@@ -158,17 +162,19 @@ public class CliHostTests
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
             Assert.That(providers, Is.Empty);
-            Assert.That(dialects, Does.Contain("firebird"));
+            Assert.That(dialects, Is.Empty);
             Assert.That(deployableSchemes, Is.Empty);
             Assert.That(deployableSchemes, Does.Not.Contain("firebird"));
         });
     }
 
     [Test]
-    public async Task Render_FirebirdAlias_UsesCoreDialectRegistry()
+    public async Task Render_FirebirdAlias_UsesExplicitProviderModule()
     {
         var console = new TestConsole(JsonSchema);
-        await using var services = CliComposition.CreateDefault(console);
+        await using var services = CliComposition.CreateDefault(
+            console,
+            providerModules: [new BuiltInProviderModule()]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "render", "-", "--input-format", "json", "--dialect", "firebird"], services);
@@ -188,7 +194,9 @@ public class CliHostTests
         try
         {
             var console = new TestConsole(JsonSchema);
-            await using var services = CliComposition.CreateDefault(console);
+            await using var services = CliComposition.CreateDefault(
+                console,
+                providerModules: [new BuiltInProviderModule()]);
 
             var exitCode = await CliHost.InvokeAsync(
                 ["schema", "render", "-", "--input-format", "json", "--dialect", "sqlite", "--output", output], services);

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class IdentifierBacktickFormatter : IIdentifierFormatter
+public class IdentifierBacktickFormatter : IIdentifierFormatter
 {
     public string Format(string value)
         => $"`{value}`";

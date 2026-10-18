@@ -21,7 +21,7 @@ namespace DubUrl.Mapping.Implementation;
 public class TrinoOdbcMapper : BaseMapper, IOdbcMapper
 {
     public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+        : this (csb, dialect, parametrizer, new BuiltInDriverLocatorFactory()) { }
 
     public TrinoOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
         : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }

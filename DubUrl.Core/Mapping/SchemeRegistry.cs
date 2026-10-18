@@ -39,7 +39,7 @@ public class SchemeRegistry : ISchemeRegistry
 
     public ResolvedConnection Resolve(ConnectionUri connectionUri)
     {
-        var alias = SchemeRegistryBuilder.GetAlias(connectionUri.Scheme);
+        var alias = GetAlias(connectionUri.Scheme);
         var mapper = GetMapper(connectionUri.Scheme);
         mapper.Rewrite(connectionUri);
 
@@ -94,7 +94,7 @@ public class SchemeRegistry : ISchemeRegistry
 
     public IMapper GetMapper(SchemeKey scheme)
     {
-        var alias = SchemeRegistryBuilder.GetAlias(scheme);
+        var alias = GetAlias(scheme);
 
         if (!_mapperFactories.TryGetValue(alias, out var mapperFactory))
             throw new SchemeNotFoundException(alias, [.. _mapperFactories.Keys]);
@@ -104,7 +104,7 @@ public class SchemeRegistry : ISchemeRegistry
 
     public DbProviderFactory GetProviderFactory(SchemeKey scheme)
     {
-        var alias = SchemeRegistryBuilder.GetAlias(scheme);
+        var alias = GetAlias(scheme);
         if (_registrations.TryGetValue(alias, out var registration))
             return registration.ProviderFactory;
         return GetProviderFactory(GetMapper(scheme));
@@ -115,14 +115,14 @@ public class SchemeRegistry : ISchemeRegistry
 
     private static DbProviderFactory GetProviderFactory(IMapper mapper)
     {
-        return SchemeRegistryBuilder.GetProvider(mapper.GetProviderName())
+        return GetProvider(mapper.GetProviderName())
             ?? throw new ProviderNotFoundException(mapper.GetProviderName(), DbProviderFactories.GetProviderInvariantNames().ToArray());
     }
 
     public bool TryGetCapability<TCapability>(SchemeKey scheme, out TCapability? capability)
         where TCapability : class
     {
-        var alias = SchemeRegistryBuilder.GetAlias(scheme);
+        var alias = GetAlias(scheme);
         if (_registrations.TryGetValue(alias, out var registration)
             && registration.Capabilities.TryGetValue(typeof(TCapability), out var value))
         {
@@ -135,5 +135,24 @@ public class SchemeRegistry : ISchemeRegistry
     }
 
     public bool CanHandle(string scheme)
-        => _mapperFactories.ContainsKey(SchemeRegistryBuilder.GetAlias(SchemeKey.Parse(scheme)));
+        => _mapperFactories.ContainsKey(GetAlias(SchemeKey.Parse(scheme)));
+
+    private static string GetAlias(SchemeKey scheme)
+    {
+        var aliases = scheme.Parts;
+        var main = aliases.Count == 1
+            ? aliases[0]
+            : aliases.Contains("oledb", StringComparer.OrdinalIgnoreCase) ? "oledb"
+            : aliases.Contains("odbc", StringComparer.OrdinalIgnoreCase) ? "odbc"
+            : throw new ArgumentOutOfRangeException(nameof(scheme));
+
+        var second = aliases.FirstOrDefault(alias => !alias.Equals(main, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrEmpty(second) ? main : $"{main}+{second}";
+    }
+
+    private static DbProviderFactory? GetProvider(string providerName)
+    {
+        DbProviderFactories.TryGetFactory(providerName, out var factory);
+        return factory;
+    }
 }

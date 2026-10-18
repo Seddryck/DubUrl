@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
   </ItemGroup>
 
 </Project>

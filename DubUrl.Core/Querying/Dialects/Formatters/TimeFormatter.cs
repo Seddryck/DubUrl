@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class TimeFormatter : IValueFormatter<TimeOnly>
+public class TimeFormatter : IValueFormatter<TimeOnly>
 {
     public string Format(TimeOnly value)
 #if NET7_0_OR_GREATER

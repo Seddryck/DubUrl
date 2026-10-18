@@ -222,6 +222,25 @@ jobs:
         run: |
           $projects = @(
             'DubUrl.Core/DubUrl.csproj'
+            'DubUrl.ProviderCore/DubUrl.Core.csproj'
+            'DubUrl.Providers/DubUrl.Providers.csproj'
+            'providers/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
+            'providers/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
+            'providers/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj'
+            'providers/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj'
+            'providers/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj'
+            'providers/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj'
+            'providers/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj'
+            'providers/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj'
+            'providers/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj'
+            'providers/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj'
+            'providers/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj'
+            'providers/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj'
+            'providers/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj'
+            'providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
+            'providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
+            'providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
+            'connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj'
             'DubUrl.OleDb/DubUrl.OleDb.csproj'
             'DubUrl.Extensions/DubUrl.Extensions.csproj'
             'DubUrl.Adomd/DubUrl.Adomd.csproj'
@@ -321,6 +340,42 @@ jobs:
         include:
           - package-id: DubUrl
             project: DubUrl.Core/DubUrl.csproj
+          - package-id: DubUrl.Core
+            project: DubUrl.ProviderCore/DubUrl.Core.csproj
+          - package-id: DubUrl.Providers
+            project: DubUrl.Providers/DubUrl.Providers.csproj
+          - package-id: DubUrl.Provider.Access
+            project: providers/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
+          - package-id: DubUrl.Provider.Db2
+            project: providers/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj
+          - package-id: DubUrl.Provider.Drill
+            project: providers/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj
+          - package-id: DubUrl.Provider.DuckDb
+            project: providers/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj
+          - package-id: DubUrl.Provider.Excel
+            project: providers/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj
+          - package-id: DubUrl.Provider.FirebirdSql
+            project: providers/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj
+          - package-id: DubUrl.Provider.MySql
+            project: providers/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj
+          - package-id: DubUrl.Provider.Odbc
+            project: providers/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj
+          - package-id: DubUrl.Provider.Oracle
+            project: providers/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj
+          - package-id: DubUrl.Provider.PostgreSql
+            project: providers/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj
+          - package-id: DubUrl.Provider.Snowflake
+            project: providers/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj
+          - package-id: DubUrl.Provider.Sqlite
+            project: providers/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj
+          - package-id: DubUrl.Provider.SqlServer
+            project: providers/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj
+          - package-id: DubUrl.Provider.Teradata
+            project: providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj
+          - package-id: DubUrl.Provider.Text
+            project: providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj
+          - package-id: DubUrl.Provider.Trino
+            project: providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj
           - package-id: DubUrl.OleDb
             project: DubUrl.OleDb/DubUrl.OleDb.csproj
           - package-id: DubUrl.Extensions

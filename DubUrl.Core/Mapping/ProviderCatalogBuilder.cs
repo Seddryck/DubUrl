@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using DubUrl.Core.ProviderPacks;
+using DubUrl.Querying.Dialects;
 
 namespace DubUrl.Mapping;
 
@@ -94,6 +95,14 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
         }
 
         return SchemeRegistry.FromRegistrations(registrations);
+    }
+
+    public IDialectRegistry BuildDialects()
+    {
+        var builder = new DialectRegistryBuilder();
+        foreach (var provider in _providers)
+            builder.AddDialect(provider.Dialect.GetType(), provider.Aliases.ToArray());
+        return builder.Build();
     }
 }
 

@@ -24,7 +24,7 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
     {
         ArgumentNullException.ThrowIfNull(catalog);
 
-        var dialects = CreateDialects();
+        var dialects = GetDialectRegistry();
 
         Add<PositionalParametrizer>(catalog, dialects, "CockRoachDB", ["cr", "cockroach", "cockroachdb", "crdb", "cdb"], NpgsqlProvider, typeof(CockRoachDialect),
             context => new CockRoachMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
@@ -62,36 +62,36 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
             context => new TrinoMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
 
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Apache Drill", ["drill"], typeof(DrillDialect),
-            context => new DrillOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new DrillOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "DuckDB", ["duck", "duckdb"], typeof(DuckDbDialect),
-            context => new DuckdbOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new DuckdbOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "MariaDB", ["maria", "mariadb"], typeof(MySqlDialect),
-            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Microsoft Access", ["accdb", "access", "msaccess", "mdb"], typeof(MsAccessDialect),
-            context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Microsoft Excel", ["xls", "xlsx", "xlsb", "xlsm"], typeof(MsExcelDialect),
-            context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Microsoft SQL Server", ["mssql", "ms", "sqlserver", "mssqlserver"], typeof(TSqlDialect),
-            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "MySQL", ["mysql", "my"], typeof(MySqlDialect),
-            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "PostgreSQL", ["pg", "pgx", "pgsql", "postgres", "postgresql"], typeof(PgsqlDialect),
-            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "QuestDb", ["quest", "questdb"], typeof(QuestDbDialect),
-            context => new QuestDbOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new QuestDbOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Text files", ["txt", "csv", "tsv"], typeof(TextDialect),
-            context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Timescale", ["ts", "timescale"], typeof(PgsqlDialect),
-            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<NamedParametrizer>(catalog, dialects, "Trino", ["tr", "trino"], typeof(TrinoDialect),
-            context => new TrinoOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new DriverLocatorFactory(), context.OdbcLocatorOptions));
+            context => new TrinoOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
 
         catalog.AddOdbcLocatorOption<ArchitectureOption>();
         catalog.AddOdbcLocatorOption<EncodingOption>();
         catalog.AddOdbcLocatorOption<VersionOption>();
     }
 
-    private static IDialectRegistry CreateDialects()
+    public static IDialectRegistry GetDialectRegistry()
     {
         var builder = new DialectRegistryBuilder();
         AddDialect<CockRoachDialect>(builder, ["cr", "cockroach", "cockroachdb", "crdb", "cdb"]);

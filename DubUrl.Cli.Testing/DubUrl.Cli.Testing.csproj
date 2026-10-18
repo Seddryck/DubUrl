@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Cli\DubUrl.Cli.csproj" />
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
   </ItemGroup>
 
 </Project>

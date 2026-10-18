@@ -11,6 +11,24 @@ $ErrorActionPreference = 'Stop'
 
 $packages = @(
     @{ Id = 'DubUrl'; Assembly = 'DubUrl' },
+    @{ Id = 'DubUrl.Core'; Assembly = 'DubUrl.Core' },
+    @{ Id = 'DubUrl.Providers'; Assembly = 'DubUrl.Providers' },
+    @{ Id = 'DubUrl.Provider.Access'; Assembly = 'DubUrl.Provider.Access' },
+    @{ Id = 'DubUrl.Provider.Db2'; Assembly = 'DubUrl.Provider.Db2' },
+    @{ Id = 'DubUrl.Provider.Drill'; Assembly = 'DubUrl.Provider.Drill' },
+    @{ Id = 'DubUrl.Provider.DuckDb'; Assembly = 'DubUrl.Provider.DuckDb' },
+    @{ Id = 'DubUrl.Provider.Excel'; Assembly = 'DubUrl.Provider.Excel' },
+    @{ Id = 'DubUrl.Provider.FirebirdSql'; Assembly = 'DubUrl.Provider.FirebirdSql' },
+    @{ Id = 'DubUrl.Provider.MySql'; Assembly = 'DubUrl.Provider.MySql' },
+    @{ Id = 'DubUrl.Provider.Odbc'; Assembly = 'DubUrl.Provider.Odbc' },
+    @{ Id = 'DubUrl.Provider.Oracle'; Assembly = 'DubUrl.Provider.Oracle' },
+    @{ Id = 'DubUrl.Provider.PostgreSql'; Assembly = 'DubUrl.Provider.PostgreSql' },
+    @{ Id = 'DubUrl.Provider.Snowflake'; Assembly = 'DubUrl.Provider.Snowflake' },
+    @{ Id = 'DubUrl.Provider.Sqlite'; Assembly = 'DubUrl.Provider.Sqlite' },
+    @{ Id = 'DubUrl.Provider.SqlServer'; Assembly = 'DubUrl.Provider.SqlServer' },
+    @{ Id = 'DubUrl.Provider.Teradata'; Assembly = 'DubUrl.Provider.Teradata' },
+    @{ Id = 'DubUrl.Provider.Text'; Assembly = 'DubUrl.Provider.Text' },
+    @{ Id = 'DubUrl.Provider.Trino'; Assembly = 'DubUrl.Provider.Trino' },
     @{ Id = 'DubUrl.OleDb'; Assembly = 'DubUrl.OleDb' },
     @{ Id = 'DubUrl.Extensions'; Assembly = 'DubUrl.Extensions' },
     @{ Id = 'DubUrl.Adomd'; Assembly = 'DubUrl.Adomd' },
@@ -69,10 +87,15 @@ foreach ($package in $packages) {
             $reader = [IO.StreamReader]::new($nuspecEntry.Open())
             try {
                 [xml] $nuspec = $reader.ReadToEnd()
-                $dependency = @($nuspec.package.metadata.dependencies.group.dependency | Where-Object id -eq 'DubUrl')
-                Assert-Condition ($dependency.Count -eq 3) "Connector package must declare DubUrl once for each target framework."
-                foreach ($item in $dependency) {
-                    Assert-Condition ($item.version -eq "[$Version,1.0.0)") "Connector package has unexpected DubUrl dependency range '$($item.version)'."
+                $legacyDependency = @($nuspec.package.metadata.dependencies.group.dependency | Where-Object id -eq 'DubUrl')
+                Assert-Condition ($legacyDependency.Count -eq 0) "Connector package must not depend on the DubUrl compatibility package."
+                foreach ($dependencyId in @('DubUrl.Core', 'DubUrl.Provider.PostgreSql')) {
+                    $dependency = @($nuspec.package.metadata.dependencies.group.dependency | Where-Object id -eq $dependencyId)
+                    Assert-Condition ($dependency.Count -eq 3) "Connector package must declare $dependencyId once for each target framework."
+                    foreach ($item in $dependency) {
+                        $normalizedRange = $item.version -replace '\s', ''
+                        Assert-Condition ($normalizedRange -eq "[$Version,1.0.0)") "Connector package has unexpected $dependencyId dependency range '$($item.version)'."
+                    }
                 }
             }
             finally {

@@ -9,14 +9,13 @@ internal static class DatabaseObjectNameFormatter
         if (value is not DatabaseObjectName identity)
             throw new ArgumentException("The object-name formatter requires a structured database object name.", nameof(value));
 
-        var components = dialect switch
+        var components = (dialect.Capabilities ?? DialectCapabilities.Default).ObjectNames switch
         {
-            TSqlDialect => new[] { identity.Catalog, identity.Database, identity.Schema, identity.Name },
-            PgsqlDialect or CockRoachDialect or CrateDbDialect or QuestDbDialect
-                => PostgreSqlComponents(identity, dialect),
-            MySqlDialect or SingleStoreDialect => MySqlComponents(identity, dialect),
-            DuckDbDialect => DuckDbComponents(identity, dialect),
-            SqliteDialect => SqliteComponents(identity, dialect),
+            ObjectNameQualification.FourPart => new[] { identity.Catalog, identity.Database, identity.Schema, identity.Name },
+            ObjectNameQualification.PostgreSql => PostgreSqlComponents(identity, dialect),
+            ObjectNameQualification.MySql => MySqlComponents(identity, dialect),
+            ObjectNameQualification.DuckDb => DuckDbComponents(identity, dialect),
+            ObjectNameQualification.Sqlite => SqliteComponents(identity, dialect),
             _ => AnsiComponents(identity, dialect)
         };
 

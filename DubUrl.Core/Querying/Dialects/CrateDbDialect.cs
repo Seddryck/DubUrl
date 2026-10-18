@@ -19,6 +19,14 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class CrateDbDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.PostgreSql,
+        RegularExpressions = RegularExpressionSyntax.TildeOperator,
+        SupportsComments = true,
+        NativeTypes = new HashSet<string>(["JSON", "OBJECT", "GEO_POINT", "GEO_SHAPE"], StringComparer.OrdinalIgnoreCase),
+    };
+
      internal CrateDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

@@ -7,4 +7,45 @@
     <Description>Provider-neutral contracts and deterministic provider catalog for DubUrl.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\DubUrl.Core\*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Extensions\**\*.cs" Link="Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\MicroOrm\**\*.cs" Link="MicroOrm\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Parsing\**\*.cs" Link="Parsing\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Rewriting\*.cs" Link="Rewriting\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Rewriting\Tokening\**\*.cs" Link="Rewriting\Tokening\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Parametrizing\**\*.cs" Link="Querying\Parametrizing\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\*.cs" Link="Querying\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Reading\**\*.cs" Link="Querying\Reading\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Templating\**\*.cs" Link="Querying\Templating\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Dialects\*.cs"
+             Exclude="..\DubUrl.Core\Querying\Dialects\CockRoachDialect.cs;..\DubUrl.Core\Querying\Dialects\CrateDbDialect.cs;..\DubUrl.Core\Querying\Dialects\Db2Dialect.cs;..\DubUrl.Core\Querying\Dialects\DrillDialect.cs;..\DubUrl.Core\Querying\Dialects\DuckdbDialect.cs;..\DubUrl.Core\Querying\Dialects\FirebirdSqlDialect.cs;..\DubUrl.Core\Querying\Dialects\MsAccessDialect.cs;..\DubUrl.Core\Querying\Dialects\MsExcelDialect.cs;..\DubUrl.Core\Querying\Dialects\MysqlDialect.cs;..\DubUrl.Core\Querying\Dialects\OracleDialect.cs;..\DubUrl.Core\Querying\Dialects\PgsqlDialect.cs;..\DubUrl.Core\Querying\Dialects\QuestDbDialect.cs;..\DubUrl.Core\Querying\Dialects\SingleStoreDialect.cs;..\DubUrl.Core\Querying\Dialects\SnowflakeDialect.cs;..\DubUrl.Core\Querying\Dialects\SqliteDialect.cs;..\DubUrl.Core\Querying\Dialects\TeradataDialect.cs;..\DubUrl.Core\Querying\Dialects\TextDialect.cs;..\DubUrl.Core\Querying\Dialects\TrinoDialect.cs;..\DubUrl.Core\Querying\Dialects\TSqlDialect.cs"
+             Link="Querying\Dialects\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Dialects\Casters\**\*.cs"
+             Exclude="..\DubUrl.Core\Querying\Dialects\Casters\TrinoTimeSpanParser.cs"
+             Link="Querying\Dialects\Casters\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Dialects\Formatters\**\*.cs"
+             Exclude="..\DubUrl.Core\Querying\Dialects\Formatters\DuckDBQuotedIdentifierFormatter.cs;..\DubUrl.Core\Querying\Dialects\Formatters\IntervalTrinoFormatter.cs"
+             Link="Querying\Dialects\Formatters\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Dialects\Functions\AnsiFunctionMapper.cs;..\DubUrl.Core\Querying\Dialects\Functions\BaseFunctionMapper.cs;..\DubUrl.Core\Querying\Dialects\Functions\ISqlFunctionMapper.cs;..\DubUrl.Core\Querying\Dialects\Functions\SqlFunction.cs"
+             Link="Querying\Dialects\Functions\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\Dialects\Renderers\AnsiRenderer.cs;..\DubUrl.Core\Querying\Dialects\Renderers\BaseValueFormatter.cs;..\DubUrl.Core\Querying\Dialects\Renderers\DbTypeMapperAttribute.cs;..\DubUrl.Core\Querying\Dialects\Renderers\IRenderer.cs;..\DubUrl.Core\Querying\Dialects\Renderers\RendererAttribute.cs;..\DubUrl.Core\Querying\Dialects\Renderers\SqlFunctionMapperAttribute.cs;..\DubUrl.Core\Querying\Dialects\Renderers\ValueFormatter.cs"
+             Link="Querying\Dialects\Renderers\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Querying\TypeMapping\AnsiTypeMapper.cs;..\DubUrl.Core\Querying\TypeMapping\BaseTypeMapper.cs;..\DubUrl.Core\Querying\TypeMapping\IDbTypeMapper.cs"
+             Link="Querying\TypeMapping\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Mapping\*.cs"
+             Exclude="..\DubUrl.Core\Mapping\BuiltInProviderModule.cs"
+             Link="Mapping\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Mapping\Connectivity\NativeConnectivity.cs" Link="Mapping\Connectivity\NativeConnectivity.cs" />
+    <Compile Include="..\DubUrl.Core\Locating\*.cs" Link="Locating\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Locating\OdbcDriver\DriverLocatorFactory.cs;..\DubUrl.Core\Locating\OdbcDriver\IDriverLocator.cs" Link="Locating\OdbcDriver\%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Locating\RegexUtils\**\*.cs" Link="Locating\RegexUtils\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\DubUrl.Core\Registering\**\*.cs" Link="Registering\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Didot.Core" Version="0.34.0" />
+    <InternalsVisibleTo Include="DubUrl.Testing" />
+  </ItemGroup>
+
 </Project>

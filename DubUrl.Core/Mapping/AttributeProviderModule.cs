@@ -48,11 +48,17 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
                 mapping.DatabaseName,
                 mapping.Aliases,
                 mapping.ProviderInvariantName,
-                () => SchemeRegistryBuilder.GetProvider(mapping.ProviderInvariantName),
+                () => GetProvider(mapping.ProviderInvariantName),
                 dialects.Get(mapping.DialectType),
                 () => ParametrizerFactory.Instantiate(mapping.ParametrizerType),
                 context => Compile(mapping, context)));
         }
+    }
+
+    private static DbProviderFactory? GetProvider(string providerInvariantName)
+    {
+        DbProviderFactories.TryGetFactory(providerInvariantName, out var provider);
+        return provider;
     }
 
     private static IMapper Compile(MapperInfo mapping, ProviderCompilationContext context)

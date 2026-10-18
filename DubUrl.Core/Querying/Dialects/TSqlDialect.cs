@@ -20,6 +20,15 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class TSqlDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.FourPart,
+        IdentityColumns = IdentityColumnSyntax.SqlServer,
+        GeneratedColumns = GeneratedColumnSyntax.SqlServer,
+        SupportsViews = true,
+        NativeTypes = new HashSet<string>(["XML", "UNIQUEIDENTIFIER", "GEOGRAPHY", "GEOMETRY"], StringComparer.OrdinalIgnoreCase),
+    };
+
     internal TSqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

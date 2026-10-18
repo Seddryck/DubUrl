@@ -18,7 +18,7 @@ public class QuestDbOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     protected internal const string PORT_KEYWORD = "Port";
 
     public QuestDbOdbcRewriter(DbConnectionStringBuilder csb)
-        : this(csb, new DriverLocatorFactory()) { }
+        : this(csb, new BuiltInDriverLocatorFactory()) { }
     public QuestDbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory)
         : this(csb, driverLocatorFactory, DefaultLocatorOptions) { }
     public QuestDbOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)

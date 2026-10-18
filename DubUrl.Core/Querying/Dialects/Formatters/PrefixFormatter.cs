@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class PrefixFormatter<T> : IValueFormatter<T>
+public class PrefixFormatter<T> : IValueFormatter<T>
 {
     protected string Prefix { get; }
     protected IValueFormatter<T> Formatter { get; }

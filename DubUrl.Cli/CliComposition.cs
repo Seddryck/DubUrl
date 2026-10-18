@@ -23,17 +23,18 @@ public static class CliComposition
             .AddEnvironmentVariables("DUBURL_")
             .Build();
 
-        var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry();
         var store = new ProviderPackStore(configuration["ProviderPacks:StorePath"]);
         var optionalSchemes = store.Inspect()
             .Where(pack => pack.Status == ProviderPackStatus.Active)
             .SelectMany(pack => pack.Manifest.Schemes);
-        var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
         var providerDiagnostics = new List<ProviderPackDiagnostic>();
         var catalogBuilder = new ProviderCatalogBuilder().WithRootPath(string.Empty);
         foreach (var module in providerModules ?? [])
             catalogBuilder.AddModule(module);
-        var schemes = catalogBuilder.AddInstalledPacks(store, providerDiagnostics).Build();
+        catalogBuilder.AddInstalledPacks(store, providerDiagnostics);
+        var dialects = catalogBuilder.BuildDialects();
+        var schemes = catalogBuilder.Build();
+        var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);

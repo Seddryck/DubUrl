@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class ReservedKeywordsReader : IDisposable
+public class ReservedKeywordsReader : IDisposable
 {
     protected string ResourcePath { get; }
     protected Assembly ResourceAssembly { get; }

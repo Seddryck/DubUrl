@@ -21,7 +21,7 @@ namespace DubUrl.Mapping.Implementation;
 public class QuestDbOdbcMapper : BaseMapper, IOdbcMapper
 {
     public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+        : this (csb, dialect, parametrizer, new BuiltInDriverLocatorFactory()) { }
 
     public QuestDbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
         : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }

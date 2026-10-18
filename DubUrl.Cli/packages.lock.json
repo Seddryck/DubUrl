@@ -341,14 +341,6 @@
         "resolved": "2.6.0",
         "contentHash": "XE8a+11nZg0LRaf+RGABEWaHIf8yGd5w8v/Ra1iWxMBmAVzwuKbW7G21mS0U7w7sh1lYcgckInWGgnz4qyET8A=="
       },
-      "duburl": {
-        "type": "Project",
-        "dependencies": {
-          "Didot.Core": "[0.34.0, )",
-          "DubUrl.Core": "[0.0.0, )",
-          "DubUrl.Providers": "[0.0.0, )"
-        }
-      },
       "duburl.application": {
         "type": "Project",
         "dependencies": {
@@ -357,19 +349,16 @@
         }
       },
       "duburl.core": {
-        "type": "Project"
-      },
-      "duburl.providers": {
         "type": "Project",
         "dependencies": {
-          "DubUrl.Core": "[0.0.0, )"
+          "Didot.Core": "[0.34.0, )"
         }
       },
       "duburl.schema": {
         "type": "Project",
         "dependencies": {
           "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
+          "DubUrl.Core": "[0.0.0, )"
         }
       },
       "duburl.schema.documents": {
@@ -751,14 +740,6 @@
         "resolved": "2.6.0",
         "contentHash": "XE8a+11nZg0LRaf+RGABEWaHIf8yGd5w8v/Ra1iWxMBmAVzwuKbW7G21mS0U7w7sh1lYcgckInWGgnz4qyET8A=="
       },
-      "duburl": {
-        "type": "Project",
-        "dependencies": {
-          "Didot.Core": "[0.34.0, )",
-          "DubUrl.Core": "[0.0.0, )",
-          "DubUrl.Providers": "[0.0.0, )"
-        }
-      },
       "duburl.application": {
         "type": "Project",
         "dependencies": {
@@ -767,19 +748,16 @@
         }
       },
       "duburl.core": {
-        "type": "Project"
-      },
-      "duburl.providers": {
         "type": "Project",
         "dependencies": {
-          "DubUrl.Core": "[0.0.0, )"
+          "Didot.Core": "[0.34.0, )"
         }
       },
       "duburl.schema": {
         "type": "Project",
         "dependencies": {
           "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
+          "DubUrl.Core": "[0.0.0, )"
         }
       },
       "duburl.schema.documents": {
@@ -1185,14 +1163,6 @@
         "resolved": "2.6.0",
         "contentHash": "XE8a+11nZg0LRaf+RGABEWaHIf8yGd5w8v/Ra1iWxMBmAVzwuKbW7G21mS0U7w7sh1lYcgckInWGgnz4qyET8A=="
       },
-      "duburl": {
-        "type": "Project",
-        "dependencies": {
-          "Didot.Core": "[0.34.0, )",
-          "DubUrl.Core": "[0.0.0, )",
-          "DubUrl.Providers": "[0.0.0, )"
-        }
-      },
       "duburl.application": {
         "type": "Project",
         "dependencies": {
@@ -1201,19 +1171,16 @@
         }
       },
       "duburl.core": {
-        "type": "Project"
-      },
-      "duburl.providers": {
         "type": "Project",
         "dependencies": {
-          "DubUrl.Core": "[0.0.0, )"
+          "Didot.Core": "[0.34.0, )"
         }
       },
       "duburl.schema": {
         "type": "Project",
         "dependencies": {
           "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
+          "DubUrl.Core": "[0.0.0, )"
         }
       },
       "duburl.schema.documents": {

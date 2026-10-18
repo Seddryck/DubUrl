@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>Snowflake dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\DubUrl.Core\Mapping\Database\SnowflakeDatabase.cs" Link="Mapping\Database\SnowflakeDatabase.cs" />
+    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\SnowflakeMapper.cs" Link="Mapping\Implementation\SnowflakeMapper.cs" />
+    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\SnowflakeRewriter.cs" Link="Rewriting\Implementation\SnowflakeRewriter.cs" />
+    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\SnowflakeDialect.cs" Link="Querying\Dialects\SnowflakeDialect.cs" />
+  </ItemGroup>
+  <Import Project="..\Provider.Build.props" />
+</Project>

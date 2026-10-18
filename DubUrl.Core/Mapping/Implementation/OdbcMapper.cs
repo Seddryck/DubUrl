@@ -22,7 +22,7 @@ namespace DubUrl.Mapping.Implementation;
 public class OdbcMapper : BaseMapper, IOdbcMapper
 {
     public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
-        : this (csb, dialect, parametrizer, new DriverLocatorFactory()) { }
+        : this (csb, dialect, parametrizer, new BuiltInDriverLocatorFactory()) { }
 
     public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, DriverLocatorFactory driverLocatorFactory)
         : this(csb, dialect, parametrizer, driverLocatorFactory, OdbcRewriter.DefaultLocatorOptions) { }

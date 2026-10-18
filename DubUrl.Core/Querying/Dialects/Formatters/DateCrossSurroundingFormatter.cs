@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class DateCrossSurroundingFormatter : IValueFormatter<DateOnly>
+public class DateCrossSurroundingFormatter : IValueFormatter<DateOnly>
 {
     public string Format(DateOnly value)
         => $"#{value:MM/dd/yyyy}#";

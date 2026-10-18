@@ -6,7 +6,7 @@ public sealed class NativeTypeRegistry
 {
     private readonly Dictionary<Type, Dictionary<string, string>> mappings = [];
 
-    public static NativeTypeRegistry Default { get; } = CreateDefault();
+    public static NativeTypeRegistry Default { get; } = new();
 
     public NativeTypeRegistry Register<TDialect>(params string[] typeNames) where TDialect : IDialect
     {
@@ -32,18 +32,13 @@ public sealed class NativeTypeRegistry
             if (mapping.Key.IsInstanceOfType(dialect) && mapping.Value.TryGetValue(nativeType.Name, out resolvedType!))
                 return true;
 
+        if ((dialect.Capabilities ?? DialectCapabilities.Default).NativeTypes.Contains(nativeType.Name))
+        {
+            resolvedType = nativeType.Name.ToUpperInvariant();
+            return true;
+        }
+
         resolvedType = string.Empty;
         return false;
     }
-
-    private static NativeTypeRegistry CreateDefault()
-        => new NativeTypeRegistry()
-            .Register<PgsqlDialect>("JSON", "JSONB", "UUID", "TEXT", "CITEXT")
-            .Register<CockRoachDialect>("JSON", "JSONB", "UUID")
-            .Register<CrateDbDialect>("JSON", "OBJECT", "GEO_POINT", "GEO_SHAPE")
-            .Register<MySqlDialect>("JSON", "GEOMETRY")
-            .Register<SingleStoreDialect>("JSON", "GEOGRAPHYPOINT", "GEOGRAPHY")
-            .Register<TSqlDialect>("XML", "UNIQUEIDENTIFIER", "GEOGRAPHY", "GEOMETRY")
-            .Register<DuckDbDialect>("JSON", "UUID", "HUGEINT")
-            .Register<SqliteDialect>("TEXT", "BLOB", "INTEGER", "REAL", "NUMERIC");
 }

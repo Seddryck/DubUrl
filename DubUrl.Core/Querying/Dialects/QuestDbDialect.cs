@@ -17,6 +17,12 @@ namespace DubUrl.Querying.Dialects;
 [ParentLanguage<SqlLanguage>]
 public class QuestDbDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new()
+    {
+        ObjectNames = ObjectNameQualification.PostgreSql,
+        RegularExpressions = RegularExpressionSyntax.TildeOperator,
+    };
+
     internal QuestDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

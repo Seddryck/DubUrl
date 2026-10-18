@@ -19,7 +19,7 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
     protected internal const string DRIVER_KEYWORD = "Driver";
 
     public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath)
-        : this(csb, rootPath, new DriverLocatorFactory())
+        : this(csb, rootPath, new BuiltInDriverLocatorFactory())
     { }
 
     public OdbcDbqRewriter(DbConnectionStringBuilder csb, string rootPath, DriverLocatorFactory driverLocatorFactory)
@@ -68,7 +68,7 @@ internal class OdbcDbqRewriter : ConnectionStringRewriter, IOdbcConnectionString
 
     internal class DriverMapper : BaseTokenMapper
     {
-        internal DriverLocatorFactory DriverLocatorFactory { get; } = new DriverLocatorFactory();
+        internal DriverLocatorFactory DriverLocatorFactory { get; } = new BuiltInDriverLocatorFactory();
         private IReadOnlyList<Type> ConfiguredOptions { get; }
         private IList<Type>? AvailableOptions { get; set; }
 

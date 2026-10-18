@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>SQL Server dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\DubUrl.Core\Mapping\Database\MsSqlServerDatabase.cs" Link="Mapping\Database\MsSqlServerDatabase.cs" />
+    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\MsSqlServerMapper.cs" Link="Mapping\Implementation\MsSqlServerMapper.cs" />
+    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\MsSqlServerRewriter.cs" Link="Rewriting\Implementation\MsSqlServerRewriter.cs" />
+    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\TSqlDialect.cs" Link="Querying\Dialects\TSqlDialect.cs" />
+    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\TSqlFunctionMapper.cs" Link="Querying\Dialects\Functions\TSqlFunctionMapper.cs" />
+    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\TSqlRenderer.cs" Link="Querying\Dialects\Renderers\TSqlRenderer.cs" />
+    <Compile Include="..\..\DubUrl.Core\Querying\TypeMapping\TSqlTypeMapper.cs" Link="Querying\TypeMapping\TSqlTypeMapper.cs" />
+  </ItemGroup>
+  <Import Project="..\Provider.Build.props" />
+</Project>

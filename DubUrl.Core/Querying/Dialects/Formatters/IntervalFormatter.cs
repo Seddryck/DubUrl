@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Formatters;
 
-internal class IntervalFormatter : IValueFormatter<TimeSpan>
+public class IntervalFormatter : IValueFormatter<TimeSpan>
 {
     public string Format(TimeSpan value)
     {

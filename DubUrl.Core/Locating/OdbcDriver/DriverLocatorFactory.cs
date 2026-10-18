@@ -1,5 +1,3 @@
-using DubUrl.Locating.OdbcDriver.Implementation;
-using DubUrl.Locating.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,27 +14,7 @@ public class DriverLocatorFactory : BaseLocatorFactory
         => Initialize();
 
     protected virtual void Initialize()
-    {
-        AddDrivers(["drill"], static _ => new DrillDriverLocator());
-        AddDrivers(["duck", "duckdb"], static _ => new DuckdbDriverLocator());
-        AddDrivers(["maria", "mariadb"], static _ => new MariaDbDriverLocator());
-        AddDrivers(["accdb", "access", "msaccess", "mdb"], static _ => new MsAccessDriverLocator());
-        AddDrivers(["xls", "xlsx", "xlsb", "xlsm"], static _ => new MsExcelDriverLocator());
-        AddDrivers(["mssql", "ms", "sqlserver", "mssqlserver"], static _ => new MssqlDriverLocator());
-        AddDrivers(["mysql", "my"], static options => new MySqlConnectorDriverLocator(
-            GetOption(options, EncodingOption.Unspecified)));
-        AddDrivers(["pg", "pgx", "pgsql", "postgres", "postgresql"], static options => new PostgresqlDriverLocator(
-            GetOption(options, EncodingOption.Unspecified),
-            GetOption(options, ArchitectureOption.Unspecified)));
-        AddDrivers(["quest", "questdb"], static options => new QuestDbDriverLocator(
-            GetOption(options, EncodingOption.Unspecified),
-            GetOption(options, ArchitectureOption.Unspecified)));
-        AddDrivers(["txt", "csv", "tsv"], static _ => new TextDriverLocator());
-        AddDrivers(["ts", "timescale"], static options => new TimescaleDriverLocator(
-            GetOption(options, EncodingOption.Unspecified),
-            GetOption(options, ArchitectureOption.Unspecified)));
-        AddDrivers(["tr", "trino"], static _ => new TrinoDriverLocator());
-    }
+    { }
 
     public virtual IDriverLocator Instantiate(string scheme)
         => Instantiate(scheme, new Dictionary<Type, object>());
@@ -81,14 +59,10 @@ public class DriverLocatorFactory : BaseLocatorFactory
         _factories.Add(alias, options => factory(options));
     }
 
-    private void AddDrivers<TLocator>(IEnumerable<string> aliases, Func<IDictionary<Type, object>, TLocator> factory)
+    protected void AddDrivers<TLocator>(IEnumerable<string> aliases, Func<IDictionary<Type, object>, TLocator> factory)
         where TLocator : IDriverLocator
     {
         foreach (var alias in aliases)
             AddDriver(alias, factory);
     }
-
-    private static TOption GetOption<TOption>(IDictionary<Type, object> options, TOption defaultValue)
-        where TOption : struct, Enum
-        => options.TryGetValue(typeof(TOption), out var value) ? (TOption)value : defaultValue;
 }

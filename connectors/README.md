@@ -4,7 +4,7 @@
 
 The first ready connector is `postgresql-npgsql`. Its pack contains an explicit provider module and Npgsql's managed dependency closure. It is portable across the CLI's `net8.0`, `net9.0`, and `net10.0` hosts and has no machine-level database-driver prerequisite.
 
-The same module is also published as the `DubUrl.Connector.PostgreSql.Npgsql` NuGet package for applications that choose their connectors at build time. Its DubUrl dependency starts at the package's build version and stops before `1.0.0`; the downloadable connector pack and NuGet package are built from the same project output.
+The same module is also published as the `DubUrl.Connector.PostgreSql.Npgsql` NuGet package for applications that choose their connectors at build time. It depends only on `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and Npgsql; it does not depend on the `DubUrl` compatibility aggregate. Its DubUrl package dependencies start at the connector's build version and stop before `1.0.0`; the downloadable connector pack and NuGet package are built from the same project output.
 
 ODBC and OLE DB rows remain separate because their machine-installed drivers or providers are not pack-owned assets. Before those rows become ready, activation must probe the external prerequisite and return an actionable diagnostic when it is absent.
 
