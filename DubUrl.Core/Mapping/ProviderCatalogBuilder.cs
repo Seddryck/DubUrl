@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using DubUrl.Core.ProviderPacks;
 
 namespace DubUrl.Mapping;
 
@@ -25,6 +26,16 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
     {
         ArgumentNullException.ThrowIfNull(module);
         module.Register(this);
+        return this;
+    }
+
+    public ProviderCatalogBuilder AddInstalledPacks(
+        ProviderPackStore store,
+        ICollection<ProviderPackDiagnostic>? diagnostics = null)
+    {
+        var loader = new InstalledProviderModuleLoader();
+        foreach (var module in loader.LoadActive(store, diagnostics))
+            AddModule(module);
         return this;
     }
 
