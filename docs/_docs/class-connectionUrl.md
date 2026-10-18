@@ -1,4 +1,7 @@
 ---
+permalink: /docs/class-connectionUrl/
+parent: .NET API
+nav_order: 1
 title: ConnectionUrl Class
 subtitle: Instantiate and manipulate the class ConnectionUrl
 tags: [connection, quick-start]

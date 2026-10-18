@@ -1,14 +1,18 @@
 ---
+parent: Getting started
+nav_order: 3
 title: Install ADO.Net data providers
 subtitle: Add the package references and register the factories for the ADO.Net data providers
 tags: [installation, quick-start]
 ---
 
-{% include alert.html style="warning" text="DubUrl doesn't remove the need to add a reference to the package containing the ADO.Net provider, neither the need to register the factory of the ADO.Net provider" %}
+{% include alert.html text="DubUrl still requires the ADO.NET provider package and registration of its provider factory." %}
+
+
 
 ### Adding a reference to the ADO.Net data provider
 
-The easiest, and usually the fastest way, to connect from .NET to a RDBMS is the usage of the native ADO.Net providers. Most major databases have a specific package, available on [Nuget](https://nuget.org), that must be added to your solution to connect to a specific database. The list bellow specifies the package that must be added depending on the databases that you're targeting. To add a reference to the package use the following commands where *Provider.Package.Name* must be replaced by the name of a package containing your ADO.Net data provider. Click [here](/docs/native-ado-net-providers/) for a list of supported providers and the corresponding name of the package.
+The easiest, and usually the fastest way, to connect from .NET to a RDBMS is the usage of the native ADO.Net providers. Most major databases have a specific package, available on [Nuget](https://nuget.org), that must be added to your solution to connect to a specific database. The list bellow specifies the package that must be added depending on the databases that you're targeting. To add a reference to the package use the following commands where *Provider.Package.Name* must be replaced by the name of a package containing your ADO.Net data provider. Click [here]({{ '/docs/native-ado-net-providers/' | relative_url }}) for a list of supported providers and the corresponding name of the package.
 
 Install the package with *Package Manager*:
 ```bash

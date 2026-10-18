@@ -1,4 +1,6 @@
 ---
+parent: Integrations
+nav_order: 3
 title: JSON-RPC worker
 ---
 

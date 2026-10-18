@@ -1,4 +1,6 @@
 ---
+parent: Getting started
+nav_order: 1
 title: Why did we create DubUrl?
 subtitle: The impossible quest of building database-vendors agnostic solutions in .NET
 tags: [quick-start]

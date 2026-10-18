@@ -1,4 +1,6 @@
 ---
+parent: Integrations
+nav_order: 2
 title: DbReader
 subtitle: Integration of DubUrl with the rows/classes mapper DbReader
 tags: [integration, dbreader]

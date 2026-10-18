@@ -1,4 +1,6 @@
 ---
+parent: Integrations
+nav_order: 1
 title: Dapper
 subtitle: Integration of DubUrl with the micro-orm Dapper
 tags: [integration, dapper]

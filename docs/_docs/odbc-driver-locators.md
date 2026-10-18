@@ -1,4 +1,6 @@
 ---
+parent: Connection schemes
+nav_order: 2
 title: ODBC driver locators
 subtitle: List the ODBC driver locators and potential options to load them
 tags: [quick-start]

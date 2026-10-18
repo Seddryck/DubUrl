@@ -1,4 +1,6 @@
 ---
+parent: Schema definition
+nav_order: 1
 title: Schema model and rendering
 permalink: /schema-model/
 ---

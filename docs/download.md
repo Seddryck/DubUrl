@@ -1,4 +1,6 @@
 ---
+nav_order: 2
+nav_exclude: false
 layout: page
 width: large
 title: Download DubUrl
@@ -6,7 +8,7 @@ permalink: /download/
 description: Guided downloads for the DubUrl CLI, .NET libraries, and JSON-RPC worker.
 ---
 
-<p class="uk-text-lead">Choose what you want to use and get the right package without decoding release filenames.</p>
+<p class="lead">Choose what you want to use and get the right package without decoding release filenames.</p>
 
 <div
   id="download-app"

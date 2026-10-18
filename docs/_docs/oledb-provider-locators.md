@@ -1,4 +1,6 @@
 ---
+parent: Connection schemes
+nav_order: 3
 title: OLE DB driver locators
 subtitle: List the OLE DB driver locators and potential options to load them
 tags: [OLE DB]

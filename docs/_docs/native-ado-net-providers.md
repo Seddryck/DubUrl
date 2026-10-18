@@ -1,4 +1,6 @@
 ---
+parent: Connection schemes
+nav_order: 1
 title: Native ADO.Net data providers
 subtitle: List the native ADO.Net providers and how to load them
 tags: [quick-start]
@@ -6,7 +8,9 @@ tags: [quick-start]
 
 An ADO.Net data provider connects to a data source such as SQL Server, MySQL, PostgreSQL but also ODBC and OLE DB data source, and provides a way to execute queries against that data source in a consistent manner that is independent of the data source and data source-specific functionality.
 
-{% include alert.html style="warning" text="DubUrl doesn't remove the need to add a reference to the package containing the ADO.Net provider, neither the need to register the factory of the ADO.Net provider. <a href=\"/docs/installation-ado-net-provider/\">Click here for more info</a> " %}
+{% include alert.html text="DubUrl still requires the ADO.NET provider package and registration of its provider factory." %}
+
+[Learn how to install and register a provider]({{ '/docs/installation-ado-net-provider/' | relative_url }}).
 
 To embrace the world of DubUrl, you need to follow some conventions regarding the way you're providing your connection URL. The table bellow is listing the different aliases than can be provided in the scheme but also the name of the ADO.Net data provider package and the name that you should use as the provider invariant name.
 

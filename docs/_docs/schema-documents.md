@@ -1,4 +1,6 @@
 ---
+parent: Schema definition
+nav_order: 2
 title: Schema documents
 permalink: /schema-documents/
 ---

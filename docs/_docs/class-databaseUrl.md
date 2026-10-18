@@ -1,4 +1,7 @@
 ---
+permalink: /docs/class-databaseUrl/
+parent: .NET API
+nav_order: 2
 title: DatabaseUrl Class
 subtitle: Instantiate and manipulate the DatabaseUrl class
 tags: [connection, quick-start]
