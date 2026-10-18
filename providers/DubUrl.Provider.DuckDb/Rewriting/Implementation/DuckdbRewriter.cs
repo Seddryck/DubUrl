@@ -25,49 +25,17 @@ internal class DuckdbRewriter : ConnectionStringRewriter, DubUrl.Conversion.IRev
         )
     { }
 
-    internal class DataSourceMapper : BaseTokenMapper
+    internal class DataSourceMapper(string rootPath)
+        : FilePathTokenMapper(DATABASE_KEYWORD, rootPath, "DuckDB", ":memory:")
     {
-        private readonly string RootPath;
-
-        public DataSourceMapper(string rootPath)
+        protected override IReadOnlyList<string> GetSegments(ConnectionUri urlInfo)
         {
-            if (!rootPath.EndsWith(Path.DirectorySeparatorChar) && !string.IsNullOrEmpty(rootPath))
-                rootPath += Path.DirectorySeparatorChar.ToString();
-            RootPath = rootPath;
-        }
-
-        public override void Execute(ConnectionUri urlInfo)
-        {
-            if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count == 0)
-            {
-                Specificator.Execute(DATABASE_KEYWORD, ":memory:");
-                return;
-            }
-
-            var segments = new List<string>();
-            if (StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, "memory") == 0
-                    || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ":memory:") == 0
-                   )
-            {
-                if (urlInfo.Segments.Count == 0)
-                    segments.Add(":memory:");
-                else
-                    throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Count} segments. The list of segments was '{string.Join("', '", urlInfo.Segments)}'");
-            }
-            else if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1 && string.IsNullOrEmpty(urlInfo.Segments[0]))
-                segments = urlInfo.Segments.Skip(1).ToList();
-            else
-            {
-                if (!(StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, "localhost") == 0
-                    || StringComparer.InvariantCultureIgnoreCase.Compare(urlInfo.Host, ".") == 0))
-                    segments.Add(urlInfo.Host);
-                segments.AddRange(urlInfo.Segments);
-            }
-
-            if (segments.Count == 0)
-                throw new InvalidConnectionUrlMissingSegmentsException("DuckDB");
-
-            Specificator.Execute(DATABASE_KEYWORD, PathHelper.Create(RootPath, segments));
+            if (!string.Equals(urlInfo.Host, "memory", StringComparison.InvariantCultureIgnoreCase)
+                && !string.Equals(urlInfo.Host, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+                return base.GetSegments(urlInfo);
+            if (urlInfo.Segments.Count > 0)
+                throw new InvalidConnectionUrlException($"Expecting no segment in the connectionUrl because the InMemory mode was activated by specifying the host '{urlInfo.Host}' but get {urlInfo.Segments.Count} segments. The list of segments was '{string.Join("', '", urlInfo.Segments)}'");
+            return [":memory:"];
         }
     }
 }

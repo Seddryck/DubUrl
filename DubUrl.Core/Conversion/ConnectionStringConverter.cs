@@ -2,6 +2,7 @@ using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Rewriting;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace DubUrl.Conversion;
@@ -17,14 +18,15 @@ public sealed class ConnectionStringConverter
 
     public ConnectionUri Convert(string scheme, string connectionString)
         => TryConvert(scheme, connectionString, out var uri, out var diagnostic)
-            ? uri!
-            : throw new ConnectionStringConversionException(diagnostic!);
+            ? uri
+            : throw new ConnectionStringConversionException(diagnostic);
 
-    public bool TryConvert(string scheme, string connectionString, out ConnectionUri? uri)
+    public bool TryConvert(string scheme, string connectionString, [NotNullWhen(true)] out ConnectionUri? uri)
         => TryConvert(scheme, connectionString, out uri, out _);
 
     public bool TryConvert(string scheme, string connectionString,
-        out ConnectionUri? uri, out ConnectionStringConversionDiagnostic? diagnostic)
+        [NotNullWhen(true)] out ConnectionUri? uri,
+        [NotNullWhen(false)] out ConnectionStringConversionDiagnostic? diagnostic)
     {
         uri = null;
         diagnostic = null;
@@ -44,35 +46,15 @@ public sealed class ConnectionStringConverter
             var source = factory.CreateConnectionStringBuilder();
             if (source is null)
                 return Fail(phase, out diagnostic);
-            phase = ConnectionStringConversionDiagnosticCode.InvalidInput;
-            source.ConnectionString = connectionString;
+            if (!TryReadSource(source, connectionString, out diagnostic))
+                return false;
             phase = ConnectionStringConversionDiagnosticCode.SettingsNotRepresentable;
             var candidate = reverse.Convert(key, source);
             if (!candidate.Scheme.Equals(key))
                 throw new NotSupportedException();
             source.ConnectionString = connectionString;
 
-            // Validate the actual serialized URL, including URI normalization and decoding.
-            candidate = ConnectionUri.Parse(candidate.ToString(redactPassword: false));
-            var output = factory.CreateConnectionStringBuilder() ?? throw new NotSupportedException();
-            output.ConnectionString = registry.Resolve(candidate).ConnectionString;
-            var differences = Differences(source, output, candidate).ToArray();
-            if (differences.Length > 0)
-            {
-                // Some forward mappings inject defaults; explicit options can preserve the source.
-                foreach (var name in differences)
-                {
-                    if (!source.TryGetValue(name, out var value))
-                        throw new NotSupportedException();
-                    candidate = candidate.WithOption(name, Text(value));
-                }
-                candidate = ConnectionUri.Parse(candidate.ToString(redactPassword: false));
-                output.Clear();
-                output.ConnectionString = registry.Resolve(candidate).ConnectionString;
-                if (Differences(source, output, candidate).Any())
-                    throw new NotSupportedException();
-            }
-            uri = candidate;
+            uri = ValidateRoundTrip(factory, source, candidate);
             return true;
         }
         catch (SchemeNotFoundException) { return Fail(ConnectionStringConversionDiagnosticCode.SchemeNotFound, out diagnostic); }
@@ -80,6 +62,48 @@ public sealed class ConnectionStringConverter
         catch (Exception exception) when (exception is ArgumentException or FormatException
             or InvalidOperationException or NotSupportedException or OverflowException or DubUrlException)
         { return Fail(phase, out diagnostic); }
+    }
+
+    private static bool TryReadSource(DbConnectionStringBuilder source, string value,
+        [NotNullWhen(false)] out ConnectionStringConversionDiagnostic? diagnostic)
+    {
+        diagnostic = null;
+        try
+        {
+            source.ConnectionString = value;
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException
+            or InvalidOperationException or NotSupportedException or OverflowException or DubUrlException)
+        {
+            return Fail(ConnectionStringConversionDiagnosticCode.InvalidInput, out diagnostic);
+        }
+    }
+
+    private ConnectionUri ValidateRoundTrip(DbProviderFactory factory, DbConnectionStringBuilder source,
+        ConnectionUri candidate)
+    {
+        // Validate the serialized URL, including URI normalization and decoding.
+        candidate = ConnectionUri.Parse(candidate.ToString(redactPassword: false));
+        var output = factory.CreateConnectionStringBuilder() ?? throw new NotSupportedException();
+        output.ConnectionString = registry.Resolve(candidate).ConnectionString;
+        var differences = Differences(source, output, candidate).ToArray();
+        if (differences.Length == 0)
+            return candidate;
+
+        // Some forward mappings inject defaults; explicit options can preserve the source.
+        foreach (var name in differences)
+        {
+            if (!source.TryGetValue(name, out var value))
+                throw new NotSupportedException();
+            candidate = candidate.WithOption(name, Text(value));
+        }
+        candidate = ConnectionUri.Parse(candidate.ToString(redactPassword: false));
+        output.Clear();
+        output.ConnectionString = registry.Resolve(candidate).ConnectionString;
+        if (Differences(source, output, candidate).Any())
+            throw new NotSupportedException();
+        return candidate;
     }
 
     private static IEnumerable<string> Differences(DbConnectionStringBuilder source,
@@ -108,7 +132,7 @@ public sealed class ConnectionStringConverter
         => name.Replace(" ", "").ToLowerInvariant() is "host" or "server" or "datasource" or "account";
 
     private static bool Fail(ConnectionStringConversionDiagnosticCode code,
-        out ConnectionStringConversionDiagnostic? diagnostic)
+        [NotNull] out ConnectionStringConversionDiagnostic? diagnostic)
     {
         diagnostic = new(code, code switch
         {

@@ -22,11 +22,14 @@ internal class MySqlConnectorRewriter : ConnectionStringRewriter, DubUrl.Convers
     protected internal const string PASSWORD_KEYWORD = "Password";
 
     public MySqlConnectorRewriter(DbConnectionStringBuilder csb)
+        : this(csb, EXCEPTION_DATABASE_NAME) { }
+
+    protected MySqlConnectorRewriter(DbConnectionStringBuilder csb, string databaseName)
         : base(new UniqueAssignmentSpecificator(csb),
               [
                 new ServerMapper(),
                 new AuthentificationMapper(),
-                new DatabaseMapper(),
+                new DatabaseMapper(databaseName),
                 new OptionsMapper(),
               ]
         )
@@ -59,16 +62,6 @@ internal class MySqlConnectorRewriter : ConnectionStringRewriter, DubUrl.Convers
         }
     }
 
-    internal class DatabaseMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-        {
-            if (urlInfo.Segments==null || !urlInfo.Segments.Any())
-                throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
-            else if (urlInfo.Segments.Count == 1)
-                Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
-            else if (urlInfo.Segments.Count > 1)
-                throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
-        }
-    }
+    internal class DatabaseMapper(string databaseName = EXCEPTION_DATABASE_NAME)
+        : SingleSegmentTokenMapper(DATABASE_KEYWORD, databaseName, required: true);
 }

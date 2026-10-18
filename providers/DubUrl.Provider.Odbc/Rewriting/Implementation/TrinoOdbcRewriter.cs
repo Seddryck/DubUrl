@@ -38,10 +38,10 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
     public TrinoOdbcRewriter(DbConnectionStringBuilder csb, DriverLocatorFactory driverLocatorFactory, IEnumerable<Type> locatorOptions)
         : base(csb,
               [
-                new HostMapper(),
-                new PortMapper(),
-                new CatalogMapper(),
-                new SchemaMapper(),
+                new HostTokenMapper(HOST_KEYWORD, HOST_DEFAULT_VALUE),
+                new PortTokenMapper(PORT_KEYWORD, PORT_DEFAULT_VALUE),
+                new SegmentTokenMapper(CATALOG_KEYWORD, 0),
+                new SegmentTokenMapper(SCHEMA_KEYWORD, 1),
                 new AuthentificationMapper(),
                 new DriverMapper(driverLocatorFactory, locatorOptions),
                 new OptionsMapper(),
@@ -49,33 +49,11 @@ internal class TrinoOdbcRewriter : OdbcRewriter, IOdbcConnectionStringRewriter
         )
     { }
 
-    internal new class HostMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-            => Specificator.Execute(HOST_KEYWORD, string.IsNullOrEmpty(urlInfo.Host) ? "localhost" : urlInfo.Host);
-    }
 
-    internal class PortMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-            => Specificator.Execute(PORT_KEYWORD, urlInfo.Port==0  ? PORT_DEFAULT_VALUE : urlInfo.Port);
-    }
 
-    internal class CatalogMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-        {
-            if (urlInfo.Segments.Count >= 1)
-                Specificator.Execute(CATALOG_KEYWORD, urlInfo.Segments[0]);
-        }
-    }
 
-    internal class SchemaMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-        {
-            if (urlInfo.Segments.Count >= 2)
-                Specificator.Execute(SCHEMA_KEYWORD, urlInfo.Segments[1]);
-        }
-    }
+
+
+
+
 }

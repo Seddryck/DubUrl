@@ -7,5 +7,5 @@ namespace DubUrl.Conversion;
 public interface IReverseConnectionMapper
 {
     bool SupportsReverseConversion => true;
-    ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder connectionString);
+    ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source);
 }

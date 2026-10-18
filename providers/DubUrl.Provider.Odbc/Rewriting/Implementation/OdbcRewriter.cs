@@ -74,6 +74,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
     protected internal class DriverMapper : BaseTokenMapper
     {
         internal DriverLocatorFactory DriverLocatorFactory { get; } = new BuiltInDriverLocatorFactory();
+        protected virtual string ConnectionName => "ODBC";
         private IReadOnlyList<Type> ConfiguredOptions { get; }
         private IList<Type>? AvailableOptions { get; set; }
 
@@ -130,7 +131,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
                         foreach (var remainingOption in remainingOptions)
                         {
                             if (Enum.TryParse(remainingOption, scheme, out var value))
-                                options.Add(remainingOption, value ?? throw new InvalidConnectionUrlException($"Connection Url for ODBC is specifying an unexpected value 'null' for option '{remainingOption.Name}'"));
+                                options.Add(remainingOption, value ?? throw new InvalidConnectionUrlException($"Connection Url for {ConnectionName} is specifying an unexpected value 'null' for option '{remainingOption.Name}'"));
                         }
                     }
                     var driverLocator = DriverLocatorFactory.Instantiate(secondScheme, options);

@@ -27,7 +27,7 @@ internal class TeradataRewriter : ConnectionStringRewriter, DubUrl.Conversion.IR
               [
                 new DataSourceMapper(),
                 new PortNumberMapper(),
-                new DatabaseMapper(),
+                new SingleSegmentTokenMapper(DATABASE_KEYWORD, EXCEPTION_DATABASE_NAME, required: false),
                 new AuthentificationMapper(),
               ]
         )
@@ -50,18 +50,7 @@ internal class TeradataRewriter : ConnectionStringRewriter, DubUrl.Conversion.IR
         }
     }
 
-    internal class DatabaseMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-        {
-            if (urlInfo.Segments.Count == 0)
-                return;
-            else if (urlInfo.Segments.Count == 1)
-                Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
-            else
-                throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
-        }
-    }
+
 
     internal class AuthentificationMapper : BaseTokenMapper
     {

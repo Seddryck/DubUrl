@@ -47,8 +47,8 @@ public abstract class BaseMapper : IMapper, DubUrl.Conversion.IReverseConnection
     public bool SupportsReverseConversion
         => Rewriter is DubUrl.Conversion.IReverseConnectionMapper { SupportsReverseConversion: true };
 
-    public ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder connectionString)
+    public ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
         => Rewriter is DubUrl.Conversion.IReverseConnectionMapper reverse && reverse.SupportsReverseConversion
-            ? reverse.Convert(scheme, connectionString)
+            ? reverse.Convert(scheme, source)
             : throw new NotSupportedException("This rewriter does not support reverse conversion.");
 }

@@ -67,7 +67,7 @@ internal abstract class SsasRewriter : ConnectionStringRewriter, DubUrl.Conversi
             if (urlInfo.Port != 0)
             {
                 fullHost.Append(':').Append(urlInfo.Port);
-                if (!urlInfo.Segments.First().Equals("~", StringComparison.Ordinal))
+                if (!urlInfo.Segments[0].Equals("~", StringComparison.Ordinal))
                     throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' cannot specify both a port and an instance name. This connection-url is containing the following port {urlInfo.Port} and instance name '{urlInfo.Segments.First()}'. To specify the default instance use the '~' character.");
             }
             if (urlInfo.Segments.Count > 1 && !urlInfo.Segments.First().Equals("~"))

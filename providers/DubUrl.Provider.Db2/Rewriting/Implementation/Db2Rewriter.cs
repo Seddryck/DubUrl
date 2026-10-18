@@ -26,7 +26,7 @@ internal class Db2Rewriter : ConnectionStringRewriter, DubUrl.Conversion.IRevers
               new Specificator(csb),
               [
                 new ServerMapper(),
-                new DatabaseMapper(),
+                new SingleSegmentTokenMapper(DATABASE_KEYWORD, EXCEPTION_DATABASE_NAME, required: true),
                 new AuthentificationMapper(),
               ]
         )
@@ -42,18 +42,7 @@ internal class Db2Rewriter : ConnectionStringRewriter, DubUrl.Conversion.IRevers
         }
     }
 
-    internal class DatabaseMapper : BaseTokenMapper
-    {
-        public override void Execute(ConnectionUri urlInfo)
-        {
-            if (urlInfo.Segments == null || !urlInfo.Segments.Any())
-                throw new InvalidConnectionUrlMissingSegmentsException(EXCEPTION_DATABASE_NAME);
-            else if (urlInfo.Segments.Count == 1)
-                Specificator.Execute(DATABASE_KEYWORD, urlInfo.Segments.First());
-            else
-                throw new InvalidConnectionUrlTooManySegmentsException(EXCEPTION_DATABASE_NAME, urlInfo.Segments);
-        }
-    }
+
 
     internal class AuthentificationMapper : BaseTokenMapper
     {

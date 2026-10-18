@@ -25,7 +25,8 @@ public class AdomdConversionTest
             "premium" => new PowerBiPremiumMapper(csb, ConversionTestSupport.Dialect, ConversionTestSupport.Parametrizer),
             _ => new AzureDescriptorMapper(csb),
         };
-        ConversionTestSupport.RoundTrip(scheme, input, AdomdFactory.Instance, Create);
+        var uri = ConversionTestSupport.RoundTrip(scheme, input, AdomdFactory.Instance, Create);
+        Assert.That(uri.Scheme.Canonical, Is.EqualTo(scheme));
     }
 
     [Test]
