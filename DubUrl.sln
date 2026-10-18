@@ -131,6 +131,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Cli", "DubUrl.Cli\DubUrl.Cli.csproj", "{74FD7360-AC9F-4420-A3B3-0E89798F9CCB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Cli.Testing", "DubUrl.Cli.Testing\DubUrl.Cli.Testing.csproj", "{5860836D-844A-4AC8-8EC6-3B0CF458A90E}"
+	EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Worker", "DubUrl.Worker\DubUrl.Worker.csproj", "{46DAB876-A1D6-4EE7-90E9-349CA0AF688C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Worker.Testing", "DubUrl.Worker.Testing\DubUrl.Worker.Testing.csproj", "{E2374C1A-75D9-481F-84BD-9444FB867579}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -298,6 +302,14 @@ Global
 		{5860836D-844A-4AC8-8EC6-3B0CF458A90E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5860836D-844A-4AC8-8EC6-3B0CF458A90E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5860836D-844A-4AC8-8EC6-3B0CF458A90E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46DAB876-A1D6-4EE7-90E9-349CA0AF688C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46DAB876-A1D6-4EE7-90E9-349CA0AF688C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46DAB876-A1D6-4EE7-90E9-349CA0AF688C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46DAB876-A1D6-4EE7-90E9-349CA0AF688C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2374C1A-75D9-481F-84BD-9444FB867579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2374C1A-75D9-481F-84BD-9444FB867579}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2374C1A-75D9-481F-84BD-9444FB867579}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2374C1A-75D9-481F-84BD-9444FB867579}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

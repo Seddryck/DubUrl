@@ -8,7 +8,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>duburl</ToolCommandName>
     <PackageId>DubUrl-cli</PackageId>
-    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-musl-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-musl-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <NoWarn>$(NoWarn);NU5118</NoWarn>
   </PropertyGroup>

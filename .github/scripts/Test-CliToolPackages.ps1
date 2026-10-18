@@ -3,8 +3,9 @@ param(
     [string] $PackageDirectory,
     [string] $PackageId = 'DubUrl-cli',
     [string] $CommandName = 'duburl',
+    [string] $BuildIdentity = 'DubUrl.Cli',
     [string] $TargetFrameworks = 'net8.0;net9.0;net10.0',
-    [string] $RuntimeIdentifiers = 'win-x64;win-arm64;linux-x64;linux-musl-x64'
+    [string] $RuntimeIdentifiers = 'win-x64;win-arm64;linux-x64;linux-musl-x64;osx-x64;osx-arm64'
 )
 
 Set-StrictMode -Version Latest
@@ -17,7 +18,7 @@ $packages = @(Get-ChildItem -LiteralPath $PackageDirectory -File -Filter '*.nupk
     Where-Object Name -NotLike '*.symbols.nupkg')
 
 if ($packages.Count -ne ($expectedRuntimes.Count + 1)) {
-    throw "Expected $($expectedRuntimes.Count + 1) CLI packages, found $($packages.Count)."
+    throw "Expected $($expectedRuntimes.Count + 1) tool packages, found $($packages.Count)."
 }
 
 function Read-ZipEntry([IO.Compression.ZipArchiveEntry] $Entry) {
@@ -83,7 +84,7 @@ foreach ($package in $packages) {
         $runtime = $runtime[0]
         $seenRuntimes[$runtime] = $true
         if ($settings.Count -ne $expectedFrameworks.Count) { throw "$($package.Name) must contain one settings file per TFM." }
-        $entryPoint = if ($runtime.StartsWith('win-')) { 'DubUrl.Cli.exe' } else { 'DubUrl.Cli' }
+        $entryPoint = if ($runtime.StartsWith('win-')) { "$BuildIdentity.exe" } else { $BuildIdentity }
         foreach ($framework in $expectedFrameworks) {
             $path = "tools/$framework/$runtime/DotnetToolSettings.xml"
             $entry = @($settings | Where-Object FullName -EQ $path)
@@ -95,6 +96,6 @@ foreach ($package in $packages) {
 }
 
 if (-not $seenPointer -or $seenRuntimes.Count -ne $expectedRuntimes.Count) {
-    throw 'The CLI package set is incomplete.'
+    throw 'The tool package set is incomplete.'
 }
-Write-Host "Validated $($packages.Count) CLI packages."
+Write-Host "Validated $($packages.Count) tool packages."

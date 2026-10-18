@@ -27,6 +27,7 @@
   docs:
   - schema-model
   - schema-documents
+  - json-rpc-worker
 
 - title: Connection settings
   docs:
