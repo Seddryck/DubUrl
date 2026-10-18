@@ -20,6 +20,29 @@ Python users who do not want to install .NET can download a self-contained archi
 
 Each archive contains `duburl-worker.exe` on Windows or `duburl-worker` on Linux. Python can extract that archive and launch the executable directly with `subprocess.Popen`; neither a shell nor a separately installed .NET runtime is required.
 
+### Manual release download
+
+Open the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest), expand **Assets**, and download the archive named `duburl-worker-<version>-net10.0-<runtime>` for the target machine. Windows archives use `.zip`; Linux archives use `.tar.gz`. You can rename the downloaded file in the commands below to avoid substituting the version number.
+
+On Windows, save it as `duburl-worker.zip`, then extract and verify it with PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force .\tools\duburl-worker
+Expand-Archive .\duburl-worker.zip -DestinationPath .\tools\duburl-worker
+.\tools\duburl-worker\duburl-worker.exe --version
+```
+
+On Linux, save it as `duburl-worker.tar.gz`, then extract and verify it:
+
+```bash
+mkdir -p ./tools/duburl-worker
+tar -xzf ./duburl-worker.tar.gz -C ./tools/duburl-worker
+chmod +x ./tools/duburl-worker/duburl-worker
+./tools/duburl-worker/duburl-worker --version
+```
+
+The extracted executable is portable within its selected runtime platform and can be kept inside an application-specific tools directory; it does not need to be installed globally.
+
 Standard output is reserved for JSON-RPC. Operational messages are written to standard error.
 
 The worker owns two infrastructure methods:

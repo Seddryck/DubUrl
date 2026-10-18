@@ -15,6 +15,29 @@ duburl-worker
 
 The tool supports .NET 8, 9, and 10. Python and other clients that do not want to require a .NET installation can instead download a self-contained archive from the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest). Choose `win-x64` or `win-arm64` for Windows, `linux-x64` for glibc-based Linux distributions, or `linux-musl-x64` for distributions such as Alpine Linux.
 
+### Download manually from a release
+
+Open the [latest GitHub release](https://github.com/Seddryck/DubUrl/releases/latest), expand **Assets**, and download the archive named `duburl-worker-<version>-net10.0-<runtime>` for the target machine. Windows archives use `.zip`; Linux archives use `.tar.gz`. You can rename the downloaded file in the commands below to avoid substituting the version number.
+
+On Windows, save it as `duburl-worker.zip`, then extract and verify it with PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force .\tools\duburl-worker
+Expand-Archive .\duburl-worker.zip -DestinationPath .\tools\duburl-worker
+.\tools\duburl-worker\duburl-worker.exe --version
+```
+
+On Linux, save it as `duburl-worker.tar.gz`, then extract and verify it:
+
+```bash
+mkdir -p ./tools/duburl-worker
+tar -xzf ./duburl-worker.tar.gz -C ./tools/duburl-worker
+chmod +x ./tools/duburl-worker/duburl-worker
+./tools/duburl-worker/duburl-worker --version
+```
+
+The extracted executable can stay in an application-specific tools directory and does not need to be installed globally. It is self-contained, so the machine does not need a separate .NET runtime.
+
 The worker exposes these methods:
 
 - `worker.capabilities` discovers the worker version, methods, document versions, renderable dialects, deployable schemes, providers, and deployment policy;
