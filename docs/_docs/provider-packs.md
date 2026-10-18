@@ -61,3 +61,55 @@ new-process activation, and uninstallation. `ProviderPacks:CatalogPath` selects 
 `ProviderPacks:StorePath` can override the user-store location for managed deployments and tests. The CLI
 accepts canonical IDs and aliases from these curated entries only and never accepts an arbitrary URL, feed,
 or package ID.
+
+## In-process host management
+
+`DubUrl.Application` exposes `IConnectorService` and its `ConnectorService` implementation. Hosts supply
+an authenticated curated `ProviderPackCatalog`, a configured `ProviderPackStore`, and an `HttpClient`
+(which the host owns). No CLI assembly, command-line parser, console, or CLI configuration is needed.
+Hosts explicitly choose when to install; listing or constructing the service never downloads a connector.
+Catalog authenticity remains the distributor's responsibility. Installation uses the catalog-pinned version
+and archive digest, and delegates asset integrity, API/TFM/RID compatibility, staging, activation, idempotent
+reinstallation, and removal to the existing store.
+
+```csharp
+using DubUrl.Application;
+using DubUrl.Core.ProviderPacks;
+
+using var catalogFile = File.OpenRead("connector-catalog.json");
+var catalog = ProviderPackCatalog.Read(catalogFile);
+var store = new ProviderPackStore(Path.Combine(AppContext.BaseDirectory, "connectors"));
+using var http = new HttpClient();
+IConnectorService connectors = new ConnectorService(store, catalog, http);
+var installed = await connectors.InstallAsync("postgresql", CancellationToken.None);
+var available = connectors.List();
+// Explicit removal, when requested by the host: connectors.Uninstall("postgresql");
+```
+
+The [complete minimal host](https://github.com/Seddryck/DubUrl/tree/main/examples/ConnectorHost) accepts
+a catalog path, store path, and canonical connector ID or alias. It also shows cancellation and error handling.
+Run it with `dotnet run --project examples/ConnectorHost --framework net10.0 -- <catalog.json> <store-path> postgresql`.
+
+Results retain the independent `Listed`, `Installed`, `Active`, and `Unhealthy` facts, including installed
+versions absent from the current catalog. Failures throw `ConnectorOperationException` with a stable `Code`:
+
+| Code | Meaning |
+| --- | --- |
+| `connector-not-curated` | The ID or alias is absent from the supplied catalog. |
+| `connector-download-failed` | HTTP download failed or timed out. |
+| `connector-archive-invalid` | The ZIP archive or JSON manifest could not be read. |
+| `connector-install-failed` | Installation could not access the store. |
+| `connector-list-failed` | Listing could not access the store. |
+| `connector-uninstall-failed` | Removal could not access the store. |
+| `connector-not-installed` | No installed connector matches the ID or alias. |
+
+Store diagnostics retain their existing codes, such as `pack-integrity`, `asset-integrity`, `manifest-missing`,
+`catalog-mismatch`, `api-incompatible`, `tfm-incompatible`, and `rid-incompatible`. Caller cancellation throws
+`ConnectorOperationCanceledException` (an `OperationCanceledException`) with code `connector-cancelled` and
+the caller's token. HTTP and filesystem exception details are not retained in operation failures because
+they can contain credentials. Hosts decide how to present diagnostics; console/JSON formatting and CLI exit
+codes remain in the CLI.
+
+Changes apply to new processes and newly constructed provider catalogs; installing does not load modules
+or replace assemblies already loaded by the host. Machine-installed ODBC and OLE DB vendor drivers remain
+external prerequisites and are not installed by this service.

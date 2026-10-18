@@ -68,6 +68,7 @@ public static class CliComposition
             services.AddSingleton(httpClient);
             services.AddSingleton(store);
             services.AddSingleton(CreateProviderPackCatalog(configuration));
+            services.AddSingleton<IConnectorService, ConnectorService>();
             services.AddSingleton<IProviderPackService, ProviderPackService>();
         }
         return services.BuildServiceProvider();

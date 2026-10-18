@@ -22,7 +22,7 @@ internal static class ConnectorCommand
         var json = new Option<bool>("--json") { Description = "Write a stable JSON document." };
         var command = new Command("list", "List curated and installed connectors with activation and health status.");
         command.Options.Add(json);
-        command.SetAction(result =>
+        command.SetAction(result => ExecuteSafelyAsync(services, () =>
         {
             var console = services.GetRequiredService<ICliConsole>();
             var connectors = services.GetRequiredService<IProviderPackService>().List();
@@ -40,8 +40,8 @@ internal static class ConnectorCommand
                 foreach (var connector in connectors)
                     console.Out.WriteLine($"{connector.Id}\t{connector.Version}\t{connector.Source}\t{connector.State}\t{connector.Listed}\t{connector.Installed}\t{connector.Active}\t{connector.Unhealthy}\t{string.Join(',', connector.Aliases)}");
             }
-            return CliExitCodes.Success;
-        });
+            return Task.FromResult(CliExitCodes.Success);
+        }));
         return command;
     }
 

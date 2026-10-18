@@ -1,4 +1,5 @@
 using DubUrl.Cli;
+using DubUrl.Application;
 using DubUrl.Core.ProviderPacks;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
@@ -129,6 +130,34 @@ public class ConnectorCommandTests
             Assert.That(console.StandardOutput, Is.Empty);
             Assert.That(console.StandardError, Does.Contain("connector-not-installed"));
         });
+    }
+
+    [TestCase("install", "unknown", "connector-not-curated", CliExitCodes.ProviderNotFound)]
+    [TestCase("install", "pg", "connector-download-failed", CliExitCodes.ProviderOperationFailed)]
+    [TestCase("uninstall", "pg", "connector-not-installed", CliExitCodes.ProviderNotFound)]
+    public async Task SharedServiceFailure_ReportsDiagnosticAndExitCode(string command, string requested, string code, int expectedExit)
+    {
+        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-errors-{Guid.NewGuid():N}");
+        using var http = new HttpClient(new UnavailableHandler());
+        var catalog = new ProviderPackCatalog([new("postgresql-npgsql", "1.0.0", new Uri("https://example.test/pack.zip"), new string('0', 64), ["pg"])]);
+        var application = new ConnectorService(new ProviderPackStore(root), catalog, http);
+        var console = new TestConsole();
+        await using var services = CliComposition.CreateDefault(console, providerPackService: new ProviderPackService(application));
+        var exit = await CliHost.InvokeAsync(["connector", command, requested], services);
+        Assert.Multiple(() =>
+        {
+            Assert.That(exit, Is.EqualTo(expectedExit));
+            Assert.That(console.StandardError, Does.Contain(code));
+            Assert.That(console.StandardError, Does.Not.Contain("password"));
+            Assert.That(console.StandardOutput, Is.Empty);
+            Assert.That(Directory.Exists(root), Is.False);
+        });
+    }
+
+    private sealed class UnavailableHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => throw new HttpRequestException("https://user:password@example.test/");
     }
 
     private sealed class StubProviderPackService : IProviderPackService
