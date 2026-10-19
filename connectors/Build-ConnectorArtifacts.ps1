@@ -12,7 +12,8 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $outputRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $OutputDirectory))
 $stagingRoot = Join-Path $outputRoot '.staging'
-$project = Join-Path $PSScriptRoot 'DubUrl.Connector.Generated/DubUrl.Connector.Generated.csproj'
+$project = Join-Path $repositoryRoot 'Providers/Build/DubUrl.Provider.Template/DubUrl.Provider.Template.csproj'
+$npgsqlProject = Join-Path $repositoryRoot 'Providers/PostgreSql/DubUrl.Provider.PostgreSql.Npgsql/DubUrl.Provider.PostgreSql.Npgsql.csproj'
 $matrixPath = Join-Path $PSScriptRoot 'connector-matrix.json'
 $catalogPath = Join-Path $outputRoot 'connector-catalog.json'
 $noticePath = Join-Path $PSScriptRoot 'THIRD-PARTY-NOTICES.md'
@@ -66,14 +67,6 @@ function Write-Utf8Json([string] $Path, [object] $Value) {
     [IO.File]::WriteAllText($Path, "$json`n", [Text.UTF8Encoding]::new($false))
 }
 
-function Get-AssemblyName([string] $ConnectorId) {
-    $parts = $ConnectorId -split '-' | ForEach-Object {
-        if ($_.Length -eq 0) { return }
-        $_.Substring(0, 1).ToUpperInvariant() + $_.Substring(1)
-    }
-    "DubUrl.Connector.$($parts -join '.')"
-}
-
 function Get-AssetKind([string] $RelativePath) {
     if ($RelativePath -match '(^|/)runtimes/[^/]+/native/') { return 'Native' }
     if ([IO.Path]::GetExtension($RelativePath) -eq '.md') { return 'Content' }
@@ -91,6 +84,9 @@ New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
 $matrix = Get-Content -LiteralPath $matrixPath -Raw | ConvertFrom-Json
 if ($matrix.schemaVersion -ne 1) { throw 'Expected connector matrix schema version 1.' }
 $ready = @($matrix.connectors | Where-Object status -eq 'ready' | Sort-Object id)
+if (@($ready.assemblyName | Select-Object -Unique).Count -ne $ready.Count) {
+    throw 'Provider binding assembly names must be unique.'
+}
 $catalogEntries = [Collections.Generic.List[object]]::new()
 
 foreach ($connector in $ready) {
@@ -98,7 +94,12 @@ foreach ($connector in $ready) {
         throw "Connector '$($connector.id)' uses unknown technology '$($connector.technology)'."
     }
     $technology = $technologies[$connector.technology]
-    $assemblyName = Get-AssemblyName $connector.id
+    $assemblyName = $connector.assemblyName
+    if ($assemblyName -cnotmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$') {
+        throw "Connector '$($connector.id)' must name its binding DubUrl.Provider.<Database>.<Driver>."
+    }
+    $publishProject = if ($connector.id -eq 'postgresql-npgsql') { $npgsqlProject } else { $project }
+    $moduleType = "$assemblyName.ProviderModule"
     $mapperAssembly = if ($technology.Key -eq 'Odbc') { 'DubUrl.Provider.Odbc' }
         elseif ($technology.Key -eq 'OleDb') { 'DubUrl.OleDb' }
         else { "DubUrl.Provider.$($connector.family)" }
@@ -109,7 +110,7 @@ foreach ($connector in $ready) {
     New-Item -ItemType Directory -Path $publishRoot, $contentRoot -Force | Out-Null
 
     Invoke-Checked dotnet @(
-        'publish', $project,
+        'publish', $publishProject,
         '--configuration', 'Release',
         '--framework', 'net8.0',
         '--no-self-contained',
@@ -172,7 +173,7 @@ foreach ($connector in $ready) {
         provider = $connector.id
         version = $Version
         dubUrlApiRange = $apiRange
-        module = [ordered]@{ assembly = $moduleFile; type = 'DubUrl.Connector.ProviderModule' }
+        module = [ordered]@{ assembly = $moduleFile; type = $moduleType }
         schemes = @($connector.schemes)
         targetFrameworks = @('net8.0', 'net9.0', 'net10.0')
         runtimeIdentifiers = @($connector.runtimeIdentifiers)

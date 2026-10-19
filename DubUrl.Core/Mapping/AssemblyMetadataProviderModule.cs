@@ -1,20 +1,26 @@
-using DubUrl.Mapping;
+using System.Runtime.Loader;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using System.Data.Common;
 using System.Reflection;
 
-namespace DubUrl.Connector;
+namespace DubUrl.Mapping;
 
 /// <summary>
-/// Registers one connector described by immutable assembly metadata generated from the connector matrix.
+/// Registers a driver binding from its assembly metadata, resolving types in the binding load context.
 /// </summary>
-public sealed class ProviderModule : IDubUrlProviderModule
+public abstract class AssemblyMetadataProviderModule : IDubUrlProviderModule
 {
-    private static readonly IReadOnlyDictionary<string, string> Metadata =
-        typeof(ProviderModule).Assembly
-            .GetCustomAttributes<AssemblyMetadataAttribute>()
+    private readonly IReadOnlyDictionary<string, string> metadata;
+    private readonly AssemblyLoadContext loadContext;
+
+    protected AssemblyMetadataProviderModule(Assembly bindingAssembly)
+    {
+        ArgumentNullException.ThrowIfNull(bindingAssembly);
+        loadContext = AssemblyLoadContext.GetLoadContext(bindingAssembly) ?? AssemblyLoadContext.Default;
+        metadata = bindingAssembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .ToDictionary(attribute => attribute.Key, attribute => attribute.Value ?? string.Empty, StringComparer.Ordinal);
+    }
 
     public void Register(IProviderCatalogBuilder catalog)
     {
@@ -43,7 +49,7 @@ public sealed class ProviderModule : IDubUrlProviderModule
         });
     }
 
-    private static DbProviderFactory ResolveFactory()
+    private DbProviderFactory ResolveFactory()
     {
         var type = ResolveType("FactoryType");
         var instance = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)?.GetValue(null)
@@ -61,12 +67,12 @@ public sealed class ProviderModule : IDubUrlProviderModule
             ?? throw new InvalidOperationException($"Mapper '{mapperType.FullName}' could not be constructed.");
     }
 
-    private static Type ResolveType(string key)
-        => Type.GetType(Required(key), throwOnError: true)
-            ?? throw new TypeLoadException($"Connector type metadata '{key}' could not be resolved.");
+    private Type ResolveType(string key)
+        => Type.GetType(Required(key), loadContext.LoadFromAssemblyName, null, throwOnError: true)
+            ?? throw new TypeLoadException($"Provider binding type metadata '{key}' could not be resolved.");
 
-    private static string Required(string key)
-        => Metadata.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
+    private string Required(string key)
+        => metadata.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
             ? value
-            : throw new InvalidOperationException($"Connector assembly metadata '{key}' is missing.");
+            : throw new InvalidOperationException($"Provider binding assembly metadata '{key}' is missing.");
 }

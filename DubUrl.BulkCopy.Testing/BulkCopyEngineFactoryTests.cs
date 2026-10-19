@@ -57,8 +57,8 @@ public class BulkCopyEngineFactoryTests
         reader.Verify(x => x.Dispose(), Times.Never);
     }
 
-    [TestCase(typeof(DuckDbDialect), typeof(DubUrl.Connector.DuckDb.BulkCopy.DuckDbBulkCopyProvider), "DubUrl.Connector.DuckDb.BulkCopy")]
-    [TestCase(typeof(TSqlDialect), typeof(DubUrl.Connector.SqlServer.BulkCopy.MsSqlServerBulkCopyProvider), "DubUrl.Connector.SqlServer.BulkCopy")]
+    [TestCase(typeof(DuckDbDialect), typeof(DubUrl.Provider.DuckDb.Native.BulkCopy.DuckDbBulkCopyProvider), "DubUrl.Provider.DuckDb.Native.BulkCopy")]
+    [TestCase(typeof(TSqlDialect), typeof(DubUrl.Provider.SqlServer.SqlClient.BulkCopy.MsSqlServerBulkCopyProvider), "DubUrl.Provider.SqlServer.SqlClient.BulkCopy")]
     public void NativeEngines_AreProviderOwnedAndDoNotResolveDependenciesDuringCreation(Type dialectType, Type providerType, string assemblyName)
     {
         var builder = new DialectRegistryBuilder();

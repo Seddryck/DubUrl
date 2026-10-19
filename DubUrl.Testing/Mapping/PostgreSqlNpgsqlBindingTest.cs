@@ -1,5 +1,5 @@
 using DubUrl.Provider.PostgreSql.Mapping;
-using DubUrl.Connector.PostgreSql.Npgsql;
+using DubUrl.Provider.PostgreSql.Npgsql;
 using DubUrl.Mapping;
 using DubUrl.Rewriting;
 using Npgsql;
@@ -7,13 +7,13 @@ using NUnit.Framework;
 
 namespace DubUrl.Testing.Mapping;
 
-public class PostgreSqlNpgsqlProviderModuleTest
+public class PostgreSqlNpgsqlBindingTest
 {
     [Test]
     public void Register_ProvidesOnlyPostgreSqlSchemesWithNpgsqlFactory()
     {
         var registry = new ProviderCatalogBuilder()
-            .AddModule(new PostgreSqlNpgsqlProviderModule())
+            .AddModule(new ProviderModule())
             .Build();
 
         Assert.Multiple(() =>

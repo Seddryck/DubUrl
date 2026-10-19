@@ -38,13 +38,15 @@ The `compile` delegate is an ordinary factory. DubUrl does not infer constructor
 mapper through reflection. Add optional capability objects with
 `registration.WithCapabilities(...)` and retrieve them with `TryGetCapability<TCapability>`.
 
-## Author a connector without changing Core
+## Author a driver binding without changing Core
 
-For a new connector to an existing database, reference `DubUrl.Core`, the relevant
-`DubUrl.Provider.*` family package, and the concrete driver. Register a provider module selecting
-that family's mapper and dialect, your factory, and the driver's parameter convention. Reuse the
-family's rewriter unless the driver needs different keywords or URL rules. The PostgreSQL/Npgsql
-module in `connectors/DubUrl.Connector.PostgreSql.Npgsql` is a complete example of this boundary.
+For a new driver binding to an existing database, reference `DubUrl.Core`, the relevant
+`DubUrl.Provider.*` family package, and the concrete driver. Declare the factory, family mapper
+and dialect, aliases, invariant name, and parametrizer in the project and import
+`Providers/Build/ProviderBinding.props`. It generates the binding's `ProviderModule` and metadata;
+Core's `AssemblyMetadataProviderModule` performs registration for every standard binding.
+Reuse the family's rewriter unless the driver needs different keywords or URL rules. The project
+in `Providers/PostgreSql/DubUrl.Provider.PostgreSql.Npgsql` is an example of this declarative configuration.
 An alternative connector can supply its own factory and aliases while reusing `PostgresqlMapper`.
 Registering two connectors for the same alias produces a `ProviderRegistrationException`; choose
 the connector explicitly rather than relying on registration order.
@@ -53,9 +55,10 @@ For a new database, create a provider implementation project referencing `DubUrl
 database identity, mapper, rewriter, dialect, and any specialized SQL or driver discovery behavior
 there. Reuse the public `BaseMapper`, `ConnectionStringRewriter`, token mappers, and ANSI SQL
 components where appropriate. Keep shared family behavior in provider projects and concrete driver
-dependencies in connector projects. Core must never reference either implementation project.
+dependencies in driver binding projects named `DubUrl.Provider.<Database>.<Driver>`.
+Core must never reference either implementation project.
 
-The buildable `samples/DubUrl.Connector.Sample` project demonstrates a new database using only
+The buildable `samples/DubUrl.Provider.Sample` project demonstrates a new database using only
 public Core APIs. Its `SampleProviderModule` receives a factory delegate, constructs a `SampleDialect`
 directly, and registers `SampleMapper` with `NamedParametrizer`. Its rewriter translates the host,
 port, database path, and query options. The sample uses `StraightSpecificator` for an unrestricted
@@ -67,7 +70,7 @@ Compose the sample with an application's concrete driver factory:
 
 ```csharp
 using DubUrl;
-using DubUrl.Connector.Sample;
+using DubUrl.Provider.Sample;
 using DubUrl.Mapping;
 using System.Data.Common;
 
@@ -88,7 +91,7 @@ checks for native libraries or installed ODBC/OLE DB drivers remain connector re
 
 Select `NamedParametrizer`, `PositionalParametrizer`, or a specialized implementation according to the
 driver's parameter binding rules. These affect parameters added to executed commands independently
-of SQL identifier and literal rendering. `DubUrl.Connector.Testing` executes a parameterized query
+of SQL identifier and literal rendering. `DubUrl.Provider.Testing` executes a parameterized query
 through a deterministic fake driver and tests an alternative PostgreSQL connector in a consumer
 that does not reference the compatibility aggregate or unrelated providers.
 

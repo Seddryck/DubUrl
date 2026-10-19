@@ -40,6 +40,24 @@ remain unchanged by this reorganization.
 
 ## Migration
 
+Driver bindings use `DubUrl.Provider.<Database>.<Driver>`, for example
+`DubUrl.Provider.PostgreSql.Npgsql` and `DubUrl.Provider.CockroachDb.Npgsql`.
+The latter reuses the PostgreSQL family through a dependency, without repeating that
+family in its binding name. Binding projects and typed adapters are grouped beside
+their owning family under `Providers/<Family>/`. Optional adapters append `.BulkCopy`
+to the driver's binding name. The shared build template lives under
+`Providers/Build/DubUrl.Provider.Template`; the Core-only sample is
+`samples/DubUrl.Provider.Sample`, and its consumer tests are `DubUrl.Provider.Testing`.
+
+Binding assembly, package, and namespace names follow this convention. Consumers must
+update package and namespace references and rebuild packs. Installable connector IDs
+and URL schemes are unchanged; connector packs remain the distribution format.
+
+Every production driver binding exposes `<binding namespace>.ProviderModule`, generated
+from `Providers/Build/ProviderBinding.props`. Those entry points use the same
+`DubUrl.Mapping.AssemblyMetadataProviderModule` implementation in Core. PostgreSQL/Npgsql
+has no special registration class or handwritten registration logic.
+
 Public fully qualified type names change. For example:
 
 | Previous type | New type |
@@ -56,9 +74,9 @@ wrappers are introduced. Review persisted assembly-qualified names and reflectio
 configuration as well as source references before upgrading. Core's shared contracts
 retain their namespaces, and existing connection URL aliases remain unchanged.
 
-Bulk-copy adapters belong to their optional connector projects and use those exact
-project namespaces: `DubUrl.Connector.DuckDb.BulkCopy` and
-`DubUrl.Connector.SqlServer.BulkCopy`. Provider mapper declarations name the adapter
+Bulk-copy adapters belong to their optional driver binding projects and use those exact
+project namespaces: `DubUrl.Provider.DuckDb.Native.BulkCopy` and
+`DubUrl.Provider.SqlServer.SqlClient.BulkCopy`. Provider mapper declarations name the adapter
 types without referencing their assemblies. Shared bulk-copy contracts retain the
 `DubUrl.BulkCopy` namespace in Core; provider families remain driver independent.
 

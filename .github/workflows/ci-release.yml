@@ -128,7 +128,7 @@ jobs:
         run: |
           $projects = @(
             'DubUrl',
-            'DubUrl.Connector',
+            'DubUrl.Provider',
             'DubUrl.OleDb',
             'DubUrl.Extensions',
             'DubUrl.Adomd',
@@ -165,7 +165,7 @@ jobs:
         run: |
           $projects = @(
             'DubUrl',
-            'DubUrl.Connector',
+            'DubUrl.Provider',
             'DubUrl.OleDb',
             'DubUrl.Extensions',
             'DubUrl.Adomd',
@@ -242,8 +242,8 @@ jobs:
             'Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
             'Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
             'Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
-            'connectors/DubUrl.Connector.Generated/DubUrl.Connector.Generated.csproj'
-            'connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj'
+            'Providers/Build/DubUrl.Provider.Template/DubUrl.Provider.Template.csproj'
+            'Providers/PostgreSql/DubUrl.Provider.PostgreSql.Npgsql/DubUrl.Provider.PostgreSql.Npgsql.csproj'
             'DubUrl.OleDb/DubUrl.OleDb.csproj'
             'DubUrl.Extensions/DubUrl.Extensions.csproj'
             'DubUrl.Adomd/DubUrl.Adomd.csproj'
@@ -393,8 +393,8 @@ jobs:
             project: DubUrl.Application/DubUrl.Application.csproj
           - package-id: DubUrl.BulkCopy
             project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
-          - package-id: DubUrl.Connector.PostgreSql.Npgsql
-            project: connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj
+          - package-id: DubUrl.Provider.PostgreSql.Npgsql
+            project: Providers/PostgreSql/DubUrl.Provider.PostgreSql.Npgsql/DubUrl.Provider.PostgreSql.Npgsql.csproj
     steps:
       - name: Check out repository
         uses: actions/checkout@v7

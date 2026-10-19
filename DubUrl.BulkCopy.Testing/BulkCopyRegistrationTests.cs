@@ -1,7 +1,7 @@
 using DubUrl.Provider.DuckDb.Sql;
 using System.Data.Common;
-using DubUrl.Connector.DuckDb.BulkCopy;
-using DubUrl.Connector.SqlServer.BulkCopy;
+using DubUrl.Provider.DuckDb.Native.BulkCopy;
+using DubUrl.Provider.SqlServer.SqlClient.BulkCopy;
 using DubUrl.Mapping;
 using DubUrl.Provider.DuckDb.Mapping;
 using DubUrl.Provider.SqlServer.Mapping;
@@ -54,8 +54,8 @@ public class BulkCopyRegistrationTests
         Assert.Throws<NotSupportedException>(() => new BulkCopyEngineFactory().Create(url));
     }
 
-    [TestCase(typeof(DuckdbMapper), "DubUrl.Connector.DuckDb.BulkCopy")]
-    [TestCase(typeof(MsSqlServerMapper), "DubUrl.Connector.SqlServer.BulkCopy")]
+    [TestCase(typeof(DuckdbMapper), "DubUrl.Provider.DuckDb.Native.BulkCopy")]
+    [TestCase(typeof(MsSqlServerMapper), "DubUrl.Provider.SqlServer.SqlClient.BulkCopy")]
     public void AttributeDiscovery_CarriesNativeMapperCapabilityIntoRegistration(Type mapperType, string adapterAssembly)
     {
         var registrations = Capture(catalog => new AttributeProviderModule(mapperType.Assembly).Register(catalog));
@@ -69,7 +69,7 @@ public class BulkCopyRegistrationTests
     [Test]
     public void GeneratedDuckDbConnector_RegistersNativeBulkCapability()
     {
-        var registrations = Capture(catalog => new DubUrl.Connector.ProviderModule().Register(catalog));
+        var registrations = Capture(catalog => new DubUrl.Provider.DuckDb.Native.ProviderModule().Register(catalog));
         var registration = registrations.Single();
 
         Assert.That(registration.BulkCopyProvider, Is.TypeOf<LazyBulkCopyProvider>());

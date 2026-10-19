@@ -4,7 +4,7 @@ using System.Numerics;
 using DuckDB.NET.Data;
 using DuckDB.NET.Native;
 
-namespace DubUrl.Connector.DuckDb.BulkCopy;
+namespace DubUrl.Provider.DuckDb.Native.BulkCopy;
 
 public sealed class DuckDbBulkCopyProvider : IBulkCopyProvider
 {

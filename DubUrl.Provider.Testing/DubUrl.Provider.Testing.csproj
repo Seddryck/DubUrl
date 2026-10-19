@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\samples\DubUrl.Connector.Sample\DubUrl.Connector.Sample.csproj" />
-    <ProjectReference Include="..\connectors\DubUrl.Connector.PostgreSql.Npgsql\DubUrl.Connector.PostgreSql.Npgsql.csproj" />
+    <ProjectReference Include="..\samples\DubUrl.Provider.Sample\DubUrl.Provider.Sample.csproj" />
+    <ProjectReference Include="..\Providers\PostgreSql\DubUrl.Provider.PostgreSql.Npgsql\DubUrl.Provider.PostgreSql.Npgsql.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="NUnit" Version="5.0.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.15.0" PrivateAssets="all" />

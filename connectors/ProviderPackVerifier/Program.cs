@@ -5,7 +5,7 @@ using DubUrl.BulkCopy;
 using System.Data;
 using System.Runtime.Loader;
 
-namespace DubUrl.ConnectorArtifactVerifier;
+namespace DubUrl.ProviderPackVerifier;
 
 internal static class Program
 {
@@ -34,7 +34,7 @@ internal static class Program
     private static void ValidateArguments(string[] args)
     {
         if (args.Length != 5 || args[0] is not ("install" or "verify" or "verify-bulk" or "uninstall"))
-            throw new ArgumentException("Usage: ConnectorArtifactVerifier <install|verify|verify-bulk|uninstall> <catalog> <archive> <store> <provider>");
+            throw new ArgumentException("Usage: ProviderPackVerifier <install|verify|verify-bulk|uninstall> <catalog> <archive> <store> <provider>");
     }
 
     private static async Task<VerificationContext> CreateContextAsync(string[] args)
@@ -72,7 +72,12 @@ internal static class Program
         if (diagnostics.Count != 0 || modules.Count != 1)
             throw new InvalidOperationException($"Connector module loading failed: {string.Join("; ", diagnostics.Select(item => item.Message))}");
 
-        var schemes = new ProviderCatalogBuilder().AddModule(modules.Single()).Build();
+        var module = modules.Single();
+        var bindingName = module.GetType().Assembly.GetName().Name;
+        if (module is not AssemblyMetadataProviderModule || module.GetType().FullName != bindingName + ".ProviderModule")
+            throw new InvalidOperationException("Every driver binding must use its generated ProviderModule and shared metadata registration.");
+
+        var schemes = new ProviderCatalogBuilder().AddModule(module).Build();
         var scheme = context.Entry.Schemes?.FirstOrDefault()
             ?? throw new InvalidOperationException("The connector has no scheme to verify.");
         var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));
@@ -83,13 +88,13 @@ internal static class Program
         {
             if (context.Entry.Provider != "duckdb-native")
                 throw new ArgumentException("The local bulk-copy artifact check currently targets duckdb-native.");
-            VerifyDuckDbBulkCopy(modules.Single());
+            VerifyDuckDbBulkCopy(module);
         }
     }
 
     private static void VerifyDuckDbBulkCopy(IDubUrlProviderModule module)
     {
-        const string adapterName = "DubUrl.Connector.DuckDb.BulkCopy";
+        const string adapterName = "DubUrl.Provider.DuckDb.Native.BulkCopy";
         var filename = "DubUrl-isolated-bulk-" + Guid.NewGuid().ToString("N") + ".db";
         var path = Path.Combine(Path.GetTempPath(), filename);
         try

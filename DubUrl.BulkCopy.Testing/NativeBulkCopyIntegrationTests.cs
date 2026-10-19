@@ -1,8 +1,8 @@
 using DubUrl.Provider.DuckDb.Sql;
 using System.Data;
 using System.Reflection;
-using DubUrl.Connector.DuckDb.BulkCopy;
-using DubUrl.Connector.SqlServer.BulkCopy;
+using DubUrl.Provider.DuckDb.Native.BulkCopy;
+using DubUrl.Provider.SqlServer.SqlClient.BulkCopy;
 using DubUrl.Mapping;
 using DubUrl.Querying.Dialects;
 using DuckDB.NET.Data;
@@ -56,7 +56,7 @@ public class NativeBulkCopyIntegrationTests
                 .Returns((Assembly driver, string assembly, string type) => BulkCopyDependencyResolver.Default.ResolveType(driver, assembly, type));
             var registry = new ProviderCatalogBuilder()
                 .WithRootPath(Path.GetDirectoryName(path)!)
-                .AddModule(new DubUrl.Connector.ProviderModule())
+                .AddModule(new DubUrl.Provider.DuckDb.Native.ProviderModule())
                 .Build();
             var url = new ConnectionUrl("duck://" + Path.GetFileName(path), registry);
             using var reader = data.CreateDataReader();
@@ -64,7 +64,7 @@ public class NativeBulkCopyIntegrationTests
             url.BulkCopy("Customer", reader, dependencies.Object);
 
             Assert.That(reader.IsClosed, Is.False);
-            dependencies.Verify(x => x.ResolveType(It.IsAny<Assembly>(), "DubUrl.Connector.DuckDb.BulkCopy",
+            dependencies.Verify(x => x.ResolveType(It.IsAny<Assembly>(), "DubUrl.Provider.DuckDb.Native.BulkCopy",
                 typeof(DuckDbBulkCopyProvider).FullName!), Times.Once);
             using var connection = Open();
             using var select = connection.CreateCommand();

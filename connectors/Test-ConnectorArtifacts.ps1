@@ -25,6 +25,8 @@ if ($matrix.schemaVersion -ne 1) { throw "Expected connector matrix schema versi
 $matrixIds = @($matrix.connectors | ForEach-Object id)
 if (@($matrixIds | Select-Object -Unique).Count -ne $matrixIds.Count) { throw "Connector matrix IDs must be unique." }
 $readyIds = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object id)
+$assemblyNames = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object assemblyName)
+if (@($assemblyNames | Select-Object -Unique).Count -ne $readyIds.Count) { throw 'Provider binding assembly names must be unique.' }
 $catalogIds = @($entries | ForEach-Object provider)
 if (Compare-Object $readyIds $catalogIds) { throw "The catalog must contain exactly the ready connector matrix rows." }
 if ($entries.Count -ne $readyIds.Count) { throw "Expected $($readyIds.Count) ready connectors, found $($entries.Count)." }
@@ -60,6 +62,29 @@ foreach ($entry in $entries) {
         if ($manifest.provider -cne $entry.provider -or $manifest.version -cne $Version) {
             throw "Connector archive identity does not match its catalog entry."
         }
+        $definition = $matrix.connectors | Where-Object id -CEQ $entry.provider
+        if ($manifest.module.assembly -cne "$($definition.assemblyName).dll") {
+            throw "Connector '$($entry.provider)' does not use its declared provider binding assembly name."
+        }
+        if ($manifest.module.type -cne "$($definition.assemblyName).ProviderModule") {
+            throw "Connector '$($entry.provider)' must expose its generated ProviderModule entry point."
+        }
+        if (@($manifest.assets | Where-Object path -Like 'DubUrl.Connector.*').Count -ne 0) {
+            throw "Connector '$($entry.provider)' still carries a legacy connector assembly."
+        }
+        $bulkAdapters = @($manifest.assets.path | Where-Object { $_ -like 'DubUrl.Provider.*.BulkCopy.dll' })
+        $expectedAdapter = switch ($entry.provider) {
+            'duckdb-native' { 'DubUrl.Provider.DuckDb.Native.BulkCopy.dll' }
+            'sqlserver-sqlclient' { 'DubUrl.Provider.SqlServer.SqlClient.BulkCopy.dll' }
+            default { $null }
+        }
+        if ($expectedAdapter) {
+            if ($bulkAdapters.Count -ne 1 -or $bulkAdapters[0] -cne $expectedAdapter) {
+                throw "Connector '$($entry.provider)' must carry only its matching optional bulk adapter."
+            }
+        } elseif ($bulkAdapters.Count -ne 0) {
+            throw "Connector '$($entry.provider)' carries an unrelated bulk adapter."
+        }
         if ($null -eq $archive.GetEntry($manifest.module.assembly)) {
             throw "Connector module '$($manifest.module.assembly)' is missing."
         }
@@ -77,7 +102,7 @@ foreach ($entry in $entries) {
     }
 }
 
-$verifier = Join-Path $PSScriptRoot 'ConnectorArtifactVerifier/ConnectorArtifactVerifier.csproj'
+$verifier = Join-Path $PSScriptRoot 'ProviderPackVerifier/ProviderPackVerifier.csproj'
 & dotnet restore $verifier -p:TargetFramework=net8.0 --disable-parallel --nologo
 if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier restore failed." }
 & dotnet build $verifier --configuration Release --framework net8.0 --no-restore --nologo --disable-build-servers -m:1 `
@@ -85,13 +110,18 @@ if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier restore failed." 
 if ($LASTEXITCODE -ne 0) { throw "Connector lifecycle verifier build failed." }
 foreach ($entry in $entries) {
     $archivePath = Join-Path $root ([IO.Path]::GetFileName($entry.downloadUri))
-    $storePath = Join-Path ([IO.Path]::GetTempPath()) "duburl-connector-verifier-$([Guid]::NewGuid().ToString('N'))"
+    $temporaryRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
+    $storePath = [IO.Path]::GetFullPath((Join-Path $temporaryRoot "duburl-connector-verifier-$([Guid]::NewGuid().ToString('N'))"))
+    if (-not $storePath.StartsWith($temporaryRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Verifier store escapes its temporary root: $storePath"
+    }
     try {
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
             install $catalogPath $archivePath $storePath $entry.provider
         if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' installation lifecycle validation failed." }
+        $verification = if ($entry.provider -eq 'duckdb-native') { 'verify-bulk' } else { 'verify' }
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
-            verify $catalogPath $archivePath $storePath $entry.provider
+            $verification $catalogPath $archivePath $storePath $entry.provider
         if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' activation lifecycle validation failed." }
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
             uninstall $catalogPath $archivePath $storePath $entry.provider

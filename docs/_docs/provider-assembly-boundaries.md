@@ -10,8 +10,8 @@ DubUrl publishes deliberately acyclic package layers:
    provider implementations.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
    `Providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
-3. `DubUrl.Connector.*` packages select provider implementations, concrete drivers, schemes, and explicit
-   modules under `connectors/`.
+3. `DubUrl.Provider.<Family>.<Driver>` bindings select shared family implementations, concrete drivers,
+   schemes, and explicit modules alongside the family projects under `Providers/`.
 4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and
    `DubUrl.Providers` built-in catalog. Explicit consumers can omit both aggregate and built-in catalog.
 
@@ -115,8 +115,8 @@ in; ODBC registrations remain unsupported even when they share the exact same SQ
 | `DubUrl.Core/BulkCopy` (assembly `DubUrl.Core`) | Contracts, deferred adapter activation, scoped optional dependency resolution |
 | `DubUrl.BulkCopy` | Public extension and factory facade; references Core only |
 | `Providers/<Family>/DubUrl.Provider.*` | Driver-independent database behavior and optional adapter declarations |
-| `connectors/DubUrl.Connector.DuckDb.BulkCopy` | Typed DuckDB appender engine |
-| `connectors/DubUrl.Connector.SqlServer.BulkCopy` | Typed Microsoft.Data.SqlClient bulk engine |
+| `Providers/DuckDb/DubUrl.Provider.DuckDb.Native.BulkCopy` | Typed DuckDB appender engine |
+| `Providers/SqlServer/DubUrl.Provider.SqlServer.SqlClient.BulkCopy` | Typed Microsoft.Data.SqlClient bulk engine |
 | Native connector modules | Driver deployment, conditional adapter dependency, provider registration |
 
 The typed adapters reference their driver packages at compile time. Core, the facade, and provider
@@ -132,8 +132,8 @@ can opt out by leaving the property null, including when reusing a native mapper
 Provider families can declare optional support without linking an adapter assembly:
 
 ```csharp
-[BulkCopyProvider("DubUrl.Connector.DuckDb.BulkCopy",
-    "DubUrl.Connector.DuckDb.BulkCopy.DuckDbBulkCopyProvider")]
+[BulkCopyProvider("DubUrl.Provider.DuckDb.Native.BulkCopy",
+    "DubUrl.Provider.DuckDb.Native.BulkCopy.DuckDbBulkCopyProvider")]
 ```
 
 The non-inherited mapper attribute creates a `LazyBulkCopyProvider` for attribute-based and generated

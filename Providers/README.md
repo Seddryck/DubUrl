@@ -34,7 +34,12 @@ DubUrl keeps provider-neutral contracts and runtime behavior in `DubUrl.Core`. D
 | `DubUrl.Provider.Text` | Delimited text files through ODBC |
 | `DubUrl.Provider.Trino` | Trino |
 
-Each package depends on `DubUrl.Core` but not on a concrete ADO.NET driver. Connector packages combine one or more provider implementation packages with a particular driver and an explicit `IDubUrlProviderModule`. The `DubUrl` package remains the 0.x compatibility aggregate and references every provider implementation package.
+Each shared family package above depends on `DubUrl.Core` without a concrete ADO.NET driver.
+Driver binding packages use `DubUrl.Provider.<Database>.<Driver>` names and combine the family
+implementation with a driver and an explicit `IDubUrlProviderModule`. For example,
+`DubUrl.Provider.CockroachDb.Npgsql` reuses `DubUrl.Provider.PostgreSql`; that dependency
+expresses the family relationship. Connector packs are the installable distribution format.
+The `DubUrl` package remains the 0.x compatibility aggregate and references every shared family package.
 
 Provider and connector project-reference dependencies are packed with a lower bound equal to their release version and an exclusive `1.0.0` upper bound. This keeps the modular packages on the compatible 0.x API line.
 
@@ -67,8 +72,8 @@ See [namespace conventions and migration](NAMESPACES.md) for the complete layout
 including Schema.Generation, the reserved Schema.Discovery area, and ODBC's
 Drivers.Discovery. Public provider namespaces change and consumers must recompile.
 
-The Core-only sample at `samples/DubUrl.Connector.Sample` and its isolated consumer
-`DubUrl.Connector.Testing` demonstrate provider authoring without compatibility-package
+The Core-only sample at `samples/DubUrl.Provider.Sample` and its isolated consumer
+`DubUrl.Provider.Testing` demonstrate provider authoring without compatibility-package
 references or friend access. The consumer tests enforce source ownership, execute a
 bound parameter through a fake driver, and reuse PostgreSQL behavior with a different
 connector registration. See the provider modules documentation for setup and the

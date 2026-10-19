@@ -6,9 +6,22 @@ All 32 existing database/technology combinations are available. Managed connecto
 
 ODBC and OLE DB connectors carry the .NET bridge but do not redistribute database-vendor drivers or providers. Their archives include an external-prerequisite notice, and the matching machine-level driver must be installed separately. Access and Excel connectors are restricted to supported Windows runtime identifiers.
 
-The connector assemblies are generated from the matrix through a single explicit `IDubUrlProviderModule` implementation. Each build selects exactly one database family, mapper, dialect, parametrizer, and driver technology. `DubUrl.Core` is supplied by the host and is deliberately excluded from connector archives.
+Driver binding assemblies use `DubUrl.Provider.<Database>.<Driver>` names, declared explicitly
+by each matrix row's `assemblyName`. Shared family reuse stays in project dependencies:
+`DubUrl.Provider.CockroachDb.Npgsql`, for example, uses `DubUrl.Provider.PostgreSql` internally.
+Connector IDs, archive names, URL schemes, and catalog identities describe installable packs and stay unchanged.
 
-`DubUrl.Connector.PostgreSql.Npgsql` is also published as a NuGet package for applications that choose PostgreSQL/Npgsql at build time. It depends only on `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and Npgsql, with DubUrl dependency bounds from the current build version through, but excluding, `1.0.0`.
+`Providers/Build/ProviderBinding.props` generates the same `<binding namespace>.ProviderModule`
+entry point and assembly metadata for every driver binding, including PostgreSQL/Npgsql.
+All generated entry points use Core's `AssemblyMetadataProviderModule` registration logic;
+there is no handwritten PostgreSQL/Npgsql registration path. Metadata type resolution uses
+the binding's load context, keeping installed drivers out of the host's default context.
+The matrix template selects the family, mapper, dialect, parametrizer, and driver from its
+build settings. PostgreSQL/Npgsql uses its named project for both the NuGet package and
+installed pack, with exactly the same module generation and registration path as every other binding.
+`DubUrl.Core` is supplied by the host and excluded from connector archives.
+
+`DubUrl.Provider.PostgreSql.Npgsql` is also published as a NuGet package for applications that choose PostgreSQL/Npgsql at build time. It depends only on `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and Npgsql, with DubUrl dependency bounds from the current build version through, but excluding, `1.0.0`.
 
 The official `connector-catalog.json` uses schema version 1. Every entry contains its canonical connector ID, optional command aliases, supported schemes, immutable HTTPS URL, archive SHA-256, DubUrl API range, target frameworks, and runtime identifiers.
 
@@ -24,12 +37,12 @@ Provider implementations use their project-specific namespaces; see
 use DubUrl.Provider.<Family>.Sql and mapper names use the owning provider's Mapping
 namespace. Existing connector binaries must be rebuilt against the renamed public types.
 Native DuckDB and SqlClient builds also include a typed bulk-copy adapter from
-`DubUrl.Connector.DuckDb.BulkCopy` or `DubUrl.Connector.SqlServer.BulkCopy`. These implementation
+`DubUrl.Provider.DuckDb.Native.BulkCopy` or `DubUrl.Provider.SqlServer.SqlClient.BulkCopy`. These implementation
 assemblies reference their driver packages; Core, the facade, and provider families do not.
 Registration records the optional adapter name, and activation happens on bulk-copy execution.
 ODBC/OLE DB builds do not include these adapters. The publish dependency closure carries the matching
 adapter and its driver; hosts can deploy/load it without a compile-time driver reference.
 
-For a local DuckDB artifact, `ConnectorArtifactVerifier verify-bulk` accepts the same catalog,
+For a local DuckDB artifact, `ProviderPackVerifier verify-bulk` accepts the same catalog,
 archive, store, and provider arguments as `verify`. It checks a typed bulk-copy round trip,
 including nulls, in the installed connector's load context using a Core-only host process.

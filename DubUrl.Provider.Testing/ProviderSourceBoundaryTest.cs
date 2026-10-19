@@ -1,11 +1,27 @@
 using System.Xml.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
-namespace DubUrl.Connector.Testing;
+namespace DubUrl.Provider.Testing;
 
 public class ProviderSourceBoundaryTest
 {
+    [Test]
+    public void DriverBindings_HaveDistinctDatabaseAndDriverAssemblyNames()
+    {
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(FindRepositoryRoot(), "connectors", "connector-matrix.json")));
+        var bindings = matrix.RootElement.GetProperty("connectors").EnumerateArray().ToArray();
+        Assert.That(bindings, Is.Not.Empty);
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var binding in bindings)
+        {
+            var name = binding.GetProperty("assemblyName").GetString()!;
+            Assert.That(name, Does.Match(@"^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$"));
+            Assert.That(names.Add(name), Is.True, $"Duplicate binding assembly: {name}");
+        }
+    }
+
     [Test]
     public void ProviderSources_UseTheirProjectAndFolderNamespace()
     {

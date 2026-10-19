@@ -36,7 +36,7 @@ $packages = @(
     @{ Id = 'DubUrl.Schema.Documents'; Assembly = 'DubUrl.Schema.Documents' },
     @{ Id = 'DubUrl.Application'; Assembly = 'DubUrl.Application' },
     @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' },
-    @{ Id = 'DubUrl.Connector.PostgreSql.Npgsql'; Assembly = 'DubUrl.Connector.PostgreSql.Npgsql' }
+    @{ Id = 'DubUrl.Provider.PostgreSql.Npgsql'; Assembly = 'DubUrl.Provider.PostgreSql.Npgsql' }
 )
 $frameworks = @('net8.0', 'net9.0', 'net10.0')
 
@@ -82,7 +82,7 @@ foreach ($package in $packages) {
             Assert-Condition ($entries -contains $schemaPath) "Package '$($package.Id)' has no schema at '$schemaPath'."
         }
 
-        if ($package.Id -eq 'DubUrl.Connector.PostgreSql.Npgsql') {
+        if ($package.Id -eq 'DubUrl.Provider.PostgreSql.Npgsql') {
             $nuspecEntry = $archive.GetEntry("$($package.Id).nuspec")
             $reader = [IO.StreamReader]::new($nuspecEntry.Open())
             try {

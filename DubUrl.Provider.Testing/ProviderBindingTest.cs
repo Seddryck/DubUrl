@@ -3,8 +3,8 @@ using DubUrl.Provider.PostgreSql.Sql;
 using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
-using DubUrl.Connector.PostgreSql.Npgsql;
-using DubUrl.Connector.Sample;
+using DubUrl.Provider.PostgreSql.Npgsql;
+using DubUrl.Provider.Sample;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
@@ -16,9 +16,9 @@ using Moq.Protected;
 using Npgsql;
 using NUnit.Framework;
 
-namespace DubUrl.Connector.Testing;
+namespace DubUrl.Provider.Testing;
 
-public class ConnectorExtensionTest
+public class ProviderBindingTest
 {
     [Test]
     public void NewDatabase_CompilesAndExecutesWithPublicContractsOnly()
@@ -80,7 +80,7 @@ public class ConnectorExtensionTest
     [Test]
     public void ExistingFamily_UsesOnlySelectedProviderAndDriver()
     {
-        var registry = new ProviderCatalogBuilder().AddModule(new PostgreSqlNpgsqlProviderModule()).Build();
+        var registry = new ProviderCatalogBuilder().AddModule(new ProviderModule()).Build();
         var url = new ConnectionUrl("pg://localhost/demo?Application Name=extension", registry);
         var settings = new NpgsqlConnectionStringBuilder(url.Parse());
 
@@ -177,7 +177,8 @@ public class ConnectorExtensionTest
             Assert.That(loaded, Does.Not.Contain("DubUrl"));
             Assert.That(loaded, Does.Not.Contain("DubUrl.Providers"));
             Assert.That(loaded.Where(name => name!.StartsWith("DubUrl.Provider.", StringComparison.Ordinal)),
-                Is.All.EqualTo("DubUrl.Provider.PostgreSql"));
+                Is.SubsetOf(new[] { "DubUrl.Provider.PostgreSql", "DubUrl.Provider.PostgreSql.Npgsql",
+                    "DubUrl.Provider.Sample", "DubUrl.Provider.Testing" }));
         });
     }
 

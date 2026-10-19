@@ -27,11 +27,11 @@ The default constructor uses the providers registered for the `DubUrl` compatibi
 package. For an application using an explicit connector module, pass its registry:
 
 ```csharp
-using DubUrl.Connector.PostgreSql.Npgsql;
+using DubUrl.Provider.PostgreSql.Npgsql;
 using DubUrl.Mapping;
 
 var registry = new ProviderCatalogBuilder()
-    .AddModule(new PostgreSqlNpgsqlProviderModule())
+    .AddModule(new ProviderModule())
     .Build();
 var converter = new ConnectionStringConverter(registry);
 var uri = converter.Convert("postgresql",

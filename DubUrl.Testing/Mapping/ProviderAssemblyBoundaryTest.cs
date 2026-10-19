@@ -15,7 +15,7 @@ using DubUrl.Provider.Teradata.Sql;
 using DubUrl.Provider.Text.Sql;
 using DubUrl.Provider.Trino.Sql;
 using DubUrl.Core.Providers;
-using DubUrl.Connector.PostgreSql.Npgsql;
+using DubUrl.Provider.PostgreSql.Npgsql;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Providers;
 using DubUrl.Querying.Dialects;
@@ -133,18 +133,22 @@ public class ProviderAssemblyBoundaryTest
         }
     }
     [Test]
-    public void PostgreSqlConnector_UsesCoreFamilyProviderAndDriverOnly()
+    public void PostgreSqlBinding_UsesSharedRegistrationAndSelectsItsFamilyAndDriver()
     {
-        var references = typeof(PostgreSqlNpgsqlProviderModule).Assembly.GetReferencedAssemblies()
+        var module = new ProviderModule();
+        var registry = new DubUrl.Mapping.ProviderCatalogBuilder().AddModule(module).Build();
+        var references = module.GetType().Assembly.GetReferencedAssemblies()
             .Select(reference => reference.Name)
             .ToArray();
 
         Assert.Multiple(() =>
         {
             Assert.That(references, Does.Contain("DubUrl.Core"));
-            Assert.That(references, Does.Contain("DubUrl.Provider.PostgreSql"));
-            Assert.That(references, Does.Contain("Npgsql"));
             Assert.That(references, Does.Not.Contain("DubUrl"));
+            Assert.That(module, Is.InstanceOf<DubUrl.Mapping.AssemblyMetadataProviderModule>());
+            Assert.That(module.GetType().FullName, Is.EqualTo("DubUrl.Provider.PostgreSql.Npgsql.ProviderModule"));
+            Assert.That(registry.GetMapper("pg").GetType().Assembly.GetName().Name, Is.EqualTo("DubUrl.Provider.PostgreSql"));
+            Assert.That(registry.GetProviderFactory(["pg"]).GetType().Assembly.GetName().Name, Is.EqualTo("Npgsql"));
         });
     }
 

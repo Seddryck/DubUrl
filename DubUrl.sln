@@ -142,9 +142,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Providers", "DubUrl.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.ProviderPack.TestingModule", "DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj", "{C19F4B20-A2D2-4B7D-9ADB-744B90FB81ED}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Connectors", "Connectors", "{A328B835-4990-6931-34B9-ABE689D5831A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{A328B835-4990-6931-34B9-ABE689D5831A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.PostgreSql.Npgsql", "connectors\DubUrl.Connector.PostgreSql.Npgsql\DubUrl.Connector.PostgreSql.Npgsql.csproj", "{CC3C31CA-8BFB-40D6-A195-0C4CE2A5E0F7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.PostgreSql.Npgsql", "Providers\PostgreSql\DubUrl.Provider.PostgreSql.Npgsql\DubUrl.Provider.PostgreSql.Npgsql.csproj", "{CC3C31CA-8BFB-40D6-A195-0C4CE2A5E0F7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{D9007A03-FD03-1159-6598-E081D0A1BEBA}"
 EndProject
@@ -180,19 +180,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Sqlite", "P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Teradata", "Providers\Teradata\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj", "{80839A7F-CF1C-47F7-8CFF-4F1372904B7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.Generated", "connectors\DubUrl.Connector.Generated\DubUrl.Connector.Generated.csproj", "{2619EAA0-119A-486B-B6C0-ADE2692C586C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Template", "Providers\Build\DubUrl.Provider.Template\DubUrl.Provider.Template.csproj", "{2619EAA0-119A-486B-B6C0-ADE2692C586C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.Sample", "samples\DubUrl.Connector.Sample\DubUrl.Connector.Sample.csproj", "{5464D834-EB0D-44BB-9AAD-ACF95DED05BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Sample", "samples\DubUrl.Provider.Sample\DubUrl.Provider.Sample.csproj", "{5464D834-EB0D-44BB-9AAD-ACF95DED05BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.Testing", "DubUrl.Connector.Testing\DubUrl.Connector.Testing.csproj", "{A0F242DF-35A4-4679-8D6C-52FB2E850550}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Testing", "DubUrl.Provider.Testing\DubUrl.Provider.Testing.csproj", "{A0F242DF-35A4-4679-8D6C-52FB2E850550}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.BulkCopy.Testing.Dependency", "DubUrl.BulkCopy.Testing.Dependency\DubUrl.BulkCopy.Testing.Dependency.csproj", "{A94ACF93-5F8C-4206-9BD2-C6FF33561421}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.DuckDb.BulkCopy", "connectors\DubUrl.Connector.DuckDb.BulkCopy\DubUrl.Connector.DuckDb.BulkCopy.csproj", "{839698B5-537C-4491-BFF0-5194BE9B4DF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.DuckDb.Native.BulkCopy", "Providers\DuckDb\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj", "{839698B5-537C-4491-BFF0-5194BE9B4DF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Connector.SqlServer.BulkCopy", "connectors\DubUrl.Connector.SqlServer.BulkCopy\DubUrl.Connector.SqlServer.BulkCopy.csproj", "{6C0B2188-C905-43FE-828F-5913C1AB605B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.SqlServer.SqlClient.BulkCopy", "Providers\SqlServer\DubUrl.Provider.SqlServer.SqlClient.BulkCopy\DubUrl.Provider.SqlServer.SqlClient.BulkCopy.csproj", "{6C0B2188-C905-43FE-828F-5913C1AB605B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Access", "Access", "{3728DC27-487F-40C3-9F6B-2A56AD41E647}"
 EndProject
@@ -1043,6 +1043,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{A328B835-4990-6931-34B9-ABE689D5831A} = {D9007A03-FD03-1159-6598-E081D0A1BEBA}
 		{4D2406C5-6338-4B5E-8022-12AAEC87BD59} = {3C3D90B7-0449-4FC2-9A54-8F2E2C864635}
 		{23CFF4EF-5BB3-425F-8D3A-DDE1C0F74A8C} = {C405C657-0A1E-4C9E-8820-25C4D59C6218}
 		{68D03333-9CEF-44CC-BE86-268E92B538A2} = {C405C657-0A1E-4C9E-8820-25C4D59C6218}
@@ -1116,12 +1117,12 @@ Global
 		{EF1C6326-0D01-4B83-9759-4452CC31CD61} = {39D8D8CC-CE82-4316-85FF-1C63006A93CA}
 		{F272D06B-4E7F-491E-9AF1-2DB9A958F7B6} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
 		{130A1A15-08F1-4A25-BFF1-36EF7BF61B62} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
-		{CC3C31CA-8BFB-40D6-A195-0C4CE2A5E0F7} = {A328B835-4990-6931-34B9-ABE689D5831A}
+		{CC3C31CA-8BFB-40D6-A195-0C4CE2A5E0F7} = {C405C657-0A1E-4C9E-8820-25C4D59C6218}
 		{2619EAA0-119A-486B-B6C0-ADE2692C586C} = {A328B835-4990-6931-34B9-ABE689D5831A}
 		{5464D834-EB0D-44BB-9AAD-ACF95DED05BA} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 		{A94ACF93-5F8C-4206-9BD2-C6FF33561421} = {39D8D8CC-CE82-4316-85FF-1C63006A93CA}
-		{839698B5-537C-4491-BFF0-5194BE9B4DF6} = {A328B835-4990-6931-34B9-ABE689D5831A}
-		{6C0B2188-C905-43FE-828F-5913C1AB605B} = {A328B835-4990-6931-34B9-ABE689D5831A}
+		{839698B5-537C-4491-BFF0-5194BE9B4DF6} = {8382CDA0-6BD6-4473-9F41-BFF9B39A2173}
+		{6C0B2188-C905-43FE-828F-5913C1AB605B} = {43C39E65-C73A-4ECC-AD5B-CDE892B77271}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EABD9FE-559A-40AF-BB4B-8026F9240FEF}

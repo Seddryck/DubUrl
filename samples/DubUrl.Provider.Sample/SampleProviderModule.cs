@@ -8,7 +8,7 @@ using DubUrl.Querying.TypeMapping;
 using DubUrl.Rewriting;
 using DubUrl.Rewriting.Tokening;
 
-namespace DubUrl.Connector.Sample;
+namespace DubUrl.Provider.Sample;
 
 // This assembly deliberately has no friend access to Core and references no built-in provider.
 public sealed class SampleProviderModule(Func<DbProviderFactory?> providerFactory) : IDubUrlProviderModule

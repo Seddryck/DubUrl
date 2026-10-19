@@ -1,8 +1,8 @@
 using DubUrl.Provider.DuckDb.Sql;
 using System.Data;
 using System.Numerics;
-using DubUrl.Connector.DuckDb.BulkCopy;
-using DubUrl.Connector.SqlServer.BulkCopy;
+using DubUrl.Provider.DuckDb.Native.BulkCopy;
+using DubUrl.Provider.SqlServer.SqlClient.BulkCopy;
 using DubUrl.Querying.Dialects;
 using DuckDB.NET.Data;
 using Microsoft.Data.SqlClient;
@@ -141,8 +141,8 @@ public class TypedAdapterTests
         {
             Assert.That(typeof(DuckDbBulkCopyProvider).Assembly.GetReferencedAssemblies().Select(x => x.Name), Does.Contain("DuckDB.NET.Data"));
             Assert.That(typeof(MsSqlServerBulkCopyProvider).Assembly.GetReferencedAssemblies().Select(x => x.Name), Does.Contain("Microsoft.Data.SqlClient"));
-            Assert.That(typeof(DuckDbBulkCopyProvider).Assembly.GetName().Name, Is.EqualTo("DubUrl.Connector.DuckDb.BulkCopy"));
-            Assert.That(typeof(MsSqlServerBulkCopyProvider).Assembly.GetName().Name, Is.EqualTo("DubUrl.Connector.SqlServer.BulkCopy"));
+            Assert.That(typeof(DuckDbBulkCopyProvider).Assembly.GetName().Name, Is.EqualTo("DubUrl.Provider.DuckDb.Native.BulkCopy"));
+            Assert.That(typeof(MsSqlServerBulkCopyProvider).Assembly.GetName().Name, Is.EqualTo("DubUrl.Provider.SqlServer.SqlClient.BulkCopy"));
         });
     }
 
