@@ -50,9 +50,12 @@ public class ProviderAssemblyBoundaryTest
 
         Assert.Multiple(() =>
         {
+            Assert.That(typeof(BuiltInProviderCatalog).Assembly, Is.SameAs(typeof(DubUrl.Mapping.BuiltInProviderModule).Assembly));
+            Assert.That(typeof(BuiltInProviderCatalog).Assembly.GetName().Name, Is.EqualTo("DubUrl"));
             Assert.That(providerReferences, Does.Contain("DubUrl.Core"));
+            Assert.That(providerReferences, Does.Not.Contain("DubUrl.Providers"));
             Assert.That(typeof(ProviderCatalog).Assembly.GetReferencedAssemblies()
-                .Select(reference => reference.Name), Does.Not.Contain("DubUrl.Providers"));
+                .Select(reference => reference.Name), Does.Not.Contain("DubUrl"));
         });
     }
 

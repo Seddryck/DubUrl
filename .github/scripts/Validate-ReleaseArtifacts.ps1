@@ -12,7 +12,6 @@ $ErrorActionPreference = 'Stop'
 $packages = @(
     @{ Id = 'DubUrl'; Assembly = 'DubUrl' },
     @{ Id = 'DubUrl.Core'; Assembly = 'DubUrl.Core' },
-    @{ Id = 'DubUrl.Providers'; Assembly = 'DubUrl.Providers' },
     @{ Id = 'DubUrl.Provider.Access'; Assembly = 'DubUrl.Provider.Access' },
     @{ Id = 'DubUrl.Provider.Db2'; Assembly = 'DubUrl.Provider.Db2' },
     @{ Id = 'DubUrl.Provider.Drill'; Assembly = 'DubUrl.Provider.Drill' },

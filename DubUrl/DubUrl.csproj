@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
-    <ProjectReference Include="..\DubUrl.Providers\DubUrl.Providers.csproj" />
     <ProjectReference Include="..\Providers\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
     <ProjectReference Include="..\Providers\Db2\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" />
     <ProjectReference Include="..\Providers\Drill\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" />

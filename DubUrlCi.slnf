@@ -16,7 +16,6 @@
       "DubUrl\\DubUrl.csproj",
       "DubUrl.Provider.Testing\\DubUrl.Provider.Testing.csproj",
       "DubUrl.Core\\DubUrl.Core.csproj",
-      "DubUrl.Providers\\DubUrl.Providers.csproj",
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",
       "DubUrl.Extensions\\DubUrl.Extensions.csproj",
       "DubUrl.OleDb.Testing\\DubUrl.OleDb.Testing.csproj",
