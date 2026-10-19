@@ -31,7 +31,6 @@ public class TextDriverLocator : BaseDriverLocator
     internal TextDriverLocator(DriverLister driverLister)
         : base(GetRegexPattern<TextDriverLocator>(), driverLister) { }
 
-
     protected override void AddCandidate(string driver, string[] matches)
         => Candidates.Add(driver);
 

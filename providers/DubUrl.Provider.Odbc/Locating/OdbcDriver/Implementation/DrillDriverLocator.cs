@@ -37,6 +37,4 @@ public class DrillDriverLocator : BaseDriverLocator
 
     protected override List<string> RankCandidates()
         => [.. Candidates];
-
-    
 }

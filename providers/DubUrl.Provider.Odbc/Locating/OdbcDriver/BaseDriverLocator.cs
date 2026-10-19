@@ -24,11 +24,11 @@ public abstract class BaseDriverLocator : IDriverLocator
         foreach (var driver in allDrivers)
         {
             var matches = Regex.Matches(driver, RegexPattern);
-            if (matches.Any())
+            if (matches.Count > 0)
                 AddCandidate(driver, matches[0].Groups.Values.Select(x => x.Value).Skip(1).ToArray());
         }
         var bestCandidates = RankCandidates();
-        return bestCandidates.Any() ? bestCandidates.First() : string.Empty;
+        return bestCandidates.Count > 0 ? bestCandidates.First() : string.Empty;
     }
 
     protected abstract void AddCandidate(string driver, string[] match);

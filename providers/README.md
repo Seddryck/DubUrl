@@ -42,3 +42,9 @@ owned under each provider's Mapping directory. Provider-specific mapping fixture
 under Tests/Mapping and are included by the shared DubUrl.Testing runner. Core retains
 only reusable mapping contracts and catalog infrastructure; connector modules select
 the concrete driver and register these implementations.
+
+Concrete dialects, SQL renderers, type/function mappings, database-specific formatters
+and casters, and driver discovery sources also live in their owning provider projects.
+DuckDB reserved-keyword resources retain their logical manifest names in the DuckDb
+assembly. Shared ANSI components and locator contracts stay in Core. Provider fixtures
+under Tests/Querying and Tests/Locating continue to use the shared test runner.

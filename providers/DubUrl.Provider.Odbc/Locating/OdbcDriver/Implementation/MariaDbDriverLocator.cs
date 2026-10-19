@@ -49,6 +49,4 @@ public class MariaDbDriverLocator : BaseDriverLocator
 
     protected override List<string> RankCandidates()
         => Candidates.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
-
-    
 }

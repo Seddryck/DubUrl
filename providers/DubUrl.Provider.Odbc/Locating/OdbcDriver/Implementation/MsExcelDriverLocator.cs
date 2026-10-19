@@ -31,7 +31,6 @@ public class MsExcelDriverLocator : BaseDriverLocator
     internal MsExcelDriverLocator(DriverLister driverLister)
         : base(GetRegexPattern<MsExcelDriverLocator>(), driverLister) { }
 
-
     protected override void AddCandidate(string driver, string[] matches)
         => Candidates.Add(driver);
 

@@ -2,11 +2,5 @@
   <PropertyGroup>
     <Description>MySQL-family dialects, mapping, and rewriting for DubUrl.</Description>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\MysqlDialect.cs;..\..\DubUrl.Core\Querying\Dialects\SingleStoreDialect.cs" Link="Querying\Dialects\%(Filename)%(Extension)" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\MySqlFunctionMapper.cs" Link="Querying\Dialects\Functions\MySqlFunctionMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\MySqlRenderer.cs;..\..\DubUrl.Core\Querying\Dialects\Renderers\SingleStoreRenderer.cs" Link="Querying\Dialects\Renderers\%(Filename)%(Extension)" />
-    <Compile Include="..\..\DubUrl.Core\Querying\TypeMapping\MySqlTypeMapper.cs" Link="Querying\TypeMapping\MySqlTypeMapper.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

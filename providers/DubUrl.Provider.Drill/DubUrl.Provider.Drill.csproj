@@ -1,7 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>Apache Drill database metadata and dialect for DubUrl.</Description></PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\DrillDialect.cs" Link="Querying\Dialects\DrillDialect.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

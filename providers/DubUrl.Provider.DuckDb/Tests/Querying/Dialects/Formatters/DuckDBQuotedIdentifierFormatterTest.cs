@@ -25,7 +25,6 @@ public class DuckDBQuotedIdentifierFormatterTest
     public void Format_Keyword_NotQuoted(string keyword)
         => Assert.That(new DuckDBQuotedIdentifierFormatter().Format(keyword), Does.Not.StartWith("\"").And.Not.EndsWith("\""));
 
-
     [TestCase("Name%")] 
     [TestCase("+Name")] 
     [TestCase("Na-me")] 
