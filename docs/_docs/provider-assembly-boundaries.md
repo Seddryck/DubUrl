@@ -107,11 +107,39 @@ Bulk copy uses an optional provider hook instead of selecting concrete dialects 
 | `providers/DubUrl.Provider.SqlServer/BulkCopy` | SQL Server native `SqlBulkCopy` engine and reflection adapters |
 | `connectors/` | Driver deployment and reuse of the provider implementation |
 
-`IDialect.BulkCopyProvider` defaults to `null`; `BaseDialect` exposes a virtual override. DuckDB and SQL
-Server supply their native implementations. A custom provider implements `IBulkCopyProvider` and returns
-an `IBulkCopyEngine` from its dialect override. No shared factory switch or dependency on the facade is
-required. The public `IBulkCopyEngine` namespace stays `DubUrl.BulkCopy`; the facade forwards its former
-assembly identity to Core so existing compiled references continue to resolve.
+`ProviderRegistration.BulkCopyProvider` defaults to `null`. Native DuckDB and SqlClient registrations
+supply their implementations; ODBC registrations remain unsupported even when they share the same
+`IDialect` instance. `SchemaSqlRenderer` stays on `IDialect` because SQL syntax is independent of the
+connection driver.
+
+A custom module opts in while constructing its registration:
+
+```csharp
+var registration = new ProviderRegistration(
+    name, aliases, providerInvariantName, providerFactory, dialect, parametrizerFactory, compile)
+{
+    BulkCopyProvider = DuckDbBulkCopyProvider.Instance
+};
+catalog.AddProvider(registration);
+```
+
+`DuckDbBulkCopyProvider` is in `DubUrl.BulkCopy.Engines` in the DuckDB provider assembly; SQL Server
+exposes `MsSqlServerBulkCopyProvider` in its provider assembly. Custom providers implement
+`IBulkCopyProvider` and supply their own instance through the same property. Leaving the property null
+opts out, including when reusing a native mapper. No dialect override or shared factory switch is needed.
+
+The registry snapshots the capability into `ResolvedConnection`; `ConnectionUrl.BulkCopyProvider`
+exposes that resolved selection to the shared factory. Older mapper-factory-only registries do not
+implicitly acquire native bulk support: use an explicit provider registration to opt in.
+
+For attribute-based and generated connectors, native mappers declare
+`[BulkCopyProvider<TProvider>]`, where the provider implements `IBulkCopyProvider` and has a public
+parameterless constructor. Both registration paths copy this non-inherited declaration into their
+registration. ODBC and wrapper mappers do not inherit a native capability. Explicit modules remain in
+control of whether their registration opts in.
+
+The public `IBulkCopyEngine` namespace stays `DubUrl.BulkCopy`; the facade forwards its former assembly
+identity to Core so existing compiled references continue to resolve.
 
 The facade no longer brings the compatibility package or every provider transitively. Hosts using the
 one-argument `ConnectionUrl` constructor should continue to reference `DubUrl` for its default provider

@@ -16,6 +16,7 @@ namespace DubUrl.Provider.DuckDb.Mapping;
 [MapperAttribute<DuckdbDatabase, PositionalParametrizer>(
     "DuckDB.NET.Data"
 )]
+[DubUrl.BulkCopy.BulkCopyProvider<DubUrl.BulkCopy.Engines.DuckDbBulkCopyProvider>]
 public class DuckdbMapper : BaseMapper, IFileBasedMapper
 {
     public DuckdbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)

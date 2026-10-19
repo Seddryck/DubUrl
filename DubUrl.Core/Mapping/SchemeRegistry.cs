@@ -51,7 +51,10 @@ public class SchemeRegistry : ISchemeRegistry
             _registrations.TryGetValue(alias, out var registration)
                 ? registration.ProviderFactory
                 : GetProviderFactory(mapper)
-        );
+        )
+        {
+            BulkCopyProvider = registration?.BulkCopyProvider
+        };
     }
 
     public bool TryResolve(

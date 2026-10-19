@@ -22,7 +22,7 @@ public class BulkCopyEngineFactoryTests
         var dependencies = new Mock<IBulkCopyDependencyResolver>(MockBehavior.Strict);
         var provider = new Mock<IBulkCopyProvider>(MockBehavior.Strict);
         var engine = Mock.Of<IBulkCopyEngine>();
-        var connection = new TestConnectionUrl(new CustomDialect(GetDialect<DuckDbDialect>(), provider.Object));
+        var connection = new TestConnectionUrl(GetDialect<DuckDbDialect>(), bulkCopyProvider: provider.Object);
         provider.Setup(x => x.Create(connection, dependencies.Object)).Returns(engine);
 
         var actual = new BulkCopyEngineFactory(dependencies.Object).Create(connection);
@@ -40,7 +40,7 @@ public class BulkCopyEngineFactoryTests
         var provider = new Mock<IBulkCopyProvider>();
         var reader = new Mock<IDataReader>();
         var dependencies = Mock.Of<IBulkCopyDependencyResolver>();
-        var connection = new TestConnectionUrl(new CustomDialect(GetDialect<DuckDbDialect>(), provider.Object));
+        var connection = new TestConnectionUrl(GetDialect<DuckDbDialect>(), bulkCopyProvider: provider.Object);
         provider.Setup(x => x.Create(connection, dependencies)).Returns(engine.Object);
         if (fail)
             engine.Setup(x => x.Write("Customer", reader.Object)).Throws(new InvalidOperationException("write failed"));
@@ -55,14 +55,14 @@ public class BulkCopyEngineFactoryTests
         reader.Verify(x => x.Dispose(), Times.Never);
     }
 
-    [TestCase(typeof(DuckDbDialect), "DubUrl.Provider.DuckDb")]
-    [TestCase(typeof(TSqlDialect), "DubUrl.Provider.SqlServer")]
-    public void NativeEngines_AreProviderOwnedAndDoNotResolveDependenciesDuringCreation(Type dialectType, string assemblyName)
+    [TestCase(typeof(DuckDbDialect), typeof(DubUrl.BulkCopy.Engines.DuckDbBulkCopyProvider), "DubUrl.Provider.DuckDb")]
+    [TestCase(typeof(TSqlDialect), typeof(DubUrl.BulkCopy.Engines.MsSqlServerBulkCopyProvider), "DubUrl.Provider.SqlServer")]
+    public void NativeEngines_AreProviderOwnedAndDoNotResolveDependenciesDuringCreation(Type dialectType, Type providerType, string assemblyName)
     {
         var builder = new DialectRegistryBuilder();
         builder.AddDialect(dialectType, ["test"]);
         var dependencies = new Mock<IBulkCopyDependencyResolver>(MockBehavior.Strict);
-        var connection = new TestConnectionUrl(builder.Build().Get(dialectType));
+        var connection = new TestConnectionUrl(builder.Build().Get(dialectType), bulkCopyProvider: (IBulkCopyProvider)Activator.CreateInstance(providerType)!);
 
         using var engine = new BulkCopyEngineFactory(dependencies.Object).Create(connection);
 
@@ -71,7 +71,7 @@ public class BulkCopyEngineFactoryTests
     }
 
     [Test]
-    public void ExistingDialectWithoutHook_RemainsUnsupported()
+    public void RegistrationWithoutBulkProvider_RemainsUnsupported()
     {
         // No BulkCopyProvider member is needed on an existing interface implementation.
         var connection = new TestConnectionUrl(new LegacyDialect(GetDialect<DuckDbDialect>()));
@@ -130,17 +130,12 @@ public class BulkCopyEngineFactoryTests
         });
     }
 
-    internal sealed class TestConnectionUrl(IDialect dialect, Func<IDbConnection>? open = null)
+    internal sealed class TestConnectionUrl(IDialect dialect, Func<IDbConnection>? open = null, IBulkCopyProvider? bulkCopyProvider = null)
         : ConnectionUrl("test://localhost/db", Mock.Of<ISchemeRegistry>())
     {
         public override IDialect Dialect => dialect;
+        public override IBulkCopyProvider? BulkCopyProvider => bulkCopyProvider;
         public override IDbConnection Open() => open?.Invoke() ?? throw new InvalidOperationException("No database should be opened.");
-    }
-
-    private sealed class CustomDialect(IDialect source, IBulkCopyProvider provider)
-        : BaseDialect(source.Language, source.Aliases, source.Renderer, source.Casters, source.DbTypeMapper, source.SqlFunctionMapper)
-    {
-        public override IBulkCopyProvider BulkCopyProvider => provider;
     }
 
     private sealed class LegacyDialect(IDialect source) : IDialect

@@ -60,13 +60,15 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
         Add<NamedParametrizer>(catalog, dialects, "IBM DB2", ["db2"], "IBM.Data.Db2", typeof(Db2Dialect),
             context => new Db2Mapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<PositionalParametrizer>(catalog, dialects, "DuckDB", ["duck", "duckdb"], "DuckDB.NET.Data", typeof(DuckDbDialect),
-            context => new DuckdbMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath));
+            context => new DuckdbMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath),
+            DubUrl.BulkCopy.Engines.DuckDbBulkCopyProvider.Instance);
         Add<NamedParametrizer>(catalog, dialects, "Firebird SQL", ["fb", "firebird"], "FirebirdSql.Data.FirebirdClient", typeof(FirebirdSqlDialect),
             context => new FirebirdSqlMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath));
         Add<NamedParametrizer>(catalog, dialects, "MariaDB", ["maria", "mariadb"], "MySqlConnector", typeof(MySqlDialect),
             context => new MariaDbConnectorMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "Microsoft SQL Server", ["mssql", "ms", "sqlserver", "mssqlserver"], "Microsoft.Data.SqlClient", typeof(TSqlDialect),
-            context => new MsSqlServerMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
+            context => new MsSqlServerMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer),
+            DubUrl.BulkCopy.Engines.MsSqlServerBulkCopyProvider.Instance);
         Add<NamedParametrizer>(catalog, dialects, "MySQL", ["mysql", "my"], "MySqlConnector", typeof(MySqlDialect),
             context => new MySqlConnectorMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "Oracle Database", ["oracle", "or", "ora"], "Oracle.ManagedDataAccess", typeof(OracleDialect),
@@ -153,7 +155,8 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
         string[] aliases,
         string providerInvariantName,
         Type dialectType,
-        Func<ProviderCompilationContext, IMapper> compile)
+        Func<ProviderCompilationContext, IMapper> compile,
+        DubUrl.BulkCopy.IBulkCopyProvider? bulkCopyProvider = null)
         where TParametrizer : IParametrizer, new()
         => catalog.AddProvider(new ProviderRegistration(
             name,
@@ -162,7 +165,7 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
             () => SchemeRegistryBuilder.GetProvider(providerInvariantName),
             dialects.Get(dialectType),
             static () => new TParametrizer(),
-            compile));
+            compile) { BulkCopyProvider = bulkCopyProvider });
 
     private static void AddOdbc<TParametrizer>(
         IProviderCatalogBuilder catalog,

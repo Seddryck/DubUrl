@@ -51,7 +51,10 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
                 () => GetProvider(mapping.ProviderInvariantName),
                 dialects.Get(mapping.DialectType),
                 () => ParametrizerFactory.Instantiate(mapping.ParametrizerType),
-                context => Compile(mapping, context)));
+                context => Compile(mapping, context))
+            {
+                BulkCopyProvider = mapping.MapperType.GetCustomAttribute<DubUrl.BulkCopy.BulkCopyProviderAttribute>(inherit: false)?.Create()
+            });
         }
     }
 

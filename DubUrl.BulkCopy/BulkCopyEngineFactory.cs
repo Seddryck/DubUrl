@@ -19,8 +19,7 @@ public class BulkCopyEngineFactory
     public virtual IBulkCopyEngine Create(ConnectionUrl connectionUrl)
     {
         ArgumentNullException.ThrowIfNull(connectionUrl, nameof(connectionUrl));
-        var dialect = connectionUrl.Dialect;
-        return dialect.BulkCopyProvider?.Create(connectionUrl, dependencies)
-            ?? throw new NotSupportedException($"Dialect '{dialect}' not supported");
+        return connectionUrl.BulkCopyProvider?.Create(connectionUrl, dependencies)
+            ?? throw new NotSupportedException("Bulk copy is not supported by the selected provider/connector registration.");
     }
 }

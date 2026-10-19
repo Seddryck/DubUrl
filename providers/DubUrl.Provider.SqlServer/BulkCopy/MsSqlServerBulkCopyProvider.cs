@@ -1,6 +1,6 @@
 namespace DubUrl.BulkCopy.Engines;
 
-internal sealed class MsSqlServerBulkCopyProvider : IBulkCopyProvider
+public sealed class MsSqlServerBulkCopyProvider : IBulkCopyProvider
 {
     public static MsSqlServerBulkCopyProvider Instance { get; } = new();
 

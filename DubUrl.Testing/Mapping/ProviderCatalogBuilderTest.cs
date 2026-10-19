@@ -95,6 +95,26 @@ public class ProviderCatalogBuilderTest
                 .GetCustomAttribute<RequiresUnreferencedCodeAttribute>(),
             Is.Not.Null);
 
+    [TestCase("mssql", "odbc+mssql")]
+    [TestCase("duck", "odbc+duck")]
+    public void BuiltInRegistrations_OnlyNativeTransportOptsIntoBulkCopy(string nativeAlias, string odbcAlias)
+    {
+        var registrations = new System.Collections.Generic.List<ProviderRegistration>();
+        var catalog = new Mock<IProviderCatalogBuilder>();
+        catalog.Setup(x => x.AddProvider(It.IsAny<ProviderRegistration>()))
+            .Callback<ProviderRegistration>(registrations.Add).Returns(catalog.Object);
+        new BuiltInProviderModule().Register(catalog.Object);
+        var native = registrations.Single(x => x.Aliases.Contains(nativeAlias));
+        var odbc = registrations.Single(x => x.Aliases.Contains(odbcAlias));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(native.Dialect, Is.SameAs(odbc.Dialect));
+            Assert.That(native.BulkCopyProvider, Is.Not.Null);
+            Assert.That(odbc.BulkCopyProvider, Is.Null);
+        });
+    }
+
     private static ProviderRegistration CreateRegistration(string name, params string[] aliases)
         => new(
             name,

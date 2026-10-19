@@ -37,7 +37,10 @@ public sealed class ProviderModule : IDubUrlProviderModule
             dialect,
             () => (IParametrizer)(Activator.CreateInstance(parametrizerType)
                 ?? throw new InvalidOperationException($"Parametrizer '{parametrizerType.FullName}' could not be constructed.")),
-            context => CreateMapper(mapperType, context)));
+            context => CreateMapper(mapperType, context))
+        {
+            BulkCopyProvider = mapperType.GetCustomAttribute<DubUrl.BulkCopy.BulkCopyProviderAttribute>(inherit: false)?.Create()
+        });
     }
 
     private static DbProviderFactory ResolveFactory()

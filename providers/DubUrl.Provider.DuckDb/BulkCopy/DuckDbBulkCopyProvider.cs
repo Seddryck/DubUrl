@@ -1,6 +1,6 @@
 namespace DubUrl.BulkCopy.Engines;
 
-internal sealed class DuckDbBulkCopyProvider : IBulkCopyProvider
+public sealed class DuckDbBulkCopyProvider : IBulkCopyProvider
 {
     public static DuckDbBulkCopyProvider Instance { get; } = new();
 

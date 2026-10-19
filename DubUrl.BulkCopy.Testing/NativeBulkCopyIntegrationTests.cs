@@ -1,6 +1,7 @@
 using System.Data;
 using System.Reflection;
 using DubUrl.BulkCopy.Engines;
+using DubUrl.Mapping;
 using DubUrl.Querying.Dialects;
 using DuckDB.NET.Data;
 using Moq;
@@ -51,7 +52,11 @@ public class NativeBulkCopyIntegrationTests
                 .Returns((Assembly driver) => BulkCopyDependencyResolver.Default.EnterScope(driver));
             dependencies.Setup(x => x.ResolveType(It.IsAny<Assembly>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns((Assembly driver, string assembly, string type) => BulkCopyDependencyResolver.Default.ResolveType(driver, assembly, type));
-            var url = new TestConnectionUrl(GetDialect<DuckDbDialect>(), () => Open());
+            var registry = new ProviderCatalogBuilder()
+                .WithRootPath(Path.GetDirectoryName(path)!)
+                .AddModule(new DubUrl.Connector.ProviderModule())
+                .Build();
+            var url = new ConnectionUrl("duck://" + Path.GetFileName(path), registry);
             using var reader = data.CreateDataReader();
 
             url.BulkCopy("Customer", reader, dependencies.Object);

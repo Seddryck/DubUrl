@@ -88,7 +88,8 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
                 CreateMapper,
                 providerFactory,
                 provider.ProviderInvariantName,
-                provider.Capabilities);
+                provider.Capabilities,
+                provider.BulkCopyProvider);
 
             foreach (var alias in provider.Aliases)
                 registrations.Add(alias, schemeRegistration);
@@ -110,4 +111,5 @@ internal sealed record SchemeRegistration(
     Func<IMapper> MapperFactory,
     System.Data.Common.DbProviderFactory ProviderFactory,
     string ProviderInvariantName,
-    IReadOnlyDictionary<Type, object> Capabilities);
+    IReadOnlyDictionary<Type, object> Capabilities,
+    DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider);

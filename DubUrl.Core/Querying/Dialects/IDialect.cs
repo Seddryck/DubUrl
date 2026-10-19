@@ -23,7 +23,4 @@ public interface IDialect
 
     /// <summary>SQL syntax used by schema generation; override for provider-specific operations.</summary>
     ISchemaSqlRenderer SchemaSqlRenderer => StandardSchemaSqlRenderer.Instance;
-
-    /// <summary>Optional native bulk-copy support supplied by the provider.</summary>
-    DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => null;
 }
