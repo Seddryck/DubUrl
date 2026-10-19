@@ -2,20 +2,9 @@ using System.Text.Json;
 
 namespace DubUrl.Core.ProviderPacks;
 
-public sealed record ProviderPackCatalogEntry(
-    string Provider,
-    string Version,
-    Uri DownloadUri,
-    string Sha256,
-    IReadOnlyList<string>? Aliases = null,
-    IReadOnlyList<string>? Schemes = null,
-    string? DubUrlApiRange = null,
-    IReadOnlyList<string>? TargetFrameworks = null,
-    IReadOnlyList<string>? RuntimeIdentifiers = null);
-
 public sealed record ProviderPackCatalogDocument(
     int SchemaVersion,
-    IReadOnlyList<ProviderPackCatalogEntry> Entries)
+    IReadOnlyList<ConnectorDefinition> Entries)
 {
     public const int CurrentSchemaVersion = 1;
 }
@@ -26,14 +15,14 @@ public sealed record ProviderPackCatalogDocument(
 public sealed class ProviderPackCatalog
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly IReadOnlyDictionary<string, ProviderPackCatalogEntry> _entries;
-    private readonly IReadOnlyCollection<ProviderPackCatalogEntry> _canonicalEntries;
+    private readonly IReadOnlyDictionary<string, ConnectorDefinition> _entries;
+    private readonly IReadOnlyCollection<ConnectorDefinition> _canonicalEntries;
 
-    public ProviderPackCatalog(IEnumerable<ProviderPackCatalogEntry> entries)
+    public ProviderPackCatalog(IEnumerable<ConnectorDefinition> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
         var canonicalEntries = entries.ToArray();
-        var lookup = new Dictionary<string, ProviderPackCatalogEntry>(StringComparer.OrdinalIgnoreCase);
+        var lookup = new Dictionary<string, ConnectorDefinition>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in canonicalEntries)
         {
             AddName(lookup, entry.Provider, entry);
@@ -45,7 +34,7 @@ public sealed class ProviderPackCatalog
         _canonicalEntries = canonicalEntries;
     }
 
-    public IReadOnlyCollection<ProviderPackCatalogEntry> Entries => _canonicalEntries;
+    public IReadOnlyCollection<ConnectorDefinition> Entries => _canonicalEntries;
 
     public static ProviderPackCatalog Read(Stream stream)
     {
@@ -63,13 +52,13 @@ public sealed class ProviderPackCatalog
         return new(document.Entries);
     }
 
-    public bool TryGet(string provider, out ProviderPackCatalogEntry? entry)
+    public bool TryGet(string provider, out ConnectorDefinition? entry)
         => _entries.TryGetValue(provider, out entry);
 
     private static void AddName(
-        IDictionary<string, ProviderPackCatalogEntry> lookup,
+        IDictionary<string, ConnectorDefinition> lookup,
         string name,
-        ProviderPackCatalogEntry entry)
+        ConnectorDefinition entry)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Connector IDs and aliases cannot be empty.", nameof(entry));
@@ -77,7 +66,7 @@ public sealed class ProviderPackCatalog
             throw new ArgumentException($"Connector ID or alias '{name}' is assigned more than once.", nameof(entry));
     }
 
-    private static void ValidateOfficialEntry(ProviderPackCatalogEntry? entry)
+    private static void ValidateOfficialEntry(ConnectorDefinition? entry)
     {
         if (entry is null
             || string.IsNullOrWhiteSpace(entry.Provider)
@@ -90,11 +79,8 @@ public sealed class ProviderPackCatalog
             || entry.Sha256.Length != 64
             || !entry.Sha256.All(Uri.IsHexDigit))
             throw new InvalidDataException($"Connector '{entry.Provider}' has an invalid archive SHA-256 digest.");
-        if (entry.Schemes is not { Count: > 0 }
-            || string.IsNullOrWhiteSpace(entry.DubUrlApiRange)
-            || entry.TargetFrameworks is not { Count: > 0 }
-            || entry.RuntimeIdentifiers is null)
-            throw new InvalidDataException($"Connector '{entry.Provider}' has incomplete compatibility metadata.");
+        if (!entry.HasCompleteMetadata())
+            throw new InvalidDataException($"Connector '{entry.Provider}' has incomplete connector metadata.");
         ValidateNames(entry.Provider, "scheme", entry.Schemes);
         ValidateNames(entry.Provider, "target framework", entry.TargetFrameworks);
         ValidateNames(entry.Provider, "runtime identifier", entry.RuntimeIdentifiers);

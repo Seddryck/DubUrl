@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Runtime.Loader;
+using System.Reflection;
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 using DubUrl.Provider.PostgreSql.Npgsql;
@@ -110,7 +112,7 @@ public class DefaultProviderDiscoveryTest
         string provider = "postgresql-npgsql", string version = "0.0.1", string? moduleType = null)
     {
         var bytes = await File.ReadAllBytesAsync(typeof(ProviderModule).Assembly.Location);
-        var manifest = new ProviderPackManifest
+        var manifest = new ConnectorDefinition
         {
             Provider = provider,
             Version = version,
@@ -124,7 +126,7 @@ public class DefaultProviderDiscoveryTest
         using var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))
         {
-            using (var stream = zip.CreateEntry(ProviderPackManifest.FileName).Open())
+            using (var stream = zip.CreateEntry(ConnectorDefinition.FileName).Open())
                 JsonSerializer.Serialize(stream, manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
             using var asset = zip.CreateEntry("module.dll").Open();
             asset.Write(bytes);
@@ -133,6 +135,26 @@ public class DefaultProviderDiscoveryTest
         var digest = Convert.ToHexString(SHA256.HashData(archive));
         archive.Position = 0;
         return await new ProviderPackStore().InstallAsync(
-            new(provider, version, new Uri("https://packages.example/connector.zip"), digest), archive);
+            manifest with { DownloadUri = new Uri("https://packages.example/connector.zip"), Sha256 = digest }, archive);
+    }
+
+    [TestCase("Didot.Core")]
+    [TestCase("Newtonsoft.Json")]
+    public async Task InstalledConnector_SharesCoreDependencies_EvenWhenLocalCopiesExist(string name)
+    {
+        var pack = await Install();
+        var host = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(name));
+        File.Copy(host.Location, Path.Combine(pack.InstallPath, name + ".dll"));
+        using var loader = new InstalledProviderModuleLoader();
+        var module = loader.LoadActive(new ProviderPackStore()).Single();
+        var context = AssemblyLoadContext.GetLoadContext(module.GetType().Assembly)!;
+
+        var resolved = context.LoadFromAssemblyName(host.GetName());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(resolved, Is.SameAs(host));
+            Assert.That(context.Assemblies.Select(assembly => assembly.GetName().Name), Does.Not.Contain(name));
+        });
     }
 }

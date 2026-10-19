@@ -4,6 +4,7 @@ using DubUrl.Parsing;
 using DubUrl.BulkCopy;
 using System.Data;
 using System.Runtime.Loader;
+using System.Reflection;
 
 namespace DubUrl.ProviderPackVerifier;
 
@@ -73,6 +74,7 @@ internal static class Program
             throw new InvalidOperationException($"Connector module loading failed: {string.Join("; ", diagnostics.Select(item => item.Message))}");
 
         var module = modules.Single();
+        VerifySharedDependencies(module);
         var bindingName = module.GetType().Assembly.GetName().Name;
         if (module is not AssemblyMetadataProviderModule || module.GetType().FullName != bindingName + ".ProviderModule")
             throw new InvalidOperationException("Every driver binding must use its generated ProviderModule and shared metadata registration.");
@@ -146,6 +148,24 @@ internal static class Program
         finally { File.Delete(path); }
     }
 
+    private static void VerifySharedDependencies(IDubUrlProviderModule module)
+    {
+        var context = AssemblyLoadContext.GetLoadContext(module.GetType().Assembly)!;
+        using var inventory = typeof(InstalledProviderModuleLoader).Assembly.GetManifestResourceStream("DubUrl.Core.SharedDependencies")
+            ?? throw new InvalidOperationException("Core's dependency inventory is missing.");
+        using var reader = new StreamReader(inventory);
+        while (reader.ReadLine() is { } path)
+        {
+            // Satellites carry culture identity and are resolved by the runtime during resource lookup.
+            if (!path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || path.Contains('/') || path.Contains('\\'))
+                continue;
+            var name = new AssemblyName(Path.GetFileNameWithoutExtension(path));
+            var host = AssemblyLoadContext.Default.LoadFromAssemblyName(name);
+            if (!ReferenceEquals(host, context.LoadFromAssemblyName(host.GetName())))
+                throw new InvalidOperationException($"Connector duplicated host dependency '{name.Name}'.");
+        }
+    }
+
     private static void Uninstall(VerificationContext context)
     {
         if (!context.Store.Remove(context.Entry.Provider) || context.Store.Inspect().Count != 0)
@@ -154,7 +174,7 @@ internal static class Program
     }
 
     private sealed record VerificationContext(
-        ProviderPackCatalogEntry Entry,
+        ConnectorDefinition Entry,
         string ArchivePath,
         ProviderPackStore Store);
 }

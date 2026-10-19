@@ -26,6 +26,8 @@ public class ConnectorCommandTests
                     "version": "1.2.3",
                     "downloadUri": "https://example.test/postgresql-npgsql.zip",
                     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+                    "module": { "assembly": "PostgreSql.dll", "type": "PostgreSql.Module" },
+                    "assets": [{ "path": "PostgreSql.dll", "kind": "Managed", "sha256": "0000000000000000000000000000000000000000000000000000000000000000" }],
                     "aliases": ["postgresql", "postgres", "pg", "npgsql"],
                     "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
                     "dubUrlApiRange": "[1.0.0,2.0.0)",
@@ -139,7 +141,13 @@ public class ConnectorCommandTests
     {
         var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-errors-{Guid.NewGuid():N}");
         using var http = new HttpClient(new UnavailableHandler());
-        var catalog = new ProviderPackCatalog([new("postgresql-npgsql", "1.0.0", new Uri("https://example.test/pack.zip"), new string('0', 64), ["pg"])]);
+        var catalog = new ProviderPackCatalog([new()
+        {
+            Provider = "postgresql-npgsql", Version = "1.0.0", DownloadUri = new Uri("https://example.test/pack.zip"),
+            Sha256 = new string('0', 64), Aliases = ["pg"], Schemes = ["pg"],
+            DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
+            Module = new() { Assembly = "PostgreSql.dll", Type = "PostgreSql.Module" }, Assets = [],
+        }]);
         var application = new ConnectorService(new ProviderPackStore(root), catalog, http);
         var console = new TestConsole();
         await using var services = CliComposition.CreateDefault(console, providerPackService: new ProviderPackService(application));

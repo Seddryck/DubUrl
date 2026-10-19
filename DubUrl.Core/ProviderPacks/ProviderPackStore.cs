@@ -37,7 +37,7 @@ public sealed class ProviderPackStore
     }
 
     public async Task<InstalledProviderPack> InstallAsync(
-        ProviderPackCatalogEntry catalogEntry,
+        ConnectorDefinition catalogEntry,
         Stream archive,
         CancellationToken cancellationToken = default)
     {
@@ -54,7 +54,7 @@ public sealed class ProviderPackStore
                 await archive.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
 
             var archiveHash = await ComputeHashAsync(archivePath, cancellationToken).ConfigureAwait(false);
-            if (!FixedEquals(archiveHash, catalogEntry.Sha256))
+            if (catalogEntry.Sha256 is null || !FixedEquals(archiveHash, catalogEntry.Sha256))
                 throw new ProviderPackException("pack-integrity", "The provider pack archive does not match its curated catalog digest.");
 
             await using var packageStream = new FileStream(
@@ -65,12 +65,12 @@ public sealed class ProviderPackStore
                 bufferSize: 4096,
                 FileOptions.Asynchronous | FileOptions.SequentialScan);
             using var package = new ZipArchive(packageStream, ZipArchiveMode.Read);
-            var manifestEntry = package.GetEntry(ProviderPackManifest.FileName)
-                ?? throw new ProviderPackException("manifest-missing", $"The provider pack does not contain {ProviderPackManifest.FileName}.");
-            ProviderPackManifest manifest;
+            var manifestEntry = package.GetEntry(ConnectorDefinition.FileName)
+                ?? throw new ProviderPackException("manifest-missing", $"The provider pack does not contain {ConnectorDefinition.FileName}.");
+            ConnectorDefinition manifest;
             await using (var manifestStream = await OpenEntryAsync(manifestEntry, cancellationToken).ConfigureAwait(false))
             {
-                manifest = await JsonSerializer.DeserializeAsync<ProviderPackManifest>(manifestStream, JsonOptions, cancellationToken).ConfigureAwait(false)
+                manifest = await JsonSerializer.DeserializeAsync<ConnectorDefinition>(manifestStream, JsonOptions, cancellationToken).ConfigureAwait(false)
                     ?? throw new ProviderPackException(ManifestInvalid, "The provider pack manifest is empty.");
             }
 
@@ -97,7 +97,7 @@ public sealed class ProviderPackStore
             }
 
             await File.WriteAllTextAsync(
-                Path.Combine(contentRoot, ProviderPackManifest.FileName),
+                Path.Combine(contentRoot, ConnectorDefinition.FileName),
                 JsonSerializer.Serialize(manifest, JsonOptions),
                 cancellationToken).ConfigureAwait(false);
 
@@ -195,15 +195,15 @@ public sealed class ProviderPackStore
 
     private static InstalledProviderPack? TryReadManifest(
         string installPath,
-        out ProviderPackManifest? manifest)
+        out ConnectorDefinition? manifest)
     {
         manifest = null;
         try
         {
-            var manifestPath = Path.Combine(installPath, ProviderPackManifest.FileName);
+            var manifestPath = Path.Combine(installPath, ConnectorDefinition.FileName);
             if (!File.Exists(manifestPath))
                 return InvalidPack(installPath, ProviderPackStatus.Incomplete, "manifest-missing", "The installed pack manifest is missing.");
-            manifest = JsonSerializer.Deserialize<ProviderPackManifest>(File.ReadAllText(manifestPath), JsonOptions)
+            manifest = JsonSerializer.Deserialize<ConnectorDefinition>(File.ReadAllText(manifestPath), JsonOptions)
                 ?? throw new JsonException("Empty manifest.");
             return IsManifestStructurallyValid(manifest)
                 ? null
@@ -216,7 +216,7 @@ public sealed class ProviderPackStore
     }
 
     private static InstalledProviderPack? InspectAsset(
-        ProviderPackManifest manifest,
+        ConnectorDefinition manifest,
         string installPath,
         ProviderPackAsset asset)
     {
@@ -236,7 +236,7 @@ public sealed class ProviderPackStore
         }
     }
 
-    private void ValidateManifest(ProviderPackManifest manifest, ProviderPackCatalogEntry entry)
+    private void ValidateManifest(ConnectorDefinition manifest, ConnectorDefinition entry)
     {
         if (!IsManifestStructurallyValid(manifest))
             throw new ProviderPackException(ManifestInvalid, "The provider pack manifest is incomplete.");
@@ -246,9 +246,16 @@ public sealed class ProviderPackStore
         var compatibility = GetCompatibilityDiagnostic(manifest);
         if (compatibility is not null)
             throw new ProviderPackException(compatibility.Code, compatibility.Message);
+        if (manifest.Module != entry.Module
+            || manifest.DubUrlApiRange != entry.DubUrlApiRange
+            || !manifest.Schemes.SequenceEqual(entry.Schemes, StringComparer.OrdinalIgnoreCase)
+            || !manifest.TargetFrameworks.SequenceEqual(entry.TargetFrameworks, StringComparer.OrdinalIgnoreCase)
+            || !manifest.RuntimeIdentifiers.SequenceEqual(entry.RuntimeIdentifiers, StringComparer.OrdinalIgnoreCase)
+            || !manifest.Assets.SequenceEqual(entry.Assets))
+            throw new ProviderPackException("catalog-mismatch", "The local connector definition does not match the catalog definition.");
     }
 
-    private static void ValidateManifestIdentity(ProviderPackManifest manifest, ProviderPackCatalogEntry entry)
+    private static void ValidateManifestIdentity(ConnectorDefinition manifest, ConnectorDefinition entry)
     {
         ValidateIdentifier(manifest.Provider, nameof(manifest.Provider));
         ValidateIdentifier(manifest.Version, nameof(manifest.Version));
@@ -257,7 +264,7 @@ public sealed class ProviderPackStore
             throw new ProviderPackException("catalog-mismatch", "The provider pack identity does not match the curated catalog entry.");
     }
 
-    private static void ValidateModuleAsset(ProviderPackManifest manifest)
+    private static void ValidateModuleAsset(ConnectorDefinition manifest)
     {
         if (manifest.Assets is null || manifest.Assets.Count == 0)
             throw new ProviderPackException("assets-empty", "The provider pack does not declare any assets.");
@@ -268,7 +275,7 @@ public sealed class ProviderPackStore
             throw new ProviderPackException("module-missing", "The module assembly must be declared as a managed asset.");
     }
 
-    private ProviderPackDiagnostic? GetCompatibilityDiagnostic(ProviderPackManifest manifest)
+    private ProviderPackDiagnostic? GetCompatibilityDiagnostic(ConnectorDefinition manifest)
     {
         if (!VersionRange.Contains(manifest.DubUrlApiRange, _apiVersion))
             return new("api-incompatible", $"Pack requires DubUrl API '{manifest.DubUrlApiRange}', but this host is {_apiVersion}.");
@@ -311,7 +318,7 @@ public sealed class ProviderPackStore
 
     private static InstalledProviderPack InvalidPack(string path, ProviderPackStatus status, string code, string message)
         => new(
-            new ProviderPackManifest
+            new ConnectorDefinition
             {
                 Provider = Path.GetFileName(Path.GetDirectoryName(path)) ?? "unknown",
                 Version = Path.GetFileName(path),
@@ -326,26 +333,8 @@ public sealed class ProviderPackStore
             status,
             [new(code, message)]);
 
-    private static bool IsManifestStructurallyValid(ProviderPackManifest manifest)
-        => HasManifestIdentity(manifest)
-            && HasModuleEntry(manifest)
-            && HasManifestCollections(manifest);
-
-    private static bool HasManifestIdentity(ProviderPackManifest manifest)
-        => !string.IsNullOrWhiteSpace(manifest.Provider)
-            && !string.IsNullOrWhiteSpace(manifest.Version)
-            && !string.IsNullOrWhiteSpace(manifest.DubUrlApiRange);
-
-    private static bool HasModuleEntry(ProviderPackManifest manifest)
-        => manifest.Module is not null
-            && !string.IsNullOrWhiteSpace(manifest.Module.Assembly)
-            && !string.IsNullOrWhiteSpace(manifest.Module.Type);
-
-    private static bool HasManifestCollections(ProviderPackManifest manifest)
-        => manifest.Schemes is { Count: > 0 }
-            && manifest.TargetFrameworks is not null
-            && manifest.RuntimeIdentifiers is not null
-            && manifest.Assets is not null;
+    private static bool IsManifestStructurallyValid(ConnectorDefinition definition)
+        => definition.HasCompleteMetadata();
 
     private static string ValidateRelativePath(string path)
     {

@@ -12,7 +12,7 @@ public enum ProviderPackStatus
 public sealed record ProviderPackDiagnostic(string Code, string Message);
 
 public sealed record InstalledProviderPack(
-    ProviderPackManifest Manifest,
+    ConnectorDefinition Manifest,
     string InstallPath,
     ProviderPackStatus Status,
     IReadOnlyList<ProviderPackDiagnostic> Diagnostics);

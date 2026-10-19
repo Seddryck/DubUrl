@@ -32,6 +32,11 @@ if (Compare-Object $readyIds $catalogIds) { throw "The catalog must contain exac
 if ($entries.Count -ne $readyIds.Count) { throw "Expected $($readyIds.Count) ready connectors, found $($entries.Count)." }
 
 $names = @{}
+$sharedInventoryPath = Join-Path $PSScriptRoot '../DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt'
+if (-not (Test-Path -LiteralPath $sharedInventoryPath -PathType Leaf)) {
+    throw "Core's shared dependency inventory is missing: $sharedInventoryPath"
+}
+$sharedAssets = @('DubUrl.Core.dll') + @(Get-Content -LiteralPath $sharedInventoryPath | ForEach-Object { $_.Replace('\', '/') })
 foreach ($entry in $entries) {
     foreach ($name in @($entry.provider) + @($entry.aliases)) {
         if ([string]::IsNullOrWhiteSpace($name) -or $names.ContainsKey($name)) {
@@ -61,6 +66,20 @@ foreach ($entry in $entries) {
         finally { $reader.Dispose() }
         if ($manifest.provider -cne $entry.provider -or $manifest.version -cne $Version) {
             throw "Connector archive identity does not match its catalog entry."
+        }
+        foreach ($property in $manifest.PSObject.Properties) {
+            $catalogValue = $entry.PSObject.Properties[$property.Name]
+            if ($null -eq $catalogValue -or
+                (ConvertTo-Json -InputObject $property.Value -Depth 20 -Compress) -cne
+                (ConvertTo-Json -InputObject $catalogValue.Value -Depth 20 -Compress)) {
+                throw "Connector '$($entry.provider)' catalog and local definition differ at '$($property.Name)'."
+            }
+        }
+        if ($manifest.PSObject.Properties['downloadUri'] -or $manifest.PSObject.Properties['sha256']) {
+            throw "Local connector definitions must omit archive distribution fields."
+        }
+        if (@($manifest.assets | Where-Object { $_.path -in $sharedAssets }).Count -ne 0) {
+            throw "Connector '$($entry.provider)' duplicates a host Core dependency."
         }
         $definition = $matrix.connectors | Where-Object id -CEQ $entry.provider
         if ($manifest.module.assembly -cne "$($definition.assemblyName).dll") {

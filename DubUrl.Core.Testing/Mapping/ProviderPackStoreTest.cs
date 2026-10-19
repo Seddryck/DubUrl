@@ -157,6 +157,27 @@ public class ProviderPackStoreTest
     private ProviderPackStore CreateStore()
         => new(_root, new Version(1, 5), "net10.0", "win-x64");
 
+    [TestCase("module")]
+    [TestCase("schemes")]
+    [TestCase("assets")]
+    public async Task Install_DefinitionDiffersFromCatalog_LeavesStoreUnchanged(string field)
+    {
+        var package = CreatePackage("postgresql", "1.0.0");
+        var entry = field switch
+        {
+            "module" => package.Entry with { Module = package.Entry.Module with { Type = "Other.Module" } },
+            "schemes" => package.Entry with { Schemes = ["other"] },
+            _ => package.Entry with { Assets = [] },
+        };
+        var store = CreateStore();
+        var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await store.InstallAsync(entry, package.Archive));
+        Assert.Multiple(() =>
+        {
+            Assert.That(error!.Code, Is.EqualTo("catalog-mismatch"));
+            Assert.That(store.Inspect(), Is.Empty);
+        });
+    }
+
     private static Package CreatePackage(
         string provider,
         string version,
@@ -166,7 +187,7 @@ public class ProviderPackStoreTest
     {
         assetBytes ??= Encoding.UTF8.GetBytes($"fake assembly for {provider} {version}");
         var assetHash = Convert.ToHexString(SHA256.HashData(assetBytes));
-        var manifest = new ProviderPackManifest
+        var manifest = new ConnectorDefinition
         {
             Provider = provider,
             Version = version,
@@ -189,7 +210,7 @@ public class ProviderPackStoreTest
         var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))
         {
-            var manifestEntry = zip.CreateEntry(ProviderPackManifest.FileName);
+            var manifestEntry = zip.CreateEntry(ConnectorDefinition.FileName);
             using (var stream = manifestEntry.Open())
                 JsonSerializer.Serialize(stream, manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
             var assetEntry = zip.CreateEntry("lib/module.dll");
@@ -199,8 +220,8 @@ public class ProviderPackStoreTest
         archive.Position = 0;
         var archiveHash = Convert.ToHexString(SHA256.HashData(archive));
         archive.Position = 0;
-        return new(new(provider, version, new Uri($"https://packages.example/{provider}/{version}.zip"), archiveHash), archive);
+        return new(manifest with { DownloadUri = new Uri($"https://packages.example/{provider}/{version}.zip"), Sha256 = archiveHash }, archive);
     }
 
-    private sealed record Package(ProviderPackCatalogEntry Entry, MemoryStream Archive);
+    private sealed record Package(ConnectorDefinition Entry, MemoryStream Archive);
 }

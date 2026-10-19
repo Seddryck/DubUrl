@@ -153,7 +153,7 @@ public class ConnectorServiceTests
     {
         var root = CreateStorePath();
         var package = CreatePackage("postgresql-npgsql", "1.0.0");
-        using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri));
+        using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri!));
         var entry = package.Entry with { Aliases = ["pg"] };
         IConnectorService service = new ConnectorService(new ProviderPackStore(root), new ProviderPackCatalog([entry]), http);
         try
@@ -195,7 +195,7 @@ public class ConnectorServiceTests
             modified.Write(bytes);
             using (var zip = new ZipArchive(modified, ZipArchiveMode.Update, true))
             {
-                var name = failure == "manifest" ? ProviderPackManifest.FileName : "module.dll";
+                var name = failure == "manifest" ? ConnectorDefinition.FileName : "module.dll";
                 zip.GetEntry(name)!.Delete();
                 using var stream = zip.CreateEntry(name).Open();
                 stream.Write(Encoding.UTF8.GetBytes("invalid"));
@@ -212,18 +212,18 @@ public class ConnectorServiceTests
             modified.Write(bytes);
             using (var zip = new ZipArchive(modified, ZipArchiveMode.Update, true))
             {
-                var manifestEntry = zip.GetEntry(ProviderPackManifest.FileName)!;
-                ProviderPackManifest manifest;
+                var manifestEntry = zip.GetEntry(ConnectorDefinition.FileName)!;
+                ConnectorDefinition manifest;
                 using (var stream = manifestEntry.Open())
-                    manifest = JsonSerializer.Deserialize<ProviderPackManifest>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+                    manifest = JsonSerializer.Deserialize<ConnectorDefinition>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
                 manifestEntry.Delete();
-                using var destination = zip.CreateEntry(ProviderPackManifest.FileName).Open();
+                using var destination = zip.CreateEntry(ConnectorDefinition.FileName).Open();
                 JsonSerializer.Serialize(destination, manifest with { RuntimeIdentifiers = ["unsupported-rid"] }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
             }
             bytes = modified.ToArray();
             entry = entry with { Sha256 = Convert.ToHexString(SHA256.HashData(bytes)) };
         }
-        using var http = new HttpClient(new ArchiveHandler(bytes, entry.DownloadUri));
+        using var http = new HttpClient(new ArchiveHandler(bytes, entry.DownloadUri!));
         var service = new ConnectorService(store, new ProviderPackCatalog([entry]), http);
         try
         {
@@ -270,7 +270,7 @@ public class ConnectorServiceTests
         var root = CreateStorePath();
         await File.WriteAllTextAsync(root, "occupied");
         var package = CreatePackage("postgresql-npgsql", "1.0.0");
-        using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri));
+        using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri!));
         var service = new ConnectorService(new ProviderPackStore(root), new ProviderPackCatalog([package.Entry]), http);
         try
         {
@@ -335,16 +335,14 @@ public class ConnectorServiceTests
         return new(new ProviderPackStore(root), new ProviderPackCatalog([entry]), new HttpClient());
     }
 
-    private static ProviderPackCatalogEntry CreateEntry()
-        => new(
-            "postgresql-npgsql",
-            "1.0.0",
-            new Uri("https://example.test/postgresql-npgsql.zip"),
-            new string('0', 64),
-            ["postgresql", "pg", "npgsql"],
-            ["postgresql", "postgres", "pg"]);
+    private static ConnectorDefinition CreateEntry()
+        => CreateManifest() with
+        {
+            DownloadUri = new Uri("https://example.test/postgresql-npgsql.zip"),
+            Sha256 = new string('0', 64), Aliases = ["postgresql", "pg", "npgsql"],
+        };
 
-    private static ProviderPackManifest CreateManifest()
+    private static ConnectorDefinition CreateManifest()
         => new()
         {
             Provider = "postgresql-npgsql",
@@ -363,7 +361,7 @@ public class ConnectorServiceTests
     private static Package CreatePackage(string provider, string version)
     {
         var assetBytes = Encoding.UTF8.GetBytes("fake connector module");
-        var manifest = new ProviderPackManifest
+        var manifest = new ConnectorDefinition
         {
             Provider = provider,
             Version = version,
@@ -385,7 +383,7 @@ public class ConnectorServiceTests
         var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))
         {
-            var manifestEntry = zip.CreateEntry(ProviderPackManifest.FileName);
+            var manifestEntry = zip.CreateEntry(ConnectorDefinition.FileName);
             using (var stream = manifestEntry.Open())
                 JsonSerializer.Serialize(stream, manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
             var moduleEntry = zip.CreateEntry("module.dll");
@@ -395,7 +393,7 @@ public class ConnectorServiceTests
         archive.Position = 0;
         var hash = Convert.ToHexString(SHA256.HashData(archive));
         archive.Position = 0;
-        return new(new(provider, version, new Uri($"https://example.test/{provider}-{version}.zip"), hash), archive);
+        return new(manifest with { DownloadUri = new Uri($"https://example.test/{provider}-{version}.zip"), Sha256 = hash }, archive);
     }
 
     private static string CurrentTargetFramework()
@@ -409,7 +407,7 @@ public class ConnectorServiceTests
 #endif
     }
 
-    private sealed record Package(ProviderPackCatalogEntry Entry, MemoryStream Archive);
+    private sealed record Package(ConnectorDefinition Entry, MemoryStream Archive);
 
     private sealed class UnavailableHandler : HttpMessageHandler
     {

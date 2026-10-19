@@ -61,6 +61,17 @@ bundle selected database drivers: installing a connector installs its DubUrl mod
 managed dependencies, and required native assets.
 
 The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
+Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
+identity, installation aliases, schemes, module assembly/type, API/TFM/RID compatibility, and packaged assets.
+The build generates the local definition from `connector-matrix.json`, then adds the download URL and
+archive SHA-256 to that same definition for the catalog. These distribution fields are optional in the
+model and omitted locally. Core loads installed definitions without needing the catalog or a network.
+Catalogs generated before module and asset metadata was included must be regenerated.
+
+Connector archives exclude Core and its resolved runtime dependencies, including Didot's libraries.
+The loader resolves those assemblies from the host; provider and driver dependencies outside Core's
+dependency closure remain isolated in the connector. Packaging and loading share Core's generated
+dependency inventory rather than maintaining a second library list.
 Each entry has `Provider` (the canonical connector ID), `Version`, `DownloadUri`, `Sha256`, `Aliases`,
 `Schemes`, `DubUrlApiRange`, `TargetFrameworks`, and `RuntimeIdentifiers`. The release workflow generates
 this file only after ready connector archives have been built, hashed, and exercised through installation,

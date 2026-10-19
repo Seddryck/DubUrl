@@ -62,14 +62,28 @@ public sealed class InstalledProviderModuleLoader : IDisposable
 
     private sealed class ProviderPackLoadContext(string componentAssemblyPath) : AssemblyLoadContext(isCollectible: true)
     {
+        private static readonly HashSet<string> SharedAssemblies = GetSharedAssemblies();
         private readonly AssemblyDependencyResolver _resolver = new(componentAssemblyPath);
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            if (assemblyName.Name is "DubUrl" or "DubUrl.Core")
-                return null;
+            if (assemblyName.Name is not null && SharedAssemblies.Contains(assemblyName.Name))
+                return Default.LoadFromAssemblyName(assemblyName);
             var path = _resolver.ResolveAssemblyToPath(assemblyName);
             return path is null ? null : LoadFromAssemblyPath(path);
+        }
+
+        private static HashSet<string> GetSharedAssemblies()
+        {
+            using var stream = typeof(InstalledProviderModuleLoader).Assembly
+                .GetManifestResourceStream("DubUrl.Core.SharedDependencies")
+                ?? throw new InvalidOperationException("Core's shared dependency inventory is missing.");
+            using var reader = new StreamReader(stream);
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "DubUrl", "DubUrl.Core" };
+            while (reader.ReadLine() is { } path)
+                if (Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+                    names.Add(Path.GetFileNameWithoutExtension(path.Replace('\\', '/')));
+            return names;
         }
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)

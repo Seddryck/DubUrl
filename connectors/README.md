@@ -18,7 +18,7 @@ there is no handwritten PostgreSQL/Npgsql registration path. Metadata type resol
 the binding's load context, keeping installed drivers out of the host's default context.
 The shared build project selects the family, mapper, dialect, parametrizer, and driver from
 its matrix settings, using the same generation and registration path for every binding.
-`DubUrl.Core` is supplied by the host and excluded from connector archives.
+`DubUrl.Core` and its runtime dependency closure (including Didot) are supplied by the host and excluded from connector archives. Core generates a dependency inventory from its resolved NuGet assets; packaging and the connector loader use that same inventory. Driver and provider dependencies outside that closure remain private to each connector.
 
 Core's default `ConnectionUrl(string)` constructor automatically discovers active, compatible,
 verified connectors in the per-user store. `DUBURL_PROVIDER_STORE` overrides the store location.
@@ -30,7 +30,7 @@ Every standard binding is built with `Providers/Build/ProviderBinding.Build.cspr
 
 Driver bindings, including `DubUrl.Provider.PostgreSql.Npgsql`, are distributed as connector packs. The shared build project is not packable, and the release workflow does not publish a PostgreSQL/Npgsql binding NuGet package.
 
-The official `connector-catalog.json` uses schema version 1. Every entry contains its canonical connector ID, optional command aliases, supported schemes, immutable HTTPS URL, archive SHA-256, DubUrl API range, target frameworks, and runtime identifiers.
+`connector-matrix.json` is the maintained connector source. The official `connector-catalog.json` uses schema version 1 and contains `ConnectorDefinition` entries: connector ID/version, installation aliases, supported schemes, module assembly/type, API range, target frameworks, runtime identifiers, and packaged assets with hashes. Each archive carries its own definition as `provider-pack.json`, using the same C# model and JSON structure. After creating an archive, the build enriches that exact definition with optional `downloadUri` and archive `sha256` fields for the catalog. Local definitions omit those distribution fields; Core reads them without a catalog or network access. Older catalogs without module/asset information must be regenerated.
 
 Provider-specific forward rewriting lives in the referenced `Providers/<Family>/DubUrl.Provider.*`
 implementation projects, not in the connector composition modules. Rewriter source

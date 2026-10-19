@@ -76,7 +76,7 @@ public static class CliComposition
 
     private static ProviderPackCatalog CreateProviderPackCatalog(IConfiguration configuration)
     {
-        var entries = new List<ProviderPackCatalogEntry>();
+        var entries = new List<ConnectorDefinition>();
         var configuredPath = configuration["ProviderPacks:CatalogPath"];
         var catalogPath = Path.GetFullPath(GetCatalogPath(configuredPath));
         if (File.Exists(catalogPath))
@@ -95,16 +95,21 @@ public static class CliComposition
                 && !string.IsNullOrWhiteSpace(version)
                 && Uri.TryCreate(downloadUri, UriKind.Absolute, out var uri)
                 && !string.IsNullOrWhiteSpace(sha256))
-                entries.Add(new(
-                    provider,
-                    version,
-                    uri,
-                    sha256,
-                    section.GetSection("Aliases").Get<string[]>() ?? [],
-                    section.GetSection("Schemes").Get<string[]>() ?? [],
-                    section["DubUrlApiRange"],
-                    section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
-                    section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? []));
+                entries.Add(new ConnectorDefinition
+                {
+                    Provider = provider, Version = version, DownloadUri = uri, Sha256 = sha256,
+                    Aliases = section.GetSection("Aliases").Get<string[]>() ?? [],
+                    Schemes = section.GetSection("Schemes").Get<string[]>() ?? [],
+                    DubUrlApiRange = section["DubUrlApiRange"] ?? string.Empty,
+                    TargetFrameworks = section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
+                    RuntimeIdentifiers = section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? [],
+                    Module = new()
+                    {
+                        Assembly = section["Module:Assembly"] ?? string.Empty,
+                        Type = section["Module:Type"] ?? string.Empty,
+                    },
+                    Assets = section.GetSection("Assets").Get<ProviderPackAsset[]>() ?? [],
+                });
         }
         return new(entries);
     }

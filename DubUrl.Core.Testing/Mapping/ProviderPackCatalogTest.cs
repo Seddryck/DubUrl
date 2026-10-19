@@ -1,6 +1,7 @@
 using DubUrl.Core.ProviderPacks;
 using NUnit.Framework;
 using System.Text;
+using System.Text.Json;
 
 namespace DubUrl.Core.Testing.Mapping;
 
@@ -48,6 +49,8 @@ public class ProviderPackCatalogTest
                 "version": "1.2.3",
                 "downloadUri": "https://github.com/Seddryck/DubUrl/releases/download/v1.2.3/duburl-connector-postgresql-npgsql-1.2.3.zip",
                 "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+                "module": { "assembly": "PostgreSql.dll", "type": "PostgreSql.Module" },
+                "assets": [{ "path": "PostgreSql.dll", "kind": "Managed", "sha256": "0000000000000000000000000000000000000000000000000000000000000000" }],
                 "aliases": ["postgresql", "postgres", "pg", "npgsql"],
                 "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
                 "dubUrlApiRange": "[1.0.0,2.0.0)",
@@ -83,6 +86,8 @@ public class ProviderPackCatalogTest
                 "version": "1.2.3",
                 "downloadUri": "https://example.test/postgresql.zip",
                 "sha256": "{{sha256}}",
+                "module": { "assembly": "PostgreSql.dll", "type": "PostgreSql.Module" },
+                "assets": [{ "path": "PostgreSql.dll", "kind": "Managed", "sha256": "0000000000000000000000000000000000000000000000000000000000000000" }],
                 "aliases": ["postgresql"],
                 "schemes": ["postgresql"],
                 "dubUrlApiRange": "[1.0.0,2.0.0)",
@@ -97,8 +102,50 @@ public class ProviderPackCatalogTest
         Assert.That(exception!.Message, Does.Contain(expectedMessage).IgnoreCase);
     }
 
-    private static ProviderPackCatalogEntry Entry(string id, params string[] aliases)
-        => new(id, "1.0.0", new Uri($"https://example.test/{id}.zip"), new string('0', 64), aliases);
+    [Test]
+    public void LocalDefinition_AndEnrichedCatalog_UseTheSameModel()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        var local = Entry("postgresql-npgsql", "pg") with { DownloadUri = null, Sha256 = null };
+        var localJson = JsonSerializer.Serialize(local, options);
+        var restored = JsonSerializer.Deserialize<ConnectorDefinition>(localJson, options)!;
+        var distributed = restored with { DownloadUri = new Uri("https://example.test/pg.zip"), Sha256 = new string('0', 64) };
+        using var catalogStream = new MemoryStream();
+        JsonSerializer.Serialize(catalogStream, new ProviderPackCatalogDocument(1, [distributed]), options);
+        catalogStream.Position = 0;
+        var entry = ProviderPackCatalog.Read(catalogStream).Entries.Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(localJson, Does.Not.Contain("downloadUri").And.Not.Contain("\"sha256\":null"));
+            Assert.That(entry.Module, Is.EqualTo(local.Module));
+            Assert.That(entry.Assets, Is.EqualTo(local.Assets));
+            Assert.That(entry.Aliases, Is.EqualTo(local.Aliases));
+            Assert.That(JsonSerializer.Serialize(entry with { DownloadUri = null, Sha256 = null }, options), Is.EqualTo(localJson));
+        });
+    }
+
+    [TestCase("module")]
+    [TestCase("assets")]
+    public void Read_IncompleteDefinition_IsRejected(string field)
+    {
+        var entry = Entry("postgresql-npgsql");
+        entry = field == "module" ? entry with { Module = new() { Assembly = "", Type = "" } } : entry with { Assets = [] };
+        using var stream = new MemoryStream();
+        JsonSerializer.Serialize(stream, new ProviderPackCatalogDocument(1, [entry]), new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        stream.Position = 0;
+        Assert.Throws<InvalidDataException>(() => ProviderPackCatalog.Read(stream));
+    }
+
+    private static ConnectorDefinition Entry(string id, params string[] aliases)
+        => new()
+        {
+            Provider = id, Version = "1.0.0", DownloadUri = new Uri($"https://example.test/{id}.zip"),
+            Sha256 = new string('0', 64), Aliases = aliases, Schemes = ["pg"],
+            DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
+            Module = new() { Assembly = "PostgreSql.dll", Type = "PostgreSql.Module" },
+            Assets = [new() { Path = "PostgreSql.dll", Kind = ProviderPackAssetKind.Managed, Sha256 = new string('0', 64) }],
+        };
 
     private static MemoryStream CatalogStream(string json)
         => new(Encoding.UTF8.GetBytes(json));

@@ -12,4 +12,14 @@
     <InternalsVisibleTo Include="DubUrl.Core.Testing" />
   </ItemGroup>
 
+  <!-- Share precisely Core's runtime dependencies, rather than every assembly in the host. -->
+  <Target Name="GenerateSharedDependencies" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveReferences">
+    <WriteLinesToFile File="$(IntermediateOutputPath)CoreDependencyPaths.txt"
+                      Lines="@(RuntimeCopyLocalItems->'%(DestinationSubPath)');@(ResourceCopyLocalItems->'%(DestinationSubPath)');@(RuntimeTargetsCopyLocalItems->'%(DestinationSubPath)')"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(IntermediateOutputPath)CoreDependencyPaths.txt" LogicalName="DubUrl.Core.SharedDependencies" />
+    </ItemGroup>
+  </Target>
+
 </Project>
