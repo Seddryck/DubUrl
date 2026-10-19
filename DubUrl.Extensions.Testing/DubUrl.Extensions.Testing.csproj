@@ -30,7 +30,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
   </ItemGroup>
   <ItemGroup>

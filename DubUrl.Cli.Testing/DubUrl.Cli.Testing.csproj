@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Cli\DubUrl.Cli.csproj" />
-    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl\DubUrl.csproj" />
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,7 @@
     <PackageReference Include="NUnit" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
   </ItemGroup>
 </Project>

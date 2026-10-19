@@ -15,6 +15,15 @@ DubUrl publishes deliberately acyclic package layers:
 4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and
    `DubUrl.Providers` built-in catalog. Explicit consumers can omit both aggregate and built-in catalog.
 
+Project folders match the assemblies and packages they produce:
+
+| Project | Responsibility |
+| --- | --- |
+| `DubUrl.Core/DubUrl.Core.csproj` | Provider-neutral contracts and infrastructure; owns its source files directly |
+| `DubUrl/DubUrl.csproj` | Compatibility aggregate and built-in provider registration |
+
+Core uses normal SDK source inclusion. It does not link source files from the compatibility project.
+
 Provider-neutral contracts belong in `DubUrl.Core`; database-specific declarations, mappers, rewriters,
 dialects, SQL mappings, and driver discovery sources belong in their owning provider projects. Their
 sources and resources are physically colocated there, rather than linked from the Core source tree.
@@ -45,7 +54,7 @@ connectors using the same SQL dialect reuse its schema behavior.
 | Location | Responsibility |
 | --- | --- |
 | `DubUrl.Schema` | Models, builders, constraints, dependency planning, expression traversal, templates, native-type validation and fallback, script assembly |
-| `DubUrl.ProviderCore/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
+| `DubUrl.Core/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
 | `Providers/<Family>/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
 | `Providers/<Family>/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
 | `connectors/` | Provider/driver composition and distribution; no copied schema templates |
@@ -103,7 +112,7 @@ in; ODBC registrations remain unsupported even when they share the exact same SQ
 
 | Location | Responsibility |
 | --- | --- |
-| `DubUrl.ProviderCore/BulkCopy` (assembly `DubUrl.Core`) | Contracts, deferred adapter activation, scoped optional dependency resolution |
+| `DubUrl.Core/BulkCopy` (assembly `DubUrl.Core`) | Contracts, deferred adapter activation, scoped optional dependency resolution |
 | `DubUrl.BulkCopy` | Public extension and factory facade; references Core only |
 | `Providers/<Family>/DubUrl.Provider.*` | Driver-independent database behavior and optional adapter declarations |
 | `connectors/DubUrl.Connector.DuckDb.BulkCopy` | Typed DuckDB appender engine |

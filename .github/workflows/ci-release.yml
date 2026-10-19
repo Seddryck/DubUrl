@@ -223,8 +223,8 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            'DubUrl.Core/DubUrl.csproj'
-            'DubUrl.ProviderCore/DubUrl.Core.csproj'
+            'DubUrl/DubUrl.csproj'
+            'DubUrl.Core/DubUrl.Core.csproj'
             'DubUrl.Providers/DubUrl.Providers.csproj'
             'Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
             'Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
@@ -342,9 +342,9 @@ jobs:
       matrix:
         include:
           - package-id: DubUrl
-            project: DubUrl.Core/DubUrl.csproj
+            project: DubUrl/DubUrl.csproj
           - package-id: DubUrl.Core
-            project: DubUrl.ProviderCore/DubUrl.Core.csproj
+            project: DubUrl.Core/DubUrl.Core.csproj
           - package-id: DubUrl.Providers
             project: DubUrl.Providers/DubUrl.Providers.csproj
           - package-id: DubUrl.Provider.Access

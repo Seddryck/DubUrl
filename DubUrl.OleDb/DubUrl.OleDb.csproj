@@ -5,7 +5,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+		<ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
 		<ProjectReference Include="..\Providers\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
 		<ProjectReference Include="..\Providers\Excel\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
 		<ProjectReference Include="..\Providers\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />

@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="10.0.3" />
-    <ProjectReference Include="..\..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
   </ItemGroup>
 

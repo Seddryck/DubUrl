@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+		<ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

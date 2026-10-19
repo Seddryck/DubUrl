@@ -10,7 +10,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
   </ItemGroup>
   <ItemGroup>

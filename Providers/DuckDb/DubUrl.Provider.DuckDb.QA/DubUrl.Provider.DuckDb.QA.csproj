@@ -12,7 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\connectors\DubUrl.Connector.DuckDb.BulkCopy\DubUrl.Connector.DuckDb.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
   </ItemGroup>

@@ -121,7 +121,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Adomd\DubUrl.Adomd.csproj" />
     <ProjectReference Include="..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
-    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
     <ProjectReference Include="..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />

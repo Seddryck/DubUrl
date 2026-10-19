@@ -6,7 +6,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
     <PackageReference Include="System.Data.Odbc" Version="10.0.12" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.csproj" /><ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" /><ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\DubUrl.QA\Text\Customer.csv" Link="Text\Customer.csv" CopyToOutputDirectory="PreserveNewest" />
     <None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" />

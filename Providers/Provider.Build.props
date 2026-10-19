@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Tests\**\*.cs" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\DubUrl.Core\DubUrl.Core.csproj" />
     <InternalsVisibleTo Include="DubUrl.Testing" />
   </ItemGroup>
 
