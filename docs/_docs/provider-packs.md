@@ -4,10 +4,10 @@ subtitle: Store, compatibility, integrity, and trust model
 tags: [installation, providers, security]
 ---
 
-A provider pack is a ZIP archive with `provider-pack.json` at its root. The versioned manifest identifies
+A provider pack is a ZIP archive with `provider-pack.json` at its root. The local connector definition identifies
 the provider and pack version, the compatible DubUrl API range, its `IDubUrlProviderModule` assembly and
-type, supported target frameworks and runtime identifiers, and every managed, native, or documentation
-asset with a SHA-256 digest. Native assets declare the runtime identifier to which they belong.
+type, supported target frameworks and runtime identifiers. The archive includes the module's `.deps.json`;
+.NET uses it to resolve managed and native dependencies. There is no separate asset inventory.
 
 DubUrl installs packs only from a curated catalog supplied by the application distributor. The catalog
 binds a provider name and version to a download URI and SHA-256 archive digest. Arbitrary NuGet feeds,
@@ -23,13 +23,19 @@ construction rejects an alias assigned to more than one connector.
 The default user store is `%LOCALAPPDATA%\DubUrl\providers` on Windows and
 `$XDG_DATA_HOME/duburl/providers` on Unix, falling back to `~/.local/share/duburl/providers`.
 `DUBURL_PROVIDER_STORE` overrides this location for both installation and discovery. Installation
-copies into a same-volume staging directory, validates the archive and every declared asset, and then uses
+copies into a same-volume staging directory, verifies the complete archive SHA-256 before extraction, and then uses
 an atomic directory move. Versions may exist side by side, while an atomic activation record selects at
-most one version per provider. Reinstalling an already valid version is idempotent. Removal first moves the
+most one version per provider. Reinstallation replaces the version's files from the newly verified archive,
+restoring changed files and removing extra local files. Removal first moves the
 provider directory out of the active store and then deletes it.
 
+Extraction confines every ZIP entry to staging and rejects traversal, duplicate paths, and symbolic links.
+Archive integrity is checked at installation. Installed files are not subsequently hashed: inspection checks
+the definition, compatibility, and module-file presence. Missing dependencies and invalid binaries surface
+when the .NET loader resolves the connector, rather than through a second dependency inventory.
+
 Core's `ConnectionUrl(string)` constructor automatically inspects the store and loads active, compatible,
-integrity-verified modules through `IDubUrlProviderModule`. Installed aliases take precedence over
+modules verified at installation through `IDubUrlProviderModule`. Installed aliases take precedence over
 bundled registrations from `DubUrl`, when referenced. Conflicting installed aliases fail explicitly;
 active modules that cannot load report `ProviderPackException` with code `module-load-failed`.
 Incompatible, incomplete, and corrupt packs are excluded and their diagnostics are available from
@@ -62,11 +68,11 @@ managed dependencies, and required native assets.
 
 The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
 Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
-identity, installation aliases, schemes, module assembly/type, API/TFM/RID compatibility, and packaged assets.
+identity, installation aliases, schemes, module assembly/type, and API/TFM/RID compatibility.
 The build generates the local definition from `connector-matrix.json`, then adds the download URL and
 archive SHA-256 to that same definition for the catalog. These distribution fields are optional in the
 model and omitted locally. Core loads installed definitions without needing the catalog or a network.
-Catalogs generated before module and asset metadata was included must be regenerated.
+Catalogs generated before module metadata was included must be regenerated.
 
 Connector archives exclude Core and its resolved runtime dependencies, including Didot's libraries.
 The loader resolves those assemblies from the host; provider and driver dependencies outside Core's
@@ -88,7 +94,7 @@ an authenticated curated `ProviderPackCatalog`, a configured `ProviderPackStore`
 (which the host owns). No CLI assembly, command-line parser, console, or CLI configuration is needed.
 Hosts explicitly choose when to install; listing or constructing the service never downloads a connector.
 Catalog authenticity remains the distributor's responsibility. Installation uses the catalog-pinned version
-and archive digest, and delegates asset integrity, API/TFM/RID compatibility, staging, activation, idempotent
+and archive digest, and delegates archive verification, safe extraction, API/TFM/RID compatibility, staging, activation, idempotent
 reinstallation, and removal to the existing store.
 
 ```csharp
@@ -122,7 +128,7 @@ versions absent from the current catalog. Failures throw `ConnectorOperationExce
 | `connector-uninstall-failed` | Removal could not access the store. |
 | `connector-not-installed` | No installed connector matches the ID or alias. |
 
-Store diagnostics retain their existing codes, such as `pack-integrity`, `asset-integrity`, `manifest-missing`,
+Store diagnostics include `pack-integrity`, `path-invalid`, `module-missing`, `manifest-missing`,
 `catalog-mismatch`, `api-incompatible`, `tfm-incompatible`, and `rid-incompatible`. Caller cancellation throws
 `ConnectorOperationCanceledException` (an `OperationCanceledException`) with code `connector-cancelled` and
 the caller's token. HTTP and filesystem exception details are not retained in operation failures because

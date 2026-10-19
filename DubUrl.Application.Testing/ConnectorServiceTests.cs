@@ -179,7 +179,7 @@ public class ConnectorServiceTests
     [TestCase("archive", "connector-archive-invalid")]
     [TestCase("manifest", "connector-archive-invalid")]
     [TestCase("digest", "pack-integrity")]
-    [TestCase("asset", "asset-integrity")]
+    [TestCase("module", "module-missing")]
     [TestCase("api", "api-incompatible")]
     [TestCase("tfm", "tfm-incompatible")]
     [TestCase("rid", "rid-incompatible")]
@@ -189,7 +189,7 @@ public class ConnectorServiceTests
         var package = CreatePackage("postgresql-npgsql", "1.0.0");
         var bytes = package.Archive.ToArray();
         if (failure == "archive") bytes = Encoding.UTF8.GetBytes("not a zip");
-        if (failure is "manifest" or "asset")
+        if (failure is "manifest" or "module")
         {
             using var modified = new MemoryStream();
             modified.Write(bytes);
@@ -197,8 +197,11 @@ public class ConnectorServiceTests
             {
                 var name = failure == "manifest" ? ConnectorDefinition.FileName : "module.dll";
                 zip.GetEntry(name)!.Delete();
-                using var stream = zip.CreateEntry(name).Open();
-                stream.Write(Encoding.UTF8.GetBytes("invalid"));
+                if (failure == "manifest")
+                {
+                    using var stream = zip.CreateEntry(name).Open();
+                    stream.Write(Encoding.UTF8.GetBytes("invalid"));
+                }
             }
             bytes = modified.ToArray();
         }
@@ -352,7 +355,7 @@ public class ConnectorServiceTests
             Schemes = ["postgresql", "postgres", "pg"],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = [],
-            Assets = [],
+
         };
 
     private static string CreateStorePath()
@@ -370,15 +373,6 @@ public class ConnectorServiceTests
             Schemes = ["postgresql"],
             TargetFrameworks = [CurrentTargetFramework()],
             RuntimeIdentifiers = [],
-            Assets =
-            [
-                new()
-                {
-                    Path = "module.dll",
-                    Sha256 = Convert.ToHexString(SHA256.HashData(assetBytes)),
-                    Kind = ProviderPackAssetKind.Managed,
-                },
-            ],
         };
         var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))

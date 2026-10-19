@@ -108,7 +108,6 @@ public static class CliComposition
                         Assembly = section["Module:Assembly"] ?? string.Empty,
                         Type = section["Module:Type"] ?? string.Empty,
                     },
-                    Assets = section.GetSection("Assets").Get<ProviderPackAsset[]>() ?? [],
                 });
         }
         return new(entries);

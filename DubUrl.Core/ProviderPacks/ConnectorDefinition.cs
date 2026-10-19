@@ -20,7 +20,6 @@ public sealed record ConnectorDefinition
     public required IReadOnlyList<string> Schemes { get; init; }
     public required IReadOnlyList<string> TargetFrameworks { get; init; }
     public required IReadOnlyList<string> RuntimeIdentifiers { get; init; }
-    public required IReadOnlyList<ProviderPackAsset> Assets { get; init; }
 
     internal bool HasCompleteMetadata()
         => !string.IsNullOrWhiteSpace(Provider)
@@ -31,28 +30,11 @@ public sealed record ConnectorDefinition
             && !string.IsNullOrWhiteSpace(Module.Type)
             && Schemes is { Count: > 0 }
             && TargetFrameworks is { Count: > 0 }
-            && RuntimeIdentifiers is not null
-            && Assets is { Count: > 0 };
+            && RuntimeIdentifiers is not null;
 }
 
 public sealed record ProviderPackModuleEntry
 {
     public required string Assembly { get; init; }
     public required string Type { get; init; }
-}
-
-[JsonConverter(typeof(JsonStringEnumConverter<ProviderPackAssetKind>))]
-public enum ProviderPackAssetKind
-{
-    Managed,
-    Native,
-    Content,
-}
-
-public sealed record ProviderPackAsset
-{
-    public required string Path { get; init; }
-    public required string Sha256 { get; init; }
-    public required ProviderPackAssetKind Kind { get; init; }
-    public string? RuntimeIdentifier { get; init; }
 }

@@ -99,10 +99,10 @@ public class DefaultProviderDiscoveryTest
     }
 
     [Test]
-    public async Task CorruptPack_IsNotLoaded_HealthyConnectorStillWorks()
+    public async Task InvalidDefinition_IsNotLoaded_HealthyConnectorStillWorks()
     {
         var corrupt = await Install("corrupt");
-        await File.AppendAllTextAsync(Path.Combine(corrupt.InstallPath, "module.dll"), "tampered");
+        await File.WriteAllTextAsync(Path.Combine(corrupt.InstallPath, ConnectorDefinition.FileName), "invalid JSON");
         await Install();
 
         Assert.That(new ConnectionUrl("pg://localhost/demo").Parse(), Does.Contain("demo"));
@@ -121,7 +121,7 @@ public class DefaultProviderDiscoveryTest
             Schemes = ["pg"],
             TargetFrameworks = [$"net{Environment.Version.Major}.0"],
             RuntimeIdentifiers = [],
-            Assets = [new() { Path = "module.dll", Sha256 = Convert.ToHexString(SHA256.HashData(bytes)), Kind = ProviderPackAssetKind.Managed }],
+
         };
         using var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))

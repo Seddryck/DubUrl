@@ -77,24 +77,10 @@ public sealed class ProviderPackStore
             ValidateManifest(manifest, catalogEntry);
             var contentRoot = Path.Combine(stagingRoot, "content");
             Directory.CreateDirectory(contentRoot);
-            foreach (var asset in manifest.Assets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var relativePath = ValidateRelativePath(asset.Path);
-                var entry = package.GetEntry(relativePath.Replace('\\', '/'))
-                    ?? throw new ProviderPackException("asset-missing", $"Required asset '{asset.Path}' is missing.");
-                var destinationPath = Path.GetFullPath(Path.Combine(contentRoot, relativePath));
-                EnsureWithin(contentRoot, destinationPath);
-                var destinationDirectory = Path.GetDirectoryName(destinationPath)
-                    ?? throw new ProviderPackException(PathInvalid, $"Asset '{asset.Path}' has no parent directory.");
-                Directory.CreateDirectory(destinationDirectory);
-                await using (var source = await OpenEntryAsync(entry, cancellationToken).ConfigureAwait(false))
-                await using (var destination = File.Create(destinationPath))
-                    await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
-                var hash = await ComputeHashAsync(destinationPath, cancellationToken).ConfigureAwait(false);
-                if (!FixedEquals(hash, asset.Sha256))
-                    throw new ProviderPackException("asset-integrity", $"Asset '{asset.Path}' failed integrity verification.");
-            }
+            await ExtractArchiveAsync(package, contentRoot, cancellationToken).ConfigureAwait(false);
+            var modulePath = GetModulePath(contentRoot, manifest);
+            if (!File.Exists(modulePath))
+                throw new ProviderPackException("module-missing", "The connector archive does not contain its module assembly.");
 
             await File.WriteAllTextAsync(
                 Path.Combine(contentRoot, ConnectorDefinition.FileName),
@@ -104,20 +90,23 @@ public sealed class ProviderPackStore
             var providerRoot = Path.Combine(RootPath, "packs", manifest.Provider);
             var installPath = Path.Combine(providerRoot, manifest.Version);
             Directory.CreateDirectory(providerRoot);
+            string? replaced = null;
             if (Directory.Exists(installPath))
             {
-                var existing = InspectPath(installPath, GetActiveVersion(manifest.Provider));
-                if (existing.Status is ProviderPackStatus.Installed or ProviderPackStatus.Active)
-                {
-                    Activate(manifest.Provider, manifest.Version);
-                    return InspectPath(installPath, manifest.Version);
-                }
-
-                var replaced = Path.Combine(stagingRoot, "replaced");
+                replaced = Path.Combine(stagingRoot, "replaced");
                 Directory.Move(installPath, replaced);
             }
 
-            Directory.Move(contentRoot, installPath);
+            try
+            {
+                Directory.Move(contentRoot, installPath);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                if (replaced is not null)
+                    Directory.Move(replaced, installPath);
+                throw;
+            }
             Activate(manifest.Provider, manifest.Version);
             return InspectPath(installPath, manifest.Version);
         }
@@ -180,11 +169,14 @@ public sealed class ProviderPackStore
         if (compatibility is not null)
             return new(manifest, installPath, ProviderPackStatus.Incompatible, [compatibility]);
 
-        foreach (var asset in manifest.Assets)
+        try
         {
-            var invalidAsset = InspectAsset(manifest, installPath, asset);
-            if (invalidAsset is not null)
-                return invalidAsset;
+            if (!File.Exists(GetModulePath(installPath, manifest)))
+                return new(manifest, installPath, ProviderPackStatus.Incomplete, [new("module-missing", "The installed connector module is missing.")]);
+        }
+        catch (ProviderPackException exception)
+        {
+            return new(manifest, installPath, ProviderPackStatus.Corrupt, [new(exception.Code, exception.Message)]);
         }
 
         var status = string.Equals(manifest.Version, activeVersion, StringComparison.OrdinalIgnoreCase)
@@ -215,33 +207,12 @@ public sealed class ProviderPackStore
         }
     }
 
-    private static InstalledProviderPack? InspectAsset(
-        ConnectorDefinition manifest,
-        string installPath,
-        ProviderPackAsset asset)
-    {
-        try
-        {
-            var path = Path.GetFullPath(Path.Combine(installPath, ValidateRelativePath(asset.Path)));
-            EnsureWithin(installPath, path);
-            if (!File.Exists(path))
-                return new(manifest, installPath, ProviderPackStatus.Incomplete, [new("asset-missing", $"Required asset '{asset.Path}' is missing.")]);
-            return FixedEquals(ComputeHash(path), asset.Sha256)
-                ? null
-                : new(manifest, installPath, ProviderPackStatus.Corrupt, [new("asset-integrity", $"Asset '{asset.Path}' failed integrity verification.")]);
-        }
-        catch (ProviderPackException exception)
-        {
-            return new(manifest, installPath, ProviderPackStatus.Corrupt, [new(exception.Code, exception.Message)]);
-        }
-    }
-
     private void ValidateManifest(ConnectorDefinition manifest, ConnectorDefinition entry)
     {
         if (!IsManifestStructurallyValid(manifest))
             throw new ProviderPackException(ManifestInvalid, "The provider pack manifest is incomplete.");
         ValidateManifestIdentity(manifest, entry);
-        ValidateModuleAsset(manifest);
+        ValidateRelativePath(manifest.Module.Assembly);
 
         var compatibility = GetCompatibilityDiagnostic(manifest);
         if (compatibility is not null)
@@ -250,8 +221,7 @@ public sealed class ProviderPackStore
             || manifest.DubUrlApiRange != entry.DubUrlApiRange
             || !manifest.Schemes.SequenceEqual(entry.Schemes, StringComparer.OrdinalIgnoreCase)
             || !manifest.TargetFrameworks.SequenceEqual(entry.TargetFrameworks, StringComparer.OrdinalIgnoreCase)
-            || !manifest.RuntimeIdentifiers.SequenceEqual(entry.RuntimeIdentifiers, StringComparer.OrdinalIgnoreCase)
-            || !manifest.Assets.SequenceEqual(entry.Assets))
+            || !manifest.RuntimeIdentifiers.SequenceEqual(entry.RuntimeIdentifiers, StringComparer.OrdinalIgnoreCase))
             throw new ProviderPackException("catalog-mismatch", "The local connector definition does not match the catalog definition.");
     }
 
@@ -264,15 +234,41 @@ public sealed class ProviderPackStore
             throw new ProviderPackException("catalog-mismatch", "The provider pack identity does not match the curated catalog entry.");
     }
 
-    private static void ValidateModuleAsset(ConnectorDefinition manifest)
+    private static string GetModulePath(string root, ConnectorDefinition definition)
     {
-        if (manifest.Assets is null || manifest.Assets.Count == 0)
-            throw new ProviderPackException("assets-empty", "The provider pack does not declare any assets.");
-        var modulePath = ValidateRelativePath(manifest.Module.Assembly);
-        if (!manifest.Assets.Any(asset =>
-                asset.Kind == ProviderPackAssetKind.Managed
-                && string.Equals(ValidateRelativePath(asset.Path), modulePath, StringComparison.OrdinalIgnoreCase)))
-            throw new ProviderPackException("module-missing", "The module assembly must be declared as a managed asset.");
+        var path = Path.GetFullPath(Path.Combine(root, ValidateRelativePath(definition.Module.Assembly)));
+        EnsureWithin(root, path);
+        return path;
+    }
+
+    private static async Task ExtractArchiveAsync(ZipArchive archive, string root, CancellationToken cancellationToken)
+    {
+        var destinations = new HashSet<string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+        foreach (var entry in archive.Entries)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // Extract ordinary files/directories only; never follow archive-provided links.
+            if (((entry.ExternalAttributes >> 16) & 0xF000) == 0xA000
+                || (entry.ExternalAttributes & (int)FileAttributes.ReparsePoint) != 0)
+                throw new ProviderPackException(PathInvalid, "Connector archives cannot contain symbolic links.");
+            var name = entry.FullName.Replace('\\', '/');
+            var directory = name.EndsWith('/');
+            var relativePath = ValidateRelativePath(directory ? name[..^1] : name);
+            var destination = Path.GetFullPath(Path.Combine(root, relativePath));
+            EnsureWithin(root, destination);
+            if (!destinations.Add(destination))
+                throw new ProviderPackException(PathInvalid, $"Duplicate archive path '{entry.FullName}'.");
+            if (directory)
+            {
+                Directory.CreateDirectory(destination);
+                continue;
+            }
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            await using var source = await OpenEntryAsync(entry, cancellationToken).ConfigureAwait(false);
+            await using var target = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                bufferSize: 4096, FileOptions.Asynchronous);
+            await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private ProviderPackDiagnostic? GetCompatibilityDiagnostic(ConnectorDefinition manifest)
@@ -327,7 +323,6 @@ public sealed class ProviderPackStore
                 Schemes = [],
                 TargetFrameworks = [],
                 RuntimeIdentifiers = [],
-                Assets = [],
             },
             path,
             status,
@@ -339,10 +334,10 @@ public sealed class ProviderPackStore
     private static string ValidateRelativePath(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path))
-            throw new ProviderPackException(PathInvalid, "Provider pack asset paths must be relative.");
-        var normalized = path.Replace('/', Path.DirectorySeparatorChar);
-        if (normalized.Split(Path.DirectorySeparatorChar).Any(part => part is ".." or "." or ""))
-            throw new ProviderPackException(PathInvalid, $"Provider pack asset path '{path}' is invalid.");
+            throw new ProviderPackException(PathInvalid, "Connector archive paths must be relative.");
+        var normalized = path.Replace('\\', '/').Replace('/', Path.DirectorySeparatorChar);
+        if (normalized.Split(Path.DirectorySeparatorChar).Any(part => part is ".." or "." or "" || part.Contains(':') || part.EndsWith('.') || part.EndsWith(' ')))
+            throw new ProviderPackException(PathInvalid, $"Connector archive path '{path}' is invalid.");
         return normalized;
     }
 
@@ -374,19 +369,13 @@ public sealed class ProviderPackStore
     {
         var normalizedRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         if (!path.StartsWith(normalizedRoot, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-            throw new ProviderPackException(PathInvalid, "A provider pack asset escapes the installation directory.");
+            throw new ProviderPackException(PathInvalid, "A connector archive path escapes the installation directory.");
     }
 
     private static async Task<string> ComputeHashAsync(string path, CancellationToken cancellationToken)
     {
         await using var stream = File.OpenRead(path);
         return Convert.ToHexString(await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false));
-    }
-
-    private static string ComputeHash(string path)
-    {
-        using var stream = File.OpenRead(path);
-        return Convert.ToHexString(SHA256.HashData(stream));
     }
 
     private static bool FixedEquals(string actual, string expected)

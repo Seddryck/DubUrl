@@ -65,21 +65,45 @@ public class ProviderPackStoreTest
     }
 
     [Test]
-    public async Task Inspect_CorruptPack_ReportsDiagnosticWithoutHidingValidPack()
+    public async Task Install_Reinstall_RestoresVerifiedArchiveWithoutHashingInstalledFiles()
+    {
+        var package = CreatePackage("postgresql", "1.0.0");
+        var store = CreateStore();
+        var installed = await store.InstallAsync(package.Entry, package.Archive);
+        var module = Path.Combine(installed.InstallPath, "lib", "module.dll");
+        var original = await File.ReadAllBytesAsync(module);
+        await File.WriteAllTextAsync(module, "modified locally");
+        var extra = Path.Combine(installed.InstallPath, "extra.dll");
+        await File.WriteAllTextAsync(extra, "untracked local file");
+        package.Archive.Position = 0;
+
+        var restored = await store.InstallAsync(package.Entry, package.Archive);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.Status, Is.EqualTo(ProviderPackStatus.Active));
+            Assert.That(File.ReadAllBytes(module), Is.EqualTo(original));
+            Assert.That(File.Exists(extra), Is.False);
+            Assert.That(Directory.GetFileSystemEntries(Path.Combine(_root, ".staging")), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task Inspect_InvalidDefinition_ReportsDiagnosticWithoutHidingValidPack()
     {
         var valid = CreatePackage("valid", "1.0.0");
         var corrupt = CreatePackage("corrupt", "1.0.0");
         var store = CreateStore();
         await store.InstallAsync(valid.Entry, valid.Archive);
         var installed = await store.InstallAsync(corrupt.Entry, corrupt.Archive);
-        await File.AppendAllTextAsync(Path.Combine(installed.InstallPath, "lib", "module.dll"), "tampered");
+        await File.WriteAllTextAsync(Path.Combine(installed.InstallPath, ConnectorDefinition.FileName), "invalid JSON");
 
         var packs = store.Inspect();
         Assert.Multiple(() =>
         {
             Assert.That(packs.Single(pack => pack.Manifest.Provider == "valid").Status, Is.EqualTo(ProviderPackStatus.Active));
             Assert.That(packs.Single(pack => pack.Manifest.Provider == "corrupt").Status, Is.EqualTo(ProviderPackStatus.Corrupt));
-            Assert.That(packs.Single(pack => pack.Manifest.Provider == "corrupt").Diagnostics[0].Code, Is.EqualTo("asset-integrity"));
+            Assert.That(packs.Single(pack => pack.Manifest.Provider == "corrupt").Diagnostics[0].Code, Is.EqualTo("manifest-invalid"));
         });
     }
 
@@ -157,9 +181,135 @@ public class ProviderPackStoreTest
     private ProviderPackStore CreateStore()
         => new(_root, new Version(1, 5), "net10.0", "win-x64");
 
+    [Test]
+    public async Task Install_ExtractsDependenciesAndContent_WithoutAnInventory()
+    {
+        var package = RewriteArchive(CreatePackage("postgresql", "1.0.0"), zip =>
+        {
+            foreach (var name in new[] { "lib/module.deps.json", "lib/dependency.dll", "runtimes/win-x64/native/example.dll", "NOTICE.md" })
+            {
+                using var writer = new StreamWriter(zip.CreateEntry(name).Open());
+                writer.Write(name);
+            }
+            zip.CreateEntry("empty/");
+        });
+        var installed = await CreateStore().InstallAsync(package.Entry, package.Archive);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(installed.Status, Is.EqualTo(ProviderPackStatus.Active));
+            Assert.That(File.ReadAllText(Path.Combine(installed.InstallPath, "lib", "module.deps.json")), Is.EqualTo("lib/module.deps.json"));
+            Assert.That(File.ReadAllText(Path.Combine(installed.InstallPath, "lib", "dependency.dll")), Is.EqualTo("lib/dependency.dll"));
+            Assert.That(File.ReadAllText(Path.Combine(installed.InstallPath, "runtimes", "win-x64", "native", "example.dll")), Is.EqualTo("runtimes/win-x64/native/example.dll"));
+            Assert.That(File.Exists(Path.Combine(installed.InstallPath, "NOTICE.md")), Is.True);
+            Assert.That(Directory.Exists(Path.Combine(installed.InstallPath, "empty")), Is.True);
+            Assert.That(File.ReadAllText(Path.Combine(installed.InstallPath, ConnectorDefinition.FileName)), Does.Not.Contain("\"assets\""));
+        });
+    }
+
+    [TestCase("../escape.txt")]
+    [TestCase("..\\escape.txt")]
+    [TestCase("/absolute.txt")]
+    [TestCase("C:/escape.txt")]
+    [TestCase("folder//file.txt")]
+    [TestCase("folder/../escape.txt")]
+    [TestCase("module.dll:stream")]
+    [TestCase("folder/file.")]
+    [TestCase("folder/file ")]
+    [TestCase("lib/module.dll")]
+    [TestCase("lib\\module.dll")]
+    public async Task Install_UnsafeOrDuplicateArchivePath_IsRejectedBeforeActivation(string path)
+    {
+        var package = RewriteArchive(CreatePackage("postgresql", "1.0.0"), zip => zip.CreateEntry(path));
+        var store = CreateStore();
+
+        var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await store.InstallAsync(package.Entry, package.Archive));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error!.Code, Is.EqualTo("path-invalid"));
+            Assert.That(store.Inspect(), Is.Empty);
+            Assert.That(Directory.GetFileSystemEntries(Path.Combine(_root, ".staging")), Is.Empty);
+            Assert.That(File.Exists(Path.Combine(_root, ".staging", "escape.txt")), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task Install_SymbolicLink_IsRejected()
+    {
+        var package = RewriteArchive(CreatePackage("postgresql", "1.0.0"), zip =>
+        {
+            var link = zip.CreateEntry("link");
+            link.ExternalAttributes = unchecked((int)0xA1FF0000);
+            using var writer = new StreamWriter(link.Open());
+            writer.Write("../escape");
+        });
+        var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await CreateStore().InstallAsync(package.Entry, package.Archive));
+        Assert.That(error!.Code, Is.EqualTo("path-invalid"));
+    }
+
+    [Test]
+    public async Task Install_MissingModule_IsRejected()
+    {
+        var package = RewriteArchive(CreatePackage("postgresql", "1.0.0"), zip => zip.GetEntry("lib/module.dll")!.Delete());
+        var store = CreateStore();
+        var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await store.InstallAsync(package.Entry, package.Archive));
+        Assert.Multiple(() =>
+        {
+            Assert.That(error!.Code, Is.EqualTo("module-missing"));
+            Assert.That(store.Inspect(), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task Install_ModifiedArchive_WithOriginalDigest_IsRejected()
+    {
+        var original = CreatePackage("postgresql", "1.0.0");
+        var modified = RewriteArchive(original, zip => zip.CreateEntry("extra.dll"));
+        var store = CreateStore();
+        var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await store.InstallAsync(original.Entry, modified.Archive));
+        Assert.Multiple(() =>
+        {
+            Assert.That(error!.Code, Is.EqualTo("pack-integrity"));
+            Assert.That(store.Inspect(), Is.Empty);
+            Assert.That(Directory.GetFileSystemEntries(Path.Combine(_root, ".staging")), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task Inspect_DoesNotHashInstalledFiles_ButDetectsMissingModule()
+    {
+        var package = CreatePackage("postgresql", "1.0.0");
+        var store = CreateStore();
+        var installed = await store.InstallAsync(package.Entry, package.Archive);
+        var module = Path.Combine(installed.InstallPath, "lib", "module.dll");
+        await File.AppendAllTextAsync(module, "changed after installation");
+        Assert.That(store.Inspect().Single().Status, Is.EqualTo(ProviderPackStatus.Active));
+
+        File.Delete(module);
+        var inspected = store.Inspect().Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(inspected.Status, Is.EqualTo(ProviderPackStatus.Incomplete));
+            Assert.That(inspected.Diagnostics.Single().Code, Is.EqualTo("module-missing"));
+        });
+    }
+
+    private static Package RewriteArchive(Package original, Action<ZipArchive> edit)
+    {
+        var archive = new MemoryStream();
+        archive.Write(original.Archive.ToArray());
+        using (var zip = new ZipArchive(archive, ZipArchiveMode.Update, leaveOpen: true))
+            edit(zip);
+        archive.Position = 0;
+        var hash = Convert.ToHexString(SHA256.HashData(archive));
+        archive.Position = 0;
+        return new(original.Entry with { Sha256 = hash }, archive);
+    }
+
     [TestCase("module")]
     [TestCase("schemes")]
-    [TestCase("assets")]
+    [TestCase("api")]
     public async Task Install_DefinitionDiffersFromCatalog_LeavesStoreUnchanged(string field)
     {
         var package = CreatePackage("postgresql", "1.0.0");
@@ -167,7 +317,7 @@ public class ProviderPackStoreTest
         {
             "module" => package.Entry with { Module = package.Entry.Module with { Type = "Other.Module" } },
             "schemes" => package.Entry with { Schemes = ["other"] },
-            _ => package.Entry with { Assets = [] },
+            _ => package.Entry with { DubUrlApiRange = "[1.0,3.0)" },
         };
         var store = CreateStore();
         var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await store.InstallAsync(entry, package.Archive));
@@ -186,7 +336,6 @@ public class ProviderPackStoreTest
         string moduleType = "Example.ProviderModule")
     {
         assetBytes ??= Encoding.UTF8.GetBytes($"fake assembly for {provider} {version}");
-        var assetHash = Convert.ToHexString(SHA256.HashData(assetBytes));
         var manifest = new ConnectorDefinition
         {
             Provider = provider,
@@ -196,15 +345,6 @@ public class ProviderPackStoreTest
             Schemes = [provider],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = ["win-x64"],
-            Assets =
-            [
-                new()
-                {
-                    Path = "lib/module.dll",
-                    Sha256 = assetHash,
-                    Kind = ProviderPackAssetKind.Managed,
-                },
-            ],
         };
 
         var archive = new MemoryStream();

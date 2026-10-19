@@ -78,7 +78,11 @@ foreach ($entry in $entries) {
         if ($manifest.PSObject.Properties['downloadUri'] -or $manifest.PSObject.Properties['sha256']) {
             throw "Local connector definitions must omit archive distribution fields."
         }
-        if (@($manifest.assets | Where-Object { $_.path -in $sharedAssets }).Count -ne 0) {
+        if ($manifest.PSObject.Properties['assets'] -or $entry.PSObject.Properties['assets']) {
+            throw "Connector definitions must not contain an assets inventory."
+        }
+        $archivePaths = @($archive.Entries | ForEach-Object FullName)
+        if (@($archivePaths | Where-Object { $_ -in $sharedAssets }).Count -ne 0) {
             throw "Connector '$($entry.provider)' duplicates a host Core dependency."
         }
         $definition = $matrix.connectors | Where-Object id -CEQ $entry.provider
@@ -88,10 +92,10 @@ foreach ($entry in $entries) {
         if ($manifest.module.type -cne "$($definition.assemblyName).ProviderModule") {
             throw "Connector '$($entry.provider)' must expose its generated ProviderModule entry point."
         }
-        if (@($manifest.assets | Where-Object path -Like 'DubUrl.Connector.*').Count -ne 0) {
+        if (@($archivePaths | Where-Object { $_ -like 'DubUrl.Connector.*' }).Count -ne 0) {
             throw "Connector '$($entry.provider)' still carries a legacy connector assembly."
         }
-        $bulkAdapters = @($manifest.assets.path | Where-Object { $_ -like 'DubUrl.Provider.*.BulkCopy.dll' })
+        $bulkAdapters = @($archivePaths | Where-Object { $_ -like 'DubUrl.Provider.*.BulkCopy.dll' })
         $expectedAdapter = switch ($entry.provider) {
             'duckdb-native' { 'DubUrl.Provider.DuckDb.Native.BulkCopy.dll' }
             'sqlserver-sqlclient' { 'DubUrl.Provider.SqlServer.SqlClient.BulkCopy.dll' }
@@ -107,13 +111,9 @@ foreach ($entry in $entries) {
         if ($null -eq $archive.GetEntry($manifest.module.assembly)) {
             throw "Connector module '$($manifest.module.assembly)' is missing."
         }
-        foreach ($asset in $manifest.assets) {
-            $assetEntry = $archive.GetEntry($asset.path)
-            if ($null -eq $assetEntry) { throw "Connector asset '$($asset.path)' is missing." }
-            $stream = $assetEntry.Open()
-            try { $actual = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($stream)) }
-            finally { $stream.Dispose() }
-            if ($actual -cne $asset.sha256) { throw "Connector asset '$($asset.path)' has the wrong SHA-256 digest." }
+        $dependencyFile = [IO.Path]::ChangeExtension($manifest.module.assembly, '.deps.json')
+        if ($null -eq $archive.GetEntry($dependencyFile)) {
+            throw "Connector dependency metadata '$dependencyFile' is missing."
         }
     }
     finally {

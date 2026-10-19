@@ -66,17 +66,6 @@ function Write-Utf8Json([string] $Path, [object] $Value) {
     [IO.File]::WriteAllText($Path, "$json`n", [Text.UTF8Encoding]::new($false))
 }
 
-function Get-AssetKind([string] $RelativePath) {
-    if ($RelativePath -match '(^|/)runtimes/[^/]+/native/') { return 'Native' }
-    if ([IO.Path]::GetExtension($RelativePath) -eq '.md') { return 'Content' }
-    'Managed'
-}
-
-function Get-AssetRuntime([string] $RelativePath) {
-    if ($RelativePath -match '(^|/)runtimes/(?<rid>[^/]+)/native/') { return $Matches.rid }
-    $null
-}
-
 New-CleanDirectory $outputRoot
 New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
 
@@ -153,24 +142,8 @@ foreach ($connector in $ready) {
             [Text.UTF8Encoding]::new($false))
     }
 
-    $assets = @(
-        Get-ChildItem -LiteralPath $contentRoot -Recurse -File |
-            ForEach-Object {
-                $relative = [IO.Path]::GetRelativePath($contentRoot, $_.FullName).Replace('\', '/')
-                $asset = [ordered]@{
-                    path = $relative
-                    sha256 = Get-Sha256 $_.FullName
-                    kind = Get-AssetKind $relative
-                }
-                $rid = Get-AssetRuntime $relative
-                if ($null -ne $rid) { $asset.runtimeIdentifier = $rid }
-                $asset
-            } |
-            Sort-Object path
-    )
-
     $moduleFile = "$assemblyName.dll"
-    if (-not ($assets.path -contains $moduleFile)) {
+    if (-not (Test-Path -LiteralPath (Join-Path $contentRoot $moduleFile) -PathType Leaf)) {
         throw "Connector '$($connector.id)' publish output is missing module '$moduleFile'."
     }
     $manifest = [ordered]@{
@@ -182,7 +155,6 @@ foreach ($connector in $ready) {
         schemes = @($connector.schemes)
         targetFrameworks = @('net8.0', 'net9.0', 'net10.0')
         runtimeIdentifiers = @($connector.runtimeIdentifiers)
-        assets = $assets
     }
     $manifestPath = Join-Path $stagingRoot "$($connector.id)/provider-pack.json"
     Write-Utf8Json $manifestPath $manifest
