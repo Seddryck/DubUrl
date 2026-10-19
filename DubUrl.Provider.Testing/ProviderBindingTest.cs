@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using DubUrl.Provider.PostgreSql.Npgsql;
-using DubUrl.Provider.Sample;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
@@ -21,7 +20,7 @@ namespace DubUrl.Provider.Testing;
 public class ProviderBindingTest
 {
     [Test]
-    public void NewDatabase_CompilesAndExecutesWithPublicContractsOnly()
+    public void SelectedProvider_CompilesAndExecutesWithPublicContractsOnly()
     {
         var parameters = new List<DbParameter>();
         var collection = new Mock<DbParameterCollection>();
@@ -47,13 +46,11 @@ public class ProviderBindingTest
         connection.Protected().Setup<DbCommand>("CreateDbCommand").Returns(command.Object);
         connection.SetupGet(x => x.State).Returns(ConnectionState.Open);
         var factory = new Mock<DbProviderFactory>();
-        factory.Setup(x => x.CreateConnectionStringBuilder()).Returns(() => new DbConnectionStringBuilder());
+        factory.Setup(x => x.CreateConnectionStringBuilder()).Returns(() => new NpgsqlConnectionStringBuilder());
         factory.Setup(x => x.CreateConnection()).Returns(connection.Object);
 
-        var registry = new ProviderCatalogBuilder()
-            .AddModule(new SampleProviderModule(() => factory.Object))
-            .Build();
-        var url = new ConnectionUrl("SAMPLEDB://localhost:5432/demo?Application=extension", registry);
+        var registry = CreateCatalog(() => factory.Object).Build();
+        var url = new ConnectionUrl("PG://localhost:5432/demo?Application Name=extension", registry);
         var settings = new DbConnectionStringBuilder { ConnectionString = url.Parse() };
         using var database = new DatabaseUrl(url, new CommandProvisionerFactory(), NullQueryLogger.Instance);
         var result = database.ReadScalar(new ParameterizedQuery());
@@ -63,8 +60,8 @@ public class ProviderBindingTest
             Assert.That(settings["Host"], Is.EqualTo("localhost"));
             Assert.That(settings["Port"].ToString(), Is.EqualTo("5432"));
             Assert.That(settings["Database"], Is.EqualTo("demo"));
-            Assert.That(settings["Application"], Is.EqualTo("extension"));
-            Assert.That(url.Dialect, Is.TypeOf<SampleDialect>());
+            Assert.That(settings["Application Name"], Is.EqualTo("extension"));
+            Assert.That(url.Dialect, Is.TypeOf<PgsqlDialect>());
             Assert.That(url.Dialect.Renderer.Render("Order", "identity"), Is.EqualTo("\"Order\""));
             Assert.That(url.Parametrizer, Is.TypeOf<NamedParametrizer>());
             Assert.That(connection.Object.ConnectionString, Is.EqualTo(url.Parse()));
@@ -122,15 +119,15 @@ public class ProviderBindingTest
     [Test]
     public void DuplicateAlias_ReportsBothProviders()
     {
-        var builder = new ProviderCatalogBuilder().AddModule(new SampleProviderModule(() => null));
+        var builder = CreateCatalog(() => null);
         var error = Assert.Throws<ProviderRegistrationException>(() => builder.AddProvider(new ProviderRegistration(
-            "Conflicting connector", ["SAMPLE"], "Other.Data", () => null, new SampleDialect(),
+            "Conflicting connector", ["PG"], "Other.Data", () => null, CreateDialect(),
             () => new NamedParametrizer(), _ => throw new InvalidOperationException("Must not compile"))));
 
         Assert.Multiple(() =>
         {
-            Assert.That(error!.Alias, Is.EqualTo("SAMPLE"));
-            Assert.That(error.ExistingRegistration, Is.EqualTo("Sample database"));
+            Assert.That(error!.Alias, Is.EqualTo("PG"));
+            Assert.That(error.ExistingRegistration, Is.EqualTo("PostgreSQL"));
             Assert.That(error.ConflictingRegistration, Is.EqualTo("Conflicting connector"));
         });
     }
@@ -138,15 +135,15 @@ public class ProviderBindingTest
     [Test]
     public void MissingFactory_SkipsSchemeAndReportsResolutionDiagnostic()
     {
-        var registry = new ProviderCatalogBuilder().AddModule(new SampleProviderModule(() => null)).Build();
-        var success = registry.TryResolve(new Parser().Parse("sample://localhost/demo"), out var resolved, out var diagnostic);
+        var registry = CreateCatalog(() => null).Build();
+        var success = registry.TryResolve(new Parser().Parse("pg://localhost/demo"), out var resolved, out var diagnostic);
 
         Assert.Multiple(() =>
         {
             Assert.That(success, Is.False);
             Assert.That(resolved, Is.Null);
             Assert.That(diagnostic!.Code, Is.EqualTo(ConnectionResolutionDiagnosticCode.SchemeNotFound));
-            Assert.That(diagnostic.Message, Does.Contain("sample"));
+            Assert.That(diagnostic.Message, Does.Contain("pg"));
         });
     }
 
@@ -154,9 +151,9 @@ public class ProviderBindingTest
     public void InvalidDatabasePath_ReportsProviderDiagnostic()
     {
         var factory = new Mock<DbProviderFactory>();
-        factory.Setup(x => x.CreateConnectionStringBuilder()).Returns(() => new DbConnectionStringBuilder());
-        var registry = new ProviderCatalogBuilder().AddModule(new SampleProviderModule(() => factory.Object)).Build();
-        var success = registry.TryResolve(new Parser().Parse("sample://localhost"), out _, out var diagnostic);
+        factory.Setup(x => x.CreateConnectionStringBuilder()).Returns(() => new NpgsqlConnectionStringBuilder());
+        var registry = CreateCatalog(() => factory.Object).Build();
+        var success = registry.TryResolve(new Parser().Parse("pg://localhost"), out _, out var diagnostic);
 
         Assert.Multiple(() =>
         {
@@ -168,7 +165,7 @@ public class ProviderBindingTest
     [Test]
     public void Consumer_DoesNotReferenceOrLoadCompatibilityOrUnrelatedProviders()
     {
-        var references = typeof(SampleProviderModule).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToArray();
+        var references = typeof(ProviderModule).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToArray();
         var loaded = AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetName().Name).ToArray();
         Assert.Multiple(() =>
         {
@@ -178,8 +175,25 @@ public class ProviderBindingTest
             Assert.That(loaded, Does.Not.Contain("DubUrl.Providers"));
             Assert.That(loaded.Where(name => name!.StartsWith("DubUrl.Provider.", StringComparison.Ordinal)),
                 Is.SubsetOf(new[] { "DubUrl.Provider.PostgreSql", "DubUrl.Provider.PostgreSql.Npgsql",
-                    "DubUrl.Provider.Sample", "DubUrl.Provider.Testing" }));
+                    "DubUrl.Provider.Testing" }));
         });
+    }
+
+    private static IDialect CreateDialect()
+    {
+        var dialects = new DialectRegistryBuilder();
+        dialects.AddDialect<PgsqlDialect>(["pg"]);
+        return dialects.Build().Get(typeof(PgsqlDialect));
+    }
+
+    private static ProviderCatalogBuilder CreateCatalog(Func<DbProviderFactory?> factory)
+    {
+        var builder = new ProviderCatalogBuilder();
+        builder.AddProvider(new ProviderRegistration(
+            "PostgreSQL", ["pg"], "Npgsql", factory, CreateDialect(),
+            () => new NamedParametrizer(),
+            context => new PostgresqlMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer)));
+        return builder;
     }
 
     private sealed class ParameterizedQuery : ICommandProvider, IParametrizedCommand

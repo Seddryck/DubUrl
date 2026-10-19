@@ -15,7 +15,6 @@
       "DubUrl.Worker\\DubUrl.Worker.csproj",
       "DubUrl\\DubUrl.csproj",
       "DubUrl.Provider.Testing\\DubUrl.Provider.Testing.csproj",
-      "samples\\DubUrl.Provider.Sample\\DubUrl.Provider.Sample.csproj",
       "DubUrl.Core\\DubUrl.Core.csproj",
       "DubUrl.Providers\\DubUrl.Providers.csproj",
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",

@@ -46,8 +46,8 @@ The latter reuses the PostgreSQL family through a dependency, without repeating 
 family in its binding name. Family projects and typed adapters are grouped under
 `Providers/<Family>/`. Optional adapters append `.BulkCopy`
 to the driver's binding name. All standard bindings are built by
-`Providers/Build/ProviderBinding.Build.csproj`; the Core-only sample is
-`samples/DubUrl.Provider.Sample`, and its consumer tests are `DubUrl.Provider.Testing`.
+`Providers/Build/ProviderBinding.Build.csproj`; independent consumer tests are
+`DubUrl.Provider.Testing`.
 
 Binding assembly, package, and namespace names follow this convention. Consumers must
 update package and namespace references and rebuild packs. Installable connector IDs

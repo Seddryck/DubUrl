@@ -72,9 +72,8 @@ See [namespace conventions and migration](NAMESPACES.md) for the complete layout
 including Schema.Generation, the reserved Schema.Discovery area, and ODBC's
 Drivers.Discovery. Public provider namespaces change and consumers must recompile.
 
-The Core-only sample at `samples/DubUrl.Provider.Sample` and its isolated consumer
-`DubUrl.Provider.Testing` demonstrate provider authoring without compatibility-package
-references or friend access. The consumer tests enforce source ownership, execute a
+The isolated consumer `DubUrl.Provider.Testing` exercises PostgreSQL registration
+without compatibility-package references or friend access. The tests enforce source ownership, execute a
 bound parameter through a fake driver, and reuse PostgreSQL behavior with a different
 connector registration. See the provider modules documentation for setup and the
 distinction between independent registration and official publication inventories.

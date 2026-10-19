@@ -62,31 +62,6 @@ components where appropriate. Keep shared family behavior in provider projects a
 dependencies in driver binding projects named `DubUrl.Provider.<Database>.<Driver>`.
 Core must never reference either implementation project.
 
-The buildable `samples/DubUrl.Provider.Sample` project demonstrates a new database using only
-public Core APIs. Its `SampleProviderModule` receives a factory delegate, constructs a `SampleDialect`
-directly, and registers `SampleMapper` with `NamedParametrizer`. Its rewriter translates the host,
-port, database path, and query options. The sample uses `StraightSpecificator` for an unrestricted
-`DbConnectionStringBuilder`; production drivers with a fixed keyword set can use `Specificator`
-to validate keywords through their own builder. Add provider-specific validation for authentication,
-default values, path depth, and accepted options as the real driver requires.
-
-Compose the sample with an application's concrete driver factory:
-
-```csharp
-using DubUrl;
-using DubUrl.Provider.Sample;
-using DubUrl.Mapping;
-using System.Data.Common;
-
-static ConnectionUrl CreateSampleUrl(DbProviderFactory driverFactory)
-{
-    var registry = new ProviderCatalogBuilder()
-        .AddModule(new SampleProviderModule(() => driverFactory))
-        .Build();
-    return new ConnectionUrl("sample://localhost/demo", registry);
-}
-```
-
 The factory delegate supplies the driver directly, so this path does not require global
 `DbProviderFactories.RegisterFactory` calls. If the module intentionally looks up a globally registered
 factory, register it under the module's invariant name before building the catalog. A factory delegate
