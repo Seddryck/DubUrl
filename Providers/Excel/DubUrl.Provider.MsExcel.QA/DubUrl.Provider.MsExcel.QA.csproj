@@ -7,9 +7,9 @@
     <PackageReference Include="System.Data.Odbc" Version="10.0.12" />
     <PackageReference Include="System.Data.OleDb" Version="10.0.12" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" /><ProjectReference Include="..\..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" /><ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" /><ProjectReference Include="..\..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" /><ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\DubUrl.QA\MsExcel\Customer.xlsx" Link="MsExcel\Customer.xlsx" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\QA\DubUrl.QA\MsExcel\Customer.xlsx" Link="MsExcel\Customer.xlsx" CopyToOutputDirectory="PreserveNewest" />
     <None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" />
     <QaInfrastructure Include="infrastructure\**\*" />
   </ItemGroup>

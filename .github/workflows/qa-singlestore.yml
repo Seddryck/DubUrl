@@ -29,7 +29,7 @@ jobs:
         run: if ([string]::IsNullOrWhiteSpace($env:SINGLESTORE_LICENSE)) { throw 'SINGLESTORE_LICENSE repository secret is required.' }
       - name: Run provider QA
         shell: pwsh
-        run: ./DubUrl.QA/SingleStore/deploy-singlestore-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
+        run: ./QA/DubUrl.QA/SingleStore/deploy-singlestore-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

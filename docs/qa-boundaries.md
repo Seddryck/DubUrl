@@ -4,6 +4,11 @@ title: Provider QA boundaries
 permalink: /qa-boundaries/
 ---
 
+The shared QA projects are grouped in the solution's `QA` folder and physically located under `QA/`:
+`QA/DubUrl.QA`, `QA/DubUrl.Provider.Testing`, `QA/DubUrl.ProviderTesting`, and
+`QA/DubUrl.Schema.Testing.Contracts`. Project, assembly, and namespace names are unchanged.
+Provider-specific live suites remain alongside their provider families under `Providers/<Family>/`.
+
 Provider QA follows the same ownership boundary as provider production code. A provider named `XYZ` uses these projects:
 
 - `DubUrl.Provider.XYZ` contains production provider registration, mapping, rewriting, dialect, and parameter behavior.

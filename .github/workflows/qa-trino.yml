@@ -25,7 +25,7 @@ jobs:
             10.0.401
       - name: Run provider QA
         shell: pwsh
-        run: ./DubUrl.QA/Trino/deploy-trino-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
+        run: ./QA/DubUrl.QA/Trino/deploy-trino-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

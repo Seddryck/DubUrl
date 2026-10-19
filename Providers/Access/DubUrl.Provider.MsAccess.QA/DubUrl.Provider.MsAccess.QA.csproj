@@ -10,10 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
+    <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\DubUrl.QA\MsAccess\DubUrl.accdb" Link="MsAccess\DubUrl.accdb" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\QA\DubUrl.QA\MsAccess\DubUrl.accdb" Link="MsAccess\DubUrl.accdb" CopyToOutputDirectory="PreserveNewest" />
     <None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" />
     <QaInfrastructure Include="infrastructure\**\*" />
   </ItemGroup>

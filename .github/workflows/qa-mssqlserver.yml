@@ -36,7 +36,7 @@ jobs:
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
       - name: Run provider QA
         shell: pwsh
-        run: ./DubUrl.QA/MsSqlServer/deploy-mssqlserver-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
+        run: ./QA/DubUrl.QA/MsSqlServer/deploy-mssqlserver-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

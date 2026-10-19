@@ -3,7 +3,7 @@
 [CmdletBinding()]
 param()
 
-$outputRoot = Join-Path $PSScriptRoot '../DubUrl.QA/bin'
+$outputRoot = Join-Path $PSScriptRoot '../QA/DubUrl.QA/bin'
 $output = @('Release', 'Debug') |
     ForEach-Object { Join-Path $outputRoot "$_/net8.0" } |
     Where-Object { Test-Path (Join-Path $_ 'DubUrl.dll') } |

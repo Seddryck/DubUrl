@@ -43,7 +43,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/Postgresql/deploy-postgresql-test-env.ps1
+          ./QA/DubUrl.QA/Postgresql/deploy-postgresql-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')

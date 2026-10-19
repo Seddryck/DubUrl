@@ -34,7 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Edit", "Edit", "{210C887C-6
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA", "DubUrl.QA\DubUrl.QA.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.QA", "QA\DubUrl.QA\DubUrl.QA.csproj", "{64B6AA4F-BFD2-40EB-B04A-8FE795272653}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QA", "QA", "{0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}"
 EndProject
@@ -86,9 +86,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.BulkCopy", "DubUrl.B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.BulkCopy.Testing", "DubUrl.BulkCopy.Testing\DubUrl.BulkCopy.Testing.csproj", "{EF1C6326-0D01-4B83-9759-4452CC31CD61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.ProviderTesting", "DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj", "{F272D06B-4E7F-491E-9AF1-2DB9A958F7B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.ProviderTesting", "QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj", "{F272D06B-4E7F-491E-9AF1-2DB9A958F7B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Schema.Testing.Contracts", "DubUrl.Schema.Testing.Contracts\DubUrl.Schema.Testing.Contracts.csproj", "{130A1A15-08F1-4A25-BFF1-36EF7BF61B62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Schema.Testing.Contracts", "QA\DubUrl.Schema.Testing.Contracts\DubUrl.Schema.Testing.Contracts.csproj", "{130A1A15-08F1-4A25-BFF1-36EF7BF61B62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Sqlite.QA", "Providers\Sqlite\DubUrl.Provider.Sqlite.QA\DubUrl.Provider.Sqlite.QA.csproj", "{4D2406C5-6338-4B5E-8022-12AAEC87BD59}"
 EndProject
@@ -182,7 +182,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Teradata", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProviderBinding.Build", "Providers\Build\ProviderBinding.Build.csproj", "{2619EAA0-119A-486B-B6C0-ADE2692C586C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Testing", "DubUrl.Provider.Testing\DubUrl.Provider.Testing.csproj", "{A0F242DF-35A4-4679-8D6C-52FB2E850550}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.Provider.Testing", "QA\DubUrl.Provider.Testing\DubUrl.Provider.Testing.csproj", "{A0F242DF-35A4-4679-8D6C-52FB2E850550}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DubUrl.BulkCopy.Testing.Dependency", "DubUrl.BulkCopy.Testing.Dependency\DubUrl.BulkCopy.Testing.Dependency.csproj", "{A94ACF93-5F8C-4206-9BD2-C6FF33561421}"
 EndProject
@@ -1003,6 +1003,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{A0F242DF-35A4-4679-8D6C-52FB2E850550} = {0224B6BC-7B2A-4CA0-9C12-A514A94BBDA8}
 		{74FD7360-AC9F-4420-A3B3-0E89798F9CCB} = {4C501D54-63EE-454F-91CD-821431BD3B26}
 		{5860836D-844A-4AC8-8EC6-3B0CF458A90E} = {4C501D54-63EE-454F-91CD-821431BD3B26}
 		{46DAB876-A1D6-4EE7-90E9-349CA0AF688C} = {2DF9C3BF-07DD-42BD-A01F-4E8E1B4DE234}

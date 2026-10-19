@@ -127,29 +127,30 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            'DubUrl.Core',
-            'DubUrl.Provider',
-            'DubUrl.OleDb',
-            'DubUrl.Extensions',
-            'DubUrl.Adomd',
-            'DubUrl.Application',
-            'DubUrl.Schema',
-            'DubUrl.Schema.Documents',
-            'DubUrl.BulkCopy',
-            'DubUrl.Cli',
-            'DubUrl.Worker'
+            'DubUrl.Core.Testing/DubUrl.Core.Testing.csproj',
+            'QA/DubUrl.Provider.Testing/DubUrl.Provider.Testing.csproj',
+            'DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj',
+            'DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj',
+            'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
+            'DubUrl.Application.Testing/DubUrl.Application.Testing.csproj',
+            'DubUrl.Schema.Testing/DubUrl.Schema.Testing.csproj',
+            'DubUrl.Schema.Documents.Testing/DubUrl.Schema.Documents.Testing.csproj',
+            'DubUrl.BulkCopy.Testing/DubUrl.BulkCopy.Testing.csproj',
+            'DubUrl.Cli.Testing/DubUrl.Cli.Testing.csproj',
+            'DubUrl.Worker.Testing/DubUrl.Worker.Testing.csproj'
           )
           $failedProjects = @()
 
           foreach ($project in $projects) {
-            dotnet test "$project.Testing/$project.Testing.csproj" `
+            $projectName = [IO.Path]::GetFileNameWithoutExtension($project) -replace '\.Testing$', ''
+            dotnet test $project `
               --configuration Release `
               --framework '${{ matrix.framework }}' `
               --no-build `
               --no-restore `
               --nologo `
               --logger trx `
-              --results-directory ".test-results/$project/${{ matrix.framework }}" `
+              --results-directory ".test-results/$projectName/${{ matrix.framework }}" `
               --collect:'XPlat Code Coverage'
             if ($LASTEXITCODE -ne 0) {
               $failedProjects += $project
@@ -991,7 +992,7 @@ jobs:
 
       - name: Build documentation inputs
         run: >-
-          dotnet build DubUrl.QA/DubUrl.QA.csproj
+          dotnet build QA/DubUrl.QA/DubUrl.QA.csproj
           --configuration Release
           --framework net8.0
           --nologo

@@ -13,7 +13,7 @@
     <ProjectReference Include="..\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
+    <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
   </ItemGroup>
   <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure\**\*" /></ItemGroup>

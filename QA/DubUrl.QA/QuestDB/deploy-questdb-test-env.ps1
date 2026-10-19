@@ -1,0 +1,86 @@
+Param(
+	[switch] $force=$false
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
+)
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	& sudo apt-get update
+	if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
+	& sudo apt-get install --yes odbc-postgresql postgresql-client
+	if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL clients." }
+
+	$project = Join-Path $PSScriptRoot "..\..\..\Providers\PostgreSql\DubUrl.Provider.QuestDb.QA\DubUrl.Provider.QuestDb.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\..\Providers\PostgreSql\DubUrl.Provider.QuestDb.QA\infrastructure"
+	$composeFile = Join-Path $infrastructure "compose.yaml"
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "QuestDB"
+	try {
+		$env:PGPASSWORD = "quest"
+		$ready = $false
+		foreach ($attempt in 1..30) {
+			& psql -U admin -h localhost -p 8812 -d qdb -c "select 1" 2>$null | Out-Null
+			if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+			Start-Sleep -Seconds 2
+		}
+		if (!$ready) { throw "QuestDB did not become ready." }
+		& psql -U admin -h localhost -p 8812 -f (Join-Path $infrastructure "initialize.sql")
+		if ($LASTEXITCODE -ne 0) { throw "QuestDB QA database initialization failed." }
+		Run-ProviderQaSuite -project $project -provider "questdb" -config $config -frameworks $frameworks
+	}
+	finally {
+		& docker compose -f $composeFile down --volumes
+	}
+	exit 0
+}
+
+. $PSScriptRoot\..\Run-TestSuite.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
+
+if ($force) {
+	Write-Host "Enforcing QA testing for QuestDB"
+}
+
+$filesChanged = & git diff --name-only HEAD HEAD~1
+if ($force -or ($filesChanged -like "*quest*")) {
+	Write-Host "Deploying QuestDB testing environment"
+
+	# Starting docker container
+	$previouslyRunning, $running = Deploy-Container -FullName "questdb" -NickName "quest"
+	if (!$previouslyRunning) {
+		$waitForAvailable = 10
+		if ($env:APPVEYOR -eq "True") {
+			$waitForAvailable = 30
+		}
+		Write-host "`tWaiting $waitForAvailable seconds for the server to be available ..."
+		Start-Sleep -s $waitForAvailable
+		Write-host "`tServer is expected to be available."
+	}
+
+	# Deploying database based on script
+	Write-host "`tCreating database"
+	if (-not($env:PATH -like $pgPath)) {
+		$env:PATH += ";$pgPath"
+	}
+	$env:PGPASSWORD = "quest"
+	& psql -U "admin" -h "localhost" -p "8812" -f ".\deploy-questdb-database.sql"
+	Write-host "`tDatabase created"
+
+	# Installing ODBC driver
+	. $PSScriptRoot\..\Postgresql\deploy-postgresql-odbc-driver.ps1
+
+	# Running QA tests
+	Write-Host "Running QA tests related to QuestDB"
+	$testSuccessful = Run-TestSuite @("QuestDB") -config $config -frameworks $frameworks
+
+	# Stop the docker container if not previously running
+	if (!$previouslyRunning){
+		Remove-Container $running
+	}
+
+	# Raise failing tests
+	exit $testSuccessful
+} else {
+	return -1
+}

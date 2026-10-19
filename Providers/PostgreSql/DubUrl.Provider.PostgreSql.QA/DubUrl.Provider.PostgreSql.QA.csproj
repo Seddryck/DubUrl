@@ -12,9 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
+    <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl.Schema.Testing.Contracts\DubUrl.Schema.Testing.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\QA\DubUrl.Schema.Testing.Contracts\DubUrl.Schema.Testing.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" />
