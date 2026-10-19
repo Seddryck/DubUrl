@@ -16,7 +16,6 @@ namespace DubUrl.Mapping.Connectivity;
     , ["odbc"]
 )]
 public class OdbcConnectivity : IWrapperConnectivity {
-
     public string Alias
         => GetType().GetCustomAttribute<WrapperConnectivityAttribute>()?.Aliases[0] ?? string.Empty;
 

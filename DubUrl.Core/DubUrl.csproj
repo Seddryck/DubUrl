@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>DubUrl</PackageId>
@@ -29,8 +29,6 @@
     <Compile Remove="Mapping\*.cs" />
     <Compile Include="Mapping\BuiltInProviderModule.cs" />
     <Compile Remove="Mapping\Connectivity\**\*.cs" />
-    <Compile Remove="Mapping\Database\**\*.cs" />
-    <Compile Remove="Mapping\Implementation\**\*.cs" />
     <Compile Remove="Parsing\**\*.cs" />
     <Compile Remove="MicroOrm\**\*.cs" />
     <Compile Remove="Querying\*.cs" />

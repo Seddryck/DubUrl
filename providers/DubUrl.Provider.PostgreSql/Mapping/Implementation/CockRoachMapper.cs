@@ -18,5 +18,4 @@ public class CockRoachMapper : PostgresqlMapper
 {
     public CockRoachMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : base(new CockRoachRewriter(csb), dialect, parametrizer) { }
-
 }

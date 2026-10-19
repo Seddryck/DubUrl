@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>DuckDB dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\DuckdbDatabase.cs" Link="Mapping\Database\DuckdbDatabase.cs" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\DuckdbMapper.cs" Link="Mapping\Implementation\DuckdbMapper.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\DuckdbDialect.cs" Link="Querying\Dialects\DuckdbDialect.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Formatters\DuckDBQuotedIdentifierFormatter.cs" Link="Querying\Dialects\Formatters\DuckDBQuotedIdentifierFormatter.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\DuckDbFunctionMapper.cs" Link="Querying\Dialects\Functions\DuckDbFunctionMapper.cs" />

@@ -36,3 +36,9 @@ Provider rewriting fixtures live under each package's `Tests/Rewriting/Implement
 directory. Production projects exclude `Tests/**/*.cs`; `DubUrl.Testing` includes
 these fixtures explicitly so the shared test runner and provider registrations are
 preserved. Shared rewriting and cross-provider boundary tests remain central.
+
+Database declarations, branding attributes, native mappers, and ODBC mappers are physically
+owned under each provider's Mapping directory. Provider-specific mapping fixtures live
+under Tests/Mapping and are included by the shared DubUrl.Testing runner. Core retains
+only reusable mapping contracts and catalog infrastructure; connector modules select
+the concrete driver and register these implementations.

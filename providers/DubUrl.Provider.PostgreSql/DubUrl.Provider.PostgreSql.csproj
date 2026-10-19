@@ -3,8 +3,6 @@
     <Description>PostgreSQL-family dialects, mapping, and rewriting for DubUrl.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\CockRoachDatabase.cs;..\..\DubUrl.Core\Mapping\Database\CrateDbDatabase.cs;..\..\DubUrl.Core\Mapping\Database\PostgresqlDatabase.cs;..\..\DubUrl.Core\Mapping\Database\QuestDbDatabase.cs;..\..\DubUrl.Core\Mapping\Database\TimescaleDatabase.cs" Link="Mapping\Database\%(Filename)%(Extension)" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\CockRoachMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\CrateDbMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\PostgresqlMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\QuestDbMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\TimescaleMapper.cs" Link="Mapping\Implementation\%(Filename)%(Extension)" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\CockRoachDialect.cs;..\..\DubUrl.Core\Querying\Dialects\CrateDbDialect.cs;..\..\DubUrl.Core\Querying\Dialects\PgsqlDialect.cs;..\..\DubUrl.Core\Querying\Dialects\QuestDbDialect.cs" Link="Querying\Dialects\%(Filename)%(Extension)" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\PgsqlFunctionMapper.cs" Link="Querying\Dialects\Functions\PgsqlFunctionMapper.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\PgsqlRenderer.cs;..\..\DubUrl.Core\Querying\Dialects\Renderers\QuestDBRenderer.cs" Link="Querying\Dialects\Renderers\%(Filename)%(Extension)" />
