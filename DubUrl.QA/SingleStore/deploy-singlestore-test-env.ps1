@@ -9,8 +9,8 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 	if ([string]::IsNullOrWhiteSpace($env:SINGLESTORE_LICENSE)) { throw "SINGLESTORE_LICENSE is required." }
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SingleStore.QA\DubUrl.Providers.SingleStore.QA.csproj"
-	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SingleStore.QA\infrastructure"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\MySql\DubUrl.Provider.SingleStore.QA\DubUrl.Provider.SingleStore.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\Providers\MySql\DubUrl.Provider.SingleStore.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SingleStore" -wait
 	try {

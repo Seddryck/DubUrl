@@ -6,11 +6,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
-		<ProjectReference Include="..\providers\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
-		<ProjectReference Include="..\providers\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
-		<ProjectReference Include="..\providers\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
-		<ProjectReference Include="..\providers\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" />
-		<ProjectReference Include="..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
+		<ProjectReference Include="..\Providers\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
+		<ProjectReference Include="..\Providers\Excel\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
+		<ProjectReference Include="..\Providers\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
+		<ProjectReference Include="..\Providers\Oracle\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" />
+		<ProjectReference Include="..\Providers\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
 	</ItemGroup>
 
 	<Target Name="BoundDubUrlDependencyVersions" AfterTargets="_GetProjectReferenceVersions">

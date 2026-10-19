@@ -13,7 +13,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 		$install = Start-Process -FilePath $installer -ArgumentList "/quiet" -Wait -WindowStyle Hidden -PassThru
 		if ($install.ExitCode -ne 0) { throw "Microsoft text ODBC driver installation failed with exit code $($install.ExitCode)." }
 	}
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Text.QA\DubUrl.Providers.Text.QA.csproj"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\Text\DubUrl.Provider.Text.QA\DubUrl.Provider.Text.QA.csproj"
 	Run-ProviderQaSuite -project $project -provider "text" -config $config -frameworks $frameworks
 	exit 0
 }

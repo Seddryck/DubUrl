@@ -59,22 +59,22 @@
     <ProjectReference Include="..\..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
     <ProjectReference Include="..\DubUrl.Connector.DuckDb.BulkCopy\DubUrl.Connector.DuckDb.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
     <ProjectReference Include="..\DubUrl.Connector.SqlServer.BulkCopy\DubUrl.Connector.SqlServer.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'SqlClient'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" Condition="'$(ConnectorFamily)' == 'Access'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" Condition="'$(ConnectorFamily)' == 'Db2'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" Condition="'$(ConnectorFamily)' == 'Drill'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" Condition="'$(ConnectorFamily)' == 'DuckDb'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" Condition="'$(ConnectorFamily)' == 'Excel'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.FirebirdSql\DubUrl.Provider.FirebirdSql.csproj" Condition="'$(ConnectorFamily)' == 'FirebirdSql'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" Condition="'$(ConnectorFamily)' == 'MySql'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" Condition="'$(ConnectorFamily)' == 'Oracle'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" Condition="'$(ConnectorFamily)' == 'PostgreSql'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Snowflake\DubUrl.Provider.Snowflake.csproj" Condition="'$(ConnectorFamily)' == 'Snowflake'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" Condition="'$(ConnectorFamily)' == 'Sqlite'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" Condition="'$(ConnectorFamily)' == 'SqlServer'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj" Condition="'$(ConnectorFamily)' == 'Teradata'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" Condition="'$(ConnectorFamily)' == 'Text'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Trino\DubUrl.Provider.Trino.csproj" Condition="'$(ConnectorFamily)' == 'Trino'" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.Odbc\DubUrl.Provider.Odbc.csproj" Condition="'$(ConnectorTechnology)' == 'Odbc'" />
+    <ProjectReference Include="..\..\Providers\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" Condition="'$(ConnectorFamily)' == 'Access'" />
+    <ProjectReference Include="..\..\Providers\Db2\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" Condition="'$(ConnectorFamily)' == 'Db2'" />
+    <ProjectReference Include="..\..\Providers\Drill\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" Condition="'$(ConnectorFamily)' == 'Drill'" />
+    <ProjectReference Include="..\..\Providers\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" Condition="'$(ConnectorFamily)' == 'DuckDb'" />
+    <ProjectReference Include="..\..\Providers\Excel\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" Condition="'$(ConnectorFamily)' == 'Excel'" />
+    <ProjectReference Include="..\..\Providers\FirebirdSql\DubUrl.Provider.FirebirdSql\DubUrl.Provider.FirebirdSql.csproj" Condition="'$(ConnectorFamily)' == 'FirebirdSql'" />
+    <ProjectReference Include="..\..\Providers\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" Condition="'$(ConnectorFamily)' == 'MySql'" />
+    <ProjectReference Include="..\..\Providers\Oracle\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" Condition="'$(ConnectorFamily)' == 'Oracle'" />
+    <ProjectReference Include="..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" Condition="'$(ConnectorFamily)' == 'PostgreSql'" />
+    <ProjectReference Include="..\..\Providers\Snowflake\DubUrl.Provider.Snowflake\DubUrl.Provider.Snowflake.csproj" Condition="'$(ConnectorFamily)' == 'Snowflake'" />
+    <ProjectReference Include="..\..\Providers\Sqlite\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" Condition="'$(ConnectorFamily)' == 'Sqlite'" />
+    <ProjectReference Include="..\..\Providers\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" Condition="'$(ConnectorFamily)' == 'SqlServer'" />
+    <ProjectReference Include="..\..\Providers\Teradata\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj" Condition="'$(ConnectorFamily)' == 'Teradata'" />
+    <ProjectReference Include="..\..\Providers\Text\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" Condition="'$(ConnectorFamily)' == 'Text'" />
+    <ProjectReference Include="..\..\Providers\Trino\DubUrl.Provider.Trino\DubUrl.Provider.Trino.csproj" Condition="'$(ConnectorFamily)' == 'Trino'" />
+    <ProjectReference Include="..\..\Providers\Odbc\DubUrl.Provider.Odbc\DubUrl.Provider.Odbc.csproj" Condition="'$(ConnectorTechnology)' == 'Odbc'" />
     <ProjectReference Include="..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" Condition="'$(ConnectorTechnology)' == 'OleDb'" />
   </ItemGroup>
 

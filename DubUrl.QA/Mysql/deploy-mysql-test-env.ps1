@@ -28,8 +28,8 @@ Driver=$mariaDriver
 	& sudo odbcinst -i -d -f $aliases
 	if ($LASTEXITCODE -ne 0) { throw "Unable to register the MySQL ODBC compatibility aliases." }
 
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MySql.QA\DubUrl.Providers.MySql.QA.csproj"
-	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MySql.QA\infrastructure\compose.yaml"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\MySql\DubUrl.Provider.MySql.QA\DubUrl.Provider.MySql.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\Providers\MySql\DubUrl.Provider.MySql.QA\infrastructure\compose.yaml"
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "MySQL" -wait
 	try { Run-ProviderQaSuite -project $project -provider "mysql" -config $config -frameworks $frameworks }
 	finally { & docker compose -f $composeFile down --volumes }

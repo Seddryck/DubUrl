@@ -16,8 +16,8 @@ if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
 & sudo apt-get install --yes postgresql-client
 if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL client." }
 
-$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CrateDb.QA\DubUrl.Providers.CrateDb.QA.csproj"
-$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CrateDb.QA\infrastructure"
+$project = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.CrateDb.QA\DubUrl.Provider.CrateDb.QA.csproj"
+$infrastructure = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.CrateDb.QA\infrastructure"
 $composeFile = Join-Path $infrastructure "compose.yaml"
 Start-ProviderQaInfrastructure -composeFile $composeFile -provider "CrateDB"
 try {

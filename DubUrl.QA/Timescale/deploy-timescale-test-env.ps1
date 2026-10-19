@@ -13,8 +13,8 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	& sudo apt-get install --yes odbc-postgresql
 	if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL ODBC driver." }
 
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Timescale.QA\DubUrl.Providers.Timescale.QA.csproj"
-	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Timescale.QA\infrastructure\compose.yaml"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.Timescale.QA\DubUrl.Provider.Timescale.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.Timescale.QA\infrastructure\compose.yaml"
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "Timescale" -wait
 	try {
 		Run-ProviderQaSuite -project $project -provider "timescale" -config $config -frameworks $frameworks

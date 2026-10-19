@@ -12,15 +12,15 @@ The connector assemblies are generated from the matrix through a single explicit
 
 The official `connector-catalog.json` uses schema version 1. Every entry contains its canonical connector ID, optional command aliases, supported schemes, immutable HTTPS URL, archive SHA-256, DubUrl API range, target frameworks, and runtime identifiers.
 
-Provider-specific forward rewriting lives in the referenced `providers/DubUrl.Provider.*`
+Provider-specific forward rewriting lives in the referenced `Providers/<Family>/DubUrl.Provider.*`
 implementation projects, not in the connector composition modules. Rewriter source
 and provider fixtures are colocated with their owning implementation package; see
-[provider implementation packages](../providers/README.md). Connector modules keep
+[provider implementation packages](../Providers/README.md). Connector modules keep
 responsibility for selecting the driver and registering the provider. Future reverse
 conversion should follow the same implementation ownership boundary.
 
 Provider implementations use their project-specific namespaces; see
-[provider namespace migration](../providers/NAMESPACES.md). Generated dialect type names
+[provider namespace migration](../Providers/NAMESPACES.md). Generated dialect type names
 use DubUrl.Provider.<Family>.Sql and mapper names use the owning provider's Mapping
 namespace. Existing connector binaries must be rebuilt against the renamed public types.
 Native DuckDB and SqlClient builds also include a typed bulk-copy adapter from

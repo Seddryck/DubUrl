@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <ProjectReference Include="..\..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
-    <ProjectReference Include="..\..\providers\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
   </ItemGroup>
 
   <Target Name="BoundDubUrlDependencyVersions" AfterTargets="_GetProjectReferenceVersions">

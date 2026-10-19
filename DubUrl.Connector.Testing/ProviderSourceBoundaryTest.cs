@@ -9,15 +9,21 @@ public class ProviderSourceBoundaryTest
     [Test]
     public void ProviderSources_UseTheirProjectAndFolderNamespace()
     {
-        var providers = Path.Combine(FindRepositoryRoot(), "providers");
+        var providers = Path.Combine(FindRepositoryRoot(), "Providers");
         var violations = new List<string>();
-        foreach (var project in Directory.EnumerateDirectories(providers, "DubUrl.Provider.*"))
+        var projects = Directory.EnumerateFiles(providers, "DubUrl.Provider.*.csproj", SearchOption.AllDirectories)
+            .Where(path => !path.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj"))
+            .Select(path => Path.GetDirectoryName(path)!).ToArray();
+        Assert.That(projects, Is.Not.Empty);
+        foreach (var project in projects)
         {
+            Assert.That(Path.GetRelativePath(providers, project).Split(Path.DirectorySeparatorChar), Has.Length.EqualTo(2),
+                "Provider and QA projects must live under Providers/<Family>/<Project>.");
             foreach (var file in Directory.EnumerateFiles(project, "*.cs", SearchOption.AllDirectories)
                 .Where(path => !path.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj")))
             {
                 var folder = Path.GetDirectoryName(Path.GetRelativePath(project, file))!;
-                var expected = Path.GetFileName(project) + "." + folder.Replace(Path.DirectorySeparatorChar, '.');
+                var expected = Path.GetFileName(project) + (string.IsNullOrEmpty(folder) ? string.Empty : "." + folder.Replace(Path.DirectorySeparatorChar, '.'));
                 var actual = Regex.Match(File.ReadAllText(file), @"(?m)^namespace ([\w.]+);").Groups[1].Value;
                 if (actual != expected)
                     violations.Add($"{Path.GetRelativePath(providers, file)}: expected {expected}, found {actual}");
@@ -31,7 +37,7 @@ public class ProviderSourceBoundaryTest
     public void ProviderProjects_DoNotLinkImplementationSourcesOrResourcesFromCore()
     {
         var root = FindRepositoryRoot();
-        var providers = Path.Combine(root, "providers");
+        var providers = Path.Combine(root, "Providers");
         var files = Directory.EnumerateFiles(providers, "*", SearchOption.AllDirectories)
             .Where(path => Path.GetExtension(path) is ".csproj" or ".props" or ".targets");
         var violations = files.SelectMany(path => XDocument.Load(path).Descendants()

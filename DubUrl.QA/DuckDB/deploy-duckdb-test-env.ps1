@@ -7,7 +7,7 @@ Param(
 if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.DuckDb.QA\DubUrl.Providers.DuckDb.QA.csproj"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\DuckDb\DubUrl.Provider.DuckDb.QA\DubUrl.Provider.DuckDb.QA.csproj"
 	$driverArchive = Join-Path $env:RUNNER_TEMP "duckdb_odbc.zip"
 	$driverPath = Join-Path $env:RUNNER_TEMP "duckdb_odbc"
 

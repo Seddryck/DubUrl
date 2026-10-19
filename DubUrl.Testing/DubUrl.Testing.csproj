@@ -51,8 +51,8 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
     <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />
-    <ProjectReference Include="..\providers\**\*.csproj" />
-    <Compile Include="..\providers\*\Tests\**\*.cs" Link="Providers\%(RecursiveDir)%(Filename)%(Extension)" />
+    <ProjectReference Include="..\Providers\*\DubUrl.Provider.*\*.csproj" Exclude="..\Providers\*\*.QA\*.csproj" />
+    <Compile Include="..\Providers\*\DubUrl.Provider.*\Tests\**\*.cs" Link="Providers\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">

@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-mysql-bundle-${{ github.sha }}
-          path: DubUrl.Providers.MySql.QA/bin/qa/mysql/*/**
+          path: Providers/MySql/DubUrl.Provider.MySql.QA/bin/qa/mysql/*/**
           include-hidden-files: true
           if-no-files-found: error

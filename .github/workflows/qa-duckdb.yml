@@ -51,6 +51,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-duckdb-bundle-${{ github.sha }}
-          path: DubUrl.Providers.DuckDb.QA/bin/qa/duckdb/*/**
+          path: Providers/DuckDb/DubUrl.Provider.DuckDb.QA/bin/qa/duckdb/*/**
           include-hidden-files: true
           if-no-files-found: error

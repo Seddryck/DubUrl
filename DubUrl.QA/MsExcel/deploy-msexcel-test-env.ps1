@@ -13,7 +13,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 		$install = Start-Process -FilePath $installer -ArgumentList "/quiet" -Wait -WindowStyle Hidden -PassThru
 		if ($install.ExitCode -ne 0) { throw "Microsoft Access Database Engine installation failed with exit code $($install.ExitCode)." }
 	}
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MsExcel.QA\DubUrl.Providers.MsExcel.QA.csproj"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\Excel\DubUrl.Provider.MsExcel.QA\DubUrl.Provider.MsExcel.QA.csproj"
 	Run-ProviderQaSuite -project $project -provider "msexcel" -config $config -frameworks $frameworks
 	exit 0
 }

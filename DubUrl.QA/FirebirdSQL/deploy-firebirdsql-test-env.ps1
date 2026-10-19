@@ -22,12 +22,12 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	try {
 		$env:DUBURL_FIREBIRD_DATABASE = Join-Path $env:RUNNER_TEMP "Customer.fdb"
 		$initScript = Join-Path $env:RUNNER_TEMP "initialize-firebird.sql"
-		$sourceScript = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.FirebirdSql.QA\infrastructure\initialize.sql"
+		$sourceScript = Join-Path $PSScriptRoot "..\..\Providers\FirebirdSql\DubUrl.Provider.FirebirdSql.QA\infrastructure\initialize.sql"
 		(Get-Content $sourceScript) -replace '<path>', $env:DUBURL_FIREBIRD_DATABASE | Set-Content $initScript
 		& (Join-Path $firebirdPath "isql.exe") -u SYSADMIN -p masterkey -i $initScript -b -e -q
 		if ($LASTEXITCODE -ne 0) { throw "FirebirdSQL QA database initialization failed." }
 
-		$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.FirebirdSql.QA\DubUrl.Providers.FirebirdSql.QA.csproj"
+		$project = Join-Path $PSScriptRoot "..\..\Providers\FirebirdSql\DubUrl.Provider.FirebirdSql.QA\DubUrl.Provider.FirebirdSql.QA.csproj"
 		Run-ProviderQaSuite -project $project -provider "firebirdsql" -config $config -frameworks $frameworks
 	}
 	finally {

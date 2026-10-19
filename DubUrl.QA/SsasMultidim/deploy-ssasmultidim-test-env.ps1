@@ -5,5 +5,5 @@ Param(
 
 . $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 
-$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SsasMultidim.QA\DubUrl.Providers.SsasMultidim.QA.csproj"
+$project = Join-Path $PSScriptRoot "..\..\Providers\Adomd\DubUrl.Provider.SsasMultidim.QA\DubUrl.Provider.SsasMultidim.QA.csproj"
 Run-ProviderQaSuite -project $project -provider "ssasmultidim" -config $config -frameworks $frameworks

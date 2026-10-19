@@ -9,7 +9,7 @@ Param(
 
 if ($env:GITHUB_ACTIONS -eq "true") {
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PowerBiDesktop.QA\DubUrl.Providers.PowerBiDesktop.QA.csproj"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\Adomd\DubUrl.Provider.PowerBiDesktop.QA\DubUrl.Provider.PowerBiDesktop.QA.csproj"
 	$pbix = Join-Path $PSScriptRoot "Customer.pbix"
 	$setup = Join-Path $env:RUNNER_TEMP "PBIDesktopSetup_x64.exe"
 	$previouslyRunning = (Get-Process $processName -ErrorAction SilentlyContinue).Length -gt 0

@@ -106,7 +106,7 @@ on a mapper. A `BaseMapper` also delegates this capability automatically when it
 rewriter implements the interface. `ConnectionStringParts` provides shared
 extraction helpers while keyword choices stay in the provider implementation.
 
-Keep provider-specific rules in the owning `providers/DubUrl.Provider.*` project
+Keep provider-specific rules in the owning `Providers/<Family>/DubUrl.Provider.*` project
 or the relevant OleDb/ADOMD extension. Core owns contracts, orchestration,
 diagnostics, and URI encoding. Driver connector modules continue to compose
 implementations through the existing provider registry.

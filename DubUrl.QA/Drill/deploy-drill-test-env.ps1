@@ -7,7 +7,7 @@ Param(
 if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Drill.QA\DubUrl.Providers.Drill.QA.csproj"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\Drill\DubUrl.Provider.Drill.QA\DubUrl.Provider.Drill.QA.csproj"
 	Run-ProviderQaSuite -project $project -provider "drill" -config $config -frameworks $frameworks
 	exit 0
 }

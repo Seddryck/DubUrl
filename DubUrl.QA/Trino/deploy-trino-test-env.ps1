@@ -8,8 +8,8 @@ Param(
 if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\DubUrl.Providers.Trino.QA.csproj"
-	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Trino.QA\infrastructure\compose.yaml"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\Trino\DubUrl.Provider.Trino.QA\DubUrl.Provider.Trino.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\Providers\Trino\DubUrl.Provider.Trino.QA\infrastructure\compose.yaml"
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "Trino" -wait
 	try {
 		$ready = $false

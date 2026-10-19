@@ -51,6 +51,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-timescale-bundle-${{ github.sha }}
-          path: DubUrl.Providers.Timescale.QA/bin/qa/timescale/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.Timescale.QA/bin/qa/timescale/*/**
           include-hidden-files: true
           if-no-files-found: error

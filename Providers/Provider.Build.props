@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Tests\**\*.cs" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+    <InternalsVisibleTo Include="DubUrl.Testing" />
+  </ItemGroup>
+
+  <Target Name="BoundProviderDependencyVersions" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="%(_ProjectReferencesWithVersions.Identity)">
+        <ProjectVersion>[$(Version),1.0.0)</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+</Project>

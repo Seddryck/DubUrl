@@ -61,6 +61,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-postgresql-bundle-${{ github.sha }}
-          path: DubUrl.Providers.PostgreSql.QA/bin/qa/postgresql/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/bin/qa/postgresql/*/**
           include-hidden-files: true
           if-no-files-found: error

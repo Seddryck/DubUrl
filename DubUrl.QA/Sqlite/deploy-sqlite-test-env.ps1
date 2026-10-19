@@ -9,7 +9,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.Sqlite.QA\DubUrl.Providers.Sqlite.QA.csproj"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\Sqlite\DubUrl.Provider.Sqlite.QA\DubUrl.Provider.Sqlite.QA.csproj"
 	Run-ProviderQaSuite `
 		-project $project `
 		-provider "sqlite" `

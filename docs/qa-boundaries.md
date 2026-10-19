@@ -6,9 +6,9 @@ permalink: /qa-boundaries/
 
 Provider QA follows the same ownership boundary as provider production code. A provider named `XYZ` uses these projects:
 
-- `DubUrl.Providers.XYZ` contains production provider registration, mapping, rewriting, dialect, and parameter behavior.
-- `DubUrl.Providers.XYZ.Testing` contains fast unit tests for that production project. It may reference test frameworks and test helpers, but production projects must never reference it.
-- `DubUrl.Providers.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable contracts from `DubUrl.ProviderTesting` and `DubUrl.Schema.Testing.Contracts`.
+- `DubUrl.Provider.XYZ` contains production provider registration, mapping, rewriting, dialect, and parameter behavior.
+- `DubUrl.Provider.XYZ.Testing` contains fast unit tests for that production project. It may reference test frameworks and test helpers, but production projects must never reference it.
+- `DubUrl.Provider.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable contracts from `DubUrl.ProviderTesting` and `DubUrl.Schema.Testing.Contracts`.
 
 Until the production split in #1573 is complete, pilot QA projects reference `DubUrl.Core` directly. This is a migration seam, not a reversal of the dependency direction.
 
@@ -18,28 +18,28 @@ Until the production split in #1573 is complete, pilot QA projects reference `Du
 DubUrl.Core                    DubUrl.Schema
     ^                               ^
     |                               |
-DubUrl.Providers.XYZ          DubUrl.Schema.Testing.Contracts
+DubUrl.Provider.XYZ          DubUrl.Schema.Testing.Contracts
     ^                               ^
     |                               |
-DubUrl.Providers.XYZ.Testing   DubUrl.Providers.XYZ.QA
+DubUrl.Provider.XYZ.Testing   DubUrl.Provider.XYZ.QA
                                     |
 DubUrl.ProviderTesting <------------+
 ```
 
-QA-only packages such as NUnit, Dapper, DbReader, database drivers, test hosts, and adapters belong in testing or QA projects. They must not be added to `DubUrl.Providers.XYZ` to support tests.
+QA-only packages such as NUnit, Dapper, DbReader, database drivers, test hosts, and adapters belong in testing or QA projects. They must not be added to `DubUrl.Provider.XYZ` to support tests.
 
 ## Running a provider suite
 
 Run every capability owned by a provider:
 
 ```powershell
-dotnet test DubUrl.Providers.PostgreSql.QA
+dotnet test Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.PostgreSql.QA.csproj
 ```
 
 Run only its Schema contract:
 
 ```powershell
-dotnet test DubUrl.Providers.PostgreSql.QA --filter "TestCategory=Schema"
+dotnet test Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.PostgreSql.QA.csproj --filter "TestCategory=Schema"
 ```
 
 PostgreSQL accepts `DUBURL_POSTGRESQL_QA_URL` for the DubUrl connection URL and `DUBURL_POSTGRESQL_QA_CONNECTION_STRING` for the driver connection string. Defaults match the bundled Compose environment.
@@ -49,7 +49,7 @@ PostgreSQL accepts `DUBURL_POSTGRESQL_QA_URL` for the DubUrl connection URL and 
 Every provider QA project imports `build/ProviderQaBundle.targets`, owns a validated `qa-manifest.json`, and declares its infrastructure files with `QaInfrastructure`. Create a complete versioned bundle for one target framework with:
 
 ```powershell
-dotnet msbuild DubUrl.Providers.PostgreSql.QA -t:QaBundle -p:TargetFramework=net8.0
+dotnet msbuild Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.PostgreSql.QA.csproj -t:QaBundle -p:TargetFramework=net8.0
 ```
 
 The output under `bin/qa/<provider>/<version>/<framework>/<rid>` contains:

@@ -8,8 +8,8 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CockroachDb.QA\DubUrl.Providers.CockroachDb.QA.csproj"
-	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.CockroachDb.QA\infrastructure\compose.yaml"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.CockroachDb.QA\DubUrl.Provider.CockroachDb.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.CockroachDb.QA\infrastructure\compose.yaml"
 
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "CockroachDB" -wait
 

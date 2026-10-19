@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-cratedb-bundle-${{ github.sha }}
-          path: DubUrl.Providers.CrateDb.QA/bin/qa/cratedb/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.CrateDb.QA/bin/qa/cratedb/*/**
           include-hidden-files: true
           if-no-files-found: error

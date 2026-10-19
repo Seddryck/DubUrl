@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-questdb-bundle-${{ github.sha }}
-          path: DubUrl.Providers.QuestDb.QA/bin/qa/questdb/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.QuestDb.QA/bin/qa/questdb/*/**
           include-hidden-files: true
           if-no-files-found: error

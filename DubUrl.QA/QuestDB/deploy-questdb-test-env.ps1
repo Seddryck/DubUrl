@@ -12,8 +12,8 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	& sudo apt-get install --yes odbc-postgresql postgresql-client
 	if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL clients." }
 
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.QuestDb.QA\DubUrl.Providers.QuestDb.QA.csproj"
-	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.QuestDb.QA\infrastructure"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.QuestDb.QA\DubUrl.Provider.QuestDb.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.QuestDb.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "QuestDB"
 	try {

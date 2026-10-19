@@ -51,6 +51,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-firebirdsql-bundle-${{ github.sha }}
-          path: DubUrl.Providers.FirebirdSql.QA/bin/qa/firebirdsql/*/**
+          path: Providers/FirebirdSql/DubUrl.Provider.FirebirdSql.QA/bin/qa/firebirdsql/*/**
           include-hidden-files: true
           if-no-files-found: error

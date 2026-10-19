@@ -8,8 +8,8 @@ Param(
 if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MsSqlServer.QA\DubUrl.Providers.MsSqlServer.QA.csproj"
-	$infrastructure = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.MsSqlServer.QA\infrastructure"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\DubUrl.Provider.MsSqlServer.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
 	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SQL Server" -wait
 	try {

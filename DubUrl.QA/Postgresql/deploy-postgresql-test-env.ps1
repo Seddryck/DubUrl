@@ -9,8 +9,8 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 
-	$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PostgreSql.QA\DubUrl.Providers.PostgreSql.QA.csproj"
-	$composeFile = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.PostgreSql.QA\infrastructure\compose.yaml"
+	$project = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql.QA\DubUrl.Provider.PostgreSql.QA.csproj"
+	$composeFile = Join-Path $PSScriptRoot "..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql.QA\infrastructure\compose.yaml"
 
 	if ($IsLinux) {
 		& sudo apt-get update

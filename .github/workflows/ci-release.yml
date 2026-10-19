@@ -226,22 +226,22 @@ jobs:
             'DubUrl.Core/DubUrl.csproj'
             'DubUrl.ProviderCore/DubUrl.Core.csproj'
             'DubUrl.Providers/DubUrl.Providers.csproj'
-            'providers/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
-            'providers/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
-            'providers/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj'
-            'providers/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj'
-            'providers/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj'
-            'providers/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj'
-            'providers/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj'
-            'providers/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj'
-            'providers/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj'
-            'providers/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj'
-            'providers/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj'
-            'providers/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj'
-            'providers/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj'
-            'providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
-            'providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
-            'providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
+            'Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
+            'Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
+            'Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj'
+            'Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj'
+            'Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj'
+            'Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj'
+            'Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj'
+            'Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj'
+            'Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj'
+            'Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj'
+            'Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj'
+            'Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj'
+            'Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj'
+            'Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
+            'Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
+            'Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
             'connectors/DubUrl.Connector.Generated/DubUrl.Connector.Generated.csproj'
             'connectors/DubUrl.Connector.PostgreSql.Npgsql/DubUrl.Connector.PostgreSql.Npgsql.csproj'
             'DubUrl.OleDb/DubUrl.OleDb.csproj'
@@ -348,37 +348,37 @@ jobs:
           - package-id: DubUrl.Providers
             project: DubUrl.Providers/DubUrl.Providers.csproj
           - package-id: DubUrl.Provider.Access
-            project: providers/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
+            project: Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
           - package-id: DubUrl.Provider.Db2
-            project: providers/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj
+            project: Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj
           - package-id: DubUrl.Provider.Drill
-            project: providers/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj
+            project: Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj
           - package-id: DubUrl.Provider.DuckDb
-            project: providers/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj
+            project: Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj
           - package-id: DubUrl.Provider.Excel
-            project: providers/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj
+            project: Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj
           - package-id: DubUrl.Provider.FirebirdSql
-            project: providers/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj
+            project: Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj
           - package-id: DubUrl.Provider.MySql
-            project: providers/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj
+            project: Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj
           - package-id: DubUrl.Provider.Odbc
-            project: providers/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj
+            project: Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj
           - package-id: DubUrl.Provider.Oracle
-            project: providers/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj
+            project: Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj
           - package-id: DubUrl.Provider.PostgreSql
-            project: providers/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj
+            project: Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj
           - package-id: DubUrl.Provider.Snowflake
-            project: providers/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj
+            project: Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj
           - package-id: DubUrl.Provider.Sqlite
-            project: providers/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj
+            project: Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj
           - package-id: DubUrl.Provider.SqlServer
-            project: providers/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj
+            project: Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj
           - package-id: DubUrl.Provider.Teradata
-            project: providers/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj
+            project: Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj
           - package-id: DubUrl.Provider.Text
-            project: providers/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj
+            project: Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj
           - package-id: DubUrl.Provider.Trino
-            project: providers/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj
+            project: Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj
           - package-id: DubUrl.OleDb
             project: DubUrl.OleDb/DubUrl.OleDb.csproj
           - package-id: DubUrl.Extensions

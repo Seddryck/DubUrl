@@ -9,7 +9,7 @@ DubUrl publishes deliberately acyclic package layers:
 1. `DubUrl.Core` contains provider-neutral value types and immutable catalog logic. It does not reference
    provider implementations.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
-   `providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
+   `Providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
 3. `DubUrl.Connector.*` packages select provider implementations, concrete drivers, schemes, and explicit
    modules under `connectors/`.
 4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and
@@ -46,8 +46,8 @@ connectors using the same SQL dialect reuse its schema behavior.
 | --- | --- |
 | `DubUrl.Schema` | Models, builders, constraints, dependency planning, expression traversal, templates, native-type validation and fallback, script assembly |
 | `DubUrl.ProviderCore/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
-| `providers/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
-| `providers/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
+| `Providers/<Family>/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
+| `Providers/<Family>/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
 | `connectors/` | Provider/driver composition and distribution; no copied schema templates |
 
 `IDialect.SchemaSqlRenderer` defaults to `StandardSchemaSqlRenderer.Instance`. `BaseDialect` exposes a
@@ -105,7 +105,7 @@ in; ODBC registrations remain unsupported even when they share the exact same SQ
 | --- | --- |
 | `DubUrl.ProviderCore/BulkCopy` (assembly `DubUrl.Core`) | Contracts, deferred adapter activation, scoped optional dependency resolution |
 | `DubUrl.BulkCopy` | Public extension and factory facade; references Core only |
-| `providers/DubUrl.Provider.*` | Driver-independent database behavior and optional adapter declarations |
+| `Providers/<Family>/DubUrl.Provider.*` | Driver-independent database behavior and optional adapter declarations |
 | `connectors/DubUrl.Connector.DuckDb.BulkCopy` | Typed DuckDB appender engine |
 | `connectors/DubUrl.Connector.SqlServer.BulkCopy` | Typed Microsoft.Data.SqlClient bulk engine |
 | Native connector modules | Driver deployment, conditional adapter dependency, provider registration |

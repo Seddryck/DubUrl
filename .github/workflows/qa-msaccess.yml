@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-msaccess-bundle-${{ github.sha }}
-          path: DubUrl.Providers.MsAccess.QA/bin/qa/msaccess/*/**
+          path: Providers/Access/DubUrl.Provider.MsAccess.QA/bin/qa/msaccess/*/**
           include-hidden-files: true
           if-no-files-found: error

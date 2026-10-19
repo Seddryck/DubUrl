@@ -5,5 +5,5 @@ Param(
 
 . $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 
-$project = Join-Path $PSScriptRoot "..\..\DubUrl.Providers.SsasTabular.QA\DubUrl.Providers.SsasTabular.QA.csproj"
+$project = Join-Path $PSScriptRoot "..\..\Providers\Adomd\DubUrl.Provider.SsasTabular.QA\DubUrl.Provider.SsasTabular.QA.csproj"
 Run-ProviderQaSuite -project $project -provider "ssastabular" -config $config -frameworks $frameworks

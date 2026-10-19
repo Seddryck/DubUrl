@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>SQL Server dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
+  <Import Project="..\..\Provider.Build.props" />
+</Project>
