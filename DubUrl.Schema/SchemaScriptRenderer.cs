@@ -46,7 +46,7 @@ namespace DubUrl.Schema;
         {
             var tableRenderer = new TableViewModel(
                 table.Value,
-                (Dialect.Capabilities ?? DialectCapabilities.Default).IdentityColumns == IdentityColumnSyntax.SqliteTableConstraint);
+                Dialect.SchemaSqlRenderer.RenderForeignKeysInline(Dialect));
             tables.Add(tableRenderer);
         }
         var indexes = schema.Indexes.Values.Select(index => new IndexViewModel(index)).ToArray();

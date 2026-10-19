@@ -20,4 +20,7 @@ public interface IDialect
     IDbTypeMapper DbTypeMapper { get; }
     ISqlFunctionMapper SqlFunctionMapper { get; }
     DialectCapabilities Capabilities { get; }
+
+    /// <summary>SQL syntax used by schema generation; override for provider-specific operations.</summary>
+    ISchemaSqlRenderer SchemaSqlRenderer => StandardSchemaSqlRenderer.Instance;
 }

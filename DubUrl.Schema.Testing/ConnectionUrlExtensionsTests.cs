@@ -38,6 +38,7 @@ public class ConnectionUrlExtensionsTests
         renderer.Setup(x => x.Render(It.IsAny<object?>(), It.IsAny<string>()));
 
         var dialect = new Mock<IDialect>();
+        dialect.SetupGet(x => x.SchemaSqlRenderer).Returns(StandardSchemaSqlRenderer.Instance);
         dialect.Setup(x => x.DbTypeMapper).Returns(dbTypeMapper.Object);
         dialect.Setup(x => x.SqlFunctionMapper).Returns(sqlFunctionMapper.Object);
         dialect.Setup(x => x.Renderer).Returns(renderer.Object);
