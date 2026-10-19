@@ -1,6 +1,6 @@
-﻿using DubUrl.Provider.FirebirdSql.Rewriting;
-using DubUrl.Testing;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Provider.FirebirdSql.Rewriting;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Rewriting;
 using DubUrl.Parsing;
 using NUnit.Framework;
 using System;

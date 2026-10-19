@@ -1,6 +1,6 @@
-﻿using DubUrl.Provider.Trino.Rewriting;
-using DubUrl.Testing;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Provider.Trino.Rewriting;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Rewriting;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;

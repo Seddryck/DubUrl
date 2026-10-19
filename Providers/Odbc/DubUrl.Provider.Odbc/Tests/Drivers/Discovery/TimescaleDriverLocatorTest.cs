@@ -1,6 +1,6 @@
-﻿using DubUrl.Provider.Odbc.Drivers.Discovery;
-using DubUrl.Testing;
-using DubUrl.Testing.Locating.OdbcDriver;
+using DubUrl.Provider.Odbc.Drivers.Discovery;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Locating.OdbcDriver;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Locating.Options;
 using NUnit.Framework;

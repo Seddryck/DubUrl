@@ -25,7 +25,7 @@
       "DubUrl.Schema.Documents\\DubUrl.Schema.Documents.csproj",
       "DubUrl.Schema.Testing\\DubUrl.Schema.Testing.csproj",
       "DubUrl.Schema\\DubUrl.Schema.csproj",
-      "DubUrl.Testing\\DubUrl.Testing.csproj",
+      "DubUrl.Core.Testing\\DubUrl.Core.Testing.csproj",
       "Providers\\DuckDb\\DubUrl.Provider.DuckDb.Native.BulkCopy\\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj",
       "Providers\\SqlServer\\DubUrl.Provider.SqlServer.SqlClient.BulkCopy\\DubUrl.Provider.SqlServer.SqlClient.BulkCopy.csproj",
       "Providers\\Build\\ProviderBinding.Build.csproj",

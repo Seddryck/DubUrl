@@ -1,6 +1,6 @@
-﻿using DubUrl.Provider.PostgreSql.Rewriting;
-using DubUrl.Testing;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Provider.PostgreSql.Rewriting;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Rewriting;
 using DubUrl.Parsing;
 using Npgsql;
 using NUnit.Framework;

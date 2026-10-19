@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Didot.Core" Version="0.34.0" />
-    <InternalsVisibleTo Include="DubUrl.Testing" />
+    <InternalsVisibleTo Include="DubUrl.Core.Testing" />
   </ItemGroup>
 
 </Project>

@@ -1,13 +1,13 @@
-﻿using DubUrl.Provider.SqlServer.Mapping;
+using DubUrl.Provider.SqlServer.Mapping;
 using DubUrl.Provider.SqlServer.Sql;
 using DubUrl.Provider.SqlServer.Sql.Functions;
 using DubUrl.Provider.SqlServer.Sql.Rendering;
 using DubUrl.Provider.SqlServer.Sql.Types;
-using DubUrl.Testing;
-using DubUrl.Testing.Mapping;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Mapping;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Core.Testing.Rewriting;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

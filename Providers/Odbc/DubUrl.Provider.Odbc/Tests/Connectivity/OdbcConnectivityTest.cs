@@ -1,7 +1,7 @@
-﻿using DubUrl.Provider.Odbc.Connectivity;
-using DubUrl.Testing;
-using DubUrl.Testing.Mapping;
-using DubUrl.Testing.Mapping.Connectivity;
+using DubUrl.Provider.Odbc.Connectivity;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Mapping;
+using DubUrl.Core.Testing.Mapping.Connectivity;
 using DubUrl.Mapping;
 using DubUrl.Mapping.Connectivity;
 using NUnit.Framework;

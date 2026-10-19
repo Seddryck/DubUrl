@@ -1,6 +1,6 @@
-﻿using DubUrl.Provider.Db2.Rewriting;
-using DubUrl.Testing;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Provider.Db2.Rewriting;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Rewriting;
 using DubUrl.Parsing;
 using IBM.Data.Db2;
 using NUnit.Framework;

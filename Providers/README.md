@@ -51,13 +51,13 @@ and URL model remain in `DubUrl.Core`. Assembly identities remain unchanged; pro
 namespaces now start with their owning project name.
 
 Provider rewriting fixtures live under each package's `Tests/Rewriting`
-directory. Production projects exclude `Tests/**/*.cs`; `DubUrl.Testing` includes
+directory. Production projects exclude `Tests/**/*.cs`; `DubUrl.Core.Testing` includes
 these fixtures explicitly so the shared test runner and provider registrations are
 preserved. Shared rewriting and cross-provider boundary tests remain central.
 
 Database declarations, branding attributes, native mappers, and ODBC mappers are physically
 owned under each provider's Metadata and Mapping directories. Provider-specific mapping fixtures live
-under Tests/Mapping and are included by the shared DubUrl.Testing runner. Core retains
+under Tests/Mapping and are included by the shared DubUrl.Core.Testing runner. Core retains
 only reusable mapping contracts and catalog infrastructure; connector modules select
 the concrete driver and register these implementations.
 

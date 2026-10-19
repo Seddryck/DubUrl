@@ -127,7 +127,7 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            'DubUrl',
+            'DubUrl.Core',
             'DubUrl.Provider',
             'DubUrl.OleDb',
             'DubUrl.Extensions',
@@ -164,7 +164,7 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            'DubUrl',
+            'DubUrl.Core',
             'DubUrl.Provider',
             'DubUrl.OleDb',
             'DubUrl.Extensions',

@@ -1,7 +1,7 @@
-﻿using DubUrl.Provider.DuckDb.Sql.Formatting;
-using DubUrl.Testing;
-using DubUrl.Testing.Querying.Dialects;
-using DubUrl.Testing.Querying.Dialects.Formatters;
+using DubUrl.Provider.DuckDb.Sql.Formatting;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Querying.Dialects;
+using DubUrl.Core.Testing.Querying.Dialects.Formatters;
 using DubUrl.Querying.Dialects.Formatters;
 using NUnit.Framework;
 using System;
