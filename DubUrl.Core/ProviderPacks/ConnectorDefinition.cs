@@ -12,6 +12,8 @@ public sealed record ConnectorDefinition
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Sha256 { get; init; }
     public IReadOnlyList<string> Aliases { get; init; } = [];
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DatabaseName { get; init; }
 
     public required string Provider { get; init; }
     public required string Version { get; init; }

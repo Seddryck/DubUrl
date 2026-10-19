@@ -100,10 +100,11 @@ that does not reference the compatibility aggregate or unrelated providers.
 
 Applications using explicit modules install only the selected packages and pass their built registry
 to `ConnectionUrl` or `ConnectionUrlFactory`. Existing applications can continue using the `DubUrl`
-compatibility aggregate, which supplies the built-in catalog. Adding an independently registered
-connector does not require editing that built-in catalog. Including it in the official distribution
-does require the applicable `connectors/connector-matrix.json`, generated composition, catalog,
-package/dependency, and documentation inventory updates. Adding it to the compatibility aggregate
+compatibility aggregate, which reads an embedded connector catalog. Adding an independently registered
+connector does not require editing a built-in provider list. Including it in the official distribution
+requires updating `connectors/connector-matrix.json`, the applicable package/dependencies, and documentation.
+The shared generator produces its catalog and local definition; the aggregate automatically includes its
+database name and schemes in its metadata view. Adding executable registrations to the compatibility aggregate
 is a separate composition decision. None of these inventories belong in the provider-neutral Core.
 
 ## ODBC locator options and factories

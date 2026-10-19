@@ -68,11 +68,15 @@ managed dependencies, and required native assets.
 
 The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
 Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
-identity, installation aliases, schemes, module assembly/type, and API/TFM/RID compatibility.
+identity, an optional `databaseName` display/grouping label, installation aliases, schemes, module assembly/type, and API/TFM/RID compatibility.
 The build generates the local definition from `connector-matrix.json`, then adds the download URL and
 archive SHA-256 to that same definition for the catalog. These distribution fields are optional in the
 model and omitted locally. Core loads installed definitions without needing the catalog or a network.
 Catalogs generated before module metadata was included must be regenerated.
+
+The aggregate also embeds this catalog's definitions during its normal SDK build. `BuiltInProviderCatalog.Create()`
+groups its entries by `databaseName` instead of maintaining a separate provider list. Aggregate and archive
+definitions come from the same generator and matrix; download fields are added only after archives exist.
 
 Connector archives exclude Core and its resolved runtime dependencies, including Didot's libraries.
 The loader resolves those assemblies from the host; provider and driver dependencies outside Core's

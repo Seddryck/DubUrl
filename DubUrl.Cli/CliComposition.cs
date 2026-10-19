@@ -98,6 +98,7 @@ public static class CliComposition
                 entries.Add(new ConnectorDefinition
                 {
                     Provider = provider, Version = version, DownloadUri = uri, Sha256 = sha256,
+                    DatabaseName = section["DatabaseName"],
                     Aliases = section.GetSection("Aliases").Get<string[]>() ?? [],
                     Schemes = section.GetSection("Schemes").Get<string[]>() ?? [],
                     DubUrlApiRange = section["DubUrlApiRange"] ?? string.Empty,

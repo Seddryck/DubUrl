@@ -86,6 +86,9 @@ foreach ($entry in $entries) {
             throw "Connector '$($entry.provider)' duplicates a host Core dependency."
         }
         $definition = $matrix.connectors | Where-Object id -CEQ $entry.provider
+        if ($entry.databaseName -cne $definition.database) {
+            throw "Connector '$($entry.provider)' does not use its database name from the matrix."
+        }
         if ($manifest.module.assembly -cne "$($definition.assemblyName).dll") {
             throw "Connector '$($entry.provider)' does not use its declared provider binding assembly name."
         }

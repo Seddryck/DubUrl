@@ -1,0 +1,86 @@
+<Project>
+  <!-- Standard .NET JSON readers/writers keep generation independent of external tools/packages. -->
+  <UsingTask TaskName="GenerateDubUrlConnectorCatalog" TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <MatrixPath ParameterType="System.String" Required="true" />
+      <OutputPath ParameterType="System.String" Required="true" />
+      <Version ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Using Namespace="System.Runtime.Serialization.Json" />
+      <Using Namespace="System.Xml" />
+      <Using Namespace="System.Xml.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var version = Regex.Match(Version, @"^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:[-+].+)?$");
+        if (!version.Success) {
+            Log.LogError("Connector version '{0}' is not valid SemVer.", Version);
+            return false;
+        }
+        XElement matrix;
+        using (var reader = JsonReaderWriterFactory.CreateJsonReader(File.ReadAllBytes(MatrixPath), XmlDictionaryReaderQuotas.Max))
+            matrix = XElement.Load(reader);
+        if (matrix.Element("schemaVersion").Value != "1") {
+            Log.LogError("Expected connector matrix schema version 1.");
+            return false;
+        }
+        var ready = matrix.Element("connectors").Elements("item").Where(row => row.Element("status").Value == "ready")
+            .OrderBy(row => row.Element("id").Value, StringComparer.Ordinal).ToArray();
+        if (ready.Select(row => row.Element("id").Value).Distinct(StringComparer.OrdinalIgnoreCase).Count() != ready.Length
+            || ready.Select(row => row.Element("assemblyName").Value).Distinct(StringComparer.OrdinalIgnoreCase).Count() != ready.Length) {
+            Log.LogError("Connector IDs and provider binding assembly names must be unique.");
+            return false;
+        }
+        var range = "[" + version.Groups["major"].Value + "." + version.Groups["minor"].Value + "." + version.Groups["patch"].Value
+            + "," + (int.Parse(version.Groups["major"].Value) + 1) + ".0.0)";
+        // JsonReaderWriterFactory exposes JSON objects/arrays as typed XML nodes.
+        var entries = new XElement("entries", new XAttribute("type", "array"));
+        foreach (var row in ready) {
+            var assembly = row.Element("assemblyName").Value;
+            var database = row.Element("database").Value;
+            if (string.IsNullOrWhiteSpace(database) || string.IsNullOrWhiteSpace(assembly)) {
+                Log.LogError("Every connector requires a database name and binding assembly name.");
+                return false;
+            }
+            entries.Add(new XElement("item", new XAttribute("type", "object"),
+                new XElement("provider", row.Element("id").Value),
+                new XElement("databaseName", database),
+                new XElement("version", Version),
+                new XElement("dubUrlApiRange", range),
+                new XElement("module", new XAttribute("type", "object"),
+                    new XElement("assembly", assembly + ".dll"), new XElement("type", assembly + ".ProviderModule")),
+                new XElement(row.Element("defaultAliases")) { Name = "aliases" },
+                new XElement(row.Element("schemes")),
+                new XElement("targetFrameworks", new XAttribute("type", "array"),
+                    new[] { "net8.0", "net9.0", "net10.0" }.Select(value => new XElement("item", value))),
+                new XElement(row.Element("runtimeIdentifiers"))));
+        }
+        var document = new XElement("root", new XAttribute("type", "object"),
+            new XElement("schemaVersion", new XAttribute("type", "number"), "1"), entries);
+        string json;
+        using (var buffer = new MemoryStream()) {
+            using (var writer = JsonReaderWriterFactory.CreateJsonWriter(buffer, Encoding.UTF8, false, true, "  ")) {
+                document.WriteTo(writer);
+                writer.Flush();
+            }
+            json = Encoding.UTF8.GetString(buffer.ToArray()) + "\n";
+        }
+        Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
+        if (!File.Exists(OutputPath) || File.ReadAllText(OutputPath) != json)
+            File.WriteAllText(OutputPath, json, new UTF8Encoding(false));
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="GenerateConnectorCatalog">
+    <PropertyGroup>
+      <ConnectorMatrixPath Condition="'$(ConnectorMatrixPath)' == ''">$(MSBuildThisFileDirectory)connector-matrix.json</ConnectorMatrixPath>
+      <ConnectorCatalogOutput Condition="'$(ConnectorCatalogOutput)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'connector-catalog.json'))</ConnectorCatalogOutput>
+    </PropertyGroup>
+    <GenerateDubUrlConnectorCatalog MatrixPath="$(ConnectorMatrixPath)" OutputPath="$(ConnectorCatalogOutput)" Version="$(Version)" />
+  </Target>
+</Project>

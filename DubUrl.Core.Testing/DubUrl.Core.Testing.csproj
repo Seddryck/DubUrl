@@ -49,6 +49,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\connectors\connector-matrix.json" Link="connector-matrix.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\DubUrl\DubUrl.csproj" />
     <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />
     <ProjectReference Include="..\Providers\*\DubUrl.Provider.*\*.csproj" Exclude="..\Providers\*\*.QA\*.csproj" />

@@ -20,6 +20,8 @@ using DubUrl.Locating.OdbcDriver;
 using DubUrl.Providers;
 using DubUrl.Querying.Dialects;
 using NUnit.Framework;
+using DubUrl.Core.ProviderPacks;
+using System.Text.Json;
 
 namespace DubUrl.Core.Testing.Mapping;
 
@@ -165,5 +167,55 @@ public class ProviderAssemblyBoundaryTest
             Assert.That(providers, Is.Not.Empty);
             Assert.That(providers.Select(provider => provider.Source), Is.All.EqualTo("mapping"));
         });
+    }
+
+    [Test]
+    public void EmbeddedConnectorCatalog_UsesTheCurrentMatrixWithoutDistributionArtifacts()
+    {
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "connector-matrix.json")));
+        var ready = matrix.RootElement.GetProperty("connectors").EnumerateArray()
+            .Where(row => row.GetProperty("status").GetString() == "ready").ToArray();
+        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        var catalog = ProviderPackCatalogDocument.Read(resource);
+
+        Assert.That(catalog.Entries.Select(entry => entry.Provider), Is.EquivalentTo(ready.Select(row => row.GetProperty("id").GetString())));
+        foreach (var row in ready)
+        {
+            var entry = catalog.Entries.Single(entry => entry.Provider == row.GetProperty("id").GetString());
+            Assert.Multiple(() =>
+            {
+                Assert.That(entry.DatabaseName, Is.EqualTo(row.GetProperty("database").GetString()));
+                Assert.That(entry.Module.Assembly, Is.EqualTo(row.GetProperty("assemblyName").GetString() + ".dll"));
+                Assert.That(entry.Module.Type, Is.EqualTo(row.GetProperty("assemblyName").GetString() + ".ProviderModule"));
+                Assert.That(entry.Schemes, Is.EquivalentTo(row.GetProperty("schemes").EnumerateArray().Select(value => value.GetString())));
+                Assert.That(entry.Aliases, Is.EquivalentTo(row.GetProperty("defaultAliases").EnumerateArray().Select(value => value.GetString())));
+                Assert.That(entry.RuntimeIdentifiers, Is.EquivalentTo(row.GetProperty("runtimeIdentifiers").EnumerateArray().Select(value => value.GetString())));
+                Assert.That(entry.DownloadUri, Is.Null);
+                Assert.That(entry.Sha256, Is.Null);
+            });
+        }
+    }
+
+    [Test]
+    public void BuiltInCatalog_GroupsAllCatalogSchemesByDatabase()
+    {
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "connector-matrix.json")));
+        var databases = matrix.RootElement.GetProperty("connectors").EnumerateArray()
+            .Where(row => row.GetProperty("status").GetString() == "ready")
+            .GroupBy(row => row.GetProperty("database").GetString()!).ToArray();
+        var catalog = BuiltInProviderCatalog.Create();
+
+        Assert.That(catalog.Providers.Select(provider => provider.Name), Is.EquivalentTo(databases.Select(database => database.Key)));
+        foreach (var database in databases)
+        {
+            var schemes = database.SelectMany(row => row.GetProperty("schemes").EnumerateArray().Select(value => value.GetString()!)).Distinct().ToArray();
+            var provider = catalog.Providers.Single(provider => provider.Name == database.Key);
+            Assert.That(provider.Schemes, Is.EquivalentTo(schemes), database.Key);
+            foreach (var scheme in schemes)
+            {
+                Assert.That(catalog.TryGetByScheme(scheme.ToUpperInvariant(), out var resolved), Is.True, scheme);
+                Assert.That(resolved, Is.SameAs(provider));
+            }
+        }
     }
 }

@@ -21,11 +21,6 @@ $epoch = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-if ($Version -notmatch '^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:[-+].+)?$') {
-    throw "Connector version '$Version' is not valid SemVer."
-}
-$apiRange = "[$($Matches.major).$($Matches.minor).$($Matches.patch),$([int]$Matches.major + 1).0.0)"
-
 $technologies = @{
     'Npgsql' = @{ Key = 'Npgsql'; Invariant = 'Npgsql'; Factory = 'Npgsql.NpgsqlFactory, Npgsql' }
     'IBM.Data.Db2' = @{ Key = 'Db2'; Invariant = 'IBM.Data.Db2'; Factory = 'IBM.Data.Db2.DB2Factory, IBM.Data.Db2' }
@@ -75,6 +70,12 @@ $ready = @($matrix.connectors | Where-Object status -eq 'ready' | Sort-Object id
 if (@($ready.assemblyName | Select-Object -Unique).Count -ne $ready.Count) {
     throw 'Provider binding assembly names must be unique.'
 }
+$definitionsPath = Join-Path $stagingRoot 'connector-catalog.json'
+Invoke-Checked dotnet @(
+    'msbuild', (Join-Path $PSScriptRoot 'ConnectorCatalog.proj'), '-verbosity:quiet',
+    "-p:Version=$Version", "-p:ConnectorCatalogOutput=$definitionsPath"
+)
+$definitions = (Get-Content -LiteralPath $definitionsPath -Raw | ConvertFrom-Json -AsHashtable).entries
 $catalogEntries = [Collections.Generic.List[object]]::new()
 
 foreach ($connector in $ready) {
@@ -86,7 +87,6 @@ foreach ($connector in $ready) {
     if ($assemblyName -cnotmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$') {
         throw "Connector '$($connector.id)' must name its binding DubUrl.Provider.<Database>.<Driver>."
     }
-    $moduleType = "$assemblyName.ProviderModule"
     $mapperAssembly = if ($technology.Key -eq 'Odbc') { 'DubUrl.Provider.Odbc' }
         elseif ($technology.Key -eq 'OleDb') { 'DubUrl.OleDb' }
         else { "DubUrl.Provider.$($connector.family)" }
@@ -146,16 +146,9 @@ foreach ($connector in $ready) {
     if (-not (Test-Path -LiteralPath (Join-Path $contentRoot $moduleFile) -PathType Leaf)) {
         throw "Connector '$($connector.id)' publish output is missing module '$moduleFile'."
     }
-    $manifest = [ordered]@{
-        provider = $connector.id
-        version = $Version
-        dubUrlApiRange = $apiRange
-        module = [ordered]@{ assembly = $moduleFile; type = $moduleType }
-        aliases = @($connector.defaultAliases)
-        schemes = @($connector.schemes)
-        targetFrameworks = @('net8.0', 'net9.0', 'net10.0')
-        runtimeIdentifiers = @($connector.runtimeIdentifiers)
-    }
+    $manifest = @($definitions | Where-Object { $_.provider -ceq $connector.id })
+    if ($manifest.Count -ne 1) { throw "Missing or ambiguous connector definition '$($connector.id)'." }
+    $manifest = $manifest[0]
     $manifestPath = Join-Path $stagingRoot "$($connector.id)/provider-pack.json"
     Write-Utf8Json $manifestPath $manifest
 

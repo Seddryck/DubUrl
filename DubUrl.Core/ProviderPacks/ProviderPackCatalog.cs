@@ -7,6 +7,24 @@ public sealed record ProviderPackCatalogDocument(
     IReadOnlyList<ConnectorDefinition> Entries)
 {
     public const int CurrentSchemaVersion = 1;
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    /// <summary>Reads connector definitions, including catalogs without optional distribution fields.</summary>
+    public static ProviderPackCatalogDocument Read(Stream stream)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        var document = JsonSerializer.Deserialize<ProviderPackCatalogDocument>(stream, JsonOptions)
+            ?? throw new InvalidDataException("The connector catalog is empty.");
+        if (document.SchemaVersion != CurrentSchemaVersion)
+            throw new InvalidDataException(
+                $"Connector catalog schema version '{document.SchemaVersion}' is not supported; expected '{CurrentSchemaVersion}'.");
+        if (document.Entries is null)
+            throw new InvalidDataException("The connector catalog does not contain an entries collection.");
+        foreach (var entry in document.Entries)
+            if (entry is null || !entry.HasCompleteMetadata())
+                throw new InvalidDataException("The connector catalog has incomplete connector metadata.");
+        return document;
+    }
 }
 
 /// <summary>
@@ -14,7 +32,6 @@ public sealed record ProviderPackCatalogDocument(
 /// </summary>
 public sealed class ProviderPackCatalog
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly IReadOnlyDictionary<string, ConnectorDefinition> _entries;
     private readonly IReadOnlyCollection<ConnectorDefinition> _canonicalEntries;
 
@@ -38,15 +55,7 @@ public sealed class ProviderPackCatalog
 
     public static ProviderPackCatalog Read(Stream stream)
     {
-        ArgumentNullException.ThrowIfNull(stream);
-        var document = JsonSerializer.Deserialize<ProviderPackCatalogDocument>(stream, JsonOptions)
-            ?? throw new InvalidDataException("The connector catalog is empty.");
-        if (document.SchemaVersion != ProviderPackCatalogDocument.CurrentSchemaVersion)
-            throw new InvalidDataException(
-                $"Connector catalog schema version '{document.SchemaVersion}' is not supported; expected '{ProviderPackCatalogDocument.CurrentSchemaVersion}'.");
-        if (document.Entries is null)
-            throw new InvalidDataException("The connector catalog does not contain an entries collection.");
-
+        var document = ProviderPackCatalogDocument.Read(stream);
         foreach (var entry in document.Entries)
             ValidateOfficialEntry(entry);
         return new(document.Entries);

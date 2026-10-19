@@ -104,7 +104,7 @@ public class ProviderPackCatalogTest
     public void LocalDefinition_AndEnrichedCatalog_UseTheSameModel()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var local = Entry("postgresql-npgsql", "pg") with { DownloadUri = null, Sha256 = null };
+        var local = Entry("postgresql-npgsql", "pg") with { DatabaseName = "PostgreSQL", DownloadUri = null, Sha256 = null };
         var localJson = JsonSerializer.Serialize(local, options);
         var restored = JsonSerializer.Deserialize<ConnectorDefinition>(localJson, options)!;
         var distributed = restored with { DownloadUri = new Uri("https://example.test/pg.zip"), Sha256 = new string('0', 64) };
@@ -117,6 +117,7 @@ public class ProviderPackCatalogTest
         {
             Assert.That(localJson, Does.Not.Contain("downloadUri").And.Not.Contain("\"sha256\":null"));
             Assert.That(entry.Module, Is.EqualTo(local.Module));
+            Assert.That(entry.DatabaseName, Is.EqualTo("PostgreSQL"));
             Assert.That(localJson, Does.Not.Contain("\"assets\""));
             Assert.That(entry.Aliases, Is.EqualTo(local.Aliases));
             Assert.That(JsonSerializer.Serialize(entry with { DownloadUri = null, Sha256 = null }, options), Is.EqualTo(localJson));

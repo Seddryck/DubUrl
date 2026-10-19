@@ -52,4 +52,11 @@
       </_ProjectReferencesWithVersions>
     </ItemGroup>
   </Target>
+
+  <Import Project="../connectors/ConnectorCatalog.targets" />
+  <Target Name="EmbedConnectorCatalog" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateConnectorCatalog">
+    <ItemGroup>
+      <EmbeddedResource Include="$(ConnectorCatalogOutput)" LogicalName="DubUrl.ConnectorCatalog" />
+    </ItemGroup>
+  </Target>
 </Project>
