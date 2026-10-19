@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.Odbc.Connectivity;
 using DubUrl.Provider.Odbc.Drivers.Discovery;
 using DubUrl.Provider.Odbc.Rewriting;
@@ -18,7 +18,7 @@ using DubUrl.Rewriting;
 
 namespace DubUrl.Provider.Odbc.Mapping;
 
-[WrapperMapper<OdbcConnectivity, NamedParametrizer>(
+[WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
     "System.Data.Odbc"
 )]
 public class TrinoOdbcMapper : BaseMapper, IOdbcMapper

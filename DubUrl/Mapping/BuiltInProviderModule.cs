@@ -112,7 +112,7 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
             context => new OdbcDbqMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
         AddOdbc<PositionalParametrizer>(catalog, dialects, "Timescale", ["ts", "timescale"], typeof(PgsqlDialect),
             context => new OdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
-        AddOdbc<NamedParametrizer>(catalog, dialects, "Trino", ["tr", "trino"], typeof(TrinoDialect),
+        AddOdbc<PositionalParametrizer>(catalog, dialects, "Trino", ["tr", "trino"], typeof(TrinoDialect),
             context => new TrinoOdbcMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, new BuiltInDriverLocatorFactory(), context.OdbcLocatorOptions));
 
         catalog.AddOdbcLocatorOption<ArchitectureOption>();
