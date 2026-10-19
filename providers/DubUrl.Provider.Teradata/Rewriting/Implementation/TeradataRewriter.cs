@@ -1,0 +1,67 @@
+using DubUrl.Parsing;
+using DubUrl.Rewriting.Tokening;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DubUrl.Rewriting.Implementation;
+
+internal class TeradataRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
+{
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => DubUrl.Conversion.Implementation.TeradataConnectionStringReverser.Convert(scheme, source);
+
+    private const string EXCEPTION_DATABASE_NAME = "Teradata";
+    internal const string SERVER_KEYWORD = "Data Source";
+    internal const string PORT_KEYWORD = "Port Number";
+    internal const string DATABASE_KEYWORD = "Database";
+    internal const string USERNAME_KEYWORD = "User Id";
+    internal const string PASSWORD_KEYWORD = "Password";
+    internal const string SSPI_KEYWORD = "Integrated Security";
+
+    public TeradataRewriter(DbConnectionStringBuilder csb)
+        : base(new Specificator(csb),
+              [
+                new DataSourceMapper(),
+                new PortNumberMapper(),
+                new SingleSegmentTokenMapper(DATABASE_KEYWORD, EXCEPTION_DATABASE_NAME, required: false),
+                new AuthentificationMapper(),
+              ]
+        )
+    { }
+
+    internal class DataSourceMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            Specificator.Execute(SERVER_KEYWORD, urlInfo.Host);
+        }
+    }
+
+    internal class PortNumberMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            if (urlInfo.Port > 0)
+                Specificator.Execute(PORT_KEYWORD, urlInfo.Port);
+        }
+    }
+
+    internal class AuthentificationMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            if (!string.IsNullOrEmpty(urlInfo.Username))
+                Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+            if (!string.IsNullOrEmpty(urlInfo.Password))
+                Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
+
+            if (!urlInfo.Options.ContainsKey(SSPI_KEYWORD))
+                Specificator.Execute(SSPI_KEYWORD,
+                    string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password));
+        }
+    }
+}

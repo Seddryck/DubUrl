@@ -79,7 +79,7 @@ public sealed class ConnectionUri : IEquatable<ConnectionUri>
             builder.Append('@');
         }
 
-        builder.Append(Host.Contains(':') ? $"[{Host}]" : Host);
+        builder.Append(Host.Contains(':') ? $"[{Host.Trim('[', ']')}]" : Host);
         if (Port > 0)
             builder.Append(':').Append(Port);
 
@@ -90,10 +90,19 @@ public sealed class ConnectionUri : IEquatable<ConnectionUri>
         {
             builder.Append('?');
             builder.AppendJoin('&', Options.Select(option =>
-                $"{Uri.EscapeDataString(option.Key)}={Uri.EscapeDataString(option.Value)}"));
+                $"{Uri.EscapeDataString(option.Key)}={Uri.EscapeDataString(redactPassword && IsSensitiveOption(option.Key) ? "***" : option.Value)}"));
         }
 
         return builder.ToString();
+    }
+
+    private static bool IsSensitiveOption(string key)
+    {
+        var normalized = key.Replace(" ", "").Replace("_", "").Replace("-", "").ToLowerInvariant();
+        return normalized is "pwd" or "passwd"
+            || normalized.EndsWith("password", StringComparison.Ordinal)
+            || normalized.EndsWith("token", StringComparison.Ordinal)
+            || normalized.EndsWith("secret", StringComparison.Ordinal);
     }
 
     public bool Equals(ConnectionUri? other)

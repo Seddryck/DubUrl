@@ -3,7 +3,6 @@
   <ItemGroup>
     <Compile Include="..\..\DubUrl.Core\Mapping\Database\Db2Database.cs" Link="Mapping\Database\Db2Database.cs" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\Db2Mapper.cs" Link="Mapping\Implementation\Db2Mapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\Db2Rewriter.cs" Link="Rewriting\Implementation\Db2Rewriter.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Db2Dialect.cs" Link="Querying\Dialects\Db2Dialect.cs" />
   </ItemGroup>
   <Import Project="..\Provider.Build.props" />

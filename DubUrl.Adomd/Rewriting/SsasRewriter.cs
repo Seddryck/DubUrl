@@ -14,8 +14,29 @@ using System.Xml.Schema;
 
 namespace DubUrl.Adomd.Rewriting;
 
-internal abstract class SsasRewriter : ConnectionStringRewriter
+internal abstract class SsasRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source);
+        var endpoint = p.Take("Data Source");
+        var instance = endpoint.Split('\\');
+        if (instance.Length > 2) throw new NotSupportedException();
+        var hostPort = instance[0].Split(':');
+        p.Host = hostPort[0];
+        if (hostPort.Length == 2) p.Port = int.Parse(hostPort[1], System.Globalization.CultureInfo.InvariantCulture);
+        if (instance.Length == 2) p.Segments.Add(instance[1]);
+        else p.Segments.Add("~");
+        p.Segments.Add(p.Take("Database", "Initial Catalog"));
+        var cube = p.Take("Cube");
+        if (cube.Length > 0) p.Segments.Add(cube);
+        p.TakeCredentials("User ID", "Password");
+        // The existing SSAS forward mapper always emits SSPI using unique assignment.
+        if (!string.Equals(p.Take("Integrated Security"), "sspi", StringComparison.OrdinalIgnoreCase))
+            throw new NotSupportedException();
+        return p.ToUri(scheme);
+    }
+
     protected internal const string SERVER_KEYWORD = "Data Source";
     protected internal const string DATABASE_KEYWORD = "Database";
     protected internal const string CUBE_KEYWORD = "Cube";
@@ -46,7 +67,7 @@ internal abstract class SsasRewriter : ConnectionStringRewriter
             if (urlInfo.Port != 0)
             {
                 fullHost.Append(':').Append(urlInfo.Port);
-                if (!urlInfo.Segments.First().Equals('~'))
+                if (!urlInfo.Segments[0].Equals("~", StringComparison.Ordinal))
                     throw new InvalidConnectionUrlException($"The connection-url for 'Microsoft SQL Server Analysis Service Multidimensional' cannot specify both a port and an instance name. This connection-url is containing the following port {urlInfo.Port} and instance name '{urlInfo.Segments.First()}'. To specify the default instance use the '~' character.");
             }
             if (urlInfo.Segments.Count > 1 && !urlInfo.Segments.First().Equals("~"))

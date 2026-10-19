@@ -3,7 +3,6 @@
   <ItemGroup>
     <Compile Include="..\..\DubUrl.Core\Mapping\Database\TeradataDatabase.cs" Link="Mapping\Database\TeradataDatabase.cs" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\TeradataMapper.cs" Link="Mapping\Implementation\TeradataMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\TeradataRewriter.cs" Link="Rewriting\Implementation\TeradataRewriter.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\TeradataDialect.cs" Link="Querying\Dialects\TeradataDialect.cs" />
   </ItemGroup>
   <Import Project="..\Provider.Build.props" />

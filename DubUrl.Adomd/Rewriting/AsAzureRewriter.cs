@@ -11,8 +11,20 @@ using System.Xml.Schema;
 
 namespace DubUrl.Adomd.Rewriting;
 
-internal class AsAzureRewriter : ConnectionStringRewriter
+internal class AsAzureRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var p = new DubUrl.Conversion.ConnectionStringParts(source);
+        var endpoint = new Uri(p.Take("Data Source"), UriKind.Absolute);
+        if (endpoint.Scheme is not ("asazure" or "link")) throw new NotSupportedException();
+        p.Host = endpoint.Host;
+        p.Segments.AddRange(endpoint.Segments.Skip(1).Select(s => Uri.UnescapeDataString(s.TrimEnd('/'))).Where(s => s.Length > 0));
+        var cube = p.Take("Cube");
+        if (cube.Length > 0) p.Segments.Add(cube);
+        return p.ToUri(scheme);
+    }
+
     protected internal const string SERVER_KEYWORD = "Data Source";
     protected internal const string CUBE_KEYWORD = "Cube";
     protected internal const string ASAZURE_SCHEME = "asazure";

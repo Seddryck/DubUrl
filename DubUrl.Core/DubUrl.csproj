@@ -19,6 +19,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Conversion\**\*.cs" />
     <Compile Remove="*.cs" />
     <Compile Remove="Extensions\**\*.cs" />
     <Compile Remove="Locating\*.cs" />

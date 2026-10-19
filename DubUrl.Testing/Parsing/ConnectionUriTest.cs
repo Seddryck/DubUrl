@@ -6,6 +6,33 @@ namespace DubUrl.Testing.Parsing;
 public class ConnectionUriTest
 {
     [Test]
+    public void Parse_FormatIpv6_RoundTripsWithoutDoubleBrackets()
+    {
+        var uri = ConnectionUri.Parse("postgresql://user:example@[::1]:5433/db");
+        Assert.Multiple(() =>
+        {
+            Assert.That(uri.Host, Is.EqualTo("::1"));
+            Assert.That(uri.ToString(false), Is.EqualTo("postgresql://user:example@[::1]:5433/db"));
+            Assert.That(ConnectionUri.Parse(uri.ToString(false)), Is.EqualTo(uri));
+        });
+    }
+
+    [TestCase("Password")]
+    [TestCase("Pwd")]
+    [TestCase("Access Token")]
+    [TestCase("Client_Secret")]
+    public void ToString_SensitiveQueryOptions_RedactedUnlessExplicitlyRequested(string key)
+    {
+        var uri = new ConnectionUri { Scheme = SchemeKey.Parse("custom"), Host = "host" }
+            .WithOption(key, "example-sensitive-value");
+        Assert.Multiple(() =>
+        {
+            Assert.That(uri.ToString(), Does.Not.Contain("example-sensitive-value"));
+            Assert.That(uri.ToString(false), Does.Contain("example-sensitive-value"));
+        });
+    }
+
+    [Test]
     public void Constructor_MutableCollections_DefensiveCopies()
     {
         var schemes = new[] { "mssql" };

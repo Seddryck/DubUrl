@@ -3,7 +3,6 @@
   <ItemGroup>
     <Compile Include="..\..\DubUrl.Core\Mapping\Database\SqliteDatabase.cs" Link="Mapping\Database\SqliteDatabase.cs" />
     <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\SqliteMapper.cs" Link="Mapping\Implementation\SqliteMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Rewriting\Implementation\SqliteRewriter.cs" Link="Rewriting\Implementation\SqliteRewriter.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\SqliteDialect.cs" Link="Querying\Dialects\SqliteDialect.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\SqliteFunctionMapper.cs" Link="Querying\Dialects\Functions\SqliteFunctionMapper.cs" />
     <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\SqliteRenderer.cs" Link="Querying\Dialects\Renderers\SqliteRenderer.cs" />

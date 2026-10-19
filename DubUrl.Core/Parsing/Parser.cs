@@ -41,7 +41,7 @@ public class Parser : IParser
             connectionUri = new ConnectionUri
             {
                 Scheme = scheme,
-                Host = uri.Host,
+                Host = uri.Host.Trim('[', ']'),
                 Port = uri.IsDefaultPort ? 0 : uri.Port,
                 Username = username,
                 Password = password,

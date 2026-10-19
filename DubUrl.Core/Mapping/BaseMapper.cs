@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Mapping;
 
-public abstract class BaseMapper : IMapper
+public abstract class BaseMapper : IMapper, DubUrl.Conversion.IReverseConnectionMapper
 {
     private IConnectionStringRewriter Rewriter { get; }
     
@@ -43,4 +43,12 @@ public abstract class BaseMapper : IMapper
         => Parametrizer;
     public IReadOnlyDictionary<string, object> Rewrite(ConnectionUri urlInfo)
         => Rewriter.Execute(urlInfo);
+
+    public bool SupportsReverseConversion
+        => Rewriter is DubUrl.Conversion.IReverseConnectionMapper { SupportsReverseConversion: true };
+
+    public ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+        => Rewriter is DubUrl.Conversion.IReverseConnectionMapper reverse && reverse.SupportsReverseConversion
+            ? reverse.Convert(scheme, source)
+            : throw new NotSupportedException("This rewriter does not support reverse conversion.");
 }
