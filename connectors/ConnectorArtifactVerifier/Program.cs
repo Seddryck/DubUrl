@@ -1,6 +1,9 @@
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.BulkCopy;
+using System.Data;
+using System.Runtime.Loader;
 
 namespace DubUrl.ConnectorArtifactVerifier;
 
@@ -18,6 +21,9 @@ internal static class Program
             case "verify":
                 Verify(context);
                 break;
+            case "verify-bulk":
+                Verify(context, verifyBulk: true);
+                break;
             case "uninstall":
                 Uninstall(context);
                 break;
@@ -27,8 +33,8 @@ internal static class Program
 
     private static void ValidateArguments(string[] args)
     {
-        if (args.Length != 5 || args[0] is not ("install" or "verify" or "uninstall"))
-            throw new ArgumentException("Usage: ConnectorArtifactVerifier <install|verify|uninstall> <catalog> <archive> <store> <provider>");
+        if (args.Length != 5 || args[0] is not ("install" or "verify" or "verify-bulk" or "uninstall"))
+            throw new ArgumentException("Usage: ConnectorArtifactVerifier <install|verify|verify-bulk|uninstall> <catalog> <archive> <store> <provider>");
     }
 
     private static async Task<VerificationContext> CreateContextAsync(string[] args)
@@ -54,7 +60,7 @@ internal static class Program
         Console.WriteLine($"Installed {context.Entry.Provider} {context.Entry.Version} as active.");
     }
 
-    private static void Verify(VerificationContext context)
+    private static void Verify(VerificationContext context, bool verifyBulk = false)
     {
         var inspected = context.Store.Inspect();
         if (inspected.Count != 1 || inspected[0].Status != ProviderPackStatus.Active)
@@ -73,6 +79,55 @@ internal static class Program
         if (factory.GetType().FullName is null)
             throw new InvalidOperationException($"Connector scheme '{scheme}' did not resolve to a provider factory.");
         Console.WriteLine($"Loaded {context.Entry.Provider} {context.Entry.Version} in a new process.");
+        if (verifyBulk)
+        {
+            if (context.Entry.Provider != "duckdb-native")
+                throw new ArgumentException("The local bulk-copy artifact check currently targets duckdb-native.");
+            VerifyDuckDbBulkCopy(modules.Single());
+        }
+    }
+
+    private static void VerifyDuckDbBulkCopy(IDubUrlProviderModule module)
+    {
+        const string adapterName = "DubUrl.Connector.DuckDb.BulkCopy";
+        var filename = "DubUrl-isolated-bulk-" + Guid.NewGuid().ToString("N") + ".db";
+        var path = Path.Combine(Path.GetTempPath(), filename);
+        try
+        {
+            var registry = new ProviderCatalogBuilder().WithRootPath(Path.GetTempPath()).AddModule(module).Build();
+            var driver = registry.GetProviderFactory(SchemeKey.Parse("duck")).GetType().Assembly;
+            var loadContext = AssemblyLoadContext.GetLoadContext(driver)!;
+            var url = new ConnectionUrl("duck://" + filename, registry);
+            using (var connection = url.Open())
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "CREATE TABLE Customer (id INTEGER, name VARCHAR)";
+                command.ExecuteNonQuery();
+            }
+            using var data = new DataTable();
+            data.Columns.Add("id", typeof(int));
+            data.Columns.Add("name", typeof(string));
+            data.Rows.Add(1, "first");
+            data.Rows.Add(2, DBNull.Value);
+            using var reader = data.CreateDataReader();
+            using var engine = (url.BulkCopyProvider ?? throw new InvalidOperationException("Missing bulk provider."))
+                .Create(url, BulkCopyDependencyResolver.Default);
+            if (loadContext.Assemblies.Any(assembly => assembly.GetName().Name == adapterName))
+                throw new InvalidOperationException("Bulk adapter was loaded before execution.");
+            engine.Write("Customer", reader);
+            using (var connection = url.Open())
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM Customer WHERE id=2 AND name IS NULL";
+                if (Convert.ToInt64(command.ExecuteScalar()) != 1 || reader.IsClosed)
+                    throw new InvalidOperationException("Typed connector round trip or reader ownership failed.");
+            }
+            if (!loadContext.Assemblies.Any(assembly => assembly.GetName().Name == adapterName)
+                || AssemblyLoadContext.Default.Assemblies.Any(assembly => assembly.GetName().Name is "DuckDB.NET.Data" or adapterName))
+                throw new InvalidOperationException("The adapter and driver must stay in the installed connector load context.");
+            Console.WriteLine("Typed DuckDB bulk copy passed in an isolated connector; Core-only host has no linked driver or adapter.");
+        }
+        finally { File.Delete(path); }
     }
 
     private static void Uninstall(VerificationContext context)

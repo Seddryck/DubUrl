@@ -51,15 +51,16 @@ public class BulkCopyRegistrationTests
         Assert.Throws<NotSupportedException>(() => new BulkCopyEngineFactory().Create(url));
     }
 
-    [TestCase(typeof(DuckdbMapper), typeof(DuckDbBulkCopyProvider))]
-    [TestCase(typeof(MsSqlServerMapper), typeof(MsSqlServerBulkCopyProvider))]
-    public void AttributeDiscovery_CarriesNativeMapperCapabilityIntoRegistration(Type mapperType, Type providerType)
+    [TestCase(typeof(DuckdbMapper), "DubUrl.Connector.DuckDb.BulkCopy")]
+    [TestCase(typeof(MsSqlServerMapper), "DubUrl.Connector.SqlServer.BulkCopy")]
+    public void AttributeDiscovery_CarriesNativeMapperCapabilityIntoRegistration(Type mapperType, string adapterAssembly)
     {
         var registrations = Capture(catalog => new AttributeProviderModule(mapperType.Assembly).Register(catalog));
         var native = registrations.Single(x => x.ProviderInvariantName ==
             (mapperType == typeof(DuckdbMapper) ? "DuckDB.NET.Data" : "Microsoft.Data.SqlClient"));
 
-        Assert.That(native.BulkCopyProvider, Is.TypeOf(providerType));
+        Assert.That(native.BulkCopyProvider, Is.TypeOf<LazyBulkCopyProvider>());
+        Assert.That(((LazyBulkCopyProvider)native.BulkCopyProvider!).AssemblyName, Is.EqualTo(adapterAssembly));
     }
 
     [Test]
@@ -68,12 +69,12 @@ public class BulkCopyRegistrationTests
         var registrations = Capture(catalog => new DubUrl.Connector.ProviderModule().Register(catalog));
         var registration = registrations.Single();
 
-        Assert.That(registration.BulkCopyProvider, Is.TypeOf<DuckDbBulkCopyProvider>());
+        Assert.That(registration.BulkCopyProvider, Is.TypeOf<LazyBulkCopyProvider>());
         var builder = new ProviderCatalogBuilder();
         builder.AddProvider(registration);
         var url = new ConnectionUrl("duck://memory", builder.Build());
         using var engine = new BulkCopyEngineFactory().Create(url);
-        Assert.That(engine.GetType().Assembly, Is.SameAs(typeof(DuckDbDialect).Assembly));
+        Assert.That(engine.GetType().Assembly, Is.SameAs(typeof(IBulkCopyProvider).Assembly));
     }
 
     [Test]

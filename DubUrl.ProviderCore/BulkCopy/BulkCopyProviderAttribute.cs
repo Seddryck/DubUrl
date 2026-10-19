@@ -1,14 +1,8 @@
 namespace DubUrl.BulkCopy;
 
-/// <summary>Declares a native mapper's bulk provider for attribute-based and generated connector registration.</summary>
+/// <summary>Declares an optional connector adapter without linking its driver into a provider family.</summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public abstract class BulkCopyProviderAttribute : Attribute
+public sealed class BulkCopyProviderAttribute(string assemblyName, string typeName) : Attribute
 {
-    public abstract IBulkCopyProvider Create();
-}
-
-public sealed class BulkCopyProviderAttribute<TProvider> : BulkCopyProviderAttribute
-    where TProvider : IBulkCopyProvider, new()
-{
-    public override IBulkCopyProvider Create() => new TProvider();
+    public IBulkCopyProvider Create() => new LazyBulkCopyProvider(assemblyName, typeName);
 }

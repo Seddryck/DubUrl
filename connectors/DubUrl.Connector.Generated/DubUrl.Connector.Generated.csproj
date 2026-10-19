@@ -57,6 +57,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\DubUrl.Connector.DuckDb.BulkCopy\DubUrl.Connector.DuckDb.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
+    <ProjectReference Include="..\DubUrl.Connector.SqlServer.BulkCopy\DubUrl.Connector.SqlServer.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'SqlClient'" />
     <ProjectReference Include="..\..\providers\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" Condition="'$(ConnectorFamily)' == 'Access'" />
     <ProjectReference Include="..\..\providers\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" Condition="'$(ConnectorFamily)' == 'Db2'" />
     <ProjectReference Include="..\..\providers\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" Condition="'$(ConnectorFamily)' == 'Drill'" />

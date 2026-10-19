@@ -14,7 +14,7 @@ public class NativeBulkCopyIntegrationTests
 {
     [TestCase(false)]
     [TestCase(true)]
-    public void DuckDbFacade_CopiesRowsAndLoadsConversionTypesOnlyWhenNeeded(bool includeDateTime)
+    public void DuckDbFacade_CopiesRowsThroughTypedConnector(bool includeDateTime)
     {
         var path = Path.Combine(Path.GetTempPath(), "DubUrl-bulk-" + Guid.NewGuid().ToString("N") + ".db");
         DuckDBConnection Open()
@@ -62,8 +62,8 @@ public class NativeBulkCopyIntegrationTests
             url.BulkCopy("Customer", reader, dependencies.Object);
 
             Assert.That(reader.IsClosed, Is.False);
-            dependencies.Verify(x => x.ResolveType(It.IsAny<Assembly>(), "DuckDB.NET.Bindings", It.IsAny<string>()),
-                Times.Exactly(includeDateTime ? 2 : 0));
+            dependencies.Verify(x => x.ResolveType(It.IsAny<Assembly>(), "DubUrl.Connector.DuckDb.BulkCopy",
+                typeof(DuckDbBulkCopyProvider).FullName!), Times.Once);
             using var connection = Open();
             using var select = connection.CreateCommand();
             select.CommandText = "SELECT id, name" +
@@ -97,21 +97,10 @@ public class NativeBulkCopyIntegrationTests
         dependencies.Setup(x => x.EnterScope(connection.Object.GetType().Assembly)).Returns(scope.Object);
         var url = new TestConnectionUrl(GetDialect<DuckDbDialect>(), () => connection.Object);
         var reader = new Mock<IDataReader>();
-        IBulkCopyEngine engine;
-        if (duckDb)
-        {
-            var factory = new Mock<DuckDbAppenderFactory>();
-            factory.Setup(x => x.CreateAppender(connection.Object, "Customer")).Throws(new InvalidOperationException("native failure"));
-            engine = new DuckDbBulkCopyEngine(url, factory.Object, dependencies.Object);
-        }
-        else
-        {
-            var factory = new Mock<MsSqlServerBulkCopyFactory>();
-            factory.Setup(x => x.Create(connection.Object, "Customer")).Throws(new InvalidOperationException("native failure"));
-            engine = new MsSqlServerBulkCopyEngine(url, factory.Object, dependencies.Object);
-        }
+        IBulkCopyProvider provider = duckDb ? new DuckDbBulkCopyProvider() : new MsSqlServerBulkCopyProvider();
+        var engine = provider.Create(url, dependencies.Object);
         using (engine)
-            Assert.Throws<InvalidOperationException>(() => engine.Write("Customer", reader.Object));
+            Assert.Throws<NotSupportedException>(() => engine.Write("Customer", reader.Object));
 
         scope.Verify(x => x.Dispose(), Times.Once);
         connection.Verify(x => x.Dispose(), Times.Once);

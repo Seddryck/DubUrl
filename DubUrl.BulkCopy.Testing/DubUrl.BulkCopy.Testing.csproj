@@ -28,6 +28,7 @@
     <ProjectReference Include="..\providers\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
     <ProjectReference Include="..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
     <ProjectReference Include="..\connectors\DubUrl.Connector.Generated\DubUrl.Connector.Generated.csproj" />
+    <ProjectReference Include="..\connectors\DubUrl.Connector.SqlServer.BulkCopy\DubUrl.Connector.SqlServer.BulkCopy.csproj" />
     <ProjectReference Include="..\DubUrl.BulkCopy.Testing.Dependency\DubUrl.BulkCopy.Testing.Dependency.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
