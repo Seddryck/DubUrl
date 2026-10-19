@@ -20,13 +20,10 @@
     <Compile Include="..\DubUrl.Core\Querying\Reading\**\*.cs" Link="Querying\Reading\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Querying\Templating\**\*.cs" Link="Querying\Templating\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Querying\Dialects\*.cs"
-             Exclude="..\DubUrl.Core\Querying\Dialects\CockRoachDialect.cs;..\DubUrl.Core\Querying\Dialects\CrateDbDialect.cs;..\DubUrl.Core\Querying\Dialects\Db2Dialect.cs;..\DubUrl.Core\Querying\Dialects\DrillDialect.cs;..\DubUrl.Core\Querying\Dialects\DuckdbDialect.cs;..\DubUrl.Core\Querying\Dialects\FirebirdSqlDialect.cs;..\DubUrl.Core\Querying\Dialects\MsAccessDialect.cs;..\DubUrl.Core\Querying\Dialects\MsExcelDialect.cs;..\DubUrl.Core\Querying\Dialects\MysqlDialect.cs;..\DubUrl.Core\Querying\Dialects\OracleDialect.cs;..\DubUrl.Core\Querying\Dialects\PgsqlDialect.cs;..\DubUrl.Core\Querying\Dialects\QuestDbDialect.cs;..\DubUrl.Core\Querying\Dialects\SingleStoreDialect.cs;..\DubUrl.Core\Querying\Dialects\SnowflakeDialect.cs;..\DubUrl.Core\Querying\Dialects\SqliteDialect.cs;..\DubUrl.Core\Querying\Dialects\TeradataDialect.cs;..\DubUrl.Core\Querying\Dialects\TextDialect.cs;..\DubUrl.Core\Querying\Dialects\TrinoDialect.cs;..\DubUrl.Core\Querying\Dialects\TSqlDialect.cs"
              Link="Querying\Dialects\%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Querying\Dialects\Casters\**\*.cs"
-             Exclude="..\DubUrl.Core\Querying\Dialects\Casters\TrinoTimeSpanParser.cs"
              Link="Querying\Dialects\Casters\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Querying\Dialects\Formatters\**\*.cs"
-             Exclude="..\DubUrl.Core\Querying\Dialects\Formatters\DuckDBQuotedIdentifierFormatter.cs;..\DubUrl.Core\Querying\Dialects\Formatters\IntervalTrinoFormatter.cs"
              Link="Querying\Dialects\Formatters\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\DubUrl.Core\Querying\Dialects\Functions\AnsiFunctionMapper.cs;..\DubUrl.Core\Querying\Dialects\Functions\BaseFunctionMapper.cs;..\DubUrl.Core\Querying\Dialects\Functions\ISqlFunctionMapper.cs;..\DubUrl.Core\Querying\Dialects\Functions\SqlFunction.cs"
              Link="Querying\Dialects\Functions\%(Filename)%(Extension)" />

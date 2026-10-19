@@ -1,3 +1,4 @@
+using DubUrl.Provider.DuckDb.Sql;
 using DubUrl.Querying.Dialects;
 using DubUrl.Schema;
 using DubUrl.Schema.Documents;

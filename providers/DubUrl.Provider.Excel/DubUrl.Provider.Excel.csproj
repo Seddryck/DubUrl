@@ -1,8 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>Microsoft Excel database metadata and dialect for DubUrl.</Description></PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\MsExcelDatabase.cs" Link="Mapping\Database\MsExcelDatabase.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\MsExcelDialect.cs" Link="Querying\Dialects\MsExcelDialect.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

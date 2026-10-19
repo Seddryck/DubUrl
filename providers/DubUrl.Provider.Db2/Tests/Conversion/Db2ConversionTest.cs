@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.Db2.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.Db2;
+namespace DubUrl.Provider.Db2.Tests.Conversion;
 
 public class Db2ConversionTest
 {

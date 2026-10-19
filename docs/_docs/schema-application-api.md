@@ -34,6 +34,7 @@ using DubUrl.Application;
 using DubUrl.Schema;
 using DubUrl.Schema.Documents;
 using DubUrl.Querying.Dialects;
+using DubUrl.Provider.PostgreSql.Sql;
 
 var dialects = new DialectRegistryBuilder();
 dialects.AddDialect<PgsqlDialect>(["pgsql", "postgresql"]);

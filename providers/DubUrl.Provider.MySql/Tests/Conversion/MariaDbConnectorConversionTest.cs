@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.MySql.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.MySql;
+namespace DubUrl.Provider.MySql.Tests.Conversion;
 
 public class MariaDbConnectorConversionTest
 {

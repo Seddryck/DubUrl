@@ -1,4 +1,8 @@
-﻿using DubUrl.OleDb.Providers;
+﻿using DubUrl.Provider.Access.Metadata;
+using DubUrl.Provider.Excel.Metadata;
+using DubUrl.Provider.MySql.Metadata;
+using DubUrl.Provider.SqlServer.Metadata;
+using DubUrl.OleDb.Providers;
 using DubUrl.Mapping;
 using NUnit.Framework;
 using System;
@@ -7,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
-using DubUrl.Mapping.Database;
 using DubUrl.Rewriting.Tokening;
 
 namespace DubUrl.OleDb.Testing;

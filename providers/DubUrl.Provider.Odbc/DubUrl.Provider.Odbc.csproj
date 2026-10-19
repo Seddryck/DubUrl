@@ -1,13 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>ODBC mapping, rewriting, discovery, and prerequisites for DubUrl providers.</Description></PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Locating\OdbcDriver\**\*.cs"
-             Exclude="..\..\DubUrl.Core\Locating\OdbcDriver\DriverLocatorFactory.cs;..\..\DubUrl.Core\Locating\OdbcDriver\IDriverLocator.cs"
-             Link="Locating\OdbcDriver\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Connectivity\OdbcConnectivity.cs" Link="Mapping\Connectivity\OdbcConnectivity.cs" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\DrillOdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\DuckdbOdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\OdbcDbqMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\OdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\QuestDbOdbcMapper.cs;..\..\DubUrl.Core\Mapping\Implementation\TrinoOdbcMapper.cs" Link="Mapping\Implementation\%(Filename)%(Extension)" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
     <ProjectReference Include="..\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" />
     <ProjectReference Include="..\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />

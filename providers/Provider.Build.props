@@ -1,4 +1,7 @@
 <Project>
+  <PropertyGroup>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Tests\**\*.cs" />
     <ProjectReference Include="..\..\DubUrl.ProviderCore\DubUrl.Core.csproj" />

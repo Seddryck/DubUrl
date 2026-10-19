@@ -1,3 +1,19 @@
+using DubUrl.Provider.Access.Sql;
+using DubUrl.Provider.Db2.Sql;
+using DubUrl.Provider.Drill.Sql;
+using DubUrl.Provider.DuckDb.Sql;
+using DubUrl.Provider.Excel.Sql;
+using DubUrl.Provider.FirebirdSql.Sql;
+using DubUrl.Provider.MySql.Sql;
+using DubUrl.Provider.Odbc.Drivers.Discovery;
+using DubUrl.Provider.Oracle.Sql;
+using DubUrl.Provider.PostgreSql.Sql;
+using DubUrl.Provider.Snowflake.Sql;
+using DubUrl.Provider.Sqlite.Sql;
+using DubUrl.Provider.SqlServer.Sql;
+using DubUrl.Provider.Teradata.Sql;
+using DubUrl.Provider.Text.Sql;
+using DubUrl.Provider.Trino.Sql;
 using DubUrl.Core.Providers;
 using DubUrl.Connector.PostgreSql.Npgsql;
 using DubUrl.Locating.OdbcDriver;
@@ -106,7 +122,7 @@ public class ProviderAssemblyBoundaryTest
         var assembly = System.Reflection.Assembly.Load(assemblyName);
         foreach (var rewriter in rewriters.Split(','))
         {
-            var fullName = $"DubUrl.Rewriting.Implementation.{rewriter}";
+            var fullName = $"DubUrl.Provider.{family}.Rewriting.{rewriter}";
             var type = assembly.GetType(fullName, throwOnError: true)!;
             Assert.Multiple(() =>
             {

@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.Snowflake.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.Snowflake;
+namespace DubUrl.Provider.Snowflake.Tests.Conversion;
 
 public class SnowflakeConversionTest
 {

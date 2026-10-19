@@ -1,12 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>SQLite dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\SqliteDatabase.cs" Link="Mapping\Database\SqliteDatabase.cs" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\SqliteMapper.cs" Link="Mapping\Implementation\SqliteMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\SqliteDialect.cs" Link="Querying\Dialects\SqliteDialect.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Functions\SqliteFunctionMapper.cs" Link="Querying\Dialects\Functions\SqliteFunctionMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\SqliteRenderer.cs" Link="Querying\Dialects\Renderers\SqliteRenderer.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\TypeMapping\SqliteTypeMapper.cs" Link="Querying\TypeMapping\SqliteTypeMapper.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

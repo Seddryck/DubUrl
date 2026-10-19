@@ -1,9 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>Microsoft Access database metadata and dialect for DubUrl.</Description></PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\MsAccessDatabase.cs" Link="Mapping\Database\MsAccessDatabase.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\MsAccessDialect.cs" Link="Querying\Dialects\MsAccessDialect.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\Renderers\MsAccessRenderer.cs" Link="Querying\Dialects\Renderers\MsAccessRenderer.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

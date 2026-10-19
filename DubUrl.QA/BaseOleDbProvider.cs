@@ -1,12 +1,11 @@
+using DubUrl.Provider.Odbc.Rewriting;
 using NUnit.Framework;
 using System.Diagnostics;
 using System.Data;
 using System.Data.Common;
 using DubUrl.Registering;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Mapping;
 using DubUrl.OleDb.Mapping;
-using DubUrl.Rewriting.Implementation;
 
 namespace DubUrl.QA;
 

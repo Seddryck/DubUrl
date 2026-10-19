@@ -1,7 +1,8 @@
+using DubUrl.Conversion;
 using DubUrl.Parsing;
 using System.Data.Common;
 
-namespace DubUrl.Conversion.Implementation;
+namespace DubUrl.Provider.Db2.Conversion;
 
 internal static class Db2ConnectionStringReverser
 {

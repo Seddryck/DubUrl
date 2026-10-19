@@ -19,6 +19,13 @@ public class ReservedKeywordsReader : IDisposable
     public ReservedKeywordsReader(Assembly resouceAssembly, string dialectId)
         => (ResourceAssembly, ResourcePath) = (resouceAssembly, $"{GetType().Namespace}.ReservedKeywords.{dialectId}.");
 
+    public ReservedKeywordsReader(Assembly resourceAssembly, string dialectId, string resourceNamespace)
+    {
+        ArgumentNullException.ThrowIfNull(resourceAssembly);
+        ArgumentException.ThrowIfNullOrWhiteSpace(resourceNamespace);
+        (ResourceAssembly, ResourcePath) = (resourceAssembly, $"{resourceNamespace}.ReservedKeywords.{dialectId}.");
+    }
+
     public virtual IEnumerable<string> ReadAll()
     {
         var resources = ResourceAssembly.GetManifestResourceNames().Where(x => x.StartsWith(ResourcePath));

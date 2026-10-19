@@ -1,9 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>Oracle dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\OracleDatabase.cs" Link="Mapping\Database\OracleDatabase.cs" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\OracleManagedDataAccessMapper.cs" Link="Mapping\Implementation\OracleManagedDataAccessMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\OracleDialect.cs" Link="Querying\Dialects\OracleDialect.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

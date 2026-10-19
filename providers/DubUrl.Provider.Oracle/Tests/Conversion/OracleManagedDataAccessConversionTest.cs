@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.Oracle.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.Oracle;
+namespace DubUrl.Provider.Oracle.Tests.Conversion;
 
 public class OracleManagedDataAccessConversionTest
 {

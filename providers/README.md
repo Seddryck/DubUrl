@@ -26,13 +26,37 @@ Each package depends on `DubUrl.Core` but not on a concrete ADO.NET driver. Conn
 Provider and connector project-reference dependencies are packed with a lower bound equal to their release version and an exclusive `1.0.0` upper bound. This keeps the modular packages on the compatible 0.x API line.
 
 Provider-specific rewriting source files are physically owned by each package under
-`Rewriting/Implementation`, including their nested token mappers. PostgreSQL and
+`Rewriting`, including their nested token mappers. PostgreSQL and
 MySQL derivatives stay with their database family; ODBC adapters stay in
 `DubUrl.Provider.Odbc`. The shared rewriter, token-mapping contracts, specificators,
-and URL model remain in `DubUrl.Core`. Namespaces and assembly identities are
-unchanged by this source organization.
+and URL model remain in `DubUrl.Core`. Assembly identities remain unchanged; provider
+namespaces now start with their owning project name.
 
-Provider rewriting fixtures live under each package's `Tests/Rewriting/Implementation`
+Provider rewriting fixtures live under each package's `Tests/Rewriting`
 directory. Production projects exclude `Tests/**/*.cs`; `DubUrl.Testing` includes
 these fixtures explicitly so the shared test runner and provider registrations are
 preserved. Shared rewriting and cross-provider boundary tests remain central.
+
+Database declarations, branding attributes, native mappers, and ODBC mappers are physically
+owned under each provider's Metadata and Mapping directories. Provider-specific mapping fixtures live
+under Tests/Mapping and are included by the shared DubUrl.Testing runner. Core retains
+only reusable mapping contracts and catalog infrastructure; connector modules select
+the concrete driver and register these implementations.
+
+Concrete dialects, SQL renderers, type/function mappings, database-specific formatters
+and casters, and driver discovery sources also live in their owning provider projects.
+DuckDB reserved-keyword resources live under Sql/Formatting and use the provider's
+namespace in the DuckDb assembly. Shared ANSI components and locator contracts stay
+in Core. Provider fixtures under Tests/Sql and Tests/Drivers/Discovery continue to
+use the shared test runner.
+
+See [namespace conventions and migration](NAMESPACES.md) for the complete layout,
+including Schema.Generation, the reserved Schema.Discovery area, and ODBC's
+Drivers.Discovery. Public provider namespaces change and consumers must recompile.
+
+The Core-only sample at `samples/DubUrl.Connector.Sample` and its isolated consumer
+`DubUrl.Connector.Testing` demonstrate provider authoring without compatibility-package
+references or friend access. The consumer tests enforce source ownership, execute a
+bound parameter through a fake driver, and reuse PostgreSQL behavior with a different
+connector registration. See the provider modules documentation for setup and the
+distinction between independent registration and official publication inventories.

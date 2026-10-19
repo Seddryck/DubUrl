@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping.Database;
+﻿using DubUrl.Provider.Access.Metadata;
 using DubUrl.OleDb.Providers;
 using DubUrl.Rewriting.Tokening;
 using NUnit.Framework;

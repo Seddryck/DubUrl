@@ -19,7 +19,7 @@ If(Test-Path -LiteralPath $destinationPath\$destinationFile -PathType leaf) {
 & "$PSScriptRoot/build/Import-DocumentationAssemblies.ps1"
 
 $elapsed = Measure-Command -Expression {
-    $locator = New-Object  DubUrl.Locating.OdbcDriver.DriverLocatorIntrospector
+    $locator = New-Object  DubUrl.Provider.Odbc.Drivers.Discovery.DriverLocatorIntrospector
     $driverLocators = $locator.Locate() | Sort-Object ListingPriority | Select-Object -Property @{label='Class'; expression={$_.DriverLocatorType.Name}}, @{label='Database'; expression={$_.DatabaseName}}, Aliases, NamePattern, Options, Slug, MainColor, SecondaryColor
     Write-Host  "`t$($driverLocators.Count) mappers identified"
     $driverLocators | ForEach-Object {Write-Host "`t`t$($_.Class)"}

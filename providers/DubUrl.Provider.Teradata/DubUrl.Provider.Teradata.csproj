@@ -1,9 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>Teradata dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\DubUrl.Core\Mapping\Database\TeradataDatabase.cs" Link="Mapping\Database\TeradataDatabase.cs" />
-    <Compile Include="..\..\DubUrl.Core\Mapping\Implementation\TeradataMapper.cs" Link="Mapping\Implementation\TeradataMapper.cs" />
-    <Compile Include="..\..\DubUrl.Core\Querying\Dialects\TeradataDialect.cs" Link="Querying\Dialects\TeradataDialect.cs" />
-  </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

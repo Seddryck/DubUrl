@@ -1,5 +1,6 @@
+using DubUrl.Provider.MySql.Mapping;
+using DubUrl.Provider.Teradata.Mapping;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using Microsoft.Data.SqlClient;
 using NUnit.Framework;
 using SingleStoreConnector;

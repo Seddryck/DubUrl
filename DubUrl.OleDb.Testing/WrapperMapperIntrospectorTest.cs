@@ -1,11 +1,11 @@
-﻿using DubUrl.Locating.OdbcDriver.Implementation;
+﻿using DubUrl.Provider.Odbc.Connectivity;
+using DubUrl.Provider.Odbc.Drivers.Discovery;
+using DubUrl.Provider.Odbc.Mapping;
+using DubUrl.Provider.SqlServer.Metadata;
 using DubUrl.Mapping;
 using DubUrl.Mapping.Connectivity;
-using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Implementation;
 using DubUrl.OleDb.Mapping;
 using DubUrl.OleDb.Providers;
-using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

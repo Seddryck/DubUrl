@@ -1,8 +1,8 @@
-﻿using DubUrl.Mapping;
+﻿using DubUrl.Provider.SqlServer.Metadata;
+using DubUrl.Mapping;
 using DubUrl.Rewriting.Tokening;
 using DubUrl.Locating.Options;
 using DubUrl.Locating.RegexUtils;
-using DubUrl.Mapping.Database;
 using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;

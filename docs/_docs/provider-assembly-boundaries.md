@@ -4,26 +4,33 @@ subtitle: Compatibility and package migration plan
 tags: [installation, providers, architecture]
 ---
 
-DubUrl now publishes three deliberately acyclic package layers:
+DubUrl publishes deliberately acyclic package layers:
 
 1. `DubUrl.Core` contains provider-neutral value types and immutable catalog logic. It does not reference
    provider implementations.
-2. `DubUrl.Providers` references `DubUrl.Core` and supplies shared provider metadata and implementations
-   used by the compatibility package and provider packs.
-3. `DubUrl` remains the compatibility package. Existing consumers keep their source-compatible public API
-   and receive both lower layers transitively.
+2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
+   `providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
+3. `DubUrl.Connector.*` packages select provider implementations, concrete drivers, schemes, and explicit
+   modules under `connectors/`.
+4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and
+   `DubUrl.Providers` built-in catalog. Explicit consumers can omit both aggregate and built-in catalog.
 
-New provider-pack contracts are added to `DubUrl.Core`; database-specific descriptors, mappers, rewriters,
-dialects, and parameter conventions belong in `DubUrl.Providers` or an optional provider pack. Adding a
-database must not require a change to `DubUrl.Core`.
+Provider-neutral contracts belong in `DubUrl.Core`; database-specific declarations, mappers, rewriters,
+dialects, SQL mappings, and driver discovery sources belong in their owning provider projects. Their
+sources and resources are physically colocated there, rather than linked from the Core source tree.
+Adding a database must not require a change to `DubUrl.Core`. See [provider modules](../provider-modules/)
+for the authoring example and explicit registration path.
 
 ## Public-type migration
 
-Existing public types stay in the `DubUrl` assembly for the current major version. Moving them would change
-their assembly-qualified names and break binary compatibility even when namespaces remain unchanged. During
-the next major-version cycle, provider-neutral types can move to `DubUrl.Core` and built-in implementations
-to `DubUrl.Providers`; the `DubUrl` compatibility assembly will retain type forwarders for the previous API.
-The packages will be released together with aligned versions before any forwarding begins.
+Provider implementation namespaces now begin with `DubUrl.Provider.<Family>` and follow their folders.
+For example, import `DubUrl.Provider.PostgreSql.Sql` for `PgsqlDialect` and
+`DubUrl.Provider.PostgreSql.Mapping` for `PostgresqlMapper`. Core contracts retain their existing
+namespaces. Package and assembly IDs remain unchanged.
+
+This is a public namespace migration: applications must update imports and recompile, and existing
+connector binaries and reflection-based type names must be rebuilt or updated. Assembly forwarding
+cannot preserve a renamed namespace. No legacy namespace wrappers are introduced.
 
 An additional `DubUrl.Abstractions` package is intentionally deferred. It becomes worthwhile only when at
 least two independently versioned hosts need the same contracts without catalog/parsing implementation, or
@@ -39,7 +46,8 @@ connectors using the same SQL dialect reuse its schema behavior.
 | --- | --- |
 | `DubUrl.Schema` | Models, builders, constraints, dependency planning, expression traversal, templates, native-type validation and fallback, script assembly |
 | `DubUrl.ProviderCore/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
-| `providers/DubUrl.Provider.*` | Dialect capabilities, native-type sets, and any SQL renderer overrides |
+| `providers/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
+| `providers/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
 | `connectors/` | Provider/driver composition and distribution; no copied schema templates |
 
 `IDialect.SchemaSqlRenderer` defaults to `StandardSchemaSqlRenderer.Instance`. `BaseDialect` exposes a
@@ -58,6 +66,8 @@ that provider project and override only the required operation:
 
 ```csharp
 using DubUrl.Querying.Dialects;
+
+namespace DubUrl.Provider.Example.Schema.Generation;
 
 internal sealed class ProviderSchemaSqlRenderer : StandardSchemaSqlRenderer
 {

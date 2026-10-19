@@ -4,7 +4,7 @@ $repo = Split-Path $PSScriptRoot
 $project = Join-Path $PSScriptRoot 'DocumentationExamples'
 $utf8 = [Text.UTF8Encoding]::new($false)
 $usings = [Collections.Generic.HashSet[string]]::new()
-foreach ($ns in @('System','System.IO','System.Linq','System.Collections.Generic','System.Threading','System.Threading.Tasks','System.Data','System.Data.Common','System.Globalization','DubUrl','DubUrl.Schema','DubUrl.Schema.Builders','DubUrl.Schema.Constraints','DubUrl.Schema.Documents','DubUrl.Application','DubUrl.Querying.Dialects','Microsoft.Data.Sqlite')) { [void]$usings.Add("using $ns;") }
+foreach ($ns in @('System','System.IO','System.Linq','System.Collections.Generic','System.Threading','System.Threading.Tasks','System.Data','System.Data.Common','System.Globalization','DubUrl','DubUrl.Schema','DubUrl.Schema.Builders','DubUrl.Schema.Constraints','DubUrl.Schema.Documents','DubUrl.Application','DubUrl.Querying.Dialects','DubUrl.Provider.PostgreSql.Sql','Microsoft.Data.Sqlite')) { [void]$usings.Add("using $ns;") }
 $classes = [Collections.Generic.List[string]]::new()
 $calls = [Collections.Generic.List[string]]::new()
 $compiled = 0
