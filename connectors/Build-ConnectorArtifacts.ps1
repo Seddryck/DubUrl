@@ -12,8 +12,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $outputRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $OutputDirectory))
 $stagingRoot = Join-Path $outputRoot '.staging'
-$project = Join-Path $repositoryRoot 'Providers/Build/DubUrl.Provider.Template/DubUrl.Provider.Template.csproj'
-$npgsqlProject = Join-Path $repositoryRoot 'Providers/PostgreSql/DubUrl.Provider.PostgreSql.Npgsql/DubUrl.Provider.PostgreSql.Npgsql.csproj'
+$project = Join-Path $repositoryRoot 'Providers/Build/ProviderBinding.Build.csproj'
 $matrixPath = Join-Path $PSScriptRoot 'connector-matrix.json'
 $catalogPath = Join-Path $outputRoot 'connector-catalog.json'
 $noticePath = Join-Path $PSScriptRoot 'THIRD-PARTY-NOTICES.md'
@@ -98,7 +97,6 @@ foreach ($connector in $ready) {
     if ($assemblyName -cnotmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$') {
         throw "Connector '$($connector.id)' must name its binding DubUrl.Provider.<Database>.<Driver>."
     }
-    $publishProject = if ($connector.id -eq 'postgresql-npgsql') { $npgsqlProject } else { $project }
     $moduleType = "$assemblyName.ProviderModule"
     $mapperAssembly = if ($technology.Key -eq 'Odbc') { 'DubUrl.Provider.Odbc' }
         elseif ($technology.Key -eq 'OleDb') { 'DubUrl.OleDb' }
@@ -110,7 +108,7 @@ foreach ($connector in $ready) {
     New-Item -ItemType Directory -Path $publishRoot, $contentRoot -Force | Out-Null
 
     Invoke-Checked dotnet @(
-        'publish', $publishProject,
+        'publish', $project,
         '--configuration', 'Release',
         '--framework', 'net8.0',
         '--no-self-contained',

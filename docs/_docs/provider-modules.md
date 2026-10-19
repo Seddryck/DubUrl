@@ -45,8 +45,12 @@ For a new driver binding to an existing database, reference `DubUrl.Core`, the r
 and dialect, aliases, invariant name, and parametrizer in the project and import
 `Providers/Build/ProviderBinding.props`. It generates the binding's `ProviderModule` and metadata;
 Core's `AssemblyMetadataProviderModule` performs registration for every standard binding.
-Reuse the family's rewriter unless the driver needs different keywords or URL rules. The project
-in `Providers/PostgreSql/DubUrl.Provider.PostgreSql.Npgsql` is an example of this declarative configuration.
+Reuse the family's rewriter unless the driver needs different keywords or URL rules. Standard bindings
+are declared in `connectors/connector-matrix.json` and built by
+`Providers/Build/ProviderBinding.Build.csproj`. The build script passes each row's settings to that
+same project, including PostgreSQL/Npgsql. Its default settings build PostgreSQL/Npgsql for local
+solution builds and focused consumer tests; no separate Npgsql project is required. Driver bindings
+are distributed as connector packs, and this build project is not published as a NuGet package.
 An alternative connector can supply its own factory and aliases while reusing `PostgresqlMapper`.
 Registering two connectors for the same alias produces a `ProviderRegistrationException`; choose
 the connector explicitly rather than relying on registration order.

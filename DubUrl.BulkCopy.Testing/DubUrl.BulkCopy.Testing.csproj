@@ -27,7 +27,7 @@
     <ProjectReference Include="..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
     <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
     <ProjectReference Include="..\Providers\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
-    <ProjectReference Include="..\Providers\Build\DubUrl.Provider.Template\DubUrl.Provider.Template.csproj" />
+    <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj" />
     <ProjectReference Include="..\Providers\SqlServer\DubUrl.Provider.SqlServer.SqlClient.BulkCopy\DubUrl.Provider.SqlServer.SqlClient.BulkCopy.csproj" />
     <ProjectReference Include="..\DubUrl.BulkCopy.Testing.Dependency\DubUrl.BulkCopy.Testing.Dependency.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
@@ -51,4 +51,17 @@
     </MSBuild>
     <Copy SourceFiles="@(OptionalDependencyFixture)" DestinationFolder="$(TargetDir)optional-dependencies" />
   </Target>
+  <!-- Exercise the production module generator with a DuckDB binding in this test assembly. -->
+  <PropertyGroup>
+    <ConnectorAssemblyName>$(MSBuildProjectName)</ConnectorAssemblyName>
+    <ConnectorId>duckdb-native</ConnectorId>
+    <ConnectorDatabaseName>DuckDB</ConnectorDatabaseName>
+    <ConnectorAliases>duck|duckdb</ConnectorAliases>
+    <ConnectorProviderInvariant>DuckDB.NET.Data</ConnectorProviderInvariant>
+    <ConnectorFactoryType>DuckDB.NET.Data.DuckDBClientFactory, DuckDB.NET.Data</ConnectorFactoryType>
+    <ConnectorDialectType>DubUrl.Provider.DuckDb.Sql.DuckDbDialect, DubUrl.Provider.DuckDb</ConnectorDialectType>
+    <ConnectorMapperType>DubUrl.Provider.DuckDb.Mapping.DuckdbMapper, DubUrl.Provider.DuckDb</ConnectorMapperType>
+    <ConnectorParametrizerType>DubUrl.Querying.Parametrizing.PositionalParametrizer, DubUrl.Core</ConnectorParametrizerType>
+  </PropertyGroup>
+  <Import Project="..\Providers\Build\ProviderBinding.props" />
 </Project>

@@ -16,12 +16,13 @@ entry point and assembly metadata for every driver binding, including PostgreSQL
 All generated entry points use Core's `AssemblyMetadataProviderModule` registration logic;
 there is no handwritten PostgreSQL/Npgsql registration path. Metadata type resolution uses
 the binding's load context, keeping installed drivers out of the host's default context.
-The matrix template selects the family, mapper, dialect, parametrizer, and driver from its
-build settings. PostgreSQL/Npgsql uses its named project for both the NuGet package and
-installed pack, with exactly the same module generation and registration path as every other binding.
+The shared build project selects the family, mapper, dialect, parametrizer, and driver from
+its matrix settings, using the same generation and registration path for every binding.
 `DubUrl.Core` is supplied by the host and excluded from connector archives.
 
-`DubUrl.Provider.PostgreSql.Npgsql` is also published as a NuGet package for applications that choose PostgreSQL/Npgsql at build time. It depends only on `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and Npgsql, with DubUrl dependency bounds from the current build version through, but excluding, `1.0.0`.
+Every standard binding is built with `Providers/Build/ProviderBinding.Build.csproj`, using the settings in `connector-matrix.json`. There is no PostgreSQL/Npgsql-specific build path or project. Without overrides, the shared project builds PostgreSQL/Npgsql for local solution builds and focused consumer tests.
+
+Driver bindings, including `DubUrl.Provider.PostgreSql.Npgsql`, are distributed as connector packs. The shared build project is not packable, and the release workflow does not publish a PostgreSQL/Npgsql binding NuGet package.
 
 The official `connector-catalog.json` uses schema version 1. Every entry contains its canonical connector ID, optional command aliases, supported schemes, immutable HTTPS URL, archive SHA-256, DubUrl API range, target frameworks, and runtime identifiers.
 

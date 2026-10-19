@@ -56,7 +56,7 @@ public class NativeBulkCopyIntegrationTests
                 .Returns((Assembly driver, string assembly, string type) => BulkCopyDependencyResolver.Default.ResolveType(driver, assembly, type));
             var registry = new ProviderCatalogBuilder()
                 .WithRootPath(Path.GetDirectoryName(path)!)
-                .AddModule(new DubUrl.Provider.DuckDb.Native.ProviderModule())
+                .AddModule(new ProviderModule())
                 .Build();
             var url = new ConnectionUrl("duck://" + Path.GetFileName(path), registry);
             using var reader = data.CreateDataReader();
