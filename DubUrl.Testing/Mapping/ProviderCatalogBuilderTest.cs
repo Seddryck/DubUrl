@@ -115,6 +115,42 @@ public class ProviderCatalogBuilderTest
         });
     }
 
+    [Test]
+    public void FallbackModule_PreservesInstalledAliasesAndCapabilities_FillsOnlyMissingAliases()
+    {
+        var installed = CreateRegistration("Installed", "pg").WithCapabilities(new StubCapability("installed"));
+        var bundled = CreateRegistration("Bundled", "PG", "postgres").WithCapabilities(new StubCapability("bundled"));
+        var module = new Mock<IDubUrlProviderModule>();
+        module.Setup(value => value.Register(It.IsAny<IProviderCatalogBuilder>()))
+            .Callback<IProviderCatalogBuilder>(catalog => catalog.AddProvider(bundled));
+        var builder = new ProviderCatalogBuilder();
+        builder.AddProvider(installed);
+        var registry = builder.AddFallbackModule(module.Object).Build();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(registry.TryGetCapability<StubCapability>(new(["pg"]), out var selected), Is.True);
+            Assert.That(selected, Is.EqualTo(new StubCapability("installed")));
+            Assert.That(registry.TryGetCapability<StubCapability>(new(["postgres"]), out var fallback), Is.True);
+            Assert.That(fallback, Is.EqualTo(new StubCapability("bundled")));
+        });
+    }
+
+    [Test]
+    public void FallbackModule_DoesNotActivateFactoryWhenEveryAliasIsAlreadyInstalled()
+    {
+        var bundled = new ProviderRegistration("Bundled", ["PG"], "unused",
+            () => throw new InvalidOperationException("A replaced fallback must not activate its driver."),
+            Mock.Of<IDialect>(), () => new NamedParametrizer(), _ => Mock.Of<IMapper>());
+        var module = new Mock<IDubUrlProviderModule>();
+        module.Setup(value => value.Register(It.IsAny<IProviderCatalogBuilder>()))
+            .Callback<IProviderCatalogBuilder>(catalog => catalog.AddProvider(bundled));
+        var builder = new ProviderCatalogBuilder();
+        builder.AddProvider(CreateRegistration("Installed", "pg"));
+        Assert.That(builder.AddFallbackModule(module.Object).Build().GetProviderFactory(["pg"]),
+            Is.SameAs(SqlClientFactory.Instance));
+    }
+
     private static ProviderRegistration CreateRegistration(string name, params string[] aliases)
         => new(
             name,

@@ -9,6 +9,30 @@ the provider factory, aliases, dialect, parameter convention, connection-string 
 capability objects together. Registration order is deterministic and a duplicate alias throws a
 `ProviderRegistrationException` naming both conflicting registrations.
 
+## Discover installed connectors automatically
+
+With `DubUrl.Core` and an installed PostgreSQL connector,
+`new ConnectionUrl("pg://localhost/demo")` discovers its module automatically.
+
+Discovery reads active, compatible, integrity-verified packs from the per-user connector store:
+`%LOCALAPPDATA%/DubUrl/providers` on Windows, `$XDG_DATA_HOME/duburl/providers` on Unix when set,
+otherwise `~/.local/share/duburl/providers`. Set `DUBURL_PROVIDER_STORE` to use a different store.
+Discovery does not install or download connectors and does not create a missing store.
+
+Installed connectors take precedence over the `DubUrl` aggregate's bundled registrations for matching
+aliases. Remaining bundled aliases remain available. Conflicting installed aliases throw
+`ProviderRegistrationException`; an active module that cannot load reports `ProviderPackException`
+with code `module-load-failed`. Inactive, incompatible, incomplete, and corrupt packs are not loaded.
+Default dialect discovery uses the same provider selection.
+
+Each default construction reads the current installed state and retains its registry snapshot, so
+installation or removal affects subsequent defaults without changing existing URLs. For repeated
+construction with a fixed selection, create a `ConnectionUrlFactory` from one registry. Passing an
+explicit registry bypasses discovery entirely and remains the deterministic option for applications
+that manage their own dependencies, tests, or trimmed/AOT deployment.
+
+## Register providers explicitly
+
 ```csharp
 public sealed class AcmeProviderModule : IDubUrlProviderModule
 {

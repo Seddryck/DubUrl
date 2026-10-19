@@ -12,6 +12,7 @@ using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting;
 using DubUrl.Parsing;
+using DubUrl.Core.ProviderPacks;
 
 namespace DubUrl.Mapping;
 public class SchemeRegistryBuilder
@@ -25,21 +26,26 @@ public class SchemeRegistryBuilder
     public SchemeRegistryBuilder()
     { }
 
-    [RequiresUnreferencedCode("The built-in module composes dialects from attributes. Use ProviderCatalogBuilder with a custom explicit module for Native AOT.")]
+    /// <summary>
+    /// Reads a fresh registry from verified installed connectors, with bundled registrations as fallbacks.
+    /// </summary>
+    [RequiresUnreferencedCode("Default discovery loads provider modules and reflects over dialect attributes. Use ProviderCatalogBuilder with a custom explicit module for Native AOT.")]
     public static SchemeRegistry GetDefault()
-        => new ProviderCatalogBuilder()
-            .WithRootPath(string.Empty)
-            .AddModule(CreateBuiltInProviderModule())
-            .Build();
+        => CreateDefaultCatalog().Build();
 
-    private static IDubUrlProviderModule CreateBuiltInProviderModule()
+    private static ProviderCatalogBuilder CreateDefaultCatalog()
     {
+        var builder = new ProviderCatalogBuilder();
+        var diagnostics = new List<ProviderPackDiagnostic>();
+        builder.AddInstalledPacks(new ProviderPackStore(), diagnostics);
+        if (diagnostics.Count != 0)
+            throw new ProviderPackException("module-load-failed",
+                string.Join(Environment.NewLine, diagnostics.Select(diagnostic => diagnostic.Message)));
+
         var moduleType = GetBuiltInProviderModuleType();
-        return moduleType is not null && Activator.CreateInstance(moduleType) is IDubUrlProviderModule module
-            ? module
-            : throw new InvalidOperationException(
-                "The default provider set is supplied by the DubUrl compatibility package. " +
-                "Reference that package or construct a ProviderCatalogBuilder with explicit connector modules.");
+        if (moduleType is not null && Activator.CreateInstance(moduleType) is IDubUrlProviderModule module)
+            builder.AddFallbackModule(module);
+        return builder;
     }
 
     private static Type? GetBuiltInProviderModuleType()
@@ -47,15 +53,7 @@ public class SchemeRegistryBuilder
 
     public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)
     {
-        var moduleType = GetBuiltInProviderModuleType()
-            ?? throw new InvalidOperationException(
-                "The default dialect set is supplied by the DubUrl compatibility package. " +
-                "Reference that package or construct a dialect registry from explicit connector modules.");
-        var registry = moduleType.GetMethod(
-                "GetDialectRegistry",
-                BindingFlags.Public | BindingFlags.Static)
-            ?.Invoke(null, null) as IDialectRegistry
-            ?? throw new InvalidOperationException("The DubUrl compatibility package does not expose its built-in dialect registry.");
+        var registry = CreateDefaultCatalog().BuildDialects();
 
         if (schemes.Length == 0)
             return registry;

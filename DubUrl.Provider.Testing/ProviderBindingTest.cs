@@ -173,7 +173,7 @@ public class ProviderBindingTest
             Assert.That(references, Has.None.StartsWith("DubUrl.Provider."));
             Assert.That(loaded, Does.Not.Contain("DubUrl"));
             Assert.That(loaded, Does.Not.Contain("DubUrl.Providers"));
-            Assert.That(loaded.Where(name => name!.StartsWith("DubUrl.Provider.", StringComparison.Ordinal)),
+            Assert.That(loaded.Where(name => name!.StartsWith("DubUrl.Provider.", StringComparison.Ordinal)).Distinct(),
                 Is.SubsetOf(new[] { "DubUrl.Provider.PostgreSql", "DubUrl.Provider.PostgreSql.Npgsql",
                     "DubUrl.Provider.Testing" }));
         });

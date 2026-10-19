@@ -77,13 +77,24 @@ internal static class Program
         if (module is not AssemblyMetadataProviderModule || module.GetType().FullName != bindingName + ".ProviderModule")
             throw new InvalidOperationException("Every driver binding must use its generated ProviderModule and shared metadata registration.");
 
-        var schemes = new ProviderCatalogBuilder().AddModule(module).Build();
+        // This verifier references Core only: exercise the same discovery path as ConnectionUrl(string).
+        Environment.SetEnvironmentVariable("DUBURL_PROVIDER_STORE", context.Store.RootPath);
+        var schemes = SchemeRegistryBuilder.GetDefault();
         var scheme = context.Entry.Schemes?.FirstOrDefault()
             ?? throw new InvalidOperationException("The connector has no scheme to verify.");
         var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));
         if (factory.GetType().FullName is null)
             throw new InvalidOperationException($"Connector scheme '{scheme}' did not resolve to a provider factory.");
-        Console.WriteLine($"Loaded {context.Entry.Provider} {context.Entry.Version} in a new process.");
+        if (AssemblyLoadContext.GetLoadContext(factory.GetType().Assembly) == AssemblyLoadContext.Default
+            || AssemblyLoadContext.Default.Assemblies.Any(assembly => assembly.GetName().Name == "DubUrl"))
+            throw new InvalidOperationException("Automatic discovery must use the installed driver without the compatibility aggregate.");
+        if (context.Entry.Provider == "postgresql-npgsql")
+        {
+            var url = new ConnectionUrl("pg://localhost/demo");
+            if (!url.Parse().Contains("demo", StringComparison.Ordinal))
+                throw new InvalidOperationException("The default ConnectionUrl constructor did not resolve installed PostgreSQL.");
+        }
+        Console.WriteLine($"Automatically discovered {context.Entry.Provider} {context.Entry.Version} in a new process.");
         if (verifyBulk)
         {
             if (context.Entry.Provider != "duckdb-native")

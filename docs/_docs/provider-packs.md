@@ -21,16 +21,24 @@ for example, `postgresql`, `postgres`, `pg`, and `npgsql` can all resolve to `po
 construction rejects an alias assigned to more than one connector.
 
 The default user store is `%LOCALAPPDATA%\DubUrl\providers` on Windows and
-`$XDG_DATA_HOME/duburl/providers` on Linux, falling back to `~/.local/share/duburl/providers`. Installation
+`$XDG_DATA_HOME/duburl/providers` on Unix, falling back to `~/.local/share/duburl/providers`.
+`DUBURL_PROVIDER_STORE` overrides this location for both installation and discovery. Installation
 copies into a same-volume staging directory, validates the archive and every declared asset, and then uses
 an atomic directory move. Versions may exist side by side, while an atomic activation record selects at
 most one version per provider. Reinstalling an already valid version is idempotent. Removal first moves the
 provider directory out of the active store and then deletes it.
 
-At startup, `ProviderCatalogBuilder.AddInstalledPacks` inspects active packs and loads valid module entry
-points through `IDubUrlProviderModule`. Incompatible, incomplete, corrupt, or unloadable packs produce
-diagnostics without preventing other valid packs from loading. Pack changes affect new processes and new
-catalogs; an application should not assume that assemblies can be replaced after they have been loaded.
+Core's `ConnectionUrl(string)` constructor automatically inspects the store and loads active, compatible,
+integrity-verified modules through `IDubUrlProviderModule`. Installed aliases take precedence over
+bundled registrations from `DubUrl`, when referenced. Conflicting installed aliases fail explicitly;
+active modules that cannot load report `ProviderPackException` with code `module-load-failed`.
+Incompatible, incomplete, and corrupt packs are excluded and their diagnostics are available from
+`ProviderPackStore.Inspect()`.
+
+Applications can instead use `ProviderCatalogBuilder.AddInstalledPacks` with their chosen store and
+collect module-loading diagnostics, or pass an entirely explicit registry to bypass discovery.
+Pack changes affect newly created defaults and catalogs; existing URLs retain their registry snapshot.
+An application should not assume that assemblies can be replaced after they have been loaded.
 
 ## CLI management
 

@@ -41,18 +41,27 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
     }
 
     public IProviderCatalogBuilder AddProvider(ProviderRegistration registration)
+        => AddProvider(registration, fallback: false);
+
+    internal ProviderCatalogBuilder AddFallbackModule(IDubUrlProviderModule module)
+    {
+        module.Register(new FallbackCatalog(this));
+        return this;
+    }
+
+    private IProviderCatalogBuilder AddProvider(ProviderRegistration registration, bool fallback)
     {
         ArgumentNullException.ThrowIfNull(registration);
 
         foreach (var alias in registration.Aliases)
         {
-            if (_aliases.TryGetValue(alias, out var existing))
+            if (!fallback && _aliases.TryGetValue(alias, out var existing))
                 throw new ProviderRegistrationException(alias, existing.Name, registration.Name);
         }
 
         _providers.Add(registration);
         foreach (var alias in registration.Aliases)
-            _aliases.Add(alias, registration);
+            _aliases.TryAdd(alias, registration);
         return this;
     }
 
@@ -69,6 +78,9 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
 
         foreach (var provider in _providers)
         {
+            var aliases = GetEffectiveAliases(provider);
+            if (aliases.Length == 0)
+                continue;
             var providerFactory = provider.ProviderFactory();
             if (providerFactory is null)
             {
@@ -91,7 +103,7 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
                 provider.Capabilities,
                 provider.BulkCopyProvider);
 
-            foreach (var alias in provider.Aliases)
+            foreach (var alias in aliases)
                 registrations.Add(alias, schemeRegistration);
         }
 
@@ -102,8 +114,30 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
     {
         var builder = new DialectRegistryBuilder();
         foreach (var provider in _providers)
-            builder.AddDialect(provider.Dialect.GetType(), provider.Aliases.ToArray());
+        {
+            var aliases = GetEffectiveAliases(provider);
+            if (aliases.Length != 0)
+                builder.AddDialect(provider.Dialect.GetType(), aliases);
+        }
         return builder.Build();
+    }
+
+    private string[] GetEffectiveAliases(ProviderRegistration provider)
+        => provider.Aliases.Where(alias => ReferenceEquals(_aliases[alias], provider)).ToArray();
+
+    private sealed class FallbackCatalog(ProviderCatalogBuilder owner) : IProviderCatalogBuilder
+    {
+        public IProviderCatalogBuilder AddProvider(ProviderRegistration registration)
+        {
+            owner.AddProvider(registration, fallback: true);
+            return this;
+        }
+
+        public IProviderCatalogBuilder AddOdbcLocatorOption<TOption>() where TOption : struct, Enum
+        {
+            owner.AddOdbcLocatorOption<TOption>();
+            return this;
+        }
     }
 }
 

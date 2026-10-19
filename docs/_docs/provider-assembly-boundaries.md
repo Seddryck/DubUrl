@@ -6,8 +6,8 @@ tags: [installation, providers, architecture]
 
 DubUrl publishes deliberately acyclic package layers:
 
-1. `DubUrl.Core` contains provider-neutral value types and immutable catalog logic. It does not reference
-   provider implementations.
+1. `DubUrl.Core` contains provider-neutral value types, immutable catalog logic, and discovery of installed
+   connector packs. Default URL construction works with installed connectors without referencing provider implementations.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
    `Providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
 3. `DubUrl.Provider.<Database>.<Driver>` bindings select shared family implementations, concrete drivers,
@@ -154,8 +154,9 @@ Deploy the adapter built against the connector's driver version with that connec
 only Core and the facade can load the optional DLLs at runtime without referencing them at compile time.
 Older mapper-factory-only registries do not implicitly acquire bulk support: use explicit registrations.
 The public `IBulkCopyEngine` namespace remains `DubUrl.BulkCopy`, with its former facade assembly identity
-forwarded to Core. Hosts using the one-argument `ConnectionUrl` constructor still need the `DubUrl`
-compatibility package for its default provider set; modular hosts supply an explicit connector registry.
+forwarded to Core. The one-argument `ConnectionUrl` constructor discovers installed connectors directly
+from Core. The `DubUrl` compatibility package additionally supplies bundled fallback registrations;
+modular hosts can also supply an explicit connector registry to bypass discovery.
 
 ### Optional DLL deployment
 

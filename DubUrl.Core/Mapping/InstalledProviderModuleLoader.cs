@@ -19,10 +19,11 @@ public sealed class InstalledProviderModuleLoader : IDisposable
         var modules = new List<IDubUrlProviderModule>();
         foreach (var pack in store.Inspect().Where(pack => pack.Status == ProviderPackStatus.Active))
         {
+            ProviderPackLoadContext? context = null;
             try
             {
                 var assemblyPath = Path.GetFullPath(Path.Combine(pack.InstallPath, pack.Manifest.Module.Assembly));
-                var context = new ProviderPackLoadContext(assemblyPath);
+                context = new ProviderPackLoadContext(assemblyPath);
                 using var assemblyStream = File.OpenRead(assemblyPath);
                 var assembly = context.LoadFromStream(assemblyStream);
                 var type = assembly.GetType(pack.Manifest.Module.Type, throwOnError: true, ignoreCase: false)
@@ -43,6 +44,7 @@ public sealed class InstalledProviderModuleLoader : IDisposable
                 or TargetInvocationException
                 or InvalidOperationException)
             {
+                context?.Unload();
                 diagnostics?.Add(new ProviderPackDiagnostic(
                     "module-load-failed",
                     $"Provider '{pack.Manifest.Provider}' could not be loaded: {exception.Message}"));

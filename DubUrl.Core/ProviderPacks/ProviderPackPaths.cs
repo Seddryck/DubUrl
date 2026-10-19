@@ -4,6 +4,10 @@ public static class ProviderPackPaths
 {
     public static string GetUserStorePath()
     {
+        var configuredPath = Environment.GetEnvironmentVariable("DUBURL_PROVIDER_STORE");
+        if (!string.IsNullOrWhiteSpace(configuredPath))
+            return Path.GetFullPath(configuredPath);
+
         if (OperatingSystem.IsWindows())
             return Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

@@ -23,8 +23,9 @@ string url = uri.ToString(redactPassword: false);
 // mssql://localhost/AdventureWorks?Integrated%20Security=True
 ```
 
-The default constructor uses the providers registered for the `DubUrl` compatibility
-package. For an application using an explicit connector module, pass its registry:
+The default constructor discovers installed connectors, then uses bundled `DubUrl` registrations
+for remaining aliases when that package is referenced. For an application using an explicit connector
+module, pass its registry:
 
 ```csharp
 using DubUrl.Provider.PostgreSql.Npgsql;

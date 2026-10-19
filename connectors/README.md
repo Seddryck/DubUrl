@@ -20,6 +20,12 @@ The shared build project selects the family, mapper, dialect, parametrizer, and 
 its matrix settings, using the same generation and registration path for every binding.
 `DubUrl.Core` is supplied by the host and excluded from connector archives.
 
+Core's default `ConnectionUrl(string)` constructor automatically discovers active, compatible,
+verified connectors in the per-user store. `DUBURL_PROVIDER_STORE` overrides the store location.
+Installed aliases take precedence over bundled `DubUrl` registrations; duplicate installed aliases
+are errors. Explicit registries bypass discovery. New default registries observe store changes,
+while existing URLs retain their selected providers.
+
 Every standard binding is built with `Providers/Build/ProviderBinding.Build.csproj`, using the settings in `connector-matrix.json`. There is no PostgreSQL/Npgsql-specific build path or project. Without overrides, the shared project builds PostgreSQL/Npgsql for local solution builds and focused consumer tests.
 
 Driver bindings, including `DubUrl.Provider.PostgreSql.Npgsql`, are distributed as connector packs. The shared build project is not packable, and the release workflow does not publish a PostgreSQL/Npgsql binding NuGet package.
