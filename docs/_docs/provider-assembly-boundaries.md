@@ -124,7 +124,7 @@ Provider families can declare optional support without linking an adapter assemb
 
 ```csharp
 [BulkCopyProvider("DubUrl.Connector.DuckDb.BulkCopy",
-    "DubUrl.BulkCopy.Engines.DuckDbBulkCopyProvider")]
+    "DubUrl.Connector.DuckDb.BulkCopy.DuckDbBulkCopyProvider")]
 ```
 
 The non-inherited mapper attribute creates a `LazyBulkCopyProvider` for attribute-based and generated
