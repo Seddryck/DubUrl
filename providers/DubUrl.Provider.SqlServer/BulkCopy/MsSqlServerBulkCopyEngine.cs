@@ -11,14 +11,16 @@ internal class MsSqlServerBulkCopyEngine : IBulkCopyEngine
     private ConnectionUrl ConnectionUrl { get; }
 
     private MsSqlServerBulkCopyFactory Factory { get; }
+    private IBulkCopyDependencyResolver Dependencies { get; }
 
 
     public MsSqlServerBulkCopyEngine(ConnectionUrl connectionUrl)
         : this(connectionUrl, new())
     { }
 
-    internal MsSqlServerBulkCopyEngine(ConnectionUrl connectionUrl, MsSqlServerBulkCopyFactory factory)
-        => (ConnectionUrl, Factory) = (connectionUrl, factory);
+    internal MsSqlServerBulkCopyEngine(ConnectionUrl connectionUrl, MsSqlServerBulkCopyFactory factory,
+        IBulkCopyDependencyResolver? dependencies = null)
+        => (ConnectionUrl, Factory, Dependencies) = (connectionUrl, factory, dependencies ?? BulkCopyDependencyResolver.Default);
 
     public void Dispose()
     { }
@@ -26,7 +28,10 @@ internal class MsSqlServerBulkCopyEngine : IBulkCopyEngine
     public void Write(string tableName, IDataReader dataReader)
     {
         using var connection = ConnectionUrl.Open();
-        using var bulkCopy = Factory.Create(connection, tableName);
-        bulkCopy.WriteToServer(dataReader);
+        Dependencies.Execute(connection.GetType().Assembly, () =>
+        {
+            using var bulkCopy = Factory.Create(connection, tableName);
+            bulkCopy.WriteToServer(dataReader);
+        });
     }
 }

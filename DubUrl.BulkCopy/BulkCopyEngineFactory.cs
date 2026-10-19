@@ -5,20 +5,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl.BulkCopy.Engines;
-using DubUrl.Querying.Dialects;
 
 namespace DubUrl.BulkCopy;
 public class BulkCopyEngineFactory
 {
+    private readonly IBulkCopyDependencyResolver dependencies;
+
+    public BulkCopyEngineFactory() : this(BulkCopyDependencyResolver.Default) { }
+
+    public BulkCopyEngineFactory(IBulkCopyDependencyResolver dependencies)
+        => this.dependencies = dependencies ?? throw new ArgumentNullException(nameof(dependencies));
+
     public virtual IBulkCopyEngine Create(ConnectionUrl connectionUrl)
     {
         ArgumentNullException.ThrowIfNull(connectionUrl, nameof(connectionUrl));
-        return connectionUrl.Dialect switch
-        {
-            DuckDbDialect _ => new DuckDbBulkCopyEngine(connectionUrl),
-            TSqlDialect _ => new MsSqlServerBulkCopyEngine(connectionUrl),
-            _ => throw new NotSupportedException($"Dialect '{connectionUrl.Dialect}' not supported")
-        };
+        var dialect = connectionUrl.Dialect;
+        return dialect.BulkCopyProvider?.Create(connectionUrl, dependencies)
+            ?? throw new NotSupportedException($"Dialect '{dialect}' not supported");
     }
 }

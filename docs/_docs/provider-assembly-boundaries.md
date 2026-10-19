@@ -94,3 +94,80 @@ and safe to share between renders.
 Adding a database-specific override requires no shared template changes, new capability enum members,
 or additional connector/schema packages. Keep common SQL in the standard implementation and introduce
 an override only when the provider needs different behavior.
+
+## Provider-owned bulk copy and optional DLLs
+
+Bulk copy uses an optional provider hook instead of selecting concrete dialects in the shared package.
+
+| Location | Responsibility |
+| --- | --- |
+| `DubUrl.ProviderCore/BulkCopy` (assembly `DubUrl.Core`) | Engine/provider contracts and scoped optional managed dependency resolution |
+| `DubUrl.BulkCopy` | Public `ConnectionUrl.BulkCopy` extension and factory facade; references Core only |
+| `providers/DubUrl.Provider.DuckDb/BulkCopy` | DuckDB native appender engine and reflection adapters |
+| `providers/DubUrl.Provider.SqlServer/BulkCopy` | SQL Server native `SqlBulkCopy` engine and reflection adapters |
+| `connectors/` | Driver deployment and reuse of the provider implementation |
+
+`IDialect.BulkCopyProvider` defaults to `null`; `BaseDialect` exposes a virtual override. DuckDB and SQL
+Server supply their native implementations. A custom provider implements `IBulkCopyProvider` and returns
+an `IBulkCopyEngine` from its dialect override. No shared factory switch or dependency on the facade is
+required. The public `IBulkCopyEngine` namespace stays `DubUrl.BulkCopy`; the facade forwards its former
+assembly identity to Core so existing compiled references continue to resolve.
+
+The facade no longer brings the compatibility package or every provider transitively. Hosts using the
+one-argument `ConnectionUrl` constructor should continue to reference `DubUrl` for its default provider
+set. Modular hosts instead supply an explicitly built connector registry to `ConnectionUrl`.
+
+### Deploy optional bulk-copy dependencies without linking them
+
+Ordinary queries and bulk-engine creation do not load bulk-only helper types. The native engines use
+reflection, and Core, the facade, and provider projects do not reference driver or helper NuGet packages.
+The connector or host still deploys the DLLs required by the selected driver.
+
+Use the existing call when dependencies are already available through the driver's normal loader:
+
+```csharp
+using DubUrl.BulkCopy;
+
+connection.BulkCopy("Customer", reader);
+```
+
+When additional managed DLLs are deployed separately, provide their directories:
+
+```csharp
+var dependencies = new BulkCopyDependencyResolver(new[]
+{
+    Path.Combine(AppContext.BaseDirectory, "optional-bulk-dependencies")
+});
+connection.BulkCopy("Customer", reader, dependencies);
+```
+
+This does not require a compile-time reference to those assemblies. Resolution uses the actual driver's
+`AssemblyLoadContext`, including an installed connector's normal dependency resolver. If normal loading
+cannot resolve an assembly, the scoped resolver probes the driver directory and supplied directories.
+It loads only requested DLLs, supports secondary managed dependencies during the operation, and removes
+its resolution handler on success or failure. Simultaneous scopes can cooperate; an unsuccessful lookup
+does not prevent another resolver from supplying a DLL. Missing dependencies produce an error naming the
+assembly and explaining how to supply it. The resolver does not download packages or change machine-wide
+configuration. Native DLLs and runtime-specific assets continue to use the driver's or installed
+connector's existing runtime packaging and native load context.
+
+DuckDB's date/time conversion types are resolved from its driver's context only when corresponding
+values are encountered. SQL Server retains its existing native bulk-copy settings. Native APIs require
+compatible native connections; this refactor does not add ODBC bulk support or a PostgreSQL COPY engine.
+An Npgsql-based provider can add an engine through the same contract, with optional dependency loading
+when needed.
+
+Custom engines should run native operations through the supplied resolver so helper DLLs can load lazily
+and failures receive the same diagnostics:
+
+```csharp
+using var connection = connectionUrl.Open();
+dependencies.Execute(connection.GetType().Assembly, () =>
+{
+    // Invoke the provider's bulk API here. The reader remains owned by the caller.
+});
+```
+
+Use `dependencies.ResolveType(driverAssembly, assemblyName, typeName)` for explicitly named helper types.
+A host may implement `IBulkCopyDependencyResolver` when it needs another loading policy. The shared
+extension disposes its engine on success and failure and leaves the source reader owned by the caller.

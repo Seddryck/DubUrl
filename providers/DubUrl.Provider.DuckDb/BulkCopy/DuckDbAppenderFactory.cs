@@ -14,13 +14,20 @@ internal class DuckDbAppenderFactory
     private MethodInfo? appendNullMethod;
     private MethodInfo? endRowMethod;
     private Dictionary<Type, MethodInfo>? appendMethods;
-    private static Func<DateOnly, object> CastDateOnly { get; } = CreateCast<DateOnly>("DuckDB.NET.Native.DuckDBDateOnly, DuckDB.NET.Bindings");
-    private static Func<TimeOnly, object> CastTimeOnly { get; } = CreateCast<TimeOnly>("DuckDB.NET.Native.DuckDBTimeOnly, DuckDB.NET.Bindings");
+    private readonly IBulkCopyDependencyResolver dependencies;
+    private Func<DateOnly, object>? castDateOnly;
+    private Func<TimeOnly, object>? castTimeOnly;
 
-    private static Func<T, object> CreateCast<T>(string typeFullName)
+    public DuckDbAppenderFactory() : this(BulkCopyDependencyResolver.Default) { }
+
+    public DuckDbAppenderFactory(IBulkCopyDependencyResolver dependencies)
+        => this.dependencies = dependencies;
+
+    private Func<T, object> CreateCast<T>(Assembly driverAssembly, string typeName)
     {
-        var type = Type.GetType(typeFullName)!;
-        var cast = ReflectionHelper.GetCaster(type, typeof(T), type)!;
+        var type = dependencies.ResolveType(driverAssembly, "DuckDB.NET.Bindings", typeName);
+        var cast = ReflectionHelper.GetCaster(type, typeof(T), type)
+            ?? throw new InvalidOperationException($"Conversion from {typeof(T).Name} to {typeName} was not found in DuckDB.NET.Bindings.");
         return (T value) => cast.Invoke(null, [value])!;
     }
 
@@ -76,8 +83,8 @@ internal class DuckDbAppenderFactory
                     {
                         var dbValue = value switch
                         {
-                            DateOnly date => CastDateOnly(date),
-                            TimeOnly time => CastTimeOnly(time),
+                            DateOnly date => (castDateOnly ??= CreateCast<DateOnly>(connectionType.Assembly, "DuckDB.NET.Native.DuckDBDateOnly"))(date),
+                            TimeOnly time => (castTimeOnly ??= CreateCast<TimeOnly>(connectionType.Assembly, "DuckDB.NET.Native.DuckDBTimeOnly"))(time),
                             _ => value
                         };
                         if (appendMethods.TryGetValue(dbValue.GetType(), out var method))

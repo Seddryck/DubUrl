@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.BulkCopy.Engines;
+using DubUrl.Mapping;
 using Moq;
 using NUnit.Framework;
 
@@ -16,9 +17,10 @@ public class MsSqlServerBulkCopyEngineTests
     [Test]
     public void Write_CallDataReaderRead_Success()
     {
-        var connectionUrl = new Mock<ConnectionUrl>("mssql://./db");
+        var connectionUrl = new Mock<ConnectionUrl>("mssql://./db", Mock.Of<ISchemeRegistry>());
+        connectionUrl.Setup(x => x.Open()).Returns(Mock.Of<IDbConnection>());
         var factory = new Mock<MsSqlServerBulkCopyFactory>();
-        factory.Setup(x => x.Create(It.IsAny<DbConnection>(), It.IsAny<string>()))
+        factory.Setup(x => x.Create(It.IsAny<IDbConnection>(), It.IsAny<string>()))
             .Returns(new MsSqlServerBulkCopyProxy(
                 writeToServer: reader =>
                 {

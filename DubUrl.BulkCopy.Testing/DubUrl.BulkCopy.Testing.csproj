@@ -25,6 +25,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="..\DubUrl.BulkCopy.Testing.Dependency\DubUrl.BulkCopy.Testing.Dependency.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">
@@ -39,4 +42,11 @@
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
+  <Target Name="CopyOptionalDependencyFixture" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <MSBuild Projects="..\DubUrl.BulkCopy.Testing.Dependency\DubUrl.BulkCopy.Testing.Dependency.csproj"
+             Targets="GetTargetPath" Properties="TargetFramework=$(TargetFramework);Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="OptionalDependencyFixture" />
+    </MSBuild>
+    <Copy SourceFiles="@(OptionalDependencyFixture)" DestinationFolder="$(TargetDir)optional-dependencies" />
+  </Target>
 </Project>

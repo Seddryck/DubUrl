@@ -18,6 +18,7 @@ public abstract class BaseDialect : IDialect
     public IDbTypeMapper DbTypeMapper { get; }
     public ISqlFunctionMapper SqlFunctionMapper { get; }
     public virtual ISchemaSqlRenderer SchemaSqlRenderer => StandardSchemaSqlRenderer.Instance;
+    public virtual DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => null;
     public virtual DialectCapabilities Capabilities => DialectCapabilities.Default;
     public virtual string[] Aliases { get; }
     public virtual ILanguage Language { get; }

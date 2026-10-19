@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DubUrl.BulkCopy.Engines;
+using DubUrl.Mapping;
 using Moq;
 using NUnit.Framework;
 
@@ -16,7 +17,8 @@ public class DuckDbBulkCopyEngineTests
     [Test]
     public void Write_CallDataReaderRead_Success()
     {
-        var connectionUrl = new Mock<ConnectionUrl>("duck://memory");
+        var connectionUrl = new Mock<ConnectionUrl>("duck://memory", Mock.Of<ISchemeRegistry>());
+        connectionUrl.Setup(x => x.Open()).Returns(Mock.Of<IDbConnection>());
 
         var row = new Mock<DuckDbAppenderRowProxy>(() => { }, (object value) => { }, () => { });
 
@@ -39,7 +41,8 @@ public class DuckDbBulkCopyEngineTests
     [Test]
     public void Write_CallDataReaderIndex_Success()
     {
-        var connectionUrl = new Mock<ConnectionUrl>("duck://memory");
+        var connectionUrl = new Mock<ConnectionUrl>("duck://memory", Mock.Of<ISchemeRegistry>());
+        connectionUrl.Setup(x => x.Open()).Returns(Mock.Of<IDbConnection>());
 
         var row = new Mock<DuckDbAppenderRowProxy>(() => { }, (object value) => { }, () => { });
 
