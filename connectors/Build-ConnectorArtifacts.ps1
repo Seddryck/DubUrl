@@ -103,7 +103,7 @@ foreach ($connector in $ready) {
         elseif ($technology.Key -eq 'OleDb') { 'DubUrl.OleDb' }
         else { "DubUrl.Provider.$($connector.family)" }
     $mapperType = if ($technology.Key -eq 'OleDb') { "DubUrl.OleDb.Mapping.$($connector.mapper), $mapperAssembly" }
-        else { "DubUrl.Mapping.Implementation.$($connector.mapper), $mapperAssembly" }
+        else { "$mapperAssembly.Mapping.$($connector.mapper), $mapperAssembly" }
     $publishRoot = Join-Path $stagingRoot "$($connector.id)/publish"
     $contentRoot = Join-Path $stagingRoot "$($connector.id)/content"
     New-Item -ItemType Directory -Path $publishRoot, $contentRoot -Force | Out-Null
@@ -127,7 +127,7 @@ foreach ($connector in $ready) {
         "-p:ConnectorAliases=$(@($connector.schemes) -join '|')",
         "-p:ConnectorProviderInvariant=$($technology.Invariant)",
         "-p:ConnectorFactoryType=$(ConvertTo-MSBuildValue $technology.Factory)",
-        "-p:ConnectorDialectType=$(ConvertTo-MSBuildValue "DubUrl.Querying.Dialects.$($connector.dialect), DubUrl.Provider.$($connector.family)")",
+        "-p:ConnectorDialectType=$(ConvertTo-MSBuildValue "DubUrl.Provider.$($connector.family).Sql.$($connector.dialect), DubUrl.Provider.$($connector.family)")",
         "-p:ConnectorMapperType=$(ConvertTo-MSBuildValue $mapperType)",
         "-p:ConnectorParametrizerType=$(ConvertTo-MSBuildValue "DubUrl.Querying.Parametrizing.$($connector.parametrizer), DubUrl.Core")"
     )

@@ -1,7 +1,8 @@
+using DubUrl.Conversion;
 using DubUrl.Parsing;
 using System.Data.Common;
 
-namespace DubUrl.Conversion.Implementation;
+namespace DubUrl.Provider.Teradata.Conversion;
 
 internal static class TeradataConnectionStringReverser
 {

@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.Sqlite.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.Sqlite;
+namespace DubUrl.Provider.Sqlite.Tests.Conversion;
 
 public class SqliteConversionTest
 {

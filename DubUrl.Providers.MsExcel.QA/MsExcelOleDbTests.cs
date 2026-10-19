@@ -1,8 +1,8 @@
+using DubUrl.Provider.Odbc.Rewriting;
 using DubUrl.Mapping;
 using DubUrl.OleDb.Mapping;
 using DubUrl.ProviderTesting;
 using DubUrl.Registering;
-using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 namespace DubUrl.Providers.MsExcel.QA;
 [TestFixture, Category("MsExcel"), NonParallelizable]

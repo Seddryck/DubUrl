@@ -1,6 +1,18 @@
-﻿using DubUrl.Locating.OdbcDriver;
+﻿using DubUrl.Provider.Db2.Mapping;
+using DubUrl.Provider.DuckDb.Mapping;
+using DubUrl.Provider.FirebirdSql.Mapping;
+using DubUrl.Provider.MySql.Mapping;
+using DubUrl.Provider.Odbc.Mapping;
+using DubUrl.Provider.Odbc.Rewriting;
+using DubUrl.Provider.Oracle.Mapping;
+using DubUrl.Provider.PostgreSql.Mapping;
+using DubUrl.Provider.Snowflake.Mapping;
+using DubUrl.Provider.Sqlite.Mapping;
+using DubUrl.Provider.SqlServer.Mapping;
+using DubUrl.Provider.Teradata.Mapping;
+using DubUrl.Provider.Trino.Mapping;
+using DubUrl.Locating.OdbcDriver;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Rewriting.Tokening;
@@ -13,7 +25,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl.Rewriting.Implementation;
 using SingleStoreConnector;
 
 namespace DubUrl.Testing.Mapping;

@@ -23,6 +23,7 @@ Without `--output`, SQL is written to standard output. Use `duburl capabilities 
 using DubUrl.Schema;
 using DubUrl.Schema.Documents;
 using DubUrl.Querying.Dialects;
+using DubUrl.Provider.PostgreSql.Sql;
 
 var reader = new SchemaDocumentReader();
 var document = reader.Read("schema.yaml");

@@ -1,5 +1,6 @@
+using DubUrl.Provider.PostgreSql.Mapping;
+using DubUrl.Provider.PostgreSql.Sql;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><Description>DuckDB dialect, mapping, and rewriting for DubUrl.</Description></PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Querying\Dialects\Formatters\ReservedKeywords\DuckDB\*.txt"
-                      LogicalName="DubUrl.Querying.Dialects.Formatters.ReservedKeywords.DuckDB.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Sql\Formatting\ReservedKeywords\DuckDB\*.txt"
+                      LogicalName="DubUrl.Provider.DuckDb.Sql.Formatting.ReservedKeywords.DuckDB.%(Filename)%(Extension)" />
   </ItemGroup>
   <Import Project="..\Provider.Build.props" />
 </Project>

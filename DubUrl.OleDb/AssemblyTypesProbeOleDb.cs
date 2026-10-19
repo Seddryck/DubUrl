@@ -1,10 +1,14 @@
-﻿using DubUrl.Mapping;
+﻿using DubUrl.Provider.Access.Metadata;
+using DubUrl.Provider.Excel.Metadata;
+using DubUrl.Provider.MySql.Metadata;
+using DubUrl.Provider.Oracle.Metadata;
+using DubUrl.Provider.SqlServer.Metadata;
+using DubUrl.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DubUrl.Mapping.Database;
 
 namespace DubUrl.OleDb;
 

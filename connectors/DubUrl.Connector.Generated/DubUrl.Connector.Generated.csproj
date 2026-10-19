@@ -9,8 +9,8 @@
     <ConnectorAliases Condition="'$(ConnectorAliases)' == ''">duck|duckdb</ConnectorAliases>
     <ConnectorProviderInvariant Condition="'$(ConnectorProviderInvariant)' == ''">DuckDB.NET.Data</ConnectorProviderInvariant>
     <ConnectorFactoryType Condition="'$(ConnectorFactoryType)' == ''">DuckDB.NET.Data.DuckDBClientFactory, DuckDB.NET.Data</ConnectorFactoryType>
-    <ConnectorDialectType Condition="'$(ConnectorDialectType)' == ''">DubUrl.Querying.Dialects.DuckDbDialect, DubUrl.Provider.DuckDb</ConnectorDialectType>
-    <ConnectorMapperType Condition="'$(ConnectorMapperType)' == ''">DubUrl.Mapping.Implementation.DuckdbMapper, DubUrl.Provider.DuckDb</ConnectorMapperType>
+    <ConnectorDialectType Condition="'$(ConnectorDialectType)' == ''">DubUrl.Provider.DuckDb.Sql.DuckDbDialect, DubUrl.Provider.DuckDb</ConnectorDialectType>
+    <ConnectorMapperType Condition="'$(ConnectorMapperType)' == ''">DubUrl.Provider.DuckDb.Mapping.DuckdbMapper, DubUrl.Provider.DuckDb</ConnectorMapperType>
     <ConnectorParametrizerType Condition="'$(ConnectorParametrizerType)' == ''">DubUrl.Querying.Parametrizing.PositionalParametrizer, DubUrl.Core</ConnectorParametrizerType>
     <AssemblyName>$(ConnectorAssemblyName)</AssemblyName>
     <RootNamespace>DubUrl.Connector</RootNamespace>

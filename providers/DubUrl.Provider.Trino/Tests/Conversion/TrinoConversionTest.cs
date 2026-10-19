@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.Trino.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.Trino;
+namespace DubUrl.Provider.Trino.Tests.Conversion;
 
 public class TrinoConversionTest
 {

@@ -18,3 +18,8 @@ and provider fixtures are colocated with their owning implementation package; se
 [provider implementation packages](../providers/README.md). Connector modules keep
 responsibility for selecting the driver and registering the provider. Future reverse
 conversion should follow the same implementation ownership boundary.
+
+Provider implementations use their project-specific namespaces; see
+[provider namespace migration](../providers/NAMESPACES.md). Generated dialect type names
+use DubUrl.Provider.<Family>.Sql and mapper names use the owning provider's Mapping
+namespace. Existing connector binaries must be rebuilt against the renamed public types.

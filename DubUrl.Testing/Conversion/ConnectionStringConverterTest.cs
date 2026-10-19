@@ -1,6 +1,7 @@
+using DubUrl.Provider.Snowflake.Mapping;
+using DubUrl.Provider.SqlServer.Mapping;
 using DubUrl.Conversion;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Parsing;
 using Microsoft.Data.SqlClient;
 using Moq;

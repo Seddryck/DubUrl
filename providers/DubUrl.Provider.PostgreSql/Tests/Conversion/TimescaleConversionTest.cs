@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.PostgreSql.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.PostgreSql;
+namespace DubUrl.Provider.PostgreSql.Tests.Conversion;
 
 public class TimescaleConversionTest
 {

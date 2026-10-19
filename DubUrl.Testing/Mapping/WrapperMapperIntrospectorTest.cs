@@ -1,8 +1,11 @@
-﻿using DubUrl.Locating.OdbcDriver.Implementation;
+﻿using DubUrl.Provider.MySql.Metadata;
+using DubUrl.Provider.Odbc.Connectivity;
+using DubUrl.Provider.Odbc.Drivers.Discovery;
+using DubUrl.Provider.Odbc.Mapping;
+using DubUrl.Provider.SqlServer.Metadata;
+using DubUrl.Provider.Trino.Metadata;
 using DubUrl.Mapping;
 using DubUrl.Mapping.Connectivity;
-using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Implementation;
 using Microsoft.IdentityModel.Tokens;
 using NUnit.Framework;
 using System;

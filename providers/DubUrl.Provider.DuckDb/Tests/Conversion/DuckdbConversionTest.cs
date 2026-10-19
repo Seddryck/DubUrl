@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.DuckDb.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.DuckDb;
+namespace DubUrl.Provider.DuckDb.Tests.Conversion;
 
 public class DuckdbConversionTest
 {

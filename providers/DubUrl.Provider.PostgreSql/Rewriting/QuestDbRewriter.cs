@@ -1,0 +1,106 @@
+﻿using DubUrl.Rewriting;
+using DubUrl.Parsing;
+using DubUrl.Rewriting.Tokening;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DubUrl.Provider.PostgreSql.Rewriting;
+
+internal class QuestDbRewriter : PostgresqlRewriter
+{
+    public override ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    {
+        var parts = new DubUrl.Conversion.ConnectionStringParts(source);
+        parts.TakeHost("Host");
+        parts.TakePort("Port");
+        parts.Segments.Add(parts.Take("Database"));
+        parts.TakeCredentials("Username", "Password");
+        var compatibility = parts.Take("Server Compatibility Mode", SERVER_COMPATIBILITY_MODE);
+        if (compatibility.Length > 0)
+            parts.Options[SERVER_COMPATIBILITY_MODE] = compatibility;
+        return parts.ToUri(scheme);
+    }
+    public const string COMMAND_TIMEOUT = "Command Timeout";
+    public const string STATEMENT_TIMEOUT = "statement_timeout";
+    public const string SERVER_COMPATIBILITY_MODE = "ServerCompatibilityMode";
+    public const string NO_TYPE_LOADING = "NoTypeLoading";
+    public const string DEFAULT_DATABASE = "qdb";
+
+    public QuestDbRewriter(DbConnectionStringBuilder csb)
+        : base(new Specificator(csb),
+                  [
+                    new HostMapper(),
+                    new PortMapper(),
+                    new AuthentificationMapper(),
+                    new DatabaseMapper(),
+                    new OptionsMapper(),
+                  ]
+        )
+    { }
+
+    internal new class PortMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+            => Specificator.Execute(PORT_KEYWORD, urlInfo.Port > 0 ? urlInfo.Port : 8812);
+    }
+
+    internal new class DatabaseMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            if (urlInfo.Segments.Count == 0)
+                Specificator.Execute(DATABASE_KEYWORD, DEFAULT_DATABASE);
+            else if (urlInfo.Segments.Count == 1)
+                if (urlInfo.Segments[0] == DEFAULT_DATABASE || urlInfo.Segments[0] == string.Empty)
+                    Specificator.Execute(DATABASE_KEYWORD, DEFAULT_DATABASE);
+                else
+                    throw new InvalidConnectionUrlException($"One a segment is provided in the connectionUrl it must be '{DEFAULT_DATABASE}'. The segment was '{urlInfo.Segments[0]}'");
+            else
+                throw new InvalidConnectionUrlException($"QuestDb is expecting a maximum of 1 segment and it should be '{DEFAULT_DATABASE}'. The connectionUrl has {urlInfo.Segments.Count} segments: '{string.Join(", ", urlInfo.Segments)}'");
+        }
+    }
+
+    internal new class AuthentificationMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            if (string.IsNullOrEmpty(urlInfo.Username) || string.IsNullOrEmpty(urlInfo.Password))
+                throw new InvalidConnectionUrlException($"Username and Password are mandatory for QuestDb.");
+         
+            Specificator.Execute(USERNAME_KEYWORD, urlInfo.Username);
+            Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
+        }
+    }
+
+    internal class OptionsMapper : global::DubUrl.Rewriting.Tokening.OptionsMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            var unexpected = urlInfo.Options.Keys.Except(new[] { STATEMENT_TIMEOUT, COMMAND_TIMEOUT, SERVER_COMPATIBILITY_MODE });
+            if (unexpected.Any())
+                throw new InvalidConnectionUrlException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' (or its alias '{COMMAND_TIMEOUT}') and also an option named '{SERVER_COMPATIBILITY_MODE}'. The options '{string.Join("', '", unexpected)}' are not supported.");
+            else if (urlInfo.Options.ContainsKey(STATEMENT_TIMEOUT) && urlInfo.Options.ContainsKey(COMMAND_TIMEOUT))
+                throw new InvalidConnectionUrlException($"QuestDb is accepting an option named '{STATEMENT_TIMEOUT}' or its alias '{COMMAND_TIMEOUT}' and also an option named '{SERVER_COMPATIBILITY_MODE}'. You cannot specify both of '{COMMAND_TIMEOUT}' and '{STATEMENT_TIMEOUT}'.");
+            else
+            {
+                var options = new Dictionary<string, string>(urlInfo.Options, StringComparer.OrdinalIgnoreCase);
+                if (!options.TryGetValue(SERVER_COMPATIBILITY_MODE, out var value))
+                    options.Add(SERVER_COMPATIBILITY_MODE, NO_TYPE_LOADING);
+                else if (value != NO_TYPE_LOADING)
+                    throw new InvalidConnectionUrlException($"QuestDb is accepting a single value '{NO_TYPE_LOADING}' for the option named '{SERVER_COMPATIBILITY_MODE}'. The value '{value}' is not supported.");
+                
+                if (options.TryGetValue(STATEMENT_TIMEOUT, out string? timeout))
+                {
+                    options.Add(COMMAND_TIMEOUT, timeout);
+                    options.Remove(STATEMENT_TIMEOUT);
+                }
+                foreach (var option in options)
+                    Specificator.Execute(option.Key, option.Value);
+            }                    
+        }
+    }
+}

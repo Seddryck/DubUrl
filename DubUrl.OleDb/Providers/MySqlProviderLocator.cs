@@ -1,5 +1,5 @@
-﻿using DubUrl.Locating.RegexUtils;
-using DubUrl.Mapping.Database;
+﻿using DubUrl.Provider.MySql.Metadata;
+using DubUrl.Locating.RegexUtils;
 using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;

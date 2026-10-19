@@ -1,0 +1,42 @@
+﻿using DubUrl.Locating;
+using DubUrl.Locating.OdbcDriver;
+using DubUrl.Provider.Odbc.Mapping;
+using DubUrl.Provider.Trino.Metadata;
+using DubUrl.Locating.Options;
+using DubUrl.Locating.RegexUtils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace DubUrl.Provider.Odbc.Drivers.Discovery;
+
+[Driver<TrinoDriverRegex, TrinoOdbcMapper, TrinoDatabase>()]
+public class TrinoDriverLocator : BaseDriverLocator
+{
+    internal class TrinoDriverRegex : BaseDriverRegex
+    {
+        public TrinoDriverRegex()
+            : base(
+            [
+                new AnyOfCapture(["Simba"]),
+                new SpaceMatch(),
+                new WordMatch("Trino ODBC Driver"),
+            ])
+        { }
+    }
+
+    private List<string> Candidates { get; } = [];
+    public TrinoDriverLocator()
+        : base(GetRegexPattern<TrinoDriverLocator>()) { }
+    internal TrinoDriverLocator(DriverLister driverLister)
+        : base(GetRegexPattern<TrinoDriverLocator>(), driverLister) { }
+
+    protected override void AddCandidate(string driver, string[] matches)
+        => Candidates.Add(driver);
+
+    protected override List<string> RankCandidates()
+        => [.. Candidates.OrderByDescending(x => x)];
+}

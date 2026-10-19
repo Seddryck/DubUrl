@@ -1,7 +1,8 @@
-﻿using DubUrl.OleDb;
+﻿using DubUrl.Provider.Access.Metadata;
+using DubUrl.Provider.Excel.Metadata;
+using DubUrl.OleDb;
 using DubUrl.Locating.Options;
 using DubUrl.Locating.RegexUtils;
-using DubUrl.Mapping.Database;
 using DubUrl.OleDb.Mapping;
 using System;
 using System.Collections.Generic;

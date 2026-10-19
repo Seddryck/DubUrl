@@ -1,6 +1,10 @@
-﻿using DubUrl.Mapping;
-using DubUrl.Mapping.Database;
-using DubUrl.Mapping.Implementation;
+﻿using DubUrl.Provider.MySql.Mapping;
+using DubUrl.Provider.MySql.Metadata;
+using DubUrl.Provider.PostgreSql.Mapping;
+using DubUrl.Provider.PostgreSql.Metadata;
+using DubUrl.Provider.SqlServer.Mapping;
+using DubUrl.Provider.SqlServer.Metadata;
+using DubUrl.Mapping;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,6 @@
+using DubUrl.Provider.Odbc.Mapping;
+using DubUrl.Provider.SqlServer.Mapping;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using Microsoft.Data.SqlClient;

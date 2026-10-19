@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.FirebirdSql.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.FirebirdSql;
+namespace DubUrl.Provider.FirebirdSql.Tests.Conversion;
 
 public class FirebirdSqlConversionTest
 {

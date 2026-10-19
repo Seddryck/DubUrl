@@ -1,8 +1,8 @@
+using DubUrl.Provider.Odbc.Rewriting;
 using DubUrl.Adomd.Mapping;
 using DubUrl.Mapping;
 using DubUrl.ProviderTesting;
 using DubUrl.Registering;
-using DubUrl.Rewriting.Implementation;
 using NUnit.Framework;
 namespace DubUrl.Providers.PowerBiDesktop.QA;
 [TestFixture, Category("PowerBiDesktop"), NonParallelizable, Platform("Win")]

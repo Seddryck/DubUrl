@@ -1,8 +1,8 @@
+using DubUrl.Provider.Odbc.Rewriting;
 using NUnit.Framework;
 using System.Data;
 using DubUrl.Registering;
 using DubUrl.Adomd.Mapping;
-using DubUrl.Rewriting.Implementation;
 using DubUrl.Mapping;
 using Dapper;
 using System.Security.Policy;

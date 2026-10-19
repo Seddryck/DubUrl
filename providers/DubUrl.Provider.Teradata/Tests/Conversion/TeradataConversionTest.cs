@@ -1,8 +1,9 @@
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.Teradata.Mapping;
+using DubUrl.Testing;
 using DubUrl.Testing.Conversion;
 using NUnit.Framework;
 
-namespace DubUrl.Testing.Conversion.Teradata;
+namespace DubUrl.Provider.Teradata.Tests.Conversion;
 
 public class TeradataConversionTest
 {

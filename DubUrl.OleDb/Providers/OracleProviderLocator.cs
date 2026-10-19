@@ -1,5 +1,5 @@
+using DubUrl.Provider.Oracle.Metadata;
 using DubUrl.Locating.RegexUtils;
-using DubUrl.Mapping.Database;
 using DubUrl.OleDb.Mapping;
 using DubUrl.Rewriting.Tokening;
 

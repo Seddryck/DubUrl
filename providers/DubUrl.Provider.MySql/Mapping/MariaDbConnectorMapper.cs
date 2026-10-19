@@ -1,0 +1,21 @@
+﻿using DubUrl.Mapping;
+using DubUrl.Provider.MySql.Metadata;
+using DubUrl.Parsing;
+using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Parametrizing;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DubUrl.Provider.MySql.Mapping;
+
+[Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
+public class MariaDbConnectorMapper : MySqlConnectorMapper
+{
+    public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
+        : base(csb, dialect, parametrizer)
+    { }
+}

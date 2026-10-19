@@ -1,0 +1,24 @@
+﻿using DubUrl.Locating;
+using DubUrl.Locating.OdbcDriver;
+using DubUrl.Provider.Odbc.Mapping;
+using DubUrl.Provider.PostgreSql.Metadata;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using DubUrl.Locating.Options;
+
+namespace DubUrl.Provider.Odbc.Drivers.Discovery;
+
+[Driver<PostgresqlDriverRegex, QuestDbOdbcMapper, QuestDbDatabase>()]
+public class QuestDbDriverLocator : PostgresqlDriverLocator
+{
+    public QuestDbDriverLocator()
+        : this(EncodingOption.Unspecified, ArchitectureOption.Unspecified) { }
+    public QuestDbDriverLocator(EncodingOption encoding, ArchitectureOption architecture)
+        : base(encoding, architecture) { }
+    internal QuestDbDriverLocator(DriverLister driverLister, EncodingOption encoding = EncodingOption.Unspecified, ArchitectureOption architecture = ArchitectureOption.Unspecified)
+        : base(driverLister, encoding, architecture) { }
+}

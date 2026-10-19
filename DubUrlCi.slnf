@@ -13,6 +13,8 @@
       "DubUrl.Worker.Testing\\DubUrl.Worker.Testing.csproj",
       "DubUrl.Worker\\DubUrl.Worker.csproj",
       "DubUrl.Core\\DubUrl.csproj",
+      "DubUrl.Connector.Testing\\DubUrl.Connector.Testing.csproj",
+      "samples\\DubUrl.Connector.Sample\\DubUrl.Connector.Sample.csproj",
       "DubUrl.ProviderCore\\DubUrl.Core.csproj",
       "DubUrl.Providers\\DubUrl.Providers.csproj",
       "DubUrl.Extensions.Testing\\DubUrl.Extensions.Testing.csproj",

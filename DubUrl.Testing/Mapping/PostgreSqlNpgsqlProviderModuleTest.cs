@@ -1,6 +1,6 @@
+using DubUrl.Provider.PostgreSql.Mapping;
 using DubUrl.Connector.PostgreSql.Npgsql;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
 using DubUrl.Rewriting;
 using Npgsql;
 using NUnit.Framework;
