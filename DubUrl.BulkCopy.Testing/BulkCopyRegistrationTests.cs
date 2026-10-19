@@ -1,7 +1,10 @@
+using DubUrl.Provider.DuckDb.Sql;
 using System.Data.Common;
-using DubUrl.BulkCopy.Engines;
+using DubUrl.Connector.DuckDb.BulkCopy;
+using DubUrl.Connector.SqlServer.BulkCopy;
 using DubUrl.Mapping;
-using DubUrl.Mapping.Implementation;
+using DubUrl.Provider.DuckDb.Mapping;
+using DubUrl.Provider.SqlServer.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;

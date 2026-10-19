@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.DuckDb.Metadata;
 using DubUrl.Provider.DuckDb.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -16,7 +16,7 @@ namespace DubUrl.Provider.DuckDb.Mapping;
 [MapperAttribute<DuckdbDatabase, PositionalParametrizer>(
     "DuckDB.NET.Data"
 )]
-[DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Connector.DuckDb.BulkCopy", "DubUrl.BulkCopy.Engines.DuckDbBulkCopyProvider")]
+[DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Connector.DuckDb.BulkCopy", "DubUrl.Connector.DuckDb.BulkCopy.DuckDbBulkCopyProvider")]
 public class DuckdbMapper : BaseMapper, IFileBasedMapper
 {
     public DuckdbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)

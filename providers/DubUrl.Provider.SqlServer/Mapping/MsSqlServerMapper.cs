@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.SqlServer.Metadata;
 using DubUrl.Provider.SqlServer.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -15,7 +15,7 @@ namespace DubUrl.Provider.SqlServer.Mapping;
 [Mapper<MsSqlServerDatabase, NamedParametrizer>(
     "Microsoft.Data.SqlClient"
 )]
-[DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Connector.SqlServer.BulkCopy", "DubUrl.BulkCopy.Engines.MsSqlServerBulkCopyProvider")]
+[DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Connector.SqlServer.BulkCopy", "DubUrl.Connector.SqlServer.BulkCopy.MsSqlServerBulkCopyProvider")]
 public class MsSqlServerMapper : BaseMapper
 {
     public MsSqlServerMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

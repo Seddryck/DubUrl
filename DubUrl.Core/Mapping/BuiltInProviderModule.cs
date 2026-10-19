@@ -61,14 +61,14 @@ public sealed class BuiltInProviderModule : IDubUrlProviderModule
             context => new Db2Mapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<PositionalParametrizer>(catalog, dialects, "DuckDB", ["duck", "duckdb"], "DuckDB.NET.Data", typeof(DuckDbDialect),
             context => new DuckdbMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath),
-            new DubUrl.BulkCopy.LazyBulkCopyProvider("DubUrl.Connector.DuckDb.BulkCopy", "DubUrl.BulkCopy.Engines.DuckDbBulkCopyProvider"));
+            new DubUrl.BulkCopy.LazyBulkCopyProvider("DubUrl.Connector.DuckDb.BulkCopy", "DubUrl.Connector.DuckDb.BulkCopy.DuckDbBulkCopyProvider"));
         Add<NamedParametrizer>(catalog, dialects, "Firebird SQL", ["fb", "firebird"], "FirebirdSql.Data.FirebirdClient", typeof(FirebirdSqlDialect),
             context => new FirebirdSqlMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath));
         Add<NamedParametrizer>(catalog, dialects, "MariaDB", ["maria", "mariadb"], "MySqlConnector", typeof(MySqlDialect),
             context => new MariaDbConnectorMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "Microsoft SQL Server", ["mssql", "ms", "sqlserver", "mssqlserver"], "Microsoft.Data.SqlClient", typeof(TSqlDialect),
             context => new MsSqlServerMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer),
-            new DubUrl.BulkCopy.LazyBulkCopyProvider("DubUrl.Connector.SqlServer.BulkCopy", "DubUrl.BulkCopy.Engines.MsSqlServerBulkCopyProvider"));
+            new DubUrl.BulkCopy.LazyBulkCopyProvider("DubUrl.Connector.SqlServer.BulkCopy", "DubUrl.Connector.SqlServer.BulkCopy.MsSqlServerBulkCopyProvider"));
         Add<NamedParametrizer>(catalog, dialects, "MySQL", ["mysql", "my"], "MySqlConnector", typeof(MySqlDialect),
             context => new MySqlConnectorMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer));
         Add<NamedParametrizer>(catalog, dialects, "Oracle Database", ["oracle", "or", "ora"], "Oracle.ManagedDataAccess", typeof(OracleDialect),

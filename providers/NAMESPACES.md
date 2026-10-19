@@ -56,6 +56,12 @@ wrappers are introduced. Review persisted assembly-qualified names and reflectio
 configuration as well as source references before upgrading. Core's shared contracts
 retain their namespaces, and existing connection URL aliases remain unchanged.
 
+Bulk-copy adapters belong to their optional connector projects and use those exact
+project namespaces: `DubUrl.Connector.DuckDb.BulkCopy` and
+`DubUrl.Connector.SqlServer.BulkCopy`. Provider mapper declarations name the adapter
+types without referencing their assemblies. Shared bulk-copy contracts retain the
+`DubUrl.BulkCopy` namespace in Core; provider families remain driver independent.
+
 Generated connectors and the documentation generator use the new names. DuckDB's keyword
 resources use `DubUrl.Provider.DuckDb.Sql.Formatting.ReservedKeywords.DuckDB` and pass
 that provider namespace explicitly to the shared keyword reader. Namespace/folder

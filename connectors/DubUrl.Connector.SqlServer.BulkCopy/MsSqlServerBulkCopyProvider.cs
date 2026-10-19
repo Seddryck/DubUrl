@@ -1,7 +1,8 @@
+using DubUrl.BulkCopy;
 using System.Data;
 using Microsoft.Data.SqlClient;
 
-namespace DubUrl.BulkCopy.Engines;
+namespace DubUrl.Connector.SqlServer.BulkCopy;
 
 public sealed class MsSqlServerBulkCopyProvider : IBulkCopyProvider
 {

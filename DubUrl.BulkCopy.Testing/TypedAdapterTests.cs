@@ -1,6 +1,8 @@
+using DubUrl.Provider.DuckDb.Sql;
 using System.Data;
 using System.Numerics;
-using DubUrl.BulkCopy.Engines;
+using DubUrl.Connector.DuckDb.BulkCopy;
+using DubUrl.Connector.SqlServer.BulkCopy;
 using DubUrl.Querying.Dialects;
 using DuckDB.NET.Data;
 using Microsoft.Data.SqlClient;
