@@ -194,11 +194,17 @@ The following databases and their associated schemes are supported through the A
 
 ## Installing
 
-Install in the usual .NET fashion:
+Install the provider-neutral library, the database implementation, and its driver. For PostgreSQL:
 
 ```sh
-Install-Package DubUrl
+dotnet add package DubUrl
+dotnet add package DubUrl.Provider.PostgreSql
+dotnet add package Npgsql
 ```
+
+Then `new ConnectionUrl("pg://localhost/demo")` works through automatic discovery. `DubUrl` does not
+install every provider. It replaces the `DubUrl.Core` package while retaining the `DubUrl.Core.dll`
+assembly and existing namespaces. Existing aggregate users must add their chosen provider packages.
 
 To install the extension for OLEDB provider locators
 

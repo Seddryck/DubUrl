@@ -10,7 +10,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -18,4 +18,7 @@
     <QaInfrastructure Include="infrastructure\**\*" />
   </ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj" />
+  </ItemGroup>
 </Project>

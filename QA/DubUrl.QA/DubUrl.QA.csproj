@@ -121,7 +121,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\DubUrl.Adomd\DubUrl.Adomd.csproj" />
     <ProjectReference Include="..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
-    <ProjectReference Include="..\..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
     <ProjectReference Include="..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
     <ProjectReference Include="..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
@@ -160,4 +160,22 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj" />
+    <ProjectReference Include="../../Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj" />
+    <ProjectReference Include="../../Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj" />
+    <ProjectReference Include="../../Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="../../Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj" />
+    <ProjectReference Include="../../Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj" />
+    <ProjectReference Include="../../Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj" />
+    <ProjectReference Include="../../Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj" />
+    <ProjectReference Include="../../Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj" />
+    <ProjectReference Include="../../Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="../../Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj" />
+    <ProjectReference Include="../../Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj" />
+    <ProjectReference Include="../../Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="../../Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj" />
+    <ProjectReference Include="../../Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj" />
+    <ProjectReference Include="../../Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj" />
+  </ItemGroup>
 </Project>

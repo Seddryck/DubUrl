@@ -224,7 +224,6 @@ jobs:
         shell: pwsh
         run: |
           $projects = @(
-            'DubUrl/DubUrl.csproj'
             'DubUrl.Core/DubUrl.Core.csproj'
             'Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
             'Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
@@ -341,8 +340,6 @@ jobs:
       matrix:
         include:
           - package-id: DubUrl
-            project: DubUrl/DubUrl.csproj
-          - package-id: DubUrl.Core
             project: DubUrl.Core/DubUrl.Core.csproj
           - package-id: DubUrl.Provider.Access
             project: Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
@@ -430,7 +427,7 @@ jobs:
           --no-build
           --no-restore
           --nologo
-          -p:IncludeSymbols=${{ matrix.package-id != 'DubUrl' }}
+          --include-symbols
           --output .artifacts/nuget
           -p:Version=${{ needs.version.outputs.semver }}
           -p:ContinuousIntegrationBuild=true

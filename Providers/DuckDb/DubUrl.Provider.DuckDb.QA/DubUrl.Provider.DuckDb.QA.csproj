@@ -12,10 +12,14 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
   </ItemGroup>
   <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure\**\*" /></ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="../../Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj" />
+  </ItemGroup>
 </Project>

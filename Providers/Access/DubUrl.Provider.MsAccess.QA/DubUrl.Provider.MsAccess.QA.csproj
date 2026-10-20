@@ -8,7 +8,7 @@
     <PackageReference Include="System.Data.OleDb" Version="10.0.12" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
   </ItemGroup>
@@ -18,4 +18,8 @@
     <QaInfrastructure Include="infrastructure\**\*" />
   </ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Provider.Access/DubUrl.Provider.Access.csproj" />
+    <ProjectReference Include="../../Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj" />
+  </ItemGroup>
 </Project>

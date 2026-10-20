@@ -13,7 +13,7 @@ PostgreSQL-compatible QA projects share the `PostgreSql` folder; SingleStore QA 
 `MySql`. Analysis Services and Power BI QA projects are grouped under `Adomd`.
 Shared build settings live in `Providers/Provider.Build.props`.
 
-DubUrl keeps provider-neutral contracts and runtime behavior in `DubUrl.Core`. Database-specific dialects, mappers, rewriters, type mappings, and discovery code live in the following packages:
+DubUrl keeps provider-neutral contracts and runtime behavior in the `DubUrl` package (`DubUrl.Core.dll`). Database-specific dialects, mappers, rewriters, type mappings, and discovery code live in the following packages:
 
 | Package | Database families |
 | --- | --- |
@@ -34,12 +34,14 @@ DubUrl keeps provider-neutral contracts and runtime behavior in `DubUrl.Core`. D
 | `DubUrl.Provider.Text` | Delimited text files through ODBC |
 | `DubUrl.Provider.Trino` | Trino |
 
-Each shared family package above depends on `DubUrl.Core` without a concrete ADO.NET driver.
-Driver binding packages use `DubUrl.Provider.<Database>.<Driver>` names and combine the family
-implementation with a driver and an explicit `IDubUrlProviderModule`. For example,
-`DubUrl.Provider.CockroachDb.Npgsql` reuses `DubUrl.Provider.PostgreSql`; that dependency
-expresses the family relationship. Connector packs are the installable distribution format.
-The `DubUrl` package remains the 0.x compatibility aggregate and references every shared family package.
+Each shared family package above depends on `DubUrl` without a concrete ADO.NET driver.
+Install a family package alongside its concrete ADO.NET driver, such as
+`DubUrl.Provider.PostgreSql` and `Npgsql`. Core discovers their attributes and driver factory automatically.
+Alternatively, provider archives carry the family implementation and selected driver together, with
+an implementation-anchored `.deps.json` and local `provider-pack.json` definition. There are no empty
+binding DLLs or per-driver binding NuGet packages.
+The all-provider aggregate and the `DubUrl.Core` NuGet package are removed. The physical Core project,
+`DubUrl.Core.dll`, and existing namespaces keep their names; its NuGet package is `DubUrl`.
 
 Provider and connector project-reference dependencies are packed with a lower bound equal to their release version and an exclusive `1.0.0` upper bound. This keeps the modular packages on the compatible 0.x API line.
 
@@ -73,7 +75,7 @@ including Schema.Generation, the reserved Schema.Discovery area, and ODBC's
 Drivers.Discovery. Public provider namespaces change and consumers must recompile.
 
 The isolated consumer `DubUrl.Provider.Testing` exercises PostgreSQL registration
-without compatibility-package references or friend access. The tests enforce source ownership, execute a
+with explicit family references and without friend access. The tests enforce source ownership, execute a
 bound parameter through a fake driver, and reuse PostgreSQL behavior with a different
 connector registration. See the provider modules documentation for setup and the
 distinction between independent registration and official publication inventories.

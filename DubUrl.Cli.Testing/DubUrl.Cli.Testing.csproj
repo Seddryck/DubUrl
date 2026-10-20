@@ -18,7 +18,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Cli\DubUrl.Cli.csproj" />
-    <ProjectReference Include="..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj" />
+    <ProjectReference Include="../Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="../Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj" />
+    <ProjectReference Include="../Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj" />
+  </ItemGroup>
 </Project>

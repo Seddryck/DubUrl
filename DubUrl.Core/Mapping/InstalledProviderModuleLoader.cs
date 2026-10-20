@@ -89,7 +89,7 @@ public sealed class InstalledProviderModuleLoader : IDisposable
                 .GetManifestResourceStream("DubUrl.Core.SharedDependencies")
                 ?? throw new InvalidOperationException("Core's shared dependency inventory is missing.");
             using var reader = new StreamReader(stream);
-            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "DubUrl", "DubUrl.Core" };
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { typeof(InstalledProviderModuleLoader).Assembly.GetName().Name! };
             while (reader.ReadLine() is { } path)
                 if (Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                     names.Add(Path.GetFileNameWithoutExtension(path.Replace('\\', '/')));

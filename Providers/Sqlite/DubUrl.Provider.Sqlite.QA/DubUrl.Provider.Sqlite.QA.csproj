@@ -11,7 +11,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.Schema.Testing.Contracts\DubUrl.Schema.Testing.Contracts.csproj" />
@@ -21,4 +21,7 @@
     <QaInfrastructure Include="infrastructure\**\*" />
   </ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj" />
+  </ItemGroup>
 </Project>

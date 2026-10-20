@@ -82,7 +82,7 @@ Archives and catalogs using the old module/type definition must be regenerated.
 `BundledProviderCatalog.Describe()` groups entries by database. Hosts may provide an updated or custom
 catalog. Application and archive definitions use the same generator and matrix; download fields are
 added only after archives exist. The bundled snapshot supports offline browsing; installation uses a
-distribution catalog containing archive URLs and SHA-256 hashes. `DubUrl` is dependency-only and embeds no catalog.
+distribution catalog containing archive URLs and SHA-256 hashes. `DubUrl` supplies provider-neutral Core functionality and embeds no full catalog.
 
 Connector archives exclude Core and its resolved runtime dependencies, including Didot's libraries.
 The loader resolves those assemblies from the host; provider and driver dependencies outside Core's

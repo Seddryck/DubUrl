@@ -15,12 +15,12 @@ Provider QA follows the same ownership boundary as provider production code. A p
 - `DubUrl.Provider.XYZ.Testing` contains fast unit tests for that production project. It may reference test frameworks and test helpers, but production projects must never reference it.
 - `DubUrl.Provider.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable contracts from `DubUrl.ProviderTesting` and `DubUrl.Schema.Testing.Contracts`.
 
-Until the production split in #1573 is complete, pilot QA projects reference `DubUrl.Core` directly. This is a migration seam, not a reversal of the dependency direction.
+Provider QA projects reference the provider-neutral Core project, published as `DubUrl`, and their own provider implementations explicitly. Shared QA contracts do not pull in an all-provider aggregate.
 
 ## Dependency convention
 
 ```text
-DubUrl.Core                    DubUrl.Schema
+DubUrl                         DubUrl.Schema
     ^                               ^
     |                               |
 DubUrl.Provider.XYZ          DubUrl.Schema.Testing.Contracts
@@ -69,14 +69,14 @@ The manifest is checked by the provider suite, so malformed or incomplete metada
 
 Provider QA runs independently from the unit-test and release workflow. Each provider workflow calls its existing deployment entry point under `DubUrl.QA`, runs the provider-owned suite on .NET 8, 9, and 10, and uploads its test results and runnable QA bundle. Power BI Desktop and SingleStore remain manual workflows because they require licensed external software.
 
-## Aggregate compatibility QA
+## Multi-provider composition QA
 
-`DubUrl.QA` remains as the shared deployment harness and aggregate composition suite. Provider-owned projects cover provider capabilities, while the aggregate suite retains only composition concerns:
+`DubUrl.QA` remains as the shared deployment harness and multi-provider composition suite. Provider-owned projects cover provider capabilities, while the composition suite retains only composition concerns:
 
-- all advertised built-ins can be discovered by the compatibility package;
+- explicitly referenced provider implementations can be discovered automatically;
 - aliases do not conflict;
 - multiple providers coexist in one catalog;
 - dependency injection builds the expected catalog;
 - resolving one provider does not change another provider's resolution.
 
-Provider-owned connectivity, querying, schema, driver, and deployment scenarios must not be copied back into the aggregate suite. SQLite and PostgreSQL ADO.NET live coverage is now owned by their provider QA projects; their legacy aggregate fixtures were removed.
+Provider-owned connectivity, querying, schema, driver, and deployment scenarios must not be copied back into the composition suite. SQLite and PostgreSQL ADO.NET live coverage is now owned by their provider QA projects; their legacy composition fixtures were removed.

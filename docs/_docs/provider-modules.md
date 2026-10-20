@@ -11,10 +11,10 @@ capability objects together. Registration order is deterministic and a duplicate
 
 ## Discover providers automatically
 
-With the NuGet packages `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and `Npgsql`,
+With the NuGet packages `DubUrl`, `DubUrl.Provider.PostgreSql`, and `Npgsql`,
 `new ConnectionUrl("pg://localhost/demo")` works without a registry, factory registration, catalog,
 or provider archive. Core reads attributes from the application's `DubUrl.Provider.*` runtime assemblies.
-The dependency-only `DubUrl` package is a shortcut for referencing Core and all provider families.
+The `DubUrl` package supplies Core; add only the provider families needed by the application.
 Installing a PostgreSQL archive is another way to supply the implementation and driver.
 
 Discovery reads active, compatible, integrity-verified packs from the per-user connector store:
@@ -67,7 +67,7 @@ mapper through reflection. Add optional capability objects with
 
 ## Author a driver binding without changing Core
 
-For a new driver binding to an existing database, reference `DubUrl.Core`, the relevant
+For a new driver binding to an existing database, reference `DubUrl`, the relevant
 `DubUrl.Provider.*` family package, and the concrete driver. The packaging collector gathers their dependency
 closure. Packaging discards its temporary DLL and writes a connector-specific `.deps.json` beside the
 selected provider implementation DLL. The connector definition names that implementation, the other
@@ -84,7 +84,7 @@ An alternative connector can supply its own factory and aliases while reusing `P
 Registering two connectors for the same alias produces a `ProviderRegistrationException`; choose
 the connector explicitly rather than relying on registration order.
 
-For a new database, create a provider implementation project referencing `DubUrl.Core`. Own its
+For a new database, create a provider implementation project referencing the provider-neutral `DubUrl` package. Own its
 database identity, mapper, rewriter, dialect, and any specialized SQL or driver discovery behavior
 there. Reuse the public `BaseMapper`, `ConnectionStringRewriter`, token mappers, and ANSI SQL
 components where appropriate. Keep shared family behavior in provider projects and concrete driver
@@ -101,17 +101,16 @@ Select `NamedParametrizer`, `PositionalParametrizer`, or a specialized implement
 driver's parameter binding rules. These affect parameters added to executed commands independently
 of SQL identifier and literal rendering. `DubUrl.Provider.Testing` executes a parameterized query
 through a deterministic fake driver and tests an alternative PostgreSQL connector in a consumer
-that does not reference the compatibility aggregate or unrelated providers.
+that references only the required providers.
 
-Applications using explicit modules install only the selected packages and pass their built registry
-to `ConnectionUrl` or `ConnectionUrlFactory`. Existing applications can continue using the `DubUrl`
-compatibility aggregate, which reads an embedded connector catalog. Adding an independently registered
-connector does not require editing a built-in provider list. Including it in the official distribution
-requires updating `connectors/connector-matrix.json`, the applicable package/dependencies, and documentation.
-The shared generator produces its catalog and local definition; the aggregate automatically includes its
-database name and attribute-derived schemes in its metadata view. The aggregate's project references
-select its bundled implementation assemblies; no C# provider list needs editing. The matrix's technology
-table maps driver invariants to build keys and optional assembly names, without listing factory types.
+Applications may pass an explicitly built registry to `ConnectionUrl` or `ConnectionUrlFactory`, or
+rely on automatic discovery from their NuGet dependencies. Add `DubUrl`, the provider package, and its
+driver; no all-provider aggregate or `DubUrl.Core` compatibility package is produced.
+Adding an independently registered provider does not require editing a built-in provider list.
+Official archive distribution requires updating `connectors/connector-matrix.json`, the applicable
+dependencies, and documentation. The shared generator produces catalog and local definitions from the
+matrix and provider attributes. `DubUrl.Application` embeds the generated catalog. The matrix's
+technology table maps driver invariants to build keys and optional assembly names, without listing factory types.
 None of these packaging choices belongs in the provider-neutral Core.
 
 ## ODBC locator options and factories

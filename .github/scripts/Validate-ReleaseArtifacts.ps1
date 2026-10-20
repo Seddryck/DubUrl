@@ -10,8 +10,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $packages = @(
-    @{ Id = 'DubUrl'; Assembly = $null },
-    @{ Id = 'DubUrl.Core'; Assembly = 'DubUrl.Core' },
+    @{ Id = 'DubUrl'; Assembly = 'DubUrl.Core' },
     @{ Id = 'DubUrl.Provider.Access'; Assembly = 'DubUrl.Provider.Access' },
     @{ Id = 'DubUrl.Provider.Db2'; Assembly = 'DubUrl.Provider.Db2' },
     @{ Id = 'DubUrl.Provider.Drill'; Assembly = 'DubUrl.Provider.Drill' },
@@ -56,7 +55,7 @@ $packageFiles = @(Get-ChildItem -LiteralPath $NuGetDirectory -Filter '*.nupkg' -
 $symbolPackageFiles = @(Get-ChildItem -LiteralPath $NuGetDirectory -Filter '*.snupkg' -File)
 
 Assert-Condition ($packageFiles.Count -eq $packages.Count) "Expected $($packages.Count) NuGet packages, found $($packageFiles.Count)."
-Assert-Condition ($symbolPackageFiles.Count -eq ($packages.Count - 1)) "Expected $($packages.Count - 1) symbol packages, found $($symbolPackageFiles.Count)."
+Assert-Condition ($symbolPackageFiles.Count -eq $packages.Count) "Expected $($packages.Count) symbol packages, found $($symbolPackageFiles.Count)."
 
 foreach ($package in $packages) {
     $packagePath = Join-Path $NuGetDirectory "$($package.Id).$Version.nupkg"
@@ -72,19 +71,23 @@ foreach ($package in $packages) {
         $entries = @($archive.Entries.FullName)
         Assert-Condition ($entries -contains "$($package.Id).nuspec") "Package '$($package.Id)' has no matching nuspec."
 
-        if (-not $package.Assembly) {
-            Assert-Condition (@($entries | Where-Object { $_ -match '\.(dll|pdb)$' }).Count -eq 0) "Dependency-only package contains build output."
-        }
-        foreach ($framework in $(if ($package.Assembly) { $frameworks } else { @() })) {
+        foreach ($framework in $frameworks) {
             $assemblyPath = "lib/$framework/$($package.Assembly).dll"
             Assert-Condition ($entries -contains $assemblyPath) "Package '$($package.Id)' has no assembly at '$assemblyPath'."
+        }
+        $reader = [IO.StreamReader]::new($archive.GetEntry("$($package.Id).nuspec").Open())
+        try { [xml] $specification = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $dependencies = @($specification.SelectNodes("//*[local-name()='dependency']") | ForEach-Object { $_.id })
+        Assert-Condition ('DubUrl.Core' -notin $dependencies) "Package '$($package.Id)' depends on the retired DubUrl.Core package."
+        if ($package.Id -eq 'DubUrl') {
+            Assert-Condition (@($dependencies | Where-Object { $_ -like 'DubUrl.Provider.*' }).Count -eq 0) 'DubUrl must not bring provider implementations.'
         }
         if ($package.Id -eq 'DubUrl.Schema.Documents') {
             $schemaPath = 'schemas/schema-document/v1/schema.json'
             Assert-Condition ($entries -contains $schemaPath) "Package '$($package.Id)' has no schema at '$schemaPath'."
         }
-        if ($package.Id -eq 'DubUrl.Core') {
-            Assert-Condition ($entries -contains 'buildTransitive/DubUrl.Core.targets') "Core package is missing its single-file dependency discovery target."
+        if ($package.Id -eq 'DubUrl') {
+            Assert-Condition ($entries -contains 'buildTransitive/DubUrl.targets') "DubUrl package is missing its single-file dependency discovery target."
         }
 
     }

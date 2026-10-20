@@ -23,7 +23,7 @@ binding DLL in the connector. The definition's `assembly` names a real implement
 dialect attributes. `implementationAssemblies` names the provider assemblies to inspect, and the driver
 invariant selects the attributed mapping. Core discovers attributes in an isolated context through the shared
 `AttributeProviderModule`. Repeated driver locators for one database/mapper are combined.
-`DubUrl.Core` and its runtime dependency closure (including Didot) are supplied by the host and excluded from connector archives. Core generates a dependency inventory from its resolved NuGet assets; packaging and the connector loader use that same inventory. Driver and provider dependencies outside that closure remain private to each connector.
+The `DubUrl` package (`DubUrl.Core.dll`) and its runtime dependency closure (including Didot) are supplied by the host and excluded from connector archives. Core generates a dependency inventory from its resolved NuGet assets; packaging and the connector loader use that same inventory. Driver and provider dependencies outside that closure remain private to each connector.
 
 Core's default `ConnectionUrl(string)` constructor automatically discovers active, compatible,
 verified connectors in the per-user store. `DUBURL_PROVIDER_STORE` overrides the store location.
@@ -52,9 +52,10 @@ parametrizer, URL schemes, file-based markers, or factory type names. The techno
 invariant to its build key and, only when different, its assembly name. The driver assembly supplies its
 `DbProviderFactory` implementation through Core's shared factory-discovery helpers.
 
-`DubUrl` is a dependency-only NuGet package: it brings Core and the provider-family packages, with no
-DLL, catalog, or registration wrapper. Core finds provider assemblies named `DubUrl.Provider.*` in the
-application's resolved runtime dependencies and the default load context. Installing `DubUrl.Core`,
+`DubUrl` is the provider-neutral NuGet package built by `DubUrl.Core/DubUrl.Core.csproj`. It contains
+`DubUrl.Core.dll` with no embedded full catalog or registration wrapper. The all-provider aggregate and
+the `DubUrl.Core` NuGet package are removed. Core finds provider assemblies named `DubUrl.Provider.*` in the
+application's resolved runtime dependencies and the default load context. Installing `DubUrl`,
 `DubUrl.Provider.PostgreSql`, and `Npgsql` is sufficient for `new ConnectionUrl("pg://localhost/demo")`;
 no archive, catalog, or explicit factory registration is needed. Drivers resolve from application
 runtime dependencies, while explicit `DbProviderFactories` registrations take precedence.

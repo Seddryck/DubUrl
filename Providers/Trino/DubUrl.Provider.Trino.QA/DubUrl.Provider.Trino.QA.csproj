@@ -1,7 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>false</IsPackable><QaProvider>trino</QaProvider></PropertyGroup>
   <ItemGroup><PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" /><PackageReference Include="NReco.PrestoAdo" Version="1.1.0" /><PackageReference Include="NUnit" Version="5.0.0" /><PackageReference Include="NUnit3TestAdapter" Version="5.1.0" /><PackageReference Include="System.Data.Odbc" Version="10.0.12" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" /><ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" /><ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
   <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure\**\*" /></ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj" />
+    <ProjectReference Include="../../Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj" />
+  </ItemGroup>
 </Project>

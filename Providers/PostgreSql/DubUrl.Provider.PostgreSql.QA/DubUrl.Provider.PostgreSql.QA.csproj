@@ -11,7 +11,7 @@
     <PackageReference Include="System.Data.Odbc" Version="10.0.12" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\DubUrl\DubUrl.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.Schema.Testing.Contracts\DubUrl.Schema.Testing.Contracts.csproj" />
@@ -21,4 +21,8 @@
     <QaInfrastructure Include="infrastructure\**\*" />
   </ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="../../Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj" />
+  </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@ tags: [installation, providers, architecture]
 
 DubUrl publishes deliberately acyclic package layers:
 
-1. `DubUrl.Core` contains provider-neutral contracts and automatic discovery. It discovers provider
+1. The `DubUrl` NuGet package contains provider-neutral contracts and automatic discovery. It discovers provider
    assemblies in application runtime dependencies as well as installed provider archives.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
    `Providers/`. They depend on Core without concrete ADO.NET driver dependencies.
@@ -15,10 +15,11 @@ DubUrl publishes deliberately acyclic package layers:
 4. `DubUrl.Application` embeds the generated catalog and exposes it through `BundledProviderCatalog`.
    `ConnectorService` uses this catalog by default; hosts may supply a replacement. It describes available
    providers without referencing or loading their implementation DLLs.
-5. `DubUrl` is a dependency-only NuGet package bringing Core and the provider families. It ships no
-   `DubUrl.dll`, catalog, or special registration module.
+The all-provider aggregate is removed. The `DubUrl.Core` NuGet package is no longer produced;
+provider packages depend on `DubUrl`. The physical `DubUrl.Core` project and `DubUrl.Core.dll`
+assembly keep their names, as do existing public namespaces.
 
-For selective NuGet use, install `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and `Npgsql`, then write:
+For selective NuGet use, install `DubUrl`, `DubUrl.Provider.PostgreSql`, and `Npgsql`, then write:
 
 ```csharp
 var url = new ConnectionUrl("pg://localhost/demo");
@@ -28,23 +29,22 @@ No archive, registry parameter, or explicit factory registration is required. Co
 named `DubUrl.Provider.*` from application runtime dependencies and the default load context. Explicit
 factory registrations are honored; installed archives take precedence for overlapping aliases.
 
-Project folders match the assemblies and packages they produce:
+Project folders match their assembly names; the provider-neutral Core project publishes as `DubUrl`:
 
 | Project | Responsibility |
 | --- | --- |
-| `DubUrl.Core/DubUrl.Core.csproj` | Provider-neutral contracts and infrastructure; owns its source files directly |
-| `DubUrl/DubUrl.csproj` | Dependency-only aggregate NuGet package |
+| `DubUrl.Core/DubUrl.Core.csproj` | Publishes `DubUrl`, containing `DubUrl.Core.dll`; provider-neutral contracts and infrastructure |
 | `DubUrl.Application/BundledProviderCatalog.cs` | Default catalog shared by every application host |
 | `connectors/ConnectorCatalog.targets` | Runs the shared catalog exporter, combining packaging selectors with implementation attributes |
 | `Providers/Build/ProviderBinding.Build.csproj` | Temporary, non-packable dependency collector; only real implementation DLLs and rewritten .deps.json files are packaged |
 
-Core uses normal SDK source inclusion. It does not link source files from the compatibility project.
+Core owns its source files through normal SDK inclusion. The former aggregate project is removed.
 
 Normal builds generate and embed catalog definitions without optional download fields; they do not require
 connector archives, previously generated artifacts, PowerShell, or network access beyond package restore.
 Pack builds add the download URL and SHA-256 after creating each archive. The Application catalog lists
 all catalog schemes, including optional OLE DB connectors, without registering or loading those drivers.
-The aggregate's project references select its NuGet dependencies. The matrix contains packaging
+The matrix contains packaging
 selectors and distribution metadata; it does not repeat mapper/dialect/parametrizer types, URL schemes,
 file-based markers, or factory type names. Provider attributes are read once per discovery pass and retained
 as registrations, including constructors and dialect instances. The driver assembly supplies its factory
@@ -67,9 +67,11 @@ for the authoring example and explicit registration path.
 Provider implementation namespaces now begin with `DubUrl.Provider.<Family>` and follow their folders.
 For example, import `DubUrl.Provider.PostgreSql.Sql` for `PgsqlDialect` and
 `DubUrl.Provider.PostgreSql.Mapping` for `PostgresqlMapper`. Core contracts retain their existing
-namespaces. Core and family package/assembly IDs remain unchanged. The `DubUrl` package ID is unchanged, but
-its former DLL and the `BuiltInProviderModule`/`BuiltInProviderCatalog` APIs are removed. Use Core
-discovery and `DubUrl.Application.BundledProviderCatalog` instead. Connector IDs select database/driver combinations; there are no per-driver binding DLLs or Npgsql binding NuGet packages.
+namespaces. The Core NuGet package is now `DubUrl`; remove any `DubUrl.Core` package reference.
+There is no compatibility shim or all-provider aggregate. Existing `DubUrl` users must add their chosen
+provider packages explicitly. `DubUrl.Core.dll`, its project path, and public namespaces remain unchanged.
+The former `DubUrl.dll` and `BuiltInProviderModule`/`BuiltInProviderCatalog` APIs are removed; use
+Core discovery and `DubUrl.Application.BundledProviderCatalog` instead. Connector IDs select database/driver combinations; there are no per-driver binding DLLs or Npgsql binding NuGet packages.
 
 This is a public namespace migration: applications must update imports and recompile, and existing
 connector binaries and reflection-based type names must be rebuilt or updated. Assembly forwarding
@@ -186,8 +188,8 @@ only Core and the facade can load the optional DLLs at runtime without referenci
 Older mapper-factory-only registries do not implicitly acquire bulk support: use explicit registrations.
 The public `IBulkCopyEngine` namespace remains `DubUrl.BulkCopy`, with its former facade assembly identity
 forwarded to Core. The one-argument `ConnectionUrl` constructor discovers installed connectors directly
-from Core. The `DubUrl` compatibility package additionally supplies bundled fallback registrations;
-modular hosts can also supply an explicit connector registry to bypass discovery.
+from the `DubUrl` package. Application provider dependencies supply fallback registrations;
+hosts can also supply an explicit registry to bypass discovery.
 
 ### Optional DLL deployment
 

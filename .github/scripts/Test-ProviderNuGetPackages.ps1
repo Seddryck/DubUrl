@@ -24,26 +24,27 @@ Set-Content -LiteralPath $configuration -Value @"
 
 $archive = [IO.Compression.ZipFile]::OpenRead((Join-Path $feed "DubUrl.$Version.nupkg"))
 try {
-    if (@($archive.Entries | Where-Object { $_.FullName -match '\.(dll|pdb)$' }).Count) {
-        throw 'The dependency-only DubUrl package must not contain DLLs or symbols.'
+    foreach ($framework in $Frameworks) {
+        if (-not $archive.GetEntry("lib/$framework/DubUrl.Core.dll")) { throw "DubUrl is missing its Core assembly for $framework." }
     }
+    if (-not $archive.GetEntry('buildTransitive/DubUrl.targets')) { throw 'DubUrl is missing its single-file target.' }
     $reader = [IO.StreamReader]::new($archive.GetEntry('DubUrl.nuspec').Open())
     try { [xml] $specification = $reader.ReadToEnd() } finally { $reader.Dispose() }
     $dependencies = @($specification.SelectNodes("//*[local-name()='dependency']") | ForEach-Object { $_.id })
-    if ('DubUrl.Core' -notin $dependencies -or 'DubUrl.Provider.PostgreSql' -notin $dependencies) {
-        throw 'The aggregate must retain its Core and provider dependencies.'
+    if ('DubUrl.Core' -in $dependencies -or @($dependencies | Where-Object { $_ -like 'DubUrl.Provider.*' }).Count) {
+        throw 'DubUrl must be provider-neutral and must not depend on the retired DubUrl.Core package.'
     }
 } finally { $archive.Dispose() }
 
 $cases = @{
     core = @{
-        Packages = @('DubUrl.Core'); Code = @'
+        Packages = @('DubUrl'); Code = @'
 try { new DubUrl.ConnectionUrl("pg://localhost/demo").Parse(); throw new Exception("Unexpected PostgreSQL provider."); }
 catch (DubUrl.Rewriting.SchemeNotFoundException) { }
 '@
     }
     selective = @{
-        Packages = @('DubUrl.Core', 'DubUrl.Provider.PostgreSql', 'Npgsql'); Code = @'
+        Packages = @('DubUrl', 'DubUrl.Provider.PostgreSql', 'Npgsql'); Code = @'
 if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name is "Npgsql" or "DubUrl.Provider.PostgreSql"))
     throw new Exception("Provider and driver must not already be loaded.");
 var url = new DubUrl.ConnectionUrl("pg://localhost/demo");
@@ -51,16 +52,16 @@ using var connection = url.Connect();
 if (connection.GetType().FullName != "Npgsql.NpgsqlConnection" || !url.Parse().Contains("demo"))
     throw new Exception("Automatic NuGet discovery failed.");
 if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name is "DubUrl" or "DubUrl.Application"))
-    throw new Exception("Selective discovery must not require aggregate or Application.");
+    throw new Exception("Selective discovery must not load the removed DubUrl assembly or Application.");
 '@
     }
-    aggregate = @{
-        Packages = @('DubUrl', 'Npgsql'); Code = @'
+    transitive = @{
+        Packages = @('DubUrl.Provider.PostgreSql', 'Npgsql'); Code = @'
 var url = new DubUrl.ConnectionUrl("pg://localhost/demo");
 using var connection = url.Connect();
-if (connection.GetType().FullName != "Npgsql.NpgsqlConnection") throw new Exception("Aggregate dependencies were not discovered.");
-if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "DubUrl")) throw new Exception("Aggregate DLL was loaded.");
-if (DubUrl.Mapping.SchemeRegistryBuilder.GetDefaultDialectRegistry().Get("mssql") is null) throw new Exception("Aggregate lost its dialects.");
+if (connection.GetType().FullName != "Npgsql.NpgsqlConnection") throw new Exception("The provider must bring DubUrl transitively.");
+if (typeof(DubUrl.ConnectionUrl).Assembly.GetName().Name != "DubUrl.Core") throw new Exception("Core assembly identity changed.");
+if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "DubUrl")) throw new Exception("Removed aggregate DLL was loaded.");
 '@
     }
     application = @{
@@ -102,7 +103,7 @@ try {
             if (Test-Path -LiteralPath $env:DUBURL_PROVIDER_STORE) { throw 'Discovery created the provider store.' }
             Write-Host "Passed NuGet consumer: $name / $framework"
         }
-        if ($SingleFileRuntime -and $name -in @('selective', 'aggregate')) {
+        if ($SingleFileRuntime -and $name -in @('selective', 'transitive')) {
             $publish = Join-Path $directory 'single-file'
             & dotnet publish $project --framework $Frameworks[-1] --runtime $SingleFileRuntime --self-contained false -p:PublishSingleFile=true --output $publish --nologo
             if ($LASTEXITCODE) { throw "Single-file publish failed: $name" }
