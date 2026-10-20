@@ -89,11 +89,14 @@ foreach ($entry in $entries) {
         if ($entry.databaseName -cne $definition.database) {
             throw "Connector '$($entry.provider)' does not use its database name from the matrix."
         }
-        if ($manifest.module.assembly -cne "$($definition.assemblyName).dll") {
+        if ($manifest.assembly -cne "$($definition.assemblyName).dll") {
             throw "Connector '$($entry.provider)' does not use its declared provider binding assembly name."
         }
-        if ($manifest.module.type -cne "$($definition.assemblyName).ProviderModule") {
-            throw "Connector '$($entry.provider)' must expose its generated ProviderModule entry point."
+        if ($manifest.PSObject.Properties['module'] -or $manifest.PSObject.Properties['type']) {
+            throw "Connector definitions must not contain an entry-point type."
+        }
+        foreach ($implementation in $manifest.implementationAssemblies) {
+            if ($archivePaths -cnotcontains $implementation) { throw "Missing implementation '$implementation'." }
         }
         if (@($archivePaths | Where-Object { $_ -like 'DubUrl.Connector.*' }).Count -ne 0) {
             throw "Connector '$($entry.provider)' still carries a legacy connector assembly."
@@ -111,10 +114,10 @@ foreach ($entry in $entries) {
         } elseif ($bulkAdapters.Count -ne 0) {
             throw "Connector '$($entry.provider)' carries an unrelated bulk adapter."
         }
-        if ($null -eq $archive.GetEntry($manifest.module.assembly)) {
-            throw "Connector module '$($manifest.module.assembly)' is missing."
+        if ($null -eq $archive.GetEntry($manifest.assembly)) {
+            throw "Connector module '$($manifest.assembly)' is missing."
         }
-        $dependencyFile = [IO.Path]::ChangeExtension($manifest.module.assembly, '.deps.json')
+        $dependencyFile = [IO.Path]::ChangeExtension($manifest.assembly, '.deps.json')
         if ($null -eq $archive.GetEntry($dependencyFile)) {
             throw "Connector dependency metadata '$dependencyFile' is missing."
         }

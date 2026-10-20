@@ -24,6 +24,9 @@ namespace DubUrl.Provider.Odbc.Mapping;
 )]
 public class OdbcMapper : BaseMapper, IOdbcMapper
 {
+    public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, IEnumerable<Type> locatorOptions)
+        : this(csb, dialect, parametrizer, new BuiltInDriverLocatorFactory(), locatorOptions) { }
+
     public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
         : this (csb, dialect, parametrizer, new BuiltInDriverLocatorFactory()) { }
 

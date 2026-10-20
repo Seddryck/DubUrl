@@ -22,6 +22,13 @@ public class DialectRegistry : IDialectRegistry
     public IReadOnlyCollection<IDialect> GetAll()
         => _dialects.Values.ToArray();
 
+    internal DialectRegistry Select(IEnumerable<Type> dialectTypes)
+    {
+        var selected = dialectTypes.ToHashSet();
+        return new DialectRegistry(_dialects.Where(pair => selected.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value),
+            _aliases.Where(pair => selected.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value));
+    }
+
     public T Get<T>() where T : IDialect
         => (T)Get(typeof(T));
 

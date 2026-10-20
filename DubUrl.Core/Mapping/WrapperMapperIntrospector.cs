@@ -88,7 +88,7 @@ public class WrapperMapperIntrospector : BaseMapperIntrospector
                     , brand?.Attribute.Slug ?? string.Empty
                     , brand?.Attribute.MainColor ?? BrandAttribute.DefaultMainColor
                     , brand?.Attribute.SecondaryColor ?? BrandAttribute.DefaultSecondaryColor
-                );
+                ) { ConnectivityType = connectivity.Type };
         }
     }
 }

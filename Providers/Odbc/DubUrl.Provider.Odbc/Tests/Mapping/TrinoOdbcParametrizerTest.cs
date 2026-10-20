@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Data.Odbc;
 using System.Reflection;
-using System.Text.Json;
 using DubUrl.Mapping;
 using DubUrl.Provider.Odbc.Mapping;
 using DubUrl.Querying;
@@ -45,19 +44,17 @@ public class TrinoOdbcParametrizerTest
     }
 
     [Test]
-    public void ConnectorMatrix_AllOdbcBindingsArePositional()
+    public void AllOdbcRegistrations_UsePositionalBindingFromAttributes()
     {
-        var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "DubUrl.sln")))
-            directory = directory.Parent;
-        Assert.That(directory, Is.Not.Null);
-        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(directory!.FullName, "connectors", "connector-matrix.json")));
-        var bindings = matrix.RootElement.GetProperty("connectors").EnumerateArray()
-            .Where(value => value.GetProperty("technology").GetString() == "ODBC").ToArray();
-        Assert.That(bindings, Is.Not.Empty);
-        foreach (var binding in bindings)
-            Assert.That(binding.GetProperty("parametrizer").GetString(), Is.EqualTo(nameof(PositionalParametrizer)),
-                binding.GetProperty("id").GetString());
+        var registrations = new List<ProviderRegistration>();
+        var catalog = new Mock<IProviderCatalogBuilder>();
+        catalog.Setup(value => value.AddProvider(It.IsAny<ProviderRegistration>()))
+            .Callback<ProviderRegistration>(registrations.Add).Returns(catalog.Object);
+        new BuiltInProviderModule().Register(catalog.Object);
+        var odbc = registrations.Where(provider => provider.ProviderInvariantName == "System.Data.Odbc").ToArray();
+        Assert.That(odbc, Is.Not.Empty);
+        foreach (var provider in odbc)
+            Assert.That(provider.ParametrizerFactory(), Is.TypeOf<PositionalParametrizer>(), provider.Name);
     }
 
     private sealed class OrderedParameters : IParametrizedCommand

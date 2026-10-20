@@ -53,7 +53,7 @@ public class SchemeRegistryBuilder
 
     public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)
     {
-        var registry = CreateDefaultCatalog().BuildDialects();
+        var registry = (DialectRegistry)CreateDefaultCatalog().BuildDialects();
 
         if (schemes.Length == 0)
             return registry;
@@ -74,10 +74,7 @@ public class SchemeRegistryBuilder
         if (unknownSchemes.Count > 0)
             throw new ArgumentException($"No dialect is mapped to: {string.Join(", ", unknownSchemes)}.", nameof(schemes));
 
-        var builder = new DialectRegistryBuilder();
-        foreach (var dialect in selectedDialects.DistinctBy(dialect => dialect.GetType()))
-            builder.AddDialect(dialect.GetType(), dialect.Aliases);
-        return builder.Build();
+        return registry.Select(selectedDialects.Select(dialect => dialect.GetType()));
     }
 
     public SchemeRegistryBuilder WithAssemblies(params Assembly[] assemblies)

@@ -179,7 +179,7 @@ public class ConnectorServiceTests
     [TestCase("archive", "connector-archive-invalid")]
     [TestCase("manifest", "connector-archive-invalid")]
     [TestCase("digest", "pack-integrity")]
-    [TestCase("module", "module-missing")]
+    [TestCase("module", "assembly-missing")]
     [TestCase("api", "api-incompatible")]
     [TestCase("tfm", "tfm-incompatible")]
     [TestCase("rid", "rid-incompatible")]
@@ -351,7 +351,8 @@ public class ConnectorServiceTests
             Provider = "postgresql-npgsql",
             Version = "1.0.0",
             DubUrlApiRange = "*",
-            Module = new ProviderPackModuleEntry { Assembly = "connector.dll", Type = "Connector.Module" },
+            Assembly = "connector.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            ImplementationAssemblies = ["connector.dll"], DriverAssembly = "connector.dll",
             Schemes = ["postgresql", "postgres", "pg"],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = [],
@@ -369,7 +370,8 @@ public class ConnectorServiceTests
             Provider = provider,
             Version = version,
             DubUrlApiRange = "[0.0.0,999.0.0)",
-            Module = new() { Assembly = "module.dll", Type = "Connector.Module" },
+            Assembly = "module.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            ImplementationAssemblies = ["module.dll"], DriverAssembly = "module.dll",
             Schemes = ["postgresql"],
             TargetFrameworks = [CurrentTargetFramework()],
             RuntimeIdentifiers = [],

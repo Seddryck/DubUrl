@@ -21,22 +21,6 @@ $epoch = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$technologies = @{
-    'Npgsql' = @{ Key = 'Npgsql'; Invariant = 'Npgsql'; Factory = 'Npgsql.NpgsqlFactory, Npgsql' }
-    'IBM.Data.Db2' = @{ Key = 'Db2'; Invariant = 'IBM.Data.Db2'; Factory = 'IBM.Data.Db2.DB2Factory, IBM.Data.Db2' }
-    'DuckDB.NET.Data' = @{ Key = 'DuckDb'; Invariant = 'DuckDB.NET.Data'; Factory = 'DuckDB.NET.Data.DuckDBClientFactory, DuckDB.NET.Data' }
-    'FirebirdSql.Data.FirebirdClient' = @{ Key = 'Firebird'; Invariant = 'FirebirdSql.Data.FirebirdClient'; Factory = 'FirebirdSql.Data.FirebirdClient.FirebirdClientFactory, FirebirdSql.Data.FirebirdClient' }
-    'MySqlConnector' = @{ Key = 'MySqlConnector'; Invariant = 'MySqlConnector'; Factory = 'MySqlConnector.MySqlConnectorFactory, MySqlConnector' }
-    'Microsoft.Data.SqlClient' = @{ Key = 'SqlClient'; Invariant = 'Microsoft.Data.SqlClient'; Factory = 'Microsoft.Data.SqlClient.SqlClientFactory, Microsoft.Data.SqlClient' }
-    'Oracle.ManagedDataAccess' = @{ Key = 'Oracle'; Invariant = 'Oracle.ManagedDataAccess'; Factory = 'Oracle.ManagedDataAccess.Client.OracleClientFactory, Oracle.ManagedDataAccess' }
-    'SingleStoreConnector' = @{ Key = 'SingleStore'; Invariant = 'SingleStoreConnector'; Factory = 'SingleStoreConnector.SingleStoreConnectorFactory, SingleStoreConnector' }
-    'Snowflake.Data' = @{ Key = 'Snowflake'; Invariant = 'Snowflake.Data'; Factory = 'Snowflake.Data.Client.SnowflakeDbFactory, Snowflake.Data' }
-    'Microsoft.Data.Sqlite' = @{ Key = 'Sqlite'; Invariant = 'Microsoft.Data.Sqlite'; Factory = 'Microsoft.Data.Sqlite.SqliteFactory, Microsoft.Data.Sqlite' }
-    'Teradata.Client' = @{ Key = 'Teradata'; Invariant = 'Teradata.Client'; Factory = 'Teradata.Client.Provider.TdFactory, Teradata.Client.Provider' }
-    'NReco.PrestoAdo' = @{ Key = 'Trino'; Invariant = 'NReco.PrestoAdo'; Factory = 'NReco.PrestoAdo.PrestoDbFactory, NReco.PrestoAdo' }
-    'ODBC' = @{ Key = 'Odbc'; Invariant = 'System.Data.Odbc'; Factory = 'System.Data.Odbc.OdbcFactory, System.Data.Odbc' }
-    'OLE DB' = @{ Key = 'OleDb'; Invariant = 'System.Data.OleDb'; Factory = 'System.Data.OleDb.OleDbFactory, System.Data.OleDb' }
-}
 
 function New-CleanDirectory([string] $Path) {
     if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Recurse -Force }
@@ -52,10 +36,6 @@ function Get-Sha256([string] $Path) {
     (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToUpperInvariant()
 }
 
-function ConvertTo-MSBuildValue([string] $Value) {
-    $Value.Replace('%', '%25').Replace(',', '%2C').Replace(';', '%3B')
-}
-
 function Write-Utf8Json([string] $Path, [object] $Value) {
     $json = $Value | ConvertTo-Json -Depth 20
     [IO.File]::WriteAllText($Path, "$json`n", [Text.UTF8Encoding]::new($false))
@@ -66,14 +46,15 @@ New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
 
 $matrix = Get-Content -LiteralPath $matrixPath -Raw | ConvertFrom-Json
 if ($matrix.schemaVersion -ne 1) { throw 'Expected connector matrix schema version 1.' }
+$technologies = @{}
+foreach ($technology in $matrix.technologies) { $technologies[$technology.name] = $technology }
 $ready = @($matrix.connectors | Where-Object status -eq 'ready' | Sort-Object id)
 if (@($ready.assemblyName | Select-Object -Unique).Count -ne $ready.Count) {
     throw 'Provider binding assembly names must be unique.'
 }
 $definitionsPath = Join-Path $stagingRoot 'connector-catalog.json'
 Invoke-Checked dotnet @(
-    'msbuild', (Join-Path $PSScriptRoot 'ConnectorCatalog.proj'), '-verbosity:quiet',
-    "-p:Version=$Version", "-p:ConnectorCatalogOutput=$definitionsPath"
+    'run', '--project', (Join-Path $PSScriptRoot 'Catalog/ConnectorCatalog.Build.csproj'), '--configuration', 'Release', '--framework', 'net8.0', '--', $matrixPath, $definitionsPath, $Version
 )
 $definitions = (Get-Content -LiteralPath $definitionsPath -Raw | ConvertFrom-Json -AsHashtable).entries
 $catalogEntries = [Collections.Generic.List[object]]::new()
@@ -87,11 +68,6 @@ foreach ($connector in $ready) {
     if ($assemblyName -cnotmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$') {
         throw "Connector '$($connector.id)' must name its binding DubUrl.Provider.<Database>.<Driver>."
     }
-    $mapperAssembly = if ($technology.Key -eq 'Odbc') { 'DubUrl.Provider.Odbc' }
-        elseif ($technology.Key -eq 'OleDb') { 'DubUrl.OleDb' }
-        else { "DubUrl.Provider.$($connector.family)" }
-    $mapperType = if ($technology.Key -eq 'OleDb') { "DubUrl.OleDb.Mapping.$($connector.mapper), $mapperAssembly" }
-        else { "$mapperAssembly.Mapping.$($connector.mapper), $mapperAssembly" }
     $publishRoot = Join-Path $stagingRoot "$($connector.id)/publish"
     $contentRoot = Join-Path $stagingRoot "$($connector.id)/content"
     New-Item -ItemType Directory -Path $publishRoot, $contentRoot -Force | Out-Null
@@ -107,17 +83,10 @@ foreach ($connector in $ready) {
         '-m:1',
         "-p:Version=$Version",
         '-p:ContinuousIntegrationBuild=true',
-        "-p:ConnectorId=$($connector.id)",
         "-p:ConnectorAssemblyName=$assemblyName",
         "-p:ConnectorFamily=$($connector.family)",
         "-p:ConnectorTechnology=$($technology.Key)",
-        "-p:ConnectorDatabaseName=$($connector.database)",
-        "-p:ConnectorAliases=$(@($connector.schemes) -join '|')",
-        "-p:ConnectorProviderInvariant=$($technology.Invariant)",
-        "-p:ConnectorFactoryType=$(ConvertTo-MSBuildValue $technology.Factory)",
-        "-p:ConnectorDialectType=$(ConvertTo-MSBuildValue "DubUrl.Provider.$($connector.family).Sql.$($connector.dialect), DubUrl.Provider.$($connector.family)")",
-        "-p:ConnectorMapperType=$(ConvertTo-MSBuildValue $mapperType)",
-        "-p:ConnectorParametrizerType=$(ConvertTo-MSBuildValue "DubUrl.Querying.Parametrizing.$($connector.parametrizer), DubUrl.Core")"
+        "-p:ConnectorDatabaseName=$($connector.database)"
     )
 
     # The same generated inventory is embedded in Core for its load-context sharing policy.

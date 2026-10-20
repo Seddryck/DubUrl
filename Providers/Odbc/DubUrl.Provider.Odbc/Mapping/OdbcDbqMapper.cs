@@ -20,6 +20,9 @@ namespace DubUrl.Provider.Odbc.Mapping;
 )]
 public class OdbcDbqMapper : BaseMapper, IOdbcMapper, IFileBasedMapper
 { 
+    public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath, IEnumerable<Type> locatorOptions)
+        : this(csb, dialect, parametrizer, rootPath, new BuiltInDriverLocatorFactory(), locatorOptions) { }
+
     public OdbcDbqMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)
         : this(csb, dialect, parametrizer, rootPath, new BuiltInDriverLocatorFactory(), OdbcRewriter.DefaultLocatorOptions) { }
 

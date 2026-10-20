@@ -104,7 +104,7 @@ public class ConnectionStringConverterTest
     public void Convert_ExplicitConnectorModule_RequiresNoGlobalFactoryRegistration()
     {
         var registry = new ProviderCatalogBuilder()
-            .AddModule(new DubUrl.Provider.PostgreSql.Npgsql.ProviderModule()).Build();
+            .AddModule(DubUrl.Core.Testing.ConnectorFixture.Create("postgresql-npgsql")).Build();
         var uri = new ConnectionStringConverter(registry).Convert("pg", "Host=localhost;Database=db;Username=example");
         Assert.Multiple(() =>
         {

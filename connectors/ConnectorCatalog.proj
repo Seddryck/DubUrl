@@ -1,3 +1,0 @@
-<Project DefaultTargets="GenerateConnectorCatalog">
-  <Import Project="ConnectorCatalog.targets" />
-</Project>

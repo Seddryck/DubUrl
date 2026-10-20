@@ -104,11 +104,10 @@ public static class CliComposition
                     DubUrlApiRange = section["DubUrlApiRange"] ?? string.Empty,
                     TargetFrameworks = section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
                     RuntimeIdentifiers = section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? [],
-                    Module = new()
-                    {
-                        Assembly = section["Module:Assembly"] ?? string.Empty,
-                        Type = section["Module:Type"] ?? string.Empty,
-                    },
+                    Assembly = section["Assembly"] ?? string.Empty,
+                    ImplementationAssemblies = section.GetSection("ImplementationAssemblies").Get<string[]>() ?? [],
+                    Driver = section["Driver"] ?? string.Empty,
+                    DriverAssembly = section["DriverAssembly"],
                 });
         }
         return new(entries);

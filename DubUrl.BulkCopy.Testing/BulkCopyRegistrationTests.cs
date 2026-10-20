@@ -67,9 +67,9 @@ public class BulkCopyRegistrationTests
     }
 
     [Test]
-    public void GeneratedDuckDbConnector_RegistersNativeBulkCapability()
+    public void AttributeDiscoveredDuckDbConnector_RegistersNativeBulkCapability()
     {
-        var registrations = Capture(catalog => new ProviderModule().Register(catalog));
+        var registrations = Capture(catalog => ConnectorFixture.Create().Register(catalog));
         var registration = registrations.Single();
 
         Assert.That(registration.BulkCopyProvider, Is.TypeOf<LazyBulkCopyProvider>());

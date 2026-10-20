@@ -3,7 +3,6 @@ using DubUrl.Provider.PostgreSql.Sql;
 using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
-using DubUrl.Provider.PostgreSql.Npgsql;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
@@ -77,7 +76,7 @@ public class ProviderBindingTest
     [Test]
     public void ExistingFamily_UsesOnlySelectedProviderAndDriver()
     {
-        var registry = new ProviderCatalogBuilder().AddModule(new ProviderModule()).Build();
+        var registry = new ProviderCatalogBuilder().AddModule(ConnectorFixture.Create()).Build();
         var url = new ConnectionUrl("pg://localhost/demo?Application Name=extension", registry);
         var settings = new NpgsqlConnectionStringBuilder(url.Parse());
 
@@ -165,11 +164,11 @@ public class ProviderBindingTest
     [Test]
     public void Consumer_DoesNotReferenceOrLoadCompatibilityOrUnrelatedProviders()
     {
-        var references = typeof(ProviderModule).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToArray();
+        var references = System.Reflection.Assembly.Load("DubUrl.Provider.PostgreSql.Npgsql").GetReferencedAssemblies().Select(x => x.Name).ToArray();
         var loaded = AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetName().Name).ToArray();
         Assert.Multiple(() =>
         {
-            Assert.That(references, Does.Contain("DubUrl.Core"));
+            Assert.That(System.Reflection.Assembly.Load("DubUrl.Provider.PostgreSql.Npgsql").GetExportedTypes(), Is.Empty);
             Assert.That(references, Has.None.StartsWith("DubUrl.Provider."));
             Assert.That(loaded, Does.Not.Contain("DubUrl"));
             Assert.That(loaded, Does.Not.Contain("DubUrl.Providers"));

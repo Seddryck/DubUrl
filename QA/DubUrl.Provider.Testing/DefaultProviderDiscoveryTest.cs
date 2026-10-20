@@ -5,7 +5,6 @@ using System.Runtime.Loader;
 using System.Reflection;
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
-using DubUrl.Provider.PostgreSql.Npgsql;
 using DubUrl.Querying.Dialects;
 using DubUrl.Rewriting;
 using Npgsql;
@@ -77,14 +76,14 @@ public class DefaultProviderDiscoveryTest
         var error = Assert.Throws<ProviderRegistrationException>(() => new ConnectionUrl("pg://localhost/demo"));
         Assert.That(error!.Alias, Is.EqualTo("pg"));
 
-        var registry = new ProviderCatalogBuilder().AddModule(new ProviderModule()).Build();
+        var registry = new ProviderCatalogBuilder().AddModule(ConnectorFixture.Create()).Build();
         Assert.That(new ConnectionUrl("pg://localhost/demo", registry).Parse(), Does.Contain("demo"));
     }
 
     [Test]
     public async Task InvalidActiveModule_ReportsLoadDiagnostic()
     {
-        await Install(moduleType: "Missing.ProviderModule");
+        await Install(databaseName: "Unknown database");
         var error = Assert.Throws<ProviderPackException>(() => new ConnectionUrl("pg://localhost/demo"));
         Assert.That(error!.Code, Is.EqualTo("module-load-failed"));
         Assert.That(error.Message, Does.Contain("postgresql-npgsql"));
@@ -93,7 +92,7 @@ public class DefaultProviderDiscoveryTest
     [Test]
     public async Task InactiveVersions_AreNotLoaded()
     {
-        await Install(version: "0.0.1", moduleType: "Missing.ProviderModule");
+        await Install(version: "0.0.1", databaseName: "Unknown database");
         await Install(version: "0.0.2");
         Assert.That(new ConnectionUrl("pg://localhost/demo").Parse(), Does.Contain("demo"));
     }
@@ -109,27 +108,23 @@ public class DefaultProviderDiscoveryTest
     }
 
     private static async Task<InstalledProviderPack> Install(
-        string provider = "postgresql-npgsql", string version = "0.0.1", string? moduleType = null)
+        string provider = "postgresql-npgsql", string version = "0.0.1", string? databaseName = null)
     {
-        var bytes = await File.ReadAllBytesAsync(typeof(ProviderModule).Assembly.Location);
-        var manifest = new ConnectorDefinition
+        var manifest = ConnectorFixture.Definition with
         {
-            Provider = provider,
-            Version = version,
-            DubUrlApiRange = "[0.0.0,1.0.0)",
-            Module = new() { Assembly = "module.dll", Type = moduleType ?? typeof(ProviderModule).FullName! },
-            Schemes = ["pg"],
-            TargetFrameworks = [$"net{Environment.Version.Major}.0"],
-            RuntimeIdentifiers = [],
-
+            Provider = provider, Version = version, DatabaseName = databaseName ?? "PostgreSQL"
         };
         using var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))
         {
             using (var stream = zip.CreateEntry(ConnectorDefinition.FileName).Open())
                 JsonSerializer.Serialize(stream, manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            using var asset = zip.CreateEntry("module.dll").Open();
-            asset.Write(bytes);
+            foreach (var name in new[] { manifest.Assembly, "DubUrl.Provider.PostgreSql.dll", "Npgsql.dll" })
+            {
+                var assembly = Assembly.Load(Path.GetFileNameWithoutExtension(name));
+                using var asset = zip.CreateEntry(name).Open();
+                asset.Write(await File.ReadAllBytesAsync(assembly.Location));
+            }
         }
         archive.Position = 0;
         var digest = Convert.ToHexString(SHA256.HashData(archive));
@@ -147,7 +142,8 @@ public class DefaultProviderDiscoveryTest
         File.Copy(host.Location, Path.Combine(pack.InstallPath, name + ".dll"));
         using var loader = new InstalledProviderModuleLoader();
         var module = loader.LoadActive(new ProviderPackStore()).Single();
-        var context = AssemblyLoadContext.GetLoadContext(module.GetType().Assembly)!;
+        var registry = new ProviderCatalogBuilder().AddModule(module).Build();
+        var context = AssemblyLoadContext.GetLoadContext(registry.GetProviderFactory(["pg"]).GetType().Assembly)!;
 
         var resolved = context.LoadFromAssemblyName(host.GetName());
 

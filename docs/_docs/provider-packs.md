@@ -5,9 +5,10 @@ tags: [installation, providers, security]
 ---
 
 A provider pack is a ZIP archive with `provider-pack.json` at its root. The local connector definition identifies
-the provider and pack version, the compatible DubUrl API range, its `IDubUrlProviderModule` assembly and
-type, supported target frameworks and runtime identifiers. The archive includes the module's `.deps.json`;
-.NET uses it to resolve managed and native dependencies. There is no separate asset inventory.
+the provider and pack version, compatible DubUrl API range, database/driver selectors, implementation
+assemblies, dependency assembly, supported target frameworks, and runtime identifiers. The archive includes
+the dependency assembly's `.deps.json`; .NET uses it to resolve managed and native dependencies.
+The dependency assembly contains no generated entry-point class. Core reads provider attributes directly. There is no separate asset inventory.
 
 DubUrl installs packs only from a curated catalog supplied by the application distributor. The catalog
 binds a provider name and version to a download URI and SHA-256 archive digest. Arbitrary NuGet feeds,
@@ -31,11 +32,11 @@ provider directory out of the active store and then deletes it.
 
 Extraction confines every ZIP entry to staging and rejects traversal, duplicate paths, and symbolic links.
 Archive integrity is checked at installation. Installed files are not subsequently hashed: inspection checks
-the definition, compatibility, and module-file presence. Missing dependencies and invalid binaries surface
+the definition, compatibility, and required assembly presence. Missing dependencies and invalid binaries surface
 when the .NET loader resolves the connector, rather than through a second dependency inventory.
 
 Core's `ConnectionUrl(string)` constructor automatically inspects the store and loads active, compatible,
-modules verified at installation through `IDubUrlProviderModule`. Installed aliases take precedence over
+connectors verified at installation by reading their implementation attributes. Installed aliases take precedence over
 bundled registrations from `DubUrl`, when referenced. Conflicting installed aliases fail explicitly;
 active modules that cannot load report `ProviderPackException` with code `module-load-failed`.
 Incompatible, incomplete, and corrupt packs are excluded and their diagnostics are available from
@@ -63,16 +64,18 @@ of compatibility. An active connector is installed, compatible, and selected for
 connector is installed but incompatible, incomplete, or corrupt. The summary `state` uses the most specific
 applicable value (`unhealthy`, `active`, `installed`, then `listed`). Install and uninstall operations affect new
 processes and newly created provider catalogs; already loaded assemblies keep running. The CLI does not
-bundle selected database drivers: installing a connector installs its DubUrl module, ADO.NET driver,
+bundle selected database drivers: installing a connector installs its implementation assemblies, ADO.NET driver,
 managed dependencies, and required native assets.
 
 The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
 Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
-identity, an optional `databaseName` display/grouping label, installation aliases, schemes, module assembly/type, and API/TFM/RID compatibility.
+identity, a `databaseName` selector/grouping label, installation aliases, attribute-derived schemes,
+`assembly` (the dependency anchor), `implementationAssemblies`, `driver` (its invariant), optional
+`driverAssembly` when its filename differs, and API/TFM/RID compatibility. There is no module/type field.
 The build generates the local definition from `connector-matrix.json`, then adds the download URL and
 archive SHA-256 to that same definition for the catalog. These distribution fields are optional in the
 model and omitted locally. Core loads installed definitions without needing the catalog or a network.
-Catalogs generated before module metadata was included must be regenerated.
+Archives and catalogs using the old module/type definition must be regenerated.
 
 The aggregate also embeds this catalog's definitions during its normal SDK build. `BuiltInProviderCatalog.Create()`
 groups its entries by `databaseName` instead of maintaining a separate provider list. Aggregate and archive
@@ -132,7 +135,7 @@ versions absent from the current catalog. Failures throw `ConnectorOperationExce
 | `connector-uninstall-failed` | Removal could not access the store. |
 | `connector-not-installed` | No installed connector matches the ID or alias. |
 
-Store diagnostics include `pack-integrity`, `path-invalid`, `module-missing`, `manifest-missing`,
+Store diagnostics include `pack-integrity`, `path-invalid`, `assembly-missing`, `manifest-missing`,
 `catalog-mismatch`, `api-incompatible`, `tfm-incompatible`, and `rid-incompatible`. Caller cancellation throws
 `ConnectorOperationCanceledException` (an `OperationCanceledException`) with code `connector-cancelled` and
 the caller's token. HTTP and filesystem exception details are not retained in operation failures because

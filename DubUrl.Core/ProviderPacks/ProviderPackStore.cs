@@ -78,9 +78,8 @@ public sealed class ProviderPackStore
             var contentRoot = Path.Combine(stagingRoot, "content");
             Directory.CreateDirectory(contentRoot);
             await ExtractArchiveAsync(package, contentRoot, cancellationToken).ConfigureAwait(false);
-            var modulePath = GetModulePath(contentRoot, manifest);
-            if (!File.Exists(modulePath))
-                throw new ProviderPackException("module-missing", "The connector archive does not contain its module assembly.");
+            if (RequiredAssemblyPaths(manifest).Any(path => !File.Exists(GetAssemblyPath(contentRoot, path))))
+                throw new ProviderPackException("assembly-missing", "The connector archive does not contain its required assembly.");
 
             await File.WriteAllTextAsync(
                 Path.Combine(contentRoot, ConnectorDefinition.FileName),
@@ -171,8 +170,8 @@ public sealed class ProviderPackStore
 
         try
         {
-            if (!File.Exists(GetModulePath(installPath, manifest)))
-                return new(manifest, installPath, ProviderPackStatus.Incomplete, [new("module-missing", "The installed connector module is missing.")]);
+            if (RequiredAssemblyPaths(manifest).Any(path => !File.Exists(GetAssemblyPath(installPath, path))))
+                return new(manifest, installPath, ProviderPackStatus.Incomplete, [new("assembly-missing", "A required connector assembly is missing.")]);
         }
         catch (ProviderPackException exception)
         {
@@ -212,12 +211,16 @@ public sealed class ProviderPackStore
         if (!IsManifestStructurallyValid(manifest))
             throw new ProviderPackException(ManifestInvalid, "The provider pack manifest is incomplete.");
         ValidateManifestIdentity(manifest, entry);
-        ValidateRelativePath(manifest.Module.Assembly);
+        foreach (var path in RequiredAssemblyPaths(manifest)) ValidateRelativePath(path);
 
         var compatibility = GetCompatibilityDiagnostic(manifest);
         if (compatibility is not null)
             throw new ProviderPackException(compatibility.Code, compatibility.Message);
-        if (manifest.Module != entry.Module
+        if (manifest.Assembly != entry.Assembly
+            || manifest.DatabaseName != entry.DatabaseName
+            || manifest.Driver != entry.Driver
+            || manifest.DriverAssembly != entry.DriverAssembly
+            || !manifest.ImplementationAssemblies.SequenceEqual(entry.ImplementationAssemblies, StringComparer.OrdinalIgnoreCase)
             || manifest.DubUrlApiRange != entry.DubUrlApiRange
             || !manifest.Schemes.SequenceEqual(entry.Schemes, StringComparer.OrdinalIgnoreCase)
             || !manifest.TargetFrameworks.SequenceEqual(entry.TargetFrameworks, StringComparer.OrdinalIgnoreCase)
@@ -234,9 +237,12 @@ public sealed class ProviderPackStore
             throw new ProviderPackException("catalog-mismatch", "The provider pack identity does not match the curated catalog entry.");
     }
 
-    private static string GetModulePath(string root, ConnectorDefinition definition)
+    private static IEnumerable<string> RequiredAssemblyPaths(ConnectorDefinition definition)
+        => new[] { definition.Assembly, definition.DriverAssemblyPath }.Concat(definition.ImplementationAssemblies).Distinct(StringComparer.OrdinalIgnoreCase);
+
+    private static string GetAssemblyPath(string root, string relativePath)
     {
-        var path = Path.GetFullPath(Path.Combine(root, ValidateRelativePath(definition.Module.Assembly)));
+        var path = Path.GetFullPath(Path.Combine(root, ValidateRelativePath(relativePath)));
         EnsureWithin(root, path);
         return path;
     }
@@ -319,7 +325,7 @@ public sealed class ProviderPackStore
                 Provider = Path.GetFileName(Path.GetDirectoryName(path)) ?? "unknown",
                 Version = Path.GetFileName(path),
                 DubUrlApiRange = string.Empty,
-                Module = new() { Assembly = string.Empty, Type = string.Empty },
+                Assembly = string.Empty, Driver = string.Empty, ImplementationAssemblies = [],
                 Schemes = [],
                 TargetFrameworks = [],
                 RuntimeIdentifiers = [],

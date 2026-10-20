@@ -53,10 +53,10 @@ Binding assembly, package, and namespace names follow this convention. Consumers
 update package and namespace references and rebuild packs. Installable connector IDs
 and URL schemes are unchanged; connector packs remain the distribution format.
 
-Every production driver binding exposes `<binding namespace>.ProviderModule`, generated
-from `Providers/Build/ProviderBinding.props`. Those entry points use the same
-`DubUrl.Mapping.AssemblyMetadataProviderModule` implementation in Core. PostgreSQL/Npgsql
-has no special registration class or handwritten registration logic.
+Production driver bindings are empty dependency assemblies with a `.deps.json`; they do not expose
+or generate a `ProviderModule`. The connector definition names the implementation assemblies and
+driver. Core reads their attributes directly through `AttributeProviderModule`, using the same
+registration path for PostgreSQL/Npgsql and every other binding.
 
 Public fully qualified type names change. For example:
 

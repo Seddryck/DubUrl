@@ -26,7 +26,7 @@ public class ConnectorCommandTests
                     "version": "1.2.3",
                     "downloadUri": "https://example.test/postgresql-npgsql.zip",
                     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "module": { "assembly": "PostgreSql.dll", "type": "PostgreSql.Module" },
+                    "assembly": "PostgreSql.dll", "databaseName": "Fixture", "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
                     "aliases": ["postgresql", "postgres", "pg", "npgsql"],
                     "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
                     "dubUrlApiRange": "[1.0.0,2.0.0)",
@@ -145,7 +145,8 @@ public class ConnectorCommandTests
             Provider = "postgresql-npgsql", Version = "1.0.0", DownloadUri = new Uri("https://example.test/pack.zip"),
             Sha256 = new string('0', 64), Aliases = ["pg"], Schemes = ["pg"],
             DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
-            Module = new() { Assembly = "PostgreSql.dll", Type = "PostgreSql.Module" },
+            Assembly = "PostgreSql.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            ImplementationAssemblies = ["PostgreSql.dll"], DriverAssembly = "PostgreSql.dll",
         }]);
         var application = new ConnectorService(new ProviderPackStore(root), catalog, http);
         var console = new TestConsole();

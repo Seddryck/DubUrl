@@ -65,10 +65,11 @@ mapper through reflection. Add optional capability objects with
 ## Author a driver binding without changing Core
 
 For a new driver binding to an existing database, reference `DubUrl.Core`, the relevant
-`DubUrl.Provider.*` family package, and the concrete driver. Declare the factory, family mapper
-and dialect, aliases, invariant name, and parametrizer in the project and import
-`Providers/Build/ProviderBinding.props`. It generates the binding's `ProviderModule` and metadata;
-Core's `AssemblyMetadataProviderModule` performs registration for every standard binding.
+`DubUrl.Provider.*` family package, and the concrete driver. The shared binding project emits an empty
+dependency assembly and `.deps.json`. The connector definition names that assembly, the implementation
+assemblies, and the driver; it has no entry-point type. Core reads the implementation attributes directly
+through `AttributeProviderModule`. Mapper, dialect, parametrizer, URL schemes, and optional capabilities
+come from the attributes; the driver assembly supplies its `DbProviderFactory`.
 Reuse the family's rewriter unless the driver needs different keywords or URL rules. Standard bindings
 are declared in `connectors/connector-matrix.json` and built by
 `Providers/Build/ProviderBinding.Build.csproj`. The build script passes each row's settings to that
@@ -104,8 +105,10 @@ compatibility aggregate, which reads an embedded connector catalog. Adding an in
 connector does not require editing a built-in provider list. Including it in the official distribution
 requires updating `connectors/connector-matrix.json`, the applicable package/dependencies, and documentation.
 The shared generator produces its catalog and local definition; the aggregate automatically includes its
-database name and schemes in its metadata view. Adding executable registrations to the compatibility aggregate
-is a separate composition decision. None of these inventories belong in the provider-neutral Core.
+database name and attribute-derived schemes in its metadata view. The aggregate's project references
+select its bundled implementation assemblies; no C# provider list needs editing. The matrix's technology
+table maps driver invariants to build keys and optional assembly names, without listing factory types.
+None of these packaging choices belongs in the provider-neutral Core.
 
 ## ODBC locator options and factories
 
@@ -126,21 +129,21 @@ driverLocators.AddDriver("acme", options =>
 
 The older `AddDriver(string, Type)` overload remains available as a reflection-based compatibility path.
 
-## Compatibility discovery and trimming
+## Attribute-based registration
 
-`AttributeProviderModule` preserves the former attribute and exported-type discovery model for migrations:
+Bundled and installed providers use `AttributeProviderModule`. An application can also use it directly:
 
 ```csharp
 var registry = new ProviderCatalogBuilder()
-    .AddModule(new AttributeProviderModule(typeof(LegacyMapper).Assembly))
+    .AddModule(new AttributeProviderModule(typeof(MyMapper).Assembly))
     .Build();
 ```
 
-That adapter scans assemblies and reflects over mapper constructors. It is annotated with
-`RequiresUnreferencedCode` and is not supported for trimmed or Native AOT applications.
+The module captures provider attributes once during discovery, combines repeated wrapper locators,
+and retains constructors, dialect instances, and optional BulkCopy adapters in its registrations.
+Dialect lookup and URL compilation use those registrations without scanning provider attributes again.
+ODBC mapper constructors accept configured locator options through the same path.
 
-`BuiltInProviderModule` uses explicit provider, alias, mapper, ODBC driver, and ODBC option registrations.
-Its current dialect composition still reads dialect component attributes, so it is also annotated with
-`RequiresUnreferencedCode`. A fully trim-safe application should use its own explicit module with
-preconstructed `IDialect` instances and direct mapper/driver factories. This limitation is intentional and
-tested so trimming warnings are surfaced rather than silently producing an incomplete catalog.
+Explicit `IDubUrlProviderModule` implementations remain available for custom registration behavior.
+The attribute adapter and built-in module retain `RequiresUnreferencedCode` annotations because
+reflection requires preserved metadata; the default registration path does not generate typed code.

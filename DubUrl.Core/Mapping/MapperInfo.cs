@@ -17,4 +17,8 @@ public record struct MapperInfo(
     , string Slug
     , string MainColor
     , string SecondaryColor
-) { }
+)
+{
+    public Type ConnectivityType { get; init; } = typeof(DubUrl.Mapping.Connectivity.NativeConnectivity);
+    public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
+}

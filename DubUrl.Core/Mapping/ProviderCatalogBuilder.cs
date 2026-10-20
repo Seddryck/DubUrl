@@ -112,14 +112,11 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
 
     public IDialectRegistry BuildDialects()
     {
-        var builder = new DialectRegistryBuilder();
-        foreach (var provider in _providers)
-        {
-            var aliases = GetEffectiveAliases(provider);
-            if (aliases.Length != 0)
-                builder.AddDialect(provider.Dialect.GetType(), aliases);
-        }
-        return builder.Build();
+        var active = _providers.Where(provider => GetEffectiveAliases(provider).Length != 0).ToArray();
+        return new DialectRegistry(
+            active.GroupBy(provider => provider.Dialect.GetType()).ToDictionary(group => group.Key, group => group.First().Dialect),
+            active.GroupBy(provider => provider.Dialect.GetType()).ToDictionary(group => group.Key,
+                group => group.SelectMany(GetEffectiveAliases).Distinct().ToList()));
     }
 
     private string[] GetEffectiveAliases(ProviderRegistration provider)

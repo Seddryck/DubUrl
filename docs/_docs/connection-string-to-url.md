@@ -28,11 +28,14 @@ for remaining aliases when that package is referenced. For an application using 
 module, pass its registry:
 
 ```csharp
-using DubUrl.Provider.PostgreSql.Npgsql;
+using DubUrl.Provider.PostgreSql.Mapping;
+using System.Data.Common;
+using Npgsql;
 using DubUrl.Mapping;
 
+DbProviderFactories.RegisterFactory("Npgsql", NpgsqlFactory.Instance);
 var registry = new ProviderCatalogBuilder()
-    .AddModule(new ProviderModule())
+    .AddModule(new AttributeProviderModule(typeof(PostgresqlMapper).Assembly))
     .Build();
 var converter = new ConnectionStringConverter(registry);
 var uri = converter.Convert("postgresql",

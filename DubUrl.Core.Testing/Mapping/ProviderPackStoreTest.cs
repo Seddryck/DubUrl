@@ -151,14 +151,13 @@ public class ProviderPackStoreTest
     }
 
     [Test]
-    public async Task InstalledModuleLoader_LoadsActivePackThroughModuleContract()
+    public async Task InstalledLoader_DiscoversAttributesWithoutAnEntryPointClass()
     {
-        var assemblyPath = typeof(TestProviderModule).Assembly.Location;
+        var assemblyPath = typeof(FixtureMapper).Assembly.Location;
         var package = CreatePackage(
             "testing",
             "1.0.0",
-            assetBytes: await File.ReadAllBytesAsync(assemblyPath),
-            moduleType: typeof(TestProviderModule).FullName!);
+            assetBytes: await File.ReadAllBytesAsync(assemblyPath));
         var store = CreateStore();
         await store.InstallAsync(package.Entry, package.Archive);
 
@@ -169,7 +168,10 @@ public class ProviderPackStoreTest
         Assert.Multiple(() =>
         {
             Assert.That(modules, Has.Count.EqualTo(1));
-            Assert.That(modules[0].GetType().FullName, Is.EqualTo(typeof(TestProviderModule).FullName));
+            Assert.That(modules[0], Is.TypeOf<AttributeProviderModule>());
+            var registry = new ProviderCatalogBuilder().AddModule(modules[0]).Build();
+            Assert.That(registry.GetMapper("testing").GetType().Name, Is.EqualTo(nameof(FixtureMapper)));
+            Assert.That(registry.GetProviderFactory(["testing"]).GetType().Name, Is.EqualTo(nameof(FixtureFactory)));
             Assert.That(diagnostics, Is.Empty);
         });
         modules = [];
@@ -256,7 +258,7 @@ public class ProviderPackStoreTest
         var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await store.InstallAsync(package.Entry, package.Archive));
         Assert.Multiple(() =>
         {
-            Assert.That(error!.Code, Is.EqualTo("module-missing"));
+            Assert.That(error!.Code, Is.EqualTo("assembly-missing"));
             Assert.That(store.Inspect(), Is.Empty);
         });
     }
@@ -291,8 +293,30 @@ public class ProviderPackStoreTest
         Assert.Multiple(() =>
         {
             Assert.That(inspected.Status, Is.EqualTo(ProviderPackStatus.Incomplete));
-            Assert.That(inspected.Diagnostics.Single().Code, Is.EqualTo("module-missing"));
+            Assert.That(inspected.Diagnostics.Single().Code, Is.EqualTo("assembly-missing"));
         });
+    }
+
+    [TestCase("assembly")]
+    [TestCase("implementation")]
+    [TestCase("driver")]
+    public async Task Install_AssemblyPathsCannotEscapeTheConnector(string field)
+    {
+        var original = CreatePackage("testing", "1.0.0");
+        var definition = field switch
+        {
+            "assembly" => original.Entry with { Assembly = "../outside.dll" },
+            "implementation" => original.Entry with { ImplementationAssemblies = ["../outside.dll"] },
+            _ => original.Entry with { DriverAssembly = "../outside.dll" }
+        };
+        var package = RewriteArchive(original, zip =>
+        {
+            zip.GetEntry(ConnectorDefinition.FileName)!.Delete();
+            using var stream = zip.CreateEntry(ConnectorDefinition.FileName).Open();
+            JsonSerializer.Serialize(stream, definition, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        });
+        var error = await Assert.ThrowsAsync<ProviderPackException>(async () => await CreateStore().InstallAsync(package.Entry, package.Archive));
+        Assert.That(error!.Code, Is.EqualTo("path-invalid"));
     }
 
     private static Package RewriteArchive(Package original, Action<ZipArchive> edit)
@@ -307,7 +331,11 @@ public class ProviderPackStoreTest
         return new(original.Entry with { Sha256 = hash }, archive);
     }
 
-    [TestCase("module")]
+    [TestCase("assembly")]
+    [TestCase("implementations")]
+    [TestCase("driver")]
+    [TestCase("driverAssembly")]
+    [TestCase("database")]
     [TestCase("schemes")]
     [TestCase("api")]
     public async Task Install_DefinitionDiffersFromCatalog_LeavesStoreUnchanged(string field)
@@ -315,7 +343,11 @@ public class ProviderPackStoreTest
         var package = CreatePackage("postgresql", "1.0.0");
         var entry = field switch
         {
-            "module" => package.Entry with { Module = package.Entry.Module with { Type = "Other.Module" } },
+            "assembly" => package.Entry with { Assembly = "Other.dll" },
+            "implementations" => package.Entry with { ImplementationAssemblies = ["Other.dll"] },
+            "driver" => package.Entry with { Driver = "Other" },
+            "driverAssembly" => package.Entry with { DriverAssembly = "Other.dll" },
+            "database" => package.Entry with { DatabaseName = "Other" },
             "schemes" => package.Entry with { Schemes = ["other"] },
             _ => package.Entry with { DubUrlApiRange = "[1.0,3.0)" },
         };
@@ -332,8 +364,7 @@ public class ProviderPackStoreTest
         string provider,
         string version,
         string apiRange = "[1.0,2.0)",
-        byte[]? assetBytes = null,
-        string moduleType = "Example.ProviderModule")
+        byte[]? assetBytes = null)
     {
         assetBytes ??= Encoding.UTF8.GetBytes($"fake assembly for {provider} {version}");
         var manifest = new ConnectorDefinition
@@ -341,7 +372,8 @@ public class ProviderPackStoreTest
             Provider = provider,
             Version = version,
             DubUrlApiRange = apiRange,
-            Module = new() { Assembly = "lib/module.dll", Type = moduleType },
+            Assembly = "lib/module.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            ImplementationAssemblies = ["lib/module.dll"], DriverAssembly = "lib/module.dll",
             Schemes = [provider],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = ["win-x64"],

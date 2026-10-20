@@ -15,7 +15,6 @@ using DubUrl.Provider.Teradata.Sql;
 using DubUrl.Provider.Text.Sql;
 using DubUrl.Provider.Trino.Sql;
 using DubUrl.Core.Providers;
-using DubUrl.Provider.PostgreSql.Npgsql;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Providers;
 using DubUrl.Querying.Dialects;
@@ -140,18 +139,17 @@ public class ProviderAssemblyBoundaryTest
     [Test]
     public void PostgreSqlBinding_UsesSharedRegistrationAndSelectsItsFamilyAndDriver()
     {
-        var module = new ProviderModule();
+        var definition = Definitions().Single(entry => entry.Provider == "postgresql-npgsql");
+        var module = DubUrl.Mapping.AttributeProviderModule.FromConnector(definition,
+            path => System.Reflection.Assembly.Load(Path.GetFileNameWithoutExtension(path)));
         var registry = new DubUrl.Mapping.ProviderCatalogBuilder().AddModule(module).Build();
-        var references = module.GetType().Assembly.GetReferencedAssemblies()
-            .Select(reference => reference.Name)
-            .ToArray();
-
+        var binding = System.Reflection.Assembly.Load("DubUrl.Provider.PostgreSql.Npgsql");
+        var references = binding.GetReferencedAssemblies().Select(reference => reference.Name).ToArray();
         Assert.Multiple(() =>
         {
-            Assert.That(references, Does.Contain("DubUrl.Core"));
             Assert.That(references, Does.Not.Contain("DubUrl"));
-            Assert.That(module, Is.InstanceOf<DubUrl.Mapping.AssemblyMetadataProviderModule>());
-            Assert.That(module.GetType().FullName, Is.EqualTo("DubUrl.Provider.PostgreSql.Npgsql.ProviderModule"));
+            Assert.That(module, Is.TypeOf<DubUrl.Mapping.AttributeProviderModule>());
+            Assert.That(binding.GetExportedTypes(), Is.Empty);
             Assert.That(registry.GetMapper("pg").GetType().Assembly.GetName().Name, Is.EqualTo("DubUrl.Provider.PostgreSql"));
             Assert.That(registry.GetProviderFactory(["pg"]).GetType().Assembly.GetName().Name, Is.EqualTo("Npgsql"));
         });
@@ -185,9 +183,14 @@ public class ProviderAssemblyBoundaryTest
             Assert.Multiple(() =>
             {
                 Assert.That(entry.DatabaseName, Is.EqualTo(row.GetProperty("database").GetString()));
-                Assert.That(entry.Module.Assembly, Is.EqualTo(row.GetProperty("assemblyName").GetString() + ".dll"));
-                Assert.That(entry.Module.Type, Is.EqualTo(row.GetProperty("assemblyName").GetString() + ".ProviderModule"));
-                Assert.That(entry.Schemes, Is.EquivalentTo(row.GetProperty("schemes").EnumerateArray().Select(value => value.GetString())));
+                Assert.That(entry.Assembly, Is.EqualTo(row.GetProperty("assemblyName").GetString() + ".dll"));
+                Assert.That(entry.ImplementationAssemblies, Is.Not.Empty);
+                Assert.That(entry.Driver, Is.EqualTo(row.GetProperty("technology").GetString()));
+                Assert.That(entry.Schemes, Is.Not.Empty);
+                Assert.That(row.TryGetProperty("schemes", out _), Is.False);
+                Assert.That(row.TryGetProperty("mapper", out _), Is.False);
+                Assert.That(row.TryGetProperty("dialect", out _), Is.False);
+                Assert.That(row.TryGetProperty("parametrizer", out _), Is.False);
                 Assert.That(entry.Aliases, Is.EquivalentTo(row.GetProperty("defaultAliases").EnumerateArray().Select(value => value.GetString())));
                 Assert.That(entry.RuntimeIdentifiers, Is.EquivalentTo(row.GetProperty("runtimeIdentifiers").EnumerateArray().Select(value => value.GetString())));
                 Assert.That(entry.DownloadUri, Is.Null);
@@ -199,16 +202,14 @@ public class ProviderAssemblyBoundaryTest
     [Test]
     public void BuiltInCatalog_GroupsAllCatalogSchemesByDatabase()
     {
-        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "connector-matrix.json")));
-        var databases = matrix.RootElement.GetProperty("connectors").EnumerateArray()
-            .Where(row => row.GetProperty("status").GetString() == "ready")
-            .GroupBy(row => row.GetProperty("database").GetString()!).ToArray();
+        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        var databases = ProviderPackCatalogDocument.Read(resource).Entries.GroupBy(entry => entry.DatabaseName!).ToArray();
         var catalog = BuiltInProviderCatalog.Create();
 
         Assert.That(catalog.Providers.Select(provider => provider.Name), Is.EquivalentTo(databases.Select(database => database.Key)));
         foreach (var database in databases)
         {
-            var schemes = database.SelectMany(row => row.GetProperty("schemes").EnumerateArray().Select(value => value.GetString()!)).Distinct().ToArray();
+            var schemes = database.SelectMany(entry => entry.Schemes).Distinct().ToArray();
             var provider = catalog.Providers.Single(provider => provider.Name == database.Key);
             Assert.That(provider.Schemes, Is.EquivalentTo(schemes), database.Key);
             foreach (var scheme in schemes)
@@ -218,4 +219,10 @@ public class ProviderAssemblyBoundaryTest
             }
         }
     }
+    private static IReadOnlyList<ConnectorDefinition> Definitions()
+    {
+        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        return ProviderPackCatalogDocument.Read(resource).Entries;
+    }
+
 }

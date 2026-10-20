@@ -74,10 +74,8 @@ internal static class Program
             throw new InvalidOperationException($"Connector module loading failed: {string.Join("; ", diagnostics.Select(item => item.Message))}");
 
         var module = modules.Single();
-        VerifySharedDependencies(module);
-        var bindingName = module.GetType().Assembly.GetName().Name;
-        if (module is not AssemblyMetadataProviderModule || module.GetType().FullName != bindingName + ".ProviderModule")
-            throw new InvalidOperationException("Every driver binding must use its generated ProviderModule and shared metadata registration.");
+        if (module is not AttributeProviderModule)
+            throw new InvalidOperationException("Connector registration must use its implementation attributes directly.");
 
         // This verifier references Core only: exercise the same discovery path as ConnectionUrl(string).
         Environment.SetEnvironmentVariable("DUBURL_PROVIDER_STORE", context.Store.RootPath);
@@ -85,6 +83,11 @@ internal static class Program
         var scheme = context.Entry.Schemes?.FirstOrDefault()
             ?? throw new InvalidOperationException("The connector has no scheme to verify.");
         var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));
+        var loadContext = AssemblyLoadContext.GetLoadContext(factory.GetType().Assembly)!;
+        VerifySharedDependencies(loadContext);
+        var binding = loadContext.LoadFromAssemblyPath(Path.Combine(inspected[0].InstallPath, context.Entry.Assembly));
+        if (binding.GetExportedTypes().Length != 0)
+            throw new InvalidOperationException("The dependency anchor must not contain a generated entry-point class.");
         if (factory.GetType().FullName is null)
             throw new InvalidOperationException($"Connector scheme '{scheme}' did not resolve to a provider factory.");
         if (AssemblyLoadContext.GetLoadContext(factory.GetType().Assembly) == AssemblyLoadContext.Default
@@ -148,9 +151,8 @@ internal static class Program
         finally { File.Delete(path); }
     }
 
-    private static void VerifySharedDependencies(IDubUrlProviderModule module)
+    private static void VerifySharedDependencies(AssemblyLoadContext context)
     {
-        var context = AssemblyLoadContext.GetLoadContext(module.GetType().Assembly)!;
         using var inventory = typeof(InstalledProviderModuleLoader).Assembly.GetManifestResourceStream("DubUrl.Core.SharedDependencies")
             ?? throw new InvalidOperationException("Core's dependency inventory is missing.");
         using var reader = new StreamReader(inventory);
