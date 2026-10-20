@@ -28,6 +28,29 @@ public class ProviderPackStoreTest
     }
 
     [Test]
+    public async Task Revision_ChangesForInstallReinstallUpdateAndRemoval_ButNotRejectedOperations()
+    {
+        var store = CreateStore();
+        Assert.That(store.ReadRevision(), Is.Empty);
+        var package = CreatePackage("duckdb", "1.0.0");
+        await store.InstallAsync(package.Entry, package.Archive);
+        var installed = store.ReadRevision();
+        package.Archive.Position = 0;
+        await store.InstallAsync(package.Entry, package.Archive);
+        var reinstalled = store.ReadRevision();
+        var update = CreatePackage("duckdb", "2.0.0");
+        await store.InstallAsync(update.Entry, update.Archive);
+        var updated = store.ReadRevision();
+        var rejected = CreatePackage("future", "1.0.0", "[3.0,4.0)");
+        await Assert.ThrowsAsync<ProviderPackException>(() => store.InstallAsync(rejected.Entry, rejected.Archive));
+        Assert.That(store.ReadRevision(), Is.EqualTo(updated));
+        Assert.That(store.Remove("missing"), Is.False);
+        Assert.That(store.ReadRevision(), Is.EqualTo(updated));
+        Assert.That(store.Remove("duckdb"), Is.True);
+        Assert.That(new[] { "", installed, reinstalled, updated, store.ReadRevision() }.Distinct().Count(), Is.EqualTo(5));
+    }
+
+    [Test]
     public async Task Install_ActivatesVerifiedPack_AndIsIdempotent()
     {
         var package = CreatePackage("duckdb", "1.0.0");

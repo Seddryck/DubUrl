@@ -1,6 +1,7 @@
 using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
+using DubUrl.Rewriting;
 using DubUrl.BulkCopy;
 using System.Data;
 using System.Runtime.Loader;
@@ -28,14 +29,68 @@ internal static class Program
             case "uninstall":
                 Uninstall(context);
                 break;
+            case "verify-cache":
+                await VerifyCacheAsync(context, args);
+                break;
         }
         return 0;
     }
 
     private static void ValidateArguments(string[] args)
     {
-        if (args.Length != 5 || args[0] is not ("install" or "verify" or "verify-bulk" or "uninstall"))
-            throw new ArgumentException("Usage: ProviderPackVerifier <install|verify|verify-bulk|uninstall> <catalog> <archive> <store> <provider>");
+        if (args.Length != 5 || args[0] is not ("install" or "verify" or "verify-bulk" or "uninstall" or "verify-cache"))
+            throw new ArgumentException("Usage: ProviderPackVerifier <install|verify|verify-bulk|uninstall|verify-cache> <catalog> <archive> <store> <provider>");
+    }
+
+    private static async Task VerifyCacheAsync(VerificationContext context, string[] args)
+    {
+        if (context.Entry.Provider != "postgresql-npgsql" || context.Store.Inspect().Count != 0)
+            throw new ArgumentException("Cache verification requires PostgreSQL and an empty store.");
+        Environment.SetEnvironmentVariable("DUBURL_PROVIDER_STORE", context.Store.RootPath);
+        var empty = SchemeRegistryBuilder.GetDefault();
+        try
+        {
+            _ = new ConnectionUrl("pg://localhost/demo").Parse();
+            throw new InvalidOperationException("An empty Core-only store unexpectedly resolved PostgreSQL.");
+        }
+        catch (SchemeNotFoundException) { }
+        await MutateInChildAsync("install", args);
+        var installed = SchemeRegistryBuilder.GetDefault();
+        var existing = new ConnectionUrl("pg://localhost/demo");
+        var parsed = existing.Parse();
+        if (ReferenceEquals(empty, installed) || !ReferenceEquals(installed, SchemeRegistryBuilder.GetDefault()))
+            throw new InvalidOperationException("Installation did not replace and then reuse the cached registry.");
+        if (ReferenceEquals(installed.GetMapper("pg"), installed.GetMapper("pg")))
+            throw new InvalidOperationException("URLs must receive independent mapper instances.");
+        await MutateInChildAsync("install", args);
+        var reinstalled = SchemeRegistryBuilder.GetDefault();
+        if (ReferenceEquals(installed, reinstalled))
+            throw new InvalidOperationException("Same-version replacement did not invalidate the cache.");
+        await MutateInChildAsync("uninstall", args);
+        var removed = SchemeRegistryBuilder.GetDefault();
+        if (ReferenceEquals(reinstalled, removed) || existing.Parse() != parsed)
+            throw new InvalidOperationException("Removal did not preserve the existing URL snapshot.");
+        try
+        {
+            _ = new ConnectionUrl("pg://localhost/demo").Parse();
+            throw new InvalidOperationException("A new URL resolved an uninstalled provider.");
+        }
+        catch (SchemeNotFoundException) { }
+        if (ReferenceEquals(removed, SchemeRegistryBuilder.RefreshDefault()))
+            throw new InvalidOperationException("Explicit refresh did not replace the snapshot.");
+        Console.WriteLine("Registry cache: cross-process install/reinstall/remove, independent mappers, existing URLs and explicit refresh passed.");
+    }
+
+    private static async Task MutateInChildAsync(string command, string[] args)
+    {
+        var start = new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false };
+        if (string.Equals(Path.GetFileNameWithoutExtension(Environment.ProcessPath), "dotnet", StringComparison.OrdinalIgnoreCase))
+            start.ArgumentList.Add(typeof(Program).Assembly.Location);
+        start.ArgumentList.Add(command);
+        foreach (var argument in args.Skip(1)) start.ArgumentList.Add(argument);
+        using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("Cannot start verifier child.");
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(60));
+        if (process.ExitCode != 0) throw new InvalidOperationException($"Child {command} failed with {process.ExitCode}.");
     }
 
     private static async Task<VerificationContext> CreateContextAsync(string[] args)

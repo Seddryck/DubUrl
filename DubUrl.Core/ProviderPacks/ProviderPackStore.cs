@@ -24,6 +24,48 @@ public sealed class ProviderPackStore
 
     public string RootPath { get; }
 
+    internal string ReadRevision()
+    {
+        var path = Path.Combine(RootPath, "revision");
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
+        catch (FileNotFoundException) { return string.Empty; }
+        catch (DirectoryNotFoundException) { return string.Empty; }
+    }
+
+    // Serialize publication and discovery across processes. Keep the lock file in place:
+    // deleting it could allow two processes to lock different files at the same path.
+    internal IDisposable AcquireLock()
+    {
+        Directory.CreateDirectory(RootPath);
+        var timeout = System.Diagnostics.Stopwatch.StartNew();
+        while (true)
+        {
+            try
+            {
+                return new FileStream(Path.Combine(RootPath, ".store.lock"), FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException) when (timeout.Elapsed < TimeSpan.FromSeconds(30))
+            {
+                Thread.Sleep(10);
+            }
+        }
+    }
+
+    private void ChangeRevision()
+    {
+        var path = Path.Combine(RootPath, "revision");
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        File.WriteAllText(temporary, Guid.NewGuid().ToString("N"));
+        File.Move(temporary, path, overwrite: true);
+    }
+
     public ProviderPackStore(
         string? rootPath = null,
         Version? apiVersion = null,
@@ -86,6 +128,10 @@ public sealed class ProviderPackStore
                 JsonSerializer.Serialize(manifest, JsonOptions),
                 cancellationToken).ConfigureAwait(false);
 
+            using var storeLock = AcquireLock();
+            // Publish a new revision before changing active files. Readers rebuilding a
+            // snapshot wait on the lock; existing snapshots remain valid.
+            ChangeRevision();
             var providerRoot = Path.Combine(RootPath, "packs", manifest.Provider);
             var installPath = Path.Combine(providerRoot, manifest.Version);
             Directory.CreateDirectory(providerRoot);
@@ -137,6 +183,9 @@ public sealed class ProviderPackStore
     {
         ValidateIdentifier(provider, nameof(provider));
         var packsRoot = Path.Combine(RootPath, "packs");
+        if (!Directory.Exists(packsRoot))
+            return false;
+        using var storeLock = AcquireLock();
         var providerPath = Directory.Exists(packsRoot)
             ? Directory.EnumerateDirectories(packsRoot)
                 .FirstOrDefault(path => Path.GetFileName(path).Equals(provider, StringComparison.OrdinalIgnoreCase))
@@ -144,6 +193,7 @@ public sealed class ProviderPackStore
         if (providerPath is null)
             return false;
 
+        ChangeRevision();
         var stagingRoot = Path.Combine(RootPath, ".staging");
         Directory.CreateDirectory(stagingRoot);
         var installedProvider = Path.GetFileName(providerPath);

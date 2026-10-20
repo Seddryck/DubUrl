@@ -17,6 +17,7 @@ using DubUrl.Core.ProviderPacks;
 namespace DubUrl.Mapping;
 public class SchemeRegistryBuilder
 {
+    private static readonly DefaultRegistryCache DefaultCache = new(CreateDefaultCatalog);
     private string _rootPath = string.Empty;
     private readonly List<Assembly> _assemblies = [.. new AssemblyTypesProbe().Assemblies];
     private readonly List<Type> _mapperIntrospectors = [];
@@ -27,17 +28,24 @@ public class SchemeRegistryBuilder
     { }
 
     /// <summary>
-    /// Reads a fresh registry from installed connectors and application provider dependencies.
+    /// Reuses a registry snapshot until the installed connector store changes.
     /// </summary>
     [RequiresUnreferencedCode("Default discovery loads provider modules and reflects over dialect attributes. Use ProviderCatalogBuilder with a custom explicit module for Native AOT.")]
     public static SchemeRegistry GetDefault()
-        => CreateDefaultCatalog().Build();
+        => DefaultCache.GetSchemes(new ProviderPackStore());
 
-    private static ProviderCatalogBuilder CreateDefaultCatalog()
+    /// <summary>Rebuilds the default registry, for example after loading application providers dynamically.</summary>
+    public static SchemeRegistry RefreshDefault()
+    {
+        DefaultCache.Invalidate();
+        return GetDefault();
+    }
+
+    private static ProviderCatalogBuilder CreateDefaultCatalog(ProviderPackStore store)
     {
         var builder = new ProviderCatalogBuilder();
         var diagnostics = new List<ProviderPackDiagnostic>();
-        builder.AddInstalledPacks(new ProviderPackStore(), diagnostics);
+        builder.AddInstalledPacks(store, diagnostics);
         if (diagnostics.Count != 0)
             throw new ProviderPackException("module-load-failed",
                 string.Join(Environment.NewLine, diagnostics.Select(diagnostic => diagnostic.Message)));
@@ -48,7 +56,7 @@ public class SchemeRegistryBuilder
 
     public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)
     {
-        var registry = (DialectRegistry)CreateDefaultCatalog().BuildDialects();
+        var registry = (DialectRegistry)DefaultCache.GetDialects(new ProviderPackStore());
 
         if (schemes.Length == 0)
             return registry;

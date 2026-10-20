@@ -35,9 +35,11 @@ Archive integrity is checked at installation. Installed files are not subsequent
 the definition, compatibility, and required assembly presence. Missing dependencies and invalid binaries surface
 when the .NET loader resolves the connector, rather than through a second dependency inventory.
 
-Core's `ConnectionUrl(string)` constructor automatically inspects the store and loads active, compatible,
-connectors verified at installation by reading their implementation attributes. Installed aliases take precedence over
-bundled registrations from `DubUrl`, when referenced. Conflicting installed aliases fail explicitly;
+Core's `ConnectionUrl(string)` constructor shares a cached default registry with dialect discovery.
+The first use inspects the store and discovers active, compatible connectors and application providers
+from their implementation attributes. Later calls read only the store's revision marker and reuse the
+snapshot when it is unchanged. Installed aliases take precedence over application provider registrations.
+Conflicting installed aliases fail explicitly;
 active modules that cannot load report `ProviderPackException` with code `module-load-failed`.
 Incompatible, incomplete, and corrupt packs are excluded and their diagnostics are available from
 `ProviderPackStore.Inspect()`.
@@ -45,6 +47,14 @@ Incompatible, incomplete, and corrupt packs are excluded and their diagnostics a
 Applications can instead use `ProviderCatalogBuilder.AddInstalledPacks` with their chosen store and
 collect module-loading diagnostics, or pass an entirely explicit registry to bypass discovery.
 Pack changes affect newly created defaults and catalogs; existing URLs retain their registry snapshot.
+Install, same-version replacement, update and removal through `ProviderPackStore` change an atomic
+revision marker. This also invalidates cached defaults in other running processes on their next use.
+A cross-process store lock prevents discovery from reading a partially published installation.
+Concurrent callers share initialization; failed discovery is retried rather than cached permanently.
+Each URL still receives its own mapper and connection state. Changing `DUBURL_PROVIDER_STORE` selects
+a new snapshot. Call `SchemeRegistryBuilder.RefreshDefault()` after dynamically loading an application
+provider or changing driver factory registrations, or after editing installed files manually. Explicitly
+supplied registries remain under the application's control.
 An application should not assume that assemblies can be replaced after they have been loaded.
 
 ## CLI management

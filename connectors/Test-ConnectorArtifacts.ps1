@@ -188,6 +188,11 @@ foreach ($entry in $entries) {
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
             uninstall $catalogPath $archivePath $storePath $removeName[0]
         if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' uninstall lifecycle validation failed." }
+        if ($entry.provider -eq 'postgresql-npgsql') {
+            & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
+                verify-cache $catalogPath $archivePath $storePath $entry.provider
+            if ($LASTEXITCODE -ne 0) { throw 'Cross-process registry cache invalidation failed.' }
+        }
     }
     finally {
         if (Test-Path -LiteralPath $storePath) { Remove-Item -LiteralPath $storePath -Recurse -Force }
