@@ -35,6 +35,21 @@ public class DefaultProviderDiscoveryTest
     }
 
     [Test]
+    public void DefaultConstructor_DiscoversNuGetProvidersWithoutArchiveOrFactoryRegistration()
+    {
+        System.Data.Common.DbProviderFactories.UnregisterFactory("Npgsql");
+        var url = new ConnectionUrl("pg://localhost/demo");
+        using var connection = url.Connect();
+        Assert.Multiple(() =>
+        {
+            Assert.That(connection.GetType().FullName, Is.EqualTo("Npgsql.NpgsqlConnection"));
+            Assert.That(url.Parse(), Does.Contain("demo"));
+            Assert.That(AssemblyLoadContext.GetLoadContext(url.Dialect.GetType().Assembly), Is.SameAs(AssemblyLoadContext.Default));
+            Assert.That(Directory.Exists(root), Is.False);
+        });
+    }
+
+    [Test]
     public async Task DefaultConstructor_DiscoversPostgreSqlWithoutCompatibilityPackage()
     {
         await Install();
@@ -56,16 +71,20 @@ public class DefaultProviderDiscoveryTest
     [Test]
     public async Task NewDefaults_ObserveInstallationAndRemoval_ExistingUrlsRetainTheirRegistry()
     {
-        Assert.Throws<SchemeNotFoundException>(() => new ConnectionUrl("pg://localhost/demo").Parse());
+        Assert.That(new ConnectionUrl("pg://localhost/demo").Parse(), Does.Contain("demo"));
         Assert.That(Directory.Exists(root), Is.False, "Discovery must not create a missing store.");
         await Install();
         var installed = new ConnectionUrl("pg://localhost/demo");
         Assert.That(installed.Parse(), Does.Contain("demo"));
+        Assert.That(AssemblyLoadContext.GetLoadContext(installed.Dialect.GetType().Assembly), Is.Not.SameAs(AssemblyLoadContext.Default));
 
         new ProviderPackStore().Remove("postgresql-npgsql");
 
-        Assert.Throws<SchemeNotFoundException>(() => new ConnectionUrl("pg://localhost/demo").Parse());
+        var fallback = new ConnectionUrl("pg://localhost/demo");
+        Assert.That(fallback.Parse(), Does.Contain("demo"));
+        Assert.That(AssemblyLoadContext.GetLoadContext(fallback.Dialect.GetType().Assembly), Is.SameAs(AssemblyLoadContext.Default));
         Assert.That(installed.Parse(), Does.Contain("demo"));
+        Assert.That(AssemblyLoadContext.GetLoadContext(installed.Dialect.GetType().Assembly), Is.Not.SameAs(AssemblyLoadContext.Default));
     }
 
     [Test]

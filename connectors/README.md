@@ -38,10 +38,12 @@ Database/driver combinations are distributed as connector packs, without per-dri
 `connector-matrix.json` is the maintained connector source. The official `connector-catalog.json` uses schema version 1 and contains `ConnectorDefinition` entries: connector ID/version, installation aliases, supported schemes, dependency assembly, implementation assemblies, driver selection, API range, target frameworks, and runtime identifiers. Each archive carries its own definition as `provider-pack.json`, using the same C# model and JSON structure. After creating an archive, the build enriches that exact definition with optional `downloadUri` and archive `sha256` fields for the catalog. Local definitions omit those distribution fields; Core reads them without a catalog or network access. Older catalogs without module information must be regenerated.
 
 `Catalog/ConnectorCatalog.Build.csproj` combines the packaging matrix with the implementation attributes
-to generate definitions. Ordinary `DubUrl` builds embed the resulting `connector-catalog.json`; connector
+to generate definitions. Ordinary `DubUrl.Application` builds embed the resulting `connector-catalog.json`; connector
 packaging invokes the same exporter before adding distribution fields. The exporter targets the same
-framework as its build, so a framework-scoped build needs no additional runtime. `BuiltInProviderCatalog.Create()`
-reads the embedded catalog and groups schemes by database. It includes optional OLE DB schemes without
+framework as its build, so a framework-scoped build needs no additional runtime. `BundledProviderCatalog.Create()`
+reads the embedded definitions; `Describe()` groups schemes by database. `ConnectorService(store, httpClient)`
+uses this catalog by default; hosts can supply a replacement catalog. The CLI uses the same default
+unless a catalog file or catalog entries are supplied. It includes optional OLE DB schemes without
 loading those drivers into the application.
 
 The matrix contains packaging choices: connector ID, database/driver selectors,
@@ -50,11 +52,17 @@ parametrizer, URL schemes, file-based markers, or factory type names. The techno
 invariant to its build key and, only when different, its assembly name. The driver assembly supplies its
 `DbProviderFactory` implementation through Core's shared factory-discovery helpers.
 
-The aggregate's project references select its bundled implementation assemblies. `BuiltInProviderModule`
-has no provider lists or generated mapper calls. Provider attributes are captured once per discovery pass,
-and resolved constructors and dialect instances are retained in the registrations. URL resolution uses
-those registrations without rescanning provider attributes. Driver lookup remains deferred through
-`DbProviderFactories` for bundled providers; installed bindings retain their isolated driver factory.
+`DubUrl` is a dependency-only NuGet package: it brings Core and the provider-family packages, with no
+DLL, catalog, or registration wrapper. Core finds provider assemblies named `DubUrl.Provider.*` in the
+application's resolved runtime dependencies and the default load context. Installing `DubUrl.Core`,
+`DubUrl.Provider.PostgreSql`, and `Npgsql` is sufficient for `new ConnectionUrl("pg://localhost/demo")`;
+no archive, catalog, or explicit factory registration is needed. Drivers resolve from application
+runtime dependencies, while explicit `DbProviderFactories` registrations take precedence.
+Installed archives retain priority over application providers for overlapping aliases.
+
+Provider attributes are captured once per discovery pass, and resolved constructors and dialect instances
+are retained in the registrations. URL resolution uses those registrations without rescanning provider
+attributes. Installed providers retain their isolated driver factories.
 ODBC locator options, shared dialect instances, and lazy attribute-declared BulkCopy adapters are preserved.
 
 Definitions do not list assets. The installer verifies the complete archive SHA-256, safely extracts its files, and relies on the dependency assembly's `.deps.json` for dependency resolution. ZIP traversal, duplicate destination paths, and symbolic links are rejected before activation. Installed-file hashes are not tracked or rechecked; inspection still reports invalid definitions, incompatible packs, and missing required assemblies, while binary/dependency failures are reported during loading.
@@ -80,3 +88,13 @@ adapter and its driver; hosts can deploy/load it without a compile-time driver r
 For a local DuckDB artifact, `ProviderPackVerifier verify-bulk` accepts the same catalog,
 archive, store, and provider arguments as `verify`. It checks a typed bulk-copy round trip,
 including nulls, in the installed connector's load context using a Core-only host process.
+
+The bundled Application catalog is an offline metadata snapshot. Archive download URLs and SHA-256
+hashes are available only after archive packaging; use the published distribution catalog to install
+those archives. Missing distribution information produces the existing explicit installation diagnostic.
+Validate dependency-only and selective NuGet consumers with
+`.github/scripts/Test-ProviderNuGetPackages.ps1 -NuGetDirectory <packages> -Version <version>`.
+
+For single-file publishing, Core's NuGet build target keeps the existing application `.deps.json` beside
+the executable. Core uses it to discover assemblies hidden inside the bundle. No provider-registration
+list is generated. The Worker imports this target for its project-reference build as well.

@@ -77,9 +77,12 @@ archive SHA-256 to that same definition for the catalog. These distribution fiel
 model and omitted locally. Core loads installed definitions without needing the catalog or a network.
 Archives and catalogs using the old module/type definition must be regenerated.
 
-The aggregate also embeds this catalog's definitions during its normal SDK build. `BuiltInProviderCatalog.Create()`
-groups its entries by `databaseName` instead of maintaining a separate provider list. Aggregate and archive
-definitions come from the same generator and matrix; download fields are added only after archives exist.
+`DubUrl.Application` embeds this catalog's definitions during its normal SDK build.
+`BundledProviderCatalog.Create()` supplies the default catalog for application services and
+`BundledProviderCatalog.Describe()` groups entries by database. Hosts may provide an updated or custom
+catalog. Application and archive definitions use the same generator and matrix; download fields are
+added only after archives exist. The bundled snapshot supports offline browsing; installation uses a
+distribution catalog containing archive URLs and SHA-256 hashes. `DubUrl` is dependency-only and embeds no catalog.
 
 Connector archives exclude Core and its resolved runtime dependencies, including Didot's libraries.
 The loader resolves those assemblies from the host; provider and driver dependencies outside Core's

@@ -42,28 +42,7 @@ public class AssemblyTypesProbe : ITypesProbe
         => Assemblies = GetDefaultAssemblies();
 
     private static Assembly[] GetDefaultAssemblies()
-    {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(assembly =>
-                assembly == typeof(SchemeRegistry).Assembly
-                || assembly.GetName().Name?.StartsWith("DubUrl.Provider.", StringComparison.Ordinal) == true)
-            .ToList();
-
-        var compatibilityAssembly = Type.GetType("DubUrl.Mapping.BuiltInProviderModule, DubUrl", throwOnError: false)?.Assembly;
-        if (compatibilityAssembly is not null)
-        {
-            assemblies.AddRange(GetProviderAssemblies(compatibilityAssembly));
-        }
-
-        assemblies.Add(typeof(SchemeRegistry).Assembly);
-        return assemblies.Distinct().ToArray();
-    }
-
-    public static Assembly[] GetProviderAssemblies(Assembly assembly)
-        => (assembly.GetCustomAttributes<AssemblyMetadataAttribute>().SingleOrDefault(attribute => attribute.Key == "ProviderAssemblies")?.Value
-            ?? string.Empty).Split('|', StringSplitOptions.RemoveEmptyEntries)
-            .Where(name => name.StartsWith("DubUrl.Provider.", StringComparison.Ordinal))
-            .Select(name => Assembly.Load(new AssemblyName(name))).ToArray();
+        => [typeof(SchemeRegistry).Assembly, .. ApplicationProviderDiscovery.GetAssemblies()];
 
     public AssemblyTypesProbe(Assembly[] assemblies)
         => Assemblies = assemblies;

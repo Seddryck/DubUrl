@@ -15,14 +15,14 @@ namespace DubUrl.Core.Testing.Mapping;
 public class AttributeProviderModuleTest
 {
     private static IEnumerable<TestCaseData> BundledMappings()
-        => AttributeProviderModule.Discover(AssemblyTypesProbe.GetProviderAssemblies(typeof(BuiltInProviderModule).Assembly))
+        => AttributeProviderModule.Discover(new AssemblyTypesProbe().Assemblies)
             .Select(info => new TestCaseData(info).SetName("Attributed registration: " + info.DatabaseName + " / " + info.ProviderInvariantName));
 
     [TestCaseSource(nameof(BundledMappings))]
     public void Registration_CompilesEachAttributedMapper_AndKeepsItsDialectAndSchemes(MapperInfo info)
     {
         var catalog = new RecordingCatalog();
-        new BuiltInProviderModule().Register(catalog);
+        new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog);
         var registration = catalog.Providers.Single(provider => provider.Aliases.Contains(info.Aliases[0]));
         var mapper = registration.Compile(new ProviderCompilationContext(new StubFactory(), registration.Dialect,
             registration.ParametrizerFactory(), TestContext.CurrentContext.TestDirectory, catalog.Options));
@@ -49,7 +49,7 @@ public class AttributeProviderModuleTest
         {
             DbProviderFactories.UnregisterFactory(invariant);
             var catalog = new RecordingCatalog();
-            new BuiltInProviderModule().Register(catalog);
+            new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog);
             var registration = catalog.Providers.Single(provider => provider.Aliases.Contains("pg"));
             Assert.That(registration.ProviderFactory(), Is.Null);
 
@@ -68,7 +68,7 @@ public class AttributeProviderModuleTest
     public void AttributeModule_UsesOnlyDeclaredLazyBulkCopyAdapters()
     {
         var catalog = new RecordingCatalog();
-        new BuiltInProviderModule().Register(catalog);
+        new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog);
         var nativeAdapters = catalog.Providers.Where(provider => provider.BulkCopyProvider is not null).ToArray();
         Assert.Multiple(() =>
         {
@@ -82,7 +82,7 @@ public class AttributeProviderModuleTest
     public void DialectSelection_RetainsRegisteredAliases_WithoutRebuildingDialectInstances()
     {
         var catalog = new RecordingCatalog();
-        new BuiltInProviderModule().Register(catalog);
+        new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog);
         var postgres = catalog.Providers.Single(provider => provider.Aliases.Contains("pg"));
         var builder = new ProviderCatalogBuilder();
         builder.AddProvider(postgres);

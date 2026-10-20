@@ -9,18 +9,21 @@ the provider factory, aliases, dialect, parameter convention, connection-string 
 capability objects together. Registration order is deterministic and a duplicate alias throws a
 `ProviderRegistrationException` naming both conflicting registrations.
 
-## Discover installed connectors automatically
+## Discover providers automatically
 
-With `DubUrl.Core` and an installed PostgreSQL connector,
-`new ConnectionUrl("pg://localhost/demo")` discovers its module automatically.
+With the NuGet packages `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and `Npgsql`,
+`new ConnectionUrl("pg://localhost/demo")` works without a registry, factory registration, catalog,
+or provider archive. Core reads attributes from the application's `DubUrl.Provider.*` runtime assemblies.
+The dependency-only `DubUrl` package is a shortcut for referencing Core and all provider families.
+Installing a PostgreSQL archive is another way to supply the implementation and driver.
 
 Discovery reads active, compatible, integrity-verified packs from the per-user connector store:
 `%LOCALAPPDATA%/DubUrl/providers` on Windows, `$XDG_DATA_HOME/duburl/providers` on Unix when set,
 otherwise `~/.local/share/duburl/providers`. Set `DUBURL_PROVIDER_STORE` to use a different store.
 Discovery does not install or download connectors and does not create a missing store.
 
-Installed connectors take precedence over the `DubUrl` aggregate's bundled registrations for matching
-aliases. Remaining bundled aliases remain available. Conflicting installed aliases throw
+Installed providers take precedence over application dependencies for matching aliases.
+Remaining application aliases remain available. Conflicting installed aliases throw
 `ProviderRegistrationException`; an active module that cannot load reports `ProviderPackException`
 with code `module-load-failed`. Inactive, incompatible, incomplete, and corrupt packs are not loaded.
 Default dialect discovery uses the same provider selection.

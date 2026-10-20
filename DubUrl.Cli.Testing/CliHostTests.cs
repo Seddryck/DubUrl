@@ -60,7 +60,7 @@ public class CliHostTests
         var console = new TestConsole(yaml);
         await using var services = CliComposition.CreateDefault(
             console,
-            providerModules: [new BuiltInProviderModule()]);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "render", "-", "--input-format", "yaml", "--dialect", "sqlite"], services);
@@ -105,7 +105,7 @@ public class CliHostTests
         await using var services = CliComposition.CreateDefault(
             console,
             configuration,
-            providerModules: [new BuiltInProviderModule()]);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--dry-run"], services);
@@ -124,7 +124,7 @@ public class CliHostTests
         var console = new TestConsole(JsonSchema);
         await using var services = CliComposition.CreateDefault(
             console,
-            providerModules: [new BuiltInProviderModule()]);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "render", "-", "--input-format", "json", "--dialect", "postgresql"], services);
@@ -138,7 +138,7 @@ public class CliHostTests
     }
 
     [Test]
-    public async Task Capabilities_FreshCliHasNoInstalledConnectors()
+    public async Task Capabilities_FreshStoreIncludesApplicationProviderDialects()
     {
         var console = new TestConsole(string.Empty);
         await using var services = CliComposition.CreateDefault(console);
@@ -162,7 +162,7 @@ public class CliHostTests
         {
             Assert.That(exitCode, Is.EqualTo(CliExitCodes.Success));
             Assert.That(providers, Is.Empty);
-            Assert.That(dialects, Is.Empty);
+            Assert.That(dialects, Does.Contain("pg"));
             Assert.That(deployableSchemes, Is.Empty);
             Assert.That(deployableSchemes, Does.Not.Contain("firebird"));
         });
@@ -174,7 +174,7 @@ public class CliHostTests
         var console = new TestConsole(JsonSchema);
         await using var services = CliComposition.CreateDefault(
             console,
-            providerModules: [new BuiltInProviderModule()]);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
 
         var exitCode = await CliHost.InvokeAsync(
             ["schema", "render", "-", "--input-format", "json", "--dialect", "firebird"], services);
@@ -196,7 +196,7 @@ public class CliHostTests
             var console = new TestConsole(JsonSchema);
             await using var services = CliComposition.CreateDefault(
                 console,
-                providerModules: [new BuiltInProviderModule()]);
+                providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
 
             var exitCode = await CliHost.InvokeAsync(
                 ["schema", "render", "-", "--input-format", "json", "--dialect", "sqlite", "--output", output], services);
@@ -245,7 +245,7 @@ public class CliHostTests
             await using var services = CliComposition.CreateDefault(
                 console,
                 configuration,
-                providerModules: [new BuiltInProviderModule()]);
+                providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
 
             var exitCode = await CliHost.InvokeAsync(
                 ["schema", "deploy", "-", "--input-format", "json", "--connection", "test"], services);

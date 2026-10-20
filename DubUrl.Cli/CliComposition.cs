@@ -32,6 +32,7 @@ public static class CliComposition
         foreach (var module in providerModules ?? [])
             catalogBuilder.AddModule(module);
         catalogBuilder.AddInstalledPacks(store, providerDiagnostics);
+        catalogBuilder.AddApplicationProviders();
         var dialects = catalogBuilder.BuildDialects();
         var schemes = catalogBuilder.Build();
         var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
@@ -110,7 +111,9 @@ public static class CliComposition
                     DriverAssembly = section["DriverAssembly"],
                 });
         }
-        return new(entries);
+        return entries.Count == 0 && !File.Exists(catalogPath)
+            ? BundledProviderCatalog.Create()
+            : new(entries);
     }
 
     private static string GetCatalogPath(string? configuredPath)

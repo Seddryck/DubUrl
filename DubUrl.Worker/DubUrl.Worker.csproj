@@ -41,4 +41,5 @@
     <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <Import Project="../DubUrl.Core/buildTransitive/DubUrl.Core.targets" />
 </Project>

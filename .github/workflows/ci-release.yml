@@ -430,7 +430,7 @@ jobs:
           --no-build
           --no-restore
           --nologo
-          --include-symbols
+          -p:IncludeSymbols=${{ matrix.package-id != 'DubUrl' }}
           --output .artifacts/nuget
           -p:Version=${{ needs.version.outputs.semver }}
           -p:ContinuousIntegrationBuild=true

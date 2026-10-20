@@ -9,7 +9,11 @@
 
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <!-- Dependency groups intentionally have no corresponding assembly assets. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -20,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
-    <ProjectReference Include="../connectors/Catalog/ConnectorCatalog.Build.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <ProjectReference Include="..\Providers\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
     <ProjectReference Include="..\Providers\Db2\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" />
     <ProjectReference Include="..\Providers\Drill\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" />
@@ -54,16 +57,4 @@
     </ItemGroup>
   </Target>
 
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>ProviderAssemblies</_Parameter1>
-      <_Parameter2>@(ProjectReference->'%(Filename)', '|')</_Parameter2>
-    </AssemblyAttribute>
-  </ItemGroup>
-  <Import Project="../connectors/ConnectorCatalog.targets" />
-  <Target Name="EmbedConnectorCatalog" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateConnectorCatalog">
-    <ItemGroup>
-      <EmbeddedResource Include="$(ConnectorCatalogOutput)" LogicalName="DubUrl.ConnectorCatalog" />
-    </ItemGroup>
-  </Target>
 </Project>

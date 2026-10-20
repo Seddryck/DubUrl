@@ -10,6 +10,24 @@ namespace DubUrl.Cli.Testing;
 public class ConnectorCommandTests
 {
     [Test]
+    public async Task List_NoCatalogConfiguration_UsesApplicationBundledCatalog()
+    {
+        var store = Path.Combine(TestContext.CurrentContext.WorkDirectory, "bundled-catalog-" + Guid.NewGuid().ToString("N"));
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ProviderPacks:StorePath"] = store,
+            ["ProviderPacks:CatalogPath"] = Path.Combine(store, "absent.json"),
+        }).Build();
+        var console = new TestConsole();
+        await using var services = CliComposition.CreateDefault(console, configuration);
+        Assert.That(await CliHost.InvokeAsync(["connector", "list", "--json"], services), Is.Zero);
+        using var json = JsonDocument.Parse(console.StandardOutput);
+        Assert.That(json.RootElement.GetProperty("connectors").EnumerateArray()
+            .Select(entry => entry.GetProperty("id").GetString()), Does.Contain("postgresql-npgsql"));
+        Assert.That(Directory.Exists(store), Is.False);
+    }
+
+    [Test]
     public async Task List_FreshStore_LoadsVersionedOfficialCatalogWithoutInstallingConnector()
     {
         var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-catalog-{Guid.NewGuid():N}");

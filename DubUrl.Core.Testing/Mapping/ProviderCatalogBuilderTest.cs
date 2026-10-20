@@ -87,7 +87,6 @@ public class ProviderCatalogBuilderTest
         });
     }
 
-    [TestCase(typeof(BuiltInProviderModule))]
     [TestCase(typeof(AttributeProviderModule))]
     public void ReflectionBasedCompatibilityModules_AreMarkedAsUnsafeForTrimming(Type moduleType)
         => Assert.That(
@@ -103,7 +102,7 @@ public class ProviderCatalogBuilderTest
         var catalog = new Mock<IProviderCatalogBuilder>();
         catalog.Setup(x => x.AddProvider(It.IsAny<ProviderRegistration>()))
             .Callback<ProviderRegistration>(registrations.Add).Returns(catalog.Object);
-        new BuiltInProviderModule().Register(catalog.Object);
+        new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog.Object);
         var native = registrations.Single(x => x.Aliases.Contains(nativeAlias));
         var odbc = registrations.Single(x => x.Aliases.Contains(odbcAlias));
 

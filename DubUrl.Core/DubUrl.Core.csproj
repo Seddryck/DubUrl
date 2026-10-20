@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="buildTransitive/DubUrl.Core.targets" Pack="true" PackagePath="buildTransitive/" />
     <PackageReference Include="Didot.Core" Version="0.34.0" />
     <InternalsVisibleTo Include="DubUrl.Core.Testing" />
   </ItemGroup>

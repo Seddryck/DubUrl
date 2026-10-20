@@ -16,7 +16,7 @@ using DubUrl.Provider.Text.Sql;
 using DubUrl.Provider.Trino.Sql;
 using DubUrl.Core.Providers;
 using DubUrl.Locating.OdbcDriver;
-using DubUrl.Providers;
+using DubUrl.Application;
 using DubUrl.Querying.Dialects;
 using NUnit.Framework;
 using DubUrl.Core.ProviderPacks;
@@ -45,14 +45,13 @@ public class ProviderAssemblyBoundaryTest
     [Test]
     public void AssemblyDependencies_AreAcyclic()
     {
-        var providerReferences = typeof(BuiltInProviderCatalog).Assembly.GetReferencedAssemblies()
+        var providerReferences = typeof(BundledProviderCatalog).Assembly.GetReferencedAssemblies()
             .Select(reference => reference.Name)
             .ToArray();
 
         Assert.Multiple(() =>
         {
-            Assert.That(typeof(BuiltInProviderCatalog).Assembly, Is.SameAs(typeof(DubUrl.Mapping.BuiltInProviderModule).Assembly));
-            Assert.That(typeof(BuiltInProviderCatalog).Assembly.GetName().Name, Is.EqualTo("DubUrl"));
+            Assert.That(typeof(BundledProviderCatalog).Assembly.GetName().Name, Is.EqualTo("DubUrl.Application"));
             Assert.That(providerReferences, Does.Contain("DubUrl.Core"));
             Assert.That(providerReferences, Does.Not.Contain("DubUrl.Providers"));
             Assert.That(typeof(ProviderCatalog).Assembly.GetReferencedAssemblies()
@@ -156,9 +155,9 @@ public class ProviderAssemblyBoundaryTest
     }
 
     [Test]
-    public void BuiltInCatalog_DescribesMappingsWithoutClaimingTheyAreBundledOrListed()
+    public void BundledApplicationCatalog_DescribesMappingsWithoutClaimingTheyAreBundledOrListed()
     {
-        var providers = BuiltInProviderCatalog.Create().Providers;
+        var providers = BundledProviderCatalog.Describe().Providers;
 
         Assert.Multiple(() =>
         {
@@ -173,7 +172,7 @@ public class ProviderAssemblyBoundaryTest
         using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "connector-matrix.json")));
         var ready = matrix.RootElement.GetProperty("connectors").EnumerateArray()
             .Where(row => row.GetProperty("status").GetString() == "ready").ToArray();
-        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         var catalog = ProviderPackCatalogDocument.Read(resource);
 
         Assert.That(catalog.Entries.Select(entry => entry.Provider), Is.EquivalentTo(ready.Select(row => row.GetProperty("id").GetString())));
@@ -201,11 +200,11 @@ public class ProviderAssemblyBoundaryTest
     }
 
     [Test]
-    public void BuiltInCatalog_GroupsAllCatalogSchemesByDatabase()
+    public void BundledApplicationCatalog_GroupsAllCatalogSchemesByDatabase()
     {
-        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         var databases = ProviderPackCatalogDocument.Read(resource).Entries.GroupBy(entry => entry.DatabaseName!).ToArray();
-        var catalog = BuiltInProviderCatalog.Create();
+        var catalog = BundledProviderCatalog.Describe();
 
         Assert.That(catalog.Providers.Select(provider => provider.Name), Is.EquivalentTo(databases.Select(database => database.Key)));
         foreach (var database in databases)
@@ -222,7 +221,7 @@ public class ProviderAssemblyBoundaryTest
     }
     private static IReadOnlyList<ConnectorDefinition> Definitions()
     {
-        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         return ProviderPackCatalogDocument.Read(resource).Entries;
     }
 

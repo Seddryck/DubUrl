@@ -30,6 +30,9 @@ public sealed class ConnectorService(
     ProviderPackCatalog catalog,
     HttpClient httpClient) : IConnectorService
 {
+    public ConnectorService(ProviderPackStore store, HttpClient httpClient)
+        : this(store, BundledProviderCatalog.Create(), httpClient) { }
+
     public IReadOnlyList<ConnectorInfo> List()
     {
         try { return ListCore(); }

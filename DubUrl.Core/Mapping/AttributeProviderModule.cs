@@ -20,6 +20,12 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
     private AttributeProviderModule(MapperInfo mapping, Func<string, DbProviderFactory?> factory)
         => (assemblies, mappings, resolveFactory) = ([], [mapping], factory);
 
+    private AttributeProviderModule(Assembly[] assemblies, Func<string, DbProviderFactory?> factory)
+        => (this.assemblies, resolveFactory) = (assemblies, factory);
+
+    internal static AttributeProviderModule FromApplication(Assembly[] assemblies)
+        => new(assemblies, ApplicationProviderDiscovery.ResolveFactory);
+
     public static AttributeProviderModule FromConnector(ConnectorDefinition definition, Func<string, Assembly> loadAssembly)
     {
         ArgumentNullException.ThrowIfNull(definition);

@@ -6,28 +6,35 @@ tags: [installation, providers, architecture]
 
 DubUrl publishes deliberately acyclic package layers:
 
-1. `DubUrl.Core` contains provider-neutral value types, immutable catalog logic, and discovery of installed
-   connector packs. Default URL construction works with installed connectors without referencing provider implementations.
+1. `DubUrl.Core` contains provider-neutral contracts and automatic discovery. It discovers provider
+   assemblies in application runtime dependencies as well as installed provider archives.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
-   `Providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
-3. Connector archives combine shared family implementations with a concrete driver. They use a real
-   provider implementation DLL and a connector-specific `.deps.json`, without empty binding DLLs or
-   generated entry-point classes. Packaging collects dependencies through `ProviderBinding.Build.csproj`.
-4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and owning
-   `BuiltInProviderCatalog` alongside its built-in registrations. This API reads the embedded connector catalog,
-   generated from `connector-matrix.json` by the same generator used in connector packaging. Database names
-   and schemes are not maintained in a separate C# list. Bundled and installed registrations read the
-   implementation attributes through the same Core adapter when building a registry. The catalog retains the
-   `DubUrl.Providers` namespace but is compiled into `DubUrl`; there is no separate catalog project or package.
-   Explicit consumers can omit the aggregate and discover installed connectors through Core.
+   `Providers/`. They depend on Core without concrete ADO.NET driver dependencies.
+3. Provider archives combine family implementations with a driver, using an implementation DLL and a
+   provider-specific `.deps.json`. Packaging collects dependencies through `ProviderBinding.Build.csproj`.
+4. `DubUrl.Application` embeds the generated catalog and exposes it through `BundledProviderCatalog`.
+   `ConnectorService` uses this catalog by default; hosts may supply a replacement. It describes available
+   providers without referencing or loading their implementation DLLs.
+5. `DubUrl` is a dependency-only NuGet package bringing Core and the provider families. It ships no
+   `DubUrl.dll`, catalog, or special registration module.
+
+For selective NuGet use, install `DubUrl.Core`, `DubUrl.Provider.PostgreSql`, and `Npgsql`, then write:
+
+```csharp
+var url = new ConnectionUrl("pg://localhost/demo");
+```
+
+No archive, registry parameter, or explicit factory registration is required. Core discovers assemblies
+named `DubUrl.Provider.*` from application runtime dependencies and the default load context. Explicit
+factory registrations are honored; installed archives take precedence for overlapping aliases.
 
 Project folders match the assemblies and packages they produce:
 
 | Project | Responsibility |
 | --- | --- |
 | `DubUrl.Core/DubUrl.Core.csproj` | Provider-neutral contracts and infrastructure; owns its source files directly |
-| `DubUrl/DubUrl.csproj` | Compatibility aggregate and built-in provider registration |
-| `DubUrl/Providers/BuiltInProviderCatalog.cs` | Reads the embedded connector catalog and groups its schemes by database |
+| `DubUrl/DubUrl.csproj` | Dependency-only aggregate NuGet package |
+| `DubUrl.Application/BundledProviderCatalog.cs` | Default catalog shared by every application host |
 | `connectors/ConnectorCatalog.targets` | Runs the shared catalog exporter, combining packaging selectors with implementation attributes |
 | `Providers/Build/ProviderBinding.Build.csproj` | Temporary, non-packable dependency collector; only real implementation DLLs and rewritten .deps.json files are packaged |
 
@@ -35,14 +42,15 @@ Core uses normal SDK source inclusion. It does not link source files from the co
 
 Normal builds generate and embed catalog definitions without optional download fields; they do not require
 connector archives, previously generated artifacts, PowerShell, or network access beyond package restore.
-Pack builds add the download URL and SHA-256 after creating each archive. The aggregate's metadata lists
+Pack builds add the download URL and SHA-256 after creating each archive. The Application catalog lists
 all catalog schemes, including optional OLE DB connectors, without registering or loading those drivers.
-The aggregate's project references select bundled implementation assemblies. The matrix contains packaging
+The aggregate's project references select its NuGet dependencies. The matrix contains packaging
 selectors and distribution metadata; it does not repeat mapper/dialect/parametrizer types, URL schemes,
 file-based markers, or factory type names. Provider attributes are read once per discovery pass and retained
 as registrations, including constructors and dialect instances. The driver assembly supplies its factory
 through Core's shared factory-discovery code. URL compilation does not rescan provider attributes.
-Bundled factory lookup remains deferred through `DbProviderFactories`; installed factories remain isolated.
+Application factory lookup honors `DbProviderFactories`, then resolves the driver from runtime dependencies;
+installed factories remain isolated.
 ODBC options and lazy optional BulkCopy adapters use the same registration logic in both paths.
 Installed definitions name a real provider implementation as the dependency anchor, plus implementation assembly paths and the driver selector;
 Core discovers attributes directly, without a generated class or entry-point type. Rebuild old connector
@@ -59,7 +67,9 @@ for the authoring example and explicit registration path.
 Provider implementation namespaces now begin with `DubUrl.Provider.<Family>` and follow their folders.
 For example, import `DubUrl.Provider.PostgreSql.Sql` for `PgsqlDialect` and
 `DubUrl.Provider.PostgreSql.Mapping` for `PostgresqlMapper`. Core contracts retain their existing
-namespaces. Core, compatibility, and family package/assembly IDs remain unchanged. Connector IDs select database/driver combinations; there are no per-driver binding DLLs or Npgsql binding NuGet packages.
+namespaces. Core and family package/assembly IDs remain unchanged. The `DubUrl` package ID is unchanged, but
+its former DLL and the `BuiltInProviderModule`/`BuiltInProviderCatalog` APIs are removed. Use Core
+discovery and `DubUrl.Application.BundledProviderCatalog` instead. Connector IDs select database/driver combinations; there are no per-driver binding DLLs or Npgsql binding NuGet packages.
 
 This is a public namespace migration: applications must update imports and recompile, and existing
 connector binaries and reflection-based type names must be rebuilt or updated. Assembly forwarding

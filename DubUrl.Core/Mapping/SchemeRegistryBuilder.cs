@@ -27,7 +27,7 @@ public class SchemeRegistryBuilder
     { }
 
     /// <summary>
-    /// Reads a fresh registry from verified installed connectors, with bundled registrations as fallbacks.
+    /// Reads a fresh registry from installed connectors and application provider dependencies.
     /// </summary>
     [RequiresUnreferencedCode("Default discovery loads provider modules and reflects over dialect attributes. Use ProviderCatalogBuilder with a custom explicit module for Native AOT.")]
     public static SchemeRegistry GetDefault()
@@ -42,14 +42,9 @@ public class SchemeRegistryBuilder
             throw new ProviderPackException("module-load-failed",
                 string.Join(Environment.NewLine, diagnostics.Select(diagnostic => diagnostic.Message)));
 
-        var moduleType = GetBuiltInProviderModuleType();
-        if (moduleType is not null && Activator.CreateInstance(moduleType) is IDubUrlProviderModule module)
-            builder.AddFallbackModule(module);
+        builder.AddApplicationProviders();
         return builder;
     }
-
-    private static Type? GetBuiltInProviderModuleType()
-        => Type.GetType("DubUrl.Mapping.BuiltInProviderModule, DubUrl", throwOnError: false);
 
     public static IDialectRegistry GetDefaultDialectRegistry(params string[] schemes)
     {

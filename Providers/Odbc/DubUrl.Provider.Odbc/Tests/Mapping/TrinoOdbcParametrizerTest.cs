@@ -25,7 +25,7 @@ public class TrinoOdbcParametrizerTest
         var catalog = new Mock<IProviderCatalogBuilder>();
         catalog.Setup(value => value.AddProvider(It.IsAny<ProviderRegistration>()))
             .Callback<ProviderRegistration>(registrations.Add).Returns(catalog.Object);
-        new BuiltInProviderModule().Register(catalog.Object);
+        new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog.Object);
         var parametrizer = registrations.Single(value => value.Aliases.Contains("odbc+trino")).ParametrizerFactory();
         using var command = new OdbcCommand("SELECT ? + ?");
 
@@ -50,7 +50,7 @@ public class TrinoOdbcParametrizerTest
         var catalog = new Mock<IProviderCatalogBuilder>();
         catalog.Setup(value => value.AddProvider(It.IsAny<ProviderRegistration>()))
             .Callback<ProviderRegistration>(registrations.Add).Returns(catalog.Object);
-        new BuiltInProviderModule().Register(catalog.Object);
+        new AttributeProviderModule(new AssemblyTypesProbe().Assemblies).Register(catalog.Object);
         var odbc = registrations.Where(provider => provider.ProviderInvariantName == "System.Data.Odbc").ToArray();
         Assert.That(odbc, Is.Not.Empty);
         foreach (var provider in odbc)

@@ -40,6 +40,15 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
         return this;
     }
 
+    /// <summary>Discovers application provider dependencies, preserving explicitly registered and installed aliases.</summary>
+    public ProviderCatalogBuilder AddApplicationProviders()
+    {
+        var assemblies = ApplicationProviderDiscovery.GetAssemblies();
+        if (assemblies.Length != 0)
+            AddFallbackModule(AttributeProviderModule.FromApplication(assemblies));
+        return this;
+    }
+
     public IProviderCatalogBuilder AddProvider(ProviderRegistration registration)
         => AddProvider(registration, fallback: false);
 

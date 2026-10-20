@@ -1,6 +1,6 @@
 using DubUrl.Provider.PostgreSql.Mapping;
 using DubUrl.Core.ProviderPacks;
-using DubUrl.Providers;
+using DubUrl.Application;
 using System.Reflection;
 using DubUrl.Mapping;
 using DubUrl.Rewriting;
@@ -14,7 +14,7 @@ public class PostgreSqlNpgsqlBindingTest
     [Test]
     public void Register_ProvidesOnlyPostgreSqlSchemesWithNpgsqlFactory()
     {
-        using var resource = typeof(BuiltInProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
+        using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         var definition = ProviderPackCatalogDocument.Read(resource).Entries.Single(entry => entry.Provider == "postgresql-npgsql");
         var registry = new ProviderCatalogBuilder()
             .AddModule(AttributeProviderModule.FromConnector(definition, path => Assembly.Load(Path.GetFileNameWithoutExtension(path))))
