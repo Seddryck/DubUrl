@@ -18,7 +18,7 @@ public sealed record ConnectorDefinition
     public required string Provider { get; init; }
     public required string Version { get; init; }
     public required string DubUrlApiRange { get; init; }
-    /// <summary>Dependency anchor whose .deps.json describes the connector's published dependencies.</summary>
+    /// <summary>Provider implementation whose connector-specific .deps.json describes the published dependencies.</summary>
     public required string Assembly { get; init; }
     public required IReadOnlyList<string> ImplementationAssemblies { get; init; }
     public required string Driver { get; init; }

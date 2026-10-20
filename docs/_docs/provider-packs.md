@@ -6,9 +6,9 @@ tags: [installation, providers, security]
 
 A provider pack is a ZIP archive with `provider-pack.json` at its root. The local connector definition identifies
 the provider and pack version, compatible DubUrl API range, database/driver selectors, implementation
-assemblies, dependency assembly, supported target frameworks, and runtime identifiers. The archive includes
-the dependency assembly's `.deps.json`; .NET uses it to resolve managed and native dependencies.
-The dependency assembly contains no generated entry-point class. Core reads provider attributes directly. There is no separate asset inventory.
+assemblies, provider implementation used as the dependency anchor, supported target frameworks, and runtime identifiers.
+The archive includes a connector-specific `.deps.json` beside that implementation DLL; .NET uses it to resolve
+managed and native dependencies. No empty binding DLL or generated entry-point class is packaged. Core reads provider attributes directly. There is no separate asset inventory.
 
 DubUrl installs packs only from a curated catalog supplied by the application distributor. The catalog
 binds a provider name and version to a download URI and SHA-256 archive digest. Arbitrary NuGet feeds,
@@ -70,7 +70,7 @@ managed dependencies, and required native assets.
 The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
 Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
 identity, a `databaseName` selector/grouping label, installation aliases, attribute-derived schemes,
-`assembly` (the dependency anchor), `implementationAssemblies`, `driver` (its invariant), optional
+`assembly` (a real provider implementation and dependency anchor), `implementationAssemblies`, `driver` (its invariant), optional
 `driverAssembly` when its filename differs, and API/TFM/RID compatibility. There is no module/type field.
 The build generates the local definition from `connector-matrix.json`, then adds the download URL and
 archive SHA-256 to that same definition for the catalog. These distribution fields are optional in the

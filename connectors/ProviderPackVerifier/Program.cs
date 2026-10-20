@@ -85,9 +85,11 @@ internal static class Program
         var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));
         var loadContext = AssemblyLoadContext.GetLoadContext(factory.GetType().Assembly)!;
         VerifySharedDependencies(loadContext);
-        var binding = loadContext.LoadFromAssemblyPath(Path.Combine(inspected[0].InstallPath, context.Entry.Assembly));
-        if (binding.GetExportedTypes().Length != 0)
-            throw new InvalidOperationException("The dependency anchor must not contain a generated entry-point class.");
+        if (!context.Entry.ImplementationAssemblies.Contains(context.Entry.Assembly, StringComparer.OrdinalIgnoreCase))
+            throw new InvalidOperationException("The dependency anchor must be a provider implementation.");
+        var anchor = loadContext.Assemblies.Single(assembly => assembly.GetName().Name == Path.GetFileNameWithoutExtension(context.Entry.Assembly));
+        if (anchor.GetExportedTypes().Length == 0)
+            throw new InvalidOperationException("The dependency anchor must contain the real implementation.");
         if (factory.GetType().FullName is null)
             throw new InvalidOperationException($"Connector scheme '{scheme}' did not resolve to a provider factory.");
         if (AssemblyLoadContext.GetLoadContext(factory.GetType().Assembly) == AssemblyLoadContext.Default

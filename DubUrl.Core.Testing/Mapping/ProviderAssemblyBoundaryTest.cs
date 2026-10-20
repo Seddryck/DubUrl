@@ -143,13 +143,13 @@ public class ProviderAssemblyBoundaryTest
         var module = DubUrl.Mapping.AttributeProviderModule.FromConnector(definition,
             path => System.Reflection.Assembly.Load(Path.GetFileNameWithoutExtension(path)));
         var registry = new DubUrl.Mapping.ProviderCatalogBuilder().AddModule(module).Build();
-        var binding = System.Reflection.Assembly.Load("DubUrl.Provider.PostgreSql.Npgsql");
-        var references = binding.GetReferencedAssemblies().Select(reference => reference.Name).ToArray();
+        var implementation = registry.GetMapper("pg").GetType().Assembly;
+        var references = implementation.GetReferencedAssemblies().Select(reference => reference.Name).ToArray();
         Assert.Multiple(() =>
         {
             Assert.That(references, Does.Not.Contain("DubUrl"));
             Assert.That(module, Is.TypeOf<DubUrl.Mapping.AttributeProviderModule>());
-            Assert.That(binding.GetExportedTypes(), Is.Empty);
+            Assert.That(implementation.GetExportedTypes(), Is.Not.Empty);
             Assert.That(registry.GetMapper("pg").GetType().Assembly.GetName().Name, Is.EqualTo("DubUrl.Provider.PostgreSql"));
             Assert.That(registry.GetProviderFactory(["pg"]).GetType().Assembly.GetName().Name, Is.EqualTo("Npgsql"));
         });
@@ -183,7 +183,8 @@ public class ProviderAssemblyBoundaryTest
             Assert.Multiple(() =>
             {
                 Assert.That(entry.DatabaseName, Is.EqualTo(row.GetProperty("database").GetString()));
-                Assert.That(entry.Assembly, Is.EqualTo(row.GetProperty("assemblyName").GetString() + ".dll"));
+                Assert.That(entry.ImplementationAssemblies, Does.Contain(entry.Assembly));
+                Assert.That(row.TryGetProperty("assemblyName", out _), Is.False);
                 Assert.That(entry.ImplementationAssemblies, Is.Not.Empty);
                 Assert.That(entry.Driver, Is.EqualTo(row.GetProperty("technology").GetString()));
                 Assert.That(entry.Schemes, Is.Not.Empty);

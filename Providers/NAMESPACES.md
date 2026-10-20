@@ -40,23 +40,15 @@ remain unchanged by this reorganization.
 
 ## Migration
 
-Driver bindings use `DubUrl.Provider.<Database>.<Driver>`, for example
-`DubUrl.Provider.PostgreSql.Npgsql` and `DubUrl.Provider.CockroachDb.Npgsql`.
-The latter reuses the PostgreSQL family through a dependency, without repeating that
-family in its binding name. Family projects and typed adapters are grouped under
-`Providers/<Family>/`. Optional adapters append `.BulkCopy`
-to the driver's binding name. All standard bindings are built by
-`Providers/Build/ProviderBinding.Build.csproj`; independent consumer tests are
-`DubUrl.Provider.Testing`.
+Connector IDs identify database/driver combinations such as `postgresql-npgsql` and `postgresql-odbc`.
+Their archives reuse provider implementation DLLs with a connector-specific `.deps.json`; they contain no
+empty per-driver binding DLL or generated `ProviderModule`. The shared dependency collector remains
+`Providers/Build/ProviderBinding.Build.csproj`, but its temporary DLL is never distributed.
 
-Binding assembly, package, and namespace names follow this convention. Consumers must
-update package and namespace references and rebuild packs. Installable connector IDs
-and URL schemes are unchanged; connector packs remain the distribution format.
-
-Production driver bindings are empty dependency assemblies with a `.deps.json`; they do not expose
-or generate a `ProviderModule`. The connector definition names the implementation assemblies and
-driver. Core reads their attributes directly through `AttributeProviderModule`, using the same
-registration path for PostgreSQL/Npgsql and every other binding.
+Family implementations and QA projects remain under `Providers/<Family>/`. Optional typed BulkCopy
+adapters keep their driver-specific names, such as `DubUrl.Provider.DuckDb.Native.BulkCopy`.
+Core discovers implementation attributes directly through `AttributeProviderModule`.
+Provider namespace changes require consumer recompilation; connector IDs and URL schemes remain stable.
 
 Public fully qualified type names change. For example:
 
@@ -74,7 +66,7 @@ wrappers are introduced. Review persisted assembly-qualified names and reflectio
 configuration as well as source references before upgrading. Core's shared contracts
 retain their namespaces, and existing connection URL aliases remain unchanged.
 
-Bulk-copy adapters belong to their optional driver binding projects and use those exact
+Bulk-copy adapters belong to their optional driver-specific projects and use those exact
 project namespaces: `DubUrl.Provider.DuckDb.Native.BulkCopy` and
 `DubUrl.Provider.SqlServer.SqlClient.BulkCopy`. Provider mapper declarations name the adapter
 types without referencing their assemblies. Shared bulk-copy contracts retain the

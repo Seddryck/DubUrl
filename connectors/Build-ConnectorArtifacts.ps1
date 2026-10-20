@@ -49,8 +49,8 @@ if ($matrix.schemaVersion -ne 1) { throw 'Expected connector matrix schema versi
 $technologies = @{}
 foreach ($technology in $matrix.technologies) { $technologies[$technology.name] = $technology }
 $ready = @($matrix.connectors | Where-Object status -eq 'ready' | Sort-Object id)
-if (@($ready.assemblyName | Select-Object -Unique).Count -ne $ready.Count) {
-    throw 'Provider binding assembly names must be unique.'
+if (@($ready.id | Select-Object -Unique).Count -ne $ready.Count) {
+    throw 'Connector IDs must be unique.'
 }
 $definitionsPath = Join-Path $stagingRoot 'connector-catalog.json'
 Invoke-Checked dotnet @(
@@ -64,10 +64,9 @@ foreach ($connector in $ready) {
         throw "Connector '$($connector.id)' uses unknown technology '$($connector.technology)'."
     }
     $technology = $technologies[$connector.technology]
-    $assemblyName = $connector.assemblyName
-    if ($assemblyName -cnotmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$') {
-        throw "Connector '$($connector.id)' must name its binding DubUrl.Provider.<Database>.<Driver>."
-    }
+    $manifest = @($definitions | Where-Object { $_.provider -ceq $connector.id })
+    if ($manifest.Count -ne 1) { throw "Missing or ambiguous connector definition '$($connector.id)'." }
+    $manifest = $manifest[0]
     $publishRoot = Join-Path $stagingRoot "$($connector.id)/publish"
     $contentRoot = Join-Path $stagingRoot "$($connector.id)/content"
     New-Item -ItemType Directory -Path $publishRoot, $contentRoot -Force | Out-Null
@@ -83,7 +82,6 @@ foreach ($connector in $ready) {
         '-m:1',
         "-p:Version=$Version",
         '-p:ContinuousIntegrationBuild=true',
-        "-p:ConnectorAssemblyName=$assemblyName",
         "-p:ConnectorFamily=$($connector.family)",
         "-p:ConnectorTechnology=$($technology.Key)",
         "-p:ConnectorDatabaseName=$($connector.database)"
@@ -94,7 +92,7 @@ foreach ($connector in $ready) {
     if (-not (Test-Path -LiteralPath $sharedDependenciesPath -PathType Leaf)) {
         throw "Core's shared dependency inventory is missing: $sharedDependenciesPath"
     }
-    $excluded = @('DubUrl.Core.dll', 'DubUrl.Core.pdb', 'DubUrl.Core.xml')
+    $excluded = @('DubUrl.Core.dll', 'DubUrl.Core.pdb', 'DubUrl.Core.xml', 'ConnectorDependencies.dll', 'ConnectorDependencies.deps.json')
     $excluded += @(Get-Content -LiteralPath $sharedDependenciesPath | ForEach-Object { $_.Replace('\', '/') })
     foreach ($file in Get-ChildItem -LiteralPath $publishRoot -Recurse -File) {
         $relative = [IO.Path]::GetRelativePath($publishRoot, $file.FullName).Replace('\', '/')
@@ -111,13 +109,13 @@ foreach ($connector in $ready) {
             [Text.UTF8Encoding]::new($false))
     }
 
-    $moduleFile = "$assemblyName.dll"
-    if (-not (Test-Path -LiteralPath (Join-Path $contentRoot $moduleFile) -PathType Leaf)) {
-        throw "Connector '$($connector.id)' publish output is missing module '$moduleFile'."
+    if (-not (Test-Path -LiteralPath (Join-Path $contentRoot $manifest.assembly) -PathType Leaf)) {
+        throw "Connector '$($connector.id)' is missing its provider implementation '$($manifest.assembly)'."
     }
-    $manifest = @($definitions | Where-Object { $_.provider -ceq $connector.id })
-    if ($manifest.Count -ne 1) { throw "Missing or ambiguous connector definition '$($connector.id)'." }
-    $manifest = $manifest[0]
+    & (Join-Path $PSScriptRoot 'Write-ConnectorDependencies.ps1') `
+        -InputPath (Join-Path $publishRoot 'ConnectorDependencies.deps.json') `
+        -OutputPath (Join-Path $contentRoot ([IO.Path]::ChangeExtension($manifest.assembly, '.deps.json'))) `
+        -ImplementationAssembly $manifest.assembly
     $manifestPath = Join-Path $stagingRoot "$($connector.id)/provider-pack.json"
     Write-Utf8Json $manifestPath $manifest
 

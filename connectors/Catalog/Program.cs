@@ -11,7 +11,7 @@ using var matrix = JsonDocument.Parse(File.ReadAllText(args[0]));
 if (matrix.RootElement.GetProperty("schemaVersion").GetInt32() != 1) throw new InvalidOperationException("Expected matrix schema version 1.");
 var rows = matrix.RootElement.GetProperty("connectors").EnumerateArray()
     .Where(row => row.GetProperty("status").GetString() == "ready").OrderBy(row => row.GetProperty("id").GetString(), StringComparer.Ordinal).ToArray();
-foreach (var key in new[] { "id", "assemblyName" })
+foreach (var key in new[] { "id" })
     if (rows.Select(row => row.GetProperty(key).GetString()).Distinct(StringComparer.OrdinalIgnoreCase).Count() != rows.Length)
         throw new InvalidOperationException($"Connector {key} values must be unique.");
 var assemblies = Directory.GetFiles(AppContext.BaseDirectory, "DubUrl.Provider.*.dll")
@@ -26,7 +26,7 @@ var entries = rows.Select(row =>
     {
         Provider = Value("id"), DatabaseName = database, Version = args[2],
         DubUrlApiRange = $"[{version.Groups["major"].Value}.{version.Groups["minor"].Value}.{version.Groups["patch"].Value},{int.Parse(version.Groups["major"].Value) + 1}.0.0)",
-        Assembly = Value("assemblyName") + ".dll",
+        Assembly = mapping.DialectType.Assembly.GetName().Name + ".dll",
         ImplementationAssemblies = new[] { "DubUrl.Provider." + Value("family") + ".dll" }
             .Concat(Value("technology") == "System.Data.Odbc" ? new[] { "DubUrl.Provider.Odbc.dll" }
                 : Value("technology") == "System.Data.OleDb" ? new[] { "DubUrl.OleDb.dll" } : Array.Empty<string>()).ToArray(),

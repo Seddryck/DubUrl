@@ -8,7 +8,7 @@ namespace DubUrl.Provider.Testing;
 public class ProviderSourceBoundaryTest
 {
     [Test]
-    public void DriverBindings_HaveDistinctDatabaseAndDriverAssemblyNames()
+    public void Connectors_HaveDistinctDatabaseAndDriverIds()
     {
         using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(FindRepositoryRoot(), "connectors", "connector-matrix.json")));
         var bindings = matrix.RootElement.GetProperty("connectors").EnumerateArray().ToArray();
@@ -16,9 +16,9 @@ public class ProviderSourceBoundaryTest
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var binding in bindings)
         {
-            var name = binding.GetProperty("assemblyName").GetString()!;
-            Assert.That(name, Does.Match(@"^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+$"));
-            Assert.That(names.Add(name), Is.True, $"Duplicate binding assembly: {name}");
+            var name = binding.GetProperty("id").GetString()!;
+            Assert.That(name, Does.Match(@"^[a-z0-9]+(?:-[a-z0-9]+)+$"));
+            Assert.That(names.Add(name), Is.True, $"Duplicate connector ID: {name}");
         }
     }
 

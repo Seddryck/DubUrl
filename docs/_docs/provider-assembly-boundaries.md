@@ -10,9 +10,9 @@ DubUrl publishes deliberately acyclic package layers:
    connector packs. Default URL construction works with installed connectors without referencing provider implementations.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
    `Providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
-3. `DubUrl.Provider.<Database>.<Driver>` bindings select shared family implementations, concrete drivers,
-   and dependency metadata. Bindings contain no generated entry-point classes. Every binding is built by `Providers/Build/ProviderBinding.Build.csproj`
-   from the connector matrix and distributed as a connector pack, including PostgreSQL/Npgsql.
+3. Connector archives combine shared family implementations with a concrete driver. They use a real
+   provider implementation DLL and a connector-specific `.deps.json`, without empty binding DLLs or
+   generated entry-point classes. Packaging collects dependencies through `ProviderBinding.Build.csproj`.
 4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and owning
    `BuiltInProviderCatalog` alongside its built-in registrations. This API reads the embedded connector catalog,
    generated from `connector-matrix.json` by the same generator used in connector packaging. Database names
@@ -29,7 +29,7 @@ Project folders match the assemblies and packages they produce:
 | `DubUrl/DubUrl.csproj` | Compatibility aggregate and built-in provider registration |
 | `DubUrl/Providers/BuiltInProviderCatalog.cs` | Reads the embedded connector catalog and groups its schemes by database |
 | `connectors/ConnectorCatalog.targets` | Runs the shared catalog exporter, combining packaging selectors with implementation attributes |
-| `Providers/Build/ProviderBinding.Build.csproj` | Shared, non-packable build project for empty dependency assemblies and their .deps.json files |
+| `Providers/Build/ProviderBinding.Build.csproj` | Temporary, non-packable dependency collector; only real implementation DLLs and rewritten .deps.json files are packaged |
 
 Core uses normal SDK source inclusion. It does not link source files from the compatibility project.
 
@@ -44,7 +44,7 @@ as registrations, including constructors and dialect instances. The driver assem
 through Core's shared factory-discovery code. URL compilation does not rescan provider attributes.
 Bundled factory lookup remains deferred through `DbProviderFactories`; installed factories remain isolated.
 ODBC options and lazy optional BulkCopy adapters use the same registration logic in both paths.
-Installed definitions contain the dependency anchor, implementation assembly paths, and driver selector;
+Installed definitions name a real provider implementation as the dependency anchor, plus implementation assembly paths and the driver selector;
 Core discovers attributes directly, without a generated class or entry-point type. Rebuild old connector
 archives and catalogs to use this definition shape.
 
@@ -59,8 +59,7 @@ for the authoring example and explicit registration path.
 Provider implementation namespaces now begin with `DubUrl.Provider.<Family>` and follow their folders.
 For example, import `DubUrl.Provider.PostgreSql.Sql` for `PgsqlDialect` and
 `DubUrl.Provider.PostgreSql.Mapping` for `PostgresqlMapper`. Core contracts retain their existing
-namespaces. Core, compatibility, and family package/assembly IDs remain unchanged. Driver-binding
-assemblies use the names declared in the connector matrix; no Npgsql binding NuGet package is published.
+namespaces. Core, compatibility, and family package/assembly IDs remain unchanged. Connector IDs select database/driver combinations; there are no per-driver binding DLLs or Npgsql binding NuGet packages.
 
 This is a public namespace migration: applications must update imports and recompile, and existing
 connector binaries and reflection-based type names must be rebuilt or updated. Assembly forwarding

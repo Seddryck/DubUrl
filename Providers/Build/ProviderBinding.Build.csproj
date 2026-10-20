@@ -2,16 +2,15 @@
 
   <PropertyGroup>
     <!-- Default binding for local solution builds; archive builds override every setting from the matrix. -->
-    <ConnectorAssemblyName Condition="'$(ConnectorAssemblyName)' == ''">DubUrl.Provider.PostgreSql.Npgsql</ConnectorAssemblyName>
     <ConnectorFamily Condition="'$(ConnectorFamily)' == ''">PostgreSql</ConnectorFamily>
     <ConnectorTechnology Condition="'$(ConnectorTechnology)' == ''">Npgsql</ConnectorTechnology>
     <ConnectorDatabaseName Condition="'$(ConnectorDatabaseName)' == ''">PostgreSQL</ConnectorDatabaseName>
     <Description>Provider binding for $(ConnectorDatabaseName) using $(ConnectorTechnology).</Description>
     <IsPackable>false</IsPackable>
-    <AssemblyName>$(ConnectorAssemblyName)</AssemblyName>
+    <AssemblyName>ConnectorDependencies</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <PackageId>$(AssemblyName)</PackageId>
-    <!-- Empty dependency anchor; Core discovers provider attributes directly. -->
+    <!-- Temporary dependency collector; its DLL is never included in connector archives. -->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>

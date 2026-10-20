@@ -164,17 +164,16 @@ public class ProviderBindingTest
     [Test]
     public void Consumer_DoesNotReferenceOrLoadCompatibilityOrUnrelatedProviders()
     {
-        var references = System.Reflection.Assembly.Load("DubUrl.Provider.PostgreSql.Npgsql").GetReferencedAssemblies().Select(x => x.Name).ToArray();
+        var references = typeof(PostgresqlMapper).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToArray();
         var loaded = AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetName().Name).ToArray();
         Assert.Multiple(() =>
         {
-            Assert.That(System.Reflection.Assembly.Load("DubUrl.Provider.PostgreSql.Npgsql").GetExportedTypes(), Is.Empty);
+            Assert.That(typeof(PostgresqlMapper).Assembly.GetExportedTypes(), Is.Not.Empty);
             Assert.That(references, Has.None.StartsWith("DubUrl.Provider."));
             Assert.That(loaded, Does.Not.Contain("DubUrl"));
             Assert.That(loaded, Does.Not.Contain("DubUrl.Providers"));
             Assert.That(loaded.Where(name => name!.StartsWith("DubUrl.Provider.", StringComparison.Ordinal)).Distinct(),
-                Is.SubsetOf(new[] { "DubUrl.Provider.PostgreSql", "DubUrl.Provider.PostgreSql.Npgsql",
-                    "DubUrl.Provider.Testing" }));
+                Is.SubsetOf(new[] { "DubUrl.Provider.PostgreSql", "DubUrl.Provider.Testing" }));
         });
     }
 

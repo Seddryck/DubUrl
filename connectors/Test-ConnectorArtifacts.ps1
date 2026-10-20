@@ -10,6 +10,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+& (Join-Path $PSScriptRoot 'Test-ConnectorDependencies.ps1')
+
 $root = [IO.Path]::GetFullPath($ArtifactDirectory)
 $catalogPath = Join-Path $root 'connector-catalog.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
@@ -25,8 +27,6 @@ if ($matrix.schemaVersion -ne 1) { throw "Expected connector matrix schema versi
 $matrixIds = @($matrix.connectors | ForEach-Object id)
 if (@($matrixIds | Select-Object -Unique).Count -ne $matrixIds.Count) { throw "Connector matrix IDs must be unique." }
 $readyIds = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object id)
-$assemblyNames = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object assemblyName)
-if (@($assemblyNames | Select-Object -Unique).Count -ne $readyIds.Count) { throw 'Provider binding assembly names must be unique.' }
 $catalogIds = @($entries | ForEach-Object provider)
 if (Compare-Object $readyIds $catalogIds) { throw "The catalog must contain exactly the ready connector matrix rows." }
 if ($entries.Count -ne $readyIds.Count) { throw "Expected $($readyIds.Count) ready connectors, found $($entries.Count)." }
@@ -89,8 +89,14 @@ foreach ($entry in $entries) {
         if ($entry.databaseName -cne $definition.database) {
             throw "Connector '$($entry.provider)' does not use its database name from the matrix."
         }
-        if ($manifest.assembly -cne "$($definition.assemblyName).dll") {
-            throw "Connector '$($entry.provider)' does not use its declared provider binding assembly name."
+        if ($manifest.implementationAssemblies -cnotcontains $manifest.assembly) {
+            throw "Connector '$($entry.provider)' must use one of its provider implementations as the dependency anchor."
+        }
+        if (@($archivePaths | Where-Object { $_ -like 'ConnectorDependencies*' }).Count) {
+            throw "Connector '$($entry.provider)' contains temporary dependency-collector output."
+        }
+        if (@($archivePaths | Where-Object { $_ -cmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.dll$' }).Count) {
+            throw "Connector '$($entry.provider)' still contains a per-driver binding DLL."
         }
         if ($manifest.PSObject.Properties['module'] -or $manifest.PSObject.Properties['type']) {
             throw "Connector definitions must not contain an entry-point type."
@@ -121,6 +127,23 @@ foreach ($entry in $entries) {
         if ($null -eq $archive.GetEntry($dependencyFile)) {
             throw "Connector dependency metadata '$dependencyFile' is missing."
         }
+        $dependencyReader = [IO.StreamReader]::new($archive.GetEntry($dependencyFile).Open())
+        try { $dependencyDocument = $dependencyReader.ReadToEnd() | ConvertFrom-Json -AsHashtable }
+        finally { $dependencyReader.Dispose() }
+        $anchorName = [IO.Path]::GetFileNameWithoutExtension($manifest.assembly)
+        $anchorKey = @($dependencyDocument.libraries.Keys | Where-Object { $_.StartsWith("$anchorName/") })
+        if ($anchorKey.Count -ne 1 -or @($dependencyDocument.libraries.Keys | Where-Object { $_ -like 'ConnectorDependencies/*' }).Count) {
+            throw "Connector '$($entry.provider)' has an invalid dependency root."
+        }
+        foreach ($target in $dependencyDocument.targets.Values) {
+            if (-not $target.Contains($anchorKey[0])) { throw 'Dependency target is missing the implementation root.' }
+            foreach ($runtime in $target.Values) {
+                if ($runtime.Contains('runtime') -and $runtime.runtime.Contains('ConnectorDependencies.dll')) {
+                    throw 'Dependency metadata still references the temporary collector DLL.'
+                }
+            }
+        }
+
     }
     finally {
         $archive.Dispose()

@@ -119,7 +119,7 @@ public class DefaultProviderDiscoveryTest
         {
             using (var stream = zip.CreateEntry(ConnectorDefinition.FileName).Open())
                 JsonSerializer.Serialize(stream, manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            foreach (var name in new[] { manifest.Assembly, "DubUrl.Provider.PostgreSql.dll", "Npgsql.dll" })
+            foreach (var name in new[] { manifest.Assembly, "Npgsql.dll" })
             {
                 var assembly = Assembly.Load(Path.GetFileNameWithoutExtension(name));
                 using var asset = zip.CreateEntry(name).Open();

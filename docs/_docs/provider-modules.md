@@ -65,9 +65,10 @@ mapper through reflection. Add optional capability objects with
 ## Author a driver binding without changing Core
 
 For a new driver binding to an existing database, reference `DubUrl.Core`, the relevant
-`DubUrl.Provider.*` family package, and the concrete driver. The shared binding project emits an empty
-dependency assembly and `.deps.json`. The connector definition names that assembly, the implementation
-assemblies, and the driver; it has no entry-point type. Core reads the implementation attributes directly
+`DubUrl.Provider.*` family package, and the concrete driver. The packaging collector gathers their dependency
+closure. Packaging discards its temporary DLL and writes a connector-specific `.deps.json` beside the
+selected provider implementation DLL. The connector definition names that implementation, the other
+implementation assemblies, and the driver; it has no entry-point type or empty binding DLL. Core reads the implementation attributes directly
 through `AttributeProviderModule`. Mapper, dialect, parametrizer, URL schemes, and optional capabilities
 come from the attributes; the driver assembly supplies its `DbProviderFactory`.
 Reuse the family's rewriter unless the driver needs different keywords or URL rules. Standard bindings
@@ -84,7 +85,7 @@ For a new database, create a provider implementation project referencing `DubUrl
 database identity, mapper, rewriter, dialect, and any specialized SQL or driver discovery behavior
 there. Reuse the public `BaseMapper`, `ConnectionStringRewriter`, token mappers, and ANSI SQL
 components where appropriate. Keep shared family behavior in provider projects and concrete driver
-dependencies in driver binding projects named `DubUrl.Provider.<Database>.<Driver>`.
+dependencies in connector packaging, with optional typed BulkCopy adapters in their driver-specific projects.
 Core must never reference either implementation project.
 
 The factory delegate supplies the driver directly, so this path does not require global
