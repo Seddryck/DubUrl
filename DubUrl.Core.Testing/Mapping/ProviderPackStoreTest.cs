@@ -347,8 +347,8 @@ public class ProviderPackStoreTest
             "implementations" => package.Entry with { ImplementationAssemblies = ["Other.dll"] },
             "driver" => package.Entry with { Driver = "Other" },
             "driverAssembly" => package.Entry with { DriverAssembly = "Other.dll" },
-            "database" => package.Entry with { DatabaseName = "Other" },
-            "schemes" => package.Entry with { Schemes = ["other"] },
+            "database" => package.Entry with { Databases = [new("Other", package.Entry.Schemes)] },
+            "schemes" => package.Entry with { Databases = [new("Fixture", ["other"])] },
             _ => package.Entry with { DubUrlApiRange = "[1.0,3.0)" },
         };
         var store = CreateStore();
@@ -372,9 +372,9 @@ public class ProviderPackStoreTest
             Provider = provider,
             Version = version,
             DubUrlApiRange = apiRange,
-            Assembly = "lib/module.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            Assembly = "lib/module.dll", Driver = "Fixture",
             ImplementationAssemblies = ["lib/module.dll"], DriverAssembly = "lib/module.dll",
-            Schemes = [provider],
+            Databases = [new("Fixture", [provider])],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = ["win-x64"],
         };

@@ -67,15 +67,16 @@ processes and newly created provider catalogs; already loaded assemblies keep ru
 bundle selected database drivers: installing a connector installs its implementation assemblies, ADO.NET driver,
 managed dependencies, and required native assets.
 
-The official catalog is a schema-versioned `connector-catalog.json` shipped with each CLI distribution.
+The official catalog uses schema version 2 in `connector-catalog.json` shipped with each CLI distribution.
 Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
-identity, a `databaseName` selector/grouping label, installation aliases, attribute-derived schemes,
+identity, installation aliases and a `databases` collection containing each supported database name
+and its attribute-derived schemes,
 `assembly` (a real provider implementation and dependency anchor), `implementationAssemblies`, `driver` (its invariant), optional
 `driverAssembly` when its filename differs, and API/TFM/RID compatibility. There is no module/type field.
 The build generates the local definition from `connector-matrix.json`, then adds the download URL and
 archive SHA-256 to that same definition for the catalog. These distribution fields are optional in the
 model and omitted locally. Core loads installed definitions without needing the catalog or a network.
-Archives and catalogs using the old module/type definition must be regenerated.
+Schema-v1 catalogs and older single-database definitions must be rebuilt for the databases collection.
 
 `DubUrl.Application` embeds this catalog's definitions during its normal SDK build.
 `BundledProviderCatalog.Create()` supplies the default catalog for application services and
@@ -89,7 +90,7 @@ The loader resolves those assemblies from the host; provider and driver dependen
 dependency closure remain isolated in the connector. Packaging and loading share Core's generated
 dependency inventory rather than maintaining a second library list.
 Each entry has `Provider` (the canonical connector ID), `Version`, `DownloadUri`, `Sha256`, `Aliases`,
-`Schemes`, `DubUrlApiRange`, `TargetFrameworks`, and `RuntimeIdentifiers`. The release workflow generates
+`Databases` (names and schemes), `DubUrlApiRange`, `TargetFrameworks`, and `RuntimeIdentifiers`. The release workflow generates
 this file only after ready connector archives have been built, hashed, and exercised through installation,
 new-process activation, and uninstallation. `ProviderPacks:CatalogPath` selects the catalog file;
 `ProviderPacks:Catalog` remains available for distributor-supplied inline entries.
@@ -148,3 +149,19 @@ codes remain in the CLI.
 Changes apply to new processes and newly constructed provider catalogs; installing does not load modules
 or replace assemblies already loaded by the host. Machine-installed ODBC and OLE DB vendor drivers remain
 external prerequisites and are not installed by this service.
+
+## One archive per implementation and driver
+
+Database installation names are aliases when the implementation assemblies, driver and runtime
+compatibility match. The 32 existing names resolve to 24 canonical archives. For example:
+
+```sh
+duburl connector install cockroachdb-npgsql
+```
+
+This installs `postgresql-npgsql`, registering PostgreSQL, CockroachDB, CrateDB, QuestDB and Timescale.
+Installing `timescale-npgsql` afterwards reuses that installation. Removing either alias removes the
+canonical archive and all its mappings from new registry snapshots. Existing URLs retain their registry.
+PostgreSQL/ODBC, MySQL/MySqlConnector and MySQL/ODBC are consolidated the same way. Different drivers
+remain separate choices. Each local definition describes the complete supported mapping set, which
+Core validates against attributes before activation.

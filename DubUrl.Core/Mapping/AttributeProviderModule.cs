@@ -17,8 +17,8 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
     private readonly MapperInfo[]? mappings;
     private readonly Func<string, DbProviderFactory?> resolveFactory = SchemeRegistryBuilder.GetProvider;
 
-    private AttributeProviderModule(MapperInfo mapping, Func<string, DbProviderFactory?> factory)
-        => (assemblies, mappings, resolveFactory) = ([], [mapping], factory);
+    private AttributeProviderModule(MapperInfo[] mappings, Func<string, DbProviderFactory?> factory)
+        => (assemblies, this.mappings, resolveFactory) = ([], mappings, factory);
 
     private AttributeProviderModule(Assembly[] assemblies, Func<string, DbProviderFactory?> factory)
         => (this.assemblies, resolveFactory) = (assemblies, factory);
@@ -30,13 +30,21 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(loadAssembly);
-        var mapping = SelectMapping(Discover(definition.ImplementationAssemblies.Select(loadAssembly).ToArray()),
-            definition.DatabaseName!, definition.Driver);
-        if (!mapping.Aliases.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(definition.Schemes))
-            throw new InvalidOperationException($"Connector '{definition.Provider}' schemes do not match its implementation attributes.");
+        if (!definition.HasCompleteMetadata())
+            throw new InvalidOperationException($"Connector '{definition.Provider}' has incomplete database mappings.");
+        var mappings = Discover(definition.ImplementationAssemblies.Select(loadAssembly).ToArray())
+            .Where(mapping => mapping.ProviderInvariantName == definition.Driver).ToArray();
+        if (mappings.Length != definition.Databases.Count)
+            throw new InvalidOperationException($"Connector '{definition.Provider}' does not describe every supported mapping.");
+        foreach (var database in definition.Databases)
+        {
+            var mapping = SelectMapping(mappings, database.Name, definition.Driver);
+            if (!mapping.Aliases.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(database.Schemes))
+                throw new InvalidOperationException($"Connector '{definition.Provider}' schemes for '{database.Name}' do not match its implementation attributes.");
+        }
         var factory = new Lazy<DbProviderFactory>(() => ProviderFactoriesRegistrator.GetFactoryInstance(
             ProviderFactoriesRegistrator.FindFactoryTypes(loadAssembly(definition.DriverAssemblyPath)).Single()));
-        return new AttributeProviderModule(mapping, _ => factory.Value);
+        return new AttributeProviderModule(mappings, _ => factory.Value);
     }
 
     public AttributeProviderModule(params Assembly[] assemblies)

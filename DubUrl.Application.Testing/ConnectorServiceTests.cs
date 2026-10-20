@@ -176,6 +176,34 @@ public class ConnectorServiceTests
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
 
+    [TestCase("postgresql-npgsql", "cockroachdb-npgsql", "timescale-npgsql")]
+    [TestCase("postgresql-odbc", "questdb-odbc", "timescale-odbc")]
+    [TestCase("mysql-mysqlconnector", "mariadb-mysqlconnector", "mysql")]
+    [TestCase("mysql-odbc", "mariadb-odbc", "mysql-odbc")]
+    public async Task ConsolidatedAliases_InstallOnceAndUninstallTheCanonicalArchive(string canonical, string first, string second)
+    {
+        var root = CreateStorePath();
+        BundledProviderCatalog.Create().TryGet(canonical, out var definition);
+        var package = CreatePackage(canonical, "0.0.0", definition);
+        using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri!));
+        var service = new ConnectorService(new ProviderPackStore(root), new ProviderPackCatalog([package.Entry]), http);
+        try
+        {
+            var installed = await service.InstallAsync(first);
+            var reinstalled = await service.InstallAsync(second);
+            Assert.Multiple(() =>
+            {
+                Assert.That(installed.Id, Is.EqualTo(canonical));
+                Assert.That(reinstalled.Id, Is.EqualTo(canonical));
+                Assert.That(service.List(), Has.Count.EqualTo(1));
+                Assert.That(Directory.GetDirectories(Path.Combine(root, "packs")), Has.Length.EqualTo(1));
+            });
+            Assert.That(service.Uninstall(first), Is.EqualTo(canonical));
+            Assert.That(service.List().Single().Installed, Is.False);
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
+
     [TestCase("archive", "connector-archive-invalid")]
     [TestCase("manifest", "connector-archive-invalid")]
     [TestCase("digest", "pack-integrity")]
@@ -351,9 +379,9 @@ public class ConnectorServiceTests
             Provider = "postgresql-npgsql",
             Version = "1.0.0",
             DubUrlApiRange = "*",
-            Assembly = "connector.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            Assembly = "connector.dll", Driver = "Fixture",
             ImplementationAssemblies = ["connector.dll"], DriverAssembly = "connector.dll",
-            Schemes = ["postgresql", "postgres", "pg"],
+            Databases = [new("Fixture", ["postgresql", "postgres", "pg"])],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = [],
 
@@ -362,17 +390,17 @@ public class ConnectorServiceTests
     private static string CreateStorePath()
         => Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-store-{Guid.NewGuid():N}");
 
-    private static Package CreatePackage(string provider, string version)
+    private static Package CreatePackage(string provider, string version, ConnectorDefinition? definition = null)
     {
         var assetBytes = Encoding.UTF8.GetBytes("fake connector module");
-        var manifest = new ConnectorDefinition
+        var manifest = definition ?? new ConnectorDefinition
         {
             Provider = provider,
             Version = version,
             DubUrlApiRange = "[0.0.0,999.0.0)",
-            Assembly = "module.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            Assembly = "module.dll", Driver = "Fixture",
             ImplementationAssemblies = ["module.dll"], DriverAssembly = "module.dll",
-            Schemes = ["postgresql"],
+            Databases = [new("Fixture", ["postgresql"])],
             TargetFrameworks = [CurrentTargetFramework()],
             RuntimeIdentifiers = [],
         };
@@ -382,9 +410,12 @@ public class ConnectorServiceTests
             var manifestEntry = zip.CreateEntry(ConnectorDefinition.FileName);
             using (var stream = manifestEntry.Open())
                 JsonSerializer.Serialize(stream, manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            var moduleEntry = zip.CreateEntry("module.dll");
-            using var module = moduleEntry.Open();
-            module.Write(assetBytes);
+            foreach (var name in manifest.ImplementationAssemblies.Append(manifest.Assembly)
+                .Append(manifest.DriverAssembly ?? manifest.Driver + ".dll").Distinct())
+            {
+                using var module = zip.CreateEntry(name).Open();
+                module.Write(assetBytes);
+            }
         }
         archive.Position = 0;
         var hash = Convert.ToHexString(SHA256.HashData(archive));

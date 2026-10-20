@@ -17,29 +17,49 @@ foreach (var key in new[] { "id" })
 var assemblies = Directory.GetFiles(AppContext.BaseDirectory, "DubUrl.Provider.*.dll")
     .Append(Path.Combine(AppContext.BaseDirectory, "DubUrl.OleDb.dll")).Select(Assembly.LoadFrom).ToArray();
 var mappings = AttributeProviderModule.Discover(assemblies);
-var entries = rows.Select(row =>
+var selections = rows.Select(row =>
 {
     string Value(string name) => row.GetProperty(name).GetString()!;
-    var database = Value("database");
-    var mapping = AttributeProviderModule.SelectMapping(mappings, database, Value("technology"));
+    var mapping = AttributeProviderModule.SelectMapping(mappings, Value("database"), Value("technology"));
+    var implementations = new[] { "DubUrl.Provider." + Value("family") + ".dll" }
+        .Concat(Value("technology") == "System.Data.Odbc" ? new[] { "DubUrl.Provider.Odbc.dll" }
+            : Value("technology") == "System.Data.OleDb" ? new[] { "DubUrl.OleDb.dll" } : Array.Empty<string>()).Distinct().ToArray();
+    return new { Row = row, Mapping = mapping, Implementations = implementations,
+        Key = string.Join("|", implementations.Order(StringComparer.Ordinal)) + "|" + Value("technology")
+            + "|" + string.Join("|", row.GetProperty("runtimeIdentifiers").EnumerateArray().Select(item => item.GetString()!).Order(StringComparer.Ordinal)) };
+}).ToArray();
+var entries = selections.GroupBy(selection => selection.Key).Select(group =>
+{
+    // Prefer the family installation name, retaining every other database ID as an alias.
+    var canonical = group.OrderBy(selection => selection.Row.GetProperty("id").GetString()!
+        .StartsWith(selection.Row.GetProperty("family").GetString()!.ToLowerInvariant() + "-", StringComparison.Ordinal) ? 0 : 1)
+        .ThenBy(selection => selection.Row.GetProperty("id").GetString(), StringComparer.Ordinal).First();
+    var row = canonical.Row;
+    var driver = row.GetProperty("technology").GetString()!;
+    var supported = mappings.Where(mapping => mapping.ProviderInvariantName == driver
+        && canonical.Implementations.Contains(mapping.MapperType.Assembly.GetName().Name + ".dll")
+        && canonical.Implementations.Contains(mapping.DialectType.Assembly.GetName().Name + ".dll")).ToArray();
+    var databases = supported.Select(mapping => new ConnectorDatabase(
+        mapping.DatabaseName.Contains(" for ", StringComparison.Ordinal) ? mapping.DatabaseName[(mapping.DatabaseName.IndexOf(" for ", StringComparison.Ordinal) + 5)..] : mapping.DatabaseName,
+        mapping.Aliases)).OrderBy(database => database.Name, StringComparer.Ordinal).ToArray();
+    var id = row.GetProperty("id").GetString()!;
     return new ConnectorDefinition
     {
-        Provider = Value("id"), DatabaseName = database, Version = args[2],
+        Provider = id, Databases = databases, Version = args[2],
         DubUrlApiRange = $"[{version.Groups["major"].Value}.{version.Groups["minor"].Value}.{version.Groups["patch"].Value},{int.Parse(version.Groups["major"].Value) + 1}.0.0)",
-        Assembly = mapping.DialectType.Assembly.GetName().Name + ".dll",
-        ImplementationAssemblies = new[] { "DubUrl.Provider." + Value("family") + ".dll" }
-            .Concat(Value("technology") == "System.Data.Odbc" ? new[] { "DubUrl.Provider.Odbc.dll" }
-                : Value("technology") == "System.Data.OleDb" ? new[] { "DubUrl.OleDb.dll" } : Array.Empty<string>()).ToArray(),
-        Driver = Value("technology"),
+        Assembly = canonical.Mapping.DialectType.Assembly.GetName().Name + ".dll",
+        ImplementationAssemblies = canonical.Implementations,
+        Driver = driver,
         DriverAssembly = matrix.RootElement.GetProperty("technologies").EnumerateArray()
-            .Single(technology => technology.GetProperty("name").GetString() == Value("technology"))
+            .Single(technology => technology.GetProperty("name").GetString() == driver)
             .TryGetProperty("assembly", out var driverAssembly) ? driverAssembly.GetString() + ".dll" : null,
-        Aliases = row.GetProperty("defaultAliases").EnumerateArray().Select(item => item.GetString()!).ToArray(),
-        Schemes = mapping.Aliases, TargetFrameworks = ["net8.0", "net9.0", "net10.0"],
+        Aliases = group.SelectMany(selection => selection.Row.GetProperty("defaultAliases").EnumerateArray().Select(item => item.GetString()!)
+            .Prepend(selection.Row.GetProperty("id").GetString()!)).Where(alias => alias != id).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.Ordinal).ToArray(),
+        TargetFrameworks = ["net8.0", "net9.0", "net10.0"],
         RuntimeIdentifiers = row.GetProperty("runtimeIdentifiers").EnumerateArray().Select(item => item.GetString()!).ToArray()
     };
-}).ToArray();
-var json = JsonSerializer.Serialize(new { schemaVersion = 1, entries }, new JsonSerializerOptions
+}).OrderBy(entry => entry.Provider, StringComparer.Ordinal).ToArray();
+var json = JsonSerializer.Serialize(new { schemaVersion = ProviderPackCatalogDocument.CurrentSchemaVersion, entries }, new JsonSerializerOptions
     { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true }) + "\n";
 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(args[1]))!);
 if (!File.Exists(args[1]) || File.ReadAllText(args[1]) != json) File.WriteAllText(args[1], json);

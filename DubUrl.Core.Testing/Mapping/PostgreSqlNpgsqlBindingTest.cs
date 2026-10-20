@@ -12,7 +12,7 @@ namespace DubUrl.Core.Testing.Mapping;
 public class PostgreSqlNpgsqlBindingTest
 {
     [Test]
-    public void Register_ProvidesOnlyPostgreSqlSchemesWithNpgsqlFactory()
+    public void Register_ProvidesEveryPostgreSqlFamilyMappingWithNpgsqlFactory()
     {
         using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         var definition = ProviderPackCatalogDocument.Read(resource).Entries.Single(entry => entry.Provider == "postgresql-npgsql");
@@ -25,7 +25,8 @@ public class PostgreSqlNpgsqlBindingTest
             Assert.That(registry.GetMapper("postgresql"), Is.TypeOf<PostgresqlMapper>());
             Assert.That(registry.GetProviderFactory(["postgresql"]), Is.SameAs(NpgsqlFactory.Instance));
             Assert.That(registry.GetMapper("pg"), Is.TypeOf<PostgresqlMapper>());
-            Assert.Throws<SchemeNotFoundException>(() => registry.GetMapper("timescale"));
+            Assert.That(registry.GetMapper("timescale").GetType().Name, Is.EqualTo("TimescaleMapper"));
+            Assert.That(registry.GetMapper("cockroach").GetType().Name, Is.EqualTo("CockRoachMapper"));
         });
     }
 }

@@ -43,15 +43,15 @@ public class ProviderPackCatalogTest
     {
         using var stream = CatalogStream("""
             {
-              "schemaVersion": 1,
+              "schemaVersion": 2,
               "entries": [{
                 "provider": "postgresql-npgsql",
                 "version": "1.2.3",
                 "downloadUri": "https://github.com/Seddryck/DubUrl/releases/download/v1.2.3/duburl-connector-postgresql-npgsql-1.2.3.zip",
                 "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                "assembly": "PostgreSql.dll", "databaseName": "Fixture", "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
+                "assembly": "PostgreSql.dll", "databases": [{"name": "Fixture", "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"]}], "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
                 "aliases": ["postgresql", "postgres", "pg", "npgsql"],
-                "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
+
                 "dubUrlApiRange": "[1.0.0,2.0.0)",
                 "targetFrameworks": ["net8.0", "net9.0", "net10.0"],
                 "runtimeIdentifiers": []
@@ -70,8 +70,8 @@ public class ProviderPackCatalogTest
         });
     }
 
-    [TestCase(2, "schema version")]
-    [TestCase(1, "SHA-256", "not-a-hash")]
+    [TestCase(1, "schema version")]
+    [TestCase(2, "SHA-256", "not-a-hash")]
     public void Read_InvalidOfficialCatalog_ReportsActionableFailure(
         int schemaVersion,
         string expectedMessage,
@@ -85,9 +85,9 @@ public class ProviderPackCatalogTest
                 "version": "1.2.3",
                 "downloadUri": "https://example.test/postgresql.zip",
                 "sha256": "{{sha256}}",
-                "assembly": "PostgreSql.dll", "databaseName": "Fixture", "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
+                "assembly": "PostgreSql.dll", "databases": [{"name": "Fixture", "schemes": ["postgresql"]}], "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
                 "aliases": ["postgresql"],
-                "schemes": ["postgresql"],
+
                 "dubUrlApiRange": "[1.0.0,2.0.0)",
                 "targetFrameworks": ["net8.0"],
                 "runtimeIdentifiers": []
@@ -104,12 +104,15 @@ public class ProviderPackCatalogTest
     public void LocalDefinition_AndEnrichedCatalog_UseTheSameModel()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var local = Entry("postgresql-npgsql", "pg") with { DatabaseName = "PostgreSQL", DownloadUri = null, Sha256 = null };
+        var local = Entry("postgresql-npgsql", "pg") with { Databases = [new("PostgreSQL", ["pg"])], DownloadUri = null, Sha256 = null };
         var localJson = JsonSerializer.Serialize(local, options);
+        using var serialized = JsonDocument.Parse(localJson);
+        Assert.That(serialized.RootElement.TryGetProperty("databaseName", out _), Is.False);
+        Assert.That(serialized.RootElement.TryGetProperty("schemes", out _), Is.False);
         var restored = JsonSerializer.Deserialize<ConnectorDefinition>(localJson, options)!;
         var distributed = restored with { DownloadUri = new Uri("https://example.test/pg.zip"), Sha256 = new string('0', 64) };
         using var catalogStream = new MemoryStream();
-        JsonSerializer.Serialize(catalogStream, new ProviderPackCatalogDocument(1, [distributed]), options);
+        JsonSerializer.Serialize(catalogStream, new ProviderPackCatalogDocument(2, [distributed]), options);
         catalogStream.Position = 0;
         var entry = ProviderPackCatalog.Read(catalogStream).Entries.Single();
 
@@ -119,7 +122,7 @@ public class ProviderPackCatalogTest
             Assert.That(entry.Assembly, Is.EqualTo(local.Assembly));
             Assert.That(entry.ImplementationAssemblies, Is.EqualTo(local.ImplementationAssemblies));
             Assert.That(entry.Driver, Is.EqualTo(local.Driver));
-            Assert.That(entry.DatabaseName, Is.EqualTo("PostgreSQL"));
+            Assert.That(entry.Databases.Single().Name, Is.EqualTo("PostgreSQL"));
             Assert.That(localJson, Does.Not.Contain("\"assets\""));
             Assert.That(entry.Aliases, Is.EqualTo(local.Aliases));
             Assert.That(JsonSerializer.Serialize(entry with { DownloadUri = null, Sha256 = null }, options), Is.EqualTo(localJson));
@@ -139,11 +142,11 @@ public class ProviderPackCatalogTest
             "assembly" => entry with { Assembly = "" },
             "implementations" => entry with { ImplementationAssemblies = [] },
             "driver" => entry with { Driver = "" },
-            "database" => entry with { DatabaseName = null },
-            _ => entry with { Schemes = [] }
+            "database" => entry with { Databases = [] },
+            _ => entry with { Databases = [new("Fixture", [])] }
         };
         using var stream = new MemoryStream();
-        JsonSerializer.Serialize(stream, new ProviderPackCatalogDocument(1, [entry]), new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        JsonSerializer.Serialize(stream, new ProviderPackCatalogDocument(2, [entry]), new JsonSerializerOptions(JsonSerializerDefaults.Web));
         stream.Position = 0;
         Assert.Throws<InvalidDataException>(() => ProviderPackCatalog.Read(stream));
     }
@@ -152,9 +155,9 @@ public class ProviderPackCatalogTest
         => new()
         {
             Provider = id, Version = "1.0.0", DownloadUri = new Uri($"https://example.test/{id}.zip"),
-            Sha256 = new string('0', 64), Aliases = aliases, Schemes = ["pg"],
+            Sha256 = new string('0', 64), Aliases = aliases, Databases = [new("Fixture", ["pg"])],
             DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
-            Assembly = "PostgreSql.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            Assembly = "PostgreSql.dll", Driver = "Fixture",
             ImplementationAssemblies = ["PostgreSql.dll"], DriverAssembly = "PostgreSql.dll",
 
         };

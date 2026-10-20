@@ -12,8 +12,8 @@ public sealed record ConnectorDefinition
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Sha256 { get; init; }
     public IReadOnlyList<string> Aliases { get; init; } = [];
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? DatabaseName { get; init; }
+    /// <summary>The complete attributed database and scheme set supported by this archive's driver.</summary>
+    public required IReadOnlyList<ConnectorDatabase> Databases { get; init; }
 
     public required string Provider { get; init; }
     public required string Version { get; init; }
@@ -27,7 +27,9 @@ public sealed record ConnectorDefinition
 
     [JsonIgnore]
     internal string DriverAssemblyPath => DriverAssembly ?? Driver + ".dll";
-    public required IReadOnlyList<string> Schemes { get; init; }
+    [JsonIgnore]
+    // Derived for runtime consumers; the JSON stores schemes only within their database.
+    public IReadOnlyList<string> Schemes => Databases.SelectMany(database => database.Schemes).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     public required IReadOnlyList<string> TargetFrameworks { get; init; }
     public required IReadOnlyList<string> RuntimeIdentifiers { get; init; }
 
@@ -35,7 +37,11 @@ public sealed record ConnectorDefinition
         => !string.IsNullOrWhiteSpace(Provider)
             && !string.IsNullOrWhiteSpace(Version)
             && !string.IsNullOrWhiteSpace(DubUrlApiRange)
-            && !string.IsNullOrWhiteSpace(DatabaseName)
+            && Databases is { Count: > 0 }
+            && Databases.All(database => database is not null && !string.IsNullOrWhiteSpace(database.Name)
+                && database.Schemes is { Count: > 0 } && database.Schemes.All(scheme => !string.IsNullOrWhiteSpace(scheme)))
+            && Databases.Select(database => database.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() == Databases.Count
+            && Databases.SelectMany(database => database.Schemes).Count() == Schemes.Count
             && !string.IsNullOrWhiteSpace(Assembly)
             && !string.IsNullOrWhiteSpace(Driver)
             && ImplementationAssemblies is { Count: > 0 }
@@ -44,3 +50,5 @@ public sealed record ConnectorDefinition
             && TargetFrameworks is { Count: > 0 }
             && RuntimeIdentifiers is not null;
 }
+
+public sealed record ConnectorDatabase(string Name, IReadOnlyList<string> Schemes);

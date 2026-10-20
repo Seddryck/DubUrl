@@ -6,7 +6,7 @@ public sealed record ProviderPackCatalogDocument(
     int SchemaVersion,
     IReadOnlyList<ConnectorDefinition> Entries)
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>Reads connector definitions, including catalogs without optional distribution fields.</summary>

@@ -15,6 +15,7 @@ public static class BundledProviderCatalog
 
     public static ProviderCatalog Describe()
         => new(Create().Entries
-            .GroupBy(entry => entry.DatabaseName ?? entry.Provider, StringComparer.OrdinalIgnoreCase)
-            .Select(database => new ProviderDescriptor(database.Key, "mapping", database.SelectMany(entry => entry.Schemes))));
+            .SelectMany(entry => entry.Databases)
+            .GroupBy(database => database.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(database => new ProviderDescriptor(database.Key, "mapping", database.SelectMany(mapping => mapping.Schemes))));
 }

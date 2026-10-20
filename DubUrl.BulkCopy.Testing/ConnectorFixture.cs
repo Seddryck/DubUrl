@@ -8,8 +8,8 @@ internal static class ConnectorFixture
 {
     public static AttributeProviderModule Create() => AttributeProviderModule.FromConnector(new ConnectorDefinition
     {
-        Provider = "duckdb-native", DatabaseName = "DuckDB", Version = "0.0.0", DubUrlApiRange = "*",
+        Provider = "duckdb-native", Version = "0.0.0", DubUrlApiRange = "*",
         Assembly = "DubUrl.Provider.DuckDb.dll", ImplementationAssemblies = ["DubUrl.Provider.DuckDb.dll"], Driver = "DuckDB.NET.Data",
-        Schemes = ["duck", "duckdb"], TargetFrameworks = [], RuntimeIdentifiers = []
+        Databases = [new("DuckDB", ["duck", "duckdb"])], TargetFrameworks = [$"net{Environment.Version.Major}.0"], RuntimeIdentifiers = []
     }, path => Assembly.Load(Path.GetFileNameWithoutExtension(path)));
 }

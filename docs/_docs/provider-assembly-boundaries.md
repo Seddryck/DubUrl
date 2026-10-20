@@ -11,7 +11,8 @@ DubUrl publishes deliberately acyclic package layers:
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
    `Providers/`. They depend on Core without concrete ADO.NET driver dependencies.
 3. Provider archives combine family implementations with a driver, using an implementation DLL and a
-   provider-specific `.deps.json`. Packaging collects dependencies through `ProviderBinding.Build.csproj`.
+   provider-specific `.deps.json`. Selections sharing implementations, driver and runtime compatibility
+   use one archive and retain database-specific installation IDs as aliases. Packaging collects dependencies through `ProviderBinding.Build.csproj`.
 4. `DubUrl.Application` embeds the generated catalog and exposes it through `BundledProviderCatalog`.
    `ConnectorService` uses this catalog by default; hosts may supply a replacement. It describes available
    providers without referencing or loading their implementation DLLs.

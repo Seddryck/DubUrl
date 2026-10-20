@@ -38,15 +38,15 @@ public class ConnectorCommandTests
             var storePath = Path.Combine(root, "store");
             await File.WriteAllTextAsync(catalogPath, """
                 {
-                  "schemaVersion": 1,
+                  "schemaVersion": 2,
                   "entries": [{
                     "provider": "postgresql-npgsql",
                     "version": "1.2.3",
                     "downloadUri": "https://example.test/postgresql-npgsql.zip",
                     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "assembly": "PostgreSql.dll", "databaseName": "Fixture", "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
+                    "assembly": "PostgreSql.dll", "databases": [{"name": "Fixture", "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"]}], "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
                     "aliases": ["postgresql", "postgres", "pg", "npgsql"],
-                    "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
+
                     "dubUrlApiRange": "[1.0.0,2.0.0)",
                     "targetFrameworks": ["net8.0", "net9.0", "net10.0"],
                     "runtimeIdentifiers": []
@@ -161,9 +161,9 @@ public class ConnectorCommandTests
         var catalog = new ProviderPackCatalog([new()
         {
             Provider = "postgresql-npgsql", Version = "1.0.0", DownloadUri = new Uri("https://example.test/pack.zip"),
-            Sha256 = new string('0', 64), Aliases = ["pg"], Schemes = ["pg"],
+            Sha256 = new string('0', 64), Aliases = ["pg"], Databases = [new("Fixture", ["pg"])],
             DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
-            Assembly = "PostgreSql.dll", DatabaseName = "Fixture", Driver = "Fixture",
+            Assembly = "PostgreSql.dll", Driver = "Fixture",
             ImplementationAssemblies = ["PostgreSql.dll"], DriverAssembly = "PostgreSql.dll",
         }]);
         var application = new ConnectorService(new ProviderPackStore(root), catalog, http);

@@ -217,7 +217,7 @@ public sealed class ProviderPackStore
         if (compatibility is not null)
             throw new ProviderPackException(compatibility.Code, compatibility.Message);
         if (manifest.Assembly != entry.Assembly
-            || manifest.DatabaseName != entry.DatabaseName
+            || !SameDatabases(manifest.Databases, entry.Databases)
             || manifest.Driver != entry.Driver
             || manifest.DriverAssembly != entry.DriverAssembly
             || !manifest.ImplementationAssemblies.SequenceEqual(entry.ImplementationAssemblies, StringComparer.OrdinalIgnoreCase)
@@ -236,6 +236,10 @@ public sealed class ProviderPackStore
             || !string.Equals(manifest.Version, entry.Version, StringComparison.OrdinalIgnoreCase))
             throw new ProviderPackException("catalog-mismatch", "The provider pack identity does not match the curated catalog entry.");
     }
+
+    private static bool SameDatabases(IReadOnlyList<ConnectorDatabase> left, IReadOnlyList<ConnectorDatabase> right)
+        => left.Count == right.Count && left.Zip(right).All(pair => pair.First.Name == pair.Second.Name
+            && pair.First.Schemes.SequenceEqual(pair.Second.Schemes, StringComparer.OrdinalIgnoreCase));
 
     private static IEnumerable<string> RequiredAssemblyPaths(ConnectorDefinition definition)
         => new[] { definition.Assembly, definition.DriverAssemblyPath }.Concat(definition.ImplementationAssemblies).Distinct(StringComparer.OrdinalIgnoreCase);
@@ -326,7 +330,7 @@ public sealed class ProviderPackStore
                 Version = Path.GetFileName(path),
                 DubUrlApiRange = string.Empty,
                 Assembly = string.Empty, Driver = string.Empty, ImplementationAssemblies = [],
-                Schemes = [],
+                Databases = [],
                 TargetFrameworks = [],
                 RuntimeIdentifiers = [],
             },

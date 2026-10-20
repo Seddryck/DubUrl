@@ -1,8 +1,8 @@
 # Connector publication matrix
 
-`connector-matrix.json` is the authoritative inventory and build definition for DubUrl connector packs. Every row is emitted into the official catalog only after its archive, dependency closure, archive integrity, module loading, activation, and removal lifecycle have been validated.
+`connector-matrix.json` is the authoritative inventory and build definition for DubUrl connector packs. Rows describe database installation choices. Choices sharing implementation assemblies, driver and runtime compatibility are grouped into one archive/catalog entry, validated for archive integrity, loading, activation and removal.
 
-All 32 existing database/technology combinations are available. Managed connectors carry their ADO.NET dependency closure. DuckDB and SQLite additionally carry the native assets published by their upstream binding packages, with explicit runtime compatibility metadata.
+All 32 database/technology installation names remain available through 24 archives. Managed connectors carry their ADO.NET dependency closure. DuckDB and SQLite additionally carry the native assets published by their upstream binding packages, with explicit runtime compatibility metadata.
 
 ODBC and OLE DB connectors carry the .NET bridge but do not redistribute database-vendor drivers or providers. Their archives include an external-prerequisite notice, and the matching machine-level driver must be installed separately. Access and Excel connectors are restricted to supported Windows runtime identifiers.
 
@@ -35,7 +35,7 @@ Every connector dependency set is collected with `Providers/Build/ProviderBindin
 
 Database/driver combinations are distributed as connector packs, without per-driver binding DLLs. The collector is not packable, and the release workflow does not publish a PostgreSQL/Npgsql binding NuGet package.
 
-`connector-matrix.json` is the maintained connector source. The official `connector-catalog.json` uses schema version 1 and contains `ConnectorDefinition` entries: connector ID/version, installation aliases, supported schemes, dependency assembly, implementation assemblies, driver selection, API range, target frameworks, and runtime identifiers. Each archive carries its own definition as `provider-pack.json`, using the same C# model and JSON structure. After creating an archive, the build enriches that exact definition with optional `downloadUri` and archive `sha256` fields for the catalog. Local definitions omit those distribution fields; Core reads them without a catalog or network access. Older catalogs without module information must be regenerated.
+`connector-matrix.json` is the maintained connector source. The official `connector-catalog.json` uses schema version 2 and contains `ConnectorDefinition` entries: connector ID/version, installation aliases, supported databases with their schemes, dependency assembly, implementation assemblies, driver selection, API range, target frameworks, and runtime identifiers. Each archive carries its own definition as `provider-pack.json`, using the same C# model and JSON structure. After creating an archive, the build enriches that exact definition with optional `downloadUri` and archive `sha256` fields for the catalog. Local definitions omit those distribution fields; Core reads them without a catalog or network access. Schema-v1 catalogs and older local definitions must be regenerated with the databases collection.
 
 `Catalog/ConnectorCatalog.Build.csproj` combines the packaging matrix with the implementation attributes
 to generate definitions. Ordinary `DubUrl.Application` builds embed the resulting `connector-catalog.json`; connector
@@ -99,3 +99,28 @@ Validate dependency-only and selective NuGet consumers with
 For single-file publishing, Core's NuGet build target keeps the existing application `.deps.json` beside
 the executable. Core uses it to discover assemblies hidden inside the bundle. No provider-registration
 list is generated. The Worker imports this target for its project-reference build as well.
+
+## Shared archives and database installation aliases
+
+The exporter groups selections by implementation assemblies, driver and runtime compatibility.
+It reads the implementation attributes once, then includes every mapping for that implementation/driver.
+Different drivers and implementation families remain separate; incidental shared dependencies do not
+make different database implementations interchangeable.
+
+| Canonical archive | Additional installation names |
+| --- | --- |
+| postgresql-npgsql | cockroachdb-npgsql, cratedb-npgsql, questdb-npgsql, timescale-npgsql |
+| postgresql-odbc | questdb-odbc, timescale-odbc |
+| mysql-mysqlconnector | mariadb-mysqlconnector |
+| mysql-odbc | mariadb-odbc |
+
+For example, `duburl connector install cockroachdb-npgsql` downloads `postgresql-npgsql` and activates
+PostgreSQL, CockroachDB, CrateDB, QuestDB and Timescale mappings together. Installing a second alias
+reuses that same canonical installation; uninstalling through any alias removes that canonical archive.
+Existing short installation aliases are retained too. The other 20 archives remain unchanged in identity.
+
+Catalog schema 2 and local definitions use `databases: [{name, schemes}, ...]`. There is no separate
+`databaseName` or top-level scheme inventory; the C# Schemes property derives the union. The loader
+requires the complete database/scheme inventory to match implementation attributes before registering
+all mappings with one shared, isolated driver factory. The Application metadata view groups schemes
+by database across these archive entries.

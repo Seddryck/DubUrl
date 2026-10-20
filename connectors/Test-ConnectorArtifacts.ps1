@@ -19,7 +19,7 @@ if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
 }
 
 $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json
-if ($catalog.schemaVersion -ne 1) { throw "Expected connector catalog schema version 1." }
+if ($catalog.schemaVersion -ne 2) { throw "Expected connector catalog schema version 2." }
 $entries = @($catalog.entries)
 
 $matrix = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'connector-matrix.json') -Raw | ConvertFrom-Json
@@ -28,8 +28,15 @@ $matrixIds = @($matrix.connectors | ForEach-Object id)
 if (@($matrixIds | Select-Object -Unique).Count -ne $matrixIds.Count) { throw "Connector matrix IDs must be unique." }
 $readyIds = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object id)
 $catalogIds = @($entries | ForEach-Object provider)
-if (Compare-Object $readyIds $catalogIds) { throw "The catalog must contain exactly the ready connector matrix rows." }
-if ($entries.Count -ne $readyIds.Count) { throw "Expected $($readyIds.Count) ready connectors, found $($entries.Count)." }
+foreach ($id in $readyIds) {
+    $owners = @($entries | Where-Object { $_.provider -eq $id -or $id -in $_.aliases })
+    if ($owners.Count -ne 1) { throw "Installation name '$id' must resolve to exactly one archive." }
+}
+$payloads = @($entries | ForEach-Object { (@($_.implementationAssemblies | Sort-Object) -join '|') + '|' + $_.driver + '|' + ($_.runtimeIdentifiers -join '|') })
+if (@($payloads | Sort-Object -Unique).Count -ne $entries.Count) { throw 'Duplicate implementation/driver archives remain.' }
+if (@(Get-ChildItem -LiteralPath $root -Filter '*.zip').Count -ne $entries.Count) { throw 'Unexpected duplicate or missing archives.' }
+
+function Get-DefinitionSchemes($definition) { @($definition.databases | ForEach-Object { $_.schemes }) }
 
 $names = @{}
 $sharedInventoryPath = Join-Path $PSScriptRoot '../DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt'
@@ -44,7 +51,7 @@ foreach ($entry in $entries) {
         }
         $names[$name] = $entry.provider
     }
-    if (@($entry.schemes).Count -eq 0 -or @($entry.targetFrameworks).Count -eq 0 -or $null -eq $entry.runtimeIdentifiers) {
+    if (@(Get-DefinitionSchemes $entry).Count -eq 0 -or @($entry.targetFrameworks).Count -eq 0 -or $null -eq $entry.runtimeIdentifiers) {
         throw "Connector '$($entry.provider)' has incomplete scheme or compatibility metadata."
     }
 
@@ -85,9 +92,9 @@ foreach ($entry in $entries) {
         if (@($archivePaths | Where-Object { $_ -in $sharedAssets }).Count -ne 0) {
             throw "Connector '$($entry.provider)' duplicates a host Core dependency."
         }
-        $definition = $matrix.connectors | Where-Object id -CEQ $entry.provider
-        if ($entry.databaseName -cne $definition.database) {
-            throw "Connector '$($entry.provider)' does not use its database name from the matrix."
+        $catalogDatabases = $entry.databases | ConvertTo-Json -Depth 10 -Compress
+        if (($manifest.databases | ConvertTo-Json -Depth 10 -Compress) -cne $catalogDatabases) {
+            throw "Connector '$($entry.provider)' database mappings do not match its catalog."
         }
         if ($manifest.implementationAssemblies -cnotcontains $manifest.assembly) {
             throw "Connector '$($entry.provider)' must use one of its provider implementations as the dependency anchor."
@@ -167,12 +174,19 @@ foreach ($entry in $entries) {
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
             install $catalogPath $archivePath $storePath $entry.provider
         if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' installation lifecycle validation failed." }
+        foreach ($alias in @($entry.aliases | Where-Object { $_ -in $readyIds })) {
+            & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
+                install $catalogPath $archivePath $storePath $alias
+            if ($LASTEXITCODE -ne 0) { throw "Installation alias '$alias' did not reuse its canonical archive." }
+        }
         $verification = if ($entry.provider -eq 'duckdb-native') { 'verify-bulk' } else { 'verify' }
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
             $verification $catalogPath $archivePath $storePath $entry.provider
         if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' activation lifecycle validation failed." }
+        $removeName = @($entry.aliases | Where-Object { $_ -in $readyIds } | Select-Object -First 1)
+        if ($removeName.Count -eq 0) { $removeName = @($entry.provider) }
         & dotnet run --project $verifier --configuration Release --framework net8.0 --no-build --no-restore -- `
-            uninstall $catalogPath $archivePath $storePath $entry.provider
+            uninstall $catalogPath $archivePath $storePath $removeName[0]
         if ($LASTEXITCODE -ne 0) { throw "Connector '$($entry.provider)' uninstall lifecycle validation failed." }
     }
     finally {
@@ -180,4 +194,4 @@ foreach ($entry in $entries) {
     }
 }
 
-Write-Host "Validated $($entries.Count) connector archives, lifecycles, and the schema-v1 official catalog."
+Write-Host "Validated $($entries.Count) connector archives, lifecycles, and the schema-v2 official catalog."

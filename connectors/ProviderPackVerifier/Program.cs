@@ -43,8 +43,9 @@ internal static class Program
         var catalogPath = Path.GetFullPath(args[1]);
         await using var catalogStream = File.OpenRead(catalogPath);
         var provider = args[4];
-        var entry = ProviderPackCatalog.Read(catalogStream).Entries.Single(item =>
-            item.Provider.Equals(provider, StringComparison.OrdinalIgnoreCase));
+        if (!ProviderPackCatalog.Read(catalogStream).TryGet(provider, out var resolved))
+            throw new InvalidOperationException($"Unknown installation name: {provider}");
+        var entry = resolved!;
         var apiVersion = Version.Parse(entry.Version.Split(['-', '+'], StringSplitOptions.None)[0]);
         return new(
             entry,
@@ -83,6 +84,14 @@ internal static class Program
         var scheme = context.Entry.Schemes?.FirstOrDefault()
             ?? throw new InvalidOperationException("The connector has no scheme to verify.");
         var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));
+        foreach (var supported in context.Entry.Databases)
+            foreach (var alias in supported.Schemes)
+            {
+                var key = SchemeKey.Parse(alias);
+                if (!ReferenceEquals(factory, schemes.GetProviderFactory(key)))
+                    throw new InvalidOperationException($"Scheme '{alias}' did not reuse the archive driver factory.");
+                _ = schemes.GetMapper(key);
+            }
         var loadContext = AssemblyLoadContext.GetLoadContext(factory.GetType().Assembly)!;
         VerifySharedDependencies(loadContext);
         if (!context.Entry.ImplementationAssemblies.Contains(context.Entry.Assembly, StringComparer.OrdinalIgnoreCase))

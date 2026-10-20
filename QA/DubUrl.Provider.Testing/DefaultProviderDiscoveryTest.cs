@@ -93,7 +93,7 @@ public class DefaultProviderDiscoveryTest
         await Install("first");
         await Install("second");
         var error = Assert.Throws<ProviderRegistrationException>(() => new ConnectionUrl("pg://localhost/demo"));
-        Assert.That(error!.Alias, Is.EqualTo("pg"));
+        Assert.That(ConnectorFixture.Definition.Schemes, Does.Contain(error!.Alias));
 
         var registry = new ProviderCatalogBuilder().AddModule(ConnectorFixture.Create()).Build();
         Assert.That(new ConnectionUrl("pg://localhost/demo", registry).Parse(), Does.Contain("demo"));
@@ -131,7 +131,9 @@ public class DefaultProviderDiscoveryTest
     {
         var manifest = ConnectorFixture.Definition with
         {
-            Provider = provider, Version = version, DatabaseName = databaseName ?? "PostgreSQL"
+            Provider = provider, Version = version,
+            Databases = ConnectorFixture.Definition.Databases.Select(database => database.Name == "PostgreSQL"
+                ? database with { Name = databaseName ?? database.Name } : database).ToArray()
         };
         using var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))

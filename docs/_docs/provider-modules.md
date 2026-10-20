@@ -71,13 +71,13 @@ For a new driver binding to an existing database, reference `DubUrl`, the releva
 `DubUrl.Provider.*` family package, and the concrete driver. The packaging collector gathers their dependency
 closure. Packaging discards its temporary DLL and writes a connector-specific `.deps.json` beside the
 selected provider implementation DLL. The connector definition names that implementation, the other
-implementation assemblies, and the driver; it has no entry-point type or empty binding DLL. Core reads the implementation attributes directly
+implementation assemblies, driver and complete database/scheme inventory; it has no entry-point type or empty binding DLL. Core reads the implementation attributes directly
 through `AttributeProviderModule`. Mapper, dialect, parametrizer, URL schemes, and optional capabilities
 come from the attributes; the driver assembly supplies its `DbProviderFactory`.
 Reuse the family's rewriter unless the driver needs different keywords or URL rules. Standard bindings
 are declared in `connectors/connector-matrix.json` and built by
-`Providers/Build/ProviderBinding.Build.csproj`. The build script passes each row's settings to that
-same project, including PostgreSQL/Npgsql. Its default settings build PostgreSQL/Npgsql for local
+`Providers/Build/ProviderBinding.Build.csproj`. The exporter groups rows sharing implementation assemblies, driver and runtime compatibility;
+the build script passes the canonical selection's settings to that same project, including PostgreSQL/Npgsql. Its default settings build PostgreSQL/Npgsql for local
 solution builds and focused consumer tests; no separate Npgsql project is required. Driver bindings
 are distributed as connector packs, and this build project is not published as a NuGet package.
 An alternative connector can supply its own factory and aliases while reusing `PostgresqlMapper`.

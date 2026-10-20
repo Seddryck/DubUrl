@@ -175,13 +175,15 @@ public class ProviderAssemblyBoundaryTest
         using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         var catalog = ProviderPackCatalogDocument.Read(resource);
 
-        Assert.That(catalog.Entries.Select(entry => entry.Provider), Is.EquivalentTo(ready.Select(row => row.GetProperty("id").GetString())));
+        Assert.That(catalog.Entries, Has.Count.EqualTo(24));
+        var lookup = new ProviderPackCatalog(catalog.Entries);
         foreach (var row in ready)
         {
-            var entry = catalog.Entries.Single(entry => entry.Provider == row.GetProperty("id").GetString());
+            Assert.That(lookup.TryGet(row.GetProperty("id").GetString()!, out var resolved), Is.True);
+            var entry = resolved!;
             Assert.Multiple(() =>
             {
-                Assert.That(entry.DatabaseName, Is.EqualTo(row.GetProperty("database").GetString()));
+                Assert.That(entry.Databases.Select(database => database.Name), Does.Contain(row.GetProperty("database").GetString()).IgnoreCase);
                 Assert.That(entry.ImplementationAssemblies, Does.Contain(entry.Assembly));
                 Assert.That(row.TryGetProperty("assemblyName", out _), Is.False);
                 Assert.That(entry.ImplementationAssemblies, Is.Not.Empty);
@@ -191,7 +193,7 @@ public class ProviderAssemblyBoundaryTest
                 Assert.That(row.TryGetProperty("mapper", out _), Is.False);
                 Assert.That(row.TryGetProperty("dialect", out _), Is.False);
                 Assert.That(row.TryGetProperty("parametrizer", out _), Is.False);
-                Assert.That(entry.Aliases, Is.EquivalentTo(row.GetProperty("defaultAliases").EnumerateArray().Select(value => value.GetString())));
+                Assert.That(entry.Aliases, Is.SupersetOf(row.GetProperty("defaultAliases").EnumerateArray().Select(value => value.GetString())));
                 Assert.That(entry.RuntimeIdentifiers, Is.EquivalentTo(row.GetProperty("runtimeIdentifiers").EnumerateArray().Select(value => value.GetString())));
                 Assert.That(entry.DownloadUri, Is.Null);
                 Assert.That(entry.Sha256, Is.Null);
@@ -203,7 +205,7 @@ public class ProviderAssemblyBoundaryTest
     public void BundledApplicationCatalog_GroupsAllCatalogSchemesByDatabase()
     {
         using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
-        var databases = ProviderPackCatalogDocument.Read(resource).Entries.GroupBy(entry => entry.DatabaseName!).ToArray();
+        var databases = ProviderPackCatalogDocument.Read(resource).Entries.SelectMany(entry => entry.Databases).GroupBy(database => database.Name).ToArray();
         var catalog = BundledProviderCatalog.Describe();
 
         Assert.That(catalog.Providers.Select(provider => provider.Name), Is.EquivalentTo(databases.Select(database => database.Key)));

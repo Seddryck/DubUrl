@@ -56,17 +56,18 @@ $definitionsPath = Join-Path $stagingRoot 'connector-catalog.json'
 Invoke-Checked dotnet @(
     'run', '--project', (Join-Path $PSScriptRoot 'Catalog/ConnectorCatalog.Build.csproj'), '--configuration', 'Release', '--framework', 'net8.0', '--', $matrixPath, $definitionsPath, $Version
 )
-$definitions = (Get-Content -LiteralPath $definitionsPath -Raw | ConvertFrom-Json -AsHashtable).entries
+$definitionDocument = Get-Content -LiteralPath $definitionsPath -Raw | ConvertFrom-Json -AsHashtable
+$definitions = $definitionDocument.entries
 $catalogEntries = [Collections.Generic.List[object]]::new()
 
-foreach ($connector in $ready) {
+foreach ($manifest in $definitions) {
+    $selection = @($ready | Where-Object id -CEQ $manifest.provider)
+    if ($selection.Count -ne 1) { throw "Missing canonical matrix selection: $($manifest.provider)" }
+    $connector = $selection[0]
     if (-not $technologies.ContainsKey($connector.technology)) {
         throw "Connector '$($connector.id)' uses unknown technology '$($connector.technology)'."
     }
     $technology = $technologies[$connector.technology]
-    $manifest = @($definitions | Where-Object { $_.provider -ceq $connector.id })
-    if ($manifest.Count -ne 1) { throw "Missing or ambiguous connector definition '$($connector.id)'." }
-    $manifest = $manifest[0]
     $publishRoot = Join-Path $stagingRoot "$($connector.id)/publish"
     $contentRoot = Join-Path $stagingRoot "$($connector.id)/content"
     New-Item -ItemType Directory -Path $publishRoot, $contentRoot -Force | Out-Null
@@ -102,11 +103,11 @@ foreach ($connector in $ready) {
         Copy-Item -LiteralPath $file.FullName -Destination $destination
     }
     Copy-Item -LiteralPath $noticePath -Destination (Join-Path $contentRoot 'THIRD-PARTY-NOTICES.md')
-    if ($null -ne $connector.prerequisite) {
-        [IO.File]::WriteAllText(
-            (Join-Path $contentRoot 'PREREQUISITES.md'),
-            "# External prerequisite`n`n$($connector.prerequisite)`n",
-            [Text.UTF8Encoding]::new($false))
+    $members = @($ready | Where-Object { $_.id -eq $manifest.provider -or $_.id -in $manifest.aliases })
+    $prerequisites = @($members | Where-Object { $null -ne $_.prerequisite } | ForEach-Object prerequisite | Sort-Object -Unique)
+    if ($prerequisites.Count) {
+        [IO.File]::WriteAllText((Join-Path $contentRoot 'PREREQUISITES.md'),
+            "# External prerequisites`n`nInstall the matching driver for each database you use.`n`n$($prerequisites -join "`n`n")`n", [Text.UTF8Encoding]::new($false))
     }
 
     if (-not (Test-Path -LiteralPath (Join-Path $contentRoot $manifest.assembly) -PathType Leaf)) {
@@ -149,6 +150,6 @@ foreach ($connector in $ready) {
     $catalogEntries.Add($catalogEntry)
 }
 
-Write-Utf8Json $catalogPath ([ordered]@{ schemaVersion = 1; entries = @($catalogEntries) })
+Write-Utf8Json $catalogPath ([ordered]@{ schemaVersion = $definitionDocument.schemaVersion; entries = @($catalogEntries) })
 Remove-Item -LiteralPath $stagingRoot -Recurse -Force
 Write-Host "Created $($catalogEntries.Count) connector packs and catalog '$catalogPath'."
