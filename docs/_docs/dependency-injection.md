@@ -67,6 +67,47 @@ The caller owns each connection and disposes it. Registering a singleton factory
 a shared database connection. Applications using DubUrl's query APIs can inject `IDatabaseUrlFactory`
 instead; `WithMicroOrm()` configures that factory for the MicroOrm implementation.
 
+## Configure services in one place
+
+`DubUrlServiceOptions` controls the factory, query logger and reflection cache used by the registered
+services. Configure it with an options instance, an `AddDubUrl(options => ...)` callback, or an
+`IConfigureOptions<DubUrlServiceOptions>` implementation passed to `AddDubUrl<T>()`.
+
+For example, select MicroOrm and disable its reflection cache:
+
+```csharp
+builder.Services.AddDubUrl(options =>
+    options.WithMicroOrm().WithoutReflectionCache());
+```
+
+The fluent service helpers configure those same options. This is equivalent:
+
+```csharp
+builder.Services.AddDubUrl().WithMicroOrm().WithoutReflectionCache();
+```
+
+`WithQueryLogger(logger)` and `WithReflectionCache(cache)` also work on either the options object
+or the services collection. The service helpers can precede `AddDubUrl()`. Configuration runs in
+registration order; later assignments to the same setting win. An options instance supplies all its
+settings, including defaults. Singleton services use the finalized options when first resolved;
+configuration is intended for application startup rather than runtime changes.
+
+The default factory is `DubUrl.DatabaseUrlFactory`; `WithMicroOrm()` selects
+`DubUrl.MicroOrm.DatabaseUrlFactory`. The default reflection cache is shared within one DI container.
+Supply `options.ReflectionCache` for a custom implementation, or call `WithoutReflectionCache()`
+to disable it. This cache concerns mapping query results into objects; provider registry caching is separate.
+
+Query logging uses the first available choice in this order:
+
+1. `options.QueryLogger`, including one supplied through `WithQueryLogger(...)`.
+2. An adapter for an explicitly supplied `options.Logger` (`Microsoft.Extensions.Logging.ILogger`).
+3. An adapter for the host's `ILoggerFactory`, using category `DubUrl`.
+4. `NullQueryLogger` when no logger is available.
+
+Microsoft logging adapters emit query messages at **Debug** level. Configure that category's level
+in the host's logging configuration to see the messages. An explicit query logger receives messages
+through its own `Log` method.
+
 ## Registry and URL lifetimes
 
 | Setup | Registry selection |

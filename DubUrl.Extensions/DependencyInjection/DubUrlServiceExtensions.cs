@@ -3,13 +3,10 @@ using DubUrl.MicroOrm;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Reading;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Diagnostics.Tracing;
-using System.Reflection;
 
 namespace DubUrl.Extensions.DependencyInjection;
 
@@ -64,15 +61,14 @@ public static class DubUrlServiceExtensions
     /// Adds a singleton <see cref="DubUrl" /> service implementation to the services collection
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add the services to.</param>
-    /// <param name="options">The <see cref="LiteDatabaseServiceOptions"/> instance used to configure this instance.</param>
+    /// <param name="options">The options used to configure the services.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that calls can be chained.</returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static IServiceCollection AddDubUrl(this IServiceCollection services, DubUrlServiceOptions options)
-        => services.AddDubUrl(configure =>
-        {
-            if (options.Logger != null)
-                configure.Logger = options.Logger;
-        });
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return services.AddDubUrl(configure => configure.CopyFrom(options));
+    }
 
     /// <summary>
     /// Adds a singleton <see cref="DubUrl" /> service implementation to the services collection
@@ -97,17 +93,9 @@ public static class DubUrlServiceExtensions
 
         services.AddOptions();
         services.AddOptions<DubUrlServiceOptions>()
-            .Configure<IServiceProvider>((options, provider) =>
+            .PostConfigure<IServiceProvider>((options, provider) =>
             {
-                var factory = provider.GetService<ILoggerFactory>();
-                if (factory != null)
-                    options.Logger = factory.CreateLogger(DubUrlLoggerCategory);
-
-                var configuration = provider.GetService<IConfiguration>();
-                if (configuration != null)
-                {
-                    //Let's put up some configuration options here ;-)
-                }
+                options.Logger ??= provider.GetService<ILoggerFactory>()?.CreateLogger(DubUrlLoggerCategory);
             });
         if (schemeRegistry is not null)
             services.AddSingleton(schemeRegistry);
@@ -117,34 +105,40 @@ public static class DubUrlServiceExtensions
         services.AddSingleton<IDialectRegistry>(new DialectRegistryBuilder().Build());
         services.AddSingleton(provider => new ConnectionUrlFactory(
             () => provider.GetRequiredService<ISchemeRegistry>()));
-        services.AddSingleton<IDatabaseUrlFactory, DatabaseUrlFactory>();
-        services.AddSingleton<IQueryLogger>(NullQueryLogger.Instance);
+        services.TryAddSingleton<IDatabaseUrlFactory>(provider =>
+            (IDatabaseUrlFactory)ActivatorUtilities.CreateInstance(provider,
+                provider.GetRequiredService<IOptions<DubUrlServiceOptions>>().Value.DatabaseUrlFactoryType));
+        services.TryAddSingleton<IQueryLogger>(provider =>
+        {
+            var options = provider.GetRequiredService<IOptions<DubUrlServiceOptions>>().Value;
+            return options.QueryLogger ?? (options.Logger is { } logger
+                ? new LoggerQueryLogger(logger) : NullQueryLogger.Instance);
+        });
         services.AddSingleton<CommandProvisionerFactory>();
-        services.AddSingleton<IReflectionCache, ReflectionCache>();
+        services.TryAddSingleton<IReflectionCache>(provider =>
+            provider.GetRequiredService<IOptions<DubUrlServiceOptions>>().Value.ReflectionCache ?? new ReflectionCache());
         return services;
     }
 
     public static IServiceCollection WithQueryLogger(this IServiceCollection services, IQueryLogger logger)
     {
-        services.Replace(new ServiceDescriptor(typeof(IQueryLogger), logger));
-        return services;
+        ArgumentNullException.ThrowIfNull(logger);
+        return services.Configure<DubUrlServiceOptions>(options => options.WithQueryLogger(logger));
     }
 
     public static IServiceCollection WithoutReflectionCache(this IServiceCollection services)
     {
-        services.Replace(new ServiceDescriptor(typeof(IReflectionCache), typeof(NoneReflectionCache), ServiceLifetime.Singleton));
-        return services;
+        return services.Configure<DubUrlServiceOptions>(options => options.WithoutReflectionCache());
     }
 
     public static IServiceCollection WithReflectionCache(this IServiceCollection services, IReflectionCache cache)
     {
-        services.Replace(new ServiceDescriptor(typeof(IReflectionCache), cache));
-        return services;
+        ArgumentNullException.ThrowIfNull(cache);
+        return services.Configure<DubUrlServiceOptions>(options => options.WithReflectionCache(cache));
     }
 
     public static IServiceCollection WithMicroOrm(this IServiceCollection services)
     {
-        services.Replace(new ServiceDescriptor(typeof(IDatabaseUrlFactory), typeof(MicroOrm.DatabaseUrlFactory), ServiceLifetime.Singleton));
-        return services;
+        return services.Configure<DubUrlServiceOptions>(options => options.WithMicroOrm());
     }
 }
