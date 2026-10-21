@@ -55,6 +55,18 @@ Each URL still receives its own mapper and connection state. Changing `DUBURL_PR
 a new snapshot. Call `SchemeRegistryBuilder.RefreshDefault()` after dynamically loading an application
 provider or changing driver factory registrations, or after editing installed files manually. Explicitly
 supplied registries remain under the application's control.
+
+With `DubUrl.Extensions`, `services.AddDubUrl()` registers singleton URL factories that obtain the
+current cached registry for each new URL. Resolving `ISchemeRegistry` through DI returns the current
+snapshot; retaining that instance retains that snapshot. The DI registration does not maintain another
+registry cache or perform discovery when registering services. `IDatabaseUrlFactory`, including
+`WithMicroOrm()`, uses the same URL factory and observes connector changes for newly created objects.
+Existing URLs keep their original snapshot, including URLs that have not yet been parsed.
+Supplying `ISchemeRegistry` as a singleton before or after `AddDubUrl()`, or using the explicit provider
+module overload, keeps the chosen registry fixed. `ConfiguredConnectionUrlFactory` constructors that
+take a registry also retain it. `ConnectionUrlFactory(Func<ISchemeRegistry>)` allows other hosts to
+select a snapshot at URL creation without changing existing URLs.
+
 An application should not assume that assemblies can be replaced after they have been loaded.
 
 ## CLI management

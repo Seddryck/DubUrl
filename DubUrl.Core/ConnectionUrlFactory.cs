@@ -13,14 +13,21 @@ namespace DubUrl;
 
 public class ConnectionUrlFactory
 {
-    private ISchemeRegistry SchemeRegistry { get; }
+    private Func<ISchemeRegistry> GetSchemeRegistry { get; }
     private IParser Parser { get; }
 
     public ConnectionUrlFactory(ISchemeRegistry registry)
         : this(new Parser(), registry) { }
 
-    internal ConnectionUrlFactory(IParser parser, ISchemeRegistry registry)
-        => (Parser, SchemeRegistry) = (parser, registry);
+    /// <summary>Obtains a registry snapshot separately for each newly created URL.</summary>
+    public ConnectionUrlFactory(Func<ISchemeRegistry> getSchemeRegistry)
+        : this(new Parser(), getSchemeRegistry) { }
 
-    public virtual ConnectionUrl Instantiate(string url) => new (url, Parser, SchemeRegistry);
+    internal ConnectionUrlFactory(IParser parser, ISchemeRegistry registry)
+        : this(parser, () => registry) { }
+
+    private ConnectionUrlFactory(IParser parser, Func<ISchemeRegistry> getSchemeRegistry)
+        => (Parser, GetSchemeRegistry) = (parser, getSchemeRegistry ?? throw new ArgumentNullException(nameof(getSchemeRegistry)));
+
+    public virtual ConnectionUrl Instantiate(string url) => new (url, Parser, GetSchemeRegistry());
 }

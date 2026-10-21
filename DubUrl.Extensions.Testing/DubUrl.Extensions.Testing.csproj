@@ -32,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
+    <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">

@@ -109,9 +109,14 @@ public static class DubUrlServiceExtensions
                     //Let's put up some configuration options here ;-)
                 }
             });
-        services.AddSingleton(schemeRegistry ?? SchemeRegistryBuilder.GetDefault());
+        if (schemeRegistry is not null)
+            services.AddSingleton(schemeRegistry);
+        else
+            // Each resolution returns Core's current cached snapshot; this does not rebuild it.
+            services.TryAddTransient<ISchemeRegistry>(_ => SchemeRegistryBuilder.GetDefault());
         services.AddSingleton<IDialectRegistry>(new DialectRegistryBuilder().Build());
-        services.AddSingleton<ConnectionUrlFactory>();
+        services.AddSingleton(provider => new ConnectionUrlFactory(
+            () => provider.GetRequiredService<ISchemeRegistry>()));
         services.AddSingleton<IDatabaseUrlFactory, DatabaseUrlFactory>();
         services.AddSingleton<IQueryLogger>(NullQueryLogger.Instance);
         services.AddSingleton<CommandProvisionerFactory>();
