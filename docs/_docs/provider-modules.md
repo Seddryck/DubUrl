@@ -20,7 +20,8 @@ Installing a PostgreSQL archive is another way to supply the implementation and 
 Discovery reads active, compatible, integrity-verified packs from the per-user connector store:
 `%LOCALAPPDATA%/DubUrl/providers` on Windows, `$XDG_DATA_HOME/duburl/providers` on Unix when set,
 otherwise `~/.local/share/duburl/providers`. Set `DUBURL_PROVIDER_STORE` to use a different store.
-Discovery does not install or download connectors and does not create a missing store.
+Discovery does not install or download connectors. Default registry initialization creates the store's
+synchronization directory when needed.
 
 Installed providers take precedence over application dependencies for matching aliases.
 Remaining application aliases remain available. Conflicting installed aliases throw
@@ -28,11 +29,17 @@ Remaining application aliases remain available. Conflicting installed aliases th
 with code `module-load-failed`. Inactive, incompatible, incomplete, and corrupt packs are not loaded.
 Default dialect discovery uses the same provider selection.
 
-Each default construction reads the current installed state and retains its registry snapshot, so
-installation or removal affects subsequent defaults without changing existing URLs. For repeated
+Each default construction checks the store revision and retains the current cached registry snapshot, so
+installation or removal affects subsequent defaults without changing existing URLs. Attributes are read
+when building a snapshot, rather than for every URL. For repeated
 construction with a fixed selection, create a `ConnectionUrlFactory` from one registry. Passing an
 explicit registry bypasses discovery entirely and remains the deterministic option for applications
 that manage their own dependencies, tests, or trimmed/AOT deployment.
+
+Applications already using dependency injection can register `services.AddDubUrl()` and inject
+`ConnectionUrlFactory`. Its default singleton selects the current cached registry for each new URL;
+custom registry singletons and explicit modules stay fixed. See
+[when DI is useful and how its lifetimes work]({{ '/docs/dependency-injection/' | relative_url }}).
 
 ## Register providers explicitly
 

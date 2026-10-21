@@ -95,6 +95,15 @@ string connectionUrl = "mssql://{server}/{database_name}";
 IDbConnection connection = new ConnectionUrl(connectionUrl).Connect();
 ```
 
+### When to use dependency injection
+
+Use `DubUrl.Extensions` and `services.AddDubUrl()` when an ASP.NET Core application or worker already
+uses DI, or when you want centralized configuration, query logging and controlled registries for tests.
+Inject `ConnectionUrlFactory` or `IDatabaseUrlFactory` into your services. For small programs, constructing
+`ConnectionUrl` directly is sufficient: both approaches share Core's registry cache. Default DI factories
+observe connector changes for each new URL; explicitly supplied registries remain fixed.
+See the [DI setup and lifetime guide](docs/_docs/dependency-injection.md).
+
 ## Example URLs
 
 The following are example database connection URLs that can be handled by

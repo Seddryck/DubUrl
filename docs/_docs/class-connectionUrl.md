@@ -42,6 +42,11 @@ The default registry resolves factories that normally produce `DbConnection` ins
 
 ## Custom mappings and dialects
 
+For ASP.NET Core applications and other hosts using dependency injection, see
+[when to use DI and how to inject a factory]({{ '/docs/dependency-injection/' | relative_url }}).
+DI supports application composition and configuration; direct construction already shares Core's
+registry cache.
+
 The constructor `ConnectionUrl(string url, ISchemeRegistry registry)` accepts a built registry, not a `SchemeMapperBuilder`. Create registries with `DubUrl.Mapping.SchemeRegistryBuilder`; see the [OLE DB guide]({{ '/docs/oledb-provider-locators/' | relative_url }}) for extension-assembly registration.
 
 `Dialect`, `Connectivity`, and `Parametrizer` expose the metadata resolved for the URL. For connection leases and reusable sources, see the [connection source API]({{ '/docs/connection-source-reference/' | relative_url }}).
