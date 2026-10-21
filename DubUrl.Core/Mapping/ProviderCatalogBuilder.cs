@@ -1,3 +1,7 @@
+using System.Data.Common;
+using DubUrl.Locating.Options;
+using DubUrl.Querying.Parametrizing;
+using DubUrl.Rewriting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,6 +88,7 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
     {
         var registrations = new Dictionary<string, SchemeRegistration>(StringComparer.OrdinalIgnoreCase);
         var optionTypes = _odbcLocatorOptions.OrderBy(type => type.FullName, StringComparer.Ordinal).ToArray();
+        var rootPath = _rootPath;
 
         foreach (var provider in _providers)
         {
@@ -102,13 +107,12 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
                     providerFactory,
                     provider.Dialect,
                     provider.ParametrizerFactory(),
-                    _rootPath,
+                    rootPath,
                     optionTypes));
 
             var schemeRegistration = new SchemeRegistration(
                 CreateMapper,
-                providerFactory,
-                provider.ProviderInvariantName,
+                _ => providerFactory,
                 provider.Capabilities,
                 provider.BulkCopyProvider);
 
@@ -131,6 +135,61 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
     private string[] GetEffectiveAliases(ProviderRegistration provider)
         => provider.Aliases.Where(alias => ReferenceEquals(_aliases[alias], provider)).ToArray();
 
+    // Adapt the public mapper-delegate constructor without invoking user code eagerly.
+    internal static Dictionary<string, SchemeRegistration> AdaptMapperFactories(Dictionary<string, Func<IMapper>> factories)
+    {
+        ArgumentNullException.ThrowIfNull(factories);
+        return factories.ToDictionary(pair => pair.Key, pair =>
+        {
+            DbProviderFactory ResolveFactory(IMapper? mapper)
+            {
+                var invariant = (mapper ?? pair.Value()).GetProviderName();
+                return SchemeRegistryBuilder.GetProvider(invariant)
+                    ?? throw new ProviderNotFoundException(invariant, DbProviderFactories.GetProviderInvariantNames().ToArray());
+            }
+            return new SchemeRegistration(pair.Value, ResolveFactory, new Dictionary<Type, object>(), null);
+        }, StringComparer.OrdinalIgnoreCase);
+    }
+
+    internal static void RegisterMappings(IProviderCatalogBuilder catalog, IEnumerable<MapperInfo> mappings,
+        Func<string, DbProviderFactory?> resolveFactory)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        var infos = mappings.ToArray();
+        var builder = new DialectRegistryBuilder();
+        foreach (var info in infos) builder.AddDialect(info.DialectType, info.Aliases);
+        var dialects = builder.Build();
+        foreach (var info in infos)
+        {
+            var fileBased = typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType);
+            Type[] parameters = [typeof(DbConnectionStringBuilder), typeof(IDialect), typeof(IParametrizer)];
+            if (fileBased) parameters = [.. parameters, typeof(string)];
+            var optionsConstructor = info.MapperType.GetConstructor([.. parameters, typeof(IEnumerable<Type>)]);
+            var constructor = optionsConstructor ?? info.MapperType.GetConstructor(parameters)
+                ?? throw new InvalidOperationException($"Missing mapper constructor on '{info.MapperType.FullName}'.");
+            var parametrizer = info.ParametrizerType.GetConstructor(Type.EmptyTypes)
+                ?? throw new InvalidOperationException($"Missing parametrizer constructor on '{info.ParametrizerType.FullName}'.");
+            catalog.AddProvider(new ProviderRegistration(info.DatabaseName, info.Aliases, info.ProviderInvariantName,
+                () => resolveFactory(info.ProviderInvariantName), dialects.Get(info.DialectType),
+                () => (IParametrizer)parametrizer.Invoke(null), context =>
+                {
+                    object[] arguments = [context.ConnectionStringBuilder, context.Dialect, context.Parametrizer];
+                    if (fileBased) arguments = [.. arguments, context.RootPath];
+                    if (optionsConstructor is not null) arguments = [.. arguments, context.OdbcLocatorOptions];
+                    var mapper = (IMapper)constructor.Invoke(arguments);
+                    if (mapper is BaseMapper baseMapper)
+                        baseMapper.SetProviderMetadata(info.ProviderInvariantName, info.Database is null ? null : info.ConnectivityType);
+                    return mapper;
+                }) { BulkCopyProvider = info.BulkCopyProvider });
+        }
+        if (infos.Any(info => info.ProviderInvariantName == "System.Data.Odbc"))
+        {
+            catalog.AddOdbcLocatorOption<ArchitectureOption>();
+            catalog.AddOdbcLocatorOption<EncodingOption>();
+            catalog.AddOdbcLocatorOption<VersionOption>();
+        }
+    }
+
     private sealed class FallbackCatalog(ProviderCatalogBuilder owner) : IProviderCatalogBuilder
     {
         public IProviderCatalogBuilder AddProvider(ProviderRegistration registration)
@@ -149,7 +208,6 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
 
 internal sealed record SchemeRegistration(
     Func<IMapper> MapperFactory,
-    System.Data.Common.DbProviderFactory ProviderFactory,
-    string ProviderInvariantName,
+    Func<IMapper?, DbProviderFactory> ProviderFactory,
     IReadOnlyDictionary<Type, object> Capabilities,
     DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider);

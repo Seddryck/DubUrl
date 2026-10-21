@@ -29,10 +29,11 @@ public class ProviderCatalogBuilderTest
         var mapper = Mock.Of<IMapper>();
         var module = new StubProviderModule(mapper);
 
-        var registry = new ProviderCatalogBuilder()
+        var catalog = new ProviderCatalogBuilder()
             .WithRootPath("providers")
-            .AddModule(module)
-            .Build();
+            .AddModule(module);
+        var registry = catalog.Build();
+        catalog.WithRootPath("changed-after-build");
 
         Assert.Multiple(() =>
         {

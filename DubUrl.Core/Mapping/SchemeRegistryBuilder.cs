@@ -1,12 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using DubUrl.Locating.OdbcDriver;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
@@ -15,12 +12,13 @@ using DubUrl.Parsing;
 using DubUrl.Core.ProviderPacks;
 
 namespace DubUrl.Mapping;
+/// <summary>Compatibility configuration facade over ProviderCatalogBuilder.</summary>
 public class SchemeRegistryBuilder
 {
     private static readonly DefaultRegistryCache DefaultCache = new(CreateDefaultCatalog);
     private string _rootPath = string.Empty;
     private readonly List<Assembly> _assemblies = [.. new AssemblyTypesProbe().Assemblies];
-    private readonly List<Type> _mapperIntrospectors = [];
+    private bool _autoDiscoverMappings;
     private readonly List<MapperInfo> _mapperInfos = [];
     private readonly List<string> _exclusions = [];
 
@@ -94,93 +92,31 @@ public class SchemeRegistryBuilder
 
     public SchemeRegistryBuilder WithAutoDiscoveredMappings()
     {
-        _mapperIntrospectors.Add(typeof(NativeMapperIntrospector));
-        _mapperIntrospectors.Add(typeof(WrapperMapperIntrospector));
+        _autoDiscoverMappings = true;
         return this;
     }
 
     public SchemeRegistry Build()
     {
-        var probe = new AssemblyTypesProbe([.. _assemblies.Distinct()]);
-        var introspectors = _mapperIntrospectors
-            .Select(x => x.GetConstructor([typeof(AssemblyTypesProbe)])!)
-            .Select(ctor => ctor.Invoke([probe]))
-            .Cast<BaseMapperIntrospector>()
+        var discovered = _autoDiscoverMappings
+            ? AttributeProviderModule.Discover(_assemblies.Distinct().ToArray()) : [];
+        var mappings = _mapperInfos.Union(discovered)
+            .Where(info => !_exclusions.Any(alias => info.Aliases.Contains(alias, StringComparer.OrdinalIgnoreCase)))
             .ToArray();
-
-        var mappingData = new List<MapperInfo>();
-
-        var infos = introspectors.SelectMany(i => i.Locate());
-        foreach (var info in _mapperInfos.Union(infos))
+        foreach (var info in mappings) CheckMapper(info);
+        var catalog = new ProviderCatalogBuilder().WithRootPath(_rootPath);
+        try
         {
-            if (_exclusions.Any(x => info.Aliases.Contains(x)))
-                continue;
-
-            CheckMapper(info);
-
-            if (mappingData.Contains(info))
-                throw new ArgumentException($"Duplicate mapper: {info.MapperType.Name}");
-
-            mappingData.Add(info);
+            ProviderCatalogBuilder.RegisterMappings(catalog, mappings, GetProvider);
+            return catalog.Build();
         }
-
-        var mapperFactories = new Dictionary<string, Func<IMapper>>();
-
-        var dialectRegistryBuilder = new DialectRegistryBuilder();
-        foreach (var info in mappingData)
-            dialectRegistryBuilder.AddDialect(info.DialectType, [.. info.Aliases]);
-
-        var dialectRegistry = dialectRegistryBuilder.Build();
-
-        foreach (var info in mappingData)
+        catch (ProviderRegistrationException exception)
         {
-            var provider = GetProvider(info.ProviderInvariantName);
-            if (provider == null)
-            {
-                Debug.WriteLine($"Skipping mapper for '{info.ProviderInvariantName}' (no provider found).");
-                continue;
-            }
-
-            var paramTypes = new List<Type>
-            {
-                typeof(DbConnectionStringBuilder),
-                typeof(IDialect),
-                typeof(IParametrizer)
-            };
-
-            if (typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType))
-            {
-                paramTypes.Add(typeof(string));
-            }
-
-            var ctor = info.MapperType.GetConstructor(BindingFlags.Instance | BindingFlags.Public, paramTypes.ToArray())
-                       ?? throw new NullReferenceException($"Missing constructor on {info.MapperType.Name}");
-
-            var dialect = dialectRegistry.Get(info.Aliases.First());
-            var rootPath = _rootPath;
-            IMapper CreateMapper()
-            {
-                var ctorParams = new List<object>
-                {
-                    provider.CreateConnectionStringBuilder()!,
-                    dialect,
-                    ParametrizerFactory.Instantiate(info.ParametrizerType)
-                };
-
-                if (typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType))
-                    ctorParams.Add(rootPath);
-
-                return (IMapper)ctor.Invoke(ctorParams.ToArray());
-            }
-
-            foreach (var alias in info.Aliases)
-            {
-                if (!mapperFactories.TryAdd(alias, CreateMapper))
-                    throw new MapperAlreadyExistingException(alias, mapperFactories[alias](), CreateMapper());
-            }
+            // Preserve the compatibility API's duplicate-mapper exception without constructing mappers.
+            var conflicts = mappings.Where(info => info.Aliases.Any(alias =>
+                alias.Trim().Equals(exception.Alias, StringComparison.OrdinalIgnoreCase))).Take(2).ToArray();
+            throw new MapperAlreadyExistingException(exception.Alias, conflicts[0].MapperType, conflicts[1].MapperType);
         }
-
-        return new SchemeRegistry(mapperFactories);
     }
 
     #region Fluent Configuration for Mappings
@@ -233,7 +169,7 @@ public class SchemeRegistryBuilder
     public SchemeRegistryBuilder ReplaceMapper(Type oldMapper, Type newMapper)
     {
         var info = _mapperInfos.Single(x => x.MapperType == oldMapper);
-        info.MapperType = newMapper;
+        _mapperInfos[_mapperInfos.IndexOf(info)] = info with { MapperType = newMapper };
         return this;
     }
 

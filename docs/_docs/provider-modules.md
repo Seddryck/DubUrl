@@ -149,11 +149,26 @@ var registry = new ProviderCatalogBuilder()
     .Build();
 ```
 
-The module captures provider attributes once during discovery, combines repeated wrapper locators,
-and retains constructors, dialect instances, and optional BulkCopy adapters in its registrations.
+The module captures provider attributes once during discovery and combines repeated wrapper locators.
+`ProviderCatalogBuilder` compiles the discovered metadata and retains constructors, dialect instances,
+and optional BulkCopy adapters in its registrations.
 Dialect lookup and URL compilation use those registrations without scanning provider attributes again.
 ODBC mapper constructors accept configured locator options through the same path.
 
 Explicit `IDubUrlProviderModule` implementations remain available for custom registration behavior.
-The attribute adapter and built-in module retain `RequiresUnreferencedCode` annotations because
+The attribute adapter and default discovery retain `RequiresUnreferencedCode` annotations because
 reflection requires preserved metadata; the default registration path does not generate typed code.
+
+## One registry construction path
+
+`ProviderCatalogBuilder` owns mapping compilation and creates the registrations used by `SchemeRegistry`.
+The older `SchemeRegistryBuilder` remains a compatibility configuration facade: `AddMapping`,
+`WithAutoDiscoveredMappings`, `WithAssemblies`, `WithRootPath`, exclusions and added aliases feed the
+same compiler. It does not maintain separate mapper-constructor or provider-resolution implementations.
+`ReplaceMapper` updates explicitly added mappings. Duplicate registrations retain the compatibility
+facade's `MapperAlreadyExistingException`; direct catalog registration uses `ProviderRegistrationException`.
+
+`SchemeRegistry` stores one registration table for all construction paths. Its public mapper-delegate
+constructor remains available and adapts those delegates without invoking them eagerly. URL resolution
+creates and rewrites one mapper; provider lookup reuses that mapper when available. Default registry
+caching, explicit snapshots, capabilities and optional BulkCopy metadata use the same registrations.

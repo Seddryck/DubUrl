@@ -18,7 +18,7 @@ public abstract class BaseMapper : IMapper, DubUrl.Conversion.IReverseConnection
 {
     private string? providerInvariantName;
     private Type? connectivityType;
-    internal void SetProviderMetadata(string invariant, Type connectivity)
+    internal void SetProviderMetadata(string invariant, Type? connectivity)
         => (providerInvariantName, connectivityType) = (invariant, connectivity);
 
     private IConnectionStringRewriter Rewriter { get; }

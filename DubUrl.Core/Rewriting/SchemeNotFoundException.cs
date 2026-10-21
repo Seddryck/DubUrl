@@ -21,5 +21,8 @@ public class SchemeNotFoundException : DubUrlException
 public class MapperAlreadyExistingException : DubUrlException
 {
     public MapperAlreadyExistingException(string alias, IMapper existing, IMapper newOne)
-        : base($"The alias '{alias}' is already associated to the mapper '{existing.GetType().Name}' and cannot be associated to a second mapper '{newOne.GetType().Name}'") { }
+        : this(alias, existing.GetType(), newOne.GetType()) { }
+
+    internal MapperAlreadyExistingException(string alias, Type existing, Type newOne)
+        : base($"The alias '{alias}' is already associated to the mapper '{existing.Name}' and cannot be associated to a second mapper '{newOne.Name}'") { }
 }

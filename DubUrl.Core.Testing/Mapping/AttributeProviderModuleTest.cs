@@ -104,7 +104,7 @@ public class AttributeProviderModuleTest
         probe.Setup(value => value.Locate()).Returns(new[] { typeof(CountedMapper), typeof(CountedDatabase) });
         var infos = AttributeProviderModule.Discover(probe.Object);
         var builder = new ProviderCatalogBuilder();
-        AttributeProviderModule.RegisterMappings(builder, infos, _ => new StubFactory());
+        ProviderCatalogBuilder.RegisterMappings(builder, infos, _ => new StubFactory());
         var dialects = builder.BuildDialects();
         var registry = builder.Build();
         for (var i = 0; i < 3; i++)
