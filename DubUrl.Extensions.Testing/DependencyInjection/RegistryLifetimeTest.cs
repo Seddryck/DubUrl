@@ -124,10 +124,10 @@ public class RegistryLifetimeTest
         var factory = provider.GetRequiredService<ConnectionUrlFactory>();
         var store = new ProviderPackStore(root);
         await InstallFixtureAsync(store, "1.0.0");
-        SchemeRegistryBuilder.RefreshDefault();
+        DefaultRegistry.Refresh();
         Assert.Multiple(() =>
         {
-            Assert.That(SchemeRegistryBuilder.GetDefault().CanHandle("testing"), Is.True);
+            Assert.That(DefaultRegistry.Get().CanHandle("testing"), Is.True);
             Assert.That(provider.GetRequiredService<ISchemeRegistry>(), Is.SameAs(registry));
             Assert.That(factory.Instantiate("custom://localhost/demo").Parse(), Is.Empty);
             Assert.Throws<SchemeNotFoundException>(() => factory.Instantiate("testing://localhost/demo").Parse());
@@ -146,7 +146,7 @@ public class RegistryLifetimeTest
         await InstallFixtureAsync(new ProviderPackStore(root), "1.0.0");
         Assert.Multiple(() =>
         {
-            Assert.That(SchemeRegistryBuilder.GetDefault().CanHandle("testing"), Is.True);
+            Assert.That(DefaultRegistry.Get().CanHandle("testing"), Is.True);
             Assert.That(provider.GetRequiredService<ISchemeRegistry>(), Is.SameAs(registry));
             Assert.That(factory.Instantiate("custom://localhost/demo").Parse(), Is.Empty);
             Assert.Throws<SchemeNotFoundException>(() => factory.Instantiate("testing://localhost/demo").Parse());

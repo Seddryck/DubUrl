@@ -136,7 +136,7 @@ When your application should keep the same provider selection until restart, cap
 using DubUrl.Extensions.DependencyInjection;
 using DubUrl.Mapping;
 
-var registry = SchemeRegistryBuilder.GetDefault();
+var registry = DefaultRegistry.Get();
 builder.Services.AddSingleton<ISchemeRegistry>(registry);
 builder.Services.AddDubUrl();
 ```
@@ -146,7 +146,7 @@ The singleton can also be registered after `AddDubUrl()`. The explicit provider 
 for controlled application configuration and tests. Updating the default cache does not replace
 these explicitly supplied registries.
 
-Call `SchemeRegistryBuilder.RefreshDefault()` after dynamically loading application providers,
+Call `DefaultRegistry.Refresh()` after dynamically loading application providers,
 changing driver factory registrations or editing installed files manually. Default DI factories
 observe the refreshed cache for their next URL. See [connector discovery and refresh behavior]({{ '/docs/provider-packs/' | relative_url }})
 and [explicit provider registration]({{ '/docs/provider-modules/' | relative_url }}) for details.

@@ -32,9 +32,8 @@ public abstract class BaseAdomdProvider
         registrator.Register();
         DateOnlyMappings.Register();
 
-        SchemeRegistry = new SchemeRegistryBuilder()
-            .WithAssemblies(assemblies)
-            .WithAutoDiscoveredMappings()
+        SchemeRegistry = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies]))
             .Build();
     }
 

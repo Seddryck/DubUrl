@@ -7,7 +7,7 @@ namespace DubUrl;
 /// <summary>Resolves a URL into a long-lived, explicitly owned connection source.</summary>
 public sealed class ConnectionSourceUrl : BaseConnectionUrl
 {
-    public ConnectionSourceUrl(string url) : this(url, SchemeRegistryBuilder.GetDefault()) { }
+    public ConnectionSourceUrl(string url) : this(url, DefaultRegistry.Get()) { }
     public ConnectionSourceUrl(string url, ISchemeRegistry registry) : base(url, new Parser(), registry) { }
 
     public ConnectionSource Create(ConnectionSourceOptions? options = null)

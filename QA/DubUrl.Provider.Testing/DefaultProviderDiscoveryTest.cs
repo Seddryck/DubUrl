@@ -63,7 +63,7 @@ public class DefaultProviderDiscoveryTest
             Assert.That(url.Dialect.GetType().Name, Is.EqualTo("PgsqlDialect"));
             Assert.That(AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetName().Name),
                 Does.Not.Contain("DubUrl"));
-            Assert.That(SchemeRegistryBuilder.GetDefaultDialectRegistry("pg").Get("pg").GetType().Name,
+            Assert.That(DefaultRegistry.GetDialects("pg").Get("pg").GetType().Name,
                 Is.EqualTo("PgsqlDialect"));
         });
     }

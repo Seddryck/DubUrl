@@ -47,7 +47,7 @@ internal static class Program
         if (context.Entry.Provider != "postgresql-npgsql" || context.Store.Inspect().Count != 0)
             throw new ArgumentException("Cache verification requires PostgreSQL and an empty store.");
         Environment.SetEnvironmentVariable("DUBURL_PROVIDER_STORE", context.Store.RootPath);
-        var empty = SchemeRegistryBuilder.GetDefault();
+        var empty = DefaultRegistry.Get();
         try
         {
             _ = new ConnectionUrl("pg://localhost/demo").Parse();
@@ -55,19 +55,19 @@ internal static class Program
         }
         catch (SchemeNotFoundException) { }
         await MutateInChildAsync("install", args);
-        var installed = SchemeRegistryBuilder.GetDefault();
+        var installed = DefaultRegistry.Get();
         var existing = new ConnectionUrl("pg://localhost/demo");
         var parsed = existing.Parse();
-        if (ReferenceEquals(empty, installed) || !ReferenceEquals(installed, SchemeRegistryBuilder.GetDefault()))
+        if (ReferenceEquals(empty, installed) || !ReferenceEquals(installed, DefaultRegistry.Get()))
             throw new InvalidOperationException("Installation did not replace and then reuse the cached registry.");
         if (ReferenceEquals(installed.GetMapper("pg"), installed.GetMapper("pg")))
             throw new InvalidOperationException("URLs must receive independent mapper instances.");
         await MutateInChildAsync("install", args);
-        var reinstalled = SchemeRegistryBuilder.GetDefault();
+        var reinstalled = DefaultRegistry.Get();
         if (ReferenceEquals(installed, reinstalled))
             throw new InvalidOperationException("Same-version replacement did not invalidate the cache.");
         await MutateInChildAsync("uninstall", args);
-        var removed = SchemeRegistryBuilder.GetDefault();
+        var removed = DefaultRegistry.Get();
         if (ReferenceEquals(reinstalled, removed) || existing.Parse() != parsed)
             throw new InvalidOperationException("Removal did not preserve the existing URL snapshot.");
         try
@@ -76,7 +76,7 @@ internal static class Program
             throw new InvalidOperationException("A new URL resolved an uninstalled provider.");
         }
         catch (SchemeNotFoundException) { }
-        if (ReferenceEquals(removed, SchemeRegistryBuilder.RefreshDefault()))
+        if (ReferenceEquals(removed, DefaultRegistry.Refresh()))
             throw new InvalidOperationException("Explicit refresh did not replace the snapshot.");
         Console.WriteLine("Registry cache: cross-process install/reinstall/remove, independent mappers, existing URLs and explicit refresh passed.");
     }
@@ -135,7 +135,7 @@ internal static class Program
 
         // This verifier references Core only: exercise the same discovery path as ConnectionUrl(string).
         Environment.SetEnvironmentVariable("DUBURL_PROVIDER_STORE", context.Store.RootPath);
-        var schemes = SchemeRegistryBuilder.GetDefault();
+        var schemes = DefaultRegistry.Get();
         var scheme = context.Entry.Schemes?.FirstOrDefault()
             ?? throw new InvalidOperationException("The connector has no scheme to verify.");
         var factory = schemes.GetProviderFactory(SchemeKey.Parse(scheme));

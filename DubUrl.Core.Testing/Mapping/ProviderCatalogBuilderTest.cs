@@ -79,7 +79,7 @@ public class ProviderCatalogBuilderTest
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
         DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
 
-        var registry = SchemeRegistryBuilder.GetDefault();
+        var registry = DefaultRegistry.Get();
 
         Assert.Multiple(() =>
         {

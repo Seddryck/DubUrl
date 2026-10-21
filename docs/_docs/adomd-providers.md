@@ -34,9 +34,8 @@ using DubUrl.Mapping;
 
 DbProviderFactories.RegisterFactory(
     "Microsoft.AnalysisServices.AdomdClient", AdomdFactory.Instance);
-var registry = new SchemeRegistryBuilder()
-    .WithAssemblies(typeof(PowerBiPremiumMapper).Assembly)
-    .WithAutoDiscoveredMappings()
+var registry = new ProviderCatalogBuilder()
+    .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(PowerBiPremiumMapper).Assembly]))
     .Build();
 var url = Environment.GetEnvironmentVariable("DUBURL_POWERBI_URL")
     ?? throw new InvalidOperationException("Set DUBURL_POWERBI_URL first.");

@@ -135,6 +135,9 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
     private string[] GetEffectiveAliases(ProviderRegistration provider)
         => provider.Aliases.Where(alias => ReferenceEquals(_aliases[alias], provider)).ToArray();
 
+    internal static DbProviderFactory? ResolveRegisteredFactory(string invariant)
+        => DbProviderFactories.TryGetFactory(invariant, out var factory) ? factory : null;
+
     // Adapt the public mapper-delegate constructor without invoking user code eagerly.
     internal static Dictionary<string, SchemeRegistration> AdaptMapperFactories(Dictionary<string, Func<IMapper>> factories)
     {
@@ -144,7 +147,7 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
             DbProviderFactory ResolveFactory(IMapper? mapper)
             {
                 var invariant = (mapper ?? pair.Value()).GetProviderName();
-                return SchemeRegistryBuilder.GetProvider(invariant)
+                return ProviderCatalogBuilder.ResolveRegisteredFactory(invariant)
                     ?? throw new ProviderNotFoundException(invariant, DbProviderFactories.GetProviderInvariantNames().ToArray());
             }
             return new SchemeRegistration(pair.Value, ResolveFactory, new Dictionary<Type, object>(), null);

@@ -17,6 +17,18 @@ namespace DubUrl.Core.Testing;
 #if NET7_0_OR_GREATER
 public class DataSourceUrlTest
 {
+    [Test]
+    public void PublicConstructor_UsesExplicitRegistry()
+    {
+        var registry = new Mock<ISchemeRegistry>();
+        registry.Setup(value => value.Resolve(It.IsAny<ConnectionUri>())).Returns(Resolved("fixed"));
+
+        var url = new DataSourceUrl("custom://localhost/demo", registry.Object);
+
+        Assert.That(url.Parse(), Is.EqualTo("fixed"));
+        registry.Verify(value => value.Resolve(It.IsAny<ConnectionUri>()), Times.Once);
+    }
+
     private static ResolvedConnection Resolved(string connectionString = "", DbProviderFactory? providerFactory = null)
         => new(
             connectionString,

@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.OleDb.Mapping;
 using DubUrl.OleDb.Providers;
 using NUnit.Framework;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.OleDb.Testing;
 
-public class SchemeRegistryBuilderTests
+public class ProviderCatalogBuilderTests
 {
     [SetUp]
     public void DefaultRegistration()
@@ -33,9 +33,8 @@ public class SchemeRegistryBuilderTests
     [TestCase("oledb+xlsb", typeof(OleDbMapper))]
     public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeRegistryBuilder()
-            .WithAssemblies(typeof(OleDbRewriter).Assembly, typeof(SchemeRegistry).Assembly)
-            .WithAutoDiscoveredMappings();
+        var builder = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(OleDbRewriter).Assembly, typeof(SchemeRegistry).Assembly]));
         var registry = builder.Build();
         var result = registry.GetMapper(schemeList.Split(['+', ':']));
 
@@ -47,9 +46,8 @@ public class SchemeRegistryBuilderTests
     [TestCase("mssql+oledb", typeof(OleDbMapper))]
     public void Instantiate_RevertedScheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeRegistryBuilder()
-            .WithAssemblies(typeof(OleDbRewriter).Assembly, typeof(SchemeRegistry).Assembly)
-            .WithAutoDiscoveredMappings();
+        var builder = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(OleDbRewriter).Assembly, typeof(SchemeRegistry).Assembly]));
         var registry = builder.Build();
         var result = registry.GetMapper(schemeList.Split(['+', ':']));
 

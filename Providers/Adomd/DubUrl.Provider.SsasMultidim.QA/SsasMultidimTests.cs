@@ -15,7 +15,8 @@ public sealed class SsasMultidimTests : AdomdContract
     {
         var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(SsasMultidimDatabase).Assembly };
         new ProviderFactoriesRegistrator(new BinFolderDiscoverer(assemblies)).Register();
-        return new SchemeRegistryBuilder().WithAssemblies(assemblies).WithAutoDiscoveredMappings().Build();
+        return new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies])).Build();
     }
 
     protected override string ConnectionUrl => "ssasmultidim://localhost/multidim/AdventureWorks";

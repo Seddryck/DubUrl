@@ -47,6 +47,6 @@ For ASP.NET Core applications and other hosts using dependency injection, see
 DI supports application composition and configuration; direct construction already shares Core's
 registry cache.
 
-The constructor `ConnectionUrl(string url, ISchemeRegistry registry)` accepts a built registry, not a `SchemeMapperBuilder`. Create registries with `DubUrl.Mapping.SchemeRegistryBuilder`; see the [OLE DB guide]({{ '/docs/oledb-provider-locators/' | relative_url }}) for extension-assembly registration.
+The constructor `ConnectionUrl(string url, ISchemeRegistry registry)` accepts a built registry, not a builder. Create fixed registries with `DubUrl.Mapping.ProviderCatalogBuilder`; see the [OLE DB guide]({{ '/docs/oledb-provider-locators/' | relative_url }}) for extension-assembly registration.
 
 `Dialect`, `Connectivity`, and `Parametrizer` expose the metadata resolved for the URL. For connection leases and reusable sources, see the [connection source API]({{ '/docs/connection-source-reference/' | relative_url }}).

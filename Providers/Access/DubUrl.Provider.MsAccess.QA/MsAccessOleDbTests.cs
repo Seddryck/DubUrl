@@ -17,7 +17,8 @@ public sealed class MsAccessOleDbTests : OleDbContract
     {
         var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
         new ProviderFactoriesRegistrator(new BinFolderDiscoverer(assemblies)).Register();
-        registry = new SchemeRegistryBuilder().WithAssemblies(assemblies).WithAutoDiscoveredMappings().Build();
+        registry = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies])).Build();
     }
 
     protected override ConnectionUrl CreateConnectionUrl() => new("oledb+accdb:///MsAccess/DubUrl.accdb", registry!);

@@ -20,7 +20,7 @@ public static class WorkerComposition
             .Build();
 
         new ProviderFactoriesRegistrator(new WorkerProviderFactoriesDiscoverer()).Register();
-        var dialects = SchemeRegistryBuilder.GetDefaultDialectRegistry();
+        var dialects = DefaultRegistry.GetDialects();
         var renderableDialects = dialects.GetAll()
             .SelectMany(dialect => dialect.Aliases)
             .Distinct(StringComparer.OrdinalIgnoreCase)

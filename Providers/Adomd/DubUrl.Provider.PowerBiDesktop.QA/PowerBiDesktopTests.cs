@@ -12,7 +12,8 @@ public sealed class PowerBiDesktopTests : AdomdContract
     {
         var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(PowerBiDesktopDatabase).Assembly };
         new ProviderFactoriesRegistrator(new BinFolderDiscoverer(assemblies)).Register();
-        return new SchemeRegistryBuilder().WithAssemblies(assemblies).WithAutoDiscoveredMappings().Build();
+        return new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies])).Build();
     }
     protected override string ConnectionUrl => "pbix://localhost/Customer";
     protected override string InvalidConnectionUrl => "pbix://localhost/Missing";

@@ -47,16 +47,17 @@ public class RegistryConstructionTest
     }
 
     [Test]
-    public void CompatibilityBuilder_PreservesRootPathAliasAndFreshState_ThroughSharedCompiler()
+    public void ExplicitRegistration_PreservesRootPathAliasesAndFreshState()
     {
         var invariant = "registry-construction-" + Guid.NewGuid().ToString("N");
         var factory = new StubFactory();
         DbProviderFactories.RegisterFactory(invariant, factory);
         try
         {
-            var builder = new SchemeRegistryBuilder().WithRootPath("custom-root")
-                .AddMapping<FileMapper, AnsiDialect, NamedParametrizer>("Custom", "original", invariant)
-                .AddAlias("alternate", "original");
+            var builder = new ProviderCatalogBuilder().WithRootPath("custom-root");
+            builder.AddProvider(Registration(invariant, context => new FileMapper(
+                context.ConnectionStringBuilder, context.Dialect, context.Parametrizer, context.RootPath),
+                "original", "alternate"));
             var registry = builder.Build();
             var first = (FileMapper)registry.GetMapper("original");
             var second = (FileMapper)registry.GetMapper("alternate");
@@ -68,25 +69,26 @@ public class RegistryConstructionTest
                 Assert.That(second.Builder, Is.Not.SameAs(first.Builder));
                 Assert.That(registry.GetProviderFactory(SchemeKey.Parse("alternate")), Is.SameAs(factory));
             });
-            builder.RemoveMapping("alternate");
-            Assert.That(builder.Build().CanHandle("original"), Is.False);
+            builder.WithRootPath("changed-root");
+            Assert.That(((FileMapper)builder.Build().GetMapper("alternate")).Root, Is.EqualTo("changed-root"));
+            Assert.That(((FileMapper)registry.GetMapper("original")).Root, Is.EqualTo("custom-root"));
             Assert.That(registry.CanHandle("alternate"), Is.True);
         }
         finally { DbProviderFactories.UnregisterFactory(invariant); }
     }
 
     [Test]
-    public void CompatibilityBuilder_ReplacesExplicitMapper_AndSkipsMissingFactories()
+    public void ExplicitRegistration_SkipsMissingFactory_AndBuildsWhenRegistered()
     {
         var invariant = "registry-construction-" + Guid.NewGuid().ToString("N");
-        var builder = new SchemeRegistryBuilder()
-            .AddMapping<FirstMapper, AnsiDialect, NamedParametrizer>("Custom", "custom", invariant);
+        var builder = new ProviderCatalogBuilder();
+        builder.AddProvider(Registration(invariant, context => new FirstMapper(
+            context.ConnectionStringBuilder, context.Dialect, context.Parametrizer), "custom"));
         Assert.That(builder.Build().CanHandle("custom"), Is.False);
         DbProviderFactories.RegisterFactory(invariant, new StubFactory());
         try
         {
-            builder.ReplaceMapper(typeof(FirstMapper), typeof(SecondMapper));
-            Assert.That(builder.Build().GetMapper("custom"), Is.TypeOf<SecondMapper>());
+            Assert.That(builder.Build().GetMapper("custom"), Is.TypeOf<FirstMapper>());
         }
         finally { DbProviderFactories.UnregisterFactory(invariant); }
     }
@@ -98,24 +100,27 @@ public class RegistryConstructionTest
         DbProviderFactories.RegisterFactory(invariant, new StubFactory());
         try
         {
-            var registry = new SchemeRegistryBuilder()
-                .AddMapping<OdbcMapper, AnsiDialect, PositionalParametrizer>("Custom", "odbc+custom", invariant).Build();
+            var catalog = new ProviderCatalogBuilder();
+            catalog.AddProvider(Registration(invariant, context => new OdbcMapper(
+                context.ConnectionStringBuilder, context.Dialect, context.Parametrizer), "odbc+custom"));
+            var registry = catalog.Build();
             Assert.That(registry.GetMapper("odbc+custom").GetConnectivity(), Is.TypeOf<OdbcConnectivity>());
         }
         finally { DbProviderFactories.UnregisterFactory(invariant); }
     }
 
     [Test]
-    public void DuplicateMappings_ReportCompatibilityError_WithoutConstructingMappers()
+    public void DuplicateRegistrations_ReportCatalogError_WithoutConstructingMappers()
     {
         var invariant = "registry-construction-" + Guid.NewGuid().ToString("N");
         DbProviderFactories.RegisterFactory(invariant, new StubFactory());
         try
         {
-            var builder = new SchemeRegistryBuilder()
-                .AddMapping<ThrowingMapper, AnsiDialect, NamedParametrizer>("First", "duplicate", invariant)
-                .AddMapping<SecondMapper, AnsiDialect, NamedParametrizer>("Second", "duplicate", invariant);
-            Assert.Throws<MapperAlreadyExistingException>(() => builder.Build());
+            var builder = new ProviderCatalogBuilder();
+            builder.AddProvider(Registration(invariant, context => new ThrowingMapper(
+                context.ConnectionStringBuilder, context.Dialect, context.Parametrizer), "duplicate"));
+            Assert.Throws<ProviderRegistrationException>(() => builder.AddProvider(Registration(invariant,
+                context => new SecondMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer), "duplicate")));
         }
         finally { DbProviderFactories.UnregisterFactory(invariant); }
     }
@@ -124,10 +129,21 @@ public class RegistryConstructionTest
     public void AutoDiscovery_IsIdempotent_AndRetainsBulkCopyCapabilities()
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
-        var registry = new SchemeRegistryBuilder().WithAutoDiscoveredMappings().WithAutoDiscoveredMappings().Build();
+        var registry = new ProviderCatalogBuilder().AddApplicationProviders().AddApplicationProviders().Build();
         var url = new ConnectionUrl("mssql://localhost/demo", registry);
         Assert.That(url.BulkCopyProvider, Is.Not.Null);
     }
+
+    private static ProviderRegistration Registration(string invariant,
+        Func<ProviderCompilationContext, BaseMapper> create, params string[] aliases)
+        => new("Custom", aliases, invariant,
+            () => DbProviderFactories.TryGetFactory(invariant, out var factory) ? factory : null,
+            Mock.Of<IDialect>(), () => new NamedParametrizer(), context =>
+            {
+                var mapper = create(context);
+                mapper.SetProviderMetadata(invariant, null);
+                return mapper;
+            });
 
     public class FirstMapper(DbConnectionStringBuilder builder, IDialect dialect, IParametrizer parametrizer)
         : BaseMapper(Mock.Of<IConnectionStringRewriter>(), dialect, parametrizer)

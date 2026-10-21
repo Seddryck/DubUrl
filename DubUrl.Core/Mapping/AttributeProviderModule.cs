@@ -12,7 +12,7 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
 {
     private readonly Assembly[] assemblies;
     private readonly MapperInfo[]? mappings;
-    private readonly Func<string, DbProviderFactory?> resolveFactory = SchemeRegistryBuilder.GetProvider;
+    private readonly Func<string, DbProviderFactory?> resolveFactory = ProviderCatalogBuilder.ResolveRegisteredFactory;
 
     private AttributeProviderModule(MapperInfo[] mappings, Func<string, DbProviderFactory?> factory)
         => (assemblies, this.mappings, resolveFactory) = ([], mappings, factory);

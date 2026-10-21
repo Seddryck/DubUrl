@@ -14,7 +14,8 @@ public sealed class MsSqlServerOleDbTests : OleDbContract
     {
         var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
         new ProviderFactoriesRegistrator(new BinFolderDiscoverer(assemblies)).Register();
-        registry = new SchemeRegistryBuilder().WithAssemblies(assemblies).WithAutoDiscoveredMappings().Build();
+        registry = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies])).Build();
     }
     protected override ConnectionUrl CreateConnectionUrl() => new("oledb+mssql://sa:Password12!@localhost/DubUrl?TrustServerCertificate=Yes", registry!);
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";

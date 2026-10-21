@@ -22,7 +22,7 @@ public class DialectRegistryBuilderTest
     [Test]
     public void GetDefault_SelectedScheme_LoadsCoreAliasesForDialect()
     {
-        var registry = SchemeRegistryBuilder.GetDefaultDialectRegistry("mysql");
+        var registry = DefaultRegistry.GetDialects("mysql");
 
         Assert.Multiple(() =>
         {
@@ -35,13 +35,13 @@ public class DialectRegistryBuilderTest
     [Test]
     public void GetDefault_UnknownScheme_ThrowsArgumentException()
         => Assert.That(
-            () => SchemeRegistryBuilder.GetDefaultDialectRegistry("unknown"),
+            () => DefaultRegistry.GetDialects("unknown"),
             Throws.ArgumentException.With.Property("ParamName").EqualTo("schemes"));
 
     [Test]
     public void GetAll_DefaultRegistry_ReturnsEveryRegisteredDialect()
     {
-        var registry = SchemeRegistryBuilder.GetDefaultDialectRegistry();
+        var registry = DefaultRegistry.GetDialects();
 
         Assert.Multiple(() =>
         {

@@ -101,7 +101,7 @@ public static class DubUrlServiceExtensions
             services.AddSingleton(schemeRegistry);
         else
             // Each resolution returns Core's current cached snapshot; this does not rebuild it.
-            services.TryAddTransient<ISchemeRegistry>(_ => SchemeRegistryBuilder.GetDefault());
+            services.TryAddTransient<ISchemeRegistry>(_ => DefaultRegistry.Get());
         services.AddSingleton<IDialectRegistry>(new DialectRegistryBuilder().Build());
         services.AddSingleton(provider => new ConnectionUrlFactory(
             () => provider.GetRequiredService<ISchemeRegistry>()));

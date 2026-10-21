@@ -49,7 +49,7 @@ public class DatabaseConnectionSourceTest
     {
         DbProviderFactories.RegisterFactory("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance);
         const string url = "duckdb://memory";
-        var factory = new ConnectionUrlFactory(DubUrl.Mapping.SchemeRegistryBuilder.GetDefault());
+        var factory = new ConnectionUrlFactory(DubUrl.Mapping.DefaultRegistry.Get());
         using var database = constructor switch
         {
             "url" => new DatabaseUrl(url),

@@ -52,7 +52,7 @@ revision marker. This also invalidates cached defaults in other running processe
 A cross-process store lock prevents discovery from reading a partially published installation.
 Concurrent callers share initialization; failed discovery is retried rather than cached permanently.
 Each URL still receives its own mapper and connection state. Changing `DUBURL_PROVIDER_STORE` selects
-a new snapshot. Call `SchemeRegistryBuilder.RefreshDefault()` after dynamically loading an application
+a new snapshot. Call `DefaultRegistry.Refresh()` after dynamically loading an application
 provider or changing driver factory registrations, or after editing installed files manually. Explicitly
 supplied registries remain under the application's control.
 

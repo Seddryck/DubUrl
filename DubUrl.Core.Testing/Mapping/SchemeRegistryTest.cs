@@ -26,7 +26,7 @@ public class SchemeRegistryTest
         Type expectedMapperType,
         string expectedProviderName)
     {
-        var registry = new SchemeRegistryBuilder().WithAutoDiscoveredMappings().Build();
+        var registry = new ProviderCatalogBuilder().AddApplicationProviders().Build();
 
         var aliasMapper = registry.GetMapper(alias);
         var canonicalMapper = registry.GetMapper(canonicalScheme);
@@ -44,7 +44,7 @@ public class SchemeRegistryTest
     [Test]
     public void Resolve_UrlWithoutOptionalValues_DoesNotReuseValuesFromPreviousResolution()
     {
-        var registry = new SchemeRegistryBuilder().WithAutoDiscoveredMappings().Build();
+        var registry = new ProviderCatalogBuilder().AddApplicationProviders().Build();
 
         var first = new SqlConnectionStringBuilder(
             new ConnectionUrl("mssql://user:password@first-host/first-db?Application Name=first-app", registry).Parse()
@@ -68,7 +68,7 @@ public class SchemeRegistryTest
     public async Task Resolve_SameProviderInParallel_ReturnsIndependentConnectionStrings()
     {
         const int resolutionCount = 100;
-        var registry = new SchemeRegistryBuilder().WithAutoDiscoveredMappings().Build();
+        var registry = new ProviderCatalogBuilder().AddApplicationProviders().Build();
 
         var connectionStrings = await Task.WhenAll(
             Enumerable.Range(0, resolutionCount)
@@ -93,7 +93,7 @@ public class SchemeRegistryTest
     [Test]
     public void GetMapper_AliasesForSameProvider_ReturnFreshMappers()
     {
-        var registry = new SchemeRegistryBuilder().WithAutoDiscoveredMappings().Build();
+        var registry = new ProviderCatalogBuilder().AddApplicationProviders().Build();
 
         var first = registry.GetMapper("mssql");
         var second = registry.GetMapper("ms");

@@ -12,7 +12,7 @@ namespace DubUrl.QA;
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public abstract class BaseOleDbProvider
 {
-    protected SchemeRegistryBuilder SchemeRegistryBuilder { get; set; }
+    protected ProviderCatalogBuilder Catalog { get; set; }
 
     [OneTimeSetUp]
     public void SetupFixture()
@@ -23,9 +23,8 @@ public abstract class BaseOleDbProvider
         var registrator = new ProviderFactoriesRegistrator(discovery);
         registrator.Register();
 
-        SchemeRegistryBuilder = new SchemeRegistryBuilder()
-            .WithAssemblies(assemblies)
-            .WithAutoDiscoveredMappings();
+        Catalog = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies]));
     }
 
     public abstract string ConnectionString { get; }
@@ -33,7 +32,7 @@ public abstract class BaseOleDbProvider
     [Test]
     public void Connect()
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
+        var connectionUrl = new ConnectionUrl(ConnectionString, Catalog.Build());
         Console.WriteLine(connectionUrl.Parse());
 
         using var conn = connectionUrl.Connect();
@@ -44,7 +43,7 @@ public abstract class BaseOleDbProvider
     public abstract void QueryCustomer();
     protected virtual void QueryCustomer(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
+        var connectionUrl = new ConnectionUrl(ConnectionString, Catalog.Build());
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();
@@ -56,7 +55,7 @@ public abstract class BaseOleDbProvider
     public abstract void QueryCustomerWithParams();
     protected virtual void QueryCustomerWithParams(string sql)
     {
-        var connectionUrl = new ConnectionUrl(ConnectionString, SchemeRegistryBuilder.Build());
+        var connectionUrl = new ConnectionUrl(ConnectionString, Catalog.Build());
 
         using var conn = connectionUrl.Open();
         using var cmd = conn.CreateCommand();

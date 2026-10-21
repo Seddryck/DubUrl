@@ -162,11 +162,15 @@ reflection requires preserved metadata; the default registration path does not g
 ## One registry construction path
 
 `ProviderCatalogBuilder` owns mapping compilation and creates the registrations used by `SchemeRegistry`.
-The older `SchemeRegistryBuilder` remains a compatibility configuration facade: `AddMapping`,
-`WithAutoDiscoveredMappings`, `WithAssemblies`, `WithRootPath`, exclusions and added aliases feed the
-same compiler. It does not maintain separate mapper-constructor or provider-resolution implementations.
-`ReplaceMapper` updates explicitly added mappings. Duplicate registrations retain the compatibility
-facade's `MapperAlreadyExistingException`; direct catalog registration uses `ProviderRegistrationException`.
+Use `DefaultRegistry.Get()` for the current cached discovery snapshot and `DefaultRegistry.GetDialects()`
+for its dialects. Installed connector revisions invalidate the cache, including changes from another
+process. Call `DefaultRegistry.Refresh()` after dynamically loading application providers.
+
+For a fixed configuration, use `new ProviderCatalogBuilder().AddApplicationProviders().Build()`,
+`AddModule(new AttributeProviderModule(assemblies))` for selected assemblies, or `AddProvider(...)`
+for explicit registrations. Set all desired aliases on each `ProviderRegistration`; select or replace
+registrations before adding them. Duplicate aliases throw `ProviderRegistrationException`.
+`DataSourceUrl`, like `ConnectionUrl`, accepts a built `ISchemeRegistry`.
 
 `SchemeRegistry` stores one registration table for all construction paths. Its public mapper-delegate
 constructor remains available and adapts those delegates without invoking them eagerly. URL resolution

@@ -1,4 +1,4 @@
-﻿using DubUrl.Adomd.Mapping;
+using DubUrl.Adomd.Mapping;
 using DubUrl.Mapping;
 using NUnit.Framework;
 using System;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Adomd.Testing.Mapping;
 
-public class SchemeMapperBuilderTest
+public class ProviderCatalogBuilderTest
 {
     [SetUp]
     public void DefaultRegistration()
@@ -32,9 +32,8 @@ public class SchemeMapperBuilderTest
     [TestCase("ssasmultidim", typeof(SsasMultidimMapper))]
     public void Instantiate_Scheme_CorrectType(string schemeList, Type expected)
     {
-        var builder = new SchemeRegistryBuilder()
-            .WithAssemblies(typeof(PowerBiPremiumMapper).Assembly)
-            .WithAutoDiscoveredMappings();
+        var builder = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(PowerBiPremiumMapper).Assembly]));
         var registry = builder.Build();
         var result = registry.GetMapper(schemeList.Split(['+', ':']));
 

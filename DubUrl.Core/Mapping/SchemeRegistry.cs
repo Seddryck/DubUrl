@@ -83,7 +83,7 @@ public class SchemeRegistry : ISchemeRegistry
 
     private SchemeRegistration GetRegistration(SchemeKey scheme)
     {
-        var alias = SchemeRegistryBuilder.GetAlias(scheme);
+        var alias = scheme.GetRegistryAlias();
 
         if (!_registrations.TryGetValue(alias, out var registration))
             throw new SchemeNotFoundException(alias, [.. _registrations.Keys]);
@@ -100,7 +100,7 @@ public class SchemeRegistry : ISchemeRegistry
     public bool TryGetCapability<TCapability>(SchemeKey scheme, out TCapability? capability)
         where TCapability : class
     {
-        var alias = SchemeRegistryBuilder.GetAlias(scheme);
+        var alias = scheme.GetRegistryAlias();
         if (_registrations.TryGetValue(alias, out var registration)
             && registration.Capabilities.TryGetValue(typeof(TCapability), out var value))
         {
@@ -113,5 +113,5 @@ public class SchemeRegistry : ISchemeRegistry
     }
 
     public bool CanHandle(string scheme)
-        => _registrations.ContainsKey(SchemeRegistryBuilder.GetAlias(SchemeKey.Parse(scheme)));
+        => _registrations.ContainsKey(SchemeKey.Parse(scheme).GetRegistryAlias());
 }
