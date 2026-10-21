@@ -51,4 +51,18 @@ public class ConsolidatedArchiveTest
     }
 
     private static Assembly Load(string path) => Assembly.Load(Path.GetFileNameWithoutExtension(path));
+
+    [TestCase("postgresql-npgsql")]
+    [TestCase("postgresql-odbc")]
+    public void Loader_UsesSchemesAndDriver_NotDatabaseDisplayNames(string provider)
+    {
+        BundledProviderCatalog.Create().TryGet(provider, out var definition);
+        var renamed = definition! with
+        {
+            Databases = definition.Databases.Select(database => database with { Name = "Renamed for presentation" }).ToArray()
+        };
+        var registry = new ProviderCatalogBuilder().AddModule(AttributeProviderModule.FromConnector(renamed, Load)).Build();
+        foreach (var scheme in definition.Schemes)
+            Assert.That(registry.CanHandle(scheme), Is.True);
+    }
 }

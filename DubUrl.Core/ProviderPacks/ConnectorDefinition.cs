@@ -40,7 +40,6 @@ public sealed record ConnectorDefinition
             && Databases is { Count: > 0 }
             && Databases.All(database => database is not null && !string.IsNullOrWhiteSpace(database.Name)
                 && database.Schemes is { Count: > 0 } && database.Schemes.All(scheme => !string.IsNullOrWhiteSpace(scheme)))
-            && Databases.Select(database => database.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() == Databases.Count
             && Databases.SelectMany(database => database.Schemes).Count() == Schemes.Count
             && !string.IsNullOrWhiteSpace(Assembly)
             && !string.IsNullOrWhiteSpace(Driver)

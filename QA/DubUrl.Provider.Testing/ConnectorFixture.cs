@@ -12,7 +12,7 @@ internal static class ConnectorFixture
         Assembly = "DubUrl.Provider.PostgreSql.dll", ImplementationAssemblies = ["DubUrl.Provider.PostgreSql.dll"],
         Driver = "Npgsql", Databases = AttributeProviderModule.Discover(Assembly.Load("DubUrl.Provider.PostgreSql"))
             .Where(mapping => mapping.ProviderInvariantName == "Npgsql")
-            .Select(mapping => new ConnectorDatabase(mapping.DatabaseName, mapping.Aliases)).ToArray(),
+            .Select(mapping => new ConnectorDatabase(mapping.Database!.Name, mapping.Aliases)).ToArray(),
         TargetFrameworks = [$"net{Environment.Version.Major}.0"], RuntimeIdentifiers = []
     };
     public static AttributeProviderModule Create() => AttributeProviderModule.FromConnector(Definition,

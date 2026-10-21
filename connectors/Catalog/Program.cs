@@ -8,7 +8,7 @@ if (args.Length != 3) throw new ArgumentException("Expected matrix path, output 
 var version = Regex.Match(args[2], @"^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:[-+].+)?$");
 if (!version.Success) throw new ArgumentException("Invalid connector version.");
 using var matrix = JsonDocument.Parse(File.ReadAllText(args[0]));
-if (matrix.RootElement.GetProperty("schemaVersion").GetInt32() != 1) throw new InvalidOperationException("Expected matrix schema version 1.");
+if (matrix.RootElement.GetProperty("schemaVersion").GetInt32() != 2) throw new InvalidOperationException("Expected matrix schema version 2.");
 var rows = matrix.RootElement.GetProperty("connectors").EnumerateArray()
     .Where(row => row.GetProperty("status").GetString() == "ready").OrderBy(row => row.GetProperty("id").GetString(), StringComparer.Ordinal).ToArray();
 foreach (var key in new[] { "id" })
@@ -20,7 +20,7 @@ var mappings = AttributeProviderModule.Discover(assemblies);
 var selections = rows.Select(row =>
 {
     string Value(string name) => row.GetProperty(name).GetString()!;
-    var mapping = AttributeProviderModule.SelectMapping(mappings, Value("database"), Value("technology"));
+    var mapping = AttributeProviderModule.SelectMapping(mappings, Value("databaseScheme"), Value("technology"));
     var implementations = new[] { "DubUrl.Provider." + Value("family") + ".dll" }
         .Concat(Value("technology") == "System.Data.Odbc" ? new[] { "DubUrl.Provider.Odbc.dll" }
             : Value("technology") == "System.Data.OleDb" ? new[] { "DubUrl.OleDb.dll" } : Array.Empty<string>()).Distinct().ToArray();
@@ -38,16 +38,16 @@ var entries = selections.GroupBy(selection => selection.Key).Select(group =>
     var driver = row.GetProperty("technology").GetString()!;
     var supported = mappings.Where(mapping => mapping.ProviderInvariantName == driver
         && canonical.Implementations.Contains(mapping.MapperType.Assembly.GetName().Name + ".dll")
-        && canonical.Implementations.Contains(mapping.DialectType.Assembly.GetName().Name + ".dll")).ToArray();
+        && canonical.Implementations.Contains(mapping.Database!.Type.Assembly.GetName().Name + ".dll")).ToArray();
     var databases = supported.Select(mapping => new ConnectorDatabase(
-        mapping.DatabaseName.Contains(" for ", StringComparison.Ordinal) ? mapping.DatabaseName[(mapping.DatabaseName.IndexOf(" for ", StringComparison.Ordinal) + 5)..] : mapping.DatabaseName,
+        mapping.Database!.Name,
         mapping.Aliases)).OrderBy(database => database.Name, StringComparer.Ordinal).ToArray();
     var id = row.GetProperty("id").GetString()!;
     return new ConnectorDefinition
     {
         Provider = id, Databases = databases, Version = args[2],
         DubUrlApiRange = $"[{version.Groups["major"].Value}.{version.Groups["minor"].Value}.{version.Groups["patch"].Value},{int.Parse(version.Groups["major"].Value) + 1}.0.0)",
-        Assembly = canonical.Mapping.DialectType.Assembly.GetName().Name + ".dll",
+        Assembly = canonical.Mapping.Database!.Type.Assembly.GetName().Name + ".dll",
         ImplementationAssemblies = canonical.Implementations,
         Driver = driver,
         DriverAssembly = matrix.RootElement.GetProperty("technologies").EnumerateArray()

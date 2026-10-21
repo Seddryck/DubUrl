@@ -100,6 +100,13 @@ archive SHA-256 to that same definition for the catalog. These distribution fiel
 model and omitted locally. Core loads installed definitions without needing the catalog or a network.
 Schema-v1 catalogs and older single-database definitions must be rebuilt for the databases collection.
 
+Database names in definitions are presentation labels. Core retains the database type referenced by
+existing mapper and locator attributes, and validates installed mappings by their schemes and driver.
+Changing a label does not change which database is registered; distinct databases may share a label
+when their schemes differ. Duplicate or incorrect schemes still fail validation. The source matrix uses
+`databaseScheme` to select an existing database attribute alias rather than repeating its display name.
+No additional database ID list or serialized implementation type name is required.
+
 `DubUrl.Application` embeds this catalog's definitions during its normal SDK build.
 `BundledProviderCatalog.Create()` supplies the default catalog for application services and
 `BundledProviderCatalog.Describe()` groups entries by database. Hosts may provide an updated or custom

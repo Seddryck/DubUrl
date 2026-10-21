@@ -4,8 +4,7 @@
     <!-- Default binding for local solution builds; archive builds override every setting from the matrix. -->
     <ConnectorFamily Condition="'$(ConnectorFamily)' == ''">PostgreSql</ConnectorFamily>
     <ConnectorTechnology Condition="'$(ConnectorTechnology)' == ''">Npgsql</ConnectorTechnology>
-    <ConnectorDatabaseName Condition="'$(ConnectorDatabaseName)' == ''">PostgreSQL</ConnectorDatabaseName>
-    <Description>Provider binding for $(ConnectorDatabaseName) using $(ConnectorTechnology).</Description>
+    <Description>Provider dependencies for $(ConnectorFamily) using $(ConnectorTechnology).</Description>
     <IsPackable>false</IsPackable>
     <AssemblyName>ConnectorDependencies</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>

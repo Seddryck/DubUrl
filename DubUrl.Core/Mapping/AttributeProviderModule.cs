@@ -38,9 +38,8 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
             throw new InvalidOperationException($"Connector '{definition.Provider}' does not describe every supported mapping.");
         foreach (var database in definition.Databases)
         {
-            var mapping = SelectMapping(mappings, database.Name, definition.Driver);
-            if (!mapping.Aliases.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(database.Schemes))
-                throw new InvalidOperationException($"Connector '{definition.Provider}' schemes for '{database.Name}' do not match its implementation attributes.");
+            if (mappings.Count(mapping => mapping.Aliases.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(database.Schemes)) != 1)
+                throw new InvalidOperationException($"Connector '{definition.Provider}' schemes for '{database.Name}' do not match exactly one attributed database.");
         }
         var factory = new Lazy<DbProviderFactory>(() => ProviderFactoriesRegistrator.GetFactoryInstance(
             ProviderFactoriesRegistrator.FindFactoryTypes(loadAssembly(definition.DriverAssemblyPath)).Single()));
@@ -66,7 +65,7 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
         var probe = new AttributeTypesProbe(types.Locate());
         var native = new NativeMapperIntrospector(probe);
         return native.Locate().Concat(new WrapperMapperIntrospector(probe).Locate())
-            .GroupBy(info => (info.MapperType, info.DatabaseName, info.ProviderInvariantName, info.DialectType, info.ParametrizerType))
+            .GroupBy(info => (info.MapperType, DatabaseType: info.Database!.Type, info.ProviderInvariantName, info.DialectType, info.ParametrizerType))
             .Select(group => group.First() with
             {
                 Aliases = group.SelectMany(info => info.Aliases).Distinct().ToArray(),
@@ -74,13 +73,12 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
             }).ToArray();
     }
 
-    public static MapperInfo SelectMapping(IEnumerable<MapperInfo> mappings, string database, string invariant)
+    public static MapperInfo SelectMapping(IEnumerable<MapperInfo> mappings, string databaseScheme, string invariant)
     {
         var candidates = mappings.Where(info => info.ProviderInvariantName == invariant
-            && (info.DatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase)
-                || info.DatabaseName.EndsWith(" for " + database, StringComparison.OrdinalIgnoreCase))).ToArray();
+            && info.Database is { } database && database.Aliases.Contains(databaseScheme, StringComparer.OrdinalIgnoreCase)).ToArray();
         return candidates.Length == 1 ? candidates[0]
-            : throw new InvalidOperationException($"Expected one attributed mapper for '{database}' using '{invariant}', found {candidates.Length}.");
+            : throw new InvalidOperationException($"Expected one attributed mapper for database scheme '{databaseScheme}' using '{invariant}', found {candidates.Length}.");
     }
 
     internal static void RegisterMappings(IProviderCatalogBuilder catalog, IEnumerable<MapperInfo> mappings,

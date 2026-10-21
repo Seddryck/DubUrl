@@ -23,7 +23,7 @@ if ($catalog.schemaVersion -ne 2) { throw "Expected connector catalog schema ver
 $entries = @($catalog.entries)
 
 $matrix = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'connector-matrix.json') -Raw | ConvertFrom-Json
-if ($matrix.schemaVersion -ne 1) { throw "Expected connector matrix schema version 1." }
+if ($matrix.schemaVersion -ne 2) { throw "Expected connector matrix schema version 2." }
 $matrixIds = @($matrix.connectors | ForEach-Object id)
 if (@($matrixIds | Select-Object -Unique).Count -ne $matrixIds.Count) { throw "Connector matrix IDs must be unique." }
 $readyIds = @($matrix.connectors | Where-Object status -eq 'ready' | ForEach-Object id)

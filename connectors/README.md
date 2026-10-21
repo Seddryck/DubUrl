@@ -46,11 +46,19 @@ uses this catalog by default; hosts can supply a replacement catalog. The CLI us
 unless a catalog file or catalog entries are supplied. It includes optional OLE DB schemes without
 loading those drivers into the application.
 
-The matrix contains packaging choices: connector ID, database/driver selectors,
+The matrix uses source schema 2. It contains packaging choices: connector ID, a `databaseScheme`
+selector referencing an existing database attribute alias (for example `pg`), the driver,
 implementation family, installer aliases, runtimes, and prerequisites. It does not repeat mapper, dialect,
-parametrizer, URL schemes, file-based markers, or factory type names. The technology table maps the driver
+parametrizer, the complete URL scheme inventory, database display names, file-based markers, or factory type names. The technology table maps the driver
 invariant to its build key and, only when different, its assembly name. The driver assembly supplies its
 `DbProviderFactory` implementation through Core's shared factory-discovery helpers.
+
+Discovery retains the attributed database type as its identity, along with its declared name and aliases.
+Native and wrapper mappings retain the same underlying type; wrapper labels such as `ODBC for PostgreSQL`
+are presentation only. Catalog names come directly from the database attribute, without parsing labels.
+Installed registration validates the complete schemes and driver instead of using database names as selectors.
+No database type names or additional ID inventory are serialized. Existing schema-2 catalogs and archives
+remain compatible; only old source matrices need their display-name selector replaced with `databaseScheme`.
 
 `DubUrl` is the provider-neutral NuGet package built by `DubUrl.Core/DubUrl.Core.csproj`. It contains
 `DubUrl.Core.dll` with no embedded full catalog or registration wrapper. The all-provider aggregate and

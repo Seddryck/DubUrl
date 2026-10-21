@@ -183,7 +183,9 @@ public class ProviderAssemblyBoundaryTest
             var entry = resolved!;
             Assert.Multiple(() =>
             {
-                Assert.That(entry.Databases.Select(database => database.Name), Does.Contain(row.GetProperty("database").GetString()).IgnoreCase);
+                var databaseScheme = row.GetProperty("databaseScheme").GetString()!;
+                Assert.That(entry.Schemes.Any(scheme => DubUrl.Parsing.SchemeKey.Parse(scheme).Parts.Contains(databaseScheme)), Is.True);
+                Assert.That(row.TryGetProperty("database", out _), Is.False);
                 Assert.That(entry.ImplementationAssemblies, Does.Contain(entry.Assembly));
                 Assert.That(row.TryGetProperty("assemblyName", out _), Is.False);
                 Assert.That(entry.ImplementationAssemblies, Is.Not.Empty);

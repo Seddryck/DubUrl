@@ -45,7 +45,7 @@ public class DefaultProviderDiscoveryTest
             Assert.That(connection.GetType().FullName, Is.EqualTo("Npgsql.NpgsqlConnection"));
             Assert.That(url.Parse(), Does.Contain("demo"));
             Assert.That(AssemblyLoadContext.GetLoadContext(url.Dialect.GetType().Assembly), Is.SameAs(AssemblyLoadContext.Default));
-            Assert.That(Directory.Exists(root), Is.False);
+            Assert.That(Directory.Exists(Path.Combine(root, "packs")), Is.False);
         });
     }
 
@@ -72,7 +72,7 @@ public class DefaultProviderDiscoveryTest
     public async Task NewDefaults_ObserveInstallationAndRemoval_ExistingUrlsRetainTheirRegistry()
     {
         Assert.That(new ConnectionUrl("pg://localhost/demo").Parse(), Does.Contain("demo"));
-        Assert.That(Directory.Exists(root), Is.False, "Discovery must not create a missing store.");
+        Assert.That(Directory.Exists(Path.Combine(root, "packs")), Is.False, "Discovery must not install connector packs.");
         await Install();
         var installed = new ConnectionUrl("pg://localhost/demo");
         Assert.That(installed.Parse(), Does.Contain("demo"));
@@ -100,9 +100,28 @@ public class DefaultProviderDiscoveryTest
     }
 
     [Test]
+    public async Task InstalledDatabaseLabels_DoNotDetermineProviderSelection()
+    {
+        var pack = await Install();
+        var definition = ConnectorFixture.Definition with
+        {
+            Databases = ConnectorFixture.Definition.Databases.Select(database =>
+                database with { Name = "Custom for presentation" }).ToArray()
+        };
+        await File.WriteAllTextAsync(Path.Combine(pack.InstallPath, ConnectorDefinition.FileName),
+            JsonSerializer.Serialize(definition, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        var url = new ConnectionUrl("pg://localhost/demo");
+        Assert.Multiple(() =>
+        {
+            Assert.That(url.Parse(), Does.Contain("demo"));
+            Assert.That(AssemblyLoadContext.GetLoadContext(url.Dialect.GetType().Assembly), Is.Not.SameAs(AssemblyLoadContext.Default));
+        });
+    }
+
+    [Test]
     public async Task InvalidActiveModule_ReportsLoadDiagnostic()
     {
-        await Install(databaseName: "Unknown database");
+        await Install(invalidMapping: true);
         var error = Assert.Throws<ProviderPackException>(() => new ConnectionUrl("pg://localhost/demo"));
         Assert.That(error!.Code, Is.EqualTo("module-load-failed"));
         Assert.That(error.Message, Does.Contain("postgresql-npgsql"));
@@ -111,7 +130,7 @@ public class DefaultProviderDiscoveryTest
     [Test]
     public async Task InactiveVersions_AreNotLoaded()
     {
-        await Install(version: "0.0.1", databaseName: "Unknown database");
+        await Install(version: "0.0.1", invalidMapping: true);
         await Install(version: "0.0.2");
         Assert.That(new ConnectionUrl("pg://localhost/demo").Parse(), Does.Contain("demo"));
     }
@@ -127,13 +146,13 @@ public class DefaultProviderDiscoveryTest
     }
 
     private static async Task<InstalledProviderPack> Install(
-        string provider = "postgresql-npgsql", string version = "0.0.1", string? databaseName = null)
+        string provider = "postgresql-npgsql", string version = "0.0.1", bool invalidMapping = false)
     {
         var manifest = ConnectorFixture.Definition with
         {
             Provider = provider, Version = version,
-            Databases = ConnectorFixture.Definition.Databases.Select(database => database.Name == "PostgreSQL"
-                ? database with { Name = databaseName ?? database.Name } : database).ToArray()
+            Databases = ConnectorFixture.Definition.Databases.Select(database => invalidMapping && database.Schemes.Contains("pg")
+                ? database with { Schemes = ["invalid"] } : database).ToArray()
         };
         using var archive = new MemoryStream();
         using (var zip = new ZipArchive(archive, ZipArchiveMode.Create, leaveOpen: true))

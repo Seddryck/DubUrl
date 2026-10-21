@@ -45,7 +45,7 @@ New-CleanDirectory $outputRoot
 New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
 
 $matrix = Get-Content -LiteralPath $matrixPath -Raw | ConvertFrom-Json
-if ($matrix.schemaVersion -ne 1) { throw 'Expected connector matrix schema version 1.' }
+if ($matrix.schemaVersion -ne 2) { throw 'Expected connector matrix schema version 2.' }
 $technologies = @{}
 foreach ($technology in $matrix.technologies) { $technologies[$technology.name] = $technology }
 $ready = @($matrix.connectors | Where-Object status -eq 'ready' | Sort-Object id)
@@ -84,8 +84,7 @@ foreach ($manifest in $definitions) {
         "-p:Version=$Version",
         '-p:ContinuousIntegrationBuild=true',
         "-p:ConnectorFamily=$($connector.family)",
-        "-p:ConnectorTechnology=$($technology.Key)",
-        "-p:ConnectorDatabaseName=$($connector.database)"
+        "-p:ConnectorTechnology=$($technology.Key)"
     )
 
     # The same generated inventory is embedded in Core for its load-context sharing policy.
