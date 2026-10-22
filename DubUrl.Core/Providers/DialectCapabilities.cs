@@ -1,51 +1,24 @@
 namespace DubUrl.Querying.Dialects;
 
-public enum ObjectNameQualification
+/// <summary>Identity components an engine can qualify. This is descriptive metadata, not a syntax selector.</summary>
+[Flags]
+public enum ObjectNameParts
 {
-    Ansi,
-    FourPart,
-    PostgreSql,
-    MySql,
-    DuckDb,
-    Sqlite,
+    Name = 1,
+    Schema = 2,
+    Database = 4,
+    Catalog = 8
 }
 
-public enum IdentityColumnSyntax
-{
-    None,
-    SqlServer,
-    PostgreSql,
-    MySql,
-    SqliteTableConstraint,
-    DuckDbSequence,
-}
-
-public enum GeneratedColumnSyntax
-{
-    None,
-    SqlServer,
-    PostgreSql,
-    CockroachDb,
-    MySql,
-    DuckDb,
-}
-
-public enum RegularExpressionSyntax
-{
-    None,
-    TildeOperator,
-    RegexpOperator,
-    RegexpMatchesFunction,
-}
-
+/// <summary>Provider-neutral descriptions of schema support. SQL behavior belongs to ISchemaSqlRenderer.</summary>
 public sealed record DialectCapabilities
 {
     public static DialectCapabilities Default { get; } = new();
-
-    public ObjectNameQualification ObjectNames { get; init; } = ObjectNameQualification.Ansi;
-    public IdentityColumnSyntax IdentityColumns { get; init; } = IdentityColumnSyntax.None;
-    public GeneratedColumnSyntax GeneratedColumns { get; init; } = GeneratedColumnSyntax.None;
-    public RegularExpressionSyntax RegularExpressions { get; init; } = RegularExpressionSyntax.None;
+    public ObjectNameParts ObjectNames { get; init; } = ObjectNameParts.Name | ObjectNameParts.Schema;
+    public bool SupportsIdentityColumns { get; init; }
+    public bool SupportsStoredGeneratedColumns { get; init; }
+    public bool SupportsVirtualGeneratedColumns { get; init; }
+    public bool SupportsRegularExpressionChecks { get; init; }
     public bool SupportsComments { get; init; }
     public bool SupportsViews { get; init; }
     public IReadOnlySet<string> NativeTypes { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

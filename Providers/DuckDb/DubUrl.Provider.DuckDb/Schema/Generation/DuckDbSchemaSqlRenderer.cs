@@ -10,6 +10,19 @@ internal sealed class DuckDbSchemaSqlRenderer : StandardSchemaSqlRenderer, ISequ
 {
     internal static DuckDbSchemaSqlRenderer Default { get; } = new();
 
+    public override string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name)
+    {
+        RejectQualifier(catalog, "Catalog", dialect);
+        return QuoteIdentifierParts(dialect, database, schema, name);
+    }
+
+    public override string RenderGenerated(IDialect dialect, string type, string expression, bool stored)
+        => !stored ? RenderGeneratedColumn(type, expression, false)
+            : throw new NotSupportedException("DuckDB does not support stored generated columns.");
+
+    public override string RenderRegex(IDialect dialect, string expression, string pattern)
+        => $"regexp_matches({expression}, {pattern})";
+
     public override string RenderCreateIndexName(IDialect dialect, SchemaSqlObjectName index, SchemaSqlObjectName table)
     {
         _ = RenderObjectName(dialect, index.Catalog, index.Database, index.Schema, index.Name);

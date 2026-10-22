@@ -26,7 +26,7 @@ public class SchemaSqlRendererExtensionTests
     [Test]
     public void IdentityOverride_InheritsObjectQuotingAndGeneratedColumnSyntax()
     {
-        var dialect = new ProviderDialect(source, new IdentityRenderer());
+        var dialect = new ProviderDialect(source, new IdentityRenderer(source.SchemaSqlRenderer));
         var table = new Table("Order", [
             new Column("Id", DbType.Int64, generation: new IdentityColumnGeneration(100, 5)),
             new Column("Computed", DbType.Int32, generation: new GeneratedColumnGeneration(new ValueExpression(7)))
@@ -103,18 +103,19 @@ public class SchemaSqlRendererExtensionTests
     }
 
     [Test]
-    public void ExistingInterfaceImplementation_UsesDefaultRendererAndCapabilities()
+    public void CapabilitiesAlone_DoNotSelectAnEngineRenderer()
     {
         IDialect dialect = new CapabilityOnlyDialect(source);
         var table = new Table("Order", [new Column("Id", DbType.Int64, generation: new IdentityColumnGeneration(10, 2))]);
 
-        var sql = new SchemaScriptRenderer(dialect).Render(new Schema([table], []));
-
-        Assert.That(sql, Does.Contain("[Id] BIGINT IDENTITY(10, 2)"));
+        Assert.That(dialect.Capabilities.SupportsIdentityColumns, Is.True);
+        Assert.That(
+            () => new SchemaScriptRenderer(dialect).Render(new Schema([table], [])),
+            Throws.TypeOf<NotSupportedException>());
     }
 
-    // These strategies use only the Core contract, just as a provider assembly would.
-    private sealed class IdentityRenderer : StandardSchemaSqlRenderer
+    // Strategies use only Core contracts; existing engine behavior is reused through explicit delegation.
+    private sealed class IdentityRenderer(ISchemaSqlRenderer fallback) : StandardSchemaSqlRenderer(fallback)
     {
         public override string RenderIdentity(IDialect dialect, string type, long seed, long increment)
             => $"{type} PROVIDER_IDENTITY({seed}, {increment})";

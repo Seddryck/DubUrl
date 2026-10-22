@@ -7,10 +7,10 @@ internal static class DuckdbSchemaCapabilities
     internal static DialectCapabilities Create()
         => new()
         {
-            ObjectNames = ObjectNameQualification.DuckDb,
-            IdentityColumns = IdentityColumnSyntax.DuckDbSequence,
-            GeneratedColumns = GeneratedColumnSyntax.DuckDb,
-            RegularExpressions = RegularExpressionSyntax.RegexpMatchesFunction,
+            ObjectNames = ObjectNameParts.Name | ObjectNameParts.Schema | ObjectNameParts.Database,
+            SupportsIdentityColumns = true,
+            SupportsVirtualGeneratedColumns = true,
+            SupportsRegularExpressionChecks = true,
             SupportsComments = true,
             SupportsViews = true,
             NativeTypes = new HashSet<string>(["JSON", "UUID", "HUGEINT"], StringComparer.OrdinalIgnoreCase),

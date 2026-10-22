@@ -17,11 +17,11 @@ Focused new tests were run before broader affected-project regression checks. Th
 |---|---|---:|
 | DubUrl.Core.Testing | FullyQualifiedName~Discovery OR FullyQualifiedName~ProviderAssemblyBoundaryTest | 136 |
 | DubUrl.Schema.Documents.Testing | Entire project | 127 |
-| DubUrl.Schema.Testing | Entire project | 95 |
+| DubUrl.Schema.Testing | Entire project | 140 |
 | DubUrl.Application.Testing | Entire project | 40 |
 | DubUrl.Cli.Testing | Entire project | 49 |
 | DubUrl.Worker.Testing | Entire project | 27 |
-| **Total** | **Three frameworks** | **1,422 executions** |
+| **Total** | **Three frameworks** | **1,557 executions** |
 
 The Core filter was passed as --filter "FullyQualifiedName~Discovery|FullyQualifiedName~ProviderAssemblyBoundaryTest". It includes provider registration/dependency tests, custom discovery contracts, ownership/disposal/cancellation and real embedded DuckDB catalog/round-trip fixtures. Documents cover published JSON Schema validation, JSON/YAML round trips, generation, native types/scopes, foreign keys, membership/regex checks, binary/temporal values, cultures and escaping.
 
@@ -50,3 +50,17 @@ DuckDbDiscoveryTests contains 13 live DuckDB 1.5.6 cases per framework. They cov
 The existing SQLite discovery QA fixture was rerun on net10.0 and passed. SQL Server/PostgreSQL live fixtures were not rerun during this follow-up; their earlier four skips and missing QA connections remain as recorded above. Unrelated repository suites, other provider QA, Linux/macOS and release packaging remain omitted.
 
 A temporary in-memory probe also verified that DuckDB 1.5.6 rejects native GENERATED ALWAYS AS IDENTITY, returns empty information_schema generation fields, includes generated expressions in column_default, and discards ASC/DESC from canonical index SQL. The production reader uses catalog data without evaluating those expressions or advancing sequences.
+
+## Provider renderer refactor validation
+
+After moving all engine-specific StandardSchemaSqlRenderer branches into provider assemblies, reran the
+full solution build and the six-project, three-framework matrix above: 1,557 passing executions. First ran
+ProviderSchemaSqlRendererTests and SchemaSqlRendererExtensionTests on net10.0: 52 passing tests.
+The 45 new regression cases verify renderer assembly ownership and preserved generated-column, regex
+and qualified-name SQL across nine dialects. Extension tests verify explicit delegation and that copied
+capability metadata cannot implicitly select an engine renderer. Existing generation tests cover identity,
+foreign-key placement, rejected qualifiers and index naming.
+
+The live SQLite discovery fixture was rerun on net10.0 and passed. PostgreSQL/SQL Server live fixtures
+were not rerun; their earlier missing QA connections and four skips remain as recorded above. All other
+omissions above remain applicable. Architecture documentation records the capability API migration.

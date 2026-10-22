@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.PostgreSql.Schema.Generation;
+using DubUrl.Provider.PostgreSql.Schema.Generation;
 using DubUrl.Provider.PostgreSql.Sql.Functions;
 using DubUrl.Provider.PostgreSql.Sql.Rendering;
 using DubUrl.Provider.PostgreSql.Sql.Types;
@@ -25,8 +25,10 @@ namespace DubUrl.Provider.PostgreSql.Sql;
 [ParentLanguage<SqlLanguage>]
 public class CrateDbDialect : BaseDialect
 {
+    public override ISchemaSqlRenderer SchemaSqlRenderer => PostgreSqlSchemaSqlRenderer.Default;
+
     public override DialectCapabilities Capabilities { get; } = CrateDbSchemaCapabilities.Create();
 
-     internal CrateDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
-        : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
+    internal CrateDbDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
+       : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }
