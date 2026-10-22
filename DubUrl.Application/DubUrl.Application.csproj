@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\DubUrl.ProviderCore\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\DubUrl.Schema.Documents\DubUrl.Schema.Documents.csproj" />
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+    <!-- Run the catalog generator on the build host, independently of the app's publish runtime. -->
+    <ProjectReference Include="../connectors/Catalog/ConnectorCatalog.Build.csproj" ReferenceOutputAssembly="false" PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -13,4 +16,10 @@
     <Description>Transport-neutral application services for validating, rendering, and deploying DubUrl schema documents, and managing curated connectors.</Description>
   </PropertyGroup>
 
+  <Import Project="../connectors/ConnectorCatalog.targets" />
+  <Target Name="EmbedConnectorCatalog" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateConnectorCatalog">
+    <ItemGroup>
+      <EmbeddedResource Include="$(ConnectorCatalogOutput)" LogicalName="DubUrl.ConnectorCatalog" />
+    </ItemGroup>
+  </Target>
 </Project>

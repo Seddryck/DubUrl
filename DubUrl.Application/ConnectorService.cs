@@ -30,6 +30,9 @@ public sealed class ConnectorService(
     ProviderPackCatalog catalog,
     HttpClient httpClient) : IConnectorService
 {
+    public ConnectorService(ProviderPackStore store, HttpClient httpClient)
+        : this(store, BundledProviderCatalog.Create(), httpClient) { }
+
     public IReadOnlyList<ConnectorInfo> List()
     {
         try { return ListCore(); }
@@ -81,7 +84,9 @@ public sealed class ConnectorService(
 
         try
         {
-            await using var archive = await httpClient.GetStreamAsync(entry.DownloadUri, cancellationToken).ConfigureAwait(false);
+            var downloadUri = entry.DownloadUri
+                ?? throw new ConnectorOperationException("download-missing", $"Connector '{entry.Provider}' has no download URL.");
+            await using var archive = await httpClient.GetStreamAsync(downloadUri, cancellationToken).ConfigureAwait(false);
             var installed = await store.InstallAsync(entry, archive, cancellationToken).ConfigureAwait(false);
             return ToConnectorInfo(installed, entry);
         }
@@ -138,14 +143,14 @@ public sealed class ConnectorService(
             $"Connector '{id}' is not installed.");
     }
 
-    private ProviderPackCatalogEntry? FindExactCatalogEntry(string id, string version)
+    private ConnectorDefinition? FindExactCatalogEntry(string id, string version)
         => catalog.Entries.FirstOrDefault(entry =>
             entry.Provider.Equals(id, StringComparison.OrdinalIgnoreCase)
             && entry.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
 
     internal static ConnectorInfo ToConnectorInfo(
         InstalledProviderPack pack,
-        ProviderPackCatalogEntry? catalogEntry = null)
+        ConnectorDefinition? catalogEntry = null)
     {
         var active = pack.Status == ProviderPackStatus.Active;
         var unhealthy = pack.Status is ProviderPackStatus.Incompatible

@@ -12,7 +12,7 @@ public sealed class ConnectionStringConverter
 {
     private readonly ISchemeRegistry registry;
 
-    public ConnectionStringConverter() : this(SchemeRegistryBuilder.GetDefault()) { }
+    public ConnectionStringConverter() : this(DefaultRegistry.Get()) { }
     public ConnectionStringConverter(ISchemeRegistry registry)
         => this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
 

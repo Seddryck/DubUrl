@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>ODBC mapping, rewriting, discovery, and prerequisites for DubUrl providers.</Description></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
+    <ProjectReference Include="..\..\Drill\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" />
+    <ProjectReference Include="..\..\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="..\..\Excel\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
+    <ProjectReference Include="..\..\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
+    <ProjectReference Include="..\..\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="..\..\Text\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" />
+    <ProjectReference Include="..\..\Trino\DubUrl.Provider.Trino\DubUrl.Provider.Trino.csproj" />
+  </ItemGroup>
+  <Import Project="..\..\Provider.Build.props" />
+</Project>

@@ -23,15 +23,19 @@ string url = uri.ToString(redactPassword: false);
 // mssql://localhost/AdventureWorks?Integrated%20Security=True
 ```
 
-The default constructor uses the providers registered for the `DubUrl` compatibility
-package. For an application using an explicit connector module, pass its registry:
+The default constructor discovers installed connectors, then uses bundled `DubUrl` registrations
+for remaining aliases when that package is referenced. For an application using an explicit connector
+module, pass its registry:
 
 ```csharp
-using DubUrl.Connector.PostgreSql.Npgsql;
+using DubUrl.Provider.PostgreSql.Mapping;
+using System.Data.Common;
+using Npgsql;
 using DubUrl.Mapping;
 
+DbProviderFactories.RegisterFactory("Npgsql", NpgsqlFactory.Instance);
 var registry = new ProviderCatalogBuilder()
-    .AddModule(new PostgreSqlNpgsqlProviderModule())
+    .AddModule(new AttributeProviderModule(typeof(PostgresqlMapper).Assembly))
     .Build();
 var converter = new ConnectionStringConverter(registry);
 var uri = converter.Convert("postgresql",
@@ -106,7 +110,7 @@ on a mapper. A `BaseMapper` also delegates this capability automatically when it
 rewriter implements the interface. `ConnectionStringParts` provides shared
 extraction helpers while keyword choices stay in the provider implementation.
 
-Keep provider-specific rules in the owning `providers/DubUrl.Provider.*` project
+Keep provider-specific rules in the owning `Providers/<Family>/DubUrl.Provider.*` project
 or the relevant OleDb/ADOMD extension. Core owns contracts, orchestration,
 diagnostics, and URI encoding. Driver connector modules continue to compose
 implementations through the existing provider registry.

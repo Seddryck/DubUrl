@@ -16,6 +16,11 @@ namespace DubUrl.Mapping;
 
 public abstract class BaseMapper : IMapper, DubUrl.Conversion.IReverseConnectionMapper
 {
+    private string? providerInvariantName;
+    private Type? connectivityType;
+    internal void SetProviderMetadata(string invariant, Type? connectivity)
+        => (providerInvariantName, connectivityType) = (invariant, connectivity);
+
     private IConnectionStringRewriter Rewriter { get; }
     
     protected IDialect Dialect { get; }
@@ -28,7 +33,7 @@ public abstract class BaseMapper : IMapper, DubUrl.Conversion.IReverseConnection
         => Rewriter.ConnectionString;
 
     public string GetProviderName()
-        => GetType().GetCustomAttribute<BaseMapperAttribute>()?.ProviderInvariantName
+        => providerInvariantName ?? GetType().GetCustomAttribute<BaseMapperAttribute>()?.ProviderInvariantName
             ?? throw new InvalidDataException();
     
     public IDialect GetDialect()
@@ -36,7 +41,7 @@ public abstract class BaseMapper : IMapper, DubUrl.Conversion.IReverseConnection
 
     public IConnectivity GetConnectivity()
         => (IConnectivity)(Activator.CreateInstance(
-                GetType().GetCustomAttribute<WrapperMapperAttribute>()?.Connectivity ?? typeof(NativeConnectivity)
+                connectivityType ?? GetType().GetCustomAttribute<WrapperMapperAttribute>()?.Connectivity ?? typeof(NativeConnectivity)
            ) ?? throw new ArgumentException());
         
     public IParametrizer GetParametrizer()

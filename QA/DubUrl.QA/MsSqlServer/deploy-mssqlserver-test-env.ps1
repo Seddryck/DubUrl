@@ -1,0 +1,92 @@
+Param(
+	[switch] $force=$false
+	, [string] $databaseService= "MSSQL`$SQL2025"
+	, [string] $config = "Release"
+	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
+)
+
+if ($env:GITHUB_ACTIONS -eq "true") {
+	$ErrorActionPreference = "Stop"
+	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
+	$project = Join-Path $PSScriptRoot "..\..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\DubUrl.Provider.MsSqlServer.QA.csproj"
+	$infrastructure = Join-Path $PSScriptRoot "..\..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\infrastructure"
+	$composeFile = Join-Path $infrastructure "compose.yaml"
+	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SQL Server" -wait
+	try {
+		& docker compose -f $composeFile exec -T mssqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password12!" -C -i /infrastructure/initialize.sql
+		if ($LASTEXITCODE -ne 0) { throw "SQL Server QA database initialization failed." }
+		Run-ProviderQaSuite -project $project -provider "mssqlserver" -config $config -frameworks $frameworks
+	}
+	finally { & docker compose -f $composeFile down --volumes }
+	exit 0
+}
+
+. $PSScriptRoot\..\Windows-Service.ps1
+. $PSScriptRoot\..\Docker-Container.ps1
+. $PSScriptRoot\..\Run-TestSuite.ps1
+
+if ($force) {
+	Write-Host "Enforcing QA testing for Microsoft SQL Server"
+}
+
+$filesChanged = & git diff --name-only HEAD HEAD~1
+if ($force -or ($filesChanged -like "*mssql*")) {
+	Write-Host "Deploying Microsoft SQL Server testing environment"
+	
+	# Starting database Service
+	if ($env:APPVEYOR -eq "True") {
+		try { $previouslyRunning = Start-Windows-Service $databaseService }
+		catch {
+			Write-Warning "Failure to start a Windows service: $_"
+			exit 1
+		}
+	} else {
+		$previouslyRunning, $running = Deploy-Container -FullName "mssqlserver" -Nickname "mssql"
+		if (!$previouslyRunning){
+			Start-Sleep -s 10
+		}
+	}
+
+	# Deploying database based on script
+	Write-host "`tDeploying database ..."
+	if ($env:APPVEYOR -eq "True") {
+		Write-host "`t`tUsing local client ..."
+		& sqlcmd -U "sa" -P "Password12!" -S ".\SQL2025" -i ".\deploy-mssqlserver-database.sql" | Out-Null
+	} else {
+		Write-host "`t`tCopying deployment script on container ..."
+		& docker cp "./deploy-mssqlserver-database.sql" mssql:"./deploy-mssqlserver-database.sql" 
+		Write-host "`t`tScript copied"
+		Write-host "`t`tUsing remote client on the docker container ..."
+		& docker exec -it mssql /opt/mssql-tools18/bin/sqlcmd "-Usa" "-PPassword12!" "-i./deploy-mssqlserver-database.sql" | Out-Null
+	}
+	Write-host "`tDatabase deployed"
+	
+	# Copying correct config
+	Write-Host "`t`tConfiguring URI for instance ..."
+	foreach ($framework in $frameworks)
+	{
+		$filePath = "$PSScriptRoot\..\bin\$config\$framework\Instance.txt"
+		$serverUrl = if ($env:APPVEYOR -eq "True") { "localhost/SQL2025" } else { "localhost" }
+		$serverUrl | Set-Content -NoNewline -Force $filePath
+		Write-Host "`t`tConfigure value '$serverUrl' into $filePath"
+	}
+	Write-Host "`t`tInstance URI configured."
+	
+
+	# Running QA tests
+	$testSuccessful = Run-TestSuite @("MsSqlServer") -config $config -frameworks $frameworks
+
+	# Stopping database Service
+	if (!$previouslyRunning) {
+		if ($env:APPVEYOR -eq "True") {
+			Stop-Windows-Service $databaseService
+		} else {
+			Remove-Container $running
+		}
+	}
+	
+	# Raise failing tests
+	exit $testSuccessful
+} else {
+	return -1
+}

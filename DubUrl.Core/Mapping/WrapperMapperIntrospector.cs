@@ -40,7 +40,6 @@ public class MissingConnectivityException : MissingElementException
         : base("connectivity", "connectivities", "mapper", locatorType, elementType, types) { }
 }
 
-
 public class WrapperMapperIntrospector : BaseMapperIntrospector
 {
     public WrapperMapperIntrospector()
@@ -88,7 +87,11 @@ public class WrapperMapperIntrospector : BaseMapperIntrospector
                     , brand?.Attribute.Slug ?? string.Empty
                     , brand?.Attribute.MainColor ?? BrandAttribute.DefaultMainColor
                     , brand?.Attribute.SecondaryColor ?? BrandAttribute.DefaultSecondaryColor
-                );
+                )
+                {
+                    Database = new(database.Type, database.Attribute.DatabaseName, database.Attribute.Aliases),
+                    ConnectivityType = connectivity.Type
+                };
         }
     }
 }

@@ -43,13 +43,7 @@ public class ReferencedAssembliesDiscoverer : IProviderFactoriesDiscoverer
             Debug.WriteLine($"Analyzing assembly {asm.FullName}");
 
             //Check if assembly contains a DbProviderFactory
-            var types = asm.GetExportedTypes();
-            var providerFactories = types.Where(t =>
-                    t.IsClass
-                    && t.IsVisible
-                    && !t.IsAbstract
-                    && typeof(DbProviderFactory).IsAssignableFrom(t)
-                );
+            var providerFactories = ProviderFactoriesRegistrator.FindFactoryTypes(asm);
             foreach (var providerFactory in providerFactories)
             {
                 yield return providerFactory;

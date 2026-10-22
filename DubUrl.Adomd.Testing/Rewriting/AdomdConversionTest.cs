@@ -1,7 +1,7 @@
 using DubUrl.Adomd.Mapping;
 using DubUrl.Adomd.Wrappers;
 using DubUrl.Mapping;
-using DubUrl.Testing.Conversion;
+using DubUrl.Core.Testing.Conversion;
 using NUnit.Framework;
 using System.Data.Common;
 

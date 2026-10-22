@@ -35,7 +35,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/FirebirdSQL/deploy-firebirdsql-test-env.ps1
+          ./QA/DubUrl.QA/FirebirdSQL/deploy-firebirdsql-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')
@@ -51,6 +51,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-firebirdsql-bundle-${{ github.sha }}
-          path: DubUrl.Providers.FirebirdSql.QA/bin/qa/firebirdsql/*/**
+          path: Providers/FirebirdSql/DubUrl.Provider.FirebirdSql.QA/bin/qa/firebirdsql/*/**
           include-hidden-files: true
           if-no-files-found: error

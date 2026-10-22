@@ -39,7 +39,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
     public IDialect Dialect { get => ConnectionUrl.Dialect; }
 
     public DatabaseUrl(string url)
-        : this(new ConnectionUrlFactory(SchemeRegistryBuilder.GetDefault()).Instantiate(url), new(), NullQueryLogger.Instance)
+        : this(new ConnectionUrlFactory(DefaultRegistry.Get()).Instantiate(url), new(), NullQueryLogger.Instance)
     { }
 
     public DatabaseUrl(ConnectionUrlFactory factory, string url)

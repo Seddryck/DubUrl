@@ -18,8 +18,8 @@ namespace DubUrl;
 #if NET7_0_OR_GREATER
 public class DataSourceUrl : BaseConnectionUrl
 {
-    public DataSourceUrl(string url, SchemeRegistryBuilder? builder = null)
-        : this(url, new Parser(), (builder?.Build() ?? SchemeRegistryBuilder.GetDefault())) { }
+    public DataSourceUrl(string url, ISchemeRegistry? registry = null)
+        : this(url, new Parser(), (registry ?? DefaultRegistry.Get())) { }
 
     internal DataSourceUrl(string url, IParser parser, ISchemeRegistry builder)
         : base(url, parser, builder) { }

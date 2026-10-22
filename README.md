@@ -95,6 +95,15 @@ string connectionUrl = "mssql://{server}/{database_name}";
 IDbConnection connection = new ConnectionUrl(connectionUrl).Connect();
 ```
 
+### When to use dependency injection
+
+Use `DubUrl.Extensions` and `services.AddDubUrl()` when an ASP.NET Core application or worker already
+uses DI, or when you want centralized configuration, query logging and controlled registries for tests.
+Inject `ConnectionUrlFactory` or `IDatabaseUrlFactory` into your services. For small programs, constructing
+`ConnectionUrl` directly is sufficient: both approaches share Core's registry cache. Default DI factories
+observe connector changes for each new URL; explicitly supplied registries remain fixed.
+See the [DI setup and lifetime guide](docs/_docs/dependency-injection.md).
+
 ## Example URLs
 
 The following are example database connection URLs that can be handled by
@@ -194,11 +203,17 @@ The following databases and their associated schemes are supported through the A
 
 ## Installing
 
-Install in the usual .NET fashion:
+Install the provider-neutral library, the database implementation, and its driver. For PostgreSQL:
 
 ```sh
-Install-Package DubUrl
+dotnet add package DubUrl
+dotnet add package DubUrl.Provider.PostgreSql
+dotnet add package Npgsql
 ```
+
+Then `new ConnectionUrl("pg://localhost/demo")` works through automatic discovery. `DubUrl` does not
+install every provider. It replaces the `DubUrl.Core` package while retaining the `DubUrl.Core.dll`
+assembly and existing namespaces. Existing aggregate users must add their chosen provider packages.
 
 To install the extension for OLEDB provider locators
 

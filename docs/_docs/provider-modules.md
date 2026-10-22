@@ -9,6 +9,40 @@ the provider factory, aliases, dialect, parameter convention, connection-string 
 capability objects together. Registration order is deterministic and a duplicate alias throws a
 `ProviderRegistrationException` naming both conflicting registrations.
 
+## Discover providers automatically
+
+With the NuGet packages `DubUrl`, `DubUrl.Provider.PostgreSql`, and `Npgsql`,
+`new ConnectionUrl("pg://localhost/demo")` works without a registry, factory registration, catalog,
+or provider archive. Core reads attributes from the application's `DubUrl.Provider.*` runtime assemblies.
+The `DubUrl` package supplies Core; add only the provider families needed by the application.
+Installing a PostgreSQL archive is another way to supply the implementation and driver.
+
+Discovery reads active, compatible, integrity-verified packs from the per-user connector store:
+`%LOCALAPPDATA%/DubUrl/providers` on Windows, `$XDG_DATA_HOME/duburl/providers` on Unix when set,
+otherwise `~/.local/share/duburl/providers`. Set `DUBURL_PROVIDER_STORE` to use a different store.
+Discovery does not install or download connectors. Default registry initialization creates the store's
+synchronization directory when needed.
+
+Installed providers take precedence over application dependencies for matching aliases.
+Remaining application aliases remain available. Conflicting installed aliases throw
+`ProviderRegistrationException`; an active module that cannot load reports `ProviderPackException`
+with code `module-load-failed`. Inactive, incompatible, incomplete, and corrupt packs are not loaded.
+Default dialect discovery uses the same provider selection.
+
+Each default construction checks the store revision and retains the current cached registry snapshot, so
+installation or removal affects subsequent defaults without changing existing URLs. Attributes are read
+when building a snapshot, rather than for every URL. For repeated
+construction with a fixed selection, create a `ConnectionUrlFactory` from one registry. Passing an
+explicit registry bypasses discovery entirely and remains the deterministic option for applications
+that manage their own dependencies, tests, or trimmed/AOT deployment.
+
+Applications already using dependency injection can register `services.AddDubUrl()` and inject
+`ConnectionUrlFactory`. Its default singleton selects the current cached registry for each new URL;
+custom registry singletons and explicit modules stay fixed. See
+[when DI is useful and how its lifetimes work]({{ '/docs/dependency-injection/' | relative_url }}).
+
+## Register providers explicitly
+
 ```csharp
 public sealed class AcmeProviderModule : IDubUrlProviderModule
 {
@@ -38,47 +72,31 @@ The `compile` delegate is an ordinary factory. DubUrl does not infer constructor
 mapper through reflection. Add optional capability objects with
 `registration.WithCapabilities(...)` and retrieve them with `TryGetCapability<TCapability>`.
 
-## Author a connector without changing Core
+## Author a driver binding without changing Core
 
-For a new connector to an existing database, reference `DubUrl.Core`, the relevant
-`DubUrl.Provider.*` family package, and the concrete driver. Register a provider module selecting
-that family's mapper and dialect, your factory, and the driver's parameter convention. Reuse the
-family's rewriter unless the driver needs different keywords or URL rules. The PostgreSQL/Npgsql
-module in `connectors/DubUrl.Connector.PostgreSql.Npgsql` is a complete example of this boundary.
+For a new driver binding to an existing database, reference `DubUrl`, the relevant
+`DubUrl.Provider.*` family package, and the concrete driver. The packaging collector gathers their dependency
+closure. Packaging discards its temporary DLL and writes a connector-specific `.deps.json` beside the
+selected provider implementation DLL. The connector definition names that implementation, the other
+implementation assemblies, driver and complete database/scheme inventory; it has no entry-point type or empty binding DLL. Core reads the implementation attributes directly
+through `AttributeProviderModule`. Mapper, dialect, parametrizer, URL schemes, and optional capabilities
+come from the attributes; the driver assembly supplies its `DbProviderFactory`.
+Reuse the family's rewriter unless the driver needs different keywords or URL rules. Standard bindings
+are declared in `connectors/connector-matrix.json` and built by
+`Providers/Build/ProviderBinding.Build.csproj`. The exporter groups rows sharing implementation assemblies, driver and runtime compatibility;
+the build script passes the canonical selection's settings to that same project, including PostgreSQL/Npgsql. Its default settings build PostgreSQL/Npgsql for local
+solution builds and focused consumer tests; no separate Npgsql project is required. Driver bindings
+are distributed as connector packs, and this build project is not published as a NuGet package.
 An alternative connector can supply its own factory and aliases while reusing `PostgresqlMapper`.
 Registering two connectors for the same alias produces a `ProviderRegistrationException`; choose
 the connector explicitly rather than relying on registration order.
 
-For a new database, create a provider implementation project referencing `DubUrl.Core`. Own its
+For a new database, create a provider implementation project referencing the provider-neutral `DubUrl` package. Own its
 database identity, mapper, rewriter, dialect, and any specialized SQL or driver discovery behavior
 there. Reuse the public `BaseMapper`, `ConnectionStringRewriter`, token mappers, and ANSI SQL
 components where appropriate. Keep shared family behavior in provider projects and concrete driver
-dependencies in connector projects. Core must never reference either implementation project.
-
-The buildable `samples/DubUrl.Connector.Sample` project demonstrates a new database using only
-public Core APIs. Its `SampleProviderModule` receives a factory delegate, constructs a `SampleDialect`
-directly, and registers `SampleMapper` with `NamedParametrizer`. Its rewriter translates the host,
-port, database path, and query options. The sample uses `StraightSpecificator` for an unrestricted
-`DbConnectionStringBuilder`; production drivers with a fixed keyword set can use `Specificator`
-to validate keywords through their own builder. Add provider-specific validation for authentication,
-default values, path depth, and accepted options as the real driver requires.
-
-Compose the sample with an application's concrete driver factory:
-
-```csharp
-using DubUrl;
-using DubUrl.Connector.Sample;
-using DubUrl.Mapping;
-using System.Data.Common;
-
-static ConnectionUrl CreateSampleUrl(DbProviderFactory driverFactory)
-{
-    var registry = new ProviderCatalogBuilder()
-        .AddModule(new SampleProviderModule(() => driverFactory))
-        .Build();
-    return new ConnectionUrl("sample://localhost/demo", registry);
-}
-```
+dependencies in connector packaging, with optional typed BulkCopy adapters in their driver-specific projects.
+Core must never reference either implementation project.
 
 The factory delegate supplies the driver directly, so this path does not require global
 `DbProviderFactories.RegisterFactory` calls. If the module intentionally looks up a globally registered
@@ -88,17 +106,19 @@ checks for native libraries or installed ODBC/OLE DB drivers remain connector re
 
 Select `NamedParametrizer`, `PositionalParametrizer`, or a specialized implementation according to the
 driver's parameter binding rules. These affect parameters added to executed commands independently
-of SQL identifier and literal rendering. `DubUrl.Connector.Testing` executes a parameterized query
+of SQL identifier and literal rendering. `DubUrl.Provider.Testing` executes a parameterized query
 through a deterministic fake driver and tests an alternative PostgreSQL connector in a consumer
-that does not reference the compatibility aggregate or unrelated providers.
+that references only the required providers.
 
-Applications using explicit modules install only the selected packages and pass their built registry
-to `ConnectionUrl` or `ConnectionUrlFactory`. Existing applications can continue using the `DubUrl`
-compatibility aggregate, which supplies the built-in catalog. Adding an independently registered
-connector does not require editing that built-in catalog. Including it in the official distribution
-does require the applicable `connectors/connector-matrix.json`, generated composition, catalog,
-package/dependency, and documentation inventory updates. Adding it to the compatibility aggregate
-is a separate composition decision. None of these inventories belong in the provider-neutral Core.
+Applications may pass an explicitly built registry to `ConnectionUrl` or `ConnectionUrlFactory`, or
+rely on automatic discovery from their NuGet dependencies. Add `DubUrl`, the provider package, and its
+driver; no all-provider aggregate or `DubUrl.Core` compatibility package is produced.
+Adding an independently registered provider does not require editing a built-in provider list.
+Official archive distribution requires updating `connectors/connector-matrix.json`, the applicable
+dependencies, and documentation. The shared generator produces catalog and local definitions from the
+matrix and provider attributes. `DubUrl.Application` embeds the generated catalog. The matrix's
+technology table maps driver invariants to build keys and optional assembly names, without listing factory types.
+None of these packaging choices belongs in the provider-neutral Core.
 
 ## ODBC locator options and factories
 
@@ -119,21 +139,40 @@ driverLocators.AddDriver("acme", options =>
 
 The older `AddDriver(string, Type)` overload remains available as a reflection-based compatibility path.
 
-## Compatibility discovery and trimming
+## Attribute-based registration
 
-`AttributeProviderModule` preserves the former attribute and exported-type discovery model for migrations:
+Bundled and installed providers use `AttributeProviderModule`. An application can also use it directly:
 
 ```csharp
 var registry = new ProviderCatalogBuilder()
-    .AddModule(new AttributeProviderModule(typeof(LegacyMapper).Assembly))
+    .AddModule(new AttributeProviderModule(typeof(MyMapper).Assembly))
     .Build();
 ```
 
-That adapter scans assemblies and reflects over mapper constructors. It is annotated with
-`RequiresUnreferencedCode` and is not supported for trimmed or Native AOT applications.
+The module captures provider attributes once during discovery and combines repeated wrapper locators.
+`ProviderCatalogBuilder` compiles the discovered metadata and retains constructors, dialect instances,
+and optional BulkCopy adapters in its registrations.
+Dialect lookup and URL compilation use those registrations without scanning provider attributes again.
+ODBC mapper constructors accept configured locator options through the same path.
 
-`BuiltInProviderModule` uses explicit provider, alias, mapper, ODBC driver, and ODBC option registrations.
-Its current dialect composition still reads dialect component attributes, so it is also annotated with
-`RequiresUnreferencedCode`. A fully trim-safe application should use its own explicit module with
-preconstructed `IDialect` instances and direct mapper/driver factories. This limitation is intentional and
-tested so trimming warnings are surfaced rather than silently producing an incomplete catalog.
+Explicit `IDubUrlProviderModule` implementations remain available for custom registration behavior.
+The attribute adapter and default discovery retain `RequiresUnreferencedCode` annotations because
+reflection requires preserved metadata; the default registration path does not generate typed code.
+
+## One registry construction path
+
+`ProviderCatalogBuilder` owns mapping compilation and creates the registrations used by `SchemeRegistry`.
+Use `DefaultRegistry.Get()` for the current cached discovery snapshot and `DefaultRegistry.GetDialects()`
+for its dialects. Installed connector revisions invalidate the cache, including changes from another
+process. Call `DefaultRegistry.Refresh()` after dynamically loading application providers.
+
+For a fixed configuration, use `new ProviderCatalogBuilder().AddApplicationProviders().Build()`,
+`AddModule(new AttributeProviderModule(assemblies))` for selected assemblies, or `AddProvider(...)`
+for explicit registrations. Set all desired aliases on each `ProviderRegistration`; select or replace
+registrations before adding them. Duplicate aliases throw `ProviderRegistrationException`.
+`DataSourceUrl`, like `ConnectionUrl`, accepts a built `ISchemeRegistry`.
+
+`SchemeRegistry` stores one registration table for all construction paths. Its public mapper-delegate
+constructor remains available and adapts those delegates without invoking them eagerly. URL resolution
+creates and rewrites one mapper; provider lookup reuses that mapper when available. Default registry
+caching, explicit snapshots, capabilities and optional BulkCopy metadata use the same registrations.

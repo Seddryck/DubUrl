@@ -22,6 +22,15 @@ public class ProviderFactoriesRegistrator
     public ProviderFactoriesRegistrator(IProviderFactoriesDiscoverer discover)
         => Discover = discover;
 
+    internal static IEnumerable<Type> FindFactoryTypes(Assembly assembly)
+        => assembly.GetExportedTypes().Where(type => type.IsClass && type.IsVisible && !type.IsAbstract
+            && typeof(DbProviderFactory).IsAssignableFrom(type));
+
+    internal static DbProviderFactory GetFactoryInstance(Type type)
+        => (type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)?.GetValue(null)
+            ?? type.GetField("Instance", BindingFlags.Public | BindingFlags.Static)?.GetValue(null)) as DbProviderFactory
+            ?? throw new InvalidOperationException($"Factory '{type.FullName}' does not expose a public static DbProviderFactory Instance.");
+
     public void Register()
     {
         var types = Discover.Execute();
@@ -35,7 +44,7 @@ public class ProviderFactoriesRegistrator
             
             if (!DbProviderFactories.GetProviderInvariantNames().Contains(providerInvariantName))
             {
-                var instance = (DbProviderFactory)(type.GetField("Instance")?.GetValue(null) ?? throw new ArgumentNullException());
+                var instance = GetFactoryInstance(type);
                 DbProviderFactories.RegisterFactory(providerInvariantName, instance);
             }
         }

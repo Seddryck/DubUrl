@@ -12,6 +12,8 @@ public sealed record ResolvedConnection(
     DbProviderFactory ProviderFactory
 )
 {
+    public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
+
     /// <summary>Formats resolution metadata without exposing the connection string.</summary>
     public override string ToString() => ToString(redactConnectionString: true);
 

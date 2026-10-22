@@ -17,9 +17,3 @@ public class SchemeNotFoundException : DubUrlException
         : base($"None of the schemes '{string.Join("', '", schemes)}' are known schemes. The list of valid schemes is '{string.Join("', '", validSchemes)}'.")
     { }
 }
-
-public class MapperAlreadyExistingException : DubUrlException
-{
-    public MapperAlreadyExistingException(string alias, IMapper existing, IMapper newOne)
-        : base($"The alias '{alias}' is already associated to the mapper '{existing.GetType().Name}' and cannot be associated to a second mapper '{newOne.GetType().Name}'") { }
-}

@@ -35,7 +35,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/Timescale/deploy-timescale-test-env.ps1
+          ./QA/DubUrl.QA/Timescale/deploy-timescale-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')
@@ -51,6 +51,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-timescale-bundle-${{ github.sha }}
-          path: DubUrl.Providers.Timescale.QA/bin/qa/timescale/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.Timescale.QA/bin/qa/timescale/*/**
           include-hidden-files: true
           if-no-files-found: error

@@ -1,4 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><Description>Text-file database metadata and dialect for DubUrl.</Description></PropertyGroup>
-  <Import Project="..\Provider.Build.props" />
-</Project>

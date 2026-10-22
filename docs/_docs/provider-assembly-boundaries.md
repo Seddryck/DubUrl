@@ -6,14 +6,56 @@ tags: [installation, providers, architecture]
 
 DubUrl publishes deliberately acyclic package layers:
 
-1. `DubUrl.Core` contains provider-neutral value types and immutable catalog logic. It does not reference
-   provider implementations.
+1. The `DubUrl` NuGet package contains provider-neutral contracts and automatic discovery. It discovers provider
+   assemblies in application runtime dependencies as well as installed provider archives.
 2. `DubUrl.Provider.*` packages own database-family and connection-technology implementations under
-   `providers/`. They depend on Core, without concrete ADO.NET driver dependencies.
-3. `DubUrl.Connector.*` packages select provider implementations, concrete drivers, schemes, and explicit
-   modules under `connectors/`.
-4. `DubUrl` remains the compatibility aggregate, referencing the provider packages and
-   `DubUrl.Providers` built-in catalog. Explicit consumers can omit both aggregate and built-in catalog.
+   `Providers/`. They depend on Core without concrete ADO.NET driver dependencies.
+3. Provider archives combine family implementations with a driver, using an implementation DLL and a
+   provider-specific `.deps.json`. Selections sharing implementations, driver and runtime compatibility
+   use one archive and retain database-specific installation IDs as aliases. Packaging collects dependencies through `ProviderBinding.Build.csproj`.
+4. `DubUrl.Application` embeds the generated catalog and exposes it through `BundledProviderCatalog`.
+   `ConnectorService` uses this catalog by default; hosts may supply a replacement. It describes available
+   providers without referencing or loading their implementation DLLs.
+The all-provider aggregate is removed. The `DubUrl.Core` NuGet package is no longer produced;
+provider packages depend on `DubUrl`. The physical `DubUrl.Core` project and `DubUrl.Core.dll`
+assembly keep their names, as do existing public namespaces.
+
+For selective NuGet use, install `DubUrl`, `DubUrl.Provider.PostgreSql`, and `Npgsql`, then write:
+
+```csharp
+var url = new ConnectionUrl("pg://localhost/demo");
+```
+
+No archive, registry parameter, or explicit factory registration is required. Core discovers assemblies
+named `DubUrl.Provider.*` from application runtime dependencies and the default load context. Explicit
+factory registrations are honored; installed archives take precedence for overlapping aliases.
+
+Project folders match their assembly names; the provider-neutral Core project publishes as `DubUrl`:
+
+| Project | Responsibility |
+| --- | --- |
+| `DubUrl.Core/DubUrl.Core.csproj` | Publishes `DubUrl`, containing `DubUrl.Core.dll`; provider-neutral contracts and infrastructure |
+| `DubUrl.Application/BundledProviderCatalog.cs` | Default catalog shared by every application host |
+| `connectors/ConnectorCatalog.targets` | Runs the shared catalog exporter, combining packaging selectors with implementation attributes |
+| `Providers/Build/ProviderBinding.Build.csproj` | Temporary, non-packable dependency collector; only real implementation DLLs and rewritten .deps.json files are packaged |
+
+Core owns its source files through normal SDK inclusion. The former aggregate project is removed.
+
+Normal builds generate and embed catalog definitions without optional download fields; they do not require
+connector archives, previously generated artifacts, PowerShell, or network access beyond package restore.
+Pack builds add the download URL and SHA-256 after creating each archive. The Application catalog lists
+all catalog schemes, including optional OLE DB connectors, without registering or loading those drivers.
+The matrix contains packaging
+selectors and distribution metadata; it does not repeat mapper/dialect/parametrizer types, URL schemes,
+file-based markers, or factory type names. Provider attributes are read once per discovery pass and retained
+as registrations, including constructors and dialect instances. The driver assembly supplies its factory
+through Core's shared factory-discovery code. URL compilation does not rescan provider attributes.
+Application factory lookup honors `DbProviderFactories`, then resolves the driver from runtime dependencies;
+installed factories remain isolated.
+ODBC options and lazy optional BulkCopy adapters use the same registration logic in both paths.
+Installed definitions name a real provider implementation as the dependency anchor, plus implementation assembly paths and the driver selector;
+Core discovers attributes directly, without a generated class or entry-point type. Rebuild old connector
+archives and catalogs to use this definition shape.
 
 Provider-neutral contracts belong in `DubUrl.Core`; database-specific declarations, mappers, rewriters,
 dialects, SQL mappings, and driver discovery sources belong in their owning provider projects. Their
@@ -26,7 +68,11 @@ for the authoring example and explicit registration path.
 Provider implementation namespaces now begin with `DubUrl.Provider.<Family>` and follow their folders.
 For example, import `DubUrl.Provider.PostgreSql.Sql` for `PgsqlDialect` and
 `DubUrl.Provider.PostgreSql.Mapping` for `PostgresqlMapper`. Core contracts retain their existing
-namespaces. Package and assembly IDs remain unchanged.
+namespaces. The Core NuGet package is now `DubUrl`; remove any `DubUrl.Core` package reference.
+There is no compatibility shim or all-provider aggregate. Existing `DubUrl` users must add their chosen
+provider packages explicitly. `DubUrl.Core.dll`, its project path, and public namespaces remain unchanged.
+The former `DubUrl.dll` and `BuiltInProviderModule`/`BuiltInProviderCatalog` APIs are removed; use
+Core discovery and `DubUrl.Application.BundledProviderCatalog` instead. Connector IDs select database/driver combinations; there are no per-driver binding DLLs or Npgsql binding NuGet packages.
 
 This is a public namespace migration: applications must update imports and recompile, and existing
 connector binaries and reflection-based type names must be rebuilt or updated. Assembly forwarding
@@ -45,9 +91,9 @@ connectors using the same SQL dialect reuse its schema behavior.
 | Location | Responsibility |
 | --- | --- |
 | `DubUrl.Schema` | Models, builders, constraints, dependency planning, expression traversal, templates, native-type validation and fallback, script assembly |
-| `DubUrl.ProviderCore/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
-| `providers/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
-| `providers/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
+| `DubUrl.Core/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
+| `Providers/<Family>/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
+| `Providers/<Family>/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
 | `connectors/` | Provider/driver composition and distribution; no copied schema templates |
 
 `IDialect.SchemaSqlRenderer` defaults to `StandardSchemaSqlRenderer.Instance`. `BaseDialect` exposes a
@@ -94,3 +140,85 @@ and safe to share between renders.
 Adding a database-specific override requires no shared template changes, new capability enum members,
 or additional connector/schema packages. Keep common SQL in the standard implementation and introduce
 an override only when the provider needs different behavior.
+
+## Bulk copy registration and optional typed adapters
+
+Bulk copy belongs to a provider/connector registration. Native DuckDB and SqlClient registrations opt
+in; ODBC registrations remain unsupported even when they share the exact same SQL dialect.
+`SchemaSqlRenderer` stays on `IDialect`; there is no BulkCopy hook on the dialect.
+
+| Location | Responsibility |
+| --- | --- |
+| `DubUrl.Core/BulkCopy` (assembly `DubUrl.Core`) | Contracts, deferred adapter activation, scoped optional dependency resolution |
+| `DubUrl.BulkCopy` | Public extension and factory facade; references Core only |
+| `Providers/<Family>/DubUrl.Provider.*` | Driver-independent database behavior and optional adapter declarations |
+| `Providers/DuckDb/DubUrl.Provider.DuckDb.Native.BulkCopy` | Typed DuckDB appender engine |
+| `Providers/SqlServer/DubUrl.Provider.SqlServer.SqlClient.BulkCopy` | Typed Microsoft.Data.SqlClient bulk engine |
+| Native connector modules | Driver deployment, conditional adapter dependency, provider registration |
+
+The typed adapters reference their driver packages at compile time. Core, the facade, and provider
+families do not. Native DuckDB and SqlClient connector artifacts include only their corresponding
+adapter and driver dependency closure; ODBC artifacts do not acquire these native adapters.
+
+### Register and activate an adapter
+
+`ProviderRegistration.BulkCopyProvider` defaults to null and is copied into `ResolvedConnection`.
+`ConnectionUrl.BulkCopyProvider` exposes the selection to the shared factory. Explicit registrations
+can opt out by leaving the property null, including when reusing a native mapper.
+
+Provider families can declare optional support without linking an adapter assembly:
+
+```csharp
+[BulkCopyProvider("DubUrl.Provider.DuckDb.Native.BulkCopy",
+    "DubUrl.Provider.DuckDb.Native.BulkCopy.DuckDbBulkCopyProvider")]
+```
+
+The non-inherited mapper attribute creates a `LazyBulkCopyProvider` for attribute-based and generated
+connector registration. Built-in registrations use the same deferred provider explicitly. Custom
+modules can set `BulkCopyProvider = new LazyBulkCopyProvider(assemblyName, typeName)` when constructing
+their registration, or supply a preconstructed `IBulkCopyProvider` when linking an adapter intentionally.
+
+Registration and engine creation do not load the optional adapter. On `Write`, the deferred engine
+resolves its configured assembly/type in the actual driver's `AssemblyLoadContext`, activates the
+`IBulkCopyProvider`, and delegates the operation. Reflection is confined to this activation boundary.
+DuckDB row/value calls, null handling, date/time conversion, and SqlClient bulk operations use typed
+APIs without method discovery or `MethodInfo.Invoke` in the data-transfer loop.
+
+Deploy the adapter built against the connector's driver version with that connector. A host using
+only Core and the facade can load the optional DLLs at runtime without referencing them at compile time.
+Older mapper-factory-only registries do not implicitly acquire bulk support: use explicit registrations.
+The public `IBulkCopyEngine` namespace remains `DubUrl.BulkCopy`, with its former facade assembly identity
+forwarded to Core. The one-argument `ConnectionUrl` constructor discovers installed connectors directly
+from the `DubUrl` package. Application provider dependencies supply fallback registrations;
+hosts can also supply an explicit registry to bypass discovery.
+
+### Optional DLL deployment
+
+Use the normal call when the connector's dependency loader can already find its DLLs:
+
+```csharp
+using DubUrl.BulkCopy;
+connection.BulkCopy("Customer", reader);
+```
+
+For separately deployed adapter/helper assemblies, supply search directories:
+
+```csharp
+connection.BulkCopy("Customer", reader, new BulkCopyDependencyResolver(new[]
+{
+    Path.Combine(AppContext.BaseDirectory, "optional-bulk-dependencies")
+}));
+```
+
+The resolver uses the driver's normal load context first, then probes the driver directory and supplied
+directories. Handlers exist only during the operation and are removed after success or failure.
+Overlapping scopes cooperate. Missing assemblies produce a diagnostic naming the DLL and explaining how
+to supply it. Native runtime assets retain the connector/driver's existing native load-context handling;
+the resolver neither downloads packages nor changes machine-wide configuration.
+
+Custom typed engines should wrap native operations in `dependencies.Execute(driverAssembly, action)`
+to retain scoped helper resolution and missing-dependency diagnostics. Use `ResolveType` only for an
+optional adapter/helper activation boundary. The shared facade disposes engines and leaves source
+readers owned by callers. Typed DuckDB appenders and SqlClient bulk objects are disposed on success
+and failure. SqlClient retains batch size 1000, streaming enabled, and timeout 0. This does not add an
+ODBC or PostgreSQL bulk engine.

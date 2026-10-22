@@ -19,6 +19,8 @@ public sealed class ProviderRegistration
     public string ProviderInvariantName { get; }
     public Func<DbProviderFactory?> ProviderFactory { get; }
     public IDialect Dialect { get; }
+    /// <summary>Optional native bulk-copy capability for this driver/transport registration.</summary>
+    public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
     public Func<IParametrizer> ParametrizerFactory { get; }
     public Func<ProviderCompilationContext, IMapper> Compile { get; }
     public IReadOnlyDictionary<Type, object> Capabilities => _capabilities;
