@@ -72,3 +72,7 @@ Document validation codes (`SDV...`) and paths are preserved in application resu
 Malformed YAML or JSON is a transport/reader concern: hosts deserialize with `SchemaDocumentReader` and present its location-aware `SchemaDocumentException` before invoking this API. Cancellation is propagated as `OperationCanceledException`; it is not converted into a failure result. Unexpected exceptions from validation and mapping dependencies are also allowed to propagate, while documented mapping, rendering, and deployment failures produce unsuccessful structured results.
 
 `SchemaScriptDeploymentExecutor` uses asynchronous ADO.NET operations when the provider exposes `DbConnection`. For legacy `IDbConnection` implementations, it falls back to synchronous operations and can observe cancellation only between those operations.
+
+## Inspection and export
+
+ISchemaInspectionService adds asynchronous inspection using either a ConnectionUrl or an open borrowed DbConnection and ISchemaMetadataReader. SchemaExportResult preserves SchemaInspectionResult, feature coverage, completeness and diagnostics separately from its versioned document. Strict inspection is the default. See [inspection and export](schema-inspection.md) for extension contracts, ownership and diagnostic codes.

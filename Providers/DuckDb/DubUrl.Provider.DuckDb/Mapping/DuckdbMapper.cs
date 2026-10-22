@@ -17,6 +17,7 @@ namespace DubUrl.Provider.DuckDb.Mapping;
     "DuckDB.NET.Data"
 )]
 [DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Provider.DuckDb.Native.BulkCopy", "DubUrl.Provider.DuckDb.Native.BulkCopy.DuckDbBulkCopyProvider")]
+[DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.DuckDb.Discovery.DuckDbMetadataReader))]
 public class DuckdbMapper : BaseMapper, IFileBasedMapper
 {
     public DuckdbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)

@@ -10,11 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DubUrl.Cli;
 
-internal static class SchemaCommand
+internal static partial class SchemaCommand
 {
     public static Command Create(IServiceProvider services, CancellationToken cancellationToken)
     {
-        var command = new Command("schema", "Validate, render, or deploy a versioned schema document.");
+        var command = new Command("schema", "Inspect databases or validate, render, and deploy a versioned schema document.");
+        command.Subcommands.Add(CreateInspect(services, cancellationToken));
         command.Subcommands.Add(CreateValidate(services, cancellationToken));
         command.Subcommands.Add(CreateRender(services, cancellationToken));
         command.Subcommands.Add(CreateDeploy(services, cancellationToken));

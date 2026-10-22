@@ -16,6 +16,7 @@ namespace DubUrl.Provider.SqlServer.Mapping;
     "Microsoft.Data.SqlClient"
 )]
 [DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Provider.SqlServer.SqlClient.BulkCopy", "DubUrl.Provider.SqlServer.SqlClient.BulkCopy.MsSqlServerBulkCopyProvider")]
+[DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.SqlServer.Discovery.SqlServerMetadataReader))]
 public class MsSqlServerMapper : BaseMapper
 {
     public MsSqlServerMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

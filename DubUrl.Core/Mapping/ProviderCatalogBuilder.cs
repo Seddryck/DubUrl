@@ -172,7 +172,7 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
                 ?? throw new InvalidOperationException($"Missing mapper constructor on '{info.MapperType.FullName}'.");
             var parametrizer = info.ParametrizerType.GetConstructor(Type.EmptyTypes)
                 ?? throw new InvalidOperationException($"Missing parametrizer constructor on '{info.ParametrizerType.FullName}'.");
-            catalog.AddProvider(new ProviderRegistration(info.DatabaseName, info.Aliases, info.ProviderInvariantName,
+            var registration = new ProviderRegistration(info.DatabaseName, info.Aliases, info.ProviderInvariantName,
                 () => resolveFactory(info.ProviderInvariantName), dialects.Get(info.DialectType),
                 () => (IParametrizer)parametrizer.Invoke(null), context =>
                 {
@@ -183,7 +183,10 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
                     if (mapper is BaseMapper baseMapper)
                         baseMapper.SetProviderMetadata(info.ProviderInvariantName, info.Database is null ? null : info.ConnectivityType);
                     return mapper;
-                }) { BulkCopyProvider = info.BulkCopyProvider });
+                })
+            { BulkCopyProvider = info.BulkCopyProvider };
+            if (info.SchemaDiscovery is not null) registration.WithCapabilities(info.SchemaDiscovery);
+            catalog.AddProvider(registration);
         }
         if (infos.Any(info => info.ProviderInvariantName == "System.Data.Odbc"))
         {

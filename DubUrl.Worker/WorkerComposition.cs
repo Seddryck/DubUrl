@@ -44,6 +44,7 @@ public static class WorkerComposition
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
         services.AddSingleton<SchemaDocumentReader>();
+        services.AddSingleton<ISchemaInspectionService, SchemaInspectionService>();
         services.AddSingleton<ISchemaDocumentValidator, SchemaDocumentValidator>();
         services.AddSingleton<ISchemaDocumentMapper, SchemaDocumentMapper>();
         services.AddSingleton<IDialectRegistry>(dialects);
