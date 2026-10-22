@@ -84,7 +84,6 @@ internal class MicroOrmCustomerRepository
 
     public class BasicComparisonWhereClause<T> : IWhereClause
     {
-
         protected Expression<Func<Customer, T>> Member { get; }
         public Func<Expression, Expression, BinaryExpression> BinaryExpression { get; }
         public T Constant { get; }

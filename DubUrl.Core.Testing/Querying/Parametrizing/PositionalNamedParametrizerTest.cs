@@ -17,7 +17,6 @@ namespace DubUrl.Core.Testing.Querying.Parametrizing;
 
 public class PositionalNamedParametrizerTest
 {
-
     [Test]
     public void CreateParameter_DubUrlParameterBoolean_NameAssignedWithPosition()
     {
@@ -54,8 +53,6 @@ public class PositionalNamedParametrizerTest
             .Returns(param1Mock.Object)
             .Returns(param2Mock.Object);
         cmdMock.SetupGet(x => x.Parameters).Returns(dataParameterCollectionMock.Object);
-
-
 
         var parametrizer = new PositionalNamedParametrizer();
         cmdMock.Object.Parameters.Add(

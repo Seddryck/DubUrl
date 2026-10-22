@@ -4,7 +4,6 @@ using DubUrl.Registering;
 
 namespace DubUrl.QA;
 
-
 [Category("ODBC")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public abstract class BaseOdbcDriver

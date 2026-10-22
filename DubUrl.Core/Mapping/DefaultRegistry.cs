@@ -61,5 +61,4 @@ public static class DefaultRegistry
 
         return registry.Select(selectedDialects.Select(dialect => dialect.GetType()));
     }
-
 }

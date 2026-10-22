@@ -384,7 +384,6 @@ public class ConnectorServiceTests
             Databases = [new("Fixture", ["postgresql", "postgres", "pg"])],
             TargetFrameworks = ["net10.0"],
             RuntimeIdentifiers = [],
-
         };
 
     private static string CreateStorePath()

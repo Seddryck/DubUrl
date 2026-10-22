@@ -17,7 +17,6 @@ namespace DubUrl.Core.Testing.Querying.Parametrizing;
 
 public class NamedParametrizerTest
 {
-
     [Test]
     public void CreateParameter_DubUrlParameterBoolean_Exact()
     {
@@ -65,7 +64,6 @@ public class NamedParametrizerTest
         paramMock.VerifySet(x => x.Scale = default, Times.Once);
         paramMock.VerifySet(x => x.Size = 50, Times.Once);
     }
-
 
     [Test]
     public void CreateParameter_DubUrlParameterString_Exact()

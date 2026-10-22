@@ -16,7 +16,6 @@ namespace DubUrl.Core.Testing.MicroOrm;
 
 public class DatabaseUrlTest : DatabaseUrlUtilities
 {
-    
     private class Customer
     {
         public int CustomerId { get; set; }

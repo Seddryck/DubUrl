@@ -228,5 +228,4 @@ public class ProviderAssemblyBoundaryTest
         using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         return ProviderPackCatalogDocument.Read(resource).Entries;
     }
-
 }

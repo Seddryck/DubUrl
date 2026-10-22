@@ -128,38 +128,43 @@ public sealed class ProviderPackStore
                 JsonSerializer.Serialize(manifest, JsonOptions),
                 cancellationToken).ConfigureAwait(false);
 
-            using var storeLock = AcquireLock();
-            // Publish a new revision before changing active files. Readers rebuilding a
-            // snapshot wait on the lock; existing snapshots remain valid.
-            ChangeRevision();
-            var providerRoot = Path.Combine(RootPath, "packs", manifest.Provider);
-            var installPath = Path.Combine(providerRoot, manifest.Version);
-            Directory.CreateDirectory(providerRoot);
-            string? replaced = null;
-            if (Directory.Exists(installPath))
-            {
-                replaced = Path.Combine(stagingRoot, "replaced");
-                Directory.Move(installPath, replaced);
-            }
-
-            try
-            {
-                Directory.Move(contentRoot, installPath);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                if (replaced is not null)
-                    Directory.Move(replaced, installPath);
-                throw;
-            }
-            Activate(manifest.Provider, manifest.Version);
-            return InspectPath(installPath, manifest.Version);
+            return Publish(manifest, contentRoot, stagingRoot);
         }
         finally
         {
             if (Directory.Exists(stagingRoot))
                 Directory.Delete(stagingRoot, recursive: true);
         }
+    }
+
+    private InstalledProviderPack Publish(ConnectorDefinition manifest, string contentRoot, string stagingRoot)
+    {
+        using var storeLock = AcquireLock();
+        // Publish a new revision before changing active files. Readers rebuilding a
+        // snapshot wait on the lock; existing snapshots remain valid.
+        ChangeRevision();
+        var providerRoot = Path.Combine(RootPath, "packs", manifest.Provider);
+        var installPath = Path.Combine(providerRoot, manifest.Version);
+        Directory.CreateDirectory(providerRoot);
+        string? replaced = null;
+        if (Directory.Exists(installPath))
+        {
+            replaced = Path.Combine(stagingRoot, "replaced");
+            Directory.Move(installPath, replaced);
+        }
+
+        try
+        {
+            Directory.Move(contentRoot, installPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            if (replaced is not null)
+                Directory.Move(replaced, installPath);
+            throw;
+        }
+        Activate(manifest.Provider, manifest.Version);
+        return InspectPath(installPath, manifest.Version);
     }
 
     public IReadOnlyList<InstalledProviderPack> Inspect()

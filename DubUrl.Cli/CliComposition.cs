@@ -86,6 +86,14 @@ public static class CliComposition
             entries.AddRange(ProviderPackCatalog.Read(stream).Entries);
         }
 
+        entries.AddRange(ReadConfiguredEntries(configuration));
+        return entries.Count == 0 && !File.Exists(catalogPath)
+            ? BundledProviderCatalog.Create()
+            : new(entries);
+    }
+
+    private static IEnumerable<ConnectorDefinition> ReadConfiguredEntries(IConfiguration configuration)
+    {
         foreach (var section in configuration.GetSection("ProviderPacks:Catalog").GetChildren())
         {
             var provider = section["Provider"];
@@ -96,7 +104,7 @@ public static class CliComposition
                 && !string.IsNullOrWhiteSpace(version)
                 && Uri.TryCreate(downloadUri, UriKind.Absolute, out var uri)
                 && !string.IsNullOrWhiteSpace(sha256))
-                entries.Add(new ConnectorDefinition
+                yield return new ConnectorDefinition
                 {
                     Provider = provider, Version = version, DownloadUri = uri, Sha256 = sha256,
                     Databases = section.GetSection("Databases").Get<ConnectorDatabase[]>() ?? [],
@@ -108,11 +116,8 @@ public static class CliComposition
                     ImplementationAssemblies = section.GetSection("ImplementationAssemblies").Get<string[]>() ?? [],
                     Driver = section["Driver"] ?? string.Empty,
                     DriverAssembly = section["DriverAssembly"],
-                });
+                };
         }
-        return entries.Count == 0 && !File.Exists(catalogPath)
-            ? BundledProviderCatalog.Create()
-            : new(entries);
     }
 
     private static string GetCatalogPath(string? configuredPath)

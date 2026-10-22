@@ -77,5 +77,4 @@ public class ProviderDiscoveryTest
             Assert.That(registry.CanHandle(scheme), Is.True);
         });
     }
-
 }

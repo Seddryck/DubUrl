@@ -99,7 +99,6 @@ public class DidotEngineTest
         Assert.That(response, Is.EqualTo("Hello Cédric ><"));
     }
 
-
     [Test]
     public void Render_WithTemplateParsable_Correct()
     {

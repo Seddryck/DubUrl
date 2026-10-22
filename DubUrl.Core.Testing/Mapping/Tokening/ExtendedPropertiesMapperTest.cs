@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-
 namespace DubUrl.Core.Testing.Mapping.Tokening;
 
 internal class ExtendedPropertiesMapperTest
@@ -23,7 +22,6 @@ internal class ExtendedPropertiesMapperTest
             => Properties.Add(keyword, value);
         public IReadOnlyDictionary<string, object> ToReadOnlyDictionary() => throw new NotImplementedException();
     }
-
 
     [Test]
     public void Execute_ValueNoOption_Value()

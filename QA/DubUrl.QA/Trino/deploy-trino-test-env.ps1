@@ -17,7 +17,7 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 			try {
 				$response = Invoke-WebRequest "http://localhost:8080/v1/info" -TimeoutSec 3
 				if ($response.StatusCode -eq 200) { $ready = $true; break }
-			} catch { }
+			} catch { Write-Verbose "Waiting for Trino: $_" }
 			Start-Sleep -Seconds 3
 		}
 		if (!$ready) { throw "Trino did not become ready." }

@@ -5,7 +5,6 @@ namespace DubUrl.Core.Testing;
 
 public class ProviderNotFoundExceptionTest
 {
-
     [Test]
     public void ctor_Any_MentionsProviderSearched()
     {

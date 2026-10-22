@@ -209,7 +209,6 @@ public class DatabaseUrlTest : DatabaseUrlUtilities
             Assert.That(((dynamic)result.ElementAt(1)).FullName, Is.EqualTo("Alan Turing"));
             Assert.That(((dynamic)result.ElementAt(1)).BirthDate, Is.EqualTo(new DateTime(1912, 6, 23)));
         });
-        
     }
 
     [Test]

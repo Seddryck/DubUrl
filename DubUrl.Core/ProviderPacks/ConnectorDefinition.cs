@@ -37,17 +37,23 @@ public sealed record ConnectorDefinition
         => !string.IsNullOrWhiteSpace(Provider)
             && !string.IsNullOrWhiteSpace(Version)
             && !string.IsNullOrWhiteSpace(DubUrlApiRange)
-            && Databases is { Count: > 0 }
+            && HasDatabaseMetadata()
+            && HasImplementationMetadata()
+            && TargetFrameworks is { Count: > 0 }
+            && RuntimeIdentifiers is not null;
+
+    private bool HasDatabaseMetadata()
+        => Databases is { Count: > 0 }
             && Databases.All(database => database is not null && !string.IsNullOrWhiteSpace(database.Name)
                 && database.Schemes is { Count: > 0 } && database.Schemes.All(scheme => !string.IsNullOrWhiteSpace(scheme)))
-            && Databases.SelectMany(database => database.Schemes).Count() == Schemes.Count
-            && !string.IsNullOrWhiteSpace(Assembly)
+            && Databases.SelectMany(database => database.Schemes).Count() == Schemes.Count;
+
+    private bool HasImplementationMetadata()
+        => !string.IsNullOrWhiteSpace(Assembly)
             && !string.IsNullOrWhiteSpace(Driver)
             && ImplementationAssemblies is { Count: > 0 }
             && ImplementationAssemblies.All(path => !string.IsNullOrWhiteSpace(path))
-            && Schemes is { Count: > 0 }
-            && TargetFrameworks is { Count: > 0 }
-            && RuntimeIdentifiers is not null;
+            && Schemes is { Count: > 0 };
 }
 
 public sealed record ConnectorDatabase(string Name, IReadOnlyList<string> Schemes);

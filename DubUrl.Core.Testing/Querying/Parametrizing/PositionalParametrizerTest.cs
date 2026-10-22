@@ -17,7 +17,6 @@ namespace DubUrl.Core.Testing.Querying.Parametrizing;
 
 public class PositionalParametrizerTest
 {
-
     [Test]
     public void CreateParameter_DubUrlParameterBoolean_NoNameAssigned()
     {

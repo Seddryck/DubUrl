@@ -159,7 +159,6 @@ public class ProviderPackCatalogTest
             DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
             Assembly = "PostgreSql.dll", Driver = "Fixture",
             ImplementationAssemblies = ["PostgreSql.dll"], DriverAssembly = "PostgreSql.dll",
-
         };
 
     private static MemoryStream CatalogStream(string json)

@@ -6,6 +6,7 @@
       "DubUrl.Adomd\\DubUrl.Adomd.csproj",
       "DubUrl.Application.Testing\\DubUrl.Application.Testing.csproj",
       "DubUrl.Application\\DubUrl.Application.csproj",
+      "connectors\\Catalog\\ConnectorCatalog.Build.csproj",
       "DubUrl.BulkCopy.Testing.Dependency\\DubUrl.BulkCopy.Testing.Dependency.csproj",
       "DubUrl.BulkCopy.Testing\\DubUrl.BulkCopy.Testing.csproj",
       "DubUrl.BulkCopy\\DubUrl.BulkCopy.csproj",

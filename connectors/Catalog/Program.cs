@@ -5,7 +5,8 @@ using DubUrl.Core.ProviderPacks;
 using DubUrl.Mapping;
 
 if (args.Length != 3) throw new ArgumentException("Expected matrix path, output path, and version.");
-var version = Regex.Match(args[2], @"^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:[-+].+)?$");
+var version = Regex.Match(args[2], @"^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:[-+].+)?$",
+    RegexOptions.None, TimeSpan.FromSeconds(1));
 if (!version.Success) throw new ArgumentException("Invalid connector version.");
 using var matrix = JsonDocument.Parse(File.ReadAllText(args[0]));
 if (matrix.RootElement.GetProperty("schemaVersion").GetInt32() != 2) throw new InvalidOperationException("Expected matrix schema version 2.");

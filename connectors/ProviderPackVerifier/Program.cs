@@ -48,12 +48,7 @@ internal static class Program
             throw new ArgumentException("Cache verification requires PostgreSQL and an empty store.");
         Environment.SetEnvironmentVariable("DUBURL_PROVIDER_STORE", context.Store.RootPath);
         var empty = DefaultRegistry.Get();
-        try
-        {
-            _ = new ConnectionUrl("pg://localhost/demo").Parse();
-            throw new InvalidOperationException("An empty Core-only store unexpectedly resolved PostgreSQL.");
-        }
-        catch (SchemeNotFoundException) { }
+        AssertProviderUnavailable();
         await MutateInChildAsync("install", args);
         var installed = DefaultRegistry.Get();
         var existing = new ConnectionUrl("pg://localhost/demo");
@@ -70,15 +65,23 @@ internal static class Program
         var removed = DefaultRegistry.Get();
         if (ReferenceEquals(reinstalled, removed) || existing.Parse() != parsed)
             throw new InvalidOperationException("Removal did not preserve the existing URL snapshot.");
-        try
-        {
-            _ = new ConnectionUrl("pg://localhost/demo").Parse();
-            throw new InvalidOperationException("A new URL resolved an uninstalled provider.");
-        }
-        catch (SchemeNotFoundException) { }
+        AssertProviderUnavailable();
         if (ReferenceEquals(removed, DefaultRegistry.Refresh()))
             throw new InvalidOperationException("Explicit refresh did not replace the snapshot.");
         Console.WriteLine("Registry cache: cross-process install/reinstall/remove, independent mappers, existing URLs and explicit refresh passed.");
+    }
+
+    private static void AssertProviderUnavailable()
+    {
+        try
+        {
+            _ = new ConnectionUrl("pg://localhost/demo").Parse();
+        }
+        catch (SchemeNotFoundException)
+        {
+            return;
+        }
+        throw new InvalidOperationException("A new URL unexpectedly resolved an unavailable provider.");
     }
 
     private static async Task MutateInChildAsync(string command, string[] args)

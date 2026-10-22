@@ -60,7 +60,6 @@ public class CompositeRegexTest
             Assert.That(result.Groups[1].Captures[0].Value, Is.EqualTo(capture));
     }
 
-
     [Test]
     [TestCase("MariaDB ANSI Driver", true, "ANSI")]
     [TestCase("MariaDB Unicode Driver", true, "Unicode")]
@@ -89,7 +88,6 @@ public class CompositeRegexTest
             Assert.That(result.Groups[2].Captures[0].Value, Is.EqualTo(encoding));
         });
     }
-
 
     [Test]
     [TestCase("MariaDB (x64) ANSI Driver", "(x64) ", "ANSI")]
