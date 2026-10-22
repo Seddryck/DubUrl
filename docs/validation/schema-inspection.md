@@ -15,13 +15,13 @@ Focused new tests were run before broader affected-project regression checks. Th
 
 | Project | Selection | Passed per framework |
 |---|---|---:|
-| DubUrl.Core.Testing | FullyQualifiedName~Discovery OR FullyQualifiedName~ProviderAssemblyBoundaryTest | 125 |
+| DubUrl.Core.Testing | FullyQualifiedName~Discovery OR FullyQualifiedName~ProviderAssemblyBoundaryTest | 136 |
 | DubUrl.Schema.Documents.Testing | Entire project | 127 |
 | DubUrl.Schema.Testing | Entire project | 95 |
 | DubUrl.Application.Testing | Entire project | 40 |
 | DubUrl.Cli.Testing | Entire project | 49 |
 | DubUrl.Worker.Testing | Entire project | 27 |
-| **Total** | **Three frameworks** | **1,389 executions** |
+| **Total** | **Three frameworks** | **1,422 executions** |
 
 The Core filter was passed as --filter "FullyQualifiedName~Discovery|FullyQualifiedName~ProviderAssemblyBoundaryTest". It includes provider registration/dependency tests, custom discovery contracts, ownership/disposal/cancellation and real embedded DuckDB catalog/round-trip fixtures. Documents cover published JSON Schema validation, JSON/YAML round trips, generation, native types/scopes, foreign keys, membership/regex checks, binary/temporal values, cultures and escaping.
 
@@ -39,4 +39,14 @@ Additionally ran Providers/Sqlite/DubUrl.Provider.Sqlite.QA with --filter FullyQ
 
 ## Known model boundaries
 
-Named table unique constraints, arbitrary views/SQL expressions, specialized indexes, SQLite catalog gaps and unbounded SQL Server facets produce explicit incomplete results. Scoped native types remain scoped in the domain; v1 export rejects them because the current document format cannot encode their scope. DuckDB generation/index metadata is explicitly unsupported, and its round-trip fixture uses DDL supported by the existing renderer. These capability limits are documented in docs/_docs/schema-inspection.md.
+Named table unique constraints, arbitrary views/SQL expressions, specialized indexes, SQLite catalog gaps and unbounded SQL Server facets produce explicit incomplete results. Scoped native types remain scoped in the domain; v1 export rejects them because the current document format cannot encode their scope. DuckDB supports dedicated sequence-backed identity, representable virtual generated expressions and ordinary/unique index column order. Shared/cycling/custom-bound sequences and unsupported generated/index expressions are diagnosed. DuckDB discards index ASC/DESC directions; discovery leaves them unspecified. Its foreign-key DDL round-trip limitation remains. These capability limits are documented in docs/_docs/schema-inspection.md.
+
+## DuckDB follow-up validation
+
+The same full solution build and six-project matrix above were rerun after adding DuckDB identity, generated-expression and ordinary-index discovery/rendering. The Core selection now has 136 tests per framework; the matrix totals 1,422 passing executions.
+
+DuckDbDiscoveryTests contains 13 live DuckDB 1.5.6 cases per framework. They cover sequence seed and positive/negative increment, zero seed, read-only sequence counters during inspection, generated Length/Upper values, quoted schema/table/column/sequence/index names, compound unique index column order, stable JSON and SQL round trips, executable deployment and DropIfExists identity reset. They also reject shared/cycling/custom-bound sequences, expressions around nextval, arithmetic generated expressions and expression indexes. The catalog does not retain ASC/DESC declarations, and tests require unspecified discovered sort direction.
+
+The existing SQLite discovery QA fixture was rerun on net10.0 and passed. SQL Server/PostgreSQL live fixtures were not rerun during this follow-up; their earlier four skips and missing QA connections remain as recorded above. Unrelated repository suites, other provider QA, Linux/macOS and release packaging remain omitted.
+
+A temporary in-memory probe also verified that DuckDB 1.5.6 rejects native GENERATED ALWAYS AS IDENTITY, returns empty information_schema generation fields, includes generated expressions in column_default, and discards ASC/DESC from canonical index SQL. The production reader uses catalog data without evaluating those expressions or advancing sequences.

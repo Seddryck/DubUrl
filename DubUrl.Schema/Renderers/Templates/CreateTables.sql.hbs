@@ -1,5 +1,5 @@
-﻿{{#each model.Tables}}
-CREATE TABLE {{objectname Identity}} (
+{{#each model.Tables}}
+{{identityprerequisites this}}CREATE TABLE {{objectname Identity}} (
 {{#each Columns}}
     {{identity Name}} {{columnspec this ~}}
     {{#if Nullable}} NULL{{/if~}}

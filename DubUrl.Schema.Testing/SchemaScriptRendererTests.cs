@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.DuckDb.Sql;
+using DubUrl.Provider.DuckDb.Sql;
 using DubUrl.Provider.MySql.Sql;
 using DubUrl.Provider.PostgreSql.Sql;
 using DubUrl.Provider.Sqlite.Sql;
@@ -20,6 +20,7 @@ using DubUrl.Schema.Constraints;
 using SchemaForeignKeyConstraint = DubUrl.Schema.Constraints.ForeignKeyConstraint;
 
 namespace DubUrl.Schema.Testing;
+
 public class SchemaScriptRendererTests
 {
     private IDialect DuckDb { get; set; }
@@ -660,7 +661,7 @@ public class SchemaScriptRendererTests
                             .WithColumns(cols => cols.Add(col => col.WithName("BirthDate"))))
                 ).Build();
 
-        var model = new { model = new { Tables = new TableViewModel[] { new(schema.Tables["Customer"]) }, Indexes= new IndexViewModel[] { new(schema.Indexes["Idx_Customer_Name"]) , new(schema.Indexes["Idx_Customer_BirthDate"]) } } };
+        var model = new { model = new { Tables = new TableViewModel[] { new(schema.Tables["Customer"]) }, Indexes = new IndexViewModel[] { new(schema.Indexes["Idx_Customer_Name"]), new(schema.Indexes["Idx_Customer_BirthDate"]) } } };
         var result = renderer.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER," +
@@ -944,16 +945,20 @@ public class SchemaScriptRendererTests
     }
 
     [Test]
-    public void Render_DuckDbIdentity_ThrowsActionableDiagnostic()
+    public void Render_DuckDbIdentity_UsesDedicatedSequence()
     {
         var table = new Table("Customer", [
             new Column("Id", DbType.Int64, generation: new IdentityColumnGeneration())
         ]);
 
-        Assert.That(
-            () => new SchemaScriptRenderer(DuckDb).Render(new Schema([table], [])),
-            Throws.TypeOf<NotSupportedException>()
-                .With.Message.EqualTo("Identity columns are not supported by dialect 'DuckDbDialect'."));
+        var sql = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("CREATE SEQUENCE"));
+            Assert.That(sql, Does.Contain("START 1 INCREMENT BY 1"));
+            Assert.That(sql, Does.Contain("DEFAULT nextval("));
+            Assert.That(sql.IndexOf("CREATE SEQUENCE", StringComparison.Ordinal), Is.LessThan(sql.IndexOf("CREATE TABLE", StringComparison.Ordinal)));
+        });
     }
 
     [Test]

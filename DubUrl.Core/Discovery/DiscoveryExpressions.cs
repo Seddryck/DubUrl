@@ -34,7 +34,7 @@ public static class DiscoveryExpressions
         if (TryLiteral(text, out var value)) { expression = new("value", Value: value); return true; }
         var function = Regex.Match(text, @"^(upper|lower|length)\s*\((.+)\)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (function.Success && TryExpression(function.Groups[2].Value, out var argument))
-        { expression = new("function", function.Groups[1].Value.ToLowerInvariant(), Arguments: [argument!]); return true; }
+        { expression = new("function", function.Groups[1].Value.ToLowerInvariant() switch { "upper" => "Upper", "lower" => "Lower", _ => "Length" }, Arguments: [argument!]); return true; }
         try
         {
             var name = MetadataNames.Parse(text);

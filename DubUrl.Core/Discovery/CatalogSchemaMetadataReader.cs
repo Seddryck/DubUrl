@@ -27,7 +27,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         {
             if (!features.Any(options.Features.Contains) && !features.Contains(SchemaFeature.Tables) && !features.Contains(SchemaFeature.Columns)) return [];
             if (sql is null) { foreach (var feature in features) coverage[feature] = MetadataCoverage.Unsupported; return []; }
-            try { return await QueryAsync(connection, sql, cancellationToken).ConfigureAwait(false); }
+            try { return await ReadCatalogRowsAsync(connection, sql, options, cancellationToken).ConfigureAwait(false); }
             catch (DbException)
             {
                 foreach (var feature in features) coverage[feature] = MetadataCoverage.Inaccessible;
@@ -218,6 +218,10 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         };
     }
 
+    /// <summary>Allows providers to normalize catalog-specific metadata before the shared mapping pipeline.</summary>
+    protected virtual Task<List<CatalogRow>> ReadCatalogRowsAsync(DbConnection connection, string sql, DiscoveryOptions options, CancellationToken cancellationToken)
+        => QueryAsync(connection, sql, cancellationToken);
+
     protected static async Task<List<CatalogRow>> QueryAsync(DbConnection connection, string sql, CancellationToken cancellationToken,
         params (string Name, object Value)[] parameters)
     {
@@ -240,6 +244,13 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
 
 public sealed class CatalogRow(IReadOnlyDictionary<string, object?> values)
 {
+    public CatalogRow With(params (string Name, object? Value)[] replacements)
+    {
+        var copy = values.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, value) in replacements) copy[name] = value;
+        return new(copy);
+    }
+
     public string? Text(string name) => values.GetValueOrDefault(name) is { } value ? Convert.ToString(value, CultureInfo.InvariantCulture) : null;
     public int? Int(string name) => Text(name) is { } value ? int.Parse(value, CultureInfo.InvariantCulture) : null;
     public long? Long(string name) => Text(name) is { } value ? long.Parse(value, CultureInfo.InvariantCulture) : null;

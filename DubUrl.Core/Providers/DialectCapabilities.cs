@@ -17,6 +17,7 @@ public enum IdentityColumnSyntax
     PostgreSql,
     MySql,
     SqliteTableConstraint,
+    DuckDbSequence,
 }
 
 public enum GeneratedColumnSyntax

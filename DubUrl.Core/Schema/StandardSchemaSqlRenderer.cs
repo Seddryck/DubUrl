@@ -6,6 +6,9 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
 {
     public static StandardSchemaSqlRenderer Instance { get; } = new();
 
+    public virtual string RenderCreateIndexName(IDialect dialect, SchemaSqlObjectName index, SchemaSqlObjectName table)
+        => RenderObjectName(dialect, index.Catalog, index.Database, index.Schema, index.Name);
+
     public virtual bool RenderForeignKeysInline(IDialect dialect)
         => (dialect.Capabilities ?? DialectCapabilities.Default).IdentityColumns == IdentityColumnSyntax.SqliteTableConstraint;
 

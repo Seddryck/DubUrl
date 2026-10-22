@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DubUrl.Querying.Dialects.Functions;
+
 public class AnsiFunctionMapper : BaseFunctionMapper
 {
     private static readonly Lazy<AnsiFunctionMapper> _instance = new(() => new AnsiFunctionMapper());
@@ -15,5 +16,7 @@ public class AnsiFunctionMapper : BaseFunctionMapper
     protected AnsiFunctionMapper()
     {
         AddOrReplace(SqlFunction.Length, "LENGTH");
+        AddOrReplace(SqlFunction.Upper, "UPPER");
+        AddOrReplace(SqlFunction.Lower, "LOWER");
     }
 }

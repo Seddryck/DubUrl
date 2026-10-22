@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace DubUrl.Core.Testing.Discovery;
 
-public class DuckDbDiscoveryTests
+public partial class DuckDbDiscoveryTests
 {
     private static readonly DiscoveryOptions Basic = new()
     {

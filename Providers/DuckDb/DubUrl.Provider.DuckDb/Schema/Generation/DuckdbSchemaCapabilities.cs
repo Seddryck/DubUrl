@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects;
 
 namespace DubUrl.Provider.DuckDb.Schema.Generation;
 
@@ -8,6 +8,7 @@ internal static class DuckdbSchemaCapabilities
         => new()
         {
             ObjectNames = ObjectNameQualification.DuckDb,
+            IdentityColumns = IdentityColumnSyntax.DuckDbSequence,
             GeneratedColumns = GeneratedColumnSyntax.DuckDb,
             RegularExpressions = RegularExpressionSyntax.RegexpMatchesFunction,
             SupportsComments = true,
