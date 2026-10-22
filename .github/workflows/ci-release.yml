@@ -552,8 +552,11 @@ jobs:
           $env:DUBURL_ProviderPacks__StorePath = (Join-Path $PWD '.artifacts/fresh-connector-store')
           $listed = & .artifacts/tool/duburl connector list --json | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Listing the official connector catalog failed.' }
-          if (@($listed.connectors).Count -ne 32) {
-            throw "The packaged CLI listed $(@($listed.connectors).Count) connectors instead of 32."
+          $catalog = Get-Content .artifacts/connectors/connector-catalog.json -Raw | ConvertFrom-Json
+          $expectedIds = @($catalog.entries.provider | Sort-Object)
+          $actualIds = @($listed.connectors.id | Sort-Object)
+          if (@(Compare-Object $expectedIds $actualIds).Count -ne 0) {
+            throw 'The packaged CLI connector IDs do not match the official catalog.'
           }
           $connector = @($listed.connectors | Where-Object id -eq 'postgresql-npgsql')
           if ($connector.Count -ne 1 `
