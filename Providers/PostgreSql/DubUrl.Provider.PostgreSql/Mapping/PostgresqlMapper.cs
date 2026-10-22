@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Provider.PostgreSql.Mapping;
 
-[MapperAttribute<PostgresqlDatabase, PositionalParametrizer>(
+[MapperAttribute<PostgresqlDatabase, NpgsqlParametrizer>(
     "Npgsql"
 )]
 public class PostgresqlMapper : BaseMapper

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Provider.PostgreSql.Mapping;
 
-[Mapper<TimescaleDatabase, PositionalParametrizer>(
+[Mapper<TimescaleDatabase, NpgsqlParametrizer>(
     "Npgsql"
 )]
 public class TimescaleMapper : PostgresqlMapper

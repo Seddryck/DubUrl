@@ -72,4 +72,8 @@ public class EmbeddedTemplateCommand : EmbeddedResourceCommand
                 , ReadDictionaries(dialect, connectivity)
                 , dialect.Renderer
             ).Render(Parameters);
+
+    public RenderedTemplateCommand RenderCommand(IDialect dialect, IConnectivity connectivity, IParametrizer parametrizer)
+        => InlineTemplateCommand.RenderBound(ReadResource(dialect, connectivity), Parameters, dialect.Renderer,
+            parametrizer, ReadSubTemplates(dialect, connectivity), ReadDictionaries(dialect, connectivity));
 }

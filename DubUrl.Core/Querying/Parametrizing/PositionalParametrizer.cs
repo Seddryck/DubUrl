@@ -10,6 +10,12 @@ namespace DubUrl.Querying.Parametrizing;
 
 public class PositionalParametrizer : IParametrizer
 {
+    public virtual string GetPlaceholder(int position) => "?";
+
+    public virtual IDbDataParameter CreateTemplateParameter(IDbCommand command, DubUrlParameter parameter) => CreateParameter(command, parameter);
+
+    public virtual void ConfigureTemplateCommand(IDbCommand command) { }
+
     public PositionalParametrizer()
     { }
 
@@ -20,7 +26,7 @@ public class PositionalParametrizer : IParametrizer
         param.Direction = ParameterDirection.Input;
         (param.Precision, param.Scale) = GetPrecision(parameter as IParameterPrecisionable);
         param.Size = GetSize(parameter as IParameterSizable) ?? default;
-        param.DbType = GetDbType(parameter.GetType())
+        param.DbType = (parameter as DubUrl.Querying.Templating.TemplateBinding)?.DbType ?? GetDbType(parameter.GetType())
             ?? throw new ArgumentException($"Parameter '{parameter.Name}' is of type '{parameter.GetType().Name}' but this type is not associated with an attribute of type '{nameof(TypeMappingAttribute)}'"); ;
 
         param.Value = GetValue(parameter.Value);

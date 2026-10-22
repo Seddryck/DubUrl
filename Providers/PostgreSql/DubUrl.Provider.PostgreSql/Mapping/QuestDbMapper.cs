@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Provider.PostgreSql.Mapping;
 
-[Mapper<QuestDbDatabase, PositionalParametrizer>(
+[Mapper<QuestDbDatabase, NpgsqlParametrizer>(
     "Npgsql"
 )]
 public class QuestDbMapper : PostgresqlMapper
