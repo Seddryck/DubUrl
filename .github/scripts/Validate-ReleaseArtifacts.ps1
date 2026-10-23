@@ -30,6 +30,7 @@ $packages = @(
     @{ Id = 'DubUrl.OleDb'; Assembly = 'DubUrl.OleDb' },
     @{ Id = 'DubUrl.Extensions'; Assembly = 'DubUrl.Extensions' },
     @{ Id = 'DubUrl.Adomd'; Assembly = 'DubUrl.Adomd' },
+    @{ Id = 'DubUrl.Adbc'; Assembly = 'DubUrl.Adbc' },
     @{ Id = 'DubUrl.Schema'; Assembly = 'DubUrl.Schema' },
     @{ Id = 'DubUrl.Schema.Documents'; Assembly = 'DubUrl.Schema.Documents' },
     @{ Id = 'DubUrl.Application'; Assembly = 'DubUrl.Application' },

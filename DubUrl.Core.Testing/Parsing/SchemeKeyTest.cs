@@ -23,4 +23,9 @@ public class SchemeKeyTest
     [Test]
     public void Parse_OrderDiffers_NotEqual()
         => Assert.That(SchemeKey.Parse("odbc+mssql"), Is.Not.EqualTo(SchemeKey.Parse("mssql+odbc")));
+    [TestCase("adbc+duckdb")]
+    [TestCase("duckdb+adbc")]
+    [TestCase("ADBC+DUCKDB")]
+    public void GetRegistryAlias_Adbc_NormalizesWrapperOrder(string scheme)
+        => Assert.That(SchemeKey.Parse(scheme).GetRegistryAlias(), Is.EqualTo("adbc+duckdb").IgnoreCase);
 }

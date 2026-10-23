@@ -6,10 +6,10 @@ namespace DubUrl.Provider.DuckDb.Conversion;
 
 internal static class DuckDbConnectionStringReverser
 {
-    public static ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
+    public static ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source, string databaseKeyword = "DataSource")
     {
         var p = new ConnectionStringParts(source);
-        var path = p.Take("DataSource");
+        var path = p.Take(databaseKeyword);
         if (path != ":memory:")
         {
             p.Host = "localhost";

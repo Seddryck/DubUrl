@@ -43,7 +43,9 @@
       "Providers\\SqlServer\\DubUrl.Provider.SqlServer\\DubUrl.Provider.SqlServer.csproj",
       "Providers\\Teradata\\DubUrl.Provider.Teradata\\DubUrl.Provider.Teradata.csproj",
       "Providers\\Text\\DubUrl.Provider.Text\\DubUrl.Provider.Text.csproj",
-      "Providers\\Trino\\DubUrl.Provider.Trino\\DubUrl.Provider.Trino.csproj"
+      "Providers\\Trino\\DubUrl.Provider.Trino\\DubUrl.Provider.Trino.csproj",
+      "DubUrl.Adbc\\DubUrl.Adbc.csproj",
+      "DubUrl.Adbc.Testing\\DubUrl.Adbc.Testing.csproj"
     ]
   }
 }

@@ -79,3 +79,8 @@ with explicit family references and without friend access. The tests enforce sou
 bound parameter through a fake driver, and reuse PostgreSQL behavior with a different
 connector registration. See the provider modules documentation for setup and the
 distinction between independent registration and official publication inventories.
+
+DuckDB ADBC URL mappings belong to the DuckDB family package and use the optional
+`DubUrl.Adbc` ADO.NET adapter. Register the adapter under
+`DubUrl.Provider.DuckDb.Adbc` before building a registry. Core contains only
+the shared ADBC locator contract and compound-scheme normalization.
