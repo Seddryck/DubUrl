@@ -35,6 +35,8 @@ Add-Case FirstQuerySync (Snippet 'first-query' 1) 'var url = Fixture.Url;' 'Chec
 Add-Case Scalars ((Snippet 'read-scalars' 0) + "`n" + (Snippet 'read-scalars' 1)) 'using var database = new DatabaseUrl(Fixture.Url);' 'Check.True(Convert.ToInt64(count) == 2 && oldest is null, "Scalar value and SQL NULL");'
 foreach ($index in 0..4) { Add-Case "Rows$index" (Snippet 'read-rows' $index) 'using var database = new DatabaseUrl(Fixture.Url);' }
 Add-Case Templates (Snippet 'sql-templates' 0) 'using var database = new DatabaseUrl(Fixture.Url);' 'Check.True(Convert.ToInt64(first) == 1 && Convert.ToInt64(second) == 2, "Rendered template values");'
+Add-Case BoundTemplates (Snippet 'sql-templates' 1) 'using var database = new DatabaseUrl(Fixture.Url);' 'Check.True(command.Parameters.Length == 1 && !command.CommandText.Contains("42") && rows.Count == sameRows.Count, "Bound template values and execution");'
+Add-Case TypedTemplates (Snippet 'sql-templates' 2) 'using var database = new DatabaseUrl(Fixture.Url);' 'Check.True(typedCommand.Parameters[0].DbType == DbType.String && typedCommand.Parameters[0].Size == 80 && typedCommand.Parameters[1].Precision == 12 && typedCommand.Parameters[1].Scale == 2, "Typed template metadata");'
 foreach ($index in 0..4) {
   $prefix = 'var url = Fixture.Url;'
   if ($index -ge 3) { $prefix += ' await using var source = new ConnectionSourceUrl(url).Create(new ConnectionSourceOptions { ReuseMode = ConnectionReuseMode.RetainedExclusive });' }

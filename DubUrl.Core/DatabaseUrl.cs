@@ -53,7 +53,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
     public DatabaseUrl(ConnectionUrl connectionUrl, CommandProvisionerFactory commandProvisionerFactory, IQueryLogger logger)
     {
         (ConnectionUrl, CommandProvisionerFactory, QueryLogger, _inlineTemplateCommandFactory) =
-            (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect));
+            (connectionUrl, commandProvisionerFactory, logger, new InlineTemplateCommandFactory(connectionUrl.Dialect, connectionUrl.Parametrizer));
         _executor = new DatabaseCommandExecutor(connectionUrl, commandProvisionerFactory, logger, GetSource);
     }
 
@@ -133,7 +133,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadScalar(CreateTemplate(template), parameters);
 
     public object? ReadScalar(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadScalar(template.Render(parameters));
+       => ReadScalar(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public object? ReadScalar(ICommandProvider commandProvider)
         => _executor.ExecuteScalar(commandProvider, command => command.ExecuteScalar());
@@ -145,7 +145,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadScalar<T>(CreateTemplate(template), parameters);
 
     public T? ReadScalar<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadScalar<T>(template.Render(parameters));
+       => ReadScalar<T>(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public T? ReadScalar<T>(ICommandProvider query)
     {
@@ -160,7 +160,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadScalarNonNull(CreateTemplate(template), parameters);
 
     public object ReadScalarNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull(template.Render(parameters));
+       => ReadScalarNonNull(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public object ReadScalarNonNull(ICommandProvider commandProvider)
     {
@@ -176,7 +176,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadScalarNonNull<T>(CreateTemplate(template), parameters);
 
     public T ReadScalarNonNull<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadScalarNonNull<T>(template.Render(parameters));
+       => ReadScalarNonNull<T>(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public T ReadScalarNonNull<T>(ICommandProvider query)
     {
@@ -194,7 +194,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadScalarAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<object?> ReadScalarAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarAsync(template.Render(parameters), cancellationToken);
+        => ReadScalarAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public Task<object?> ReadScalarAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => _executor.ExecuteScalarAsync(commandProvider, (command, token) => command.ExecuteScalarAsync(token), cancellationToken);
@@ -206,7 +206,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadScalarAsync<T>(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<T?> ReadScalarAsync<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarAsync<T>(template.Render(parameters), cancellationToken);
+        => ReadScalarAsync<T>(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public async Task<T?> ReadScalarAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default)
     {
@@ -221,7 +221,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadScalarNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<object> ReadScalarNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarNonNullAsync(template.Render(parameters), cancellationToken);
+        => ReadScalarNonNullAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public async Task<object> ReadScalarNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
     {
@@ -237,7 +237,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadScalarNonNullAsync<T>(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<T> ReadScalarNonNullAsync<T>(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadScalarNonNullAsync<T>(template.Render(parameters), cancellationToken);
+        => ReadScalarNonNullAsync<T>(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public async Task<T> ReadScalarNonNullAsync<T>(ICommandProvider query, CancellationToken cancellationToken = default)
     {
@@ -259,7 +259,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadSingle(CreateTemplate(template), parameters);
 
     public object? ReadSingle(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadSingle(template.Render(parameters));
+       => ReadSingle(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public object? ReadSingle(ICommandProvider commandProvider)
         => ExecuteReader(commandProvider, reader =>
@@ -277,7 +277,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadSingleAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<object?> ReadSingleAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadSingleAsync(template.Render(parameters), cancellationToken);
+        => ReadSingleAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public Task<object?> ReadSingleAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => ExecuteReaderAsync(commandProvider, async (reader, token) =>
@@ -295,7 +295,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadSingleNonNull(CreateTemplate(template), parameters);
 
     public object ReadSingleNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadSingleNonNull(template.Render(parameters));
+       => ReadSingleNonNull(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public object ReadSingleNonNull(ICommandProvider commandProvider)
         => ReadSingle(commandProvider) ?? throw new InvalidOperationException();
@@ -307,7 +307,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadSingleNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<object> ReadSingleNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadSingleNonNullAsync(template.Render(parameters), cancellationToken);
+        => ReadSingleNonNullAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public async Task<object> ReadSingleNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => await ReadSingleAsync(commandProvider, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException();
@@ -323,7 +323,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadFirst(CreateTemplate(template), parameters);
 
     public object? ReadFirst(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadFirst(template.Render(parameters));
+       => ReadFirst(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public object? ReadFirst(ICommandProvider commandProvider)
         => ExecuteReader(commandProvider, reader => reader.Read() ? reader.ToExpandoObject() : null);
@@ -335,7 +335,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadFirstAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<object?> ReadFirstAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadFirstAsync(template.Render(parameters), cancellationToken);
+        => ReadFirstAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public Task<object?> ReadFirstAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => ExecuteReaderAsync(commandProvider, async (reader, token) =>
@@ -348,7 +348,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadFirstNonNull(CreateTemplate(template), parameters);
 
     public object ReadFirstNonNull(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadFirstNonNull(template.Render(parameters));
+       => ReadFirstNonNull(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public object ReadFirstNonNull(ICommandProvider commandProvider)
         => ReadFirst(commandProvider) ?? throw new InvalidOperationException();
@@ -360,7 +360,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadFirstNonNullAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<object> ReadFirstNonNullAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadFirstNonNullAsync(template.Render(parameters), cancellationToken);
+        => ReadFirstNonNullAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public async Task<object> ReadFirstNonNullAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => await ReadFirstAsync(commandProvider, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException();
@@ -376,7 +376,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ReadMultiple(CreateTemplate(template), parameters);
 
     public IEnumerable<object> ReadMultiple(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ReadMultiple(template.Render(parameters));
+       => ReadMultiple(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
     
     public IEnumerable<object> ReadMultiple(ICommandProvider commandProvider)
         => Stream(commandProvider, reader => reader.ToExpandoObject());
@@ -388,7 +388,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ReadMultipleAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public IAsyncEnumerable<object> ReadMultipleAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ReadMultipleAsync(template.Render(parameters), cancellationToken);
+        => ReadMultipleAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public IAsyncEnumerable<object> ReadMultipleAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => StreamAsync(commandProvider, reader => reader.ToExpandoObject(), cancellationToken);
@@ -404,7 +404,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
        => ExecuteReader(CreateTemplate(template), parameters);
 
     public OwnedDataReader ExecuteReader(InlineTemplateCommand template, IDictionary<string, object?> parameters)
-       => ExecuteReader(template.Render(parameters));
+       => ExecuteReader(template.RenderCommand(parameters, ConnectionUrl.Parametrizer));
 
     public OwnedDataReader ExecuteReader(ICommandProvider commandProvider)
         => _executor.ExecuteOwnedReader(commandProvider);
@@ -420,7 +420,7 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => ExecuteReaderAsync(CreateTemplate(template), parameters, cancellationToken);
 
     public Task<OwnedDataReader> ExecuteReaderAsync(InlineTemplateCommand template, IDictionary<string, object?> parameters, CancellationToken cancellationToken = default)
-        => ExecuteReaderAsync(template.Render(parameters), cancellationToken);
+        => ExecuteReaderAsync(template.RenderCommand(parameters, ConnectionUrl.Parametrizer), cancellationToken);
 
     public Task<OwnedDataReader> ExecuteReaderAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default)
         => _executor.ExecuteOwnedReaderAsync(commandProvider, cancellationToken);

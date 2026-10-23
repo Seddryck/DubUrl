@@ -9,6 +9,7 @@ using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
+using DubUrl.Querying.Templating;
 using Moq;
 using Moq.Protected;
 using Npgsql;
@@ -79,6 +80,12 @@ public class ProviderBindingTest
         var registry = new ProviderCatalogBuilder().AddModule(ConnectorFixture.Create()).Build();
         var url = new ConnectionUrl("pg://localhost/demo?Application Name=extension", registry);
         var settings = new NpgsqlConnectionStringBuilder(url.Parse());
+        var template = new InlineTemplateCommandFactory(url.Dialect, url.Parametrizer)
+            .Create("SELECT $answer; format=\"parameter\"$, $answer; format=\"parameter\"$");
+        var rendered = template.RenderCommand(new Dictionary<string, object?> { ["answer"] = 42 });
+        using var command = new NpgsqlCommand();
+        foreach (var provisioner in new CommandProvisionerFactory().Instantiate(rendered, url))
+            provisioner.Execute(command);
 
         Assert.Multiple(() =>
         {
@@ -88,7 +95,11 @@ public class ProviderBindingTest
             Assert.That(settings.Database, Is.EqualTo("demo"));
             Assert.That(settings.ApplicationName, Is.EqualTo("extension"));
             Assert.That(url.Dialect, Is.TypeOf<PgsqlDialect>());
-            Assert.That(url.Parametrizer, Is.TypeOf<PositionalParametrizer>());
+            Assert.That(url.Parametrizer, Is.TypeOf<NpgsqlParametrizer>());
+            Assert.That(command.CommandText, Is.EqualTo("SELECT $1, $2"));
+            Assert.That(command.Parameters.Select(parameter => parameter.ParameterName), Is.EqualTo(new[] { "", "" }));
+            Assert.That(command.Parameters.Select(parameter => parameter.Value), Is.EqualTo(new[] { 42, 42 }));
+            Assert.That(command.Parameters.Select(parameter => parameter.DbType), Is.EqualTo(new[] { DbType.Int32, DbType.Int32 }));
         });
     }
 

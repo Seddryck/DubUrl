@@ -10,6 +10,8 @@ namespace DubUrl.Querying.Parametrizing;
 
 public class NamedParametrizer : PositionalParametrizer
 {
+    public override string GetPlaceholder(int position) => "@p" + position.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     public NamedParametrizer()
         : base() { }
 

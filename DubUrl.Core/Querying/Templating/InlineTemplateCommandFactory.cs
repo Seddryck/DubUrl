@@ -16,10 +16,14 @@ public class InlineTemplateCommandFactory
 {
     private readonly IDialect _dialect;
     private readonly DidotEngine _engine;
+    private readonly IParametrizer? _parametrizer;
 
-    public InlineTemplateCommandFactory(IDialect dialect)
+    public InlineTemplateCommandFactory(IDialect dialect) : this(dialect, null) { }
+
+    public InlineTemplateCommandFactory(IDialect dialect, IParametrizer? parametrizer)
     {
         _dialect = dialect;
+        _parametrizer = parametrizer;
         _engine = new DidotEngine(".st");
     }
 
@@ -28,6 +32,6 @@ public class InlineTemplateCommandFactory
         if (string.IsNullOrWhiteSpace(template))
             throw new ArgumentException("Template cannot be null or whitespace", nameof(template));
         var renderer = _engine.Prepare(template, renderer: _dialect.Renderer);
-        return new InlineTemplateCommand(renderer, template);
+        return new InlineTemplateCommand(renderer, template, _dialect, _parametrizer);
     }
 }
