@@ -1,4 +1,4 @@
-﻿using DubUrl.Adomd.Mapping;
+using DubUrl.Adomd.Mapping;
 using DubUrl.Adomd.Wrappers;
 using DubUrl.Mapping;
 using NUnit.Framework;
@@ -21,9 +21,8 @@ public class ConnectionUrlTest
     [Test]
     public void Connect_ValidUrl_AdomdConnection()
     {
-        var builder = new SchemeRegistryBuilder()
-            .WithAssemblies(typeof(PowerBiPremiumMapper).Assembly)
-            .WithAutoDiscoveredMappings();
+        var builder = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(PowerBiPremiumMapper).Assembly]));
         var registry = builder.Build();
         var url = "powerbi://api.powerbi.com/v1.0/foo/bar";
         var connectionUrl = new ConnectionUrl(url, registry);

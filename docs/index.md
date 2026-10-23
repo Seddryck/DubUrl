@@ -46,7 +46,7 @@ where "CustomerId"=1
   </div>
   <p class="workbench-example-note">Embedded query resources are selected for the target dialect.</p>
   <p class="workbench-result"><span>Result</span><code>Nikola Tesla</code></p>
-  <p class="workbench-source">A real example from our <a href="https://github.com/Seddryck/DubUrl/blob/main/DubUrl.QA/BaseAdoProvider.cs#L117">database QA suite</a>. <a href="https://github.com/Seddryck/DubUrl/blob/main/DubUrl.QA/SelectFirstCustomerQuery.cs">See the SelectFirstCustomer query class <span aria-hidden="true">↗</span></a></p>
+  <p class="workbench-source">A real example from our <a href="https://github.com/Seddryck/DubUrl/blob/main/QA/DubUrl.QA/BaseAdoProvider.cs#L117">database QA suite</a>. <a href="https://github.com/Seddryck/DubUrl/blob/main/QA/DubUrl.QA/SelectFirstCustomerQuery.cs">See the SelectFirstCustomer query class <span aria-hidden="true">↗</span></a></p>
 </section>
 
 <section class="workbench-install" aria-label="Install the .NET library">

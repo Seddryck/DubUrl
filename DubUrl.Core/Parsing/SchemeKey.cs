@@ -26,6 +26,19 @@ public sealed class SchemeKey : IEquatable<SchemeKey>
     public IReadOnlyList<string> Parts => parts;
     public string Canonical { get; }
 
+    internal string GetRegistryAlias()
+    {
+        var aliases = Parts;
+        var main = aliases.Count == 1
+            ? aliases[0]
+            : aliases.Contains("oledb", StringComparer.OrdinalIgnoreCase) ? "oledb"
+            : aliases.Contains("odbc", StringComparer.OrdinalIgnoreCase) ? "odbc"
+            : throw new ArgumentOutOfRangeException(nameof(Parts));
+
+        var second = aliases.FirstOrDefault(x => !x.Equals(main, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrEmpty(second) ? main : $"{main}+{second}";
+    }
+
     public static SchemeKey Parse(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);

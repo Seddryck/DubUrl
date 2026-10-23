@@ -30,7 +30,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/MsExcel/deploy-msexcel-test-env.ps1
+          ./QA/DubUrl.QA/MsExcel/deploy-msexcel-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')
@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-msexcel-bundle-${{ github.sha }}
-          path: DubUrl.Providers.MsExcel.QA/bin/qa/msexcel/*/**
+          path: Providers/Excel/DubUrl.Provider.MsExcel.QA/bin/qa/msexcel/*/**
           include-hidden-files: true
           if-no-files-found: error

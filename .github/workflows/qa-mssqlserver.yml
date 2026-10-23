@@ -30,13 +30,13 @@ jobs:
       - name: Install SQL Server ODBC driver
         shell: bash
         run: |
-          curl --proto '=https' --proto-redir '=https' -sSLO https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
-          sudo dpkg -i packages-microsoft-prod.deb
+          curl --proto '=https' --proto-redir '=https' -fsSLO https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
+          sudo env DEBIAN_FRONTEND=noninteractive dpkg --force-confnew --force-confmiss -i packages-microsoft-prod.deb
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
       - name: Run provider QA
         shell: pwsh
-        run: ./DubUrl.QA/MsSqlServer/deploy-mssqlserver-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
+        run: ./QA/DubUrl.QA/MsSqlServer/deploy-mssqlserver-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -44,4 +44,4 @@ jobs:
       - name: Upload QA bundle
         if: always()
         uses: actions/upload-artifact@v7
-        with: { name: 'qa-mssqlserver-bundle-${{ github.sha }}', path: 'DubUrl.Providers.MsSqlServer.QA/bin/qa/mssqlserver/*/**', include-hidden-files: true, if-no-files-found: error }
+        with: { name: 'qa-mssqlserver-bundle-${{ github.sha }}', path: 'Providers/SqlServer/DubUrl.Provider.MsSqlServer.QA/bin/qa/mssqlserver/*/**', include-hidden-files: true, if-no-files-found: error }

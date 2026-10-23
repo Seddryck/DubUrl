@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Description>Optional assembly fixture deployed without a runtime or compile-time reference.</Description>
+  </PropertyGroup>
+</Project>

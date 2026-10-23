@@ -23,7 +23,8 @@ public class ReservedKeywordsReader : IDisposable
     {
         ArgumentNullException.ThrowIfNull(resourceAssembly);
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceNamespace);
-        (ResourceAssembly, ResourcePath) = (resourceAssembly, $"{resourceNamespace}.ReservedKeywords.{dialectId}.");
+        var dialectPath = string.IsNullOrEmpty(dialectId) ? string.Empty : $"{dialectId}.";
+        (ResourceAssembly, ResourcePath) = (resourceAssembly, $"{resourceNamespace}.ReservedKeywords.{dialectPath}");
     }
 
     public virtual IEnumerable<string> ReadAll()

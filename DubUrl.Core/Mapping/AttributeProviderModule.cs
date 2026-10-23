@@ -1,91 +1,80 @@
-using DubUrl.Querying.Dialects;
-using DubUrl.Querying.Parametrizing;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
+using DubUrl.BulkCopy;
+using DubUrl.Core.ProviderPacks;
+using DubUrl.Registering;
 
 namespace DubUrl.Mapping;
 
-/// <summary>
-/// Compatibility adapter for providers that still use DubUrl's mapping attributes.
-/// </summary>
-/// <remarks>
-/// This adapter scans exported types and invokes mapper constructors through reflection. Prefer an
-/// explicit <see cref="IDubUrlProviderModule"/> for trimming and Native AOT applications.
-/// </remarks>
+/// <summary>Discovers attributed mappings and delegates their compilation to ProviderCatalogBuilder.</summary>
 public sealed class AttributeProviderModule : IDubUrlProviderModule
 {
-    private readonly Assembly[] _assemblies;
+    private readonly Assembly[] assemblies;
+    private readonly MapperInfo[]? mappings;
+    private readonly Func<string, DbProviderFactory?> resolveFactory = ProviderCatalogBuilder.ResolveRegisteredFactory;
+
+    private AttributeProviderModule(MapperInfo[] mappings, Func<string, DbProviderFactory?> factory)
+        => (assemblies, this.mappings, resolveFactory) = ([], mappings, factory);
+
+    private AttributeProviderModule(Assembly[] assemblies, Func<string, DbProviderFactory?> factory)
+        => (this.assemblies, resolveFactory) = (assemblies, factory);
+
+    internal static AttributeProviderModule FromApplication(Assembly[] assemblies)
+        => new(assemblies, ApplicationProviderDiscovery.ResolveFactory);
+
+    public static AttributeProviderModule FromConnector(ConnectorDefinition definition, Func<string, Assembly> loadAssembly)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(loadAssembly);
+        if (!definition.HasCompleteMetadata())
+            throw new InvalidOperationException($"Connector '{definition.Provider}' has incomplete database mappings.");
+        var mappings = Discover(definition.ImplementationAssemblies.Select(loadAssembly).ToArray())
+            .Where(mapping => mapping.ProviderInvariantName == definition.Driver).ToArray();
+        if (mappings.Length != definition.Databases.Count)
+            throw new InvalidOperationException($"Connector '{definition.Provider}' does not describe every supported mapping.");
+        foreach (var database in definition.Databases)
+        {
+            if (mappings.Count(mapping => mapping.Aliases.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(database.Schemes)) != 1)
+                throw new InvalidOperationException($"Connector '{definition.Provider}' schemes for '{database.Name}' do not match exactly one attributed database.");
+        }
+        var factory = new Lazy<DbProviderFactory>(() => ProviderFactoriesRegistrator.GetFactoryInstance(
+            ProviderFactoriesRegistrator.FindFactoryTypes(loadAssembly(definition.DriverAssemblyPath)).Single()));
+        return new AttributeProviderModule(mappings, _ => factory.Value);
+    }
 
     public AttributeProviderModule(params Assembly[] assemblies)
     {
         ArgumentNullException.ThrowIfNull(assemblies);
-        _assemblies = assemblies.Distinct().ToArray();
-        if (_assemblies.Length == 0)
-            throw new ArgumentException("At least one assembly is required.", nameof(assemblies));
+        this.assemblies = assemblies.Distinct().ToArray();
+        if (this.assemblies.Length == 0) throw new ArgumentException("At least one assembly is required.", nameof(assemblies));
     }
 
-    [RequiresUnreferencedCode("Attribute provider discovery scans exported types and reflects over constructors.")]
+    [RequiresUnreferencedCode("Provider discovery reads attributes and mapper constructors.")]
     public void Register(IProviderCatalogBuilder catalog)
+        => ProviderCatalogBuilder.RegisterMappings(catalog, mappings ?? Discover(assemblies), resolveFactory);
+
+    public static MapperInfo[] Discover(params Assembly[] assemblies)
+        => Discover(new AssemblyTypesProbe(assemblies));
+
+    public static MapperInfo[] Discover(ITypesProbe types)
     {
-        ArgumentNullException.ThrowIfNull(catalog);
-
-        var probe = new AssemblyTypesProbe(_assemblies);
-        var mappings = new NativeMapperIntrospector(probe).Locate()
-            .Concat(new WrapperMapperIntrospector(probe).Locate())
-            .ToArray();
-        var dialectBuilder = new DialectRegistryBuilder();
-        foreach (var mapping in mappings)
-            dialectBuilder.AddDialect(mapping.DialectType, mapping.Aliases);
-        var dialects = dialectBuilder.Build();
-
-        foreach (var mapping in mappings)
-        {
-            catalog.AddProvider(new ProviderRegistration(
-                mapping.DatabaseName,
-                mapping.Aliases,
-                mapping.ProviderInvariantName,
-                () => GetProvider(mapping.ProviderInvariantName),
-                dialects.Get(mapping.DialectType),
-                () => ParametrizerFactory.Instantiate(mapping.ParametrizerType),
-                context => Compile(mapping, context)));
-        }
+        var probe = new AttributeTypesProbe(types.Locate());
+        var native = new NativeMapperIntrospector(probe);
+        return native.Locate().Concat(new WrapperMapperIntrospector(probe).Locate())
+            .GroupBy(info => (info.MapperType, DatabaseType: info.Database!.Type, info.ProviderInvariantName, info.DialectType, info.ParametrizerType))
+            .Select(group => group.First() with
+            {
+                Aliases = group.SelectMany(info => info.Aliases).Distinct().ToArray(),
+                BulkCopyProvider = probe.Attributes(group.Key.MapperType).OfType<BulkCopyProviderAttribute>().SingleOrDefault()?.Create()
+            }).ToArray();
     }
 
-    private static DbProviderFactory? GetProvider(string providerInvariantName)
+    public static MapperInfo SelectMapping(IEnumerable<MapperInfo> mappings, string databaseScheme, string invariant)
     {
-        DbProviderFactories.TryGetFactory(providerInvariantName, out var provider);
-        return provider;
-    }
-
-    private static IMapper Compile(MapperInfo mapping, ProviderCompilationContext context)
-    {
-        var parameterTypes = new List<Type>
-        {
-            typeof(DbConnectionStringBuilder),
-            typeof(IDialect),
-            typeof(IParametrizer),
-        };
-        var parameters = new List<object>
-        {
-            context.ConnectionStringBuilder,
-            context.Dialect,
-            context.Parametrizer,
-        };
-
-        if (typeof(IFileBasedMapper).IsAssignableFrom(mapping.MapperType))
-        {
-            parameterTypes.Add(typeof(string));
-            parameters.Add(context.RootPath);
-        }
-
-        var constructor = mapping.MapperType.GetConstructor(parameterTypes.ToArray())
-            ?? throw new InvalidOperationException(
-                $"Compatibility provider '{mapping.DatabaseName}' expects a public constructor " +
-                $"with parameters ({string.Join(", ", parameterTypes.Select(type => type.Name))}).");
-        return (IMapper)constructor.Invoke(parameters.ToArray());
+        var candidates = mappings.Where(info => info.ProviderInvariantName == invariant
+            && info.Database is { } database && database.Aliases.Contains(databaseScheme, StringComparer.OrdinalIgnoreCase)).ToArray();
+        return candidates.Length == 1 ? candidates[0]
+            : throw new InvalidOperationException($"Expected one attributed mapper for database scheme '{databaseScheme}' using '{invariant}', found {candidates.Length}.");
     }
 }

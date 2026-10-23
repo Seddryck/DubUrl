@@ -1,0 +1,16 @@
+using DubUrl.Provider.Trino.Mapping;
+using DubUrl.Core.Testing;
+using DubUrl.Core.Testing.Conversion;
+using NUnit.Framework;
+
+namespace DubUrl.Provider.Trino.Tests.Conversion;
+
+public class TrinoConversionTest
+{
+    [TestCase(@"Host=localhost;Port=8080;Catalog=example;Schema=public;User=example;Password=example;TrinoHeaders=1")]
+    public void Convert_PreservesProviderSettings(string input)
+    {
+        ConversionTestSupport.RoundTrip("trino", input, global::NReco.PrestoAdo.PrestoDbFactory.Instance,
+            csb => new TrinoMapper(csb, ConversionTestSupport.Dialect, ConversionTestSupport.Parametrizer));
+    }
+}

@@ -4,6 +4,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../DubUrl.Application/DubUrl.Application.csproj" />
+    <ProjectReference Include="..\..\DubUrl.Application\DubUrl.Application.csproj" />
   </ItemGroup>
 </Project>

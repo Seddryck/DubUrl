@@ -1,0 +1,13 @@
+<Project>
+  <!-- The runtime cannot enumerate managed DLLs inside a single-file bundle. Keep the standard
+       dependency file available for provider discovery instead of generating another inventory. -->
+  <Target Name="KeepDubUrlRuntimeDependencies" BeforeTargets="_ComputeFilesToBundle"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)"
+                             Condition="'%(ResolvedFileToPublish.RelativePath)' == '$(AssemblyName).deps.json'">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

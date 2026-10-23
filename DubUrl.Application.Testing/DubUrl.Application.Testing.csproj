@@ -16,8 +16,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
-    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
   </ItemGroup>
 
 </Project>

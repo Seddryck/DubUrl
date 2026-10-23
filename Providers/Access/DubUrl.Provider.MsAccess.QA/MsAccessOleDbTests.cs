@@ -1,0 +1,27 @@
+using DubUrl.Provider.Odbc.Rewriting;
+using DubUrl.Mapping;
+using DubUrl.OleDb.Mapping;
+using DubUrl.ProviderTesting;
+using DubUrl.Registering;
+using NUnit.Framework;
+
+namespace DubUrl.Provider.MsAccess.QA;
+
+[TestFixture, Category("MsAccess"), NonParallelizable]
+public sealed class MsAccessOleDbTests : OleDbContract
+{
+    private SchemeRegistry? registry;
+
+    [OneTimeSetUp]
+    public void RegisterProviderFactories()
+    {
+        var assemblies = new[] { typeof(OdbcRewriter).Assembly, typeof(OleDbRewriter).Assembly };
+        new ProviderFactoriesRegistrator(new BinFolderDiscoverer(assemblies)).Register();
+        registry = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies])).Build();
+    }
+
+    protected override ConnectionUrl CreateConnectionUrl() => new("oledb+accdb:///MsAccess/DubUrl.accdb", registry!);
+    protected override string SelectFirstCustomerSql => "select [FullName] from [Customer] where [CustomerId]=1";
+    protected override string SelectCustomerByIdSql => "select [FullName] from [Customer] where [CustomerId]=?";
+}

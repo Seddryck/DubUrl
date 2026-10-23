@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\DubUrl.Core\DubUrl.csproj" />
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
   </ItemGroup>
   
   <PropertyGroup>

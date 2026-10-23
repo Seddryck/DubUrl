@@ -33,16 +33,15 @@ using DubUrl.OleDb.Mapping;
 
 DbProviderFactories.RegisterFactory(
     "System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance);
-var registry = new SchemeRegistryBuilder()
-    .WithAssemblies(typeof(OleDbRewriter).Assembly)
-    .WithAutoDiscoveredMappings()
+var registry = new ProviderCatalogBuilder()
+    .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(OleDbRewriter).Assembly]))
     .Build();
 var url = Environment.GetEnvironmentVariable("DUBURL_OLEDB_URL")
     ?? throw new InvalidOperationException("Set DUBURL_OLEDB_URL first.");
 using var connection = new ConnectionUrl(url, registry).Open();
 ```
 
-Use an installed-provider URL such as `oledb+mssql://{server}/{database}` with your actual server and database. An `ISchemeRegistry` is required; the old `SchemeMapperBuilder` examples do not match this constructor.
+Use an installed-provider URL such as `oledb+mssql://{server}/{database}` with your actual server and database. Pass the built `ISchemeRegistry` to the URL constructor.
 ## Additional options for selecting the right driver
 
 Some provider manufacturers allow you to install multiple versions of their drivers in parallel. The version could be a different release (e.g. version `10.0` and version `11.3`). As such more than a single driver can be identified by DubUrl to be a valid candidate. By default, DubUrl use the following conventions when selecting a driver:

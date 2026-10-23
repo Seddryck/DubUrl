@@ -41,7 +41,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/CockRoach/deploy-cockroach-test-env.ps1
+          ./QA/DubUrl.QA/CockRoach/deploy-cockroach-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')
@@ -59,6 +59,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-cockroachdb-bundle-${{ github.sha }}
-          path: DubUrl.Providers.CockroachDb.QA/bin/qa/cockroachdb/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.CockroachDb.QA/bin/qa/cockroachdb/*/**
           include-hidden-files: true
           if-no-files-found: error

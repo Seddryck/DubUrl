@@ -32,6 +32,7 @@ public static class CliComposition
         foreach (var module in providerModules ?? [])
             catalogBuilder.AddModule(module);
         catalogBuilder.AddInstalledPacks(store, providerDiagnostics);
+        catalogBuilder.AddApplicationProviders();
         var dialects = catalogBuilder.BuildDialects();
         var schemes = catalogBuilder.Build();
         var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
@@ -76,7 +77,7 @@ public static class CliComposition
 
     private static ProviderPackCatalog CreateProviderPackCatalog(IConfiguration configuration)
     {
-        var entries = new List<ProviderPackCatalogEntry>();
+        var entries = new List<ConnectorDefinition>();
         var configuredPath = configuration["ProviderPacks:CatalogPath"];
         var catalogPath = Path.GetFullPath(GetCatalogPath(configuredPath));
         if (File.Exists(catalogPath))
@@ -85,6 +86,14 @@ public static class CliComposition
             entries.AddRange(ProviderPackCatalog.Read(stream).Entries);
         }
 
+        entries.AddRange(ReadConfiguredEntries(configuration));
+        return entries.Count == 0 && !File.Exists(catalogPath)
+            ? BundledProviderCatalog.Create()
+            : new(entries);
+    }
+
+    private static IEnumerable<ConnectorDefinition> ReadConfiguredEntries(IConfiguration configuration)
+    {
         foreach (var section in configuration.GetSection("ProviderPacks:Catalog").GetChildren())
         {
             var provider = section["Provider"];
@@ -95,18 +104,20 @@ public static class CliComposition
                 && !string.IsNullOrWhiteSpace(version)
                 && Uri.TryCreate(downloadUri, UriKind.Absolute, out var uri)
                 && !string.IsNullOrWhiteSpace(sha256))
-                entries.Add(new(
-                    provider,
-                    version,
-                    uri,
-                    sha256,
-                    section.GetSection("Aliases").Get<string[]>() ?? [],
-                    section.GetSection("Schemes").Get<string[]>() ?? [],
-                    section["DubUrlApiRange"],
-                    section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
-                    section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? []));
+                yield return new ConnectorDefinition
+                {
+                    Provider = provider, Version = version, DownloadUri = uri, Sha256 = sha256,
+                    Databases = section.GetSection("Databases").Get<ConnectorDatabase[]>() ?? [],
+                    Aliases = section.GetSection("Aliases").Get<string[]>() ?? [],
+                    DubUrlApiRange = section["DubUrlApiRange"] ?? string.Empty,
+                    TargetFrameworks = section.GetSection("TargetFrameworks").Get<string[]>() ?? [],
+                    RuntimeIdentifiers = section.GetSection("RuntimeIdentifiers").Get<string[]>() ?? [],
+                    Assembly = section["Assembly"] ?? string.Empty,
+                    ImplementationAssemblies = section.GetSection("ImplementationAssemblies").Get<string[]>() ?? [],
+                    Driver = section["Driver"] ?? string.Empty,
+                    DriverAssembly = section["DriverAssembly"],
+                };
         }
-        return new(entries);
     }
 
     private static string GetCatalogPath(string? configuredPath)

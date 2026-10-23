@@ -30,7 +30,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/QuestDB/deploy-questdb-test-env.ps1
+          ./QA/DubUrl.QA/QuestDB/deploy-questdb-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')
@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-questdb-bundle-${{ github.sha }}
-          path: DubUrl.Providers.QuestDb.QA/bin/qa/questdb/*/**
+          path: Providers/PostgreSql/DubUrl.Provider.QuestDb.QA/bin/qa/questdb/*/**
           include-hidden-files: true
           if-no-files-found: error

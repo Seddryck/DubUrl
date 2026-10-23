@@ -10,6 +10,24 @@ namespace DubUrl.Cli.Testing;
 public class ConnectorCommandTests
 {
     [Test]
+    public async Task List_NoCatalogConfiguration_UsesApplicationBundledCatalog()
+    {
+        var store = Path.Combine(TestContext.CurrentContext.WorkDirectory, "bundled-catalog-" + Guid.NewGuid().ToString("N"));
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ProviderPacks:StorePath"] = store,
+            ["ProviderPacks:CatalogPath"] = Path.Combine(store, "absent.json"),
+        }).Build();
+        var console = new TestConsole();
+        await using var services = CliComposition.CreateDefault(console, configuration);
+        Assert.That(await CliHost.InvokeAsync(["connector", "list", "--json"], services), Is.Zero);
+        using var json = JsonDocument.Parse(console.StandardOutput);
+        Assert.That(json.RootElement.GetProperty("connectors").EnumerateArray()
+            .Select(entry => entry.GetProperty("id").GetString()), Does.Contain("postgresql-npgsql"));
+        Assert.That(Directory.Exists(store), Is.False);
+    }
+
+    [Test]
     public async Task List_FreshStore_LoadsVersionedOfficialCatalogWithoutInstallingConnector()
     {
         var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-catalog-{Guid.NewGuid():N}");
@@ -20,14 +38,15 @@ public class ConnectorCommandTests
             var storePath = Path.Combine(root, "store");
             await File.WriteAllTextAsync(catalogPath, """
                 {
-                  "schemaVersion": 1,
+                  "schemaVersion": 2,
                   "entries": [{
                     "provider": "postgresql-npgsql",
                     "version": "1.2.3",
                     "downloadUri": "https://example.test/postgresql-npgsql.zip",
                     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+                    "assembly": "PostgreSql.dll", "databases": [{"name": "Fixture", "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"]}], "driver": "Fixture", "implementationAssemblies": ["PostgreSql.dll"], "driverAssembly": "PostgreSql.dll",
                     "aliases": ["postgresql", "postgres", "pg", "npgsql"],
-                    "schemes": ["pg", "pgx", "pgsql", "postgres", "postgresql"],
+
                     "dubUrlApiRange": "[1.0.0,2.0.0)",
                     "targetFrameworks": ["net8.0", "net9.0", "net10.0"],
                     "runtimeIdentifiers": []
@@ -139,7 +158,14 @@ public class ConnectorCommandTests
     {
         var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"connector-errors-{Guid.NewGuid():N}");
         using var http = new HttpClient(new UnavailableHandler());
-        var catalog = new ProviderPackCatalog([new("postgresql-npgsql", "1.0.0", new Uri("https://example.test/pack.zip"), new string('0', 64), ["pg"])]);
+        var catalog = new ProviderPackCatalog([new()
+        {
+            Provider = "postgresql-npgsql", Version = "1.0.0", DownloadUri = new Uri("https://example.test/pack.zip"),
+            Sha256 = new string('0', 64), Aliases = ["pg"], Databases = [new("Fixture", ["pg"])],
+            DubUrlApiRange = "[1.0.0,2.0.0)", TargetFrameworks = ["net8.0"], RuntimeIdentifiers = [],
+            Assembly = "PostgreSql.dll", Driver = "Fixture",
+            ImplementationAssemblies = ["PostgreSql.dll"], DriverAssembly = "PostgreSql.dll",
+        }]);
         var application = new ConnectorService(new ProviderPackStore(root), catalog, http);
         var console = new TestConsole();
         await using var services = CliComposition.CreateDefault(console, providerPackService: new ProviderPackService(application));

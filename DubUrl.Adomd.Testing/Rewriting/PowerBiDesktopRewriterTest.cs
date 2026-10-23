@@ -1,7 +1,7 @@
 using DubUrl.Parsing;
 using NUnit.Framework;
 using System.Data.Common;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Core.Testing.Rewriting;
 using DubUrl.Adomd.Wrappers;
 using DubUrl.Adomd.Rewriting;
 using DubUrl.Adomd.Discovery;

@@ -20,12 +20,18 @@ public static class ConnectionUrlExtensions
     /// <param name="dataReader">Data reader containing the source data</param>
     /// <exception cref="ArgumentNullException">Thrown when connectionUrl, tableName, or dataReader is null</exception>
     public static void BulkCopy(this ConnectionUrl connectionUrl, string tableName, IDataReader dataReader)
+        => BulkCopy(connectionUrl, tableName, dataReader, BulkCopyDependencyResolver.Default);
+
+    /// <summary>Performs bulk copy with lazy resolution of optional driver dependencies.</summary>
+    public static void BulkCopy(this ConnectionUrl connectionUrl, string tableName, IDataReader dataReader,
+        IBulkCopyDependencyResolver dependencies)
     {
         ArgumentNullException.ThrowIfNull(connectionUrl, nameof(connectionUrl));
         ArgumentNullException.ThrowIfNull(tableName, nameof(tableName));
         ArgumentNullException.ThrowIfNull(dataReader, nameof(dataReader));
+        ArgumentNullException.ThrowIfNull(dependencies, nameof(dependencies));
 
-        var factory = new BulkCopyEngineFactory();
+        var factory = new BulkCopyEngineFactory(dependencies);
         using var bulkCopy = factory.Create(connectionUrl);
         bulkCopy.Write(tableName, dataReader);
     }

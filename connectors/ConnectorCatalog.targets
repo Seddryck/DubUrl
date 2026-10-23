@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <ConnectorCatalogTool>$(MSBuildThisFileDirectory)Catalog/bin/$(Configuration)/$(TargetFramework)/ConnectorCatalog.Build.dll</ConnectorCatalogTool>
+  </PropertyGroup>
+  <Target Name="GenerateConnectorCatalog" DependsOnTargets="ResolveProjectReferences" Condition="'$(NoBuild)' != 'true'">
+    <PropertyGroup>
+      <ConnectorMatrixPath Condition="'$(ConnectorMatrixPath)' == ''">$(MSBuildThisFileDirectory)connector-matrix.json</ConnectorMatrixPath>
+      <ConnectorCatalogOutput Condition="'$(ConnectorCatalogOutput)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'connector-catalog.json'))</ConnectorCatalogOutput>
+    </PropertyGroup>
+    <Exec Command="dotnet &quot;$(ConnectorCatalogTool)&quot; &quot;$(ConnectorMatrixPath)&quot; &quot;$(ConnectorCatalogOutput)&quot; &quot;$(Version)&quot;" />
+  </Target>
+</Project>

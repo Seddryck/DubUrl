@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using DubUrl.Querying.Dialects;
 using DubUrl.OleDb.Mapping;
 using DubUrl.Querying.Parametrizing;
-using DubUrl.Testing.Rewriting;
+using DubUrl.Core.Testing.Rewriting;
 using DubUrl.Rewriting.Tokening;
 
 namespace DubUrl.OleDb.Testing.Rewriting;

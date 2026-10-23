@@ -26,12 +26,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
-    <ProjectReference Include="..\providers\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" />
+    <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
+    <ProjectReference Include="..\Providers\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
+    <ProjectReference Include="..\Providers\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
+    <ProjectReference Include="..\Providers\Sqlite\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" />
+    <ProjectReference Include="..\Providers\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="..\Providers\Text\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">

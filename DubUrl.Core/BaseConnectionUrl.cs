@@ -34,6 +34,7 @@ public class BaseConnectionUrl
 
     public string Parse() => Result.ConnectionString;   
     public virtual IDialect Dialect => Result.Dialect;
+    public virtual DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => Result.BulkCopyProvider;
     public virtual IConnectivity Connectivity => Result.Connectivity;
     public virtual IParametrizer Parametrizer => Result.Parametrizer;
 }

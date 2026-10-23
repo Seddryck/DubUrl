@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Default binding for local solution builds; archive builds override every setting from the matrix. -->
+    <ConnectorFamily Condition="'$(ConnectorFamily)' == ''">PostgreSql</ConnectorFamily>
+    <ConnectorTechnology Condition="'$(ConnectorTechnology)' == ''">Npgsql</ConnectorTechnology>
+    <Description>Provider dependencies for $(ConnectorFamily) using $(ConnectorTechnology).</Description>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>ConnectorDependencies</AssemblyName>
+    <RootNamespace>$(AssemblyName)</RootNamespace>
+    <PackageId>$(AssemblyName)</PackageId>
+    <!-- Temporary dependency collector; its DLL is never included in connector archives. -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\DuckDb\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
+    <ProjectReference Include="..\SqlServer\DubUrl.Provider.SqlServer.SqlClient.BulkCopy\DubUrl.Provider.SqlServer.SqlClient.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'SqlClient'" />
+    <ProjectReference Include="..\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" Condition="'$(ConnectorFamily)' == 'Access'" />
+    <ProjectReference Include="..\Db2\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" Condition="'$(ConnectorFamily)' == 'Db2'" />
+    <ProjectReference Include="..\Drill\DubUrl.Provider.Drill\DubUrl.Provider.Drill.csproj" Condition="'$(ConnectorFamily)' == 'Drill'" />
+    <ProjectReference Include="..\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" Condition="'$(ConnectorFamily)' == 'DuckDb'" />
+    <ProjectReference Include="..\Excel\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" Condition="'$(ConnectorFamily)' == 'Excel'" />
+    <ProjectReference Include="..\FirebirdSql\DubUrl.Provider.FirebirdSql\DubUrl.Provider.FirebirdSql.csproj" Condition="'$(ConnectorFamily)' == 'FirebirdSql'" />
+    <ProjectReference Include="..\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" Condition="'$(ConnectorFamily)' == 'MySql'" />
+    <ProjectReference Include="..\Oracle\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" Condition="'$(ConnectorFamily)' == 'Oracle'" />
+    <ProjectReference Include="..\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" Condition="'$(ConnectorFamily)' == 'PostgreSql'" />
+    <ProjectReference Include="..\Snowflake\DubUrl.Provider.Snowflake\DubUrl.Provider.Snowflake.csproj" Condition="'$(ConnectorFamily)' == 'Snowflake'" />
+    <ProjectReference Include="..\Sqlite\DubUrl.Provider.Sqlite\DubUrl.Provider.Sqlite.csproj" Condition="'$(ConnectorFamily)' == 'Sqlite'" />
+    <ProjectReference Include="..\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" Condition="'$(ConnectorFamily)' == 'SqlServer'" />
+    <ProjectReference Include="..\Teradata\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj" Condition="'$(ConnectorFamily)' == 'Teradata'" />
+    <ProjectReference Include="..\Text\DubUrl.Provider.Text\DubUrl.Provider.Text.csproj" Condition="'$(ConnectorFamily)' == 'Text'" />
+    <ProjectReference Include="..\Trino\DubUrl.Provider.Trino\DubUrl.Provider.Trino.csproj" Condition="'$(ConnectorFamily)' == 'Trino'" />
+    <ProjectReference Include="..\Odbc\DubUrl.Provider.Odbc\DubUrl.Provider.Odbc.csproj" Condition="'$(ConnectorTechnology)' == 'Odbc'" />
+    <ProjectReference Include="..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" Condition="'$(ConnectorTechnology)' == 'OleDb'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.3" Condition="'$(ConnectorTechnology)' == 'Npgsql'" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.300" Condition="'$(ConnectorTechnology)' == 'Db2' AND '$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.200" Condition="'$(ConnectorTechnology)' == 'Db2' AND '$(TargetFramework)' != 'net8.0'" />
+    <PackageReference Include="DuckDB.NET.Data" Version="1.5.6" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
+    <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.5.6" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.3" Condition="'$(ConnectorTechnology)' == 'Firebird'" />
+    <PackageReference Include="MySqlConnector" Version="2.6.2" Condition="'$(ConnectorTechnology)' == 'MySqlConnector'" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" Condition="'$(ConnectorTechnology)' == 'SqlClient'" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" Condition="'$(ConnectorTechnology)' == 'SqlClient' OR '$(ConnectorTechnology)' == 'Oracle'" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.26.301" Condition="'$(ConnectorTechnology)' == 'Oracle'" />
+    <PackageReference Include="SingleStoreConnector" Version="1.2.0" Condition="'$(ConnectorTechnology)' == 'SingleStore'" />
+    <PackageReference Include="Snowflake.Data" Version="6.3.0" Condition="'$(ConnectorTechnology)' == 'Snowflake'" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" Condition="'$(ConnectorTechnology)' == 'Sqlite'" />
+    <PackageReference Include="Teradata.Client.Provider" Version="20.0.6" Condition="'$(ConnectorTechnology)' == 'Teradata'" />
+    <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" Condition="'$(ConnectorTechnology)' == 'Trino'" />
+    <PackageReference Include="System.Data.Odbc" Version="10.0.12" Condition="'$(ConnectorTechnology)' == 'Odbc'" />
+    <PackageReference Include="System.Data.OleDb" Version="10.0.12" Condition="'$(ConnectorTechnology)' == 'OleDb'" />
+  </ItemGroup>
+
+</Project>

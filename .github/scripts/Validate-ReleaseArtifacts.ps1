@@ -10,9 +10,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $packages = @(
-    @{ Id = 'DubUrl'; Assembly = 'DubUrl' },
-    @{ Id = 'DubUrl.Core'; Assembly = 'DubUrl.Core' },
-    @{ Id = 'DubUrl.Providers'; Assembly = 'DubUrl.Providers' },
+    @{ Id = 'DubUrl'; Assembly = 'DubUrl.Core' },
     @{ Id = 'DubUrl.Provider.Access'; Assembly = 'DubUrl.Provider.Access' },
     @{ Id = 'DubUrl.Provider.Db2'; Assembly = 'DubUrl.Provider.Db2' },
     @{ Id = 'DubUrl.Provider.Drill'; Assembly = 'DubUrl.Provider.Drill' },
@@ -35,8 +33,7 @@ $packages = @(
     @{ Id = 'DubUrl.Schema'; Assembly = 'DubUrl.Schema' },
     @{ Id = 'DubUrl.Schema.Documents'; Assembly = 'DubUrl.Schema.Documents' },
     @{ Id = 'DubUrl.Application'; Assembly = 'DubUrl.Application' },
-    @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' },
-    @{ Id = 'DubUrl.Connector.PostgreSql.Npgsql'; Assembly = 'DubUrl.Connector.PostgreSql.Npgsql' }
+    @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
 )
 $frameworks = @('net8.0', 'net9.0', 'net10.0')
 
@@ -65,7 +62,9 @@ foreach ($package in $packages) {
     $symbolPath = Join-Path $NuGetDirectory "$($package.Id).$Version.snupkg"
 
     Assert-Condition (Test-Path -LiteralPath $packagePath -PathType Leaf) "Missing package '$packagePath'."
-    Assert-Condition (Test-Path -LiteralPath $symbolPath -PathType Leaf) "Missing symbol package '$symbolPath'."
+    if ($package.Assembly) {
+        Assert-Condition (Test-Path -LiteralPath $symbolPath -PathType Leaf) "Missing symbol package '$symbolPath'."
+    }
 
     $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $packagePath))
     try {
@@ -76,32 +75,21 @@ foreach ($package in $packages) {
             $assemblyPath = "lib/$framework/$($package.Assembly).dll"
             Assert-Condition ($entries -contains $assemblyPath) "Package '$($package.Id)' has no assembly at '$assemblyPath'."
         }
-
+        $reader = [IO.StreamReader]::new($archive.GetEntry("$($package.Id).nuspec").Open())
+        try { [xml] $specification = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $dependencies = @($specification.SelectNodes("//*[local-name()='dependency']") | ForEach-Object { $_.id })
+        Assert-Condition ('DubUrl.Core' -notin $dependencies) "Package '$($package.Id)' depends on the retired DubUrl.Core package."
+        if ($package.Id -eq 'DubUrl') {
+            Assert-Condition (@($dependencies | Where-Object { $_ -like 'DubUrl.Provider.*' }).Count -eq 0) 'DubUrl must not bring provider implementations.'
+        }
         if ($package.Id -eq 'DubUrl.Schema.Documents') {
             $schemaPath = 'schemas/schema-document/v1/schema.json'
             Assert-Condition ($entries -contains $schemaPath) "Package '$($package.Id)' has no schema at '$schemaPath'."
         }
-
-        if ($package.Id -eq 'DubUrl.Connector.PostgreSql.Npgsql') {
-            $nuspecEntry = $archive.GetEntry("$($package.Id).nuspec")
-            $reader = [IO.StreamReader]::new($nuspecEntry.Open())
-            try {
-                [xml] $nuspec = $reader.ReadToEnd()
-                $legacyDependency = @($nuspec.package.metadata.dependencies.group.dependency | Where-Object id -eq 'DubUrl')
-                Assert-Condition ($legacyDependency.Count -eq 0) "Connector package must not depend on the DubUrl compatibility package."
-                foreach ($dependencyId in @('DubUrl.Core', 'DubUrl.Provider.PostgreSql')) {
-                    $dependency = @($nuspec.package.metadata.dependencies.group.dependency | Where-Object id -eq $dependencyId)
-                    Assert-Condition ($dependency.Count -eq 3) "Connector package must declare $dependencyId once for each target framework."
-                    foreach ($item in $dependency) {
-                        $normalizedRange = $item.version -replace '\s', ''
-                        Assert-Condition ($normalizedRange -eq "[$Version,1.0.0)") "Connector package has unexpected $dependencyId dependency range '$($item.version)'."
-                    }
-                }
-            }
-            finally {
-                $reader.Dispose()
-            }
+        if ($package.Id -eq 'DubUrl') {
+            Assert-Condition ($entries -contains 'buildTransitive/DubUrl.targets') "DubUrl package is missing its single-file dependency discovery target."
         }
+
     }
     finally {
         $archive.Dispose()

@@ -30,7 +30,7 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: >-
-          ./DubUrl.QA/Text/deploy-text-test-env.ps1
+          ./QA/DubUrl.QA/Text/deploy-text-test-env.ps1
           -force
           -config Release
           -frameworks @('net8.0', 'net9.0', 'net10.0')
@@ -46,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qa-text-bundle-${{ github.sha }}
-          path: DubUrl.Providers.Text.QA/bin/qa/text/*/**
+          path: Providers/Text/DubUrl.Provider.Text.QA/bin/qa/text/*/**
           include-hidden-files: true
           if-no-files-found: error

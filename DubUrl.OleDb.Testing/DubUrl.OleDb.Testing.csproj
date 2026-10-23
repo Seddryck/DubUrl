@@ -26,7 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
-    <ProjectReference Include="..\DubUrl.Testing\DubUrl.Testing.csproj" />
+    <ProjectReference Include="..\DubUrl.Core.Testing\DubUrl.Core.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">

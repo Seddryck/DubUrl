@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Description>Typed SqlClient bulk-copy adapter distributed with the native connector.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+    <InternalsVisibleTo Include="DubUrl.BulkCopy.Testing" />
+  </ItemGroup>
+</Project>
