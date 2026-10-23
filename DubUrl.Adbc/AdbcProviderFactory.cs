@@ -4,12 +4,12 @@ using Apache.Arrow.Adbc.C;
 
 namespace DubUrl.Adbc;
 
-/// <summary>Creates ADO.NET connections backed by an ADBC driver.</summary>
+/// <summary>Configures an ADBC driver for ADO.NET connections and Arrow-native sessions.</summary>
 public sealed class AdbcProviderFactory : DbProviderFactory
 {
     private readonly Func<AdbcDriver> createDriver;
 
-    /// <param name="createDriver">Creates a fresh driver owned by each opened connection.</param>
+    /// <param name="createDriver">Creates a fresh driver owned by each opened connection or native session.</param>
     public AdbcProviderFactory(Func<AdbcDriver> createDriver)
         => this.createDriver = createDriver ?? throw new ArgumentNullException(nameof(createDriver));
 
@@ -24,4 +24,22 @@ public sealed class AdbcProviderFactory : DbProviderFactory
     public override DbConnection CreateConnection() => new AdbcConnectionWrapper(createDriver);
     public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new();
     public override DbParameter CreateParameter() => new Apache.Arrow.Adbc.Client.AdbcParameter();
+
+    internal AdbcSession OpenSession(IReadOnlyDictionary<string, string> parameters)
+    {
+        var driver = createDriver() ?? throw new InvalidOperationException("The ADBC driver factory returned null.");
+        Apache.Arrow.Adbc.AdbcDatabase? database = null;
+        try
+        {
+            database = driver.Open(parameters);
+            var connection = database.Connect(null);
+            return new AdbcSession(driver, database, connection);
+        }
+        catch
+        {
+            try { database?.Dispose(); }
+            finally { driver.Dispose(); }
+            throw;
+        }
+    }
 }

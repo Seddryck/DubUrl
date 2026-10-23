@@ -1,8 +1,9 @@
-using DubUrl.Querying.Templating;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
+using Apache.Arrow;
+using Apache.Arrow.Types;
 
 namespace DubUrl.Adbc.Testing;
 
@@ -21,6 +22,84 @@ public class DuckdbAdbcTests
 
     [TearDown]
     public void UnregisterDriver() => DbProviderFactories.UnregisterFactory("DubUrl.Provider.DuckDb.Adbc");
+
+    [Test]
+    public async Task NativeSession_StreamsMultipleTypedArrowBatches()
+    {
+        using var session = new AdbcConnectionUrl("adbc+duckdb://").Open();
+        using var statement = session.Connection.CreateStatement();
+        statement.SqlQuery = "SELECT i::BIGINT AS id, CASE WHEN i % 2 = 0 THEN NULL::VARCHAR ELSE 'customer' END AS name FROM range(1100000) AS t(i)";
+        using var stream = statement.ExecuteQuery().Stream!;
+        Assert.That(stream.Schema.GetFieldByIndex(0).DataType, Is.TypeOf<Int64Type>());
+        Assert.That(stream.Schema.GetFieldByIndex(1).DataType, Is.TypeOf<StringType>());
+        long rowCount = 0;
+        var batchCount = 0;
+        while (await stream.ReadNextRecordBatchAsync() is { } batch)
+        {
+            using (batch)
+            {
+                if (batch.Length == 0)
+                    continue;
+                var ids = (Int64Array)batch.Column(0);
+                var names = (StringArray)batch.Column(1);
+                Assert.That(ids.GetValue(0), Is.EqualTo(rowCount));
+                if (rowCount == 0)
+                {
+                    Assert.That(names.IsNull(0), Is.True);
+                    Assert.That(names.GetString(1), Is.EqualTo("customer"));
+                }
+                rowCount += batch.Length;
+                batchCount++;
+            }
+        }
+        Assert.That(rowCount, Is.EqualTo(1100000));
+        Assert.That(batchCount, Is.GreaterThan(1));
+    }
+
+    [Test]
+    public async Task NativeSession_EmptyResult_PreservesArrowSchema()
+    {
+        using var session = new AdbcConnectionUrl("adbc+duckdb://").Open();
+        using var statement = session.Connection.CreateStatement();
+        statement.SqlQuery = "SELECT NULL::BIGINT AS id WHERE false";
+        using var stream = statement.ExecuteQuery().Stream!;
+        Assert.That(stream.Schema.GetFieldByIndex(0).Name, Is.EqualTo("id"));
+        Assert.That(stream.Schema.GetFieldByIndex(0).DataType, Is.TypeOf<Int64Type>());
+        long rowCount = 0;
+        while (await stream.ReadNextRecordBatchAsync() is { } batch)
+        {
+            using (batch)
+                rowCount += batch.Length;
+        }
+        Assert.That(rowCount, Is.Zero);
+    }
+
+    [Test]
+    public async Task NativeSession_EarlyTermination_ReleasesFileHandles()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"duburl-arrow-{Guid.NewGuid():N}.db");
+        var url = $"adbc+duckdb:////{path.Replace('\\', '/')}";
+        try
+        {
+            using (var session = new AdbcConnectionUrl(url).Open())
+            using (var statement = session.Connection.CreateStatement())
+            {
+                statement.SqlQuery = "SELECT i FROM range(1100000) AS t(i)";
+                using var stream = statement.ExecuteQuery().Stream!;
+                using var batch = await stream.ReadNextRecordBatchAsync();
+                Assert.That(batch, Is.Not.Null);
+            }
+            // Open the same file through the row API after closing the Arrow session.
+            Assert.That(new DatabaseUrl(url).ReadScalar<long>("SELECT 42::BIGINT"), Is.EqualTo(42));
+            File.Delete(path);
+            Assert.That(File.Exists(path), Is.False);
+        }
+        finally
+        {
+            File.Delete(path);
+            File.Delete(path + ".wal");
+        }
+    }
 
     [Test]
     public void ReadScalar_NativeDuckdb_ReturnsResult()
