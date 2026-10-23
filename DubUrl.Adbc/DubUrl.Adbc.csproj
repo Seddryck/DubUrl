@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>ADBC provider integration for DubUrl's ADO.NET connection and querying APIs.</Description>
+    <Description>ADBC integration for DubUrl with Arrow-native batch access and ADO.NET connection and querying APIs.</Description>
     <PackageTags>connection-string;database;adbc;arrow;ado-net</PackageTags>
   </PropertyGroup>
   <ItemGroup>
