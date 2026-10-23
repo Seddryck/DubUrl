@@ -92,6 +92,13 @@ public sealed class SchemaInspector
             }
         }
         var views = MapViews(metadata, options, selected, diagnostics);
+        return CompleteResult(metadata, options, diagnostics, coverage, tables, indexes, views);
+    }
+
+    private static SchemaInspectionResult CompleteResult(SchemaMetadata metadata, DiscoveryOptions options,
+        List<DiscoveryDiagnostic> diagnostics, Dictionary<SchemaFeature, MetadataCoverage> coverage,
+        List<Table> tables, List<Index> indexes, List<View> views)
+    {
         try
         {
             var schema = new Schema(tables.ToArray(), indexes.ToArray(), views.ToArray());

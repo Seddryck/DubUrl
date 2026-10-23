@@ -129,14 +129,19 @@ internal static class DuckDbCatalogSql
                 if (token is null) return [];
                 tokens.Add(token);
             }
-            else if (char.IsLetterOrDigit(sql[i]) || sql[i] is '_' or '$')
-            {
-                while (i < sql.Length && (char.IsLetterOrDigit(sql[i]) || sql[i] is '_' or '$')) i++;
-                tokens.Add(new(sql[start..i], start, i));
-            }
+            else if (IsWordCharacter(sql[i])) tokens.Add(ReadWord(sql, ref i));
             else { i++; tokens.Add(new(sql[start..i], start, i)); }
         }
         return tokens;
+    }
+
+    private static bool IsWordCharacter(char value) => char.IsLetterOrDigit(value) || value is '_' or '$';
+
+    private static Token ReadWord(string sql, ref int position)
+    {
+        var start = position;
+        while (position < sql.Length && IsWordCharacter(sql[position])) position++;
+        return new(sql[start..position], start, position);
     }
 
     private static Token? ReadQuotedToken(string sql, ref int i)

@@ -259,11 +259,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         var native = row.Text("type_name")?.ToLowerInvariant() ?? "";
         var basic = native.Split('(')[0].Trim();
         DbType? type = ScalarTypes.TryGetValue(basic, out var scalar) ? scalar : null;
-        var facets = System.Text.RegularExpressions.Regex.Match(native, @"^[a-z][a-z ]*\(\s*(\d+)\s*(?:,\s*(\d+)\s*)?\)$",
-            System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
-        int? declaredFirst = facets.Success && int.TryParse(facets.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var first) ? first : null;
-        byte? declaredPrecision = declaredFirst is > 0 and <= 255 ? (byte)declaredFirst.Value : null;
-        byte? declaredScale = facets.Groups[2].Success && byte.TryParse(facets.Groups[2].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var scale) ? scale : null;
+        var (declaredFirst, declaredPrecision, declaredScale) = DeclaredFacets(native);
         return new(row.Text("column_name")!, row.Int("ordinal") ?? 0, type, row.Bool("nullable"))
         {
             Length = ColumnLength(type, row.Int("length") ?? declaredFirst),
@@ -272,6 +268,16 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
             Comment = row.Text("comment"),
             Generation = row.Long("identity_increment") is { } increment ? new(row.Long("identity_seed") ?? 1, increment) : null
         };
+    }
+
+    private static (int? Length, byte? Precision, byte? Scale) DeclaredFacets(string native)
+    {
+        var facets = System.Text.RegularExpressions.Regex.Match(native, @"^[a-z][a-z ]*\(\s*(\d+)\s*(?:,\s*(\d+)\s*)?\)$",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+        int? declaredFirst = facets.Success && int.TryParse(facets.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var first) ? first : null;
+        byte? declaredPrecision = declaredFirst is > 0 and <= 255 ? (byte)declaredFirst.Value : null;
+        byte? declaredScale = facets.Groups[2].Success && byte.TryParse(facets.Groups[2].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var scale) ? scale : null;
+        return (declaredFirst, declaredPrecision, declaredScale);
     }
 
     private static int? ColumnLength(DbType? type, int? length)
