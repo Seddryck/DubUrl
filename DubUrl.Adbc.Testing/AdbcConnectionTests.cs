@@ -186,9 +186,10 @@ public class AdbcConnectionTests
     }
 
     [Test]
-    public void Parse_WithoutRegisteredProvider_DoesNotAdvertiseAdbcScheme()
+    public void Parse_WithoutExplicitRegistration_DiscoversFactoryWithoutLoadingNativeDriver()
     {
         DbProviderFactories.UnregisterFactory(Provider);
-        Assert.That(DefaultRegistry.Refresh().CanHandle("adbc+duckdb"), Is.False);
+        Assert.That(DefaultRegistry.Refresh().GetProviderFactory(["adbc", "duckdb"]),
+            Is.SameAs(DubUrl.Provider.DuckDb.Adbc.DuckdbAdbcFactory.Instance));
     }
 }

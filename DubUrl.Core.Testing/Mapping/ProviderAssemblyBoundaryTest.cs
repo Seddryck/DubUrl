@@ -175,7 +175,7 @@ public class ProviderAssemblyBoundaryTest
         using var resource = typeof(BundledProviderCatalog).Assembly.GetManifestResourceStream("DubUrl.ConnectorCatalog")!;
         var catalog = ProviderPackCatalogDocument.Read(resource);
 
-        Assert.That(catalog.Entries, Has.Count.EqualTo(24));
+        Assert.That(catalog.Entries, Has.Count.EqualTo(25));
         var lookup = new ProviderPackCatalog(catalog.Entries);
         foreach (var row in ready)
         {

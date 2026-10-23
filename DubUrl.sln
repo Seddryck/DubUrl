@@ -227,6 +227,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Adbc", "DubUrl.Adbc\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Adbc.Testing", "DubUrl.Adbc.Testing\DubUrl.Adbc.Testing.csproj", "{34085FEA-D106-51EA-903F-A8E61FDF4D4A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DubUrl.Provider.DuckDb.Adbc", "Providers\DuckDb\DubUrl.Provider.DuckDb.Adbc\DubUrl.Provider.DuckDb.Adbc.csproj", "{4A8244DD-4C86-5619-A163-61BF8D2C128B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -237,6 +239,18 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Debug|x64.Build.0 = Debug|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Debug|x86.Build.0 = Debug|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Release|x64.ActiveCfg = Release|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Release|x64.Build.0 = Release|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Release|x86.ActiveCfg = Release|Any CPU
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B}.Release|x86.Build.0 = Release|Any CPU
 		{8DAACCC3-5969-54AD-9543-79162C0894FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8DAACCC3-5969-54AD-9543-79162C0894FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DAACCC3-5969-54AD-9543-79162C0894FF}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1046,6 +1060,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{4A8244DD-4C86-5619-A163-61BF8D2C128B} = {8382CDA0-6BD6-4473-9F41-BFF9B39A2173}
 		{95E83BA6-B535-4D56-B06A-D00249A4EF00} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
 		{09BDFA96-353F-419D-890A-D9B9045E66DD} = {C923A152-4091-48BE-A984-686FF5E4ACCC}
 		{210C887C-6FF3-4D1B-9A7B-894E2F286FF4} = {C923A152-4091-48BE-A984-686FF5E4ACCC}

@@ -82,5 +82,7 @@ distinction between independent registration and official publication inventorie
 
 DuckDB ADBC URL mappings belong to the DuckDB family package and use the optional
 `DubUrl.Adbc` ADO.NET adapter. Register the adapter under
-`DubUrl.Provider.DuckDb.Adbc` before building a registry. Core contains only
+`DubUrl.Provider.DuckDb.Adbc` before building a registry, or install the
+`DubUrl.Provider.DuckDb.Adbc` package / `duckdb-adbc` connector for automatic
+factory and installed-driver discovery. Native libraries remain caller-installed. Core contains only
 the shared ADBC locator contract and compound-scheme normalization.
