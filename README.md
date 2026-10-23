@@ -74,6 +74,9 @@ or SID, and `/dbname` is optional. Please see below for examples.</i>
 
 ## Quickstart
 
+DuckDB is also available through ADBC with `DubUrl.Adbc` and `DubUrl.Provider.DuckDb`.
+See [ADBC provider setup](docs/_docs/adbc-providers.md) for registration and examples.
+
 Database connection URLs in the above format can be parsed to a standard connection string with the [`Parse`] as such:
 
 ```csharp

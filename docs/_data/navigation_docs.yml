@@ -17,6 +17,7 @@
   - odbc-driver-locators
   - oledb-provider-locators
   - adomd-providers
+  - adbc-providers
   - SSL/TLS support
 
 - title: Interfaces with other frameworks

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>ADBC provider integration for DubUrl's ADO.NET connection and querying APIs.</Description>
+    <PackageTags>connection-string;database;adbc;arrow;ado-net</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
+    <PackageReference Include="Apache.Arrow.Adbc.Client" Version="0.24.0" />
+  </ItemGroup>
+</Project>

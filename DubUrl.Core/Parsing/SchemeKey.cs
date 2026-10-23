@@ -33,6 +33,7 @@ public sealed class SchemeKey : IEquatable<SchemeKey>
             ? aliases[0]
             : aliases.Contains("oledb", StringComparer.OrdinalIgnoreCase) ? "oledb"
             : aliases.Contains("odbc", StringComparer.OrdinalIgnoreCase) ? "odbc"
+            : aliases.Contains("adbc", StringComparer.OrdinalIgnoreCase) ? "adbc"
             : throw new ArgumentOutOfRangeException(nameof(Parts));
 
         var second = aliases.FirstOrDefault(x => !x.Equals(main, StringComparison.OrdinalIgnoreCase));

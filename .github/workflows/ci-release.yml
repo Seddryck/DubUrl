@@ -2,8 +2,6 @@ name: CI and release
 
 on:
   pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
@@ -132,6 +130,7 @@ jobs:
             'DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj',
             'DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj',
             'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
+            'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj',
             'DubUrl.Application.Testing/DubUrl.Application.Testing.csproj',
             'DubUrl.Schema.Testing/DubUrl.Schema.Testing.csproj',
             'DubUrl.Schema.Documents.Testing/DubUrl.Schema.Documents.Testing.csproj',
@@ -170,6 +169,7 @@ jobs:
             'DubUrl.OleDb',
             'DubUrl.Extensions',
             'DubUrl.Adomd',
+            'DubUrl.Adbc',
             'DubUrl.Application',
             'DubUrl.Schema',
             'DubUrl.Schema.Documents',
@@ -245,6 +245,7 @@ jobs:
             'DubUrl.OleDb/DubUrl.OleDb.csproj'
             'DubUrl.Extensions/DubUrl.Extensions.csproj'
             'DubUrl.Adomd/DubUrl.Adomd.csproj'
+            'DubUrl.Adbc/DubUrl.Adbc.csproj'
             'DubUrl.Schema/DubUrl.Schema.csproj'
             'DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj'
             'DubUrl.Application/DubUrl.Application.csproj'
@@ -291,8 +292,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 33) {
-            throw "Expected 33 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 36) {
+            throw "Expected 36 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
@@ -379,6 +380,8 @@ jobs:
             project: DubUrl.Extensions/DubUrl.Extensions.csproj
           - package-id: DubUrl.Adomd
             project: DubUrl.Adomd/DubUrl.Adomd.csproj
+          - package-id: DubUrl.Adbc
+            project: DubUrl.Adbc/DubUrl.Adbc.csproj
           - package-id: DubUrl.Schema
             project: DubUrl.Schema/DubUrl.Schema.csproj
           - package-id: DubUrl.Schema.Documents

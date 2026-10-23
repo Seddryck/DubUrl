@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.DuckDb.Conversion;
+using DubUrl.Provider.DuckDb.Conversion;
 using DubUrl.Rewriting;
 using DubUrl.Parsing;
 using DubUrl.Rewriting.Tokening;
@@ -13,22 +13,24 @@ namespace DubUrl.Provider.DuckDb.Rewriting;
 
 internal class DuckdbRewriter : ConnectionStringRewriter, DubUrl.Conversion.IReverseConnectionMapper
 {
+    private readonly string databaseKeyword;
+
     public virtual ConnectionUri Convert(SchemeKey scheme, DbConnectionStringBuilder source)
-        => DubUrl.Provider.DuckDb.Conversion.DuckDbConnectionStringReverser.Convert(scheme, source);
+        => DubUrl.Provider.DuckDb.Conversion.DuckDbConnectionStringReverser.Convert(scheme, source, databaseKeyword);
 
     protected internal const string DATABASE_KEYWORD = "DataSource";
     
-    public DuckdbRewriter(DbConnectionStringBuilder csb, string rootPath)
+    public DuckdbRewriter(DbConnectionStringBuilder csb, string rootPath, string databaseKeyword = DATABASE_KEYWORD)
         : base(   new UniqueAssignmentSpecificator(csb),
                   [
-                    new DataSourceMapper(rootPath),
+                    new DataSourceMapper(rootPath, databaseKeyword),
                     new OptionsMapper(),
                   ]
         )
-    { }
+    { this.databaseKeyword = databaseKeyword; }
 
-    internal class DataSourceMapper(string rootPath)
-        : FilePathTokenMapper(DATABASE_KEYWORD, rootPath, "DuckDB", ":memory:")
+    internal class DataSourceMapper(string rootPath, string databaseKeyword = DATABASE_KEYWORD)
+        : FilePathTokenMapper(databaseKeyword, rootPath, "DuckDB", ":memory:")
     {
         protected override IReadOnlyList<string> GetSegments(ConnectionUri urlInfo)
         {
