@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Provider.Oracle.Mapping;
 
-[Mapper<OracleDatabase, NamedParametrizer>(
+[Mapper<OracleDatabase, OracleParametrizer>(
     "Oracle.ManagedDataAccess"
 )]
 public class OracleManagedDataAccessMapper : BaseMapper

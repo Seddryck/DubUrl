@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Provider.PostgreSql.Mapping;
 
-[Mapper<CrateDbDatabase, NamedParametrizer>("Npgsql")]
+[Mapper<CrateDbDatabase, NpgsqlNamedParametrizer>("Npgsql")]
 public class CrateDbMapper : BaseMapper
 {
     public CrateDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
