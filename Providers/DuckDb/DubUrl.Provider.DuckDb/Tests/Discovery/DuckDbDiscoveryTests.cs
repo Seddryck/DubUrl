@@ -6,7 +6,7 @@ using DubUrl.Schema;
 using DuckDB.NET.Data;
 using NUnit.Framework;
 
-namespace DubUrl.Core.Testing.Discovery;
+namespace DubUrl.Provider.DuckDb.Tests.Discovery;
 
 public partial class DuckDbDiscoveryTests
 {

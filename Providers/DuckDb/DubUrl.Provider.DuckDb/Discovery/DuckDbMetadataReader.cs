@@ -4,7 +4,6 @@ namespace DubUrl.Provider.DuckDb.Discovery;
 
 public sealed class DuckDbMetadataReader : CatalogSchemaMetadataReader
 {
-
     protected override string TablesSql => """
         SELECT schema_name,table_name,comment FROM duckdb_tables() WHERE NOT internal AND database_name=current_database()
         """;
@@ -34,23 +33,7 @@ public sealed class DuckDbMetadataReader : CatalogSchemaMetadataReader
         DiscoveryOptions options, CancellationToken cancellationToken)
     {
         var rows = await base.ReadCatalogRowsAsync(connection, sql, options, cancellationToken).ConfigureAwait(false);
-        if (sql == IndexesSql)
-        {
-            var indexes = new List<CatalogRow>();
-            foreach (var row in rows)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var columns = DuckDbCatalogSql.IndexColumns(row.Text("index_sql") ?? "");
-                if (columns is null)
-                {
-                    indexes.Add(row.With(("unsupported", true)));
-                    continue;
-                }
-                for (var i = 0; i < columns.Length; i++)
-                    indexes.Add(row.With(("column_name", columns[i].Name), ("ordinal", i + 1), ("descending", columns[i].Descending)));
-            }
-            return indexes;
-        }
+        if (sql == IndexesSql) return NormalizeIndexes(rows, cancellationToken);
         if (sql != ColumnsSql) return rows;
         var normalized = rows.Select(row =>
         {
@@ -65,19 +48,8 @@ public sealed class DuckDbMetadataReader : CatalogSchemaMetadataReader
             FROM duckdb_sequences() s LEFT JOIN duckdb_dependencies() d ON d.objid=s.sequence_oid
             WHERE s.database_name=current_database()
             """, cancellationToken).ConfigureAwait(false);
-        CatalogRow? Resolve(CatalogRow column)
-        {
-            if (!DuckDbCatalogSql.TrySequence(column.Text("default_expression") ?? "", out var name)) return null;
-            var matches = sequences.Where(sequence =>
-                sequence.Long("dependent_oid") == column.Long("table_oid")
-                && string.Equals(sequence.Text("sequence_name"), name!.Name, StringComparison.OrdinalIgnoreCase)
-                && (name.Schema is null || string.Equals(sequence.Text("schema_name"), name.Schema, StringComparison.OrdinalIgnoreCase))
-                && (name.Database is null || string.Equals(sequence.Text("database_name"), name.Database, StringComparison.OrdinalIgnoreCase))
-                && name.Catalog is null).ToArray();
-            return matches.Length == 1 ? matches[0] : null;
-        }
         var sequenceColumns = normalized.ToArray();
-        var resolved = normalized.Select(Resolve).ToArray();
+        var resolved = normalized.Select(column => ResolveSequence(column, sequences)).ToArray();
         for (var i = 0; i < normalized.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -85,23 +57,69 @@ public sealed class DuckDbMetadataReader : CatalogSchemaMetadataReader
             var defaultSql = column.Text("default_expression");
             if (defaultSql is null || !DuckDbCatalogSql.UsesSequence(defaultSql)) continue;
             var sequence = resolved[i];
-            var integral = base.MapColumn(column).Type is System.Data.DbType.Byte or System.Data.DbType.Int16 or System.Data.DbType.Int32 or System.Data.DbType.Int64;
+            var eligible = IsEligibleIdentity(column, sequence, sequences, resolved, sequenceColumns);
             var increment = sequence?.Long("increment_by");
-            var eligible = integral && sequence is not null && sequence.Bool("cycle") == false && increment is not null and not 0
-                && (sequence.Long("min_value") == long.MinValue || (increment > 0 && sequence.Long("min_value") == 1))
-                && (sequence.Long("max_value") == long.MaxValue || (increment < 0 && sequence.Long("max_value") == -1))
-                && sequences.Where(item => item.Long("sequence_oid") == sequence.Long("sequence_oid"))
-                    .All(item => item.Long("dependent_oid") == column.Long("table_oid"))
-                && resolved.Count(item => item?.Long("sequence_oid") == sequence.Long("sequence_oid")) == 1
-                && !sequenceColumns.Where((item, index) => resolved[index] is null && item.Long("table_oid") == column.Long("table_oid"))
-                    .Any(item => DuckDbCatalogSql.UsesSequence(item.Text("default_expression") ?? ""))
-                && !sequenceColumns.Where(item => item.Long("table_oid") == column.Long("table_oid"))
-                    .Any(item => DuckDbCatalogSql.UsesSequence(item.Text("generation_expression") ?? ""));
             normalized[i] = eligible
                 ? column.With(("identity_seed", sequence!.Long("start_value")), ("identity_increment", increment), ("default_expression", null))
                 : column.With(("generation_expression", "<unrepresentable sequence-backed identity>"), ("default_expression", null));
         }
         return normalized;
+    }
+
+    private static List<CatalogRow> NormalizeIndexes(List<CatalogRow> rows, CancellationToken cancellationToken)
+    {
+        var indexes = new List<CatalogRow>();
+        foreach (var row in rows)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var columns = DuckDbCatalogSql.IndexColumns(row.Text("index_sql") ?? "");
+            if (columns is null)
+            {
+                indexes.Add(row.With(("unsupported", true)));
+                continue;
+            }
+            for (var i = 0; i < columns.Length; i++)
+                indexes.Add(row.With(("column_name", columns[i].Name), ("ordinal", i + 1), ("descending", columns[i].Descending)));
+        }
+        return indexes;
+    }
+
+    private static CatalogRow? ResolveSequence(CatalogRow column, List<CatalogRow> sequences)
+    {
+        if (!DuckDbCatalogSql.TrySequence(column.Text("default_expression") ?? "", out var name)) return null;
+        var matches = sequences.Where(sequence =>
+            sequence.Long("dependent_oid") == column.Long("table_oid")
+            && string.Equals(sequence.Text("sequence_name"), name!.Name, StringComparison.OrdinalIgnoreCase)
+            && (name.Schema is null || string.Equals(sequence.Text("schema_name"), name.Schema, StringComparison.OrdinalIgnoreCase))
+            && (name.Database is null || string.Equals(sequence.Text("database_name"), name.Database, StringComparison.OrdinalIgnoreCase))
+            && name.Catalog is null).ToArray();
+        return matches.Length == 1 ? matches[0] : null;
+    }
+
+    private bool IsEligibleIdentity(CatalogRow column, CatalogRow? sequence, List<CatalogRow> sequences, CatalogRow?[] resolved, CatalogRow[] sequenceColumns)
+    {
+        var integral = base.MapColumn(column).Type is System.Data.DbType.Byte or System.Data.DbType.Int16 or System.Data.DbType.Int32 or System.Data.DbType.Int64;
+        var increment = sequence?.Long("increment_by");
+        return integral && sequence is not null && sequence.Bool("cycle") == false && increment is not null and not 0
+            && HasDefaultBounds(sequence, increment)
+            && HasExclusiveUsage(column, sequence, sequences, resolved, sequenceColumns);
+    }
+
+    private static bool HasDefaultBounds(CatalogRow sequence, long? increment)
+    {
+        return (sequence.Long("min_value") == long.MinValue || (increment > 0 && sequence.Long("min_value") == 1))
+            && (sequence.Long("max_value") == long.MaxValue || (increment < 0 && sequence.Long("max_value") == -1));
+    }
+
+    private static bool HasExclusiveUsage(CatalogRow column, CatalogRow sequence, List<CatalogRow> sequences, CatalogRow?[] resolved, CatalogRow[] sequenceColumns)
+    {
+        return sequences.Where(item => item.Long("sequence_oid") == sequence.Long("sequence_oid"))
+                .All(item => item.Long("dependent_oid") == column.Long("table_oid"))
+            && resolved.Count(item => item?.Long("sequence_oid") == sequence.Long("sequence_oid")) == 1
+            && !sequenceColumns.Where((item, index) => resolved[index] is null && item.Long("table_oid") == column.Long("table_oid"))
+                .Any(item => DuckDbCatalogSql.UsesSequence(item.Text("default_expression") ?? ""))
+            && !sequenceColumns.Where(item => item.Long("table_oid") == column.Long("table_oid"))
+                .Any(item => DuckDbCatalogSql.UsesSequence(item.Text("generation_expression") ?? ""));
     }
 
     protected override string ChecksSql => """

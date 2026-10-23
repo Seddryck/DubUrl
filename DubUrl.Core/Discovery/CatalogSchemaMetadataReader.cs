@@ -45,68 +45,8 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         foreach (var row in tableRows.OrderBy(row => row.Text("schema_name"), StringComparer.Ordinal).ThenBy(row => row.Text("table_name"), StringComparer.Ordinal))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var identity = Identity(row);
-            // All filters are applied to literal catalog identities by the orchestrator. No user SQL is interpolated.
-            var columns = new List<MetadataColumn>();
-            foreach (var column in columnRows.Where(column => Identity(column) == identity).OrderBy(column => column.Int("ordinal")))
-            {
-                var mapped = MapColumn(column);
-                if (!options.Features.Contains(SchemaFeature.Generation)) mapped = mapped with { Generation = null };
-                if (!options.Features.Contains(SchemaFeature.Comments)) mapped = mapped with { Comment = null };
-                if (column.Int("length") == -1)
-                    Diagnose(SchemaFeature.Columns, identity, "An unbounded native length cannot be represented by the current column facets.");
-                if (mapped.Type is null) Diagnose(SchemaFeature.Columns, identity, "A column type cannot be represented.");
-                if (options.Features.Contains(SchemaFeature.Defaults) && column.Text("default_expression") is { } defaultSql && mapped.Generation is null)
-                {
-                    if (DiscoveryExpressions.TryLiteral(defaultSql, out var value))
-                    {
-                        try { mapped = mapped with { Default = ConvertDefault(value, mapped.Type) }; }
-                        catch (Exception exception) when (exception is FormatException or OverflowException or InvalidCastException)
-                        { Diagnose(SchemaFeature.Defaults, identity, "A default literal is incompatible with the logical column type."); }
-                    }
-                    else Diagnose(SchemaFeature.Defaults, identity, "A default is not a portable literal.");
-                }
-                if (options.Features.Contains(SchemaFeature.Generation) && column.Text("generation_expression") is { } generatedSql)
-                {
-                    if (DiscoveryExpressions.TryExpression(generatedSql, out var expression))
-                        mapped = mapped with { Generation = new(Expression: expression, Stored: column.Bool("stored") ?? true), Default = null };
-                    else Diagnose(SchemaFeature.Generation, identity, "A generated expression cannot be represented.");
-                }
-                columns.Add(mapped);
-            }
-            var keys = keyRows.Where(key => Identity(key) == identity).GroupBy(key => (Kind: key.Text("kind"), Name: key.Text("key_name"))).ToArray();
-            MetadataKey Key(IEnumerable<CatalogRow> rows) => new(rows.First().Text("key_name"),
-                rows.OrderBy(key => key.Int("ordinal")).Select(key => key.Text("column_name")!).ToArray());
-            var indexes = new List<MetadataIndex>();
-            foreach (var index in indexRows.Where(index => Identity(index) == identity).GroupBy(index => index.Text("index_name")))
-            {
-                if (index.Any(part => part.Bool("unsupported") == true || part.Text("column_name") is null))
-                { Diagnose(SchemaFeature.Indexes, identity, "An expression, filtered, included-column, or specialized index cannot be represented."); continue; }
-                indexes.Add(new(new(index.Key!, identity.Schema, identity.Database, identity.Catalog),
-                    index.OrderBy(part => part.Int("ordinal")).Select(part => new MetadataIndexColumn(part.Text("column_name")!, part.Bool("descending"))).ToArray(),
-                    index.First().Bool("unique_index") ?? false));
-            }
-            var checks = new List<MetadataCheck>();
-            foreach (var check in checkRows.Where(check => Identity(check) == identity).OrderBy(check => check.Text("check_name"), StringComparer.Ordinal))
-            {
-                if (DiscoveryExpressions.TryCheck(check.Text("expression") ?? "", check.Text("check_name"), out var mapped)) checks.Add(mapped!);
-                else Diagnose(SchemaFeature.Checks, identity, "A check expression cannot be represented.");
-            }
-            tables.Add(new(identity, columns)
-            {
-                Comment = options.Features.Contains(SchemaFeature.Comments) ? row.Text("comment") : null,
-                PrimaryKey = options.Features.Contains(SchemaFeature.PrimaryKeys) ? keys.Where(key => key.Key.Kind == "PRIMARY KEY").Select(Key).SingleOrDefault() : null,
-                UniqueConstraints = options.Features.Contains(SchemaFeature.UniqueConstraints) ? keys.Where(key => key.Key.Kind == "UNIQUE").OrderBy(key => key.Key.Name, StringComparer.Ordinal).Select(Key).ToArray() : [],
-                ForeignKeys = options.Features.Contains(SchemaFeature.ForeignKeys) ? keys.Where(key => key.Key.Kind == "FOREIGN KEY").OrderBy(key => key.Key.Name, StringComparer.Ordinal).Select(key =>
-                {
-                    var ordered = key.OrderBy(part => part.Int("ordinal")).ToArray();
-                    return new MetadataForeignKey(key.Key.Name!, ordered.Select(part => part.Text("column_name")!).ToArray(),
-                        new(ordered[0].Text("target_table")!, ordered[0].Text("target_schema"), ordered[0].Text("target_database")),
-                        ordered.Select(part => part.Text("target_column")!).ToArray());
-                }).ToArray() : [],
-                Indexes = indexes,
-                Checks = checks
-            });
+            tables.Add(MapTable(row, columnRows, keyRows, indexRows, checkRows, options,
+                (feature, message) => Diagnose(feature, Identity(row), message)));
         }
         var views = viewRows.GroupBy(Identity).OrderBy(group => group.Key.Schema, StringComparer.Ordinal).ThenBy(group => group.Key.Name, StringComparer.Ordinal).Select(group =>
         {
@@ -119,6 +59,92 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         {
             diagnostics.Add(new("SDI009", feature, MetadataCoverage.Unrepresentable, message, identity));
         }
+    }
+
+    private MetadataTable MapTable(CatalogRow row, List<CatalogRow> columnRows, List<CatalogRow> keyRows, List<CatalogRow> indexRows, List<CatalogRow> checkRows, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
+    {
+        var identity = Identity(row);
+        // All filters are applied to literal catalog identities by the orchestrator. No user SQL is interpolated.
+        var columns = columnRows.Where(column => Identity(column) == identity).OrderBy(column => column.Int("ordinal"))
+            .Select(column => MapCatalogColumn(column, options, diagnose)).ToArray();
+        var keys = keyRows.Where(key => Identity(key) == identity).GroupBy(key => (Kind: key.Text("kind"), Name: key.Text("key_name"))).ToArray();
+        MetadataKey Key(IEnumerable<CatalogRow> rows) => new(rows.First().Text("key_name"),
+            rows.OrderBy(key => key.Int("ordinal")).Select(key => key.Text("column_name")!).ToArray());
+        var indexes = MapIndexes(indexRows.Where(index => Identity(index) == identity), identity, diagnose);
+        var checks = MapChecks(checkRows.Where(check => Identity(check) == identity), diagnose);
+        return new(identity, columns)
+        {
+            Comment = options.Features.Contains(SchemaFeature.Comments) ? row.Text("comment") : null,
+            PrimaryKey = options.Features.Contains(SchemaFeature.PrimaryKeys) ? keys.Where(key => key.Key.Kind == "PRIMARY KEY").Select(Key).SingleOrDefault() : null,
+            UniqueConstraints = options.Features.Contains(SchemaFeature.UniqueConstraints) ? keys.Where(key => key.Key.Kind == "UNIQUE").OrderBy(key => key.Key.Name, StringComparer.Ordinal).Select(Key).ToArray() : [],
+            ForeignKeys = options.Features.Contains(SchemaFeature.ForeignKeys) ? keys.Where(key => key.Key.Kind == "FOREIGN KEY").OrderBy(key => key.Key.Name, StringComparer.Ordinal).Select(key =>
+            {
+                var ordered = key.OrderBy(part => part.Int("ordinal")).ToArray();
+                return new MetadataForeignKey(key.Key.Name!, ordered.Select(part => part.Text("column_name")!).ToArray(),
+                    new(ordered[0].Text("target_table")!, ordered[0].Text("target_schema"), ordered[0].Text("target_database")),
+                    ordered.Select(part => part.Text("target_column")!).ToArray());
+            }).ToArray() : [],
+            Indexes = indexes,
+            Checks = checks
+        };
+    }
+
+    private MetadataColumn MapCatalogColumn(CatalogRow column, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
+    {
+        var mapped = MapColumn(column);
+        if (!options.Features.Contains(SchemaFeature.Generation)) mapped = mapped with { Generation = null };
+        if (!options.Features.Contains(SchemaFeature.Comments)) mapped = mapped with { Comment = null };
+        if (column.Int("length") == -1)
+            diagnose(SchemaFeature.Columns, "An unbounded native length cannot be represented by the current column facets.");
+        if (mapped.Type is null) diagnose(SchemaFeature.Columns, "A column type cannot be represented.");
+        mapped = MapDefault(column, mapped, options, diagnose);
+        if (options.Features.Contains(SchemaFeature.Generation) && column.Text("generation_expression") is { } generatedSql)
+        {
+            if (DiscoveryExpressions.TryExpression(generatedSql, out var expression))
+                mapped = mapped with { Generation = new(Expression: expression, Stored: column.Bool("stored") ?? true), Default = null };
+            else diagnose(SchemaFeature.Generation, "A generated expression cannot be represented.");
+        }
+        return mapped;
+    }
+
+    private static MetadataColumn MapDefault(CatalogRow column, MetadataColumn mapped, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
+    {
+        if (options.Features.Contains(SchemaFeature.Defaults) && column.Text("default_expression") is { } defaultSql && mapped.Generation is null)
+        {
+            if (DiscoveryExpressions.TryLiteral(defaultSql, out var value))
+            {
+                try { mapped = mapped with { Default = ConvertDefault(value, mapped.Type) }; }
+                catch (Exception exception) when (exception is FormatException or OverflowException or InvalidCastException)
+                { diagnose(SchemaFeature.Defaults, "A default literal is incompatible with the logical column type."); }
+            }
+            else diagnose(SchemaFeature.Defaults, "A default is not a portable literal.");
+        }
+        return mapped;
+    }
+
+    private static List<MetadataIndex> MapIndexes(IEnumerable<CatalogRow> rows, MetadataName identity, Action<SchemaFeature, string> diagnose)
+    {
+        var indexes = new List<MetadataIndex>();
+        foreach (var index in rows.GroupBy(index => index.Text("index_name")))
+        {
+            if (index.Any(part => part.Bool("unsupported") == true || part.Text("column_name") is null))
+            { diagnose(SchemaFeature.Indexes, "An expression, filtered, included-column, or specialized index cannot be represented."); continue; }
+            indexes.Add(new(new(index.Key!, identity.Schema, identity.Database, identity.Catalog),
+                index.OrderBy(part => part.Int("ordinal")).Select(part => new MetadataIndexColumn(part.Text("column_name")!, part.Bool("descending"))).ToArray(),
+                index.First().Bool("unique_index") ?? false));
+        }
+        return indexes;
+    }
+
+    private static List<MetadataCheck> MapChecks(IEnumerable<CatalogRow> rows, Action<SchemaFeature, string> diagnose)
+    {
+        var checks = new List<MetadataCheck>();
+        foreach (var check in rows.OrderBy(check => check.Text("check_name"), StringComparer.Ordinal))
+        {
+            if (DiscoveryExpressions.TryCheck(check.Text("expression") ?? "", check.Text("check_name"), out var mapped)) checks.Add(mapped!);
+            else diagnose(SchemaFeature.Checks, "A check expression cannot be represented.");
+        }
+        return checks;
     }
 
     private static object? ConvertDefault(object? value, DbType? type)
@@ -150,72 +176,108 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         var text = sql.Trim().TrimEnd(';').Trim();
         // A deliberately narrow grammar: SELECT identifier [AS alias], ... FROM qualified_identifier.
         text = System.Text.RegularExpressions.Regex.Replace(text, @"^CREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+.+?\s+AS\s+", "",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         var match = System.Text.RegularExpressions.Regex.Match(text, @"^SELECT\s+(.+)\s+FROM\s+(.+)$",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         if (!match.Success) return new(identity, inventory);
         try
         {
             var source = MetadataNames.Parse(match.Groups[2].Value.Trim());
             source = source with { Schema = source.Schema ?? identity.Schema };
-            var projections = new List<MetadataProjection>();
-            foreach (var item in match.Groups[1].Value.Split(','))
-            {
-                var parts = System.Text.RegularExpressions.Regex.Split(item.Trim(), @"\s+AS\s+",
-                    System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-                if (parts.Length > 2) return new(identity, inventory);
-                var column = MetadataNames.Parse(parts[0]);
-                if (column.Database is not null || (column.Schema is not null && column.Schema != source.Name)) return new(identity, inventory);
-                var alias = parts.Length == 2 ? MetadataNames.Parse(parts[1]) : null;
-                if (alias?.Schema is not null) return new(identity, inventory);
-                projections.Add(new(new("column", column.Name), alias?.Name));
-            }
-            return new(identity, inventory, source, projections);
+            var projections = ParseProjections(match.Groups[1].Value, source);
+            return projections is null ? new(identity, inventory) : new(identity, inventory, source, projections);
         }
         catch (ArgumentException) { return new(identity, inventory); }
     }
+
+    private static List<MetadataProjection>? ParseProjections(string sql, MetadataName source)
+    {
+        var projections = new List<MetadataProjection>();
+        foreach (var item in sql.Split(','))
+        {
+            var parts = System.Text.RegularExpressions.Regex.Split(item.Trim(), @"\s+AS\s+",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+            if (parts.Length > 2) return null;
+            var column = MetadataNames.Parse(parts[0]);
+            if (column.Database is not null || (column.Schema is not null && column.Schema != source.Name)) return null;
+            var alias = parts.Length == 2 ? MetadataNames.Parse(parts[1]) : null;
+            if (alias?.Schema is not null) return null;
+            projections.Add(new(new("column", column.Name), alias?.Name));
+        }
+        return projections;
+    }
+
+    private static readonly IReadOnlyDictionary<string, DbType> ScalarTypes = new Dictionary<string, DbType>(StringComparer.Ordinal)
+    {
+        ["tinyint"] = DbType.Byte,
+        ["smallint"] = DbType.Int16,
+        ["int2"] = DbType.Int16,
+        ["int"] = DbType.Int32,
+        ["integer"] = DbType.Int32,
+        ["int4"] = DbType.Int32,
+        ["bigint"] = DbType.Int64,
+        ["int8"] = DbType.Int64,
+        ["boolean"] = DbType.Boolean,
+        ["bool"] = DbType.Boolean,
+        ["bit"] = DbType.Boolean,
+        ["decimal"] = DbType.Decimal,
+        ["numeric"] = DbType.Decimal,
+        ["real"] = DbType.Single,
+        ["float4"] = DbType.Single,
+        ["float"] = DbType.Double,
+        ["double"] = DbType.Double,
+        ["double precision"] = DbType.Double,
+        ["float8"] = DbType.Double,
+        ["char"] = DbType.AnsiStringFixedLength,
+        ["character"] = DbType.AnsiStringFixedLength,
+        ["nchar"] = DbType.StringFixedLength,
+        ["varchar"] = DbType.AnsiString,
+        ["character varying"] = DbType.AnsiString,
+        ["text"] = DbType.AnsiString,
+        ["nvarchar"] = DbType.String,
+        ["ntext"] = DbType.String,
+        ["binary"] = DbType.Binary,
+        ["varbinary"] = DbType.Binary,
+        ["bytea"] = DbType.Binary,
+        ["blob"] = DbType.Binary,
+        ["date"] = DbType.Date,
+        ["datetime"] = DbType.DateTime,
+        ["timestamp"] = DbType.DateTime,
+        ["timestamp without time zone"] = DbType.DateTime,
+        ["datetime2"] = DbType.DateTime2,
+        ["timestamp with time zone"] = DbType.DateTimeOffset,
+        ["timestamptz"] = DbType.DateTimeOffset,
+        ["datetimeoffset"] = DbType.DateTimeOffset,
+        ["time"] = DbType.Time,
+        ["time without time zone"] = DbType.Time,
+        ["uuid"] = DbType.Guid,
+        ["uniqueidentifier"] = DbType.Guid,
+    };
 
     protected virtual MetadataColumn MapColumn(CatalogRow row)
     {
         var native = row.Text("type_name")?.ToLowerInvariant() ?? "";
         var basic = native.Split('(')[0].Trim();
-        DbType? type = basic switch
-        {
-            "tinyint" => DbType.Byte,
-            "smallint" or "int2" => DbType.Int16,
-            "int" or "integer" or "int4" => DbType.Int32,
-            "bigint" or "int8" => DbType.Int64,
-            "boolean" or "bool" or "bit" => DbType.Boolean,
-            "decimal" or "numeric" => DbType.Decimal,
-            "real" or "float4" => DbType.Single,
-            "float" or "double" or "double precision" or "float8" => DbType.Double,
-            "char" or "character" => DbType.AnsiStringFixedLength,
-            "nchar" => DbType.StringFixedLength,
-            "varchar" or "character varying" or "text" => DbType.AnsiString,
-            "nvarchar" or "ntext" => DbType.String,
-            "binary" or "varbinary" or "bytea" or "blob" => DbType.Binary,
-            "date" => DbType.Date,
-            "datetime" or "timestamp" or "timestamp without time zone" => DbType.DateTime,
-            "datetime2" => DbType.DateTime2,
-            "timestamp with time zone" or "timestamptz" or "datetimeoffset" => DbType.DateTimeOffset,
-            "time" or "time without time zone" => DbType.Time,
-            "uuid" or "uniqueidentifier" => DbType.Guid,
-            _ => null
-        };
+        DbType? type = ScalarTypes.TryGetValue(basic, out var scalar) ? scalar : null;
         var facets = System.Text.RegularExpressions.Regex.Match(native, @"^[a-z][a-z ]*\(\s*(\d+)\s*(?:,\s*(\d+)\s*)?\)$",
-            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         int? declaredFirst = facets.Success && int.TryParse(facets.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var first) ? first : null;
         byte? declaredPrecision = declaredFirst is > 0 and <= 255 ? (byte)declaredFirst.Value : null;
         byte? declaredScale = facets.Groups[2].Success && byte.TryParse(facets.Groups[2].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var scale) ? scale : null;
         return new(row.Text("column_name")!, row.Int("ordinal") ?? 0, type, row.Bool("nullable"))
         {
-            Length = type is DbType.AnsiString or DbType.String or DbType.AnsiStringFixedLength or DbType.StringFixedLength or DbType.Binary
-                ? (row.Int("length") ?? declaredFirst) is > 0 and var length ? length : null : null,
+            Length = ColumnLength(type, row.Int("length") ?? declaredFirst),
             Precision = type == DbType.Decimal ? (row.Byte("precision") ?? declaredPrecision) : null,
             Scale = type == DbType.Decimal ? (row.Byte("scale") ?? declaredScale) : null,
             Comment = row.Text("comment"),
             Generation = row.Long("identity_increment") is { } increment ? new(row.Long("identity_seed") ?? 1, increment) : null
         };
+    }
+
+    private static int? ColumnLength(DbType? type, int? length)
+    {
+        if (type is not (DbType.AnsiString or DbType.String or DbType.AnsiStringFixedLength or DbType.StringFixedLength or DbType.Binary)) return null;
+        return length is > 0 ? length : null;
     }
 
     /// <summary>Allows providers to normalize catalog-specific metadata before the shared mapping pipeline.</summary>

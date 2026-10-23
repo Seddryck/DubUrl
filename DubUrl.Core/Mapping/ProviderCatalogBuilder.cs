@@ -164,28 +164,7 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
         var dialects = builder.Build();
         foreach (var info in infos)
         {
-            var fileBased = typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType);
-            Type[] parameters = [typeof(DbConnectionStringBuilder), typeof(IDialect), typeof(IParametrizer)];
-            if (fileBased) parameters = [.. parameters, typeof(string)];
-            var optionsConstructor = info.MapperType.GetConstructor([.. parameters, typeof(IEnumerable<Type>)]);
-            var constructor = optionsConstructor ?? info.MapperType.GetConstructor(parameters)
-                ?? throw new InvalidOperationException($"Missing mapper constructor on '{info.MapperType.FullName}'.");
-            var parametrizer = info.ParametrizerType.GetConstructor(Type.EmptyTypes)
-                ?? throw new InvalidOperationException($"Missing parametrizer constructor on '{info.ParametrizerType.FullName}'.");
-            var registration = new ProviderRegistration(info.DatabaseName, info.Aliases, info.ProviderInvariantName,
-                () => resolveFactory(info.ProviderInvariantName), dialects.Get(info.DialectType),
-                () => (IParametrizer)parametrizer.Invoke(null), context =>
-                {
-                    object[] arguments = [context.ConnectionStringBuilder, context.Dialect, context.Parametrizer];
-                    if (fileBased) arguments = [.. arguments, context.RootPath];
-                    if (optionsConstructor is not null) arguments = [.. arguments, context.OdbcLocatorOptions];
-                    var mapper = (IMapper)constructor.Invoke(arguments);
-                    if (mapper is BaseMapper baseMapper)
-                        baseMapper.SetProviderMetadata(info.ProviderInvariantName, info.Database is null ? null : info.ConnectivityType);
-                    return mapper;
-                })
-            { BulkCopyProvider = info.BulkCopyProvider };
-            if (info.SchemaDiscovery is not null) registration.WithCapabilities(info.SchemaDiscovery);
+            var registration = CreateRegistration(info, dialects, resolveFactory);
             catalog.AddProvider(registration);
         }
         if (infos.Any(info => info.ProviderInvariantName == "System.Data.Odbc"))
@@ -194,6 +173,33 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
             catalog.AddOdbcLocatorOption<EncodingOption>();
             catalog.AddOdbcLocatorOption<VersionOption>();
         }
+    }
+
+    private static ProviderRegistration CreateRegistration(MapperInfo info, IDialectRegistry dialects, Func<string, DbProviderFactory?> resolveFactory)
+    {
+        var fileBased = typeof(IFileBasedMapper).IsAssignableFrom(info.MapperType);
+        Type[] parameters = [typeof(DbConnectionStringBuilder), typeof(IDialect), typeof(IParametrizer)];
+        if (fileBased) parameters = [.. parameters, typeof(string)];
+        var optionsConstructor = info.MapperType.GetConstructor([.. parameters, typeof(IEnumerable<Type>)]);
+        var constructor = optionsConstructor ?? info.MapperType.GetConstructor(parameters)
+            ?? throw new InvalidOperationException($"Missing mapper constructor on '{info.MapperType.FullName}'.");
+        var parametrizer = info.ParametrizerType.GetConstructor(Type.EmptyTypes)
+            ?? throw new InvalidOperationException($"Missing parametrizer constructor on '{info.ParametrizerType.FullName}'.");
+        var registration = new ProviderRegistration(info.DatabaseName, info.Aliases, info.ProviderInvariantName,
+            () => resolveFactory(info.ProviderInvariantName), dialects.Get(info.DialectType),
+            () => (IParametrizer)parametrizer.Invoke(null), context =>
+            {
+                object[] arguments = [context.ConnectionStringBuilder, context.Dialect, context.Parametrizer];
+                if (fileBased) arguments = [.. arguments, context.RootPath];
+                if (optionsConstructor is not null) arguments = [.. arguments, context.OdbcLocatorOptions];
+                var mapper = (IMapper)constructor.Invoke(arguments);
+                if (mapper is BaseMapper baseMapper)
+                    baseMapper.SetProviderMetadata(info.ProviderInvariantName, info.Database is null ? null : info.ConnectivityType);
+                return mapper;
+            })
+        { BulkCopyProvider = info.BulkCopyProvider };
+        if (info.SchemaDiscovery is not null) registration.WithCapabilities(info.SchemaDiscovery);
+        return registration;
     }
 
     private sealed class FallbackCatalog(ProviderCatalogBuilder owner) : IProviderCatalogBuilder

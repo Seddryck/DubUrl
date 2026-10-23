@@ -73,20 +73,7 @@ public sealed class SchemaInspector
             feature => metadata.Coverage.GetValueOrDefault(feature, MetadataCoverage.Unsupported));
         foreach (var item in coverage.Where(item => item.Value is not (MetadataCoverage.Available or MetadataCoverage.Absent)))
             diagnostics.Add(new("SDI003", item.Key, item.Value, "Requested metadata is not completely available."));
-        var all = metadata.Tables.ToDictionary(table => table.Identity);
-        var selected = metadata.Tables.Where(table =>
-            (options.Schemas.Count == 0 || options.Schemas.Contains(table.Identity.Schema, StringComparer.Ordinal))
-            && (options.Tables.Count == 0 || options.Tables.Any(filter => Matches(filter, table.Identity)))).ToDictionary(table => table.Identity);
-        foreach (var filter in options.Tables.Where(filter => !selected.Keys.Any(name => Matches(filter, name))))
-            diagnostics.Add(new("SDI004", SchemaFeature.Tables, MetadataCoverage.Absent, "A selected table was not found or is not visible.", filter));
-        if (options.IncludeReferencedTables)
-        {
-            var queue = new Queue<MetadataTable>(selected.Values);
-            while (queue.TryDequeue(out var table))
-                foreach (var key in table.ForeignKeys)
-                    if (!selected.ContainsKey(key.Target) && all.TryGetValue(key.Target, out var target))
-                    { selected.Add(target.Identity, target); queue.Enqueue(target); }
-        }
+        var selected = SelectTables(metadata, options, diagnostics);
         diagnostics.AddRange(metadata.Diagnostics.Where(item => options.Features.Contains(item.Feature) && (item.Object is null || selected.ContainsKey(item.Object))));
         var tables = new List<Table>();
         var indexes = new List<Index>();
@@ -95,33 +82,8 @@ public sealed class SchemaInspector
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                if (table.Columns.Count == 0) throw new NotSupportedException();
-                var columns = table.Columns.OrderBy(column => column.Ordinal).Select(column => MapColumn(column)).ToArray();
-                var byName = columns.ToDictionary(column => column.Name, StringComparer.Ordinal);
-                var constraints = new List<Constraint>();
-                if (table.PrimaryKey is { } pk)
-                    constraints.Add(new PrimaryKeyConstraint(pk.Columns.Select(name => byName[name]).ToArray(), pk.Name));
-                foreach (var fk in table.ForeignKeys.OrderBy(key => key.Name, StringComparer.Ordinal))
-                {
-                    if (!selected.ContainsKey(fk.Target))
-                    {
-                        diagnostics.Add(new("SDI005", SchemaFeature.ForeignKeys, MetadataCoverage.Unrepresentable,
-                            "A foreign-key target is outside the selected or visible tables; the key was omitted.", table.Identity));
-                        continue;
-                    }
-                    constraints.Add(new ForeignKeyConstraint(fk.Name, fk.Columns, Name(fk.Target), fk.TargetColumns));
-                }
-                constraints.AddRange(table.Checks.OrderBy(check => check.Name, StringComparer.Ordinal).Select(check => new CheckConstraint(
-                    Expression(check.Left), check.Operator, Expression(check.Right), check.Name)));
-                // v1 has no named table unique-constraint construct; never turn a constraint into an index.
-                foreach (var unique in table.UniqueConstraints)
-                    diagnostics.Add(new("SDI006", SchemaFeature.UniqueConstraints, MetadataCoverage.Unrepresentable,
-                        "A named table unique constraint is not representable in the schema model.", table.Identity));
-                tables.Add(new Table(Name(table.Identity), columns, constraints.ToArray(), table.Comment));
-                indexes.AddRange(table.Indexes.OrderBy(index => Name(index.Identity).Key, StringComparer.Ordinal).Select(index =>
-                    new Index(Name(index.Identity), Name(table.Identity), index.Columns.Select(column =>
-                        new IndexColumn(column.Name, column.Descending is null ? null :
-                            column.Descending.Value ? IndexSortDirection.Descending : IndexSortDirection.Ascending)).ToArray(), index.Unique)));
+                tables.Add(MapTable(table, selected, diagnostics));
+                indexes.AddRange(MapIndexes(table));
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException or NotSupportedException)
             {
@@ -129,6 +91,86 @@ public sealed class SchemaInspector
                     SchemaFeature.Tables, MetadataCoverage.Unrepresentable, "Metadata could not be mapped without losing semantics.", table.Identity)).ToArray());
             }
         }
+        var views = MapViews(metadata, options, selected, diagnostics);
+        try
+        {
+            var schema = new Schema(tables.ToArray(), indexes.ToArray(), views.ToArray());
+            ApplyDiagnosticCoverage(coverage, diagnostics);
+            var complete = diagnostics.Count == 0;
+            return new(schema, complete, complete || options.AllowPartial, coverage, diagnostics) { ViewInventory = metadata.Views.Where(view => options.Tables.Count == 0 && (options.Schemas.Count == 0 || options.Schemas.Contains(view.Identity.Schema, StringComparer.Ordinal))).ToArray() };
+        }
+        catch (ArgumentException)
+        {
+            return new(null, false, false, coverage, diagnostics.Append(new DiscoveryDiagnostic("SDI007", SchemaFeature.Tables,
+            MetadataCoverage.Unrepresentable, "The discovered relationships do not form a valid schema.")).ToArray());
+        }
+    }
+
+    private static Dictionary<MetadataName, MetadataTable> SelectTables(SchemaMetadata metadata, DiscoveryOptions options, List<DiscoveryDiagnostic> diagnostics)
+    {
+        var all = metadata.Tables.ToDictionary(table => table.Identity);
+        var selected = metadata.Tables.Where(table =>
+            (options.Schemas.Count == 0 || options.Schemas.Contains(table.Identity.Schema, StringComparer.Ordinal))
+            && (options.Tables.Count == 0 || options.Tables.Any(filter => Matches(filter, table.Identity)))).ToDictionary(table => table.Identity);
+        foreach (var filter in options.Tables.Where(filter => !selected.Keys.Any(name => Matches(filter, name))))
+            diagnostics.Add(new("SDI004", SchemaFeature.Tables, MetadataCoverage.Absent, "A selected table was not found or is not visible.", filter));
+        if (options.IncludeReferencedTables) IncludeReferences(selected, all);
+        return selected;
+    }
+
+    private static void IncludeReferences(Dictionary<MetadataName, MetadataTable> selected, Dictionary<MetadataName, MetadataTable> all)
+    {
+        var queue = new Queue<MetadataTable>(selected.Values);
+        while (queue.TryDequeue(out var table))
+            foreach (var key in table.ForeignKeys)
+                if (!selected.ContainsKey(key.Target) && all.TryGetValue(key.Target, out var target))
+                { selected.Add(target.Identity, target); queue.Enqueue(target); }
+    }
+
+    private static Table MapTable(MetadataTable table, Dictionary<MetadataName, MetadataTable> selected, List<DiscoveryDiagnostic> diagnostics)
+    {
+        if (table.Columns.Count == 0) throw new NotSupportedException();
+        var columns = table.Columns.OrderBy(column => column.Ordinal).Select(column => MapColumn(column)).ToArray();
+        var byName = columns.ToDictionary(column => column.Name, StringComparer.Ordinal);
+        var constraints = new List<Constraint>();
+        if (table.PrimaryKey is { } pk)
+            constraints.Add(new PrimaryKeyConstraint(pk.Columns.Select(name => byName[name]).ToArray(), pk.Name));
+        constraints.AddRange(MapForeignKeys(table, selected, diagnostics));
+        constraints.AddRange(table.Checks.OrderBy(check => check.Name, StringComparer.Ordinal).Select(check => new CheckConstraint(
+            Expression(check.Left), check.Operator, Expression(check.Right), check.Name)));
+        // v1 has no named table unique-constraint construct; never turn a constraint into an index.
+        foreach (var unique in table.UniqueConstraints)
+            diagnostics.Add(new("SDI006", SchemaFeature.UniqueConstraints, MetadataCoverage.Unrepresentable,
+                "A named table unique constraint is not representable in the schema model.", table.Identity));
+        return new Table(Name(table.Identity), columns, constraints.ToArray(), table.Comment);
+    }
+
+    private static IEnumerable<Index> MapIndexes(MetadataTable table)
+    {
+        return table.Indexes.OrderBy(index => Name(index.Identity).Key, StringComparer.Ordinal).Select(index =>
+            new Index(Name(index.Identity), Name(table.Identity), index.Columns.Select(column =>
+                new IndexColumn(column.Name, column.Descending is null ? null :
+                    column.Descending.Value ? IndexSortDirection.Descending : IndexSortDirection.Ascending)).ToArray(), index.Unique));
+    }
+
+    private static List<Constraint> MapForeignKeys(MetadataTable table, Dictionary<MetadataName, MetadataTable> selected, List<DiscoveryDiagnostic> diagnostics)
+    {
+        var constraints = new List<Constraint>();
+        foreach (var fk in table.ForeignKeys.OrderBy(key => key.Name, StringComparer.Ordinal))
+        {
+            if (!selected.ContainsKey(fk.Target))
+            {
+                diagnostics.Add(new("SDI005", SchemaFeature.ForeignKeys, MetadataCoverage.Unrepresentable,
+                    "A foreign-key target is outside the selected or visible tables; the key was omitted.", table.Identity));
+                continue;
+            }
+            constraints.Add(new ForeignKeyConstraint(fk.Name, fk.Columns, Name(fk.Target), fk.TargetColumns));
+        }
+        return constraints;
+    }
+
+    private static List<View> MapViews(SchemaMetadata metadata, DiscoveryOptions options, Dictionary<MetadataName, MetadataTable> selected, List<DiscoveryDiagnostic> diagnostics)
+    {
         var views = new List<View>();
         foreach (var view in metadata.Views.Where(_ => options.Features.Contains(SchemaFeature.Views)).OrderBy(view => Name(view.Identity).Key, StringComparer.Ordinal))
         {
@@ -140,37 +182,42 @@ public sealed class SchemaInspector
             else diagnostics.Add(new("SDI008", SchemaFeature.Views, MetadataCoverage.Unrepresentable,
                 "The view definition cannot be represented by a portable projection query.", view.Identity));
         }
-        try
-        {
-            var schema = new Schema(tables.ToArray(), indexes.ToArray(), views.ToArray());
-            foreach (var group in diagnostics.GroupBy(item => item.Feature))
-                if (coverage.ContainsKey(group.Key))
-                    coverage[group.Key] = group.Any(item => item.Coverage == MetadataCoverage.Inaccessible)
-                        ? MetadataCoverage.Inaccessible : group.Any(item => item.Coverage == MetadataCoverage.Unrepresentable)
-                            ? MetadataCoverage.Unrepresentable : group.First().Coverage;
-            var complete = diagnostics.Count == 0;
-            return new(schema, complete, complete || options.AllowPartial, coverage, diagnostics) { ViewInventory = metadata.Views.Where(view => options.Tables.Count == 0 && (options.Schemas.Count == 0 || options.Schemas.Contains(view.Identity.Schema, StringComparer.Ordinal))).ToArray() };
-        }
-        catch (ArgumentException)
-        {
-            return new(null, false, false, coverage, diagnostics.Append(new DiscoveryDiagnostic("SDI007", SchemaFeature.Tables,
-            MetadataCoverage.Unrepresentable, "The discovered relationships do not form a valid schema.")).ToArray());
-        }
+        return views;
     }
 
-    private static Column MapColumn(MetadataColumn column)
+    private static void ApplyDiagnosticCoverage(Dictionary<SchemaFeature, MetadataCoverage> coverage, List<DiscoveryDiagnostic> diagnostics)
     {
-        if (column.Type is null || column.Nullable is null) throw new NotSupportedException();
-        var constraints = new IConstraint[] { column.Nullable.Value ? new NullableConstraint() : new NotNullableConstraint() };
+        foreach (var group in diagnostics.GroupBy(item => item.Feature))
+            if (coverage.ContainsKey(group.Key))
+                coverage[group.Key] = group.Any(item => item.Coverage == MetadataCoverage.Inaccessible)
+                    ? MetadataCoverage.Inaccessible : group.Any(item => item.Coverage == MetadataCoverage.Unrepresentable)
+                        ? MetadataCoverage.Unrepresentable : group.First().Coverage;
+    }
+
+    private static NativeDatabaseType? MapNativeType(MetadataColumn column)
+    {
         NativeDatabaseType? native = null;
         if (column.NativeType is not null)
         {
             if (column.NativeDialect is null) throw new NotSupportedException();
             native = new NativeDatabaseType(column.NativeType, column.NativeDialect);
         }
-        ColumnGeneration? generation = column.Generation is not { } g ? null : g.Expression is not null
+        return native;
+    }
+
+    private static ColumnGeneration? MapGeneration(MetadataColumn column)
+    {
+        return column.Generation is not { } g ? null : g.Expression is not null
             ? new GeneratedColumnGeneration(Expression(g.Expression), g.Stored ? GeneratedColumnStorage.Stored : GeneratedColumnStorage.Virtual)
             : new IdentityColumnGeneration(g.Seed ?? 1, g.Increment ?? 1);
+    }
+
+    private static Column MapColumn(MetadataColumn column)
+    {
+        if (column.Type is null || column.Nullable is null) throw new NotSupportedException();
+        var constraints = new IConstraint[] { column.Nullable.Value ? new NullableConstraint() : new NotNullableConstraint() };
+        var native = MapNativeType(column);
+        var generation = MapGeneration(column);
         var type = column.Type.Value;
         return column.Length is { } length
             ? new VarLengthColumn(column.Name, type, length, column.Default, constraints, column.Comment, native, generation: generation)
@@ -178,6 +225,7 @@ public sealed class SchemaInspector
                 ? new NumericColumn(column.Name, type, precision, column.Scale ?? 0, column.Default, constraints, column.Comment, native, generation: generation)
                 : new Column(column.Name, type, column.Default, constraints, column.Comment, native, generation: generation);
     }
+
     private static Expression Expression(MetadataExpression expression) => expression.Kind switch
     {
         "column" => new ColumnIdentityExpression(expression.Name!),

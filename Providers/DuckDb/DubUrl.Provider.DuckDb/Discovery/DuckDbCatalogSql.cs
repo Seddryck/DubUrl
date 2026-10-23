@@ -22,21 +22,31 @@ internal static class DuckDbCatalogSql
         foreach (var (start, stop) in Items(tokens, open + 1, end))
         {
             if (!tokens[start].Identifier || tokens[start].Value != column) continue;
-            var depth = 0;
-            for (var i = start + 1; i < stop; i++)
-            {
-                if (tokens[i].Is("(")) depth++;
-                else if (tokens[i].Is(")")) depth--;
-                if (depth != 0 || !tokens[i].Is("GENERATED")) continue;
-                var cursor = i + 1;
-                if (cursor < stop && tokens[cursor].Is("ALWAYS")) cursor++;
-                if (cursor + 1 >= stop || !tokens[cursor].Is("AS") || !tokens[cursor + 1].Is("(")) return "<unrepresentable generated column>";
-                var close = Closing(tokens, cursor + 1);
-                if (close < 0 || close >= stop) return "<unrepresentable generated column>";
-                return sql[tokens[cursor + 1].End..tokens[close].Start].Trim();
-            }
+            return ColumnGeneration(sql, tokens, start, stop);
         }
         return null;
+    }
+
+    private static string? ColumnGeneration(string sql, List<Token> tokens, int start, int stop)
+    {
+        var depth = 0;
+        for (var i = start + 1; i < stop; i++)
+        {
+            if (tokens[i].Is("(")) depth++;
+            else if (tokens[i].Is(")")) depth--;
+            if (depth != 0 || !tokens[i].Is("GENERATED")) continue;
+            return GenerationClause(sql, tokens, i + 1, stop);
+        }
+        return null;
+    }
+
+    private static string GenerationClause(string sql, List<Token> tokens, int cursor, int stop)
+    {
+        if (cursor < stop && tokens[cursor].Is("ALWAYS")) cursor++;
+        if (cursor + 1 >= stop || !tokens[cursor].Is("AS") || !tokens[cursor + 1].Is("(")) return "<unrepresentable generated column>";
+        var close = Closing(tokens, cursor + 1);
+        if (close < 0 || close >= stop) return "<unrepresentable generated column>";
+        return sql[tokens[cursor + 1].End..tokens[close].Start].Trim();
     }
 
     public static MetadataIndexColumn[]? IndexColumns(string sql)
@@ -115,18 +125,9 @@ internal static class DuckDbCatalogSql
             var start = i;
             if (sql[i] is '"' or '\'')
             {
-                var quote = sql[i++];
-                var value = new StringBuilder();
-                var closed = false;
-                while (i < sql.Length)
-                {
-                    if (sql[i] != quote) { value.Append(sql[i++]); continue; }
-                    i++;
-                    if (i < sql.Length && sql[i] == quote) { value.Append(quote); i++; continue; }
-                    closed = true; break;
-                }
-                if (!closed) return [];
-                tokens.Add(new(value.ToString(), start, i, Quoted: quote == '"', Literal: quote == '\''));
+                var token = ReadQuotedToken(sql, ref i);
+                if (token is null) return [];
+                tokens.Add(token);
             }
             else if (char.IsLetterOrDigit(sql[i]) || sql[i] is '_' or '$')
             {
@@ -136,5 +137,22 @@ internal static class DuckDbCatalogSql
             else { i++; tokens.Add(new(sql[start..i], start, i)); }
         }
         return tokens;
+    }
+
+    private static Token? ReadQuotedToken(string sql, ref int i)
+    {
+        var start = i;
+        var quote = sql[i++];
+        var value = new StringBuilder();
+        var closed = false;
+        while (i < sql.Length)
+        {
+            if (sql[i] != quote) { value.Append(sql[i++]); continue; }
+            i++;
+            if (i < sql.Length && sql[i] == quote) { value.Append(quote); i++; continue; }
+            closed = true; break;
+        }
+        if (!closed) return null;
+        return new(value.ToString(), start, i, Quoted: quote == '"', Literal: quote == '\'');
     }
 }

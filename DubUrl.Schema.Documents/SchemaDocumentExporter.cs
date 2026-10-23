@@ -82,14 +82,10 @@ public sealed class SchemaDocumentExporter
             }
         return result;
     }
+
     private static ColumnDocument Column(Column column)
     {
-        if (column.GetType() != typeof(Column) && column.GetType() != typeof(VarLengthColumn) && column.GetType() != typeof(NumericColumn))
-            throw new NotSupportedException("Custom column types cannot be exported.");
-        if (column.NativeType?.Dialects.Count > 0)
-            throw new NotSupportedException("v1 does not encode native dialect scopes.");
-        if (column.Constraints.OfType<NullableConstraint>().Any() && column.Constraints.OfType<NotNullableConstraint>().Any())
-            throw new NotSupportedException("Conflicting nullability constraints cannot be exported.");
+        ValidateColumn(column);
         var result = new ColumnDocument
         {
             Name = column.Name,
@@ -103,9 +99,31 @@ public sealed class SchemaDocumentExporter
                 Fallback = column.NativeTypeFallback == NativeTypeFallback.LogicalType ? "logical-type" : "error"
             }
         };
+        MapColumnFacets(column, result);
+        MapColumnGeneration(column, result);
+        MapColumnConstraints(column, result);
+        return result;
+    }
+
+    private static void ValidateColumn(Column column)
+    {
+        if (column.GetType() != typeof(Column) && column.GetType() != typeof(VarLengthColumn) && column.GetType() != typeof(NumericColumn))
+            throw new NotSupportedException("Custom column types cannot be exported.");
+        if (column.NativeType?.Dialects.Count > 0)
+            throw new NotSupportedException("v1 does not encode native dialect scopes.");
+        if (column.Constraints.OfType<NullableConstraint>().Any() && column.Constraints.OfType<NotNullableConstraint>().Any())
+            throw new NotSupportedException("Conflicting nullability constraints cannot be exported.");
+    }
+
+    private static void MapColumnFacets(Column column, ColumnDocument result)
+    {
         if (column is VarLengthColumn length) result.Length = length.Length;
         if (column is NumericColumn numeric)
         { result.Precision = checked((byte)numeric.Precision); result.Scale = checked((byte)numeric.Scale); }
+    }
+
+    private static void MapColumnGeneration(Column column, ColumnDocument result)
+    {
         if (column.Generation is IdentityColumnGeneration identity)
             result.Identity = new() { Seed = identity.Seed, Increment = identity.Increment };
         else if (column.Generation is GeneratedColumnGeneration generated)
@@ -115,6 +133,10 @@ public sealed class SchemaDocumentExporter
                 Storage = generated.Storage == GeneratedColumnStorage.Stored ? "stored" : "virtual"
             };
         else if (column.Generation is not null) throw new NotSupportedException();
+    }
+
+    private static void MapColumnConstraints(Column column, ColumnDocument result)
+    {
         foreach (var constraint in column.Constraints)
             switch (constraint)
             {
@@ -123,8 +145,8 @@ public sealed class SchemaDocumentExporter
                 case CheckConstraint or MembershipCheckConstraint or RegexCheckConstraint: result.Checks.Add(Check(constraint)); break;
                 default: throw new NotSupportedException("Unsupported column constraint.");
             }
-        return result;
     }
+
     private static CheckDocument Check(IConstraint constraint) => constraint switch
     {
         CheckConstraint check => new()

@@ -64,3 +64,18 @@ foreign-key placement, rejected qualifiers and index naming.
 The live SQLite discovery fixture was rerun on net10.0 and passed. PostgreSQL/SQL Server live fixtures
 were not rerun; their earlier missing QA connections and four skips remain as recorded above. All other
 omissions above remain applicable. Architecture documentation records the capability API migration.
+
+## CI failure follow-up (2026-10-23)
+
+The CI run at a16de0a failed the same ProviderSources_UseTheirProjectAndFolderNamespace test on all three frameworks. Two provider-owned DuckDB test files retained their former Core namespace. The failing test was reproduced locally before correcting both namespaces. The earlier focused Core boundary filter did not include QA/DubUrl.Provider.Testing, which contains this source-namespace check.
+
+SonarCloud's failed security rating reported eight discovery Regex calls without execution timeouts. Every reported call now has a one-second timeout. Existing inspection boundaries handle TimeoutException without exposing SQL or driver error details. CodeFactor reported twelve complex methods and one blank line after an opening brace. Catalog I/O, column/default/index/check mapping, identifier/DDL parsing, sequence eligibility, domain mapping, document columns, provider construction and CLI output were split into focused helpers; the whitespace violation was removed. No analyzer rules or quality thresholds were suppressed or changed.
+
+Validation for this follow-up:
+
+- Reproduced the source-boundary failure with net10.0, then reran ProviderSourceBoundaryTest: 3 passed.
+- Full solution build passed for net8.0/net9.0/net10.0.
+- Entire affected projects on each framework: Core 1,019; Provider.Testing 20; Schema.Documents 127; Schema 140; Application 40; CLI 49; Worker 27. Total: 4,266 passing executions across three frameworks.
+- Live SQLite SqliteDiscoveryTests on net10.0: 1 passed. Core includes all 13 live DuckDB discovery cases per framework.
+- dotnet format whitespace scoped to changed C# files; git diff --check passed.
+- No local live SQL Server/PostgreSQL QA, other provider QA, unrelated OleDb/Extensions/Adomd/BulkCopy tests, Linux/macOS, packaging or release checks were run in this follow-up. Prior remote provider QA passed at a16de0a; it does not validate these subsequent changes.
