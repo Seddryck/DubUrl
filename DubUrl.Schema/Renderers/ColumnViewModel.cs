@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema.Renderers;
+
 public class ColumnViewModel
 {
+    public DatabaseObjectName? TableIdentity { get; }
     public string Name { get; }
     public string Type { get; }
     public int Length { get; }
@@ -29,7 +31,12 @@ public class ColumnViewModel
     public ColumnGeneration? Generation { get; }
 
     public ColumnViewModel(Column column, bool includePrimaryKey = true)
+        : this(column, includePrimaryKey, null)
+    { }
+
+    public ColumnViewModel(Column column, bool includePrimaryKey, DatabaseObjectName? tableIdentity)
     {
+        TableIdentity = tableIdentity;
         Name = column.Name;
         Type = column.Type.ToString();
         DefaultValue = column.DefaultValue;

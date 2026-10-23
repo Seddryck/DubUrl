@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.PostgreSql.Metadata;
 using DubUrl.Provider.PostgreSql.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -16,6 +16,7 @@ namespace DubUrl.Provider.PostgreSql.Mapping;
 [MapperAttribute<PostgresqlDatabase, NpgsqlParametrizer>(
     "Npgsql"
 )]
+[DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.PostgreSql.Discovery.PostgreSqlMetadataReader))]
 public class PostgresqlMapper : BaseMapper
 {
     public PostgresqlMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

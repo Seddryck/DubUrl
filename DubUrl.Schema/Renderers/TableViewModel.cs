@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,7 +27,7 @@ public class TableViewModel
         Identity = table.Identity;
         var primaryKey = table.Constraints.Get<PrimaryKeyConstraint>();
         PrimaryKey = primaryKey is null ? null : new PrimaryKeyConstraintViewModel(primaryKey);
-        Columns = table.Columns.Values.Select(c => new ColumnViewModel(c, primaryKey is null)).ToArray();
+        Columns = table.Columns.Values.Select(c => new ColumnViewModel(c, primaryKey is null, table.Identity)).ToArray();
         Nullable = table.Constraints.Get<NullableConstraint>();
         NotNullable = table.Constraints.Get<NotNullableConstraint>();
         Unique = table.Constraints.Get<UniquenessConstraint>();

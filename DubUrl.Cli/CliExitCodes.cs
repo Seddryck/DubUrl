@@ -9,5 +9,8 @@ public static class CliExitCodes
     public const int DeploymentFailed = 4;
     public const int ProviderOperationFailed = 5;
     public const int ProviderNotFound = 6;
+    public const int InspectionIncomplete = 7;
+    public const int InspectionUnsupported = 8;
+    public const int InspectionFailed = 9;
     public const int Cancelled = 130;
 }

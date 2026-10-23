@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace DubUrl.Worker.Testing;
 
-public class SchemaWorkerMethodsTests
+public partial class SchemaWorkerMethodsTests
 {
     [Test]
     public async Task Capabilities_AdvertiseSchemaContractAndPolicy()
@@ -128,7 +128,9 @@ public class SchemaWorkerMethodsTests
         using var response = await InvokeAsync(services.GetRequiredService<WorkerMethodRegistry>(),
             Request(1, "schema.deploy", new
             {
-                document = ValidDocument(), connectionUrl, dryRun = true
+                document = ValidDocument(),
+                connectionUrl,
+                dryRun = true
             }));
 
         Assert.Multiple(() =>
@@ -146,7 +148,9 @@ public class SchemaWorkerMethodsTests
         using var response = await InvokeAsync(services.GetRequiredService<WorkerMethodRegistry>(),
             Request(1, "schema.deploy", new
             {
-                document = ValidDocument(), connection = "missing", dryRun = true
+                document = ValidDocument(),
+                connection = "missing",
+                dryRun = true
             }));
 
         Assert.That(Codes(response), Does.Contain(SchemaWorkerDiagnosticCodes.ConnectionNotFound));
@@ -159,7 +163,10 @@ public class SchemaWorkerMethodsTests
         using var response = await InvokeAsync(services.GetRequiredService<WorkerMethodRegistry>(),
             Request(1, "schema.deploy", new
             {
-                document = ValidDocument(), dialect = "sqlite", dryRun = true, dropExisting = true
+                document = ValidDocument(),
+                dialect = "sqlite",
+                dryRun = true,
+                dropExisting = true
             }));
 
         Assert.That(Codes(response), Does.Contain(SchemaWorkerDiagnosticCodes.DestructiveDeploymentDisabled));
@@ -235,7 +242,8 @@ public class SchemaWorkerMethodsTests
             using var response = await InvokeAsync(registry,
                 Request(7, "schema.deploy", new
                 {
-                    document = ValidDocument(), connectionUrl = "sqlite:///:memory:"
+                    document = ValidDocument(),
+                    connectionUrl = "sqlite:///:memory:"
                 }),
                 """{"jsonrpc":"2.0","method":"$/cancelRequest","params":{"id":7}}""");
 

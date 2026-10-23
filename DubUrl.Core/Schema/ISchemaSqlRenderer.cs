@@ -16,6 +16,10 @@ public interface ISchemaSqlRenderer
     /// <summary>Validates qualification and quotes each raw identifier component using the dialect.</summary>
     string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name);
 
+    /// <summary>Renders a CREATE INDEX name in the context of its owning table.</summary>
+    string RenderCreateIndexName(IDialect dialect, SchemaSqlObjectName index, SchemaSqlObjectName table)
+        => RenderObjectName(dialect, index.Catalog, index.Database, index.Schema, index.Name);
+
     /// <summary>Selects inline constraints instead of separate ALTER TABLE statements.</summary>
     bool RenderForeignKeysInline(IDialect dialect);
 }

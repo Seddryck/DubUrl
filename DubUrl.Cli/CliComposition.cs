@@ -35,7 +35,7 @@ public static class CliComposition
         catalogBuilder.AddApplicationProviders();
         var dialects = catalogBuilder.BuildDialects();
         var schemes = catalogBuilder.Build();
-        var capabilities = new CliCapabilities(dialects, [], optionalSchemes);
+        var capabilities = new CliCapabilities(dialects, [], optionalSchemes) { DiscoverableSchemes = dialects.GetAll().SelectMany(dialect => dialect.Aliases).Where(alias => schemes.TryGetCapability<DubUrl.Discovery.SchemaDiscoveryCapability>(DubUrl.Parsing.SchemeKey.Parse(alias), out _)).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.Ordinal).ToArray() };
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
@@ -48,6 +48,8 @@ public static class CliComposition
                 options.SingleLine = true;
             }));
         services.AddSingleton<SchemaDocumentReader>();
+        services.AddSingleton<SchemaDocumentWriter>();
+        services.AddSingleton<ISchemaInspectionService, SchemaInspectionService>();
         services.AddSingleton<ISchemaDocumentValidator, SchemaDocumentValidator>();
         services.AddSingleton<ISchemaDocumentMapper, SchemaDocumentMapper>();
         services.AddSingleton<IDialectRegistry>(dialects);
@@ -106,7 +108,10 @@ public static class CliComposition
                 && !string.IsNullOrWhiteSpace(sha256))
                 yield return new ConnectorDefinition
                 {
-                    Provider = provider, Version = version, DownloadUri = uri, Sha256 = sha256,
+                    Provider = provider,
+                    Version = version,
+                    DownloadUri = uri,
+                    Sha256 = sha256,
                     Databases = section.GetSection("Databases").Get<ConnectorDatabase[]>() ?? [],
                     Aliases = section.GetSection("Aliases").Get<string[]>() ?? [],
                     DubUrlApiRange = section["DubUrlApiRange"] ?? string.Empty,

@@ -1,4 +1,4 @@
-﻿using DubUrl.Extensions;
+using DubUrl.Extensions;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
@@ -32,7 +32,10 @@ public class BaseConnectionUrl
     private ResolvedConnection ParseDetail()
         => Registry.Resolve(Parser.Parse(Url));
 
-    public string Parse() => Result.ConnectionString;   
+    public bool TryGetCapability<TCapability>(out TCapability? capability) where TCapability : class
+        => Registry.TryGetCapability(Parser.Parse(Url).Scheme, out capability);
+
+    public string Parse() => Result.ConnectionString;
     public virtual IDialect Dialect => Result.Dialect;
     public virtual DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => Result.BulkCopyProvider;
     public virtual IConnectivity Connectivity => Result.Connectivity;

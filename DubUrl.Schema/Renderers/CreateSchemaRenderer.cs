@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,15 @@ using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Schema.Constraints;
 
 namespace DubUrl.Schema.Renderers;
+
 public class CreateSchemaRenderer : RendererEngine
 {
     public CreateSchemaRenderer(IDialect dialect, NativeTypeRegistry? nativeTypes = null)
-        : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateHelpers(dialect))
+        : this(dialect, nativeTypes, false)
+    { }
+
+    public CreateSchemaRenderer(IDialect dialect, NativeTypeRegistry? nativeTypes, bool dropIdentitySequences)
+        : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateSchemaHelpers(dialect, dropIdentitySequences))
     {
         nativeTypes ??= NativeTypeRegistry.Default;
         AddFormatter("check", value => RenderCheck(value, dialect));
@@ -25,6 +30,13 @@ public class CreateSchemaRenderer : RendererEngine
         AddFormatter("regex", value => RenderRegex(value, dialect));
         AddFormatter("columntype", value => RenderColumnType(value, dialect, nativeTypes));
         AddFormatter("columnspec", value => RenderColumnSpecification(value, dialect, nativeTypes));
+    }
+
+    private static IDictionary<string, Func<object?, string>> CreateSchemaHelpers(IDialect dialect, bool dropExisting)
+    {
+        var helpers = CreateHelpers(dialect);
+        helpers.Add("identityprerequisites", value => RenderIdentityPrerequisites(value, dialect, dropExisting));
+        return helpers;
     }
 
     private static string RenderCheck(object? value, IDialect dialect)
@@ -66,6 +78,8 @@ public class CreateSchemaRenderer : RendererEngine
         return column.Generation switch
         {
             null => type,
+            IdentityColumnGeneration when dialect.SchemaSqlRenderer is ISequenceIdentitySqlRenderer sequence =>
+                sequence.RenderIdentityColumn(dialect, IdentityContext(column), type),
             IdentityColumnGeneration identity => dialect.SchemaSqlRenderer.RenderIdentity(
                 dialect, type, identity.Seed, identity.Increment),
             GeneratedColumnGeneration generated => dialect.SchemaSqlRenderer.RenderGenerated(
@@ -76,9 +90,29 @@ public class CreateSchemaRenderer : RendererEngine
         };
     }
 
+    private static IdentityColumnContext IdentityContext(ColumnViewModel column)
+    {
+        var table = column.TableIdentity ?? throw new NotSupportedException("Sequence-backed identities require a containing table.");
+        return new(table.Name, column.Name, table.Schema, table.Database, table.Catalog);
+    }
+
+    private static string RenderIdentityPrerequisites(object? value, IDialect dialect, bool dropExisting)
+    {
+        if (dialect.SchemaSqlRenderer is not ISequenceIdentitySqlRenderer sequence) return "";
+        if (value is not TableViewModel table) throw new ArgumentException("Identity prerequisites require a table view model.");
+        var statements = string.Join("\r\n", table.Columns.Where(column => column.Generation is IdentityColumnGeneration).Select(column =>
+        {
+            var identity = (IdentityColumnGeneration)column.Generation!;
+            return sequence.RenderIdentityPrerequisite(dialect, IdentityContext(column), identity.Seed, identity.Increment, dropExisting);
+        }));
+        return statements.Length == 0 ? "" : statements + "\r\n";
+    }
+
     protected CreateSchemaRenderer(IDbTypeMapper typeMapper, ISqlFunctionMapper sqlFunctionMapper, IDictionary<string, Func<object?, string>> helpers)
         : base(typeof(CreateSchemaRenderer).Assembly, $"{typeof(CreateSchemaRenderer).Namespace}.Templates.CreateTables.sql.hbs")
     {
+        if (!helpers.ContainsKey("identityprerequisites"))
+            AddFormatter("identityprerequisites", _ => "");
         AddMappings("dbtype", typeMapper.ToDictionary());
         AddMappings("function", sqlFunctionMapper.ToDictionary());
         foreach (var helper in helpers)

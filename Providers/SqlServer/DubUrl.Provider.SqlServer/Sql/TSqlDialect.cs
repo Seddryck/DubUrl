@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.SqlServer.Schema.Generation;
+using DubUrl.Provider.SqlServer.Schema.Generation;
 using DubUrl.Provider.SqlServer.Sql.Functions;
 using DubUrl.Provider.SqlServer.Sql.Rendering;
 using DubUrl.Provider.SqlServer.Sql.Types;
@@ -26,6 +26,8 @@ namespace DubUrl.Provider.SqlServer.Sql;
 [ParentLanguage<SqlLanguage>]
 public class TSqlDialect : BaseDialect
 {
+    public override ISchemaSqlRenderer SchemaSqlRenderer => TSqlSchemaSqlRenderer.Default;
+
     public override DialectCapabilities Capabilities { get; } = TSqlSchemaCapabilities.Create();
 
     internal TSqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)

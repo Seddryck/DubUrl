@@ -92,23 +92,27 @@ connectors using the same SQL dialect reuse its schema behavior.
 | --- | --- |
 | `DubUrl.Schema` | Models, builders, constraints, dependency planning, expression traversal, templates, native-type validation and fallback, script assembly |
 | `DubUrl.Core/Schema` (assembly `DubUrl.Core`) | `ISchemaSqlRenderer` contract and reusable `StandardSchemaSqlRenderer` implementation |
-| `Providers/<Family>/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and any schema SQL renderer overrides |
-| `Providers/<Family>/DubUrl.Provider.*/Schema/Discovery` | Reserved for future catalog queries and schema discovery implementations |
+| `Providers/<Family>/DubUrl.Provider.*/Schema/Generation` | DDL capabilities, native-type sets, and engine-specific SQL renderers |
+| `Providers/<Family>/DubUrl.Provider.*/Discovery` | Catalog queries and engine-specific schema discovery implementations |
 | `connectors/` | Provider/driver composition and distribution; no copied schema templates |
 
 `IDialect.SchemaSqlRenderer` defaults to `StandardSchemaSqlRenderer.Instance`. `BaseDialect` exposes a
-virtual property for provider overrides. Existing dialects continue to select standard identity,
-generated-column, regex, and object-name syntax through `DialectCapabilities`. Comments, views, native
-types, and logical type/function mappings retain their existing provider-owned declarations.
+virtual property, and each supported built-in provider explicitly supplies its own renderer. Core has no
+engine-specific branches: it owns contracts, identifier-quoting helpers, standard generated-column clause
+formatting, generic unsupported-operation errors, and optional delegation to an explicitly supplied renderer.
+Provider packages own identity, generated-column and regex syntax, object-name qualification, index naming,
+and foreign-key placement, including SQLite's inline foreign keys and DuckDB's sequence-backed identities.
+
+`DialectCapabilities` describes support through `ObjectNameParts` flags and support booleans. Copying
+capabilities never selects SQL behavior. Comments, views, native types, and logical type/function mappings
+retain their provider-owned declarations.
 
 `DubUrl.Schema` renders expressions and literals using the dialect's existing formatters, then delegates
 SQL variation points to `ISchemaSqlRenderer`. The contract accepts primitive values and already-rendered
-SQL, so neither Core nor provider projects need to reference schema models or templates. It also exposes
-foreign-key placement independently of column generation. The standard implementation preserves SQLite's
-existing inline placement; another provider can override placement without adopting SQLite identity syntax.
+SQL, so neither Core nor provider projects need to reference schema models or templates.
 
-When a provider needs syntax outside the existing capability choices, subclass the standard renderer in
-that provider project and override only the required operation:
+To add engine behavior, subclass the standard renderer in the provider project and override the required
+operations:
 
 ```csharp
 using DubUrl.Querying.Dialects;
@@ -132,14 +136,21 @@ public override ISchemaSqlRenderer SchemaSqlRenderer
 ```
 
 The example's `provider_regexp` stands for the provider's actual SQL function. `expression` and `pattern`
-are already rendered SQL: do not quote them again. Unoverridden operations retain shared formatting,
-qualification checks, and unsupported-operation errors. An implementation can also implement
+are already rendered SQL: do not quote them again. Unoverridden operations retain provider-neutral formatting,
+qualification checks, and unsupported-operation errors. To extend an existing provider renderer, pass
+that renderer explicitly to the `StandardSchemaSqlRenderer(ISchemaSqlRenderer fallback)` constructor. An implementation can also implement
 `ISchemaSqlRenderer` directly when none of the standard syntax applies. Instances should be stateless
 and safe to share between renders.
 
-Adding a database-specific override requires no shared template changes, new capability enum members,
-or additional connector/schema packages. Keep common SQL in the standard implementation and introduce
-an override only when the provider needs different behavior.
+Adding a database-specific override requires no shared template changes, engine selector enums,
+or additional connector/schema packages. Keep reusable helpers in Core and engine decisions in providers.
+
+Custom provider migration: replace `ObjectNameQualification`, `IdentityColumnSyntax`,
+`GeneratedColumnSyntax` and `RegularExpressionSyntax` selections with `ObjectNameParts` and the
+`SupportsIdentityColumns`, `SupportsStoredGeneratedColumns`, `SupportsVirtualGeneratedColumns` and
+`SupportsRegularExpressionChecks` properties. These describe capabilities only. Supply
+`IDialect.SchemaSqlRenderer` explicitly to implement the corresponding SQL; capability-only custom
+dialects now receive Core's generic unsupported-operation errors for identity, generation and regex.
 
 ## Bulk copy registration and optional typed adapters
 

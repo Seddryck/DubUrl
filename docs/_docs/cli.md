@@ -52,3 +52,7 @@ duburl schema deploy .\schema.yaml --connection-env DUBURL_PRODUCTION_URL
 ## Automation
 
 See [Automate schema deployment]({{ '/docs/automate-schemas/' | relative_url }}) for CI and Python examples.
+
+### Inspect an existing database
+
+Use duburl schema inspect --connection source --basic --output schema.yaml to export visible tables. The command supports JSON/YAML, repeated qualified table filters, strict/partial inspection and separate stderr diagnostics. See [inspection and export](schema-inspection.md) for the complete workflow and provider limits.

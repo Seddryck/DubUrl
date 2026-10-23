@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +22,7 @@ public record struct MapperInfo(
 {
     /// <summary>The database type and metadata retained from its existing Database attribute.</summary>
     public DatabaseInfo? Database { get; init; }
+    public DubUrl.Discovery.SchemaDiscoveryCapability? SchemaDiscovery { get; init; }
     public Type ConnectivityType { get; init; } = typeof(DubUrl.Mapping.Connectivity.NativeConnectivity);
     public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
 }

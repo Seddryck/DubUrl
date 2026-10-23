@@ -7,12 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DubUrl.Worker;
 
-internal static class SchemaWorkerMethods
+internal static partial class SchemaWorkerMethods
 {
     public static void Register(WorkerMethodRegistry registry, IServiceProvider services)
     {
         var capabilities = services.GetRequiredService<SchemaWorkerCapabilities>();
         registry.SetFeature("schema", capabilities);
+        RegisterInspection(registry, services);
         registry.Register<SchemaValidateParameters, SchemaValidationResponse>(
             "schema.validate",
             "Validate a versioned schema document without opening a database connection.",

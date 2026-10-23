@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +12,8 @@ using DubUrl.Querying.Dialects;
 using DubUrl.Schema.Renderers;
 
 namespace DubUrl.Schema;
-    public class SchemaScriptRenderer
+
+public class SchemaScriptRenderer
 {
     private RendererEngine[] Templates { get; } = [];
     private IDialect Dialect { get; }
@@ -29,8 +30,8 @@ namespace DubUrl.Schema;
             templates.Add(new DropIndexesIfExistsRenderer(dialect));
             templates.Add(new DropTablesIfExistsRenderer(dialect));
         }
-            
-        templates.Add(new CreateSchemaRenderer(dialect, nativeTypes));
+
+        templates.Add(new CreateSchemaRenderer(dialect, nativeTypes, options == SchemaCreationOptions.DropIfExists));
         templates.Add(new ForeignKeyRenderer(dialect));
         if (SupportsComments)
             templates.Add(new CommentRenderer(dialect));

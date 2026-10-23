@@ -6,10 +6,11 @@ namespace DubUrl.Cli;
 public sealed class CliCapabilities
 {
     public IReadOnlyList<int> SchemaDocumentVersions { get; } = [1];
-    public IReadOnlyList<string> SchemaCommands { get; } = ["validate", "render", "deploy"];
+    public IReadOnlyList<string> SchemaCommands { get; } = ["validate", "render", "deploy", "inspect"];
     public IReadOnlyList<string> Dialects { get; }
     public IReadOnlyList<string> Providers { get; }
     public IReadOnlyList<string> DeployableSchemes { get; }
+    public IReadOnlyList<string> DiscoverableSchemes { get; init; } = [];
     public bool DeploymentAvailable => DeployableSchemes.Count > 0;
 
     public CliCapabilities(

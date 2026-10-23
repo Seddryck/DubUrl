@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.Sqlite.Schema.Generation;
+using DubUrl.Provider.Sqlite.Schema.Generation;
 using DubUrl.Provider.Sqlite.Sql.Functions;
 using DubUrl.Provider.Sqlite.Sql.Rendering;
 using DubUrl.Provider.Sqlite.Sql.Types;
@@ -28,6 +28,8 @@ namespace DubUrl.Provider.Sqlite.Sql;
 [ParentLanguage<SqlLanguage>]
 public class SqliteDialect : BaseDialect
 {
+    public override ISchemaSqlRenderer SchemaSqlRenderer => SqliteSchemaSqlRenderer.Default;
+
     public override DialectCapabilities Capabilities { get; } = SqliteSchemaCapabilities.Create();
 
     internal SqliteDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)

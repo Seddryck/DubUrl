@@ -66,6 +66,7 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
             .Select(group => group.First() with
             {
                 Aliases = group.SelectMany(info => info.Aliases).Distinct().ToArray(),
+                SchemaDiscovery = group.Key.MapperType.GetCustomAttribute<DubUrl.Discovery.SchemaDiscoveryAttribute>(inherit: false)?.Create(),
                 BulkCopyProvider = probe.Attributes(group.Key.MapperType).OfType<BulkCopyProviderAttribute>().SingleOrDefault()?.Create()
             }).ToArray();
     }
