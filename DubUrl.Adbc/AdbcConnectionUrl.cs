@@ -29,7 +29,7 @@ public sealed class AdbcConnectionUrl
     {
         var resolved = registry.Resolve(ConnectionUri.Parse(Url));
         if (resolved.ProviderFactory is not AdbcProviderFactory factory)
-            throw new NotSupportedException("Arrow-native access requires an AdbcProviderFactory. Use an ADBC URL and register its factory before constructing the URL or registry.");
+            throw new NotSupportedException("Arrow-native access requires an AdbcProviderFactory. Use an ADBC URL with a matching factory registration. For an installed connector, use matching DubUrl.Adbc and Apache Arrow API versions in the application and connector, then refresh the registry.");
 
         var builder = new DbConnectionStringBuilder { ConnectionString = resolved.ConnectionString };
         var parameters = new Dictionary<string, string>(StringComparer.Ordinal);

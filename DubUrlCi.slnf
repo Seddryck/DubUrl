@@ -44,6 +44,7 @@
       "Providers\\Teradata\\DubUrl.Provider.Teradata\\DubUrl.Provider.Teradata.csproj",
       "Providers\\Text\\DubUrl.Provider.Text\\DubUrl.Provider.Text.csproj",
       "Providers\\Trino\\DubUrl.Provider.Trino\\DubUrl.Provider.Trino.csproj",
+      "Providers\\DuckDb\\DubUrl.Provider.DuckDb.Adbc\\DubUrl.Provider.DuckDb.Adbc.csproj",
       "DubUrl.Adbc\\DubUrl.Adbc.csproj",
       "DubUrl.Adbc.Testing\\DubUrl.Adbc.Testing.csproj"
     ]

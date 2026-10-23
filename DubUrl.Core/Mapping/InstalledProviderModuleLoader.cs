@@ -77,6 +77,13 @@ public sealed class InstalledProviderModuleLoader : IDisposable
         {
             if (assemblyName.Name is not null && SharedAssemblies.Contains(assemblyName.Name))
                 return Default.LoadFromAssemblyName(assemblyName);
+            var sharedApi = Default.Assemblies.Where(assembly => !assembly.IsDynamic)
+                .SelectMany(assembly => assembly.GetCustomAttributes<SharedProviderDependencyAttribute>())
+                .Select(attribute => attribute.ContractType.Assembly)
+                .Distinct()
+                .SingleOrDefault(assembly => assembly.GetName().FullName == assemblyName.FullName);
+            if (sharedApi is not null)
+                return sharedApi;
             var path = _resolver.ResolveAssemblyToPath(assemblyName);
             if (path is null) return null;
             using var stream = File.OpenRead(path);

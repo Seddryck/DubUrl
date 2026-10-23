@@ -102,7 +102,10 @@ foreach ($entry in $entries) {
         if (@($archivePaths | Where-Object { $_ -like 'ConnectorDependencies*' }).Count) {
             throw "Connector '$($entry.provider)' contains temporary dependency-collector output."
         }
-        if (@($archivePaths | Where-Object { $_ -cmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.dll$' }).Count) {
+        $driverAssembly = if ($manifest.PSObject.Properties['driverAssembly']) { $manifest.driverAssembly } else { $manifest.driver + '.dll' }
+        if (@($archivePaths | Where-Object {
+            $_ -cmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.dll$' -and $_ -cne $driverAssembly
+        }).Count) {
             throw "Connector '$($entry.provider)' still contains a per-driver binding DLL."
         }
         if ($manifest.PSObject.Properties['module'] -or $manifest.PSObject.Properties['type']) {

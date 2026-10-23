@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Adbc\DubUrl.Adbc.csproj" />
+    <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb.Adbc\DubUrl.Provider.DuckDb.Adbc.csproj" />
     <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="NUnit" Version="5.0.0" />

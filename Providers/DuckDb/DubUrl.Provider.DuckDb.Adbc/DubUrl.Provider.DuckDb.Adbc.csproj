@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>DuckDB ADBC provider factory and installed native-driver discovery for DubUrl.</Description>
+    <PackageTags>connection-string;database;duckdb;adbc;arrow</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\DubUrl.Adbc\DubUrl.Adbc.csproj" />
+    <ProjectReference Include="..\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
+    <PackageReference Include="Tomlyn" Version="2.10.1" />
+    <InternalsVisibleTo Include="DubUrl.Adbc.Testing" />
+  </ItemGroup>
+  <Import Project="..\..\Provider.Build.props" />
+</Project>

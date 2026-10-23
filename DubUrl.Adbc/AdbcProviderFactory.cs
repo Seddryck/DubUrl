@@ -5,7 +5,7 @@ using Apache.Arrow.Adbc.C;
 namespace DubUrl.Adbc;
 
 /// <summary>Configures an ADBC driver for ADO.NET connections and Arrow-native sessions.</summary>
-public sealed class AdbcProviderFactory : DbProviderFactory
+public class AdbcProviderFactory : DbProviderFactory
 {
     private readonly Func<AdbcDriver> createDriver;
 
