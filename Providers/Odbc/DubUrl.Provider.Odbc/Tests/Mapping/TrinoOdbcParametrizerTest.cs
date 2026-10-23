@@ -19,7 +19,7 @@ public class TrinoOdbcParametrizerTest
             Is.EqualTo(typeof(PositionalParametrizer)));
 
     [Test]
-    public void BuiltInRegistration_BindsQuestionMarksInDeclarationOrder()
+    public void AttributeRegistration_BindsQuestionMarksInDeclarationOrder()
     {
         var registrations = new List<ProviderRegistration>();
         var catalog = new Mock<IProviderCatalogBuilder>();
