@@ -69,7 +69,7 @@ public class OdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "mssql", "ODBC Driver 18 for SQL Server"]) };
+        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "mssql", "{ODBC Driver 18 for SQL Server}"]) };
         urlInfo = urlInfo.WithOption("sslmode", "required");
         urlInfo = urlInfo.WithOption("charset", "UTF8");
 

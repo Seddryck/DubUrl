@@ -126,7 +126,7 @@ public class DrillOdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "drill", "MapR Drill ODBC Driver"]) };
+        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "drill", "{MapR Drill ODBC Driver}"]) };
         urlInfo = urlInfo.WithOption("ZKClusterID", "DrillBit200");
 
         var mapper = new DrillOdbcRewriter(ConnectionStringBuilder);
