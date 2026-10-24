@@ -15,8 +15,17 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	if ($IsLinux) {
 		& sudo apt-get update
 		if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
-		& sudo apt-get install --yes odbc-postgresql
+		& sudo apt-get install --yes unixodbc odbcinst odbc-postgresql
 		if ($LASTEXITCODE -ne 0) { throw "Unable to install the PostgreSQL ODBC driver." }
+
+		# Verify discovery and connections use unixODBC's configured registry.
+		$registryDirectory = Join-Path $PSScriptRoot "../../../.artifacts/postgresql-odbc"
+		New-Item -ItemType Directory -Force $registryDirectory | Out-Null
+		Copy-Item /etc/odbcinst.ini (Join-Path $registryDirectory "drivers.ini")
+		$env:ODBCSYSINI = (Resolve-Path $registryDirectory).Path
+		$env:ODBCINSTINI = "drivers.ini"
+		& odbcinst -q -d
+		if ($LASTEXITCODE -ne 0) { throw "Unable to list PostgreSQL ODBC drivers." }
 	}
 
 	Write-Host "Starting PostgreSQL QA infrastructure with Docker Compose"
