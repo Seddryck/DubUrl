@@ -35,5 +35,4 @@ public class DriverLister
             .Where(name => !name.Equals("ODBC Drivers", StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-
 }
