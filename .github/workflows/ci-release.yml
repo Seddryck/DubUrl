@@ -530,18 +530,28 @@ jobs:
           -Version '${{ needs.version.outputs.semver }}'
           -OutputDirectory '../.artifacts/connectors'
 
+      - name: Preserve connector packaging inventory
+        shell: pwsh
+        run: |
+          # Building the lifecycle verifier can rewrite Core's obj inventory.
+          New-Item -ItemType Directory -Force .artifacts/validation-inputs | Out-Null
+          Copy-Item -LiteralPath DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt `
+            -Destination .artifacts/validation-inputs/CoreDependencyPaths.txt
+
       - name: Validate connector artifacts and catalog
         shell: pwsh
         run: >-
           ./connectors/Test-ConnectorArtifacts.ps1
           -Version '${{ needs.version.outputs.semver }}'
           -ArtifactDirectory './.artifacts/connectors'
+          -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
 
       - name: Upload internal connector validation inputs
         uses: actions/upload-artifact@v7
         with:
           name: connector-validation-inputs-${{ needs.version.outputs.semver }}
-          path: DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt
+          path: .artifacts/validation-inputs/CoreDependencyPaths.txt
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 
