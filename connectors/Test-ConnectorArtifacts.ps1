@@ -34,7 +34,7 @@ foreach ($id in $readyIds) {
 }
 $payloads = @($entries | ForEach-Object { (@($_.implementationAssemblies | Sort-Object) -join '|') + '|' + $_.driver + '|' + ($_.runtimeIdentifiers -join '|') })
 if (@($payloads | Sort-Object -Unique).Count -ne $entries.Count) { throw 'Duplicate implementation/driver archives remain.' }
-if (@(Get-ChildItem -LiteralPath $root -Filter '*.zip').Count -ne $entries.Count) { throw 'Unexpected duplicate or missing archives.' }
+& (Join-Path $PSScriptRoot 'Test-ConnectorArchiveSet.ps1') -Version $Version -ArtifactDirectory $root
 
 function Get-DefinitionSchemes($definition) { @($definition.databases | ForEach-Object { $_.schemes }) }
 
