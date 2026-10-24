@@ -486,6 +486,10 @@ jobs:
         with:
           dotnet-version: 10.0.401
 
+      - name: Test connector archive set validation
+        shell: pwsh
+        run: ./.github/scripts/Test-ConnectorArchiveSet.ps1
+
       - name: Build connector artifacts
         shell: pwsh
         run: >-
@@ -1264,7 +1268,6 @@ jobs:
           if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
           if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
           if ($workerArchives.Count -ne 6) { throw "Expected six worker archives, found $($workerArchives.Count)." }
-          if ($connectorArchives.Count -ne 32) { throw "Expected 32 connector archives, found $($connectorArchives.Count)." }
           $mixedCase = @($archives + $installers + $workerArchives + $connectorArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
           if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
 
