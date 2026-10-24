@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Provider.Odbc.Drivers.Discovery;
 
-[Driver<PostgresqlDriverRegex, OdbcMapper, PostgresqlDatabase>()]
+[Driver<PostgresqlDriverRegex, PostgresqlOdbcMapper, PostgresqlDatabase>()]
 public class PostgresqlDriverLocator : BaseDriverLocator
 {
     internal class PostgresqlDriverRegex : BaseDriverRegex

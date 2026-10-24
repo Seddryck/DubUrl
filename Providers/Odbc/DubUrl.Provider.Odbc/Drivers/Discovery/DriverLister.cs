@@ -1,27 +1,24 @@
-﻿using DubUrl.Locating;
-using DubUrl.Locating.OdbcDriver;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
 
 namespace DubUrl.Provider.Odbc.Drivers.Discovery;
 
 public class DriverLister
 {
+    private readonly IDriverListingStrategy? strategy;
+
+    public DriverLister() { }
+
+    internal DriverLister(IDriverListingStrategy strategy)
+        => this.strategy = strategy;
+
     public virtual string[] List()
     {
+        if (strategy is not null)
+            return strategy.List();
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var drivers = new List<string>();
-            drivers.AddRange(ListFromRegistry(Registry.LocalMachine));
-            drivers.AddRange(ListFromRegistry(Registry.CurrentUser));
-            return [.. drivers];
-        }
+            return new WindowsRegistryDriverListingStrategy().List();
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return new UnixOdbcDriverListingStrategy().List();
         return ListFromIniFiles(
             "/etc/odbcinst.ini",
             "/usr/local/etc/odbcinst.ini",
@@ -38,23 +35,4 @@ public class DriverLister
             .Where(name => !name.Equals("ODBC Drivers", StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-
-    private static List<string> ListFromRegistry(RegistryKey registryKey)
-    {
-#pragma warning disable CA1416 // Validate platform compatibility
-        try
-        {
-            var drivers = new List<string>();
-            using var reg = registryKey.OpenSubKey("Software")
-                ?.OpenSubKey("ODBC")
-                ?.OpenSubKey("ODBCINST.INI")
-                ?.OpenSubKey("ODBC Drivers");
-            foreach (var driver in reg?.GetValueNames() ?? [])
-                drivers.Add(driver);
-            return drivers;
-        }
-        catch (System.Security.SecurityException) { return []; }
-        catch (UnauthorizedAccessException) { return []; }
-#pragma warning restore CA1416 // Validate platform compatibility
-    }
 }

@@ -92,7 +92,7 @@ public class TrinoOdbcRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new ConnectionUri() { Segments = ["catalog/schema"], Scheme = new SchemeKey(["odbc", "mssql", "ODBC Driver 18 for SQL Server"]) };
+        var urlInfo = new ConnectionUri() { Segments = ["catalog/schema"], Scheme = new SchemeKey(["odbc", "trino", "{Simba Trino ODBC Driver}"]) };
         urlInfo = urlInfo.WithOption("ClientTags", "foo,bar");
         urlInfo = urlInfo.WithOption("ApplicationNamePrefix", "qurx");
 

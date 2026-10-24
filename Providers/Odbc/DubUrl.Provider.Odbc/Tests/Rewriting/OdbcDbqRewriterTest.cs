@@ -97,7 +97,7 @@ public class OdbcDbqRewriterTest
     [Test]
     public void Map_OptionsContainsOptions_OptionsReturned()
     {
-        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "xlsx", "Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)"]) };
+        var urlInfo = new ConnectionUri() { Segments = ["db"], Scheme = new SchemeKey(["odbc", "xlsx", "{Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}"]) };
         urlInfo = urlInfo.WithOption("sslmode", "required");
         urlInfo = urlInfo.WithOption("charset", "UTF8");
 

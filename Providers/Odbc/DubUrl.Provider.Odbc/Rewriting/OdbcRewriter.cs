@@ -93,7 +93,7 @@ public class OdbcRewriter : ConnectionStringRewriter, IOdbcConnectionStringRewri
 
         public override void Execute(ConnectionUri urlInfo)
         {
-            if (urlInfo.Options.ContainsKey(DRIVER_KEYWORD))
+            if (urlInfo.Options.Keys.Any(key => StringComparer.OrdinalIgnoreCase.Equals(key, DRIVER_KEYWORD)))
                 return;
 
             var schemes = urlInfo.Scheme.Parts.Where(x => !x.Equals("odbc", StringComparison.OrdinalIgnoreCase)).ToArray();

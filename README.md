@@ -173,6 +173,23 @@ The following databases and their associated schemes are supported out of the bo
 |![Timescale](https://img.shields.io/badge/Timescale-FDB515?logo=timescale&logoColor=000000&style=flat-square)                                    | ts, timescale                        | ^\bPostgreSQL\s(ANSI\|Unicode)(\(x64\))?$                                  |
 <!-- END ODBC TABLE -->
 
+On Windows, DubUrl discovers ODBC drivers through the machine and user registries.
+On Linux, discovery uses `odbcinst -q -d`, respecting unixODBC's configured registry
+(including `ODBCSYSINI` and `ODBCINSTINI`). Install `unixodbc`, `odbcinst`, and the
+ODBC driver for your database before using automatic discovery. Other platforms
+continue to use the standard ODBC INI file locations.
+
+Supply an exact `Driver` URL option to bypass discovery. Driver names may be
+braced or unbraced; URL-encode spaces and reserved characters:
+
+```text
+odbc+pgsql://user:password@localhost:5432/database?Driver=PostgreSQL%20Unicode
+```
+
+PostgreSQL and Timescale ODBC URLs emit separate `Server` and `Port` properties.
+The PostgreSQL provider QA workflow verifies explicit drivers and automatic
+discovery against a real PostgreSQL database on Linux.
+
 ### Extension for OLEDB provider locators
 
 The following databases and their associated schemes are supported through the OLE DB data provider extension:

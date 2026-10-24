@@ -89,7 +89,7 @@ public class DuckdbRewriterTest
     [Test]
     public void Map_QuadrupleSlashWithRootPath_DataSource()
     {
-        var rootPath = "c:\\directory\\";
+        var rootPath = "c:\\directory";
         var path = "data.db";
         var urlInfo = new ConnectionUri() { Host = string.Empty, Segments = $"//{path}".Split('/') };
         var Rewriter = new DuckdbRewriter(ConnectionStringBuilder, rootPath);
@@ -97,7 +97,7 @@ public class DuckdbRewriterTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.ContainKey(DuckdbRewriter.DATABASE_KEYWORD));
-        Assert.That(result[DuckdbRewriter.DATABASE_KEYWORD], Is.EqualTo((rootPath + path).Replace('/', Path.DirectorySeparatorChar)));
+        Assert.That(result[DuckdbRewriter.DATABASE_KEYWORD], Is.EqualTo(Path.Combine(rootPath, path).Replace('/', Path.DirectorySeparatorChar)));
     }
 
     [Test]

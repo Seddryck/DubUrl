@@ -205,7 +205,9 @@ public class BoundTemplateTest
     [TestCase("odbc+mssql", "SELECT ?,?", "Parameter1")]
     public void Provision_ConnectorRegistration_UsesMatchingPlaceholderAndBinding(string scheme, string sql, string name)
     {
-        var connection = new ConnectionUrl($"{scheme}://localhost/test");
+        var driverOption = scheme.StartsWith("odbc", StringComparison.Ordinal)
+            ? "?Driver=Example%20driver" : string.Empty;
+        var connection = new ConnectionUrl($"{scheme}://localhost/test{driverOption}");
         using DbCommand command = scheme switch
         {
             "pg" => new NpgsqlCommand(), "oracle" => new OracleCommand(),
