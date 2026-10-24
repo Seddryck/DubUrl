@@ -530,12 +530,30 @@ jobs:
           -Version '${{ needs.version.outputs.semver }}'
           -OutputDirectory '../.artifacts/connectors'
 
+      - name: Preserve connector packaging inventory
+        shell: pwsh
+        run: |
+          # Building the lifecycle verifier can rewrite Core's obj inventory.
+          New-Item -ItemType Directory -Force .artifacts/validation-inputs | Out-Null
+          Copy-Item -LiteralPath DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt `
+            -Destination .artifacts/validation-inputs/CoreDependencyPaths.txt
+
       - name: Validate connector artifacts and catalog
         shell: pwsh
         run: >-
           ./connectors/Test-ConnectorArtifacts.ps1
           -Version '${{ needs.version.outputs.semver }}'
           -ArtifactDirectory './.artifacts/connectors'
+          -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
+
+      - name: Upload internal connector validation inputs
+        uses: actions/upload-artifact@v7
+        with:
+          name: connector-validation-inputs-${{ needs.version.outputs.semver }}
+          path: .artifacts/validation-inputs/CoreDependencyPaths.txt
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
 
       - name: Upload connector artifacts
         uses: actions/upload-artifact@v7
@@ -926,12 +944,79 @@ jobs:
             .artifacts/cli/installers/duburl-*-setup.exe
           if-no-files-found: error
 
+  validate-release-assets:
+    name: Validate release assets
+    needs:
+      - version
+      - package-cli-distributions
+      - package-worker-distributions
+      - package-connectors
+    # Lifecycle validation includes Windows-only Access, Excel, and OLE DB packs.
+    runs-on: windows-latest
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v7
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          # The validator builds/runs the net8.0 lifecycle verifier with the current SDK.
+          dotnet-version: |
+            8.0.416
+            10.0.401
+
+      - name: Download CLI distributions
+        uses: actions/download-artifact@v7
+        with:
+          pattern: cli-distribution-*
+          path: .artifacts/release/cli
+          merge-multiple: true
+
+      - name: Download connector packs and catalog
+        uses: actions/download-artifact@v7
+        with:
+          name: connector-packs-${{ needs.version.outputs.semver }}
+          path: .artifacts/release
+
+      - name: Download worker distributions
+        uses: actions/download-artifact@v7
+        with:
+          pattern: worker-distribution-*
+          path: .artifacts/release/worker
+          merge-multiple: true
+
+      - name: Download internal connector validation inputs
+        uses: actions/download-artifact@v7
+        with:
+          name: connector-validation-inputs-${{ needs.version.outputs.semver }}
+          path: .artifacts/validation-inputs
+
+      - name: Test public release asset selection
+        shell: pwsh
+        run: ./.github/scripts/Test-ReleaseAssets.ps1
+
+      - name: Validate public release assets
+        shell: pwsh
+        run: >-
+          ./.github/scripts/Get-ReleaseAssets.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -ArtifactDirectory './.artifacts/release'
+
+      - name: Revalidate connector release assets
+        shell: pwsh
+        run: >-
+          ./connectors/Test-ConnectorArtifacts.ps1
+          -Version '${{ needs.version.outputs.semver }}'
+          -ArtifactDirectory './.artifacts/release'
+          -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
+
   reserve-release:
     name: Reserve release identity
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - version
       - validate-packages
+      - validate-release-assets
       - package-cli-nuget
       - package-worker-nuget
       - package-worker-distributions
@@ -1257,7 +1342,7 @@ jobs:
       - package-cli-distributions
       - package-worker-distributions
       - package-connectors
-    # Lifecycle validation includes Windows-only Access, Excel, and OLE DB packs.
+      - validate-release-assets
     runs-on: windows-latest
     permissions:
       contents: write
@@ -1265,11 +1350,6 @@ jobs:
     steps:
       - name: Check out tested commit
         uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
 
       - name: Download CLI distributions
         uses: actions/download-artifact@v7
@@ -1291,31 +1371,16 @@ jobs:
           path: .artifacts/release/worker
           merge-multiple: true
 
-      - name: Validate release assets
-        shell: pwsh
-        run: |
-          $archives = @(Get-ChildItem .artifacts/release/cli -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
-          $installers = @(Get-ChildItem .artifacts/release/cli -Recurse -File -Filter '*-setup.exe')
-          $workerArchives = @(Get-ChildItem .artifacts/release/worker -Recurse -File | Where-Object Extension -In @('.zip', '.gz'))
-          $connectorArchives = @(Get-ChildItem .artifacts/release -File -Filter 'duburl-connector-*.zip')
-          if ($archives.Count -ne 18) { throw "Expected 18 CLI archives, found $($archives.Count)." }
-          if ($installers.Count -ne 2) { throw "Expected two CLI installers, found $($installers.Count)." }
-          if ($workerArchives.Count -ne 6) { throw "Expected six worker archives, found $($workerArchives.Count)." }
-          $mixedCase = @($archives + $installers + $workerArchives + $connectorArchives | Where-Object { $_.Name -cne $_.Name.ToLowerInvariant() })
-          if ($mixedCase.Count -ne 0) { throw "Release assets must be lower-case: $($mixedCase.Name -join ', ')." }
-
-      - name: Revalidate connector release assets
-        shell: pwsh
-        run: >-
-          ./connectors/Test-ConnectorArtifacts.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -ArtifactDirectory './.artifacts/release'
-
       - name: Create release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $assets = @(
+            ./.github/scripts/Get-ReleaseAssets.ps1 `
+              -Version '${{ needs.version.outputs.semver }}' `
+              -ArtifactDirectory './.artifacts/release'
+          )
           $tag = 'v${{ needs.version.outputs.semver }}'
           if (gh release view $tag --repo '${{ github.repository }}' 2>$null) {
             Write-Host "Release '$tag' already exists."
@@ -1329,6 +1394,5 @@ jobs:
               --verify-tag
           }
 
-          $assets = @(Get-ChildItem .artifacts/release -Recurse -File)
           gh release upload $tag @($assets.FullName) --clobber --repo '${{ github.repository }}'
           if ($LASTEXITCODE -ne 0) { throw "Uploading CLI assets to '$tag' failed." }
