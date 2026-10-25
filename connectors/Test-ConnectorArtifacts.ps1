@@ -4,7 +4,9 @@ param(
     [string] $Version,
 
     [Parameter(Mandatory)]
-    [string] $ArtifactDirectory
+    [string] $ArtifactDirectory,
+
+    [string] $SharedDependencyInventoryPath = (Join-Path $PSScriptRoot '../DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt')
 )
 
 Set-StrictMode -Version Latest
@@ -39,11 +41,10 @@ if (@($payloads | Sort-Object -Unique).Count -ne $entries.Count) { throw 'Duplic
 function Get-DefinitionSchemes($definition) { @($definition.databases | ForEach-Object { $_.schemes }) }
 
 $names = @{}
-$sharedInventoryPath = Join-Path $PSScriptRoot '../DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt'
-if (-not (Test-Path -LiteralPath $sharedInventoryPath -PathType Leaf)) {
-    throw "Core's shared dependency inventory is missing: $sharedInventoryPath"
+if (-not (Test-Path -LiteralPath $SharedDependencyInventoryPath -PathType Leaf)) {
+    throw "Core's shared dependency inventory is missing: $SharedDependencyInventoryPath"
 }
-$sharedAssets = @('DubUrl.Core.dll') + @(Get-Content -LiteralPath $sharedInventoryPath | ForEach-Object { $_.Replace('\', '/') })
+$sharedAssets = @('DubUrl.Core.dll') + @(Get-Content -LiteralPath $SharedDependencyInventoryPath | ForEach-Object { $_.Replace('\', '/') })
 foreach ($entry in $entries) {
     foreach ($name in @($entry.provider) + @($entry.aliases)) {
         if ([string]::IsNullOrWhiteSpace($name) -or $names.ContainsKey($name)) {
