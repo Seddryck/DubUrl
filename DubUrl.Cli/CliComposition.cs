@@ -82,6 +82,8 @@ public static class CliComposition
         var entries = new List<ConnectorDefinition>();
         var configuredPath = configuration["ProviderPacks:CatalogPath"];
         var catalogPath = Path.GetFullPath(GetCatalogPath(configuredPath));
+        if (!string.IsNullOrWhiteSpace(configuredPath) && !File.Exists(catalogPath))
+            throw new ConnectorOperationException("connector-catalog-missing", "The configured approved connector catalog was not found.");
         if (File.Exists(catalogPath))
         {
             using var stream = File.OpenRead(catalogPath);

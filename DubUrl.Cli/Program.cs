@@ -10,5 +10,18 @@ Console.CancelKeyPress += (_, eventArgs) =>
     cancellation.Cancel();
 };
 
-await using var services = CliComposition.CreateDefault();
-return await CliHost.InvokeAsync(args, services, cancellation.Token);
+try
+{
+    await using var services = CliComposition.CreateDefault();
+    return await CliHost.InvokeAsync(args, services, cancellation.Token);
+}
+catch (DubUrl.Application.ConnectorOperationException exception)
+{
+    Console.Error.WriteLine($"{exception.Code}: {exception.Message}");
+    return CliExitCodes.ProviderOperationFailed;
+}
+catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
+{
+    Console.Error.WriteLine("connector-catalog-invalid: The connector configuration could not be read or is invalid.");
+    return CliExitCodes.ProviderOperationFailed;
+}
