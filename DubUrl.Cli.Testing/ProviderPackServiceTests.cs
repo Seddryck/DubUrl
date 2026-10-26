@@ -9,6 +9,7 @@ public class ProviderPackServiceTests
     [TestCase("connector-not-installed", CliExitCodes.ProviderNotFound)]
     [TestCase("connector-download-failed", CliExitCodes.ProviderOperationFailed)]
     [TestCase("connector-archive-invalid", CliExitCodes.ProviderOperationFailed)]
+    [TestCase("connector-archive-missing", CliExitCodes.ProviderOperationFailed)]
     [TestCase("api-incompatible", CliExitCodes.ProviderOperationFailed)]
     [TestCase("connector-install-failed", CliExitCodes.ProviderOperationFailed)]
     [TestCase("connector-list-failed", CliExitCodes.ProviderOperationFailed)]
@@ -18,8 +19,9 @@ public class ProviderPackServiceTests
         var service = new ProviderPackService(new FailingService(code));
         var list = Assert.Throws<ProviderPackCommandException>(() => service.List());
         var install = await Assert.ThrowsAsync<ProviderPackCommandException>(async () => await service.InstallAsync("pg", default));
+        var offline = await Assert.ThrowsAsync<ProviderPackCommandException>(async () => await service.InstallOfflineAsync("pg", "local.zip", default));
         var uninstall = Assert.Throws<ProviderPackCommandException>(() => service.Uninstall("pg"));
-        foreach (var exception in new[] { list, install, uninstall })
+        foreach (var exception in new[] { list, install, offline, uninstall })
         {
             Assert.Multiple(() =>
             {
@@ -49,6 +51,8 @@ public class ProviderPackServiceTests
             if (cancellationToken.IsCancellationRequested) throw new ConnectorOperationCanceledException(cancellationToken);
             throw new ConnectorOperationException(code, "safe diagnostic");
         }
+        public Task<ConnectorInfo> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken = default)
+            => InstallAsync(connector, cancellationToken);
         public string Uninstall(string connector) => throw new ConnectorOperationException(code, "safe diagnostic");
     }
 }

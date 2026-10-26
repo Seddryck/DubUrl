@@ -1,5 +1,8 @@
 # Connector publication matrix
 
+See [offline installation and organization mirrors](DISTRIBUTION.md) for approved local ZIP installation,
+mirror preparation, catalog trust, authentication, and safe publication/retention.
+
 `connector-matrix.json` is the authoritative inventory and build definition for DubUrl connector packs. Rows describe database installation choices. Choices sharing implementation assemblies, driver and runtime compatibility are grouped into one archive/catalog entry, validated for archive integrity, loading, activation and removal.
 
 All 32 database/technology installation names remain available through 24 archives. Managed connectors carry their ADO.NET dependency closure. DuckDB and SQLite additionally carry the native assets published by their upstream binding packages, with explicit runtime compatibility metadata.

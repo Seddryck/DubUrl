@@ -11,6 +11,203 @@ namespace DubUrl.Application.Testing;
 public class ConnectorServiceTests
 {
     [Test]
+    public async Task Offline_ApprovedArchive_InstallsAndReinstallsWithoutHttp()
+    {
+        var root = CreateStorePath();
+        var path = root + ".zip";
+        var package = CreatePackage("postgresql-npgsql", "1.0.0");
+        await File.WriteAllBytesAsync(path, package.Archive.ToArray());
+        using var http = new HttpClient(new NoHttpHandler());
+        IConnectorService service = new ConnectorService(new ProviderPackStore(root), new ProviderPackCatalog([package.Entry with { Aliases = ["pg"] }]), http);
+        try
+        {
+            var first = await service.InstallOfflineAsync("pg", path);
+            var second = await service.InstallOfflineAsync("postgresql-npgsql", path);
+            Assert.Multiple(() =>
+            {
+                Assert.That(first.Active, Is.True);
+                Assert.That(second.Active, Is.True);
+                Assert.That(service.List(), Has.Count.EqualTo(1));
+                Assert.That(Directory.GetFileSystemEntries(Path.Combine(root, ".staging")), Is.Empty);
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
+    [TestCase("missing", "connector-archive-missing")]
+    [TestCase("digest", "pack-integrity")]
+    [TestCase("archive", "connector-archive-invalid")]
+    [TestCase("metadata", "catalog-mismatch")]
+    [TestCase("api", "api-incompatible")]
+    [TestCase("tfm", "tfm-incompatible")]
+    [TestCase("rid", "rid-incompatible")]
+    [TestCase("unknown", "connector-not-curated")]
+    public async Task Offline_Failure_PreservesActiveInstallation(string failure, string code)
+    {
+        var root = CreateStorePath();
+        var path = root + ".zip";
+        var package = CreatePackage("postgresql-npgsql", "1.0.0");
+        var store = new ProviderPackStore(root);
+        await store.InstallAsync(package.Entry, package.Archive);
+        var originalActivation = await File.ReadAllTextAsync(Path.Combine(root, "active", "postgresql-npgsql.json"));
+        var definition = package.Entry with
+        {
+            Version = "2.0.0",
+            DubUrlApiRange = failure == "api" ? "[999.0.0,1000.0.0)" : package.Entry.DubUrlApiRange,
+            TargetFrameworks = failure == "tfm" ? ["net99.0"] : package.Entry.TargetFrameworks,
+            RuntimeIdentifiers = failure == "rid" ? ["unsupported-rid"] : [],
+        };
+        var upgrade = CreatePackage("postgresql-npgsql", "2.0.0", definition);
+        var bytes = failure == "archive" ? Encoding.UTF8.GetBytes("invalid zip") : upgrade.Archive.ToArray();
+        var entry = upgrade.Entry with
+        {
+            Sha256 = failure == "digest" ? new string('0', 64) : Convert.ToHexString(SHA256.HashData(bytes)),
+            Driver = failure == "metadata" ? "UnapprovedDriver" : definition.Driver,
+        };
+        if (failure != "missing") await File.WriteAllBytesAsync(path, bytes);
+        using var http = new HttpClient(new NoHttpHandler());
+        var service = new ConnectorService(store, new ProviderPackCatalog([entry]), http);
+        try
+        {
+            var exception = await Assert.ThrowsAsync<ConnectorOperationException>(async () =>
+                await service.InstallOfflineAsync(failure == "unknown" ? "unapproved" : entry.Provider, path));
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception!.Code, Is.EqualTo(code));
+                Assert.That(store.Inspect().Single().Status, Is.EqualTo(ProviderPackStatus.Active));
+                Assert.That(store.Inspect().Single().Manifest.Version, Is.EqualTo("1.0.0"));
+                Assert.That(File.ReadAllText(Path.Combine(root, "active", "postgresql-npgsql.json")), Is.EqualTo(originalActivation));
+                Assert.That(Directory.GetFileSystemEntries(Path.Combine(root, ".staging")), Is.Empty);
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
+    [Test]
+    public async Task Mirror_ExactSelection_PreservesBytesAndMetadataAndInstallsWithPublicHttpBlocked()
+    {
+        var root = CreateStorePath();
+        var output = root + "-mirror";
+        var package = CreatePackage("postgresql-npgsql", "1.0.0");
+        var bytes = package.Archive.ToArray();
+        using var upstream = new HttpClient(new ArchiveHandler(bytes, package.Entry.DownloadUri!));
+        try
+        {
+            await new ConnectorMirror(upstream).PrepareAsync(new ProviderPackCatalog([package.Entry]),
+                [new(package.Entry.Provider, package.Entry.Version)], new Uri("https://internal.test/approved/"), output + Path.DirectorySeparatorChar);
+            using var stream = File.OpenRead(Path.Combine(output, "connector-catalog.json"));
+            var catalog = ProviderPackCatalog.Read(stream);
+            var mirrored = catalog.Entries.Single();
+            var archivePath = Path.Combine(output, mirrored.DownloadUri!.Segments.Last());
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.ReadAllBytes(archivePath), Is.EqualTo(bytes));
+                Assert.That(JsonSerializer.Serialize(mirrored with { DownloadUri = package.Entry.DownloadUri }), Is.EqualTo(JsonSerializer.Serialize(package.Entry)));
+                Assert.That(mirrored.DownloadUri.Host, Is.EqualTo("internal.test"));
+            });
+            using var internalHttp = new HttpClient(new ArchiveHandler(File.ReadAllBytes(archivePath), mirrored.DownloadUri));
+            var service = new ConnectorService(new ProviderPackStore(root), catalog, internalHttp);
+            Assert.That(service.List().Single().Listed, Is.True);
+            Assert.That((await service.InstallAsync(package.Entry.Provider)).Active, Is.True);
+            using var noHttp = new HttpClient(new NoHttpHandler());
+            var offline = new ConnectorService(new ProviderPackStore(root), catalog, noHttp);
+            Assert.That((await offline.InstallOfflineAsync(package.Entry.Provider, archivePath)).Active, Is.True);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+            if (Directory.Exists(output)) Directory.Delete(output, true);
+        }
+    }
+
+    [TestCase("digest", "pack-integrity")]
+    [TestCase("version", "mirror-selection-invalid")]
+    [TestCase("url", "mirror-url-invalid")]
+    [TestCase("credentials", "mirror-url-invalid")]
+    [TestCase("metadata", "connector-catalog-invalid")]
+    public async Task Mirror_InvalidInput_DoesNotPublish(string failure, string code)
+    {
+        var output = CreateStorePath();
+        var package = CreatePackage("postgresql-npgsql", "1.0.0");
+        var entry = package.Entry with
+        {
+            Sha256 = failure == "digest" ? new string('0', 64) : package.Entry.Sha256,
+            TargetFrameworks = failure == "metadata" ? [] : package.Entry.TargetFrameworks,
+        };
+        using var upstream = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), entry.DownloadUri!));
+        var uri = failure switch
+        {
+            "url" => new Uri("http://internal.test/"),
+            "credentials" => new Uri("https://user:secret@internal.test/"),
+            _ => new Uri("https://internal.test/"),
+        };
+        var exception = await Assert.ThrowsAsync<ConnectorOperationException>(async () => await new ConnectorMirror(upstream).PrepareAsync(
+            new ProviderPackCatalog([entry]), [new(entry.Provider, failure == "version" ? "9.0.0" : entry.Version)], uri, output));
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception!.Code, Is.EqualTo(code));
+            Assert.That(Directory.Exists(output), Is.False);
+            Assert.That(Directory.GetDirectories(Path.GetDirectoryName(output)!, Path.GetFileName(output) + ".*.staging"), Is.Empty);
+            Assert.That(exception.ToString(), Does.Not.Contain("secret"));
+        });
+    }
+
+    [Test]
+    public async Task Offline_Cancellation_DoesNotOpenArchiveOrContactHttp()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        using var http = new HttpClient(new NoHttpHandler());
+        var root = CreateStorePath();
+        var service = new ConnectorService(new ProviderPackStore(root), new ProviderPackCatalog([CreateEntry()]), http);
+        var exception = await Assert.ThrowsAsync<ConnectorOperationCanceledException>(async () =>
+            await service.InstallOfflineAsync("pg", "missing.zip", cancellation.Token));
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception!.CancellationToken, Is.EqualTo(cancellation.Token));
+            Assert.That(Directory.Exists(root), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task Mirror_ExistingSnapshot_IsNeverOverwritten()
+    {
+        var output = CreateStorePath();
+        Directory.CreateDirectory(output);
+        var marker = Path.Combine(output, "connector-catalog.json");
+        await File.WriteAllTextAsync(marker, "previous approved snapshot");
+        using var http = new HttpClient(new NoHttpHandler());
+        var package = CreatePackage("postgresql-npgsql", "1.0.0");
+        try
+        {
+            var exception = await Assert.ThrowsAsync<ConnectorOperationException>(async () =>
+                await new ConnectorMirror(http).PrepareAsync(new ProviderPackCatalog([package.Entry]),
+                    [new(package.Entry.Provider, package.Entry.Version)], new Uri("https://internal.test/"), output));
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception!.Code, Is.EqualTo("mirror-output-exists"));
+                Assert.That(File.ReadAllText(marker), Is.EqualTo("previous approved snapshot"));
+                Assert.That(Directory.GetFiles(output), Has.Length.EqualTo(1));
+            });
+        }
+        finally { Directory.Delete(output, true); }
+    }
+
+    private sealed class NoHttpHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => throw new AssertionException("Offline installation attempted HTTP access.");
+    }
+
+    [Test]
     public void List_CuratedConnector_ReportsCanonicalIdAliasesAndSchemesAsListed()
     {
         var root = CreateStorePath();

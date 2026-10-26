@@ -20,6 +20,7 @@ public interface IProviderPackService
 {
     IReadOnlyList<CliProviderPack> List();
     Task<CliProviderPack> InstallAsync(string connector, CancellationToken cancellationToken);
+    Task<CliProviderPack> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken);
     string Uninstall(string connector);
 }
 
@@ -34,6 +35,12 @@ public sealed class ProviderPackService(IConnectorService connectors) : IProvide
     public async Task<CliProviderPack> InstallAsync(string connector, CancellationToken cancellationToken)
     {
         try { return ToCliPack(await connectors.InstallAsync(connector, cancellationToken).ConfigureAwait(false)); }
+        catch (ConnectorOperationException exception) { throw ToCommandException(exception); }
+    }
+
+    public async Task<CliProviderPack> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken)
+    {
+        try { return ToCliPack(await connectors.InstallOfflineAsync(connector, archivePath, cancellationToken).ConfigureAwait(false)); }
         catch (ConnectorOperationException exception) { throw ToCommandException(exception); }
     }
 

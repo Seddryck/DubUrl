@@ -22,6 +22,7 @@ public interface IConnectorService
 {
     IReadOnlyList<ConnectorInfo> List();
     Task<ConnectorInfo> InstallAsync(string connector, CancellationToken cancellationToken = default);
+    Task<ConnectorInfo> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken = default);
     string Uninstall(string connector);
 }
 
@@ -71,6 +72,16 @@ public sealed class ConnectorService(
     }
 
     public async Task<ConnectorInfo> InstallAsync(string connector, CancellationToken cancellationToken = default)
+        => await InstallCoreAsync(connector, null, cancellationToken).ConfigureAwait(false);
+
+    /// <summary>Installs a local archive against the approved catalog without HTTP access or fallback.</summary>
+    public Task<ConnectorInfo> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(archivePath);
+        return InstallCoreAsync(connector, archivePath, cancellationToken);
+    }
+
+    private async Task<ConnectorInfo> InstallCoreAsync(string connector, string? archivePath, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connector);
         if (cancellationToken.IsCancellationRequested)
@@ -84,9 +95,11 @@ public sealed class ConnectorService(
 
         try
         {
-            var downloadUri = entry.DownloadUri
-                ?? throw new ConnectorOperationException("download-missing", $"Connector '{entry.Provider}' has no download URL.");
-            await using var archive = await httpClient.GetStreamAsync(downloadUri, cancellationToken).ConfigureAwait(false);
+            await using var archive = archivePath is not null
+                ? File.OpenRead(archivePath)
+                : await httpClient.GetStreamAsync(entry.DownloadUri
+                    ?? throw new ConnectorOperationException("download-missing", $"Connector '{entry.Provider}' has no download URL."),
+                    cancellationToken).ConfigureAwait(false);
             var installed = await store.InstallAsync(entry, archive, cancellationToken).ConfigureAwait(false);
             return ToConnectorInfo(installed, entry);
         }
@@ -111,6 +124,10 @@ public sealed class ConnectorService(
             throw new ConnectorOperationException(
                 "connector-download-failed",
                 $"Connector '{entry.Provider}' could not be downloaded from the curated catalog.");
+        }
+        catch (Exception exception) when (archivePath is not null && exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            throw new ConnectorOperationException("connector-archive-missing", "The local connector archive was not found.");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

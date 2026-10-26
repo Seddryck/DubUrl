@@ -2,6 +2,7 @@ using DubUrl.Cli;
 using DubUrl.Application;
 using DubUrl.Core.ProviderPacks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System.Text.Json;
 
@@ -10,13 +11,52 @@ namespace DubUrl.Cli.Testing;
 public class ConnectorCommandTests
 {
     [Test]
+    public async Task Mirror_PinnedSelection_WritesValidatedCatalogAndImmutableArchive()
+    {
+        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, "mirror-cli-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var bytes = new byte[] { 1, 2, 3 };
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+        var entry = new ConnectorDefinition
+        {
+            Provider = "fixture", Version = "1.0.0", DownloadUri = new Uri("https://upstream.test/fixture.zip"), Sha256 = hash,
+            DubUrlApiRange = "[0.0.0,2.0.0)", Assembly = "fixture.dll", Driver = "Fixture", ImplementationAssemblies = ["fixture.dll"],
+            Databases = [new("Fixture", ["fixture"])], TargetFrameworks = ["net10.0"], RuntimeIdentifiers = [],
+        };
+        var catalogPath = Path.Combine(root, "approved.json");
+        await File.WriteAllTextAsync(catalogPath, JsonSerializer.Serialize(new ProviderPackCatalogDocument(2, [entry]), new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        var console = new TestConsole();
+        using var http = new HttpClient(new MirrorArchiveHandler(bytes));
+        await using var services = new ServiceCollection().AddSingleton<ICliConsole>(console).AddSingleton(http).BuildServiceProvider();
+        try
+        {
+            var output = Path.Combine(root, "snapshot");
+            var exit = await CliHost.InvokeAsync(["connector", "mirror", catalogPath, output, "https://internal.test/packs/", "fixture@1.0.0"], services);
+            Assert.That(exit, Is.Zero, console.StandardError);
+            using var stream = File.OpenRead(Path.Combine(output, "connector-catalog.json"));
+            var mirrored = ProviderPackCatalog.Read(stream).Entries.Single();
+            Assert.Multiple(() =>
+            {
+                Assert.That(mirrored.DownloadUri, Is.EqualTo(new Uri("https://internal.test/packs/" + hash.ToLowerInvariant() + ".zip")));
+                Assert.That(File.ReadAllBytes(Path.Combine(output, hash.ToLowerInvariant() + ".zip")), Is.EqualTo(bytes));
+            });
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    private sealed class MirrorArchiveHandler(byte[] bytes) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+    }
+
+    [Test]
     public async Task List_NoCatalogConfiguration_UsesApplicationBundledCatalog()
     {
         var store = Path.Combine(TestContext.CurrentContext.WorkDirectory, "bundled-catalog-" + Guid.NewGuid().ToString("N"));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ProviderPacks:StorePath"] = store,
-            ["ProviderPacks:CatalogPath"] = Path.Combine(store, "absent.json"),
         }).Build();
         var console = new TestConsole();
         await using var services = CliComposition.CreateDefault(console, configuration);
@@ -25,6 +65,31 @@ public class ConnectorCommandTests
         Assert.That(json.RootElement.GetProperty("connectors").EnumerateArray()
             .Select(entry => entry.GetProperty("id").GetString()), Does.Contain("postgresql-npgsql"));
         Assert.That(Directory.Exists(store), Is.False);
+    }
+
+    [Test]
+    public void List_ExplicitMissingCatalog_FailsWithoutBundledFallback()
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ProviderPacks:CatalogPath"] = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json"),
+        }).Build();
+        var exception = Assert.Throws<ConnectorOperationException>(() => CliComposition.CreateDefault(new TestConsole(), configuration));
+        Assert.That(exception!.Code, Is.EqualTo("connector-catalog-missing"));
+    }
+
+    [Test]
+    public async Task Install_LocalArchive_ForwardsExplicitOfflineRequest()
+    {
+        var service = new StubProviderPackService();
+        await using var services = CliComposition.CreateDefault(new TestConsole(), providerPackService: service);
+        var exit = await CliHost.InvokeAsync(["connector", "install", "pg", "--archive", "approved.zip", "--json"], services);
+        Assert.Multiple(() =>
+        {
+            Assert.That(exit, Is.Zero);
+            Assert.That(service.Installed, Is.EqualTo("pg"));
+            Assert.That(service.ArchivePath, Is.EqualTo("approved.zip"));
+        });
     }
 
     [Test]
@@ -199,6 +264,13 @@ public class ConnectorCommandTests
             Installed = connector;
             return Task.FromResult(new CliProviderPack(
                 "postgresql-npgsql", "1.0.0", "user-store", "active", true, true, true, false, ["postgresql", "pg"], ["postgresql"], []));
+        }
+
+        public string? ArchivePath { get; private set; }
+        public Task<CliProviderPack> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken)
+        {
+            ArchivePath = archivePath;
+            return InstallAsync(connector, cancellationToken);
         }
 
         public string Uninstall(string connector)
