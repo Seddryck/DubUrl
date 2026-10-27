@@ -16,6 +16,7 @@ internal static class AuthenticationConfiguration
             var key = Normalize(option.Key);
             if (key is "uid" or "userid" or "user" or "username" or "pwd" or "passwd" or "password"
                 or "authentication" or "authenticator" or "integratedsecurity" or "trustedconnection" or "sspi"
+                or "passfile" or "requireauth" or "sslcert" or "sslclientcertificate" or "clientcertificatekey" or "sslclientkey"
                 or "accesstoken" or "token" or "clientsecret" or "clientid" or "clientcertificate" or "sslcertificate"
                 or "sslkey" or "sslpassword" or "certificatefile" or "certificatepassword" or "certificatestorelocation"
                 or "certificatethumbprint" or "certificate" or "privatekey" or "privatekeyfile"
