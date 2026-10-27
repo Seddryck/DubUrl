@@ -10,12 +10,7 @@ internal static class CliPasswordQaTerminal
 {
     internal static async Task VerifyAsync(PasswordQaDriver driver, string fixtureAssembly, bool escape, CliPasswordQaSchema? schema = null)
     {
-        if (!OperatingSystem.IsLinux())
-            Assert.Ignore("#1690: the existing QA has no Windows ConPTY/macOS native-terminal harness. Controlled prompt tests do not establish hidden-input behavior on those platforms.");
-        if (!File.Exists("/usr/bin/script")) Assert.Ignore("#1690: the existing Linux QA image has no util-linux script pseudo-terminal utility; CI is unchanged.");
-        var runtime = Path.ChangeExtension(fixtureAssembly, ".runtimeconfig.json");
-        var deps = Path.ChangeExtension(fixtureAssembly, ".deps.json");
-        if (!File.Exists(runtime) || !File.Exists(deps)) Assert.Ignore("#1690: the existing QA bundle has no executable runtime/dependency manifest for the real CLI terminal smoke test.");
+        var (runtime, deps) = GetRuntimeManifests(fixtureAssembly);
         var reference = "DUBURL_PTY_QA_" + Guid.NewGuid().ToString("N");
         var schemaPath = Path.Combine(Path.GetTempPath(), "duburl-cli-qa-" + Guid.NewGuid().ToString("N") + ".json");
         try
@@ -35,6 +30,17 @@ internal static class CliPasswordQaTerminal
             await RunAsync(start, driver.Uri.Password, escape);
         }
         finally { if (File.Exists(schemaPath)) File.Delete(schemaPath); }
+    }
+
+    private static (string Runtime, string Dependencies) GetRuntimeManifests(string fixtureAssembly)
+    {
+        if (!OperatingSystem.IsLinux())
+            Assert.Ignore("#1690: the existing QA has no Windows ConPTY/macOS native-terminal harness. Controlled prompt tests do not establish hidden-input behavior on those platforms.");
+        if (!File.Exists("/usr/bin/script")) Assert.Ignore("#1690: the existing Linux QA image has no util-linux script pseudo-terminal utility; CI is unchanged.");
+        var runtime = Path.ChangeExtension(fixtureAssembly, ".runtimeconfig.json");
+        var deps = Path.ChangeExtension(fixtureAssembly, ".deps.json");
+        if (!File.Exists(runtime) || !File.Exists(deps)) Assert.Ignore("#1690: the existing QA bundle has no executable runtime/dependency manifest for the real CLI terminal smoke test.");
+        return (runtime, deps);
     }
 
     private static async Task RunAsync(ProcessStartInfo start, string password, bool escape)
