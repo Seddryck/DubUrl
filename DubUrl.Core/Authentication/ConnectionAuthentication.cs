@@ -3,6 +3,19 @@ using System.Diagnostics;
 
 namespace DubUrl.Authentication;
 
+public static class AuthenticationDiagnosticCodes
+{
+    public const string CredentialConflict = nameof(CredentialConflict);
+    public const string CredentialResolutionFailed = nameof(CredentialResolutionFailed);
+    public const string MissingCredentials = nameof(MissingCredentials);
+    public const string UnsupportedAuthentication = nameof(UnsupportedAuthentication);
+    public const string SynchronousCredentialsRequired = nameof(SynchronousCredentialsRequired);
+    public const string AuthenticationFailed = nameof(AuthenticationFailed);
+    public const string InvalidCertificate = nameof(InvalidCertificate);
+    public const string InteractionRequired = nameof(InteractionRequired);
+    public const string AuthenticationTimeout = nameof(AuthenticationTimeout);
+}
+
 public enum ConnectionAuthenticationKind { UsernamePassword, NativeToken, ClientCertificate, OperatingSystemIdentity, InteractiveOAuth }
 
 /// <summary>A single runtime strategy. Applications own strategies, sources and their shared resources.</summary>
@@ -38,7 +51,7 @@ public abstract partial class ConnectionAuthentication
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.UsernamePassword;
         public override UsernamePasswordCredentials Resolve(AuthenticationContext context)
             => source is ISynchronousUsernamePasswordCredentialSource synchronous ? synchronous.Resolve(context)
-                : throw new ConnectionAuthenticationException("SynchronousCredentialsRequired");
+                : throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.SynchronousCredentialsRequired);
         public override async ValueTask<UsernamePasswordCredentials?> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
             => await source.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
         public override void Configure(DbConnection connection, AuthenticationContext context) { }
@@ -81,20 +94,20 @@ public sealed class ConnectionAuthenticationException : Exception
     public ConnectionAuthenticationException(string code) : base(MessageFor(code)) => Code = KnownCode(code);
     private static string KnownCode(string code) => code switch
     {
-        "CredentialConflict" or "CredentialResolutionFailed" or "MissingCredentials" or "UnsupportedAuthentication"
-            or "SynchronousCredentialsRequired" or "AuthenticationFailed" or "InvalidCertificate" or "InteractionRequired" or "AuthenticationTimeout" => code,
-        _ => "AuthenticationFailed"
+        AuthenticationDiagnosticCodes.CredentialConflict or AuthenticationDiagnosticCodes.CredentialResolutionFailed or AuthenticationDiagnosticCodes.MissingCredentials or AuthenticationDiagnosticCodes.UnsupportedAuthentication
+            or AuthenticationDiagnosticCodes.SynchronousCredentialsRequired or AuthenticationDiagnosticCodes.AuthenticationFailed or AuthenticationDiagnosticCodes.InvalidCertificate or AuthenticationDiagnosticCodes.InteractionRequired or AuthenticationDiagnosticCodes.AuthenticationTimeout => code,
+        _ => AuthenticationDiagnosticCodes.AuthenticationFailed
     };
     private static string MessageFor(string code) => KnownCode(code) switch
     {
-        "CredentialConflict" => "Competing authentication settings are not allowed.",
-        "CredentialResolutionFailed" => "The credential source could not be resolved.",
-        "MissingCredentials" => "The selected strategy requires credentials.",
-        "UnsupportedAuthentication" => "This authentication strategy is not supported for the selected provider.",
-        "SynchronousCredentialsRequired" => "This credential source requires an asynchronous connection operation.",
-        "InvalidCertificate" => "The client certificate is unavailable or has no usable private key.",
-        "InteractionRequired" => "Explicit user interaction is required for authentication.",
-        "AuthenticationTimeout" => "The interactive authentication attempt timed out.",
+        AuthenticationDiagnosticCodes.CredentialConflict => "Competing authentication settings are not allowed.",
+        AuthenticationDiagnosticCodes.CredentialResolutionFailed => "The credential source could not be resolved.",
+        AuthenticationDiagnosticCodes.MissingCredentials => "The selected strategy requires credentials.",
+        AuthenticationDiagnosticCodes.UnsupportedAuthentication => "This authentication strategy is not supported for the selected provider.",
+        AuthenticationDiagnosticCodes.SynchronousCredentialsRequired => "This credential source requires an asynchronous connection operation.",
+        AuthenticationDiagnosticCodes.InvalidCertificate => "The client certificate is unavailable or has no usable private key.",
+        AuthenticationDiagnosticCodes.InteractionRequired => "Explicit user interaction is required for authentication.",
+        AuthenticationDiagnosticCodes.AuthenticationTimeout => "The interactive authentication attempt timed out.",
         _ => "Database authentication failed."
     };
 }

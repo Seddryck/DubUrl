@@ -27,19 +27,19 @@ public static class SqlServerAuthentication
                 {
                     var token = await source.GetTokenAsync(request, cancellationToken).ConfigureAwait(false);
                     if (token is null || token.ExpiresOn <= DateTimeOffset.UtcNow)
-                        throw new ConnectionAuthenticationException("AuthenticationFailed");
+                        throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
                     return token;
                 }
                 catch (OperationCanceledException) { throw; }
                 catch (ConnectionAuthenticationException) { throw; }
-                catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
+                catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed); }
             };
         }
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.NativeToken;
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
             if (connection is not SqlConnection sql || context.ProviderInvariantName != "Microsoft.Data.SqlClient")
-                throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
             var builder = new SqlConnectionStringBuilder(sql.ConnectionString)
             { IntegratedSecurity = false, TrustServerCertificate = false };
             if (builder.Encrypt == SqlConnectionEncryptOption.Optional) builder.Encrypt = SqlConnectionEncryptOption.Mandatory;

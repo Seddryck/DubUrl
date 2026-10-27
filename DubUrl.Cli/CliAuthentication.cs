@@ -27,7 +27,7 @@ internal sealed class CliAuthentication
         var entry = result.GetValue(reference);
         var user = result.GetValue(username);
         if ((usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
-            throw new ConnectionAuthenticationException("CredentialConflict");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
         if (usePrompt || entry is not null)
             target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry, user)));
@@ -42,14 +42,15 @@ internal sealed class CliAuthentication
             if (prompt)
             {
                 if (!services.GetRequiredService<ICliConsole>().IsInteractive)
-                    throw new ConnectionAuthenticationException("InteractionRequired");
-                if (username is null && context.Username is null) throw new ConnectionAuthenticationException("MissingCredentials");
+                    throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
+                if (username is null && context.Username is null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
                 var password = await services.GetRequiredService<IHiddenPasswordPrompt>().ReadAsync(cancellationToken).ConfigureAwait(false);
                 return new(username, password);
             }
-            var stored = await services.GetRequiredService<IOsCredentialStore>().ReadAsync(reference!, cancellationToken).ConfigureAwait(false);
+            var selectedReference = reference ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
+            var stored = await services.GetRequiredService<IOsCredentialStore>().ReadAsync(selectedReference, cancellationToken).ConfigureAwait(false);
             if (username is not null && stored.Username is not null && username != stored.Username)
-                throw new ConnectionAuthenticationException("CredentialConflict");
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
             return new(username ?? stored.Username, stored.Password);
         }
     }
@@ -60,8 +61,8 @@ internal sealed class TerminalPasswordPrompt : IHiddenPasswordPrompt
     public async ValueTask<string> ReadAsync(CancellationToken cancellationToken = default)
     {
         if (Console.IsInputRedirected || Console.IsOutputRedirected)
-            throw new ConnectionAuthenticationException("InteractionRequired");
-        Console.Error.Write("Password: ");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
+        await Console.Error.WriteAsync("Password: ").ConfigureAwait(false);
         var characters = new List<char>();
         try
         {
@@ -76,6 +77,6 @@ internal sealed class TerminalPasswordPrompt : IHiddenPasswordPrompt
                 else if (!char.IsControl(key.KeyChar)) characters.Add(key.KeyChar);
             }
         }
-        finally { characters.Clear(); Console.Error.WriteLine(); }
+        finally { characters.Clear(); await Console.Error.WriteLineAsync().ConfigureAwait(false); }
     }
 }

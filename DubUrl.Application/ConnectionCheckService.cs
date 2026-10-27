@@ -53,8 +53,8 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         internal CheckAttempt(ConnectionCheckOptions options, string family, CancellationToken cancellationToken)
         {
             this.options = options; this.family = family;
-            mode = options.Table is not null ? "table" : options.Engine ? "engine" : "connection";
-            sql = options.Table is not null ? ConnectionCheckSql.Table(family, options.Table) : options.Engine ? ConnectionCheckSql.Engine(family) : null;
+            mode = GetMode(options);
+            sql = GetStatement(options, family);
             budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         }
         internal async Task ExecuteAsync(ConnectionUrl target, CancellationToken cancellationToken)
@@ -90,6 +90,16 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             return ConnectionCheckErrors.Classify(family, provider, error, executing && mode == "table", options.Table);
         }
         public void Dispose() => budget.Dispose();
+    }
+    private static string GetMode(ConnectionCheckOptions options)
+    {
+        if (options.Table is not null) return "table";
+        return options.Engine ? "engine" : "connection";
+    }
+    private static string? GetStatement(ConnectionCheckOptions options, string family)
+    {
+        if (options.Table is not null) return ConnectionCheckSql.Table(family, options.Table);
+        return options.Engine ? ConnectionCheckSql.Engine(family) : null;
     }
     private static void ValidateFileProvider(string family, string? provider)
     {

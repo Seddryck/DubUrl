@@ -7,13 +7,13 @@ internal static class TrustedEntraEndpoint
         if (string.IsNullOrEmpty(requested)) return;
         var candidate = ParseHttps(requested);
         if (!MatchesHost(configured, candidate) || !MatchesTenant(configured, candidate))
-            throw new ConnectionAuthenticationException("CredentialConflict");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
     private static Uri ParseHttps(string value)
     {
         if (!Uri.TryCreate(value, UriKind.Absolute, out var candidate) || candidate.Scheme != "https"
             || !candidate.IsDefaultPort || candidate.UserInfo.Length != 0 || candidate.Query.Length != 0 || candidate.Fragment.Length != 0)
-            throw new ConnectionAuthenticationException("CredentialConflict");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         return candidate;
     }
     private static bool MatchesHost(Uri configured, Uri candidate)

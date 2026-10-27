@@ -4,35 +4,40 @@ namespace DubUrl.Application;
 
 public static class ConnectionCheckSql
 {
+    private const string PostgreSql = "postgresql", SqlServer = "sqlserver", Timescale = "timescale", CockroachDb = "cockroachdb";
+    private const string MySql = "mysql", MariaDb = "mariadb", Sqlite = "sqlite", DuckDb = "duckdb", Oracle = "oracle";
+    private const string Snowflake = "snowflake", Firebird = "firebird", FirebirdSql = "firebirdsql", QuestDb = "questdb";
+    private const string CrateDb = "cratedb", Trino = "trino", Teradata = "teradata", SingleStore = "singlestore";
+    private const string Access = "access", Excel = "excel", Text = "text", Db2 = "db2", Drill = "drill", Unknown = "unknown";
     private static readonly IReadOnlyDictionary<string, string> Families = new Dictionary<string, string>
     {
-        ["postgresql"] = "pg pgx pgsql postgres postgresql", ["sqlserver"] = "ms mssqlserver mssql sqlserver",
-        ["timescale"] = "ts timescale timescaledb", ["cockroachdb"] = "cr crdb cdb cockroach cockroachdb",
-        ["mysql"] = "my mysql mysqlconnector mysqldata", ["mariadb"] = "maria mariadb", ["sqlite"] = "sq sqlite",
-        ["duckdb"] = "duck duckdb", ["oracle"] = "or ora oracle", ["snowflake"] = "sf snowflake",
-        ["firebird"] = "fb firebird firebirdsql", ["questdb"] = "quest questdb", ["cratedb"] = "crt crate cratedb",
-        ["trino"] = "tr trino", ["teradata"] = "td tera teradatasql teradata",
-        ["singlestore"] = "sg sgs single singlestoredb singlestore", ["access"] = "accdb msaccess mdb access",
-        ["excel"] = "xls xlsx xlsb xlsm excel", ["text"] = "txt csv tsv text", ["db2"] = "db2", ["drill"] = "drill"
+        [PostgreSql] = "pg pgx pgsql postgres postgresql", [SqlServer] = "ms mssqlserver mssql sqlserver",
+        [Timescale] = "ts timescale timescaledb", [CockroachDb] = "cr crdb cdb cockroach cockroachdb",
+        [MySql] = "my mysql mysqlconnector mysqldata", [MariaDb] = "maria mariadb", [Sqlite] = "sq sqlite",
+        [DuckDb] = "duck duckdb", [Oracle] = "or ora oracle", [Snowflake] = "sf snowflake",
+        [Firebird] = "fb firebird firebirdsql", [QuestDb] = "quest questdb", [CrateDb] = "crt crate cratedb",
+        [Trino] = "tr trino", [Teradata] = "td tera teradatasql teradata",
+        [SingleStore] = "sg sgs single singlestoredb singlestore", [Access] = "accdb msaccess mdb access",
+        [Excel] = "xls xlsx xlsb xlsm excel", [Text] = "txt csv tsv text", [Db2] = Db2, [Drill] = Drill
     }.SelectMany(group => group.Value.Split(' ').Select(alias => KeyValuePair.Create(alias, group.Key)))
         .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
-    private static readonly HashSet<string> BracketFamilies = ["sqlserver", "sqlite", "access", "excel", "text"];
-    private static readonly HashSet<string> BacktickFamilies = ["mysql", "mariadb", "singlestore", "sqlite"];
-    private static readonly HashSet<string> LowerCaseFamilies = ["postgresql", "timescale", "cockroachdb", "cratedb"];
-    private static readonly HashSet<string> UpperCaseFamilies = ["oracle", "snowflake", "db2", "firebird", "firebirdsql"];
+    private static readonly HashSet<string> BracketFamilies = [SqlServer, Sqlite, Access, Excel, Text];
+    private static readonly HashSet<string> BacktickFamilies = [MySql, MariaDb, SingleStore, Sqlite];
+    private static readonly HashSet<string> LowerCaseFamilies = [PostgreSql, Timescale, CockroachDb, CrateDb];
+    private static readonly HashSet<string> UpperCaseFamilies = [Oracle, Snowflake, Db2, Firebird, FirebirdSql];
 
-    public static string GetFamily(string scheme) => Families.GetValueOrDefault(scheme.Split('+').Last(), "unknown");
+    public static string GetFamily(string scheme) => Families.GetValueOrDefault(scheme.Split('+')[^1], Unknown);
     public static string Engine(string family) => family switch
     {
-        "unknown" => throw new NotSupportedException("SQL checking is unavailable for this database family."),
-        "oracle" => "SELECT 1 FROM DUAL", "db2" => "SELECT 1 FROM SYSIBM.SYSDUMMY1",
-        "firebird" or "firebirdsql" => "SELECT 1 FROM RDB$DATABASE", _ => "SELECT 1"
+        Unknown => throw new NotSupportedException("SQL checking is unavailable for this database family."),
+        Oracle => "SELECT 1 FROM DUAL", Db2 => "SELECT 1 FROM SYSIBM.SYSDUMMY1",
+        Firebird or FirebirdSql => "SELECT 1 FROM RDB$DATABASE", _ => "SELECT 1"
     };
     public static string Table(string family, string name)
     {
         _ = Engine(family);
         var parts = ParseIdentifier(name, family);
-        var maxParts = family is "sqlserver" or "snowflake" or "trino" ? 3 : 2;
+        var maxParts = family is SqlServer or Snowflake or Trino ? 3 : 2;
         if (parts.Count > maxParts) throw new ArgumentException("Too many identifier qualifiers.");
         return $"SELECT 1 FROM {string.Join('.', parts)} WHERE 1=0";
     }
@@ -83,8 +88,8 @@ public static class ConnectionCheckSql
     }
     private static string Quote(string family, string name) => family switch
     {
-        "sqlserver" or "access" or "excel" or "text" => "[" + name.Replace("]", "]]") + "]",
-        "mysql" or "mariadb" or "singlestore" => "`" + name.Replace("`", "``") + "`",
+        SqlServer or Access or Excel or Text => "[" + name.Replace("]", "]]") + "]",
+        MySql or MariaDb or SingleStore => "`" + name.Replace("`", "``") + "`",
         _ => "\"" + name.Replace("\"", "\"\"") + "\""
     };
 }

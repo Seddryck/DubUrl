@@ -41,11 +41,17 @@ public sealed class ConnectionSource : IConnectionSource
         _openAsync = dataSource is null ? OpenContextAsync : OpenDataSourceAsync;
     }
 
-    private async ValueTask<IDbConnection> OpenContextAsync(CancellationToken token)
+    private ValueTask<IDbConnection> OpenContextAsync(CancellationToken token)
     {
         if (QueryContext.HasAuthentication)
-            return await QueryContext.OpenAsync(token).ConfigureAwait(false);
-        var connection = QueryContext.Connect();
+            return OpenAuthenticatedContextAsync(token);
+        // Legacy wrappers can return IDbConnection without deriving from DbConnection.
+        return OpenLegacyConnectionAsync(QueryContext.Connect(), token);
+    }
+    private async ValueTask<IDbConnection> OpenAuthenticatedContextAsync(CancellationToken token)
+        => await QueryContext.OpenAsync(token).ConfigureAwait(false);
+    private static async ValueTask<IDbConnection> OpenLegacyConnectionAsync(IDbConnection connection, CancellationToken token)
+    {
         try
         {
             if (connection is DbConnection dbConnection)

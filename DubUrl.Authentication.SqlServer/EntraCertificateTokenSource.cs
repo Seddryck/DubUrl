@@ -17,8 +17,8 @@ public sealed class EntraCertificateTokenSource : ISqlServerTokenSource
         ValidateHttps(authority);
         ValidateHttps(sqlResource);
         ArgumentNullException.ThrowIfNull(certificate);
-        try { if (!certificate.HasPrivateKey) throw new ConnectionAuthenticationException("InvalidCertificate"); }
-        catch { throw new ConnectionAuthenticationException("InvalidCertificate"); }
+        try { if (!certificate.HasPrivateKey) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InvalidCertificate); }
+        catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InvalidCertificate); }
         this.authority = authority;
         resource = sqlResource.AbsoluteUri.TrimEnd('/');
         application = ConfidentialClientApplicationBuilder.Create(clientId)
@@ -36,13 +36,13 @@ public sealed class EntraCertificateTokenSource : ISqlServerTokenSource
             return new(result.AccessToken, result.ExpiresOn);
         }
         catch (OperationCanceledException) { throw; }
-        catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
+        catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed); }
     }
 
     public void ValidateRequest(string requestedResource, string? requestedAuthority)
     {
         if (requestedResource.TrimEnd('/') != resource)
-            throw new ConnectionAuthenticationException("CredentialConflict");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         TrustedEntraEndpoint.ValidateAuthority(authority, requestedAuthority);
     }
 

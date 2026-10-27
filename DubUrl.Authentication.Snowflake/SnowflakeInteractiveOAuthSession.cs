@@ -8,22 +8,22 @@ public sealed class SnowflakeInteractiveOAuthSession(string trustedAccount, bool
 {
     private readonly SemaphoreSlim opening = new(1, 1);
     private readonly object sync = new();
-    private InteractiveOAuthOptions? options;
+    private InteractiveOAuthOptions? sessionOptions;
     private bool disposed;
 
-    public ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, InteractiveOAuthOptions configured, CancellationToken cancellationToken = default)
+    public ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, InteractiveOAuthOptions options, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         lock (sync)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
             ValidateProvider(connection, context);
-            ValidatePublicClient(configured);
+            ValidatePublicClient(options);
             var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };
-            ValidateAccount(builder, configured);
-            ValidateSessionOptions(configured);
-            options = configured;
-            ApplyNativeOptions(builder, configured);
+            ValidateAccount(builder, options);
+            ValidateSessionOptions(options);
+            sessionOptions = options;
+            ApplyNativeOptions(builder, options);
             connection.ConnectionString = builder.ConnectionString;
         }
         return ValueTask.CompletedTask;
@@ -31,27 +31,27 @@ public sealed class SnowflakeInteractiveOAuthSession(string trustedAccount, bool
     private static void ValidateProvider(DbConnection connection, AuthenticationContext context)
     {
         if (connection is not SnowflakeDbConnection || context.ProviderInvariantName != "Snowflake.Data")
-            throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
     }
     private static void ValidatePublicClient(InteractiveOAuthOptions configured)
     {
         if (configured.ClientId != "LOCAL_APPLICATION" || configured.RedirectUri.Host != "127.0.0.1"
             || !configured.Authority.Host.EndsWith(".snowflakecomputing.com", StringComparison.OrdinalIgnoreCase))
-            throw new ConnectionAuthenticationException("UnsupportedAuthentication");
-        if (!configured.AllowInteraction || !Environment.UserInteractive) throw new ConnectionAuthenticationException("InteractionRequired");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+        if (!configured.AllowInteraction || !Environment.UserInteractive) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
     }
     private void ValidateAccount(DbConnectionStringBuilder builder, InteractiveOAuthOptions configured)
     {
         if (!builder.TryGetValue("ACCOUNT", out var account) || !string.Equals(account.ToString(), trustedAccount, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(configured.Authority.Host, trustedAccount + ".snowflakecomputing.com", StringComparison.OrdinalIgnoreCase))
-            throw new ConnectionAuthenticationException("CredentialConflict");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
     private void ValidateSessionOptions(InteractiveOAuthOptions configured)
     {
-        if (options is null) return;
-        if (options.Authority != configured.Authority || options.RedirectUri != configured.RedirectUri
-            || options.LoginHint != configured.LoginHint || !options.Scopes.SequenceEqual(configured.Scopes))
-            throw new ConnectionAuthenticationException("CredentialConflict");
+        if (sessionOptions is null) return;
+        if (sessionOptions.Authority != configured.Authority || sessionOptions.RedirectUri != configured.RedirectUri
+            || sessionOptions.LoginHint != configured.LoginHint || !sessionOptions.Scopes.SequenceEqual(configured.Scopes))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
     private void ApplyNativeOptions(DbConnectionStringBuilder builder, InteractiveOAuthOptions configured)
     {
@@ -80,7 +80,7 @@ public sealed class SnowflakeInteractiveOAuthSession(string trustedAccount, bool
             cancellationToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
-        catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
+        catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed); }
         finally { opening.Release(); }
     }
     public void Dispose() { lock (sync) { disposed = true; opening.Dispose(); } }

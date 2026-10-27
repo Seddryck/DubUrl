@@ -13,13 +13,13 @@ internal static class AuthenticationConfiguration
     private static string Normalize(string key) => new(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
     internal static void Validate(ConnectionUri uri, ConnectionAuthentication strategy)
     {
-        if (uri.HasPassword) throw new ConnectionAuthenticationException("CredentialConflict");
-        if (RejectsUsername(strategy.Kind) && uri.HasUsername) throw new ConnectionAuthenticationException("CredentialConflict");
+        if (uri.HasPassword) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (RejectsUsername(strategy.Kind) && uri.HasUsername) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
             if (IsCompatibleOperatingSystemOption(strategy.Kind, key, option.Value)) continue;
-            if (IsCredentialOption(key)) throw new ConnectionAuthenticationException("CredentialConflict");
+            if (IsCredentialOption(key)) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         }
     }
 
@@ -38,19 +38,20 @@ internal static class AuthenticationConfiguration
     {
         if (credentials is null)
         {
-            if (strategy.Kind == ConnectionAuthenticationKind.UsernamePassword) throw new ConnectionAuthenticationException("MissingCredentials");
+            if (strategy.Kind == ConnectionAuthenticationKind.UsernamePassword) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
             return CopyWithCredentials(uri, uri.Username, "", uri.HasUsername, false);
         }
         ValidateCredentials(uri, credentials);
-        return CopyWithCredentials(uri, credentials.Username ?? uri.Username, credentials.Password!, credentials.Username is not null || uri.HasUsername, true);
+        var password = credentials.Password ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
+        return CopyWithCredentials(uri, credentials.Username ?? uri.Username, password, credentials.Username is not null || uri.HasUsername, true);
     }
 
     private static void ValidateCredentials(ConnectionUri uri, UsernamePasswordCredentials credentials)
     {
         if (uri.HasUsername && credentials.Username is not null && uri.Username != credentials.Username)
-            throw new ConnectionAuthenticationException("CredentialConflict");
-        if (credentials.Password is null) throw new ConnectionAuthenticationException("MissingCredentials");
-        if (credentials.Username is null && !uri.HasUsername) throw new ConnectionAuthenticationException("MissingCredentials");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (credentials.Password is null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
+        if (credentials.Username is null && !uri.HasUsername) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
     }
 
     private static ConnectionUri CopyWithCredentials(ConnectionUri uri, string username, string password, bool hasUsername, bool hasPassword)
@@ -65,6 +66,6 @@ internal static class AuthenticationConfiguration
         if (provider is not ("Microsoft.Data.SqlClient" or "Npgsql" or "MySqlConnector" or "MySql.Data.MySqlClient"
             or "MySql.Data" or "SingleStoreConnector" or "Oracle.ManagedDataAccess" or "FirebirdSql.Data.FirebirdClient"
             or "Snowflake.Data" or "IBM.Data.Db2" or "Teradata.Client" or "Teradata.Client.Provider"))
-            throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
     }
 }

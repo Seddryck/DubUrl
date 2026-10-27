@@ -9,6 +9,7 @@ namespace DubUrl.Cli;
 
 internal static class ConnectionCommand
 {
+    private sealed record CheckInvocation(string? Url, string? Name, string? Environment, ConnectionCheckOptions Options, string? Format);
     public static Command Create(IServiceProvider services, CancellationToken cancellationToken)
     {
         var group = new Command("connection", "Check database connections and access.");
@@ -29,31 +30,31 @@ internal static class ConnectionCommand
         check.Options.Add(table);
         check.Options.Add(timeout);
         check.Options.Add(format);
-        check.SetAction(result => ExecuteAsync(services, result.GetValue(url), result.GetValue(name), result.GetValue(environment),
+        check.SetAction(result => ExecuteAsync(services, new CheckInvocation(result.GetValue(url), result.GetValue(name), result.GetValue(environment),
             new() { Engine = result.GetValue(engine), Table = result.GetValue(table), TimeoutSeconds = result.GetValue(timeout) },
-            result.GetValue(format), authentication, result, cancellationToken).GetAwaiter().GetResult());
+            result.GetValue(format)), authentication, result, cancellationToken).GetAwaiter().GetResult());
         group.Subcommands.Add(check);
         return group;
     }
 
-    private static async Task<int> ExecuteAsync(IServiceProvider services, string? url, string? name, string? environment,
-        ConnectionCheckOptions options, string? format, CliAuthentication authentication, System.CommandLine.ParseResult parsed, CancellationToken cancellationToken)
+    private static async Task<int> ExecuteAsync(IServiceProvider services, CheckInvocation request,
+        CliAuthentication authentication, System.CommandLine.ParseResult parsed, CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<ICliConsole>();
         try
         {
-            if (format is not (null or "human" or "json")) throw new ArgumentException("Output format must be human or json.");
-            url = ResolveTarget(services, url, name, environment);
+            if (request.Format is not (null or "human" or "json")) throw new ArgumentException("Output format must be human or json.");
+            var url = ResolveTarget(services, request.Url, request.Name, request.Environment);
             var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(
-                authentication.Configure(services, parsed, url), options, cancellationToken).ConfigureAwait(false);
-            Write(console, operation, format == "json");
+                authentication.Configure(services, parsed, url), request.Options, cancellationToken).ConfigureAwait(false);
+            Write(console, operation, request.Format == "json");
             return operation.Success ? CliExitCodes.Success : CliExitCodes.ConnectionCheckFailed;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
         {
             // Do not emit parser/provider exception messages: they may contain URL components or paths.
-            Write(console, InvalidResult(options), format == "json");
+            Write(console, InvalidResult(request.Options), request.Format == "json");
             return CliExitCodes.InvalidInput;
         }
     }
@@ -67,8 +68,13 @@ internal static class ConnectionCommand
         return !string.IsNullOrWhiteSpace(url) ? url : throw new ArgumentException("The selected connection is not configured.");
     }
     private static ConnectionCheckResult InvalidResult(ConnectionCheckOptions options)
-        => new(false, options.Table is not null ? "table" : options.Engine ? "engine" : "connection", null, 0,
+        => new(false, GetMode(options), null, 0,
             [new("invalidInput", "Invalid connection, selector, identifier, timeout, output format or unsupported SQL mode.")]);
+    private static string GetMode(ConnectionCheckOptions options)
+    {
+        if (options.Table is not null) return "table";
+        return options.Engine ? "engine" : "connection";
+    }
 
     private static void Write(ICliConsole console, ConnectionCheckResult result, bool json)
     {

@@ -53,7 +53,7 @@ public abstract partial class ConnectionAuthentication
     {
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.InteractiveOAuth;
         public override void Configure(DbConnection connection, AuthenticationContext context)
-            => throw new ConnectionAuthenticationException("SynchronousCredentialsRequired");
+            => throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.SynchronousCredentialsRequired);
         public override ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, CancellationToken cancellationToken = default)
             => options.Session.ConfigureAsync(connection, context, options, cancellationToken);
         public override ValueTask OpenConnectionAsync(DbConnection connection, CancellationToken cancellationToken = default)

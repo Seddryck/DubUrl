@@ -7,7 +7,7 @@ umask 077
 openssl req -x509 -newkey rsa:2048 -nodes -keyout "$fixture_dir/ca.key" -out "$fixture_dir/ca.crt" -days 2 -subj /CN=DubUrlFixtureCA >/dev/null 2>&1
 for identity in server alice wrongidentity; do
   openssl req -newkey rsa:2048 -nodes -keyout "$fixture_dir/$identity.key" -out "$fixture_dir/$identity.csr" -subj "/CN=$identity" >/dev/null 2>&1
-  if [ "$identity" = server ]; then
+  if [[ "$identity" = server ]]; then
     printf 'subjectAltName=DNS:localhost,DNS:postgres\nextendedKeyUsage=serverAuth\n' > "$fixture_dir/extensions"
   else
     printf 'extendedKeyUsage=clientAuth\n' > "$fixture_dir/extensions"

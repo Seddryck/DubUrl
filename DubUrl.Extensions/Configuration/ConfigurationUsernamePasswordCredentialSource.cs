@@ -27,12 +27,12 @@ public sealed class ConfigurationUsernamePasswordCredentialSource : ISynchronous
             var username = usernameKey is null ? null : configuration[usernameKey];
             var password = configuration[passwordKey];
             if (password is null || (username is null && context.Username is null))
-                throw new ConnectionAuthenticationException("MissingCredentials");
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
             return new(username, password);
         }
         catch (OperationCanceledException) { throw; }
         catch (ConnectionAuthenticationException) { throw; }
-        catch { throw new ConnectionAuthenticationException("CredentialResolutionFailed"); }
+        catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed); }
     }
 
     public ValueTask<UsernamePasswordCredentials> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)

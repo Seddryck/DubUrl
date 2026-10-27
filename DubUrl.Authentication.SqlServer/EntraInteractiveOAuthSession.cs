@@ -10,26 +10,27 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
     private readonly SemaphoreSlim acquisition = new(1, 1);
     private readonly object sync = new();
     private IPublicClientApplication? application;
-    private InteractiveOAuthOptions? options;
+    private InteractiveOAuthOptions? sessionOptions;
     private ConnectionAuthentication? tokenStrategy;
     private bool disposed;
+    private IPublicClientApplication Application => application ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
 
-    public ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, InteractiveOAuthOptions configured, CancellationToken cancellationToken = default)
+    public ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, InteractiveOAuthOptions options, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         lock (sync)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            if (context.ProviderInvariantName != "Microsoft.Data.SqlClient") throw new ConnectionAuthenticationException("UnsupportedAuthentication");
-            if (options is not null && !SameOptions(options, configured)) throw new ConnectionAuthenticationException("CredentialConflict");
+            if (context.ProviderInvariantName != "Microsoft.Data.SqlClient") throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            if (sessionOptions is not null && !SameOptions(sessionOptions, options)) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
             if (application is null)
             {
-                options = configured;
-                application = PublicClientApplicationBuilder.Create(configured.ClientId).WithAuthority(configured.Authority.AbsoluteUri)
-                    .WithRedirectUri(configured.RedirectUri.AbsoluteUri).Build();
+                sessionOptions = options;
+                application = PublicClientApplicationBuilder.Create(options.ClientId).WithAuthority(options.Authority.AbsoluteUri)
+                    .WithRedirectUri(options.RedirectUri.AbsoluteUri).Build();
                 tokenStrategy = SqlServerAuthentication.TokenCallback(new InteractiveSource(this));
             }
-            tokenStrategy!.Configure(connection, context);
+            (tokenStrategy ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed)).Configure(connection, context);
         }
         return ValueTask.CompletedTask;
     }
@@ -39,9 +40,9 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
 
     private async ValueTask<SqlAuthenticationToken> AcquireAsync(SqlAuthenticationParameters request, CancellationToken cancellationToken)
     {
-        var configured = options ?? throw new ConnectionAuthenticationException("AuthenticationFailed");
+        var configured = sessionOptions ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
         var scope = request.Resource.TrimEnd('/') + "/.default";
-        if (!configured.Scopes.Contains(scope, StringComparer.Ordinal)) throw new ConnectionAuthenticationException("CredentialConflict");
+        if (!configured.Scopes.Contains(scope, StringComparer.Ordinal)) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         TrustedEntraEndpoint.ValidateAuthority(configured.Authority, request.Authority);
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         budget.CancelAfter(TimeSpan.FromSeconds(configured.AcquisitionTimeoutSeconds));
@@ -50,29 +51,29 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
         {
             await acquisition.WaitAsync(budget.Token).ConfigureAwait(false);
             entered = true;
-            var accounts = await application!.GetAccountsAsync().ConfigureAwait(false);
+            var accounts = await Application.GetAccountsAsync().ConfigureAwait(false);
             var account = configured.LoginHint is null ? accounts.SingleOrDefault()
                 : accounts.FirstOrDefault(a => string.Equals(a.Username, configured.LoginHint, StringComparison.OrdinalIgnoreCase));
             var result = await AcquireCachedOrInteractiveAsync(configured, account, budget.Token).ConfigureAwait(false);
             return new(result.AccessToken, result.ExpiresOn);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
-        catch (OperationCanceledException) when (budget.IsCancellationRequested) { throw new ConnectionAuthenticationException("AuthenticationTimeout"); }
+        catch (OperationCanceledException) when (budget.IsCancellationRequested) { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationTimeout); }
         catch (ConnectionAuthenticationException) { throw; }
-        catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
+        catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed); }
         finally { if (entered) acquisition.Release(); }
     }
 
     private async Task<AuthenticationResult> AcquireCachedOrInteractiveAsync(InteractiveOAuthOptions configured, IAccount? account, CancellationToken cancellationToken)
     {
-        try { return await application!.AcquireTokenSilent(configured.Scopes, account).ExecuteAsync(cancellationToken).ConfigureAwait(false); }
+        try { return await Application.AcquireTokenSilent(configured.Scopes, account).ExecuteAsync(cancellationToken).ConfigureAwait(false); }
         catch (MsalUiRequiredException) { return await AcquireInteractiveAsync(configured, cancellationToken).ConfigureAwait(false); }
     }
     private Task<AuthenticationResult> AcquireInteractiveAsync(InteractiveOAuthOptions configured, CancellationToken cancellationToken)
     {
-        if (!configured.AllowInteraction || !Environment.UserInteractive) throw new ConnectionAuthenticationException("InteractionRequired");
+        if (!configured.AllowInteraction || !Environment.UserInteractive) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
         // MSAL owns the external-browser authorization-code + PKCE protocol.
-        var builder = application!.AcquireTokenInteractive(configured.Scopes).WithUseEmbeddedWebView(false)
+        var builder = Application.AcquireTokenInteractive(configured.Scopes).WithUseEmbeddedWebView(false)
             .WithSystemWebViewOptions(new SystemWebViewOptions
             { HtmlMessageSuccess = "Authentication completed. You may close this window.", HtmlMessageError = "Authentication failed. Return to the application." });
         if (configured.LoginHint is not null) builder = builder.WithLoginHint(configured.LoginHint);

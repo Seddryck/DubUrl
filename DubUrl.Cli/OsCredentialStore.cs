@@ -11,17 +11,17 @@ internal sealed class OsCredentialStore : IOsCredentialStore
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(reference) || reference.Any(char.IsControl))
-            throw new ConnectionAuthenticationException("CredentialResolutionFailed");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
         try
         {
             if (OperatingSystem.IsWindows()) return ReadWindows(reference);
             if (OperatingSystem.IsMacOS()) return new(password: await RunAsync("/usr/bin/security", ["find-generic-password", "-s", reference, "-w"], cancellationToken));
             if (OperatingSystem.IsLinux()) return new(password: await RunAsync("secret-tool", ["lookup", "service", "duburl", "entry", reference], cancellationToken));
-            throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (ConnectionAuthenticationException) { throw; }
-        catch { throw new ConnectionAuthenticationException("CredentialResolutionFailed"); }
+        catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed); }
     }
 
     private static async Task<string> RunAsync(string file, string[] arguments, CancellationToken cancellationToken)
@@ -30,7 +30,7 @@ internal sealed class OsCredentialStore : IOsCredentialStore
         budget.CancelAfter(TimeSpan.FromSeconds(30));
         var start = new ProcessStartInfo(file) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
-        using var process = Process.Start(start) ?? throw new ConnectionAuthenticationException("CredentialResolutionFailed");
+        using var process = Process.Start(start) ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
         try
         {
             var output = process.StandardOutput.ReadToEndAsync(budget.Token);
@@ -38,9 +38,10 @@ internal sealed class OsCredentialStore : IOsCredentialStore
             await process.WaitForExitAsync(budget.Token).ConfigureAwait(false);
             var value = await output.ConfigureAwait(false);
             _ = await errors.ConfigureAwait(false);
-            if (process.ExitCode != 0 || value.Length == 0) throw new ConnectionAuthenticationException("CredentialResolutionFailed");
+            if (process.ExitCode != 0 || value.Length == 0) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
             // OS utilities append exactly one line terminator. Preserve all other password characters.
-            return value.EndsWith("\r\n", StringComparison.Ordinal) ? value[..^2] : value.EndsWith('\n') ? value[..^1] : value;
+            if (value.EndsWith("\r\n", StringComparison.Ordinal)) return value[..^2];
+            return value.EndsWith('\n') ? value[..^1] : value;
         }
         finally
         {
@@ -50,11 +51,11 @@ internal sealed class OsCredentialStore : IOsCredentialStore
 
     private static UsernamePasswordCredentials ReadWindows(string reference)
     {
-        if (!CredRead(reference, 1, 0, out var pointer)) throw new ConnectionAuthenticationException("CredentialResolutionFailed");
+        if (!CredRead(reference, 1, 0, out var pointer)) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
         try
         {
             var credential = Marshal.PtrToStructure<Credential>(pointer);
-            if (credential.Size % 2 != 0) throw new ConnectionAuthenticationException("CredentialResolutionFailed");
+            if (credential.Size % 2 != 0) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
             return new(Marshal.PtrToStringUni(credential.Username), Marshal.PtrToStringUni(credential.Blob, checked((int)credential.Size / 2)));
         }
         finally { CredFree(pointer); }
