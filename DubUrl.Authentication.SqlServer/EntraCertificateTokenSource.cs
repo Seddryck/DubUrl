@@ -43,12 +43,7 @@ public sealed class EntraCertificateTokenSource : ISqlServerTokenSource
     {
         if (requestedResource.TrimEnd('/') != resource)
             throw new ConnectionAuthenticationException("CredentialConflict");
-        if (!string.IsNullOrEmpty(requestedAuthority)
-            && (!Uri.TryCreate(requestedAuthority, UriKind.Absolute, out var candidate)
-                || candidate.Scheme != "https" || !candidate.IsDefaultPort || candidate.UserInfo.Length != 0
-                || !string.Equals(candidate.Host, authority.Host, StringComparison.OrdinalIgnoreCase)
-                || candidate.AbsolutePath.TrimEnd('/') != authority.AbsolutePath.TrimEnd('/')))
-            throw new ConnectionAuthenticationException("CredentialConflict");
+        TrustedEntraEndpoint.ValidateAuthority(authority, requestedAuthority);
     }
 
     private static void ValidateHttps(Uri uri)

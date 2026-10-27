@@ -1,4 +1,4 @@
-﻿using DubUrl.Extensions;
+using DubUrl.Extensions;
 using DubUrl.Mapping;
 using DubUrl.Parsing;
 using DubUrl.Querying;
@@ -19,6 +19,7 @@ namespace DubUrl;
 public class ConnectionUrl : BaseConnectionUrl
 {
     private ConnectionAuthentication? authentication;
+    internal bool HasAuthentication => authentication is not null;
 
     public ConnectionUrl WithAuthentication(ConnectionAuthentication strategy)
     {
@@ -63,7 +64,8 @@ public class ConnectionUrl : BaseConnectionUrl
         var connection = Connect();
         try
         {
-            connection.Open();
+            if (authentication is not null) authentication.OpenConnection((DbConnection)connection);
+            else connection.Open();
             return connection;
         }
         catch (Exception exception)
@@ -106,7 +108,7 @@ public class ConnectionUrl : BaseConnectionUrl
         var connection = await ConnectAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await OpenPreparedAsync(connection, cancellationToken).ConfigureAwait(false);
             return connection;
         }
         catch (Exception exception)
@@ -118,6 +120,17 @@ public class ConnectionUrl : BaseConnectionUrl
         }
     }
 
+    internal async ValueTask OpenPreparedAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        if (authentication is null) await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        else
+        {
+            try { await authentication.OpenConnectionAsync(connection, cancellationToken).ConfigureAwait(false); }
+            catch (OperationCanceledException) { throw; }
+            catch (ConnectionAuthenticationException) { throw; }
+            catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
+        }
+    }
     private DbConnection ConnectAuthenticated()
     {
         DbConnection? connection = null;

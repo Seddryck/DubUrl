@@ -23,6 +23,7 @@ internal static class AuthenticationConfiguration
                 or "accesstoken" or "token" or "clientsecret" or "clientid" or "clientcertificate" or "sslcertificate"
                 or "sslkey" or "sslpassword" or "certificatefile" or "certificatepassword" or "certificatestorelocation"
                 or "certificatethumbprint" or "certificate" or "privatekey" or "privatekeyfile"
+                || key.StartsWith("oauth", StringComparison.Ordinal) || key == "clientstoretemporarycredential"
                 || key.EndsWith("password", StringComparison.Ordinal) || key.EndsWith("token", StringComparison.Ordinal)
                 || key.EndsWith("secret", StringComparison.Ordinal))
                 throw new ConnectionAuthenticationException("CredentialConflict");

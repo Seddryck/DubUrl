@@ -46,7 +46,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             using var connection = await target.ConnectAsync(budget.Token).ConfigureAwait(false);
             provider = connection.GetType().Namespace;
             RequireExistingFile(connection, family);
-            await connection.OpenAsync(budget.Token).ConfigureAwait(false);
+            await target.OpenPreparedAsync(connection, budget.Token).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
             if (sql is not null)
             {

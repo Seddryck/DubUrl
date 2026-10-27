@@ -43,6 +43,8 @@ public sealed class ConnectionSource : IConnectionSource
 
     private async ValueTask<IDbConnection> OpenContextAsync(CancellationToken token)
     {
+        if (QueryContext.HasAuthentication)
+            return await QueryContext.OpenAsync(token).ConfigureAwait(false);
         var connection = QueryContext.Connect();
         try
         {
