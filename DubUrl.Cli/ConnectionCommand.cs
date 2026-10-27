@@ -20,6 +20,8 @@ internal static class ConnectionCommand
         var table = new Option<string?>("--table") { Description = "Execute a zero-row SELECT against this qualified identifier." };
         var timeout = new Option<int>("--timeout") { DefaultValueFactory = _ => 15, Description = "Overall database-check budget in seconds (default 15)." };
         var format = new Option<string?>("--output-format") { Description = "human or json." };
+        var authentication = new CliAuthentication();
+        authentication.AddTo(check);
         check.Arguments.Add(url);
         check.Options.Add(name);
         check.Options.Add(environment);
@@ -29,13 +31,13 @@ internal static class ConnectionCommand
         check.Options.Add(format);
         check.SetAction(result => ExecuteAsync(services, result.GetValue(url), result.GetValue(name), result.GetValue(environment),
             new() { Engine = result.GetValue(engine), Table = result.GetValue(table), TimeoutSeconds = result.GetValue(timeout) },
-            result.GetValue(format), cancellationToken).GetAwaiter().GetResult());
+            result.GetValue(format), authentication, result, cancellationToken).GetAwaiter().GetResult());
         group.Subcommands.Add(check);
         return group;
     }
 
     private static async Task<int> ExecuteAsync(IServiceProvider services, string? url, string? name, string? environment,
-        ConnectionCheckOptions options, string? format, CancellationToken cancellationToken)
+        ConnectionCheckOptions options, string? format, CliAuthentication authentication, System.CommandLine.ParseResult parsed, CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<ICliConsole>();
         try
@@ -47,12 +49,12 @@ internal static class ConnectionCommand
                 : services.GetRequiredService<IConfiguration>()[$"ConnectionStrings:{name}"];
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("The selected connection is not configured.");
             var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(
-                new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>()), options, cancellationToken).ConfigureAwait(false);
+                authentication.Configure(services, parsed, url), options, cancellationToken).ConfigureAwait(false);
             Write(console, operation, format == "json");
             return operation.Success ? CliExitCodes.Success : CliExitCodes.ConnectionCheckFailed;
         }
         catch (OperationCanceledException) { throw; }
-        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException)
+        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
         {
             // Do not emit parser/provider exception messages: they may contain URL components or paths.
             Write(console, new(false, options.Table is not null ? "table" : options.Engine ? "engine" : "connection", null, 0,

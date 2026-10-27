@@ -40,20 +40,9 @@ public sealed class SchemaScriptDeploymentExecutor : ISchemaScriptDeploymentExec
         ArgumentNullException.ThrowIfNull(script);
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var databaseConnection = connection.Connect();
-        if (databaseConnection is DbConnection asyncConnection)
-        {
-            await asyncConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = asyncConnection.CreateCommand();
-            command.CommandText = script;
-            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        databaseConnection.Open();
-        cancellationToken.ThrowIfCancellationRequested();
-        using var synchronousCommand = databaseConnection.CreateCommand();
-        synchronousCommand.CommandText = script;
-        synchronousCommand.ExecuteNonQuery();
+        await using var databaseConnection = await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = databaseConnection.CreateCommand();
+        command.CommandText = script;
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 }
