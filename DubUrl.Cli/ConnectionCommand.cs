@@ -53,7 +53,7 @@ internal static class ConnectionCommand
         }
         catch (OperationCanceledException)
         {
-            console.Error.WriteLine("Operation cancelled.");
+            await console.Error.WriteLineAsync("Operation cancelled.").ConfigureAwait(false);
             return CliExitCodes.Cancelled;
         }
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
