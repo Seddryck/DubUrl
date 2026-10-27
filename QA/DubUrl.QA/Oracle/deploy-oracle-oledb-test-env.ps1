@@ -65,6 +65,10 @@ try {
     if ($env:GITHUB_ACTIONS -eq 'true') { Write-Host "::add-mask::$env:DUBURL_ORACLE_OLEDB_QA_URL" }
     Run-ProviderQaSuite -project $project -provider oracle-oledb -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter 'TestCategory=OleDB'
 } finally {
+    if ($installLog -and (Test-Path -LiteralPath $installLog)) {
+        Get-Content -LiteralPath $installLog | Where-Object { $_ -match 'Installation success or error status:|Return value 3|Error \d{4}' } | ForEach-Object { $_.Replace($password,'[redacted]').Replace($testPassword,'[redacted]') } | Write-Host
+        Remove-Item -LiteralPath $installLog
+    }
     if ($created) { "whenever sqlerror exit failure`nconnect system/`"$password`"@localhost:1521/FREEPDB1`ndrop user $user cascade;`nexit" | & $sqlplus -L -s /nolog | Out-Null }
     if ($response) { Remove-Item -LiteralPath $response -ErrorAction SilentlyContinue }
     [Environment]::SetEnvironmentVariable('DUBURL_ORACLE_OLEDB_QA_URL',$previous,'Process')
