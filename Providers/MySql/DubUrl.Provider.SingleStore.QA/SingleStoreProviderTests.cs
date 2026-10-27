@@ -4,7 +4,7 @@ namespace DubUrl.Provider.SingleStore.QA;
 [TestFixture, Category("SingleStore")]
 public sealed class SingleStoreProviderTests : ProviderContract
 {
-    protected override string ConnectionUrl => "singlestore://root:Password12!@localhost/DubUrl";
+    protected override string ConnectionUrl => SingleStoreTestDatabase.ConnectionUrl;
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => "select FullName from Customer where CustomerId=@CustId";
     protected override string SelectCustomerByPositionSql => "select FullName from Customer where CustomerId=?";

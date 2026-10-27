@@ -1,1 +1,3 @@
-docker run -d --name singlestoredb-dev -e SINGLESTORE_LICENSE="%SINGLESTORE_LICENSE%" -e ROOT_PASSWORD="Password12!" -p 3306:3306 -p 8080:8080 -p 9000:9000 ghcr.io/singlestore-labs/singlestoredb-dev:latest
+@echo off
+pwsh -NoProfile -File "%~dp0deploy-singlestore-test-env.ps1" %*
+exit /b %errorlevel%

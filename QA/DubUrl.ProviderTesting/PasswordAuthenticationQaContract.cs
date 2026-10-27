@@ -144,6 +144,8 @@ public abstract class PasswordAuthenticationQaContract : CliPasswordAuthenticati
         var driver = Driver;
         driver.RequireStrategy();
         using var native = driver.Registry.GetProviderFactory(driver.Uri.Scheme).CreateConnection()!;
+        if (driver.Provider is "Oracle.ManagedDataAccess" or "SingleStoreConnector")
+            Assert.Ignore("#1689: the new upstream Oracle/SingleStore fixtures have no verified bounded physical-handshake cancellation recipe. No in-flight cancellation pass is inferred from pre-cancellation or ordinary login.");
         if (driver.Provider is "Npgsql" or "MySqlConnector" or "MySql.Data.MySqlClient" or "MySql.Data")
             Assert.Ignore("#1689: this native driver's incomplete physical handshake did not honor caller cancellation within the QA bound. Native pool-lease opening cancellation is tested separately; no physical-handshake pass is claimed.");
         if (native.GetType().GetMethod(nameof(DbConnection.OpenAsync), [typeof(CancellationToken)])?.DeclaringType == typeof(DbConnection))

@@ -15,6 +15,7 @@ namespace DubUrl.Provider.Oracle.Sql;
 [DbTypeMapper<AnsiTypeMapper>]
 [SqlFunctionMapper<AnsiFunctionMapper>]
 [Renderer<AnsiRenderer>()]
+[ReturnCaster<DateTimeCaster<DateOnly>>]
 [ParentLanguage<SqlLanguage>]
 public class OracleDialect : BaseDialect
 {

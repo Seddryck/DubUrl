@@ -48,7 +48,8 @@ An unsupported/prerequisite case is reported as an NUnit skip with its reason; i
 | QuestDB | Implemented | Cannot run with the fixed PG-wire login: SQL account/password rotation and a reliable native pool session probe are not provisioned | ODBC is unsupported. |
 | CockroachDB | Cannot prove password authentication: existing QA runs insecure/passwordless | Cannot prove password rotation in that fixture | Native acquisition/configuration/open-cancellation cases still run. A secure password fixture would be needed for live authentication. |
 | CrateDB | Cannot prove password authentication: existing QA has no password-protected login | Cannot prove password rotation in that fixture | Native acquisition/configuration/open-cancellation cases still run. |
-| SingleStore | Native strategy adapter exists, but live QA requires the absent license secret | Native account/session/pool recipe is not verified in the licensed fixture | Existing ODBC fixtures are ignored and the strategy rejects ODBC. No live pass is claimed. |
+| SingleStore | Native strategy and license-free upstream #1709 fixture | Native account/session/pool rotation recipe is not verified | Existing ODBC fixtures are ignored. Physical-handshake and pool-lease cancellation recipes are unverified. |
+| Oracle | Native strategy and upstream #1709 fixture | Native account/session/pool rotation recipe is not verified | Physical-handshake and pool-lease cancellation recipes are unverified. |
 | SQLite | Unsupported by the username/password strategy | Not applicable | File access is not server password authentication. |
 | DuckDB | Unsupported by the username/password strategy | Not applicable | Both existing native and ODBC fixtures report strategy exclusions. |
 | Access | ODBC/OLE DB strategy adapters unsupported | Not implemented | No file-password authentication is inferred from a database URL. |

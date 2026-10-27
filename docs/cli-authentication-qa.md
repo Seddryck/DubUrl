@@ -1,6 +1,6 @@
 # CLI password and credential-store QA (#1690)
 
-Every existing provider QA fixture inherits the same 31 `CliPasswordAuthentication` cases. Existing complete QA runs discover them without workflow or runner changes. Results distinguish controlled adapters from real terminal/store smoke tests; a fake adapter pass never establishes native hidden-input or keyring support.
+Every existing provider QA fixture, including the Oracle and license-free SingleStore suites added upstream in #1709, inherits the same 31 `CliPasswordAuthentication` cases. Existing complete QA runs discover them without workflow or runner changes. Results distinguish controlled adapters from real terminal/store smoke tests; a fake adapter pass never establishes native hidden-input or keyring support.
 
 ## Implemented cases
 
@@ -55,6 +55,7 @@ The Linux terminal fixture uses util-linux `script`, the existing QA runtime/dep
 | Drill | No executed live evidence | Existing proprietary-driver fixture remains ignored. |
 | SSAS Multidimensional | No executed live evidence | Existing unprovisioned-server ignore remains; ADOMD password strategy is unsupported. |
 | SSAS Tabular | No executed live evidence | Same unprovisioned-server/ADOMD limitation. |
-| SingleStore | No executed live evidence | Existing manual QA requires the absent license secret; ODBC fixtures also remain ignored. |
+| SingleStore | Native controlled prompt/store and real Linux terminal login/Escape | Upstream #1709 supplies a license-free fixture. A CLI deployment/dry-run recipe for this family is not yet enabled; ODBC fixtures remain ignored. |
+| Oracle | Native controlled prompt/store and real Linux terminal login/Escape | Upstream #1709 supplies the fixture; a CLI authentication deployment/dry-run recipe is not yet enabled. No native Secret Service pass is inferred from terminal login. |
 
 There is no macOS provider QA workflow. Native Keychain retrieval, real locked/unavailable-store UI behavior, Windows/macOS no-echo terminal behavior and backend helper-process cancellation are not inferred from controlled-adapter tests. These remain explicit verification gaps. No CI configuration is changed to manufacture a passing platform result.

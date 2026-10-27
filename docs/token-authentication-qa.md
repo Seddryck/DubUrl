@@ -1,6 +1,6 @@
 # Provider-native token authentication QA (#1698)
 
-All 19 existing provider QA projects inherit 25 `NativeTokenAuthentication` cases per driver fixture. Existing complete QA runs discover them without workflow, runner, or CI changes. Passing configuration, unsupported-provider and conflict guards are not successful token authentication.
+All 20 existing provider QA projects inherit 25 `NativeTokenAuthentication` cases per driver fixture. Existing complete QA runs discover them without workflow, runner, or CI changes. Passing configuration, unsupported-provider and conflict guards are not successful token authentication.
 
 ## Implemented QA boundaries
 
@@ -27,7 +27,7 @@ Only native **Microsoft.Data.SqlClient** has the #1698 adapter. Native PostgreSQ
 
 SQL Server's existing password-authenticated container is not an Entra-enabled target. The unchanged workflows inject no Entra tenant/application identity, registered certificate/private key or trusted SQL endpoint. Therefore automatic QA can verify construction, TLS policy, guards, source ownership and safe ordinary-container failure, but **cannot verify a successful token login, native server request mapping, token expiration propagation during login, authenticated pool reuse, certificate rejection/rotation or real refresh**. Live rows remain skipped/X until their external prerequisites exist. See [the native SqlClient requirements](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication).
 
-Existing proprietary-driver and unprovisioned SSAS fixture ignores still apply. SingleStore's existing manual workflow requires its absent license secret and is not dispatched. These are execution exclusions, not token authentication passes. There is no macOS provider QA workflow; no new platform coverage is implied.
+Existing proprietary-driver and unprovisioned SSAS fixture ignores still apply. Upstream #1709 added Oracle QA and made SingleStore QA license-free; both now run automatically and inherit these cases, but neither native driver has the SQL Server token adapter. These are strategy exclusions, not token authentication passes. There is no macOS provider QA workflow; no new platform coverage is implied.
 
 The userinfo-conflict variation skips for SQLite, DuckDB, Access, Excel and Text: their file URL grammar rejects userinfo before strategy conflict validation. Query-option conflicts and pre-cancellation remain independently executable; a grammar rejection is not substituted for a strategy conflict pass.
 
