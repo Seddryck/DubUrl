@@ -15,6 +15,8 @@ namespace DubUrl.Provider.Db2.Sql;
 [DbTypeMapper<AnsiTypeMapper>]
 [SqlFunctionMapper<AnsiFunctionMapper>]
 [Renderer<AnsiRenderer>()]
+[ReturnCaster<DateTimeCaster<DateOnly>>]
+[ReturnCaster<TimeSpanCaster<TimeOnly>>]
 [ParentLanguage<SqlLanguage>]
 public class Db2Dialect : BaseDialect
 {

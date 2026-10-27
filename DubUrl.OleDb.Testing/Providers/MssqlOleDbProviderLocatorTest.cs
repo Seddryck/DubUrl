@@ -44,6 +44,15 @@ public class MssqlOleDbProviderLocatorTest
     }
 
     [Test]
+    public void Locate_PrefersCurrentDriverOverVersion18()
+    {
+        var lister = new FakeProviderLister([
+            new ProviderInfo("MSOLEDBSQL", "Microsoft OLE DB Driver"),
+            new ProviderInfo("MSOLEDBSQL19", "Microsoft OLE DB Driver 19")]);
+        Assert.That(new MssqlOleDbProviderLocator(lister).Locate(), Is.EqualTo("MSOLEDBSQL19"));
+    }
+
+    [Test]
     public void Locate_NoMatching_EmptyString()
     {
         var providerLister = new FakeProviderLister(

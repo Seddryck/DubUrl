@@ -1,7 +1,8 @@
 <Project>
   <PropertyGroup>
     <QaContractVersion Condition="'$(QaContractVersion)' == ''">1.0</QaContractVersion>
-    <QaRuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">portable</QaRuntimeIdentifier>
+    <QaRuntimeIdentifier Condition="'$(QaRuntimeIdentifier)' == ''">$(RuntimeIdentifier)</QaRuntimeIdentifier>
+    <QaRuntimeIdentifier Condition="'$(QaRuntimeIdentifier)' == ''">portable</QaRuntimeIdentifier>
     <QaBundleRoot>$(MSBuildProjectDirectory)\bin\qa\$(QaProvider)\$(Version)\$(TargetFramework)\$(QaRuntimeIdentifier)</QaBundleRoot>
   </PropertyGroup>
 

@@ -1,0 +1,20 @@
+services:
+  db2:
+    image: icr.io/db2_community/db2@sha256:e48ca934c29ab72d9e8b602929e6a52b64841cb7f8ef9426ee8cf5e1bc3e5fb3
+    platform: linux/amd64
+    privileged: true
+    environment:
+      LICENSE: accept
+      DB2INSTANCE: db2inst1
+      DB2INST1_PASSWORD: ${DB2INST1_PASSWORD:?Run the Db2 QA deployment script}
+      DBNAME: DUBURL
+      BLU: "false"
+      TO_CREATE_SAMPLEDB: "false"
+    ports:
+      - "127.0.0.1:${DUBURL_DB2_QA_PORT:-50000}:50000"
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /database/config/.shared-data/setup_complete && su - db2inst1 -c 'db2 connect to DUBURL >/dev/null && db2 -x \"values 1\"' | grep -q '^[[:space:]]*1[[:space:]]*$$'"]
+      start_period: 120s
+      interval: 10s
+      timeout: 10s
+      retries: 90

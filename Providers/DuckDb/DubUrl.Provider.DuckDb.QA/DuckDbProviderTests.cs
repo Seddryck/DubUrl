@@ -23,7 +23,7 @@ public sealed class DuckDbProviderTests : ProviderContract
     protected override bool SupportsNamedParameters => false;
     protected override bool SupportsInterval => false;
 
-    [Test]
+    [Test, Category("Schema")]
     public void CreateTable()
     {
         var connection = new ConnectionUrl(ConnectionUrl);
@@ -35,7 +35,7 @@ public sealed class DuckDbProviderTests : ProviderContract
         AssertTableEmpty(connection, "Sales");
     }
 
-    [Test]
+    [Test, Category("Schema")]
     public void CreateIndex()
     {
         var connection = new ConnectionUrl(ConnectionUrl);

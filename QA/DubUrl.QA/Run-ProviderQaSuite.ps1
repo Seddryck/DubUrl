@@ -1,3 +1,14 @@
+function Assert-ProviderQaResults {
+    param([Parameter(Mandatory)][string] $path, [switch] $requireAll)
+    if (!(Test-Path -LiteralPath $path)) { throw 'Expected test result file is missing.' }
+    [xml] $result = Get-Content -LiteralPath $path -Raw
+    $counts = $result.TestRun.ResultSummary.Counters
+    if (!$counts -or [int]$counts.executed -le 0) { throw 'No live tests executed.' }
+    if ([int]$counts.failed -gt 0 -or [int]$counts.error -gt 0 -or [int]$counts.aborted -gt 0) { throw 'Test results contain failures.' }
+    if ($requireAll -and ([int]$counts.executed -ne [int]$counts.total -or [int]$counts.passed -ne [int]$counts.total)) {
+        throw 'Required suite contains skipped or unsuccessful tests.'
+    }
+}
 Function Start-ProviderQaInfrastructure {
 	[CmdletBinding()]
 	Param(
@@ -63,7 +74,9 @@ Function Run-ProviderQaSuite {
 			"net10.0" = "10.0.401"
 		},
 
-		[string] $resultsRoot = ".test-results"
+		[string] $resultsRoot = ".test-results",
+        [string] $testFilter = '',
+        [string[]] $requiredCategories = @()
 	)
 
 	Process {
@@ -114,33 +127,26 @@ Function Run-ProviderQaSuite {
 				}
 
 				$frameworkResults = Join-Path $resultsRoot "$provider/$framework"
-				Write-Host "Running complete $provider QA suite for $framework"
-				& dotnet test $project `
-					--configuration $config `
-					--framework $framework `
-					--no-build `
-					--no-restore `
-					--nologo `
-					--logger "trx;LogFileName=complete.trx" `
-					--results-directory (Join-Path $frameworkResults "complete")
-				if ($LASTEXITCODE -ne 0) {
-					$failures += "Complete suite failed for $provider QA ($framework)."
-				}
-
-				Write-Host "Running $provider Schema capability for $framework"
-				& dotnet test $project `
-					--configuration $config `
-					--framework $framework `
-					--filter "TestCategory=Schema" `
-					--no-build `
-					--no-restore `
-					--nologo `
-					--logger "trx;LogFileName=schema.trx" `
-					--results-directory (Join-Path $frameworkResults "schema")
-				if ($LASTEXITCODE -ne 0) {
-					$failures += "Schema suite failed for $provider QA ($framework)."
-				}
-
+                $suites = @(@{ Name='complete'; Filter=$testFilter; Strict=![string]::IsNullOrEmpty($testFilter) })
+                $manifest = Get-Content (Join-Path (Split-Path $project) 'qa-manifest.json') -Raw | ConvertFrom-Json
+                if (!$testFilter -and $manifest.capabilities -contains 'Schema') {
+                    $suites += @{ Name='schema'; Filter='TestCategory=Schema'; Strict=$true }
+                }
+                foreach ($category in $requiredCategories) {
+                    $suites += @{ Name=$category.ToLowerInvariant(); Filter="TestCategory=$category"; Strict=$true }
+                }
+                foreach ($suite in $suites) {
+                    $directory = Join-Path $frameworkResults $suite.Name
+                    $result = Join-Path $directory "$($suite.Name).trx"
+                    Remove-Item -LiteralPath $result -ErrorAction SilentlyContinue
+                    $arguments = @('test', $project, '--configuration', $config, '--framework', $framework,
+                        '--no-build', '--no-restore', '--nologo', '--logger', "trx;LogFileName=$($suite.Name).trx", '--results-directory', $directory)
+                    if ($suite.Filter) { $arguments += @('--filter', $suite.Filter) }
+                    & dotnet @arguments
+                    if ($LASTEXITCODE -ne 0) { $failures += "$($suite.Name) tests failed for $provider ($framework)." }
+                    try { Assert-ProviderQaResults -path $result -requireAll:$suite.Strict }
+                    catch { $failures += "$provider ($framework) $($suite.Name): $($_.Exception.Message)" }
+                }
 				Write-Host "Building $provider QA bundle for $framework"
 				& dotnet msbuild $project `
 					-t:QaBundle `

@@ -21,6 +21,7 @@ public class MssqlOleDbProviderLocator : BaseProviderLocator
             : base(
             [
                 new WordMatch("MSOLEDBSQL"),
+                new OptionalCapture("19"),
             ])
         { }
     }
@@ -41,5 +42,6 @@ public class MssqlOleDbProviderLocator : BaseProviderLocator
     protected override void AddCandidate(string provider, string[] matches)
         => Candidates.Add(provider);
     protected override List<string> RankCandidates()
-        => Candidates;
+        => Candidates.OrderByDescending(candidate =>
+            int.TryParse(candidate["MSOLEDBSQL".Length..], out var version) ? version : 18).ToList();
 }
