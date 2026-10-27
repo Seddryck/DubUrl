@@ -45,9 +45,11 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
         TrustedEntraEndpoint.ValidateAuthority(configured.Authority, request.Authority);
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         budget.CancelAfter(TimeSpan.FromSeconds(configured.AcquisitionTimeoutSeconds));
-        await acquisition.WaitAsync(budget.Token).ConfigureAwait(false);
+        var entered = false;
         try
         {
+            await acquisition.WaitAsync(budget.Token).ConfigureAwait(false);
+            entered = true;
             var accounts = await application!.GetAccountsAsync().ConfigureAwait(false);
             var account = configured.LoginHint is null ? accounts.SingleOrDefault()
                 : accounts.FirstOrDefault(a => string.Equals(a.Username, configured.LoginHint, StringComparison.OrdinalIgnoreCase));
@@ -68,9 +70,10 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
             return new(result.AccessToken, result.ExpiresOn);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (OperationCanceledException) when (budget.IsCancellationRequested) { throw new ConnectionAuthenticationException("AuthenticationTimeout"); }
         catch (ConnectionAuthenticationException) { throw; }
         catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
-        finally { acquisition.Release(); }
+        finally { if (entered) acquisition.Release(); }
     }
 
     public async Task ClearCacheAsync(CancellationToken cancellationToken = default)

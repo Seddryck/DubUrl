@@ -82,7 +82,7 @@ public sealed class ConnectionAuthenticationException : Exception
     private static string KnownCode(string code) => code switch
     {
         "CredentialConflict" or "CredentialResolutionFailed" or "MissingCredentials" or "UnsupportedAuthentication"
-            or "SynchronousCredentialsRequired" or "AuthenticationFailed" or "InvalidCertificate" or "InteractionRequired" => code,
+            or "SynchronousCredentialsRequired" or "AuthenticationFailed" or "InvalidCertificate" or "InteractionRequired" or "AuthenticationTimeout" => code,
         _ => "AuthenticationFailed"
     };
     private static string MessageFor(string code) => KnownCode(code) switch
@@ -94,6 +94,7 @@ public sealed class ConnectionAuthenticationException : Exception
         "SynchronousCredentialsRequired" => "This credential source requires an asynchronous connection operation.",
         "InvalidCertificate" => "The client certificate is unavailable or has no usable private key.",
         "InteractionRequired" => "Explicit user interaction is required for authentication.",
+        "AuthenticationTimeout" => "The interactive authentication attempt timed out.",
         _ => "Database authentication failed."
     };
 }
