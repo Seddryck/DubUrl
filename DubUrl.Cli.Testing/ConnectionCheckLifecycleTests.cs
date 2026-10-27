@@ -41,6 +41,31 @@ public class ConnectionCheckLifecycleTests
     }
 
     [Test]
+    public async Task TrinoQueryFailureIsSafeAndDisposesConnectionAndCommand()
+    {
+        var queryError = new BAMCIS.PrestoClient.Model.Client.QueryError(
+            "sentinel secret and server path", "42P01", 1, "TABLE_NOT_FOUND", "USER_ERROR", null, null);
+        var connection = new RecordingConnection { QueryFailure = new BAMCIS.PrestoClient.Model.PrestoQueryException(queryError) };
+        var result = await new ConnectionCheckService().CheckAsync(new Target(connection), new() { Table = "customer" });
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Diagnostics.Single().Code, Is.EqualTo("executionFailed"));
+        Assert.That(result.Diagnostics.Single().Message, Does.Not.Contain("sentinel"));
+        Assert.That(connection.Statements, Is.EqualTo(new[] { "SELECT 1 FROM \"customer\" WHERE 1=0" }));
+        Assert.That(connection.WasDisposed, Is.True);
+        Assert.That(connection.CommandDisposed, Is.True);
+    }
+
+    [Test]
+    public void UnrelatedProgrammingErrorsStillPropagate()
+    {
+        var connection = new RecordingConnection { QueryFailure = new InvalidOperationException("sentinel") };
+        Assert.That(async () => await new ConnectionCheckService().CheckAsync(new Target(connection), new() { Engine = true }),
+            Throws.InstanceOf<InvalidOperationException>());
+        Assert.That(connection.WasDisposed, Is.True);
+        Assert.That(connection.CommandDisposed, Is.True);
+    }
+
+    [Test]
     public void UserCancellationRemainsDistinct()
     {
         using var cancellation = new CancellationTokenSource();
@@ -71,6 +96,7 @@ public class ConnectionCheckLifecycleTests
     {
         public bool Fail { get; init; }
         public bool Delay { get; init; }
+        public Exception? QueryFailure { get; init; }
         public bool WasDisposed { get; private set; }
         public bool CommandDisposed { get; set; }
         public List<string> Statements { get; } = [];
@@ -110,7 +136,11 @@ public class ConnectionCheckLifecycleTests
         public override void Prepare() { }
         protected override DbParameter CreateDbParameter() => throw new NotSupportedException();
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
-        { owner.Statements.Add(CommandText); return new DataTable().CreateDataReader(); }
+        {
+            owner.Statements.Add(CommandText);
+            if (owner.QueryFailure is { } failure) throw failure;
+            return new DataTable().CreateDataReader();
+        }
         protected override void Dispose(bool disposing) { owner.CommandDisposed = true; base.Dispose(disposing); }
     }
 }

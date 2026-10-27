@@ -36,7 +36,8 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             return attempt.Result(true, []);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested) { throw new OperationCanceledException(cancellationToken); }
-        catch (Exception error) when (error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException)
+        catch (Exception error) when (error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException
+            || error.GetType().FullName == "BAMCIS.PrestoClient.Model.PrestoQueryException")
         { return attempt.Result(false, [attempt.Classify(error)]); }
     }
 
