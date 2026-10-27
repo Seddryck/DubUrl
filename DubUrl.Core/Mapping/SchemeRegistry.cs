@@ -101,6 +101,13 @@ public class SchemeRegistry : ISchemeRegistry
         where TCapability : class
     {
         var alias = scheme.GetRegistryAlias();
+        if (typeof(TCapability) == typeof(DubUrl.BulkCopy.IBulkCopyProvider)
+            && _registrations.TryGetValue(alias, out var bulkRegistration)
+            && bulkRegistration.BulkCopyProvider is TCapability bulkCopy)
+        {
+            capability = bulkCopy;
+            return true;
+        }
         if (_registrations.TryGetValue(alias, out var registration)
             && registration.Capabilities.TryGetValue(typeof(TCapability), out var value))
         {

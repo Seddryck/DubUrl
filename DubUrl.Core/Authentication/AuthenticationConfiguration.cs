@@ -53,7 +53,7 @@ internal static class AuthenticationConfiguration
     {
         if (provider is not ("Microsoft.Data.SqlClient" or "Npgsql" or "MySqlConnector" or "MySql.Data.MySqlClient"
             or "MySql.Data" or "SingleStoreConnector" or "Oracle.ManagedDataAccess" or "FirebirdSql.Data.FirebirdClient"
-            or "Snowflake.Data" or "IBM.Data.Db2" or "Teradata.Client.Provider"))
+            or "Snowflake.Data" or "IBM.Data.Db2" or "Teradata.Client" or "Teradata.Client.Provider"))
             throw new ConnectionAuthenticationException("UnsupportedAuthentication");
     }
 }

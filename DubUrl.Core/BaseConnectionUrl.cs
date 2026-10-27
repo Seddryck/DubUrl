@@ -36,8 +36,8 @@ public class BaseConnectionUrl
         => Registry.TryGetCapability(Parser.Parse(Url).Scheme, out capability);
 
     public string Parse() => Result.ConnectionString;
-    public virtual IDialect Dialect => Registry.GetMapper(Parser.Parse(Url).Scheme).GetDialect();
+    public virtual IDialect Dialect => Result.Dialect;
     public virtual DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => Result.BulkCopyProvider;
-    public virtual IConnectivity Connectivity => Registry.GetMapper(Parser.Parse(Url).Scheme).GetConnectivity();
-    public virtual IParametrizer Parametrizer => Registry.GetMapper(Parser.Parse(Url).Scheme).GetParametrizer();
+    public virtual IConnectivity Connectivity => Result.Connectivity;
+    public virtual IParametrizer Parametrizer => Result.Parametrizer;
 }

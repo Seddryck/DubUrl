@@ -20,6 +20,11 @@ public class ConnectionUrl : BaseConnectionUrl
 {
     private ConnectionAuthentication? authentication;
     internal bool HasAuthentication => authentication is not null;
+    public override IDialect Dialect => HasAuthentication ? Registry.GetMapper(Parser.Parse(Url).Scheme).GetDialect() : base.Dialect;
+    public override IConnectivity Connectivity => HasAuthentication ? Registry.GetMapper(Parser.Parse(Url).Scheme).GetConnectivity() : base.Connectivity;
+    public override IParametrizer Parametrizer => HasAuthentication ? Registry.GetMapper(Parser.Parse(Url).Scheme).GetParametrizer() : base.Parametrizer;
+    public override DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => HasAuthentication
+        ? TryGetCapability<DubUrl.BulkCopy.IBulkCopyProvider>(out var provider) ? provider : null : base.BulkCopyProvider;
 
     public ConnectionUrl WithAuthentication(ConnectionAuthentication strategy)
     {
