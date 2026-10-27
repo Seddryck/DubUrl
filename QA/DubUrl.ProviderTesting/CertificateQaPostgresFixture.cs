@@ -95,22 +95,21 @@ internal sealed class CertificateQaPostgresFixture : IAsyncDisposable
     }
     public async ValueTask DisposeAsync()
     {
-        try
-        {
-            var removed = await RunAsync(["rm", "--force", "--volumes", container]);
-            if (started) Require(removed.Success, "remove its owned container and anonymous volumes");
-        }
-        finally
-        {
-            Certificates.Dispose();
-            if (Directory.Exists(directory))
-            {
-                var parent = Path.GetDirectoryName(Path.GetFullPath(directory));
-                if (parent != Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.GetTempPath())) || !Path.GetFileName(directory).StartsWith("duburl-cert-qa-", StringComparison.Ordinal))
-                    throw new AssertionException("The owned certificate fixture directory did not match its expected temporary parent.");
-                Directory.Delete(directory, recursive: true);
-            }
-        }
+        var removed = false;
+        try { removed = (await RunAsync(["rm", "--force", "--volumes", container])).Success || !started; }
+        catch { /* Cleanup still attempts certificate and directory disposal; only safe status is reported. */ }
+        Certificates.Dispose();
+        var deleted = DeleteOwnedDirectory();
+        Require(removed, "remove its owned container and anonymous volumes");
+        Require(deleted, "validate and remove its owned temporary directory");
+    }
+    private bool DeleteOwnedDirectory()
+    {
+        if (!Directory.Exists(directory)) return true;
+        var parent = Path.GetDirectoryName(Path.GetFullPath(directory));
+        if (parent != Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.GetTempPath())) || !Path.GetFileName(directory).StartsWith("duburl-cert-qa-", StringComparison.Ordinal)) return false;
+        try { Directory.Delete(directory, recursive: true); return true; }
+        catch { return false; }
     }
     private const string Bootstrap = """
         #!/usr/bin/env bash

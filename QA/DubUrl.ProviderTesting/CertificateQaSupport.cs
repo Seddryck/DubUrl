@@ -10,7 +10,7 @@ internal sealed class CertificateQaDriver(PasswordQaDriver driver)
 {
     internal PasswordQaDriver Driver => driver;
     internal bool Supported => driver.Provider is "MySqlConnector" or "SingleStoreConnector"
-        || driver.Provider == "Npgsql" && driver.Family is "postgresql" or "cockroachdb";
+        || (driver.Provider == "Npgsql" && (driver.Family is "postgresql" or "cockroachdb"));
     internal bool Supplemental => driver.Provider is "MySqlConnector" or "SingleStoreConnector";
     internal void RequireSupported()
     {
