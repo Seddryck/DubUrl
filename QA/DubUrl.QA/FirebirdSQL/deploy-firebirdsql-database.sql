@@ -17,6 +17,7 @@ INSERT INTO Customer (FullName, BirthDate) VALUES
 INSERT INTO Customer (FullName, BirthDate) VALUES 
     ('Linus Torvalds',     '1969-12-28');
 
+CREATE TABLE EmptyCustomer (CustomerId INT);
 COMMIT;
 
 CONNECT "C:\Program Files\Firebird\Firebird_4_0\Security4.fdb" USER SYSDBA PASSWORD masterkey;
@@ -25,4 +26,5 @@ COMMIT;
 
 CONNECT "<path>" USER SYSDBA PASSWORD masterkey;
 GRANT SELECT ON Customer TO fbUser;
+GRANT SELECT ON EmptyCustomer TO fbUser;
 COMMIT;

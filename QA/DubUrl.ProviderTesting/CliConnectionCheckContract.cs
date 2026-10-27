@@ -17,6 +17,7 @@ public abstract class CliConnectionCheckContract
     protected abstract string CliConnectionUrl { get; }
     protected virtual ISchemeRegistry CliRegistry => DefaultRegistry.Get();
     protected virtual string CliTableName => "Customer";
+    protected virtual string? CliEmptyTableName => null;
     protected virtual bool CliCanCreateTable => true;
 
     private string Family => ConnectionCheckSql.GetFamily(ConnectionUri.Parse(CliConnectionUrl).Scheme.Canonical);
@@ -62,16 +63,17 @@ public abstract class CliConnectionCheckContract
             AssertEnvelope(await InvokeAsync(["--table", CliTableName]), "table", false);
             return;
         }
-        if (!CliCanCreateTable) Assert.Ignore("This fixture exposes read-only external tables and cannot provision an empty table.");
-        var table = "duburl_check_" + Guid.NewGuid().ToString("N");
-        ExecuteFixtureSql($"CREATE TABLE {QuoteTable(table)} (id INTEGER)");
+        var createTable = CliEmptyTableName is null;
+        if (createTable && !CliCanCreateTable) Assert.Ignore("This fixture exposes read-only external tables and cannot provision an empty table.");
+        var table = CliEmptyTableName ?? "duburl_check_" + Guid.NewGuid().ToString("N");
+        if (createTable) ExecuteFixtureSql($"CREATE TABLE {QuoteTable(table)} (id INTEGER)");
         try
         {
             Assert.That(CountRows(table), Is.Zero);
             AssertEnvelope(await InvokeAsync(["--table", table]), "table", true);
             Assert.That(CountRows(table), Is.Zero);
         }
-        finally { ExecuteFixtureSql($"DROP TABLE {QuoteTable(table)}"); }
+        finally { if (createTable) ExecuteFixtureSql($"DROP TABLE {QuoteTable(table)}"); }
     }
 
     [Test, Category("ConnectionCheck")]

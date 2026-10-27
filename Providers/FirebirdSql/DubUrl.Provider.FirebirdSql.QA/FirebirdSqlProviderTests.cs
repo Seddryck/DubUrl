@@ -6,6 +6,7 @@ namespace DubUrl.Provider.FirebirdSql.QA;
 [TestFixture, Category("FirebirdSQL"), NonParallelizable]
 public sealed class FirebirdSqlProviderTests : ProviderContract
 {
+    protected override string CliEmptyTableName => "EmptyCustomer";
     private static string DatabasePath => Environment.GetEnvironmentVariable("DUBURL_FIREBIRD_DATABASE")
         ?? Path.Combine(AppContext.BaseDirectory, "Customer.fdb");
 
