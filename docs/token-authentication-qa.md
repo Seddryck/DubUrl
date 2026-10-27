@@ -6,7 +6,7 @@ All 20 existing provider QA projects inherit 25 `NativeTokenAuthentication` case
 
 | Cases | What a pass establishes |
 |---|---|
-| Availability (1) | The fixture's real native provider accepts the SQL Server callback, or explicitly rejects the unsupported strategy without invoking its source. |
+| Availability (1) | The fixture's real native provider accepts the SQL Server callback, or explicitly rejects the unsupported strategy before URL mapping, connection creation or source invocation. |
 | Synchronous/asynchronous Connect (2) | Actual SqlClient construction is lazy; Parse/metadata/configuration do not acquire tokens; connections remain closed; password/fixed-token/integrated modes are absent; certificate/hostname validation and encryption remain enabled. Disposal leaves the caller-owned source alive. |
 | Callback identity (1) | Two actual closed SqlConnections from one pooled strategy share its delegate; a separately constructed strategy has another delegate. This does not prove physical pool reuse or refresh. |
 | Userinfo, Password, PWD, fixed token, Authentication and integrated-security conflicts (6) | Rejection before native connection creation or token acquisition. Raw/encoded sentinel values and unsafe inner exceptions are absent from the authentication error. |

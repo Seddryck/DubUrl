@@ -36,6 +36,12 @@ public static class SqlServerAuthentication
             };
         }
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.NativeToken;
+        public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
+        {
+            if (context.ProviderInvariantName != "Microsoft.Data.SqlClient")
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            return null;
+        }
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
             if (connection is not SqlConnection sql || context.ProviderInvariantName != "Microsoft.Data.SqlClient")

@@ -50,6 +50,21 @@ public class TokenAuthenticationTests
         Assert.That(async () => await connection.AccessTokenCallback!(null!, cancellation.Token), Throws.InstanceOf<OperationCanceledException>());
     }
 
+    [TestCase("Microsoft.Data.Sqlite")]
+    [TestCase("Npgsql")]
+    public async Task UnsupportedTokenProviderIsRejectedBeforeMapping(string provider)
+    {
+        var source = new Source();
+        var strategy = SqlServerAuthentication.TokenCallback(source);
+        var context = new AuthenticationContext(provider, "qa", "localhost", null, "qa", null);
+        Assert.That(() => strategy.Resolve(context), Throws.TypeOf<ConnectionAuthenticationException>()
+            .With.Property("Code").EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
+        var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => await strategy.ResolveAsync(context));
+        Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
+        Assert.That(source.Calls, Is.Zero);
+        Assert.That(error.InnerException, Is.Null);
+    }
+
     [TestCase("mssql://alice@localhost/app")]
     [TestCase("mssql://localhost/app?Authentication=Active%20Directory%20Interactive")]
     [TestCase("mssql://localhost/app?AccessToken=sentinel")]

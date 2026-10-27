@@ -44,6 +44,7 @@ public abstract class TokenAuthenticationQaContract
             });
             Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
             AssertSafe(error);
+            Assert.That(observed.Connections, Is.Empty, "Unsupported providers must reject before URL mapping or native construction.");
             Assert.That(observed.Disposed.Count, Is.EqualTo(observed.Connections.Count));
         }
         Assert.That(source.Calls, Is.Zero);
