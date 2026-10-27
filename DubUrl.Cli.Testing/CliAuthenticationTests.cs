@@ -42,6 +42,20 @@ public class CliAuthenticationTests
         Assert.That(console.Output.ToString(), Does.Not.Contain("sentinel"));
     }
 
+    [Test]
+    public async Task UnsupportedAuthenticationIsInvalidInputAndDoesNotReadStore()
+    {
+        System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
+        var store = new CountingStore();
+        var console = new RecordingConsole();
+        await using var services = CliComposition.CreateDefault(console,
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], credentialStore: store);
+        var exit = await CliHost.InvokeAsync(["connection", "check", "sqlite:///:memory:", "--credential-store", "fixture", "--output-format", "json"], services);
+        Assert.That(exit, Is.EqualTo(2));
+        Assert.That(store.Calls, Is.Zero);
+        Assert.That(console.Output.ToString(), Does.Not.Contain("sentinel"));
+    }
+
     private sealed class CountingPrompt : IHiddenPasswordPrompt
     {
         public int Calls { get; private set; }

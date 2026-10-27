@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Text.Json;
 using DubUrl.Application;
+using DubUrl.Authentication;
 using DubUrl.Mapping;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,7 +49,7 @@ internal static class ConnectionCommand
             var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(
                 authentication.Configure(services, parsed, url), request.Options, cancellationToken).ConfigureAwait(false);
             Write(console, operation, request.Format == "json");
-            return operation.Success ? CliExitCodes.Success : CliExitCodes.ConnectionCheckFailed;
+            return GetExitCode(operation);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
@@ -57,6 +58,14 @@ internal static class ConnectionCommand
             Write(console, InvalidResult(request.Options), request.Format == "json");
             return CliExitCodes.InvalidInput;
         }
+    }
+    private static int GetExitCode(ConnectionCheckResult result)
+    {
+        if (result.Success) return CliExitCodes.Success;
+        return result.Diagnostics.Any(d => d.Code is AuthenticationDiagnosticCodes.UnsupportedAuthentication
+            or AuthenticationDiagnosticCodes.CredentialConflict or AuthenticationDiagnosticCodes.MissingCredentials
+            or AuthenticationDiagnosticCodes.SynchronousCredentialsRequired)
+            ? CliExitCodes.InvalidInput : CliExitCodes.ConnectionCheckFailed;
     }
 
     private static string ResolveTarget(IServiceProvider services, string? url, string? name, string? environment)
