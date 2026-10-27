@@ -41,8 +41,7 @@ stays URL-only. Native provider connections can retain credentials in memory.
 ## Isolated PostgreSQL fixture
 
 Run `QA/Authentication/PostgreSql/create-fixture.sh` on a Linux Docker host with
-OpenSSL. Set `DUBURL_AUTH_FIXTURE_DIR` to its printed temporary directory, grant the
-container postgres user read access to the fixture files, and run `docker compose
+OpenSSL. Set `DUBURL_AUTH_FIXTURE_DIR` to its printed temporary directory and run `docker compose
 -f QA/Authentication/PostgreSql/compose.yaml up -d`. The fixture uses cert-only host
 authentication for alice/app; no weaker host fallback is permitted. Generated keys
 remain outside the repository. Delete only that generated temporary directory and

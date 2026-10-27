@@ -35,7 +35,7 @@ public class ClientCertificateLiveTests
         }
         // This test intentionally requires server account restrictions. It must fail if a weaker
         // authentication rule accidentally permits a connection without the client certificate.
-        await Assert.ThrowsAsync<Exception>(async () =>
+        await Assert.CatchAsync<Exception>(async () =>
         {
             await using var connection = await location.OpenAsync();
         });

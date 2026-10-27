@@ -78,7 +78,7 @@ public abstract partial class ConnectionAuthentication
             property.SetValue(connection, Delegate.CreateDelegate(property.PropertyType, this, method));
         }
         private static bool IsPostgreSqlOrCockroach(string scheme)
-            => scheme is "postgres" or "postgresql" or "pgsql" or "pg" or "postgre" or "psql"
+            => scheme is "postgres" or "postgresql" or "pgsql" or "pg" or "pgx"
                 or "cr" or "cockroach" or "cockroachdb" or "crdb" or "cdb";
         private void AddCertificate(X509CertificateCollection certificates)
         { ValidateCertificate(); certificates.Clear(); certificates.Add(certificate); }
