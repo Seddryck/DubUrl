@@ -55,4 +55,6 @@ application certificate; these were not run. For live checks, disable pooling an
 use a fresh source/cache for negative certificate tests, then separately test pooled
 reuse. Do not interpret cached-token success as certificate validation.
 
+The [provider token QA inventory](token-authentication-qa.md) distinguishes actual native configuration/negative I/O from opt-in Entra login, pool reuse and certificate tests. It documents every unsupported QA and the external live prerequisites. Existing CI is unchanged; ordinary SQL containers do not establish successful token authentication.
+
 Native behavior: [SqlClient callback and pooling contract](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication).

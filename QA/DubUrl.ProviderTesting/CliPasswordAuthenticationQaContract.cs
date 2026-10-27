@@ -6,10 +6,8 @@ namespace DubUrl.ProviderTesting;
 
 /// <summary>#1690 CLI consumers, real provider I/O, and separately identified native terminal/store smoke cases.</summary>
 [NonParallelizable]
-public abstract class CliPasswordAuthenticationQaContract
+public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQaContract
 {
-    protected abstract string AuthenticationConnectionUrl { get; }
-    protected abstract ISchemeRegistry AuthenticationRegistry { get; }
     private PasswordQaDriver Driver => new(AuthenticationConnectionUrl, AuthenticationRegistry);
 
     [TestCase("option"), TestCase("url"), Category("CliPasswordAuthentication")]
