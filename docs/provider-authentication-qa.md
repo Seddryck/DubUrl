@@ -2,7 +2,7 @@
 
 Every existing provider QA fixture inherits `PasswordAuthenticationQaContract` through its transport contract. The existing QA workflows and runners execute the `PasswordAuthentication` category as part of the complete suite; no CI configuration change is needed.
 
-Each driver fixture discovers the same 12 cases:
+Each driver fixture discovers the same 13 cases:
 
 1. Explicit strategy availability: supported native connections receive externally acquired credentials; unsupported adapters reject before acquisition or connection creation.
 2. Successful synchronous database authentication and a real engine query.
@@ -14,14 +14,17 @@ Each driver fixture discovers the same 12 cases:
 8. Asynchronous authentication-configuration failure disposes the native connection.
 9. A database-rejected password on synchronous opening is redacted and disposes the native connection.
 10. The equivalent asynchronous opening failure also disposes it.
-11. Cancellation during actual native opening disposes the connection. A loopback TCP listener accepts the driver's connection and withholds its handshake; cancellation occurs after TCP acceptance, not before opening starts. A driver with only the synchronous base `OpenAsync` implementation is explicitly skipped.
+11. Cancellation during physical native opening disposes the connection. A loopback TCP listener accepts the driver's connection and withholds its handshake; cancellation occurs after TCP acceptance, not before opening starts. SQL Server and Firebird exercise this path. Npgsql/MySqlConnector did not complete this path within the bound in QA and are explicitly skipped; forwarding a token does not prove interruptible physical authentication I/O. A driver with only the synchronous base `OpenAsync` implementation is also explicitly skipped.
 12. Credential rotation through actual native connection pools, where the fixture can administer an isolated account.
+13. Cancellation while native `OpenAsync` waits for a real size-one pool's authenticated connection. The first connection remains leased; the second native open must be pending before cancellation and must dispose on cancellation. The held connection must remain usable. SQL Server, Npgsql-family and MySqlConnector use native pool settings and a unique application name for isolation; no application-wide pool is cleared.
 
 ## What is real, and what is controlled
 
 Success/rejection cases connect to the QA database with `WithAuthentication(UsernamePassword(source))`, not URL credentials. All commands and network operations use the actual native driver. Acquisition/configuration failure injection is intentional: the source can fail or wait on cancellation, and a strategy decorator fails its configuration hook after credentials have been applied. A delegating connection/factory records disposal and forwards operations to a real native connection; it does not emulate a server, authentication or pooling.
 
 The acquisition tests establish that no connection was created, rather than claiming disposal of an object that never existed. All lifecycle cases also verify that DubUrl leaves caller-owned sources undisposed. Returned connections can contain credentials by native-driver design; assertions and failure messages never print them.
+
+Opening cancellation has two deliberately distinct phases. Native pool-lease cancellation does not establish physical TLS/GSS/server-greeting cancellation. The latter remains an explicit driver limitation for Npgsql/MySqlConnector after the fault-injection runs stayed pending beyond the QA bound. Firebird has physical-opening coverage, but its size-one pool-lease recipe is not implemented. These are reported separately, not converted into fake successful cancellation results. QuestDB's URL mapper does not accept `Pooling`; its pool-lease test configures the native builder through the observation layer instead of widening the public URL-option contract.
 
 ## Rotation proof
 

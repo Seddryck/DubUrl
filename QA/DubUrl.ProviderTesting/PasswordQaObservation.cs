@@ -9,9 +9,15 @@ namespace DubUrl.ProviderTesting;
 internal sealed class PasswordQaRegistry(ISchemeRegistry inner) : ISchemeRegistry
 {
     internal List<PasswordQaConnection> Connections { get; } = [];
+    internal Dictionary<string, object> NativeOptions { get; } = [];
     public ResolvedConnection Resolve(ConnectionUri uri) => Observe(inner.Resolve(uri));
     private ResolvedConnection Observe(ResolvedConnection resolved)
-        => resolved with { ProviderFactory = new ObservedFactory(resolved.ProviderFactory, Connections) };
+    {
+        var builder = resolved.ProviderFactory.CreateConnectionStringBuilder() ?? new DbConnectionStringBuilder();
+        builder.ConnectionString = resolved.ConnectionString;
+        foreach (var option in NativeOptions) builder[option.Key] = option.Value;
+        return resolved with { ConnectionString = builder.ConnectionString, ProviderFactory = new ObservedFactory(resolved.ProviderFactory, Connections) };
+    }
     public bool TryResolve(ConnectionUri uri, out ResolvedConnection? resolved, out ConnectionResolutionDiagnostic? diagnostic)
     {
         if (!inner.TryResolve(uri, out resolved, out diagnostic)) return false;

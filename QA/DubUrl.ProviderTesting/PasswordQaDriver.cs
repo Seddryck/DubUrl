@@ -64,8 +64,10 @@ internal sealed class PasswordQaDriver(string url, ISchemeRegistry registry)
         if (query >= 0) location = location[..query];
         var options = Uri.Options.Where(option => !option.Key.Equals("Pooling", StringComparison.OrdinalIgnoreCase))
             .Select(option => System.Uri.EscapeDataString(option.Key) + "=" + System.Uri.EscapeDataString(option.Value))
-            .Append("Pooling=" + (pooling ? "true" : "false"));
-        return location + "?" + string.Join('&', options);
+            .ToList();
+        // QuestDB deliberately accepts a narrow URL-option set; do not inject unsupported Pooling options.
+        if (Family != "questdb") options.Add("Pooling=" + (pooling ? "true" : "false"));
+        return options.Count == 0 ? location : location + "?" + string.Join('&', options);
     }
 
     internal ConnectionUrl Target(PasswordQaSource source, ISchemeRegistry? observer = null, bool pooling = false, string? endpoint = null)
