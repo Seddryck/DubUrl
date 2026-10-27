@@ -20,12 +20,12 @@ function Install-QaWindowsDriver {
         Get-VerifiedQaDownload 'https://download.oracle.com/otn_software/odac/ODAC23.26.3Xcopy_x64.zip' $zip '500E1B3339B4C8D47BEDE1D82B83C376CA0B2003531E6237130FEC92AF36AFCD'
         $source = Join-Path $env:RUNNER_TEMP 'odac-source'
         Expand-Archive -LiteralPath $zip -DestinationPath $source
-        $home = 'C:\DubUrlOdac'
+        $odacHome = 'C:\DubUrlOdac'
         Push-Location $source
         try {
-            & ./install.bat oledb $home DubUrlQaOdac true true
+            & ./install.bat oledb $odacHome DubUrlQaOdac true true
             if ($LASTEXITCODE -ne 0) { throw 'Oracle OLE DB installation failed.' }
         } finally { Pop-Location }
-        $env:PATH = "$home;$home\bin;$env:PATH"
+        $env:PATH = "$odacHome;$odacHome\bin;$env:PATH"
     }
 }

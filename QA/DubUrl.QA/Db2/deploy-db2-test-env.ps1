@@ -18,7 +18,7 @@ $composeFile = Join-Path $infrastructure 'compose.yaml'
 # Isolate concurrent local runs and CI jobs, including their disposable volumes.
 $compose = @('compose', '-p', ('duburl-db2-' + [Guid]::NewGuid().ToString('N').Substring(0, 12)), '-f', $composeFile)
 $previousEnvironment = @{}
-foreach ($name in @('DB2INST1_PASSWORD', 'DUBURL_DB2_QA_PORT', 'DUBURL_DB2_QA_URL')) {
+foreach ($name in @('DB2INST1_PASSWORD', 'DUBURL_DB2_QA_PORT', 'DUBURL_DB2_QA_URL', 'LD_LIBRARY_PATH', 'DB2_CLI_DRIVER_INSTALL_PATH')) {
     $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
 }
 $testPassword = 'QaT' + [Guid]::NewGuid().ToString('N')
@@ -55,6 +55,11 @@ try {
             $result = Join-Path $repositoryRoot ".test-results/db2/$framework/$suite/$suite.trx"
             Remove-Item -LiteralPath $result -ErrorAction SilentlyContinue
         }
+    }
+    if ($IsLinux) {
+        $driverPaths = $frameworks | ForEach-Object { Join-Path (Split-Path $project) "bin/$config/$_/clidriver/lib" }
+        $env:LD_LIBRARY_PATH = ($driverPaths -join ':') + ':' + $env:LD_LIBRARY_PATH
+        $env:DB2_CLI_DRIVER_INSTALL_PATH = Join-Path (Split-Path $project) "bin/$config/$($frameworks[0])/clidriver"
     }
     Run-ProviderQaSuite -project $project -provider db2 -config $config -frameworks $frameworks -sdkVersions $sdkVersions
 

@@ -21,6 +21,7 @@ public class MssqlOleDbProviderLocator : BaseProviderLocator
             : base(
             [
                 new WordMatch("MSOLEDBSQL"),
+                new OptionalCapture("19"),
             ])
         { }
     }
