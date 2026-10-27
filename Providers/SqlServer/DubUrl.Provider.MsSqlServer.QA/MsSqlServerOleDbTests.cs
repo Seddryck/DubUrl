@@ -17,7 +17,9 @@ public sealed class MsSqlServerOleDbTests : OleDbContract
         registry = new ProviderCatalogBuilder()
             .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, .. assemblies])).Build();
     }
-    protected override ConnectionUrl CreateConnectionUrl() => new("oledb+mssql://sa:Password12!@localhost/DubUrl?TrustServerCertificate=Yes", registry!);
+    protected override ConnectionUrl CreateConnectionUrl() => new(
+        Environment.GetEnvironmentVariable("DUBURL_SQLSERVER_OLEDB_QA_URL")
+            ?? throw new InvalidOperationException("Run the Windows SQL Server OLE DB deployment script first."), registry!);
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => "select FullName from Customer where CustomerId=?";
 }

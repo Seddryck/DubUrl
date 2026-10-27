@@ -1,0 +1,84 @@
+[CmdletBinding()]
+param(
+    [switch] $force,
+    [string] $config = 'Release',
+    [ValidateSet('net8.0', 'net9.0', 'net10.0')]
+    [string[]] $frameworks = @('net8.0', 'net9.0', 'net10.0'),
+    [ValidateRange(1, 65535)] [int] $port = 50000,
+    [ValidateRange(30, 1800)] [int] $readinessTimeoutSeconds = 1080,
+    [hashtable] $sdkVersions = @{ 'net8.0' = '8.0.416'; 'net9.0' = '9.0.308'; 'net10.0' = '10.0.401' }
+)
+
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../Run-ProviderQaSuite.ps1')
+$repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
+$project = Join-Path $repositoryRoot 'Providers/Db2/DubUrl.Provider.Db2.QA/DubUrl.Provider.Db2.QA.csproj'
+$infrastructure = Join-Path (Split-Path $project) 'infrastructure'
+$composeFile = Join-Path $infrastructure 'compose.yaml'
+# Isolate concurrent local runs and CI jobs, including their disposable volumes.
+$compose = @('compose', '-p', ('duburl-db2-' + [Guid]::NewGuid().ToString('N').Substring(0, 12)), '-f', $composeFile)
+$previousEnvironment = @{}
+foreach ($name in @('DB2INST1_PASSWORD', 'DUBURL_DB2_QA_PORT', 'DUBURL_DB2_QA_URL')) {
+    $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+}
+$testPassword = 'QaT' + [Guid]::NewGuid().ToString('N')
+$env:DB2INST1_PASSWORD = $testPassword
+$env:DUBURL_DB2_QA_PORT = [string]$port
+$env:DUBURL_DB2_QA_URL = "db2://db2inst1:${testPassword}@localhost:${port}/DUBURL"
+if ($env:GITHUB_ACTIONS -eq 'true') {
+    Write-Host "::add-mask::$testPassword"
+    Write-Host "::add-mask::$env:DUBURL_DB2_QA_URL"
+}
+
+function Write-RedactedOutput($lines) {
+    foreach ($line in $lines) {
+        Write-Host ([string]$line).Replace($testPassword, '***')
+    }
+}
+
+Push-Location $repositoryRoot
+try {
+    & docker info --format '{{.OSType}}'
+    if ($LASTEXITCODE -ne 0) { throw 'Docker must be running with Linux containers.' }
+    & docker @compose up --detach --wait --wait-timeout $readinessTimeoutSeconds
+    if ($LASTEXITCODE -ne 0) { throw 'Db2 QA infrastructure did not become healthy before the readiness timeout.' }
+
+    # The container instance owner initializes the fixture through stdin.
+    $initialization = Get-Content (Join-Path $infrastructure 'initialize.sql') -Raw
+    $output = @($initialization | & docker @compose exec -T db2 su - db2inst1 -c 'db2 -st' 2>&1)
+    $initializationExitCode = $LASTEXITCODE
+    Write-RedactedOutput $output
+    if ($initializationExitCode -ne 0) { throw 'Db2 QA initialization failed.' }
+
+    foreach ($framework in $frameworks) {
+        foreach ($suite in @('complete', 'schema')) {
+            $result = Join-Path $repositoryRoot ".test-results/db2/$framework/$suite/$suite.trx"
+            Remove-Item -LiteralPath $result -ErrorAction SilentlyContinue
+        }
+    }
+    Run-ProviderQaSuite -project $project -provider db2 -config $config -frameworks $frameworks -sdkVersions $sdkVersions
+
+    foreach ($framework in $frameworks) {
+        foreach ($suite in @('complete', 'schema')) {
+            $result = Join-Path $repositoryRoot ".test-results/db2/$framework/$suite/$suite.trx"
+            [xml] $trx = Get-Content -LiteralPath $result -Raw
+            if ([int]$trx.TestRun.ResultSummary.Counters.executed -le 0) { throw "Db2 $suite QA did not execute any tests for $framework." }
+        }
+    }
+}
+catch {
+    Write-RedactedOutput @(& docker @compose logs --no-color --tail 150 2>&1)
+    throw
+}
+finally {
+    try {
+        & docker @compose down --volumes --remove-orphans
+        if ($LASTEXITCODE -ne 0) { Write-Warning 'Db2 QA cleanup failed; remove the Compose project manually.' }
+    }
+    finally {
+        foreach ($name in $previousEnvironment.Keys) {
+            [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name], 'Process')
+        }
+        Pop-Location
+    }
+}

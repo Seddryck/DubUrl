@@ -1,18 +1,21 @@
 Param(
+    [switch] $container,
+    [string] $testFilter = '',
+    [hashtable] $sdkVersions = @{ 'net8.0'='8.0.416'; 'net9.0'='9.0.308'; 'net10.0'='10.0.401' },
 	[switch] $force=$false
 	, $databaseService= "postgresql-x64-15"
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
 
-if ($env:GITHUB_ACTIONS -eq "true") {
+if ($env:GITHUB_ACTIONS -eq "true" -or $container) {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 
 	$project = Join-Path $PSScriptRoot "..\..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql.QA\DubUrl.Provider.PostgreSql.QA.csproj"
 	$composeFile = Join-Path $PSScriptRoot "..\..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql.QA\infrastructure\compose.yaml"
 
-	if ($IsLinux) {
+	if ($IsLinux -and $env:GITHUB_ACTIONS -eq "true") {
 		& sudo apt-get update
 		if ($LASTEXITCODE -ne 0) { throw "Unable to update the package index." }
 		& sudo apt-get install --yes unixodbc odbcinst odbc-postgresql
@@ -29,17 +32,24 @@ if ($env:GITHUB_ACTIONS -eq "true") {
 	}
 
 	Write-Host "Starting PostgreSQL QA infrastructure with Docker Compose"
-	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "PostgreSQL" -wait
 
+
+    $previousDiscovery = $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING
 	try {
-		Run-ProviderQaSuite `
+        Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'Postgresql' -wait
+		        $previousDiscovery = $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING
+        $password = (& docker compose -f $composeFile exec -T postgresql printenv POSTGRES_PASSWORD).Trim()
+        $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING = "Host=localhost;Database=DubUrl;Username=postgres;Password=$password"
+        if ($env:GITHUB_ACTIONS -eq 'true') { Write-Host "::add-mask::$password"; Write-Host "::add-mask::$env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING" }
+        Run-ProviderQaSuite `
 			-project $project `
 			-provider "postgresql" `
 			-config $config `
-			-frameworks $frameworks
+			-frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
 	}
 	finally {
-		Write-Host "Stopping PostgreSQL QA infrastructure"
+		[Environment]::SetEnvironmentVariable('DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING', $previousDiscovery, 'Process')
+        Write-Host "Stopping PostgreSQL QA infrastructure"
 		& docker compose -f $composeFile down --volumes
 	}
 
@@ -66,7 +76,9 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 
 	# Starting database service or docker container
 	if ($env:APPVEYOR -eq "True") {
-		try { $previouslyRunning = Start-Windows-Service $databaseService }
+	    $previousDiscovery = $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING
+	try {
+        Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'Postgresql' -wait $previouslyRunning = Start-Windows-Service $databaseService }
 		catch {
 			Write-Warning "Failure to start a Windows service: $_"
 			exit 1
@@ -92,7 +104,7 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 
 	# Running QA tests
 	Write-Host "Running QA tests related to PostgreSQL"
-	$testSuccessful = Run-TestSuite @("Postgresql") -config $config -frameworks $frameworks
+	$testSuccessful = Run-TestSuite @("Postgresql") -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
 
 	# Stopping database Service
 	if (!$previouslyRunning) {

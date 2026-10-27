@@ -1,0 +1,68 @@
+name: Db2 provider QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: qa-db2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+  DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
+
+jobs:
+  provider-qa:
+    name: Db2 QA (${{ matrix.framework }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - framework: net8.0
+            sdk: 8.0.416
+          - framework: net9.0
+            sdk: 9.0.308
+          - framework: net10.0
+            sdk: 10.0.401
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ matrix.sdk }}
+      - name: Validate live-test result guards
+        if: matrix.framework == 'net10.0'
+        shell: pwsh
+        run: ./QA/DubUrl.QA/Test-QaResults.ps1
+      - name: Install IBM CLI runtime prerequisites
+        run: sudo apt-get update && sudo apt-get install -y libxml2 libpam0g libaio1t64
+      - name: Verify Docker Compose
+        run: docker compose version
+      - name: Run provider QA
+        shell: pwsh
+        run: ./QA/DubUrl.QA/Db2/deploy-db2-test-env.ps1 -config Release -frameworks @('${{ matrix.framework }}')
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qa-db2-results-${{ matrix.framework }}-${{ github.sha }}
+          path: .test-results/db2/${{ matrix.framework }}
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Upload QA bundle
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qa-db2-bundle-${{ matrix.framework }}-${{ github.sha }}
+          path: Providers/Db2/DubUrl.Provider.Db2.QA/bin/qa/db2/*/${{ matrix.framework }}/**
+          include-hidden-files: true
+          if-no-files-found: error
