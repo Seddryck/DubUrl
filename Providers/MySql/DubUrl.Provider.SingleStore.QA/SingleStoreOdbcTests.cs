@@ -5,7 +5,7 @@ namespace DubUrl.Provider.SingleStore.QA;
 [Ignore("SingleStore has no registered ODBC driver locator; the legacy deployment script never enabled these fixtures.")]
 public sealed class SingleStoreMariaDbOdbcTests : OdbcContract
 {
-    protected override string ConnectionUrl => "odbc+singlestore://root:Password12!@localhost/DubUrl";
+    protected override string ConnectionUrl => "odbc+" + SingleStoreTestDatabase.ConnectionUrl;
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => "select FullName from Customer where CustomerId=?";
 }
@@ -14,7 +14,7 @@ public sealed class SingleStoreMariaDbOdbcTests : OdbcContract
 [Ignore("SingleStore has no registered ODBC driver locator; the legacy deployment script never enabled these fixtures.")]
 public sealed class SingleStoreMySqlOdbcTests : OdbcContract
 {
-    protected override string ConnectionUrl => "odbc+singlestore://root:Password12!@localhost/DubUrl";
+    protected override string ConnectionUrl => "odbc+" + SingleStoreTestDatabase.ConnectionUrl;
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => "select FullName from Customer where CustomerId=?";
 }

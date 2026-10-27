@@ -49,6 +49,16 @@ dotnet test Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.P
 
 PostgreSQL accepts `DUBURL_POSTGRESQL_QA_URL` for the DubUrl connection URL and `DUBURL_POSTGRESQL_QA_CONNECTION_STRING` for the driver connection string. Defaults match the bundled Compose environment.
 
+Oracle provisions its own disposable Oracle Free Lite container and dedicated test
+schema with generated credentials. Run the same entry point locally and in CI:
+
+```powershell
+./QA/DubUrl.QA/Oracle/deploy-oracle-test-env.ps1
+```
+
+See [Oracle QA infrastructure](https://github.com/Seddryck/DubUrl/tree/main/Providers/Oracle/DubUrl.Provider.Oracle.QA/infrastructure)
+for prerequisites, focused framework selection, image pinning and coverage limits.
+
 ## QA bundles
 
 Every provider QA project imports `build/ProviderQaBundle.targets`, owns a validated `qa-manifest.json`, and declares its infrastructure files with `QaInfrastructure`. Create a complete versioned bundle for one target framework with:
@@ -67,7 +77,12 @@ The manifest is checked by the provider suite, so malformed or incomplete metada
 
 ## GitHub Actions
 
-Provider QA runs independently from the unit-test and release workflow. Each provider workflow calls its existing deployment entry point under `DubUrl.QA`, runs the provider-owned suite on .NET 8, 9, and 10, and uploads its test results and runnable QA bundle. Power BI Desktop and SingleStore remain manual workflows because they require licensed external software.
+Provider QA runs independently from the unit-test and release workflow. Each provider workflow calls its existing deployment entry point under `DubUrl.QA`, runs the provider-owned suite on .NET 8, 9, and 10, and uploads its test results and runnable QA bundle. Power BI Desktop remains manual because it requires licensed external software. SingleStore uses its license-free Dev Image and runs automatically on pull requests and pushes to main.
+
+Run SingleStore locally with `./QA/DubUrl.QA/SingleStore/deploy-singlestore-test-env.ps1`.
+It uses the same harness as CI, generated test credentials and a disposable
+two-partition database. See its provider-owned `infrastructure/README.md` for
+the image pin, CPU requirements and explicit ODBC exclusions.
 
 ## Multi-provider composition QA
 

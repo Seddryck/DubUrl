@@ -1,0 +1,19 @@
+services:
+  oracle:
+    image: container-registry.oracle.com/database/free:23.26.1.0-lite-amd64@sha256:ef1a38683b3783b80e033be6b8f2cb31299dcba5430514ec96e2e8f4f0307d15
+    platform: linux/amd64
+    environment:
+      ORACLE_PWD: ${ORACLE_PWD:?Run the Oracle QA deployment script}
+    ports:
+      - "127.0.0.1:${DUBURL_ORACLE_QA_PORT:-1521}:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./ready.sh:/opt/oracle/scripts/startup/ready.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/duburl-qa-ready && printf 'whenever sqlerror exit failure\nset heading off pagesize 0\nalter session set container = FREEPDB1;\nselect 1 from dual;\nexit\n' | sqlplus -L -s / as sysdba | grep -q '^[[:space:]]*1[[:space:]]*$'"]
+      interval: 10s
+      timeout: 10s
+      retries: 90
+      start_period: 30s
+volumes:
+  oracle-data:
