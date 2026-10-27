@@ -97,6 +97,24 @@ public class ClientCertificateAuthenticationTests
         DbProviderFactories.RegisterFactory("SingleStoreConnector", SingleStoreConnectorFactory.Instance);
         return new ProviderCatalogBuilder().AddModule(new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)).Build();
     }
+
+    [TestCase("Microsoft.Data.SqlClient", "mssql")]
+    [TestCase("Npgsql", "questdb")]
+    [TestCase("Npgsql", "timescale")]
+    [TestCase("MySql.Data.MySqlClient", "mysql")]
+    public async Task UnsupportedCertificateContextRejectsBeforeSourceAcquisition(string provider, string scheme)
+    {
+        using var key = RSA.Create(2048);
+        using var certificate = Certificate(key);
+        var source = new Source();
+        var strategy = ConnectionAuthentication.ClientCertificate(certificate, new() { SupplementalCredentials = source });
+        var context = new AuthenticationContext(provider, scheme, "localhost", null, "app", "alice");
+        var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => await strategy.ResolveAsync(context));
+        Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
+        Assert.That(source.Calls, Is.Zero);
+        Assert.That(error.InnerException, Is.Null);
+        Assert.That(certificate.HasPrivateKey, Is.True);
+    }
     private static X509Certificate2 Certificate(RSA key)
         => new CertificateRequest("CN=alice", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1)
             .CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));

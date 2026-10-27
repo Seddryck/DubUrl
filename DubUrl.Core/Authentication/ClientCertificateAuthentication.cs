@@ -23,6 +23,7 @@ public abstract partial class ConnectionAuthentication
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.ClientCertificate;
         public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
         {
+            ValidateProvider(context);
             ValidateCertificate();
             if (options.SupplementalCredentials is null) return null;
             ValidateSupplement(context);
@@ -32,6 +33,7 @@ public abstract partial class ConnectionAuthentication
         public override async ValueTask<UsernamePasswordCredentials?> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            ValidateProvider(context);
             ValidateCertificate();
             if (options.SupplementalCredentials is null) return null;
             ValidateSupplement(context);
@@ -41,6 +43,12 @@ public abstract partial class ConnectionAuthentication
         {
             if (context.ProviderInvariantName is not ("MySqlConnector" or "SingleStoreConnector"))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+        }
+        private static void ValidateProvider(AuthenticationContext context)
+        {
+            if (context.ProviderInvariantName is "MySqlConnector" or "SingleStoreConnector") return;
+            if (context.ProviderInvariantName == "Npgsql" && IsPostgreSqlOrCockroach(context.Scheme)) return;
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
         }
         private void ValidateCertificate()
         {
