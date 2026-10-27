@@ -6,6 +6,7 @@ namespace DubUrl.Provider.Trino.QA;
 public sealed class TrinoOdbcTests : OdbcContract
 {
     protected override string ConnectionUrl => "odbc+trino://localhost:8080/pg/public/";
+    protected override string CliTableName => "customer";
     protected override string SelectFirstCustomerSql => "select FullName from pg.public.customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => string.Empty;
     protected override bool SupportsParameters => false;

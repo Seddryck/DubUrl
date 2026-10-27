@@ -9,9 +9,11 @@
     <PackageReference Include="DbReader" Version="4.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
     <PackageReference Include="NUnit" Version="5.0.0" />
+    <PackageReference Include="System.CommandLine" Version="2.*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="../../DubUrl.Cli/DubUrl.Cli.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
   </ItemGroup>
 </Project>

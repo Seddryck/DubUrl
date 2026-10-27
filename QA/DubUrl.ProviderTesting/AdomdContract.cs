@@ -12,11 +12,13 @@ namespace DubUrl.ProviderTesting;
 
 [Category("AdomdProvider")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class AdomdContract
+public abstract class AdomdContract : CliConnectionCheckContract
 {
     private SchemeRegistry registry = null!;
+    protected override ISchemeRegistry CliRegistry => registry;
     protected abstract SchemeRegistry CreateSchemeRegistry();
     protected abstract string ConnectionUrl { get; }
+    protected override string CliConnectionUrl => ConnectionUrl;
     protected abstract string InvalidConnectionUrl { get; }
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectFirstCustomerRowSql { get; }

@@ -4,6 +4,7 @@ namespace DubUrl.Provider.MsSqlServer.QA;
 [TestFixture, Category("MsSqlServer")]
 public sealed class MsSqlServerProviderTests : ProviderContract
 {
+    protected override string CliConnectionUrl => Environment.GetEnvironmentVariable("DUBURL_MSSQLSERVER_CONNECTION_CHECK_QA_URL") ?? ConnectionUrl;
     protected override string ConnectionUrl => "mssql://sa:Password12!@localhost/DubUrl?TrustServerCertificate=True";
     protected override string SelectFirstCustomerSql => "select FullName from Customer where CustomerId=1";
     protected override string SelectCustomerByIdSql => "select FullName from Customer where CustomerId=@CustId";

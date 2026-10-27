@@ -5,9 +5,10 @@ namespace DubUrl.ProviderTesting;
 
 [Category("OleDB")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class OleDbContract
+public abstract class OleDbContract : CliConnectionCheckContract
 {
     protected abstract ConnectionUrl CreateConnectionUrl();
+    protected override string CliConnectionUrl => CreateConnectionUrl().Url;
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectCustomerByIdSql { get; }
 

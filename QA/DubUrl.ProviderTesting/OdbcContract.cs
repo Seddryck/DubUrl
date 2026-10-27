@@ -6,9 +6,10 @@ namespace DubUrl.ProviderTesting;
 
 [Category("ODBC")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class OdbcContract
+public abstract class OdbcContract : CliConnectionCheckContract
 {
     protected abstract string ConnectionUrl { get; }
+    protected override string CliConnectionUrl => ConnectionUrl;
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectCustomerByIdSql { get; }
     protected virtual bool SupportsParameters => true;

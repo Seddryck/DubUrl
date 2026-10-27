@@ -12,9 +12,10 @@ namespace DubUrl.ProviderTesting;
 
 [Category("Provider")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class ProviderContract
+public abstract class ProviderContract : CliConnectionCheckContract
 {
     protected abstract string ConnectionUrl { get; }
+    protected override string CliConnectionUrl => ConnectionUrl;
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectCustomerByIdSql { get; }
     protected abstract string SelectCustomerByPositionSql { get; }
