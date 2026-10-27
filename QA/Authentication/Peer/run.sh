@@ -17,4 +17,5 @@ printf 'fixture alice alice\nfixture alice mapped_alice\nfixture postgres postgr
 gosu postgres pg_ctl reload >/dev/null
 export DUBURL_PEER_URL='postgres://alice@localhost/app?Host=%2Ftmp%2Fduburl-peer-socket&Pooling=false'
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
-gosu alice dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj -f net10.0 --filter FullyQualifiedName~UnixSocketPeerAuthenticatesMappedRole
+gosu alice env HOME=/home/alice DOTNET_CLI_HOME=/home/alice NUGET_PACKAGES=/home/alice/.nuget/packages \
+  dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj -f net10.0 --filter FullyQualifiedName~UnixSocketPeerAuthenticatesMappedRole
