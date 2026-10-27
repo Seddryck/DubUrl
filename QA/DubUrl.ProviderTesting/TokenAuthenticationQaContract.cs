@@ -1,7 +1,6 @@
 using System.Data;
 using DubUrl.Authentication;
 using DubUrl.Authentication.SqlServer;
-using DubUrl.Mapping;
 using Microsoft.Data.SqlClient;
 using NUnit.Framework;
 
@@ -9,10 +8,8 @@ namespace DubUrl.ProviderTesting;
 
 /// <summary>Actual provider construction/configuration plus separately gated Entra database acceptance.</summary>
 [NonParallelizable]
-public abstract class TokenAuthenticationQaContract
+public abstract class TokenAuthenticationQaContract : ClientCertificateAuthenticationQaContract
 {
-    protected abstract string AuthenticationConnectionUrl { get; }
-    protected abstract ISchemeRegistry AuthenticationRegistry { get; }
     private PasswordQaDriver Driver => new(AuthenticationConnectionUrl, AuthenticationRegistry);
     private static ConnectionUrl Target(PasswordQaDriver driver, TokenQaSource source, TokenQaRegistry registry, bool pooling = false)
         => new ConnectionUrl(driver.WithOptions(pooling), registry).WithAuthentication(SqlServerAuthentication.TokenCallback(source));

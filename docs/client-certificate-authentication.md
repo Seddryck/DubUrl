@@ -54,15 +54,9 @@ certificate/key files. Execute the explicitly selected `ClientCertificateLiveTes
 case with `dotnet test DubUrl.Core.Testing -f net10.0 --filter FullyQualifiedName~ClientCertificateLiveTests`.
 For other databases set analogous COCKROACHDB/MYSQL/MARIADB/SINGLESTORE variables,
 using a certificate-restricted test account and a trusted server certificate.
-SingleStore requires an appropriate test deployment/license; no cloud credentials
+SingleStore requires an appropriately configured certificate-required deployment; the ordinary upstream QA is now license-free. No cloud credentials
 are required by deterministic adapter tests.
 
-Deterministic tests pass for all five native hooks, server verification, conflicts,
-supplemental sources and caller-owned certificate objects. The opt-in live suite
-checks successful query execution and missing/untrusted client failures with pooling
-disabled. Docker's Linux engine was unavailable locally, so live suites were not run.
-Expired certificates, identity mismatch, key mismatch, server trust/hostname failure,
-and rotation/pooling scenarios remain additional live validation gaps; hook tests do
-not prove these scenarios. [Npgsql TLS behavior](https://www.npgsql.org/doc/security.html)
+The [provider certificate QA inventory](client-certificate-qa.md) separates native configuration from real PostgreSQL certificate-only login, negative TLS/identity cases and native pool/rotation behavior, all discovered by the existing QA workflows without CI changes. Other databases' certificate-required live fixtures remain unprovisioned and explicitly skipped. Routine local runs do not start containers. Hook tests do not prove live authentication or supplemental account-plugin semantics. [Npgsql TLS behavior](https://www.npgsql.org/doc/security.html)
 and [MySqlConnector certificate options](https://mysqlconnector.net/connection-options/)
 describe the native boundaries.
