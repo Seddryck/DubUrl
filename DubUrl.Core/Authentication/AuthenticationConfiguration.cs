@@ -14,6 +14,9 @@ internal static class AuthenticationConfiguration
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
+            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity
+                && key is "integratedsecurity" or "trustedconnection"
+                && option.Value.ToLowerInvariant() is "true" or "sspi" or "yes") continue;
             if (key is "uid" or "userid" or "user" or "username" or "pwd" or "passwd" or "password"
                 or "authentication" or "authenticator" or "integratedsecurity" or "trustedconnection" or "sspi"
                 or "passfile" or "requireauth" or "sslcert" or "sslclientcertificate" or "clientcertificatekey" or "sslclientkey"
