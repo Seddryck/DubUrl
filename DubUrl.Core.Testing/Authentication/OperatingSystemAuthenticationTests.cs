@@ -67,15 +67,23 @@ public class OperatingSystemAuthenticationTests
         }
     }
 
-    [Test, Explicit("Run inside the controlled Linux peer fixture."), Platform("Linux")]
-    public async Task UnixSocketPeerAuthenticatesMappedRole()
+    [TestCase("alice", true), TestCase("mapped_alice", true), TestCase("bob", false)]
+    [Explicit("Run inside the controlled Linux peer fixture."), Platform("Linux")]
+    public async Task UnixSocketPeerAuthenticatesMappedRole(string role, bool succeeds)
     {
         var url = Environment.GetEnvironmentVariable("DUBURL_PEER_URL");
         if (string.IsNullOrEmpty(url)) Assert.Ignore("Missing Linux peer fixture URL.");
-        await using var connection = await new ConnectionUrl(url!, Registry()).WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity()).OpenAsync();
+        var target = new ConnectionUrl(url!.Replace("postgres://alice@", "postgres://" + role + "@", StringComparison.Ordinal), Registry())
+            .WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
+        if (!succeeds)
+        {
+            await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => { await using var failed = await target.OpenAsync(); });
+            return;
+        }
+        await using var connection = await target.OpenAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT current_user";
-        Assert.That(await command.ExecuteScalarAsync(), Is.EqualTo("alice"));
+        Assert.That(await command.ExecuteScalarAsync(), Is.EqualTo(role));
     }
 
     private static async Task RunLocalDb(string action, string name)
