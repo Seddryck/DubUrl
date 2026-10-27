@@ -82,7 +82,7 @@ public abstract class CliConnectionCheckContract
         Assert.That(result.ExitCode, Is.EqualTo(5));
         using var json = ReadEnvelope(result, "table", false);
         var code = json.RootElement.GetProperty("diagnostics")[0].GetProperty("code").GetString();
-        Assert.That(ExpectedMissingCodes().Contains(code, StringComparer.Ordinal), Is.True,
+        Assert.That(code, Is.AnyOf(ExpectedMissingCodes()),
             "Missing-table diagnostics must match the provider/transport's conservative mapping.");
     }
 
@@ -125,7 +125,7 @@ public abstract class CliConnectionCheckContract
     {
         if (Family == "sqlite") return ["tableNotFound"];
         if (ConnectionUri.Parse(CliConnectionUrl).Scheme.Parts.Count > 1) return ["executionFailed", "tableNotFoundOrNotAccessible"];
-        if (Family is "duckdb" or "trino") return ["executionFailed"];
+        if (Family is "duckdb" or "trino" or "questdb") return ["executionFailed"];
         return ["tableNotFoundOrNotAccessible"];
     }
     private void AssertEnvelope(CommandResult result, string mode, bool success)
