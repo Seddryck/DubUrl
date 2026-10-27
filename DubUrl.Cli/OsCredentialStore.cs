@@ -40,7 +40,7 @@ internal sealed class OsCredentialStore : IOsCredentialStore
             _ = await errors.ConfigureAwait(false);
             if (process.ExitCode != 0 || value.Length == 0) throw new ConnectionAuthenticationException("CredentialResolutionFailed");
             // OS utilities append exactly one line terminator. Preserve all other password characters.
-            return value.EndsWith('\n') ? value[..^1].TrimEnd('\r') : value;
+            return value.EndsWith("\r\n", StringComparison.Ordinal) ? value[..^2] : value.EndsWith('\n') ? value[..^1] : value;
         }
         finally
         {
