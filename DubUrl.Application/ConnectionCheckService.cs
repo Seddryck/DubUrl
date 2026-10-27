@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Diagnostics;
 using DubUrl.Parsing;
+using DubUrl.Authentication;
 
 namespace DubUrl.Application;
 
@@ -42,8 +43,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         {
             // Creating/configuring the connection must not open it. A provider's async operations may
             // implement cancellation only partially; always await completion before disposing it.
-            using var connection = target.Connect() as DbConnection
-                ?? throw new NotSupportedException("Connection checks require an ADO.NET DbConnection.");
+            using var connection = await target.ConnectAsync(budget.Token).ConfigureAwait(false);
             provider = connection.GetType().Namespace;
             RequireExistingFile(connection, family);
             await connection.OpenAsync(budget.Token).ConfigureAwait(false);
@@ -64,11 +64,13 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         {
             throw new OperationCanceledException(cancellationToken);
         }
-        catch (Exception exception) when (exception is DbException or OperationCanceledException or TimeoutException or IOException)
+        catch (Exception exception) when (exception is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException)
         {
             var diagnostic = budget.IsCancellationRequested || exception is TimeoutException
                 ? new ConnectionCheckDiagnostic("timeout", "The database check exceeded its time budget.")
-                : ConnectionCheckErrors.Classify(family, provider, exception, executing && mode == "table");
+                : exception is ConnectionAuthenticationException authentication
+                    ? new ConnectionCheckDiagnostic(authentication.Code, authentication.Message)
+                    : ConnectionCheckErrors.Classify(family, provider, exception, executing && mode == "table");
             return new(false, mode, provider, clock.ElapsedMilliseconds, [diagnostic]);
         }
     }

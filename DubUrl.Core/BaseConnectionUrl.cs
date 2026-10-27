@@ -20,7 +20,7 @@ public class BaseConnectionUrl
     private ResolvedConnection? result;
     protected ResolvedConnection Result { get => result ??= ParseDetail(); }
     protected ISchemeRegistry Registry { get; }
-    private IParser Parser { get; }
+    protected IParser Parser { get; }
     public string Url { get; }
 
     internal BaseConnectionUrl(string url, IParser parser, ISchemeRegistry builder)
@@ -36,8 +36,8 @@ public class BaseConnectionUrl
         => Registry.TryGetCapability(Parser.Parse(Url).Scheme, out capability);
 
     public string Parse() => Result.ConnectionString;
-    public virtual IDialect Dialect => Result.Dialect;
+    public virtual IDialect Dialect => Registry.GetMapper(Parser.Parse(Url).Scheme).GetDialect();
     public virtual DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider => Result.BulkCopyProvider;
-    public virtual IConnectivity Connectivity => Result.Connectivity;
-    public virtual IParametrizer Parametrizer => Result.Parametrizer;
+    public virtual IConnectivity Connectivity => Registry.GetMapper(Parser.Parse(Url).Scheme).GetConnectivity();
+    public virtual IParametrizer Parametrizer => Registry.GetMapper(Parser.Parse(Url).Scheme).GetParametrizer();
 }
