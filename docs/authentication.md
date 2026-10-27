@@ -45,3 +45,7 @@ or inner exception chains. Formatting/debugger displays redact credential object
 Secrets still exist in managed/native memory and returned provider connections and
 connection strings. There is no zero-retention or universal caller-object redaction
 promise. Do not log those objects. Normal URL-only behavior remains compatible.
+
+## Provider QA coverage
+
+See [username/password provider QA](provider-authentication-qa.md) for the shared live cases, native pool-rotation proof, controlled lifecycle faults, and explicit limitations for every existing QA suite.

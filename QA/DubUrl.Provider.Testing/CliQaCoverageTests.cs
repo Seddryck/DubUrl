@@ -13,6 +13,13 @@ public class CliQaCoverageTests
     public void EveryTransportContractIncludesTheSharedCliCases(Type contract)
         => Assert.That(typeof(CliConnectionCheckContract).IsAssignableFrom(contract), Is.True);
 
+    [TestCase(typeof(ProviderContract))]
+    [TestCase(typeof(OdbcContract))]
+    [TestCase(typeof(OleDbContract))]
+    [TestCase(typeof(AdomdContract))]
+    public void EveryTransportContractIncludesThePasswordStrategyCases(Type contract)
+        => Assert.That(typeof(PasswordAuthenticationQaContract).IsAssignableFrom(contract), Is.True);
+
     [Test]
     public void EveryExistingProviderQaProjectUsesATransportContract()
     {

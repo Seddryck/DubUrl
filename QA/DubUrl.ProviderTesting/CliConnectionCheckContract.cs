@@ -12,10 +12,12 @@ namespace DubUrl.ProviderTesting;
 
 /// <summary>The same command/parser/output contract, executed against each QA fixture's real provider.</summary>
 [NonParallelizable]
-public abstract class CliConnectionCheckContract
+public abstract class CliConnectionCheckContract : PasswordAuthenticationQaContract
 {
     protected abstract string CliConnectionUrl { get; }
     protected virtual ISchemeRegistry CliRegistry => DefaultRegistry.Get();
+    protected override string AuthenticationConnectionUrl => CliConnectionUrl;
+    protected override ISchemeRegistry AuthenticationRegistry => CliRegistry;
     protected virtual string CliTableName => "Customer";
     protected virtual string? CliEmptyTableName => null;
     protected virtual bool CliCanCreateTable => true;
