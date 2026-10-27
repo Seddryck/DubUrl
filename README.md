@@ -197,7 +197,7 @@ The following databases and their associated schemes are supported through the O
 <!-- START OLEDB TABLE -->
 |Database                                                                                                                                         | Aliases                           | Name Pattern                                                |
 |------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------------|
-|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver | ^\bMSOLEDBSQL$                                              |
+|![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=ffffff&style=flat-square) | mssql, ms, sqlserver, mssqlserver | ^\bMSOLEDBSQL(19)?$                                         |
 |![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff&style=flat-square)                                                | mysql, my                         | ^\bMySQL Provider$                                          |
 |![Oracle Database](https://img.shields.io/badge/Oracle%20Database-F80000?logo=oracle&logoColor=ffffff&style=flat-square)                         | oracle, or, ora                   | ^\bOraOLEDB\.Oracle$                                        |
 |![Microsoft Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?logo=microsoftexcel&logoColor=ffffff&style=flat-square)                 | xls                               | ^\bMicrosoft\.ACE\.OLEDB\.([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})$|
@@ -252,6 +252,11 @@ Install-Package DubUrl.Adomd
 Check the [first steps guide](https://seddryck.github.io/DubUrl/docs/basics-connection-url/) on the website.
 
 Please note that `DubUrl` does not install actual drivers, and only provides a standard way to [`Parse`] respective database connection URLs then [`Connect`] or [`Open`] connections.
+
+
+
+
+
 
 
 
