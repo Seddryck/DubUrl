@@ -50,13 +50,20 @@ public abstract partial class ConnectionAuthentication
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
             ValidateCertificate();
-            var type = connection.GetType();
-            var npgsql = type.FullName == "Npgsql.NpgsqlConnection";
-            var mysql = type.FullName == "MySqlConnector.MySqlConnection";
-            var singleStore = type.FullName == "SingleStoreConnector.SingleStoreConnection";
-            if (!npgsql && !mysql && !singleStore) throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+            var npgsql = ValidateConnectionType(connection.GetType());
             if (npgsql && !IsPostgreSqlOrCockroach(context.Scheme))
                 throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+            ConfigureTls(connection, npgsql);
+            InstallCertificateCallback(connection);
+        }
+        private static bool ValidateConnectionType(Type type)
+        {
+            if (type.FullName == "Npgsql.NpgsqlConnection") return true;
+            if (type.FullName is "MySqlConnector.MySqlConnection" or "SingleStoreConnector.SingleStoreConnection") return false;
+            throw new ConnectionAuthenticationException("UnsupportedAuthentication");
+        }
+        private static void ConfigureTls(DbConnection connection, bool npgsql)
+        {
             var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };
             foreach (var key in builder.Keys.Cast<string>())
             {
@@ -67,7 +74,10 @@ public abstract partial class ConnectionAuthentication
             builder["SSL Mode"] = "VerifyFull";
             if (npgsql) builder["Require Auth"] = "None";
             connection.ConnectionString = builder.ConnectionString;
-            var property = type.GetProperty("ProvideClientCertificatesCallback")
+        }
+        private void InstallCertificateCallback(DbConnection connection)
+        {
+            var property = connection.GetType().GetProperty("ProvideClientCertificatesCallback")
                 ?? throw new ConnectionAuthenticationException("UnsupportedAuthentication");
             var returnType = property.PropertyType.GetMethod("Invoke")!.ReturnType;
             var methodName = returnType == typeof(void) ? nameof(AddCertificate)

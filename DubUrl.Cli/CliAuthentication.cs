@@ -26,7 +26,7 @@ internal sealed class CliAuthentication
         var usePrompt = result.GetValue(prompt);
         var entry = result.GetValue(reference);
         var user = result.GetValue(username);
-        if (usePrompt && entry is not null || user is not null && !usePrompt && entry is null)
+        if ((usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
             throw new ConnectionAuthenticationException("CredentialConflict");
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
         if (usePrompt || entry is not null)

@@ -4,46 +4,30 @@ namespace DubUrl.Application;
 
 public static class ConnectionCheckSql
 {
-    public static string GetFamily(string scheme)
+    private static readonly IReadOnlyDictionary<string, string> Families = new Dictionary<string, string>
     {
-        var name = scheme.Split('+').Last().ToLowerInvariant();
-        return name switch
-        {
-            "pg" or "pgx" or "pgsql" or "postgres" or "postgresql" => "postgresql",
-            "ms" or "mssqlserver" or "mssql" or "sqlserver" => "sqlserver",
-            "ts" or "timescale" or "timescaledb" => "timescale",
-            "cr" or "crdb" or "cdb" or "cockroach" or "cockroachdb" => "cockroachdb",
-            "my" or "mysql" or "mysqlconnector" or "mysqldata" => "mysql",
-            "maria" or "mariadb" => "mariadb",
-            "sq" => "sqlite",
-            "duck" => "duckdb",
-            "or" or "ora" => "oracle",
-            "sf" => "snowflake",
-            "fb" => "firebird",
-            "quest" => "questdb",
-            "crt" or "crate" => "cratedb",
-            "tr" => "trino",
-            "td" or "tera" or "teradatasql" => "teradata",
-            "sg" or "sgs" or "single" or "singlestoredb" => "singlestore",
-            "accdb" or "msaccess" or "mdb" => "access",
-            "xls" or "xlsx" or "xlsb" or "xlsm" => "excel",
-            "txt" or "csv" or "tsv" => "text",
-            "sqlite" or "duckdb" or "oracle" or "snowflake" or "db2" or "firebird" or "firebirdsql"
-                or "questdb" or "cratedb" or "trino" or "drill" or "teradata" or "singlestore"
-                or "access" or "excel" or "text" => name,
-            _ => "unknown"
-        };
-    }
+        ["postgresql"] = "pg pgx pgsql postgres postgresql", ["sqlserver"] = "ms mssqlserver mssql sqlserver",
+        ["timescale"] = "ts timescale timescaledb", ["cockroachdb"] = "cr crdb cdb cockroach cockroachdb",
+        ["mysql"] = "my mysql mysqlconnector mysqldata", ["mariadb"] = "maria mariadb", ["sqlite"] = "sq sqlite",
+        ["duckdb"] = "duck duckdb", ["oracle"] = "or ora oracle", ["snowflake"] = "sf snowflake",
+        ["firebird"] = "fb firebird firebirdsql", ["questdb"] = "quest questdb", ["cratedb"] = "crt crate cratedb",
+        ["trino"] = "tr trino", ["teradata"] = "td tera teradatasql teradata",
+        ["singlestore"] = "sg sgs single singlestoredb singlestore", ["access"] = "accdb msaccess mdb access",
+        ["excel"] = "xls xlsx xlsb xlsm excel", ["text"] = "txt csv tsv text", ["db2"] = "db2", ["drill"] = "drill"
+    }.SelectMany(group => group.Value.Split(' ').Select(alias => KeyValuePair.Create(alias, group.Key)))
+        .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> BracketFamilies = ["sqlserver", "sqlite", "access", "excel", "text"];
+    private static readonly HashSet<string> BacktickFamilies = ["mysql", "mariadb", "singlestore", "sqlite"];
+    private static readonly HashSet<string> LowerCaseFamilies = ["postgresql", "timescale", "cockroachdb", "cratedb"];
+    private static readonly HashSet<string> UpperCaseFamilies = ["oracle", "snowflake", "db2", "firebird", "firebirdsql"];
 
+    public static string GetFamily(string scheme) => Families.GetValueOrDefault(scheme.Split('+').Last(), "unknown");
     public static string Engine(string family) => family switch
     {
         "unknown" => throw new NotSupportedException("SQL checking is unavailable for this database family."),
-        "oracle" => "SELECT 1 FROM DUAL",
-        "db2" => "SELECT 1 FROM SYSIBM.SYSDUMMY1",
-        "firebird" or "firebirdsql" => "SELECT 1 FROM RDB$DATABASE",
-        _ => "SELECT 1"
+        "oracle" => "SELECT 1 FROM DUAL", "db2" => "SELECT 1 FROM SYSIBM.SYSDUMMY1",
+        "firebird" or "firebirdsql" => "SELECT 1 FROM RDB$DATABASE", _ => "SELECT 1"
     };
-
     public static string Table(string family, string name)
     {
         _ = Engine(family);
@@ -60,45 +44,43 @@ public static class ConnectionCheckSql
         var position = 0;
         while (position < name.Length)
         {
-            var start = name[position];
-            var quoted = start == '"' || (start == '[' && family is "sqlserver" or "sqlite" or "access" or "excel" or "text")
-                || (start == '`' && family is "mysql" or "mariadb" or "singlestore" or "sqlite");
-            var value = new StringBuilder();
-            if (quoted)
-            {
-                var closing = start == '[' ? ']' : start;
-                position++;
-                var closed = false;
-                while (position < name.Length)
-                {
-                    var ch = name[position++];
-                    if (ch == closing)
-                    {
-                        if (position < name.Length && name[position] == closing) { value.Append(ch); position++; }
-                        else { closed = true; break; }
-                    }
-                    else value.Append(ch);
-                }
-                if (!closed || value.Length == 0 || value.ToString().Any(char.IsControl))
-                    throw new ArgumentException("Invalid quoted table identifier.");
-            }
-            else
-            {
-                if (!(char.IsAsciiLetter(start) || start == '_')) throw new ArgumentException("Invalid table identifier.");
-                while (position < name.Length && (char.IsAsciiLetterOrDigit(name[position]) || name[position] == '_'))
-                    value.Append(name[position++]);
-            }
-            var text = value.ToString();
-            if (!quoted)
-                text = family is "postgresql" or "timescale" or "cockroachdb" or "cratedb" ? text.ToLowerInvariant()
-                    : family is "oracle" or "snowflake" or "db2" or "firebird" or "firebirdsql" ? text.ToUpperInvariant() : text;
-            parts.Add(Quote(family, text));
+            var quoted = IsQuoted(name[position], family);
+            var value = quoted ? ReadQuoted(name, ref position) : Fold(ReadSimple(name, ref position), family);
+            parts.Add(Quote(family, value));
             if (position == name.Length) break;
             if (name[position++] != '.' || position == name.Length) throw new ArgumentException("Invalid qualified table identifier.");
         }
         return parts;
     }
-
+    private static bool IsQuoted(char start, string family)
+        => start == '"' || (start == '[' && BracketFamilies.Contains(family)) || (start == '`' && BacktickFamilies.Contains(family));
+    private static string ReadSimple(string name, ref int position)
+    {
+        if (!(char.IsAsciiLetter(name[position]) || name[position] == '_')) throw new ArgumentException("Invalid table identifier.");
+        var start = position++;
+        while (position < name.Length && (char.IsAsciiLetterOrDigit(name[position]) || name[position] == '_')) position++;
+        return name[start..position];
+    }
+    private static string ReadQuoted(string name, ref int position)
+    {
+        var opening = name[position++];
+        var closing = opening == '[' ? ']' : opening;
+        var value = new StringBuilder();
+        while (position < name.Length)
+        {
+            var ch = name[position++];
+            if (ch != closing) { value.Append(ch); continue; }
+            if (position < name.Length && name[position] == closing) { value.Append(ch); position++; continue; }
+            if (value.Length == 0 || value.ToString().Any(char.IsControl)) throw new ArgumentException("Invalid quoted table identifier.");
+            return value.ToString();
+        }
+        throw new ArgumentException("Invalid quoted table identifier.");
+    }
+    private static string Fold(string value, string family)
+    {
+        if (LowerCaseFamilies.Contains(family)) return value.ToLowerInvariant();
+        return UpperCaseFamilies.Contains(family) ? value.ToUpperInvariant() : value;
+    }
     private static string Quote(string family, string name) => family switch
     {
         "sqlserver" or "access" or "excel" or "text" => "[" + name.Replace("]", "]]") + "]",

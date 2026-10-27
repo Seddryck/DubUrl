@@ -4,50 +4,61 @@ namespace DubUrl.Authentication;
 
 internal static class AuthenticationConfiguration
 {
-    // Normalize aliases before comparing. Fail closed for modes/credential-bearing option aliases.
+    private static readonly HashSet<string> CredentialOptions = new((
+        "uid userid user username pwd passwd password authentication authenticator integratedsecurity trustedconnection sspi " +
+        "passfile requireauth sslcert sslclientcertificate clientcertificatekey sslclientkey accesstoken token clientsecret clientid " +
+        "clientcertificate sslcertificate sslkey sslpassword certificatefile certificatepassword certificatestorelocation " +
+        "certificatethumbprint certificate privatekey privatekeyfile clientstoretemporarycredential").Split(' '), StringComparer.Ordinal);
+
     private static string Normalize(string key) => new(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
     internal static void Validate(ConnectionUri uri, ConnectionAuthentication strategy)
     {
         if (uri.HasPassword) throw new ConnectionAuthenticationException("CredentialConflict");
-        if (strategy.Kind is ConnectionAuthenticationKind.NativeToken or ConnectionAuthenticationKind.InteractiveOAuth && uri.HasUsername)
-            throw new ConnectionAuthenticationException("CredentialConflict");
+        if (RejectsUsername(strategy.Kind) && uri.HasUsername) throw new ConnectionAuthenticationException("CredentialConflict");
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
-            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity
-                && key is "integratedsecurity" or "trustedconnection"
-                && option.Value.ToLowerInvariant() is "true" or "sspi" or "yes") continue;
-            if (key is "uid" or "userid" or "user" or "username" or "pwd" or "passwd" or "password"
-                or "authentication" or "authenticator" or "integratedsecurity" or "trustedconnection" or "sspi"
-                or "passfile" or "requireauth" or "sslcert" or "sslclientcertificate" or "clientcertificatekey" or "sslclientkey"
-                or "accesstoken" or "token" or "clientsecret" or "clientid" or "clientcertificate" or "sslcertificate"
-                or "sslkey" or "sslpassword" or "certificatefile" or "certificatepassword" or "certificatestorelocation"
-                or "certificatethumbprint" or "certificate" or "privatekey" or "privatekeyfile"
-                || key.StartsWith("oauth", StringComparison.Ordinal) || key == "clientstoretemporarycredential"
-                || key.EndsWith("password", StringComparison.Ordinal) || key.EndsWith("token", StringComparison.Ordinal)
-                || key.EndsWith("secret", StringComparison.Ordinal))
-                throw new ConnectionAuthenticationException("CredentialConflict");
+            if (IsCompatibleOperatingSystemOption(strategy.Kind, key, option.Value)) continue;
+            if (IsCredentialOption(key)) throw new ConnectionAuthenticationException("CredentialConflict");
         }
     }
 
+    private static bool RejectsUsername(ConnectionAuthenticationKind kind)
+        => kind is ConnectionAuthenticationKind.NativeToken or ConnectionAuthenticationKind.InteractiveOAuth;
+    private static bool IsCompatibleOperatingSystemOption(ConnectionAuthenticationKind kind, string key, string value)
+        => kind == ConnectionAuthenticationKind.OperatingSystemIdentity
+            && key is "integratedsecurity" or "trustedconnection"
+            && value.ToLowerInvariant() is "true" or "sspi" or "yes";
+    private static bool IsCredentialOption(string key)
+        => CredentialOptions.Contains(key) || key.StartsWith("oauth", StringComparison.Ordinal)
+            || key.EndsWith("password", StringComparison.Ordinal) || key.EndsWith("token", StringComparison.Ordinal)
+            || key.EndsWith("secret", StringComparison.Ordinal);
+
     internal static ConnectionUri Apply(ConnectionUri uri, ConnectionAuthentication strategy, UsernamePasswordCredentials? credentials)
     {
-        if (credentials is not null)
+        if (credentials is null)
         {
-            if (uri.HasUsername && credentials.Username is not null && uri.Username != credentials.Username)
-                throw new ConnectionAuthenticationException("CredentialConflict");
-            if (credentials.Password is null || (credentials.Username is null && !uri.HasUsername))
-                throw new ConnectionAuthenticationException("MissingCredentials");
+            if (strategy.Kind == ConnectionAuthenticationKind.UsernamePassword) throw new ConnectionAuthenticationException("MissingCredentials");
+            return CopyWithCredentials(uri, uri.Username, "", uri.HasUsername, false);
         }
-        else if (strategy.Kind == ConnectionAuthenticationKind.UsernamePassword)
-            throw new ConnectionAuthenticationException("MissingCredentials");
-        return new ConnectionUri
+        ValidateCredentials(uri, credentials);
+        return CopyWithCredentials(uri, credentials.Username ?? uri.Username, credentials.Password!, credentials.Username is not null || uri.HasUsername, true);
+    }
+
+    private static void ValidateCredentials(ConnectionUri uri, UsernamePasswordCredentials credentials)
+    {
+        if (uri.HasUsername && credentials.Username is not null && uri.Username != credentials.Username)
+            throw new ConnectionAuthenticationException("CredentialConflict");
+        if (credentials.Password is null) throw new ConnectionAuthenticationException("MissingCredentials");
+        if (credentials.Username is null && !uri.HasUsername) throw new ConnectionAuthenticationException("MissingCredentials");
+    }
+
+    private static ConnectionUri CopyWithCredentials(ConnectionUri uri, string username, string password, bool hasUsername, bool hasPassword)
+        => new()
         {
             Scheme = uri.Scheme, Host = uri.Host, Port = uri.Port, Segments = uri.Segments, Options = uri.Options,
-            Username = credentials?.Username ?? uri.Username, Password = credentials?.Password ?? "",
-            HasUsername = credentials?.Username is not null || uri.HasUsername, HasPassword = credentials?.Password is not null
+            Username = username, Password = password, HasUsername = hasUsername, HasPassword = hasPassword
         };
-    }
 
     internal static void ValidatePasswordProvider(string provider)
     {

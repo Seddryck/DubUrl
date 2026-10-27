@@ -26,7 +26,7 @@ public sealed class ConfigurationUsernamePasswordCredentialSource : ISynchronous
         {
             var username = usernameKey is null ? null : configuration[usernameKey];
             var password = configuration[passwordKey];
-            if (password is null || username is null && context.Username is null)
+            if (password is null || (username is null && context.Username is null))
                 throw new ConnectionAuthenticationException("MissingCredentials");
             return new(username, password);
         }

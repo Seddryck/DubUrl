@@ -139,31 +139,8 @@ internal static partial class SchemaCommand
         var creationOptions = dropExisting ? SchemaCreationOptions.DropIfExists : SchemaCreationOptions.None;
 
         if (dryRun)
-        {
-            try
-            {
-                var connection = target;
-                var dialect = connection.Dialect.Aliases.First();
-                var rendered = services.GetRequiredService<ISchemaDocumentService>().Render(document, dialect,
-                    new SchemaRenderOptions { CreationOptions = creationOptions });
-                WriteRenderResult(services, rendered, json, outputPath: null, command: "deploy", dryRun: true);
-                return rendered.IsSuccess ? CliExitCodes.Success : CliExitCodes.ValidationFailed;
-            }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                throw new CliInputException("The selected connection could not be resolved. Check its scheme and configuration.");
-            }
-        }
-
-        if (dropExisting && !confirmed)
-        {
-            var console = services.GetRequiredService<ICliConsole>();
-            if (!console.IsInteractive)
-                throw new CliInputException("Destructive non-interactive deployment requires --yes.");
-            console.Error.Write("This deployment can drop existing objects. Type 'yes' to continue: ");
-            if (!string.Equals(console.In.ReadLine(), "yes", StringComparison.OrdinalIgnoreCase))
-                throw new CliInputException("Destructive deployment was not confirmed.");
-        }
+            return RenderDeploymentDryRun(services, document, target, creationOptions, json);
+        ConfirmDestructiveDeployment(services, dropExisting, confirmed);
 
         SchemaDeploymentResult operation;
         try
@@ -186,6 +163,29 @@ internal static partial class SchemaCommand
         };
         WriteDeploymentResult(services, operation, json);
         return operation.IsSuccess ? CliExitCodes.Success : CliExitCodes.DeploymentFailed;
+    }
+
+    private static int RenderDeploymentDryRun(IServiceProvider services, ISchemaDocument document, ConnectionUrl target, SchemaCreationOptions creationOptions, bool json)
+    {
+        try
+        {
+            var dialect = target.Dialect.Aliases.First();
+            var rendered = services.GetRequiredService<ISchemaDocumentService>().Render(document, dialect,
+                new SchemaRenderOptions { CreationOptions = creationOptions });
+            WriteRenderResult(services, rendered, json, outputPath: null, command: "deploy", dryRun: true);
+            return rendered.IsSuccess ? CliExitCodes.Success : CliExitCodes.ValidationFailed;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        { throw new CliInputException("The selected connection could not be resolved. Check its scheme and configuration."); }
+    }
+    private static void ConfirmDestructiveDeployment(IServiceProvider services, bool dropExisting, bool confirmed)
+    {
+        if (!dropExisting || confirmed) return;
+        var console = services.GetRequiredService<ICliConsole>();
+        if (!console.IsInteractive) throw new CliInputException("Destructive non-interactive deployment requires --yes.");
+        console.Error.Write("This deployment can drop existing objects. Type 'yes' to continue: ");
+        if (!string.Equals(console.In.ReadLine(), "yes", StringComparison.OrdinalIgnoreCase))
+            throw new CliInputException("Destructive deployment was not confirmed.");
     }
 
     private static int ExecuteSafely(IServiceProvider services, string command, Func<int> action)

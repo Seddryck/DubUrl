@@ -53,20 +53,7 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
             var accounts = await application!.GetAccountsAsync().ConfigureAwait(false);
             var account = configured.LoginHint is null ? accounts.SingleOrDefault()
                 : accounts.FirstOrDefault(a => string.Equals(a.Username, configured.LoginHint, StringComparison.OrdinalIgnoreCase));
-            AuthenticationResult result;
-            try { result = await application.AcquireTokenSilent(configured.Scopes, account).ExecuteAsync(budget.Token).ConfigureAwait(false); }
-            catch (MsalUiRequiredException)
-            {
-                if (!configured.AllowInteraction || !Environment.UserInteractive)
-                    throw new ConnectionAuthenticationException("InteractionRequired");
-                // MSAL's external system browser path uses auth-code + PKCE; no broker, embedded
-                // password collection, client secret, device code or custom crypto/token exchange.
-                var builder = application.AcquireTokenInteractive(configured.Scopes).WithUseEmbeddedWebView(false)
-                    .WithSystemWebViewOptions(new SystemWebViewOptions
-                    { HtmlMessageSuccess = "Authentication completed. You may close this window.", HtmlMessageError = "Authentication failed. Return to the application." });
-                if (configured.LoginHint is not null) builder = builder.WithLoginHint(configured.LoginHint);
-                result = await builder.ExecuteAsync(budget.Token).ConfigureAwait(false);
-            }
+            var result = await AcquireCachedOrInteractiveAsync(configured, account, budget.Token).ConfigureAwait(false);
             return new(result.AccessToken, result.ExpiresOn);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -74,6 +61,22 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
         catch (ConnectionAuthenticationException) { throw; }
         catch { throw new ConnectionAuthenticationException("AuthenticationFailed"); }
         finally { if (entered) acquisition.Release(); }
+    }
+
+    private async Task<AuthenticationResult> AcquireCachedOrInteractiveAsync(InteractiveOAuthOptions configured, IAccount? account, CancellationToken cancellationToken)
+    {
+        try { return await application!.AcquireTokenSilent(configured.Scopes, account).ExecuteAsync(cancellationToken).ConfigureAwait(false); }
+        catch (MsalUiRequiredException) { return await AcquireInteractiveAsync(configured, cancellationToken).ConfigureAwait(false); }
+    }
+    private Task<AuthenticationResult> AcquireInteractiveAsync(InteractiveOAuthOptions configured, CancellationToken cancellationToken)
+    {
+        if (!configured.AllowInteraction || !Environment.UserInteractive) throw new ConnectionAuthenticationException("InteractionRequired");
+        // MSAL owns the external-browser authorization-code + PKCE protocol.
+        var builder = application!.AcquireTokenInteractive(configured.Scopes).WithUseEmbeddedWebView(false)
+            .WithSystemWebViewOptions(new SystemWebViewOptions
+            { HtmlMessageSuccess = "Authentication completed. You may close this window.", HtmlMessageError = "Authentication failed. Return to the application." });
+        if (configured.LoginHint is not null) builder = builder.WithLoginHint(configured.LoginHint);
+        return builder.ExecuteAsync(cancellationToken);
     }
 
     public async Task ClearCacheAsync(CancellationToken cancellationToken = default)

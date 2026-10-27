@@ -43,11 +43,7 @@ internal static class ConnectionCommand
         try
         {
             if (format is not (null or "human" or "json")) throw new ArgumentException("Output format must be human or json.");
-            if (new[] { url, name, environment }.Count(value => value is not null) != 1)
-                throw new ArgumentException("Specify exactly one URL, --connection or --connection-env.");
-            url ??= environment is not null ? Environment.GetEnvironmentVariable(environment)
-                : services.GetRequiredService<IConfiguration>()[$"ConnectionStrings:{name}"];
-            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("The selected connection is not configured.");
+            url = ResolveTarget(services, url, name, environment);
             var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(
                 authentication.Configure(services, parsed, url), options, cancellationToken).ConfigureAwait(false);
             Write(console, operation, format == "json");
@@ -57,11 +53,22 @@ internal static class ConnectionCommand
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
         {
             // Do not emit parser/provider exception messages: they may contain URL components or paths.
-            Write(console, new(false, options.Table is not null ? "table" : options.Engine ? "engine" : "connection", null, 0,
-                [new("invalidInput", "Invalid connection, selector, identifier, timeout, output format or unsupported SQL mode.")]), format == "json");
+            Write(console, InvalidResult(options), format == "json");
             return CliExitCodes.InvalidInput;
         }
     }
+
+    private static string ResolveTarget(IServiceProvider services, string? url, string? name, string? environment)
+    {
+        if (new[] { url, name, environment }.Count(value => value is not null) != 1)
+            throw new ArgumentException("Specify exactly one URL, --connection or --connection-env.");
+        url ??= environment is not null ? Environment.GetEnvironmentVariable(environment)
+            : services.GetRequiredService<IConfiguration>()[$"ConnectionStrings:{name}"];
+        return !string.IsNullOrWhiteSpace(url) ? url : throw new ArgumentException("The selected connection is not configured.");
+    }
+    private static ConnectionCheckResult InvalidResult(ConnectionCheckOptions options)
+        => new(false, options.Table is not null ? "table" : options.Engine ? "engine" : "connection", null, 0,
+            [new("invalidInput", "Invalid connection, selector, identifier, timeout, output format or unsupported SQL mode.")]);
 
     private static void Write(ICliConsole console, ConnectionCheckResult result, bool json)
     {

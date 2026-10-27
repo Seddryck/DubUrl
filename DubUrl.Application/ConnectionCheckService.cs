@@ -11,11 +11,9 @@ public sealed record ConnectionCheckOptions
     public string? Table { get; init; }
     public int TimeoutSeconds { get; init; } = 15;
 }
-
 public sealed record ConnectionCheckDiagnostic(string Code, string Message, string? NativeCode = null, string? SqlState = null);
 public sealed record ConnectionCheckResult(bool Success, string Mode, string? Provider, long ElapsedMilliseconds,
     IReadOnlyList<ConnectionCheckDiagnostic> Diagnostics);
-
 public interface IConnectionCheckService
 {
     Task<ConnectionCheckResult> CheckAsync(ConnectionUrl target, ConnectionCheckOptions options, CancellationToken cancellationToken = default);
@@ -30,55 +28,75 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         ArgumentNullException.ThrowIfNull(options);
         if (options.TimeoutSeconds <= 0 || (options.Engine && options.Table is not null))
             throw new ArgumentException("Specify a positive timeout and at most one of engine or table.");
-        var clock = Stopwatch.StartNew();
-        var mode = options.Table is not null ? "table" : options.Engine ? "engine" : "connection";
         var family = ConnectionCheckSql.GetFamily(ConnectionUri.Parse(target.Url).Scheme.Canonical);
-        var sql = options.Table is not null ? ConnectionCheckSql.Table(family, options.Table)
-            : options.Engine ? ConnectionCheckSql.Engine(family) : null;
-        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        string? provider = null;
-        var executing = false;
+        using var attempt = new CheckAttempt(options, family, cancellationToken);
         try
         {
-            // Creating/configuring the connection must not open it. A provider's async operations may
-            // implement cancellation only partially; always await completion before disposing it.
+            await attempt.ExecuteAsync(target, cancellationToken).ConfigureAwait(false);
+            return attempt.Result(true, []);
+        }
+        catch (Exception) when (cancellationToken.IsCancellationRequested) { throw new OperationCanceledException(cancellationToken); }
+        catch (Exception error) when (error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException)
+        { return attempt.Result(false, [attempt.Classify(error)]); }
+    }
+
+    private sealed class CheckAttempt : IDisposable
+    {
+        private readonly ConnectionCheckOptions options;
+        private readonly string family;
+        private readonly string mode;
+        private readonly string? sql;
+        private readonly CancellationTokenSource budget;
+        private readonly Stopwatch elapsed = Stopwatch.StartNew();
+        private string? provider;
+        private bool executing;
+        internal CheckAttempt(ConnectionCheckOptions options, string family, CancellationToken cancellationToken)
+        {
+            this.options = options; this.family = family;
+            mode = options.Table is not null ? "table" : options.Engine ? "engine" : "connection";
+            sql = options.Table is not null ? ConnectionCheckSql.Table(family, options.Table) : options.Engine ? ConnectionCheckSql.Engine(family) : null;
+            budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        }
+        internal async Task ExecuteAsync(ConnectionUrl target, CancellationToken cancellationToken)
+        {
+            // Credential acquisition creates a closed connection, before starting the DB budget.
             using var connection = await target.ConnectAsync(cancellationToken).ConfigureAwait(false);
-            // Explicit password/store acquisition prepares a closed connection before the DB budget.
             var databaseClock = Stopwatch.StartNew();
             budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
             provider = connection.GetType().Namespace;
-            if (family is "access" or "excel" or "text" || (family is "sqlite" or "duckdb" && provider is "System.Data.Odbc" or "System.Data.OleDb"))
-                throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
+            ValidateFileProvider(family, provider);
             RequireExistingFile(connection, family);
             await target.OpenPreparedAsync(connection, budget.Token).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
-            if (sql is not null)
-            {
-                using var command = connection.CreateCommand();
-                command.CommandText = sql;
-                command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - databaseClock.Elapsed.TotalSeconds));
-                executing = true;
-                using var reader = await command.ExecuteReaderAsync(budget.Token).ConfigureAwait(false);
-                // Executing the statement is the check. A zero-row result is successful.
-            }
+            if (sql is not null) await ExecuteStatementAsync(connection, databaseClock).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
-            return new(true, mode, provider, clock.ElapsedMilliseconds, []);
         }
-        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        private async Task ExecuteStatementAsync(DbConnection connection, Stopwatch databaseClock)
         {
-            throw new OperationCanceledException(cancellationToken);
+            using var command = connection.CreateCommand();
+            command.CommandText = sql!;
+            command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - databaseClock.Elapsed.TotalSeconds));
+            executing = true;
+            // Successful execution with zero rows is success. No alternate query follows.
+            using var reader = await command.ExecuteReaderAsync(budget.Token).ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException)
+        internal ConnectionCheckResult Result(bool success, IReadOnlyList<ConnectionCheckDiagnostic> diagnostics)
+            => new(success, mode, provider, elapsed.ElapsedMilliseconds, diagnostics);
+        internal ConnectionCheckDiagnostic Classify(Exception error)
         {
-            var diagnostic = budget.IsCancellationRequested || exception is TimeoutException
-                ? new ConnectionCheckDiagnostic("timeout", "The database check exceeded its time budget.")
-                : exception is ConnectionAuthenticationException authentication
-                    ? new ConnectionCheckDiagnostic(authentication.Code, authentication.Message)
-                    : ConnectionCheckErrors.Classify(family, provider, exception, executing && mode == "table", options.Table);
-            return new(false, mode, provider, clock.ElapsedMilliseconds, [diagnostic]);
+            if (budget.IsCancellationRequested || error is TimeoutException)
+                return new("timeout", "The database check exceeded its time budget.");
+            if (error is ConnectionAuthenticationException authentication) return new(authentication.Code, authentication.Message);
+            return ConnectionCheckErrors.Classify(family, provider, error, executing && mode == "table", options.Table);
         }
+        public void Dispose() => budget.Dispose();
     }
-
+    private static void ValidateFileProvider(string family, string? provider)
+    {
+        if (family is "access" or "excel" or "text") throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
+        if (family is "sqlite" or "duckdb" && provider is "System.Data.Odbc" or "System.Data.OleDb")
+            throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
+    }
     private static void RequireExistingFile(DbConnection connection, string family)
     {
         if (family is not ("sqlite" or "duckdb")) return;
