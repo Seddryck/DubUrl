@@ -49,6 +49,16 @@ dotnet test Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.P
 
 PostgreSQL accepts `DUBURL_POSTGRESQL_QA_URL` for the DubUrl connection URL and `DUBURL_POSTGRESQL_QA_CONNECTION_STRING` for the driver connection string. Defaults match the bundled Compose environment.
 
+Oracle provisions its own disposable Oracle Free Lite container and dedicated test
+schema with generated credentials. Run the same entry point locally and in CI:
+
+```powershell
+./QA/DubUrl.QA/Oracle/deploy-oracle-test-env.ps1
+```
+
+See [Oracle QA infrastructure](https://github.com/Seddryck/DubUrl/tree/main/Providers/Oracle/DubUrl.Provider.Oracle.QA/infrastructure)
+for prerequisites, focused framework selection, image pinning and coverage limits.
+
 ## QA bundles
 
 Every provider QA project imports `build/ProviderQaBundle.targets`, owns a validated `qa-manifest.json`, and declares its infrastructure files with `QaInfrastructure`. Create a complete versioned bundle for one target framework with:

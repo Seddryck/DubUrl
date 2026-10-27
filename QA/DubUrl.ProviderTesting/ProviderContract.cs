@@ -33,6 +33,7 @@ public abstract class ProviderContract
     protected virtual bool SupportsDapper => true;
     protected virtual bool SupportsDapperRepository => true;
     protected virtual string SelectPrimitiveTemplate => "select $value; format=\"value\"$";
+    protected virtual string SelectAliasedPrimitiveTemplate => $"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$";
 
     [OneTimeSetUp]
     public virtual void RegisterProviderFactories()
@@ -137,7 +138,7 @@ public abstract class ProviderContract
         if (!SupportsNull)
             Assert.Ignore("The provider does not support the shared null-value contract.");
         var value = new DatabaseUrl(ConnectionUrl).ReadScalar<string>(
-            $"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$",
+            SelectAliasedPrimitiveTemplate,
             new Dictionary<string, object?> { ["value"] = null, ["columnId"] = "ColumnName" });
         Assert.That(value, Is.Null);
     }
@@ -146,7 +147,7 @@ public abstract class ProviderContract
     public void QueryRepeatWithDatabaseUrl()
     {
         var database = new DatabaseUrl(ConnectionUrl);
-        var template = database.CreateTemplate($"{SelectPrimitiveTemplate} AS $columnId;format=\"identity\"$");
+        var template = database.CreateTemplate(SelectAliasedPrimitiveTemplate);
         var parameters = new Dictionary<string, object?> { ["value"] = "foo", ["columnId"] = "ColumnName" };
         foreach (var expected in new[] { "foo", "bar", "qrz" })
         {
