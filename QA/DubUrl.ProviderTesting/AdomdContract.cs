@@ -128,7 +128,7 @@ public abstract class AdomdContract : CliConnectionCheckContract
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection().Build())
             .AddDubUrl(new DubUrlServiceOptions())
-            .AddSingleton(registry);
+            .AddSingleton<ISchemeRegistry>(registry);
         return microOrm ? services.WithMicroOrm() : services;
     }
     private void RequirePrimitives() => Require(SupportsPrimitives, "Primitive queries are not implemented.");
