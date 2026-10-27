@@ -20,6 +20,6 @@ COPY --chown=alice:alice Providers/ /src/Providers/
 COPY --chown=alice:alice connectors/ /src/connectors/
 COPY --chown=alice:alice build/ /src/build/
 COPY --chown=alice:alice misc/icon/ /src/misc/icon/
-COPY --chown=alice:alice QA/Authentication/Peer/run.sh /src/QA/Authentication/Peer/run.sh
+COPY QA/Authentication/Peer/run.sh /usr/local/libexec/duburl-peer-fixture.sh
 WORKDIR /src
-ENTRYPOINT ["bash", "QA/Authentication/Peer/run.sh"]
+ENTRYPOINT ["bash", "/usr/local/libexec/duburl-peer-fixture.sh"]

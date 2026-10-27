@@ -74,7 +74,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         private async Task ExecuteStatementAsync(DbConnection connection, Stopwatch databaseClock)
         {
             using var command = connection.CreateCommand();
-            command.CommandText = sql!;
+            command.CommandText = sql ?? throw new InvalidOperationException("No check statement was selected.");
             command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - databaseClock.Elapsed.TotalSeconds));
             executing = true;
             // Successful execution with zero rows is success. No alternate query follows.
@@ -90,37 +90,37 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             return ConnectionCheckErrors.Classify(family, provider, error, executing && mode == "table", options.Table);
         }
         public void Dispose() => budget.Dispose();
-    }
-    private static string GetMode(ConnectionCheckOptions options)
-    {
-        if (options.Table is not null) return "table";
-        return options.Engine ? "engine" : "connection";
-    }
-    private static string? GetStatement(ConnectionCheckOptions options, string family)
-    {
-        if (options.Table is not null) return ConnectionCheckSql.Table(family, options.Table);
-        return options.Engine ? ConnectionCheckSql.Engine(family) : null;
-    }
-    private static void ValidateFileProvider(string family, string? provider)
-    {
-        if (family is "access" or "excel" or "text") throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
-        if (family is "sqlite" or "duckdb" && provider is "System.Data.Odbc" or "System.Data.OleDb")
-            throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
-    }
-    private static void RequireExistingFile(DbConnection connection, string family)
-    {
-        if (family is not ("sqlite" or "duckdb")) return;
-        var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };
-        if (family == "sqlite")
+        private static string GetMode(ConnectionCheckOptions options)
         {
-            if (builder.TryGetValue("Data Source", out var source) && source.ToString() == ":memory:") return;
-            builder["Mode"] = "ReadOnly";
+            if (options.Table is not null) return "table";
+            return options.Engine ? "engine" : "connection";
         }
-        else
+        private static string? GetStatement(ConnectionCheckOptions options, string family)
         {
-            if (builder.TryGetValue("DataSource", out var source) && source.ToString() == ":memory:") return;
-            builder["Access_Mode"] = "Read_Only";
+            if (options.Table is not null) return ConnectionCheckSql.Table(family, options.Table);
+            return options.Engine ? ConnectionCheckSql.Engine(family) : null;
         }
-        connection.ConnectionString = builder.ConnectionString;
+        private static void ValidateFileProvider(string family, string? provider)
+        {
+            if (family is "access" or "excel" or "text") throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
+            if (family is "sqlite" or "duckdb" && provider is "System.Data.Odbc" or "System.Data.OleDb")
+                throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
+        }
+        private static void RequireExistingFile(DbConnection connection, string family)
+        {
+            if (family is not ("sqlite" or "duckdb")) return;
+            var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };
+            if (family == "sqlite")
+            {
+                if (builder.TryGetValue("Data Source", out var source) && source.ToString() == ":memory:") return;
+                builder["Mode"] = "ReadOnly";
+            }
+            else
+            {
+                if (builder.TryGetValue("DataSource", out var source) && source.ToString() == ":memory:") return;
+                builder["Access_Mode"] = "Read_Only";
+            }
+            connection.ConnectionString = builder.ConnectionString;
+        }
     }
 }

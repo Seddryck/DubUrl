@@ -169,7 +169,7 @@ internal static partial class SchemaCommand
     {
         try
         {
-            var dialect = target.Dialect.Aliases.First();
+            var dialect = target.Dialect.Aliases[0];
             var rendered = services.GetRequiredService<ISchemaDocumentService>().Render(document, dialect,
                 new SchemaRenderOptions { CreationOptions = creationOptions });
             WriteRenderResult(services, rendered, json, outputPath: null, command: "deploy", dryRun: true);
