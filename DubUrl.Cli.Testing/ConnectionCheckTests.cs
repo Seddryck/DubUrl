@@ -67,6 +67,35 @@ public class ConnectionCheckTests
         Assert.That(File.Exists(path), Is.False);
     }
 
+    [TestCase(false, "tableNotFound")]
+    [TestCase(true, "executionFailed")]
+    public async Task MissingViewDependencyDoesNotClaimRequestedViewIsAbsent(bool view, string expected)
+    {
+        var path = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"resolution-{Guid.NewGuid():N}.db");
+        try
+        {
+            using (var setup = new SqliteConnection($"Data Source={path}"))
+            {
+                setup.Open();
+                if (view)
+                {
+                    using var command = setup.CreateCommand();
+                    command.CommandText = "CREATE VIEW customer AS SELECT * FROM hidden";
+                    command.ExecuteNonQuery();
+                }
+            }
+            var console = new RecordingConsole();
+            DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", SqliteFactory.Instance);
+            await using var services = CliComposition.CreateDefault(console,
+                providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)]);
+            var exit = await CliHost.InvokeAsync(["connection", "check", $"sqlite:///{path.Replace('\\', '/')}", "--table", "customer", "--output-format", "json"], services);
+            using var json = JsonDocument.Parse(console.Output.ToString());
+            Assert.That(exit, Is.EqualTo(5));
+            Assert.That(json.RootElement.GetProperty("diagnostics")[0].GetProperty("code").GetString(), Is.EqualTo(expected));
+        }
+        finally { SqliteConnection.ClearAllPools(); File.Delete(path); }
+    }
+
     [TestCase("--engine", "--table", "customer")]
     [TestCase("--timeout", "0")]
     [TestCase("--connection", "other")]

@@ -9,12 +9,25 @@ public static class ConnectionCheckSql
         var name = scheme.Split('+').Last().ToLowerInvariant();
         return name switch
         {
-            "pgsql" or "postgres" or "postgresql" => "postgresql",
-            "mssql" or "sqlserver" => "sqlserver",
-            "timescale" or "timescaledb" => "timescale",
-            "cockroach" or "cockroachdb" => "cockroachdb",
-            "mysql" or "mysqlconnector" or "mysqldata" => "mysql",
+            "pg" or "pgx" or "pgsql" or "postgres" or "postgresql" => "postgresql",
+            "ms" or "mssqlserver" or "mssql" or "sqlserver" => "sqlserver",
+            "ts" or "timescale" or "timescaledb" => "timescale",
+            "cr" or "crdb" or "cdb" or "cockroach" or "cockroachdb" => "cockroachdb",
+            "my" or "mysql" or "mysqlconnector" or "mysqldata" => "mysql",
             "maria" or "mariadb" => "mariadb",
+            "sq" => "sqlite",
+            "duck" => "duckdb",
+            "or" or "ora" => "oracle",
+            "sf" => "snowflake",
+            "fb" => "firebird",
+            "quest" => "questdb",
+            "crt" or "crate" => "cratedb",
+            "tr" => "trino",
+            "td" or "tera" or "teradatasql" => "teradata",
+            "sg" or "sgs" or "single" or "singlestoredb" => "singlestore",
+            "accdb" or "msaccess" or "mdb" => "access",
+            "xls" or "xlsx" or "xlsb" or "xlsm" => "excel",
+            "txt" or "csv" or "tsv" => "text",
             "sqlite" or "duckdb" or "oracle" or "snowflake" or "db2" or "firebird" or "firebirdsql"
                 or "questdb" or "cratedb" or "trino" or "drill" or "teradata" or "singlestore"
                 or "access" or "excel" or "text" => name,

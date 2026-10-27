@@ -22,7 +22,9 @@ MySQL/MariaDB/SingleStore use backticks; SQL Server/Access/Excel/text use bracke
 other families use double quotes. Native case sensitivity still depends on server
 configuration and filesystem rules. Use explicit quoting for case-sensitive names.
 
-`--timeout 15` sets a positive overall budget for opening and the query. The
+`--timeout 15` sets a positive overall budget for opening and the query. Explicit
+prompt/store acquisition prepares a closed connection before this budget starts.
+Native token/OAuth acquisition during opening remains inside the opening budget. The
 remaining budget becomes the command timeout and a linked cancellation token is
 passed to asynchronous provider operations. There are no abandoned background
 attempts. Native providers may implement cancellation cooperatively or ignore it;
@@ -33,7 +35,7 @@ unexpected internal errors 1. Existing schema codes 3/4 are unchanged.
 
 SQLite file connections use `Mode=ReadOnly`; native DuckDB uses
 `Access_Mode=Read_Only`, avoiding creation of missing databases. In-memory databases
-remain supported. Optional/driver-specific file providers must supply equivalent
+remain supported. Access/Excel/text and ODBC/OLE DB file checks are rejected until their drivers supply equivalent
 existing-file semantics before being used for connection checking.
 
 `--output-format json` emits one safe stdout envelope with command, success, mode,

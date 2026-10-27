@@ -36,15 +36,19 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         var sql = options.Table is not null ? ConnectionCheckSql.Table(family, options.Table)
             : options.Engine ? ConnectionCheckSql.Engine(family) : null;
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
         string? provider = null;
         var executing = false;
         try
         {
             // Creating/configuring the connection must not open it. A provider's async operations may
             // implement cancellation only partially; always await completion before disposing it.
-            using var connection = await target.ConnectAsync(budget.Token).ConfigureAwait(false);
+            using var connection = await target.ConnectAsync(cancellationToken).ConfigureAwait(false);
+            // Explicit password/store acquisition prepares a closed connection before the DB budget.
+            var databaseClock = Stopwatch.StartNew();
+            budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
             provider = connection.GetType().Namespace;
+            if (family is "access" or "excel" or "text" || (family is "sqlite" or "duckdb" && provider is "System.Data.Odbc" or "System.Data.OleDb"))
+                throw new NotSupportedException("This file driver has no verified existing-file-only opening mode.");
             RequireExistingFile(connection, family);
             await target.OpenPreparedAsync(connection, budget.Token).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
@@ -52,7 +56,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             {
                 using var command = connection.CreateCommand();
                 command.CommandText = sql;
-                command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - clock.Elapsed.TotalSeconds));
+                command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - databaseClock.Elapsed.TotalSeconds));
                 executing = true;
                 using var reader = await command.ExecuteReaderAsync(budget.Token).ConfigureAwait(false);
                 // Executing the statement is the check. A zero-row result is successful.
@@ -70,7 +74,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
                 ? new ConnectionCheckDiagnostic("timeout", "The database check exceeded its time budget.")
                 : exception is ConnectionAuthenticationException authentication
                     ? new ConnectionCheckDiagnostic(authentication.Code, authentication.Message)
-                    : ConnectionCheckErrors.Classify(family, provider, exception, executing && mode == "table");
+                    : ConnectionCheckErrors.Classify(family, provider, exception, executing && mode == "table", options.Table);
             return new(false, mode, provider, clock.ElapsedMilliseconds, [diagnostic]);
         }
     }

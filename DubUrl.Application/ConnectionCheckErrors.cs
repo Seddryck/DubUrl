@@ -6,7 +6,7 @@ namespace DubUrl.Application;
 /// <summary>Consumes only diagnostics returned by the check statement. Unknown diagnostics stay execution failures.</summary>
 public static class ConnectionCheckErrors
 {
-    public static ConnectionCheckDiagnostic Classify(string family, string? provider, Exception error, bool table)
+    public static ConnectionCheckDiagnostic Classify(string family, string? provider, Exception error, bool table, string? requestedTable = null)
     {
         var native = Read(error, "Number") ?? Read(error, "SqliteErrorCode") ?? Read(error, "ErrorCode");
         var state = Read(error, "SqlState") ?? Read(error, "SQLState");
@@ -21,7 +21,7 @@ public static class ConnectionCheckErrors
             var recognized = diagnostics.Any(d => IsResolutionOrAccess(family, provider, d.Native, d.State));
             if (recognized) code = "tableNotFoundOrNotAccessible";
             if (family == "sqlite" && provider == "Microsoft.Data.Sqlite" && native == "1"
-                && error.Message.StartsWith("SQLite Error 1: 'no such table: ", StringComparison.Ordinal))
+                && IsMissingDirectSqliteTarget(error.Message, requestedTable))
                 code = "tableNotFound";
         }
         return new(code, code switch
@@ -49,7 +49,18 @@ public static class ConnectionCheckErrors
     };
 
     private static string? Read(object value, string property)
-        => Convert.ToString(value.GetType().GetProperty(property)?.GetValue(value), CultureInfo.InvariantCulture);
+        => value.GetType().GetProperty(property)?.GetValue(value) is { } result
+            ? Convert.ToString(result, CultureInfo.InvariantCulture) : null;
     private static string? SafeCode(string? value)
         => value is { Length: > 0 and <= 12 } && value.All(c => char.IsAsciiLetterOrDigit(c) || c == '-') ? value : null;
+
+    private static bool IsMissingDirectSqliteTarget(string message, string? requestedTable)
+    {
+        const string prefix = "SQLite Error 1: 'no such table: ";
+        if (requestedTable is null || !message.StartsWith(prefix, StringComparison.Ordinal) || !message.EndsWith("'.", StringComparison.Ordinal)) return false;
+        var statement = ConnectionCheckSql.Table("sqlite", requestedTable);
+        var identifier = statement["SELECT 1 FROM ".Length..^" WHERE 1=0".Length];
+        var expected = identifier[1..^1].Replace("\".\"", ".", StringComparison.Ordinal).Replace("\"\"", "\"", StringComparison.Ordinal);
+        return string.Equals(message[prefix.Length..^2], expected, StringComparison.OrdinalIgnoreCase);
+    }
 }
