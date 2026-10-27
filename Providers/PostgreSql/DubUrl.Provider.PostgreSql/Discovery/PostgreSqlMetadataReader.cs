@@ -71,6 +71,9 @@ public sealed class PostgreSqlMetadataReader : CatalogSchemaMetadataReader
         var column = base.MapColumn(row);
         if (row.Text("native_type_name") is "json" or "jsonb" or "citext")
             return column with { Type = System.Data.DbType.String, NativeType = row.Text("native_type_name"), NativeDialect = typeof(DubUrl.Provider.PostgreSql.Sql.PgsqlDialect) };
-        return column.Type is System.Data.DbType.AnsiString ? column with { Type = System.Data.DbType.String } : column;
+        // Preserve VARCHAR for bounded columns: String maps to PostgreSQL TEXT,
+        // and TEXT(length) is invalid when a discovered schema is rendered again.
+        return column.Type is System.Data.DbType.AnsiString && column.Length is null
+            ? column with { Type = System.Data.DbType.String } : column;
     }
 }

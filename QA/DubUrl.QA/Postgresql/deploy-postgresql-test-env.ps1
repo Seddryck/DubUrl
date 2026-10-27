@@ -32,12 +32,9 @@ if ($env:GITHUB_ACTIONS -eq "true" -or $container) {
 	}
 
 	Write-Host "Starting PostgreSQL QA infrastructure with Docker Compose"
-
-
     $previousDiscovery = $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING
 	try {
         Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'Postgresql' -wait
-		        $previousDiscovery = $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING
         $password = (& docker compose -f $composeFile exec -T postgresql printenv POSTGRES_PASSWORD).Trim()
         $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING = "Host=localhost;Database=DubUrl;Username=postgres;Password=$password"
         if ($env:GITHUB_ACTIONS -eq 'true') { Write-Host "::add-mask::$password"; Write-Host "::add-mask::$env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING" }
@@ -76,9 +73,7 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 
 	# Starting database service or docker container
 	if ($env:APPVEYOR -eq "True") {
-	    $previousDiscovery = $env:DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING
-	try {
-        Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'Postgresql' -wait $previouslyRunning = Start-Windows-Service $databaseService }
+		try { $previouslyRunning = Start-Windows-Service $databaseService }
 		catch {
 			Write-Warning "Failure to start a Windows service: $_"
 			exit 1
@@ -104,7 +99,7 @@ if ($force -or ($filesChanged -like "*pgsql*") -or ($filesChanged -like "*postgr
 
 	# Running QA tests
 	Write-Host "Running QA tests related to PostgreSQL"
-	$testSuccessful = Run-TestSuite @("Postgresql") -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
+	$testSuccessful = Run-TestSuite @("Postgresql") -config $config -frameworks $frameworks
 
 	# Stopping database Service
 	if (!$previouslyRunning) {

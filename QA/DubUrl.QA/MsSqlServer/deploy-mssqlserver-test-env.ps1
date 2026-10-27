@@ -14,13 +14,11 @@ if ($env:GITHUB_ACTIONS -eq "true" -or $container) {
 	$project = Join-Path $PSScriptRoot "..\..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\DubUrl.Provider.MsSqlServer.QA.csproj"
 	$infrastructure = Join-Path $PSScriptRoot "..\..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
-
     $previousDiscovery = $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING
 	try {
         Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'MsSqlServer' -wait
 		& docker compose -f $composeFile exec -T mssqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password12!" -C -i /infrastructure/initialize.sql
 		if ($LASTEXITCODE -ne 0) { throw "SQL Server QA database initialization failed." }
-		        $previousDiscovery = $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING
         $password = (& docker compose -f $composeFile exec -T mssqlserver printenv MSSQL_SA_PASSWORD).Trim()
         $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING = "Server=localhost;Database=DubUrl;User Id=sa;Password=$password;TrustServerCertificate=True"
         if ($env:GITHUB_ACTIONS -eq 'true') { Write-Host "::add-mask::$password"; Write-Host "::add-mask::$env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING" }
@@ -45,9 +43,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	
 	# Starting database Service
 	if ($env:APPVEYOR -eq "True") {
-	    $previousDiscovery = $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING
-	try {
-        Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'MsSqlServer' -wait $previouslyRunning = Start-Windows-Service $databaseService }
+		try { $previouslyRunning = Start-Windows-Service $databaseService }
 		catch {
 			Write-Warning "Failure to start a Windows service: $_"
 			exit 1
@@ -86,7 +82,7 @@ if ($force -or ($filesChanged -like "*mssql*")) {
 	
 
 	# Running QA tests
-	$testSuccessful = Run-TestSuite @("MsSqlServer") -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
+	$testSuccessful = Run-TestSuite @("MsSqlServer") -config $config -frameworks $frameworks
 
 	# Stopping database Service
 	if (!$previouslyRunning) {
