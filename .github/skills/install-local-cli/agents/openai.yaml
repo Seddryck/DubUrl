@@ -1,0 +1,4 @@
+interface:
+  display_name: "Install DubUrl locally"
+  short_description: "Install DubUrl from a PR or release locally"
+  default_prompt: "Use $install-local-cli to install the portable .NET 10 Windows x64 DubUrl CLI from a pull request or release into a local directory I specify."
