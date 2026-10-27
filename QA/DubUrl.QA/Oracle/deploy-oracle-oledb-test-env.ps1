@@ -17,6 +17,7 @@ $testPassword='QaT'+[Guid]::NewGuid().ToString('N')
 $user='QA'+[Guid]::NewGuid().ToString('N').Substring(0,12).ToUpperInvariant()
 $created=$false
 $response=$null
+$installLog=$null
 Push-Location $root
 try {
     if ($installPrerequisites) {
@@ -30,16 +31,21 @@ try {
         $setup=(Get-ChildItem $source -Recurse -Filter setup.exe | Select-Object -First 1).FullName
         if (!$setup) { throw 'Oracle installer is missing.' }
         $response=Join-Path $env:RUNNER_TEMP 'DubUrlFreeInstall.rsp'
-        "INSTALLDIR=C:\DubUrlOracle`nPASSWORD=$password`nLISTENER_PORT=1521`nCHAR_SET=AL32UTF8`nDB_DOMAIN=`nSOFTWARE_ONLY=FALSE`nMODIFY_DIRECTORY_PERMISSIONS=FALSE" | Set-Content -LiteralPath $response
-        $process=Start-Process -FilePath $setup -ArgumentList @('/s',"/v`"RSP_FILE=$response`"",'/v"/qn"') -WindowStyle Hidden -Wait -PassThru
+        "INSTALLDIR=C:\DubUrlOracle`r`nPASSWORD=$password`r`nLISTENER_PORT=1521`r`nCHAR_SET=AL32UTF8`r`nDB_DOMAIN=`r`nSOFTWARE_ONLY=FALSE`r`nMODIFY_DIRECTORY_PERMISSIONS=FALSE" | Set-Content -LiteralPath $response -Encoding ascii
+        $installLog=Join-Path $env:RUNNER_TEMP 'DubUrlFreeInstall.log'
+        Write-Host 'Installing Oracle Free.'
+        $process=Start-Process -FilePath $setup -WorkingDirectory (Split-Path $setup) -ArgumentList @('/s',"/v`"RSP_FILE=$response`"","/v`"/L*v $installLog`"",'/v"/qn"') -WindowStyle Hidden -Wait -PassThru
         if ($process.ExitCode -notin @(0,3010)) { throw "Oracle Free installation failed: $($process.ExitCode)" }
         $oracleHome='C:\DubUrlOracle\dbhomeFree'
+        Write-Host 'Installing Oracle OLE DB.'
         Install-QaWindowsDriver Oracle
     } else {
         $password=$env:DUBURL_ORACLE_QA_ADMIN_PASSWORD
         if (!$password -or !$oracleHome) { throw 'Set oracleHome and DUBURL_ORACLE_QA_ADMIN_PASSWORD for a local Oracle Free instance.' }
     }
     $sqlplus=Join-Path $oracleHome 'bin/sqlplus.exe'
+    if (!(Test-Path -LiteralPath $sqlplus)) { throw "Oracle Free installer did not create $sqlplus." }
+    Write-Host 'Waiting for Oracle Free SQL readiness.'
     $deadline=(Get-Date).AddMinutes(20)
     do {
         if (!(Test-Path -LiteralPath $sqlplus)) { Start-Sleep -Seconds 5; continue }
@@ -47,7 +53,10 @@ try {
         $ready=$LASTEXITCODE -eq 0 -and ($output -match '^\s*1\s*$')
         if (!$ready) { Start-Sleep -Seconds 5 }
     } while (!$ready -and (Get-Date) -lt $deadline)
-    if (!$ready) { throw 'Oracle Free did not accept a SQL query within 20 minutes.' }
+    if (!$ready) {
+        $codes=[regex]::Matches(($output -join ' '),'(?:ORA|SP2)-\d+') | ForEach-Object Value | Select-Object -Unique
+        throw "Oracle Free did not accept a SQL query within 20 minutes. Error codes: $($codes -join ', ')"
+    }
     $init="whenever sqlerror exit failure`nset echo off verify off`nconnect system/`"$password`"@localhost:1521/FREEPDB1`ncreate user $user identified by `"$testPassword`" default tablespace users quota 20M on users;`ngrant create session to $user;`ncreate table $user.`"Customer`" (`"CustomerId`" number(9), `"FullName`" varchar2(50), `"BirthDate`" date);`ninsert into $user.`"Customer`" values (1,'Nikola Tesla',date '1856-07-10');`ninsert into $user.`"Customer`" values (2,'Albert Einstein',date '1879-03-14');`ncommit;`nexit"
     $created=$true
     $output=@($init | & $sqlplus -L -s /nolog 2>&1)
