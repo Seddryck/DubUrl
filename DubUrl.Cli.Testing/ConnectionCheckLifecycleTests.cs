@@ -7,6 +7,16 @@ namespace DubUrl.Cli.Testing;
 
 public class ConnectionCheckLifecycleTests
 {
+    [Test]
+    public void AcquisitionAbortWithoutCallerTokenRemainsCancellation()
+        => Assert.That(async () => await new ConnectionCheckService().CheckAsync(new AbortedAcquisition(), new()),
+            Throws.InstanceOf<OperationCanceledException>());
+
+    private sealed class AbortedAcquisition() : ConnectionUrl("postgres://localhost/app")
+    {
+        public override ValueTask<DbConnection> ConnectAsync(CancellationToken cancellationToken = default)
+            => throw new OperationCanceledException(cancellationToken);
+    }
     [TestCase(false, null, null)]
     [TestCase(true, null, "SELECT 1")]
     [TestCase(false, "public.customer", "SELECT 1 FROM \"public\".\"customer\" WHERE 1=0")]

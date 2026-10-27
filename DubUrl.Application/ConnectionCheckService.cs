@@ -36,6 +36,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             return attempt.Result(true, []);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested) { throw new OperationCanceledException(cancellationToken); }
+        catch (OperationCanceledException) when (attempt.AcquiringCredentials) { throw; }
         catch (Exception error) when (error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException
             || error.GetType().FullName == "BAMCIS.PrestoClient.Model.PrestoQueryException")
         { return attempt.Result(false, [attempt.Classify(error)]); }
@@ -51,6 +52,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         private readonly Stopwatch elapsed = Stopwatch.StartNew();
         private string? provider;
         private bool executing;
+        internal bool AcquiringCredentials { get; private set; } = true;
         internal CheckAttempt(ConnectionCheckOptions options, string family, CancellationToken cancellationToken)
         {
             this.options = options; this.family = family;
@@ -62,6 +64,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         {
             // Credential acquisition creates a closed connection, before starting the DB budget.
             using var connection = await target.ConnectAsync(cancellationToken).ConfigureAwait(false);
+            AcquiringCredentials = false;
             var databaseClock = Stopwatch.StartNew();
             budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
             provider = connection.GetType().Namespace;
