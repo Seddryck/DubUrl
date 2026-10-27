@@ -1,9 +1,11 @@
 ---
 name: dotnet-ci-release
-description: Design or revise .NET CI, packaging, and release workflows from repository evidence, including TFM, runner, RID, architecture, libc, generated-asset, NuGet, and publishing decisions. Use when creating or reviewing a .NET delivery workflow; do not use for unrelated application implementation.
+description: Design or revise DubUrl .NET CI, packaging, and release workflows from repository evidence, including TFM, runner, RID, architecture, libc, generated-asset, NuGet, and publishing decisions. Use when creating or reviewing a .NET delivery workflow; do not use for unrelated application implementation.
 ---
 
-# .NET CI and release workflow
+# DubUrl .NET CI and release workflow
+
+Apply this workflow to Seddryck/DubUrl. Preserve the repository spelling DubUrl in repository and project identifiers; packaged executable and archive names use lowercase duburl. Inspect .github/workflows/ci-release.yml and distribution/build-distribution.ps1 for the current distribution contract.
 
 Design the workflow from the repository's declared support, implementation, dependencies, packaging model, and release policy. Preserve valid existing contracts unless the task explicitly changes them.
 
