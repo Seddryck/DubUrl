@@ -37,7 +37,9 @@ and do not have the access/locking semantics of an OS credential store. Prefer
 the CI platform's secret injection, avoid logging URLs and never put credentials
 in shell arguments. No machine-wide configuration is changed by these adapters.
 
-Automated tests use fake adapters. Real hidden-terminal and credential-store
-platform smoke tests have not been run; no stored user credentials were accessed
-during development. Platform backend availability does not imply a live smoke
-test has passed on each platform.
+Provider QA distinguishes controlled adapters from real hidden-terminal and
+credential-store smoke fixtures. See [CLI authentication QA](cli-authentication-qa.md)
+for implemented cases, fixture prerequisites and unsupported/unverified platforms.
+Native-store tests use only uniquely named fixture-owned entries and remove them;
+they do not enumerate or read pre-existing user entries. Platform availability
+does not imply that a skipped native smoke test passed.
