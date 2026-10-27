@@ -196,7 +196,8 @@ internal static partial class SchemaCommand
         }
         catch (OperationCanceledException)
         {
-            throw;
+            services.GetRequiredService<ICliConsole>().Error.WriteLine("Operation cancelled.");
+            return CliExitCodes.Cancelled;
         }
         catch (Exception exception) when (exception is CliInputException or SchemaDocumentException or IOException or UnauthorizedAccessException or DubUrl.Authentication.ConnectionAuthenticationException)
         {

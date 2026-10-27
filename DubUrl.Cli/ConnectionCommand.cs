@@ -51,7 +51,11 @@ internal static class ConnectionCommand
             Write(console, operation, request.Format == "json");
             return GetExitCode(operation);
         }
-        catch (OperationCanceledException) { throw; }
+        catch (OperationCanceledException)
+        {
+            console.Error.WriteLine("Operation cancelled.");
+            return CliExitCodes.Cancelled;
+        }
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
         {
             // Do not emit parser/provider exception messages: they may contain URL components or paths.

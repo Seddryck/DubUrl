@@ -1,6 +1,8 @@
 using DubUrl.Authentication;
+using DubUrl.Application;
 using DubUrl.Cli;
 using DubUrl.Mapping;
+using DubUrl.Schema.Documents;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 
@@ -8,6 +10,38 @@ namespace DubUrl.Cli.Testing;
 
 public class CliAuthenticationTests
 {
+    [TestCase("connection"), TestCase("schema")]
+    public async Task CommandCancellationWithoutCallerTokenReturns130(string command)
+    {
+        var console = new RecordingConsole();
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        { ["ConnectionStrings:test"] = "mssql://localhost/app" }).Build();
+        await using var services = CliComposition.CreateDefault(console, configuration);
+        string[] arguments = command == "connection"
+            ? ["connection", "check", "mssql://localhost/app", "--output-format", "json"]
+            : ["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--output-format", "json"];
+        var exit = await CliHost.InvokeAsync(arguments, new AbortingServices(services));
+        Assert.That(exit, Is.EqualTo(130));
+        Assert.That(console.Output.ToString(), Is.Empty);
+        Assert.That(console.Errors.ToString(), Does.Contain("cancelled"));
+    }
+
+    private sealed class AbortingServices(IServiceProvider inner) : IServiceProvider
+    {
+        public object? GetService(Type type)
+            => type == typeof(IConnectionCheckService) ? new AbortingCheck()
+                : type == typeof(ISchemaDeploymentService) ? new AbortingDeployment() : inner.GetService(type);
+    }
+    private sealed class AbortingCheck : IConnectionCheckService
+    {
+        public Task<ConnectionCheckResult> CheckAsync(ConnectionUrl target, ConnectionCheckOptions options, CancellationToken cancellationToken = default)
+            => throw new OperationCanceledException(cancellationToken);
+    }
+    private sealed class AbortingDeployment : ISchemaDeploymentService
+    {
+        public Task<SchemaDeploymentResult> DeployAsync(ISchemaDocument document, ConnectionUrl target, SchemaDeploymentOptions? options = null, CancellationToken cancellationToken = default)
+            => throw new OperationCanceledException(cancellationToken);
+    }
     [TestCase("--password-prompt")]
     [TestCase("--credential-store", "development")]
     public async Task DryRunNeverReadsSecrets(params string[] arguments)
