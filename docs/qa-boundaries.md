@@ -77,7 +77,12 @@ The manifest is checked by the provider suite, so malformed or incomplete metada
 
 ## GitHub Actions
 
-Provider QA runs independently from the unit-test and release workflow. Each provider workflow calls its existing deployment entry point under `DubUrl.QA`, runs the provider-owned suite on .NET 8, 9, and 10, and uploads its test results and runnable QA bundle. Power BI Desktop and SingleStore remain manual workflows because they require licensed external software.
+Provider QA runs independently from the unit-test and release workflow. Each provider workflow calls its existing deployment entry point under `DubUrl.QA`, runs the provider-owned suite on .NET 8, 9, and 10, and uploads its test results and runnable QA bundle. Power BI Desktop remains manual because it requires licensed external software. SingleStore uses its license-free Dev Image and runs automatically on pull requests and pushes to main.
+
+Run SingleStore locally with `./QA/DubUrl.QA/SingleStore/deploy-singlestore-test-env.ps1`.
+It uses the same harness as CI, generated test credentials and a disposable
+two-partition database. See its provider-owned `infrastructure/README.md` for
+the image pin, CPU requirements and explicit ODBC exclusions.
 
 ## Multi-provider composition QA
 
