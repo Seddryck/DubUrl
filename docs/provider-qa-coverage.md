@@ -64,7 +64,7 @@ testing; CI uses provider discovery with the current Microsoft driver installed.
 | --- | --- |
 | Frameworks | Repository support is net8.0/net9.0/net10.0; new jobs expose a framework matrix with matching SDK selection. |
 | Runners | Db2/MariaDB images are Linux amd64; their CI uses Ubuntu 24.04. OLE DB requires Windows COM/client registration and runs on Windows 2025 x64. |
-| Deliverables | Existing framework-dependent QA adapters and infrastructure bundles; repository version, portable RID, no new NuGet package or executable distribution. |
+| Deliverables | Existing framework-dependent QA adapters and infrastructure bundles; repository version, OS-specific x64 Db2 CLI bundles and portable adapters for other suites; no new NuGet package or executable distribution. |
 | Triggers | Pull requests, pushes to main and manual runs. Read-only repository permission; no publishing or external account credentials. |
 | Validation | Stale TRX files are removed. Every requested suite must execute tests; required categories reject skips, failures and zero-test filters. |
 

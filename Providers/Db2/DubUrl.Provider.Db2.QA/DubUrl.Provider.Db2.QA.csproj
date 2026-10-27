@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><IsPackable>false</IsPackable><QaProvider>db2</QaProvider></PropertyGroup>
+  <PropertyGroup><IsPackable>false</IsPackable><QaProvider>db2</QaProvider><QaRuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</QaRuntimeIdentifier><QaRuntimeIdentifier Condition="!$([MSBuild]::IsOSPlatform('Linux'))">win-x64</QaRuntimeIdentifier></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.200" Condition="!$([MSBuild]::IsOSPlatform('Linux'))" />
     <PackageReference Include="Net.IBM.Data.Db2-lnx" Version="9.0.0.200" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
