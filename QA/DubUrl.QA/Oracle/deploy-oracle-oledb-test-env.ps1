@@ -12,9 +12,9 @@ if (!$IsWindows) { throw 'Oracle OLE DB QA requires Windows x64.' }
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $project=Join-Path $root 'Providers/Oracle/DubUrl.Provider.Oracle.QA/DubUrl.Provider.Oracle.QA.csproj'
 $previous=$env:DUBURL_ORACLE_OLEDB_QA_URL
-$password='QaA'+[Guid]::NewGuid().ToString('N')
-$testPassword='QaT'+[Guid]::NewGuid().ToString('N')
-$user='QA'+[Guid]::NewGuid().ToString('N').Substring(0,12).ToUpperInvariant()
+$password='QaA'+[Guid]::NewGuid().ToString('N').Substring(0,24)
+$testPassword='QaT'+[Guid]::NewGuid().ToString('N').Substring(0,24)
+$user='QA'+[Guid]::NewGuid().ToString('N').Substring(0,24).Substring(0,12).ToUpperInvariant()
 $created=$false
 $response=$null
 $installLog=$null
@@ -46,7 +46,12 @@ try {
     $sqlplus=Join-Path $oracleHome 'bin/sqlplus.exe'
     if (!(Test-Path -LiteralPath $sqlplus)) { throw "Oracle Free installer did not create $sqlplus." }
     Write-Host 'Waiting for Oracle Free SQL readiness.'
-    $deadline=(Get-Date).AddMinutes(20)
+    # The installer can leave the PDB closed even though the listener is running.
+    $bootstrap="whenever sqlerror exit failure`nconnect sys/`"$password`"@localhost:1521/FREE as sysdba`nwhenever sqlerror continue`nalter pluggable database FREEPDB1 open;`nalter pluggable database FREEPDB1 save state;`nalter system register;`nexit"
+    $bootstrapOutput=@($bootstrap | & $sqlplus -L -s /nolog 2>&1)
+    $bootstrapCodes=[regex]::Matches(($bootstrapOutput -join ' '),'(?:ORA|SP2)-\d+') | ForEach-Object Value | Select-Object -Unique
+    if ($bootstrapCodes) { Write-Host "Oracle CDB preparation codes: $($bootstrapCodes -join ', ')" }
+    $deadline=(Get-Date).AddMinutes(5)
     do {
         if (!(Test-Path -LiteralPath $sqlplus)) { Start-Sleep -Seconds 5; continue }
         $output=@("whenever sqlerror exit failure`nconnect system/`"$password`"@localhost:1521/FREEPDB1`nset heading off pagesize 0`nselect 1 from dual;`nexit" | & $sqlplus -L -s /nolog 2>&1)
@@ -55,7 +60,7 @@ try {
     } while (!$ready -and (Get-Date) -lt $deadline)
     if (!$ready) {
         $codes=[regex]::Matches(($output -join ' '),'(?:ORA|SP2)-\d+') | ForEach-Object Value | Select-Object -Unique
-        throw "Oracle Free did not accept a SQL query within 20 minutes. Error codes: $($codes -join ', ')"
+        throw "Oracle Free did not accept a SQL query within 5 minutes. Error codes: $($codes -join ', ')"
     }
     $init="whenever sqlerror exit failure`nset echo off verify off`nconnect system/`"$password`"@localhost:1521/FREEPDB1`ncreate user $user identified by `"$testPassword`" default tablespace users quota 20M on users;`ngrant create session to $user;`ncreate table $user.`"Customer`" (`"CustomerId`" number(9), `"FullName`" varchar2(50), `"BirthDate`" date);`ninsert into $user.`"Customer`" values (1,'Nikola Tesla',date '1856-07-10');`ninsert into $user.`"Customer`" values (2,'Albert Einstein',date '1879-03-14');`ncommit;`nexit"
     $created=$true
@@ -70,6 +75,11 @@ try {
         Remove-Item -LiteralPath $installLog
     }
     if ($created) { "whenever sqlerror exit failure`nconnect system/`"$password`"@localhost:1521/FREEPDB1`ndrop user $user cascade;`nexit" | & $sqlplus -L -s /nolog | Out-Null }
+    if ($installPrerequisites -and !$created) {
+        Get-ChildItem 'C:\DubUrlOracle\cfgtoollogs' -Filter '*.log' -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+            Get-Content -LiteralPath $_.FullName | Where-Object { $_ -match 'ORA-\d+|DBT-\d+|FATAL|ERROR' } | Select-Object -Last 12 | ForEach-Object { $_.Replace($password,'[redacted]').Replace($testPassword,'[redacted]') } | Write-Host
+        }
+    }
     if ($response) { Remove-Item -LiteralPath $response -ErrorAction SilentlyContinue }
     [Environment]::SetEnvironmentVariable('DUBURL_ORACLE_OLEDB_QA_URL',$previous,'Process')
     Pop-Location
