@@ -10,8 +10,9 @@ internal static class CliRootCommandFactory
     public static RootCommand Create(IServiceProvider services, CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<ICliConsole>();
-        var root = new RootCommand("Validate, render, and deploy DubUrl schema documents.");
+        var root = new RootCommand("Check database connections; inspect, validate, render, and deploy schemas.");
         root.Subcommands.Add(SchemaCommand.Create(services, cancellationToken));
+        root.Subcommands.Add(ConnectionCommand.Create(services, cancellationToken));
         root.Subcommands.Add(ConnectorCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CreateCapabilitiesCommand(services));
         root.SetAction(_ =>
@@ -38,6 +39,8 @@ internal static class CliRootCommandFactory
             else
             {
                 console.Out.WriteLine($"Schema document versions: {string.Join(", ", capabilities.SchemaDocumentVersions)}");
+                console.Out.WriteLine($"Connection commands: {string.Join(", ", capabilities.ConnectionCommands)}");
+                console.Out.WriteLine($"Connection check modes: {string.Join(", ", capabilities.ConnectionCheckModes)}");
                 console.Out.WriteLine($"Schema commands: {string.Join(", ", capabilities.SchemaCommands)}");
                 console.Out.WriteLine($"Dialects: {string.Join(", ", capabilities.Dialects)}");
                 console.Out.WriteLine($"Providers: {string.Join(", ", capabilities.Providers)}");

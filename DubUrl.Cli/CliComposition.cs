@@ -60,6 +60,7 @@ public static class CliComposition
         services.AddSingleton<ISchemaScriptDeploymentExecutor, SchemaScriptDeploymentExecutor>();
         services.AddSingleton<ISchemaDocumentService, SchemaDocumentService>();
         services.AddSingleton<ISchemaDeploymentService, SchemaDeploymentService>();
+        services.AddSingleton<IConnectionCheckService, ConnectionCheckService>();
         services.AddSingleton(capabilities);
         if (providerPackService is not null)
         {
