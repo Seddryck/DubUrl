@@ -41,7 +41,8 @@ public static class SqlServerAuthentication
             if (connection is not SqlConnection sql || context.ProviderInvariantName != "Microsoft.Data.SqlClient")
                 throw new ConnectionAuthenticationException("UnsupportedAuthentication");
             var builder = new SqlConnectionStringBuilder(sql.ConnectionString)
-            { IntegratedSecurity = false, Encrypt = SqlConnectionEncryptOption.Mandatory, TrustServerCertificate = false };
+            { IntegratedSecurity = false, TrustServerCertificate = false };
+            if (builder.Encrypt == SqlConnectionEncryptOption.Optional) builder.Encrypt = SqlConnectionEncryptOption.Mandatory;
             builder.Remove("User ID");
             builder.Remove("Password");
             builder.Remove("Authentication");

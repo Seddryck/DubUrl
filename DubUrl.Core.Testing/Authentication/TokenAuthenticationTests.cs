@@ -70,6 +70,39 @@ public class TokenAuthenticationTests
         Assert.That(certificate.HasPrivateKey, Is.True);
     }
 
+    [Test, Explicit("Requires an Entra-enabled SQL endpoint and a registered application certificate; uses fresh token caches and no pooling.")]
+    public async Task CertificateEntraLiveAuthenticationAndUnregisteredCertificateFailure()
+    {
+        static string Required(string name)
+        {
+            var value = Environment.GetEnvironmentVariable(name);
+            if (string.IsNullOrEmpty(value)) Assert.Ignore("Certificate-backed Entra fixture configuration is absent.");
+            return value!;
+        }
+        var url = Required("DUBURL_ENTRA_CERT_SQL_URL");
+        var location = new ConnectionUrl(url, Registry());
+        Assert.That(new SqlConnectionStringBuilder(location.Parse()).Pooling, Is.False, "Live certificate tests require fresh physical connections.");
+        var clientId = Required("DUBURL_ENTRA_CERT_CLIENT_ID");
+        var authority = new Uri(Required("DUBURL_ENTRA_CERT_AUTHORITY"));
+        var resource = new Uri(Required("DUBURL_ENTRA_CERT_RESOURCE"));
+        using var certificate = X509Certificate2.CreateFromPemFile(Required("DUBURL_ENTRA_CERT_PEM"), Required("DUBURL_ENTRA_CERT_KEY"));
+        var source = new EntraCertificateTokenSource(clientId, authority, resource, certificate);
+        await using (var connection = await location.WithAuthentication(SqlServerAuthentication.TokenCallback(source)).OpenAsync())
+        {
+            await using var command = connection.CreateCommand(); command.CommandText = "SELECT 1";
+            Assert.That(Convert.ToInt32(await command.ExecuteScalarAsync()), Is.EqualTo(1));
+        }
+        using var key = RSA.Create(2048);
+        using var unregistered = new CertificateRequest("CN=unregistered-fixture", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1)
+            .CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+        // New MSAL app/cache and new callback; positive cached tokens cannot mask the negative case.
+        var invalidSource = new EntraCertificateTokenSource(clientId, authority, resource, unregistered);
+        await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () =>
+        {
+            await using var connection = await location.WithAuthentication(SqlServerAuthentication.TokenCallback(invalidSource)).OpenAsync();
+        });
+    }
+
     private sealed class Source : ISqlServerTokenSource
     {
         public bool Fail { get; init; }
