@@ -9,6 +9,8 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
     <PackageReference Include="NUnit" Version="5.0.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
+    <PackageReference Include="System.Data.OleDb" Version="10.0.12" />
+    <ProjectReference Include="../../../DubUrl.OleDb/DubUrl.OleDb.csproj" />
     <ProjectReference Include="../DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj" />
     <ProjectReference Include="../../../QA/DubUrl.ProviderTesting/DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="../../../DubUrl.Schema/DubUrl.Schema.csproj" />

@@ -96,6 +96,9 @@ public class OleDbRewriter : ConnectionStringRewriter, IOleDbConnectionStringRew
     {
         public override void Execute(ConnectionUri urlInfo)
         {
+            // Explicit provider endpoints (including LocalDB named pipes) cannot be
+            // represented as URI authorities. OptionsMapper has already applied them.
+            if (urlInfo.Options.ContainsKey(SERVER_KEYWORD)) return;
             var fullHost = new StringBuilder();
             fullHost.Append(urlInfo.Host);
             if (urlInfo.Segments.Count == 2)

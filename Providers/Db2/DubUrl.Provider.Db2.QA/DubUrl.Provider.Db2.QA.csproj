@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>false</IsPackable><QaProvider>db2</QaProvider><QaRuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</QaRuntimeIdentifier><QaRuntimeIdentifier Condition="!$([MSBuild]::IsOSPlatform('Linux'))">win-x64</QaRuntimeIdentifier></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Net.IBM.Data.Db2" Version="9.0.0.200" Condition="!$([MSBuild]::IsOSPlatform('Linux'))" />
+    <PackageReference Include="Net.IBM.Data.Db2-lnx" Version="9.0.0.200" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="NUnit" Version="5.0.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
+    <ProjectReference Include="../DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj" />
+    <ProjectReference Include="../../../QA/DubUrl.ProviderTesting/DubUrl.ProviderTesting.csproj" />
+    <ProjectReference Include="../../../DubUrl.Schema/DubUrl.Schema.csproj" />
+  </ItemGroup>
+  <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure/**/*" /></ItemGroup>
+  <Import Project="../../../build/ProviderQaBundle.targets" />
+</Project>

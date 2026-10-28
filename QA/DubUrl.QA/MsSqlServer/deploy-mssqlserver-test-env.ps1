@@ -1,23 +1,31 @@
 Param(
+    [switch] $container,
+    [string] $testFilter = '',
+    [hashtable] $sdkVersions = @{ 'net8.0'='8.0.416'; 'net9.0'='9.0.308'; 'net10.0'='10.0.401' },
 	[switch] $force=$false
 	, [string] $databaseService= "MSSQL`$SQL2025"
 	, [string] $config = "Release"
 	, [string[]] $frameworks = @("net8.0", "net9.0", "net10.0")
 )
 
-if ($env:GITHUB_ACTIONS -eq "true") {
+if ($env:GITHUB_ACTIONS -eq "true" -or $container) {
 	$ErrorActionPreference = "Stop"
 	. $PSScriptRoot\..\Run-ProviderQaSuite.ps1
 	$project = Join-Path $PSScriptRoot "..\..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\DubUrl.Provider.MsSqlServer.QA.csproj"
 	$infrastructure = Join-Path $PSScriptRoot "..\..\..\Providers\SqlServer\DubUrl.Provider.MsSqlServer.QA\infrastructure"
 	$composeFile = Join-Path $infrastructure "compose.yaml"
-	Start-ProviderQaInfrastructure -composeFile $composeFile -provider "SQL Server" -wait
+    $previousDiscovery = $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING
 	try {
+        Start-ProviderQaInfrastructure -composeFile $composeFile -provider 'MsSqlServer' -wait
 		& docker compose -f $composeFile exec -T mssqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password12!" -C -i /infrastructure/initialize.sql
 		if ($LASTEXITCODE -ne 0) { throw "SQL Server QA database initialization failed." }
-		Run-ProviderQaSuite -project $project -provider "mssqlserver" -config $config -frameworks $frameworks
+        $password = (& docker compose -f $composeFile exec -T mssqlserver printenv MSSQL_SA_PASSWORD).Trim()
+        $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING = "Server=localhost;Database=DubUrl;User Id=sa;Password=$password;TrustServerCertificate=True"
+        if ($env:GITHUB_ACTIONS -eq 'true') { Write-Host "::add-mask::$password"; Write-Host "::add-mask::$env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING" }
+        Run-ProviderQaSuite -project $project -provider "mssqlserver" -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
 	}
-	finally { & docker compose -f $composeFile down --volumes }
+	finally { [Environment]::SetEnvironmentVariable('DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING', $previousDiscovery, 'Process')
+        & docker compose -f $composeFile down --volumes }
 	exit 0
 }
 

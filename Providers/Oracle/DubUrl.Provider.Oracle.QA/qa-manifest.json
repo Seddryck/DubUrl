@@ -3,8 +3,22 @@
   "provider": "oracle",
   "version": "0.0.0",
   "contractVersion": "1.0",
-  "targetFrameworks": [ "net8.0", "net9.0", "net10.0" ],
-  "operatingSystems": [ "linux" ],
-  "rids": [ "portable" ],
-  "capabilities": [ "Connection", "Querying", "Schema" ]
+  "targetFrameworks": [
+    "net8.0",
+    "net9.0",
+    "net10.0"
+  ],
+  "operatingSystems": [
+    "linux",
+    "windows"
+  ],
+  "rids": [
+    "portable"
+  ],
+  "capabilities": [
+    "Connection",
+    "Querying",
+    "Schema",
+    "OleDB"
+  ]
 }

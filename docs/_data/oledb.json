@@ -8,7 +8,7 @@
       "sqlserver",
       "mssqlserver"
     ],
-    "NamePattern": "^\\bMSOLEDBSQL$",
+    "NamePattern": "^\\bMSOLEDBSQL(19)?$",
     "Slug": "microsoftsqlserver",
     "MainColor": "#CC2927",
     "SecondaryColor": "#ffffff",
