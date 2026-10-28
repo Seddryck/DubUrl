@@ -32,7 +32,7 @@ public class CliQaCoverageTests
     {
         var providers = Path.Combine(FindRoot(), "Providers");
         var projects = Directory.EnumerateFiles(providers, "*.QA.csproj", SearchOption.AllDirectories).ToArray();
-        Assert.That(projects, Has.Length.EqualTo(20), "Review the CLI coverage inventory when adding a provider QA suite.");
+        Assert.That(projects, Has.Length.EqualTo(22), "Review the CLI coverage inventory when adding a provider QA suite.");
         foreach (var project in projects)
         {
             var source = string.Join('\n', Directory.EnumerateFiles(Path.GetDirectoryName(project)!, "*.cs")

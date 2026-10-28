@@ -1,6 +1,6 @@
 # Operating-system identity QA (#1700)
 
-All 20 existing provider QA projects inherit the same 37 named cases through the native/ODBC/OLE DB/ADOMD contracts. Workflows, deployment scripts and the QA runner are unchanged. Configuration/unsupported guards are not successful database authentication.
+All 22 existing provider QA projects inherit the same 37 named cases through the native/ODBC/OLE DB/ADOMD contracts. This includes upstream MariaDB and Db2 QA and the existing Windows OLE DB jobs merged unchanged from main. Workflows, deployment scripts and the QA runner have no task-specific changes. Configuration/unsupported guards are not successful database authentication.
 
 ## Controlled PostgreSQL peer
 
@@ -23,6 +23,8 @@ Run on a Windows host with SqlLocalDB.exe already installed: `dotnet test Provid
 Shared cases verify lazy metadata and URL-only Parse, sync/async closed connections and caller ownership, strict native settings, explicit empty/nonempty URL-password rejection, nine competing query aliases (including empty values), compatible SQL true/SSPI settings, SQL username rejection with sync/async native disposal, peer TCP/multihost rejection and disposal, and pre-cancelled acquisition without native creation. Unsupported provider/family/platform checks fail before creation. Peer scope is native PostgreSQL only: Npgsql usage by CockroachDB, Timescale, QuestDB or CrateDB does not establish an implemented peer contract. SQL Server native integrated configuration on Linux remains allowed; LocalDB itself is Windows-only.
 
 MySQL, SingleStore, Oracle, Firebird, file databases, Trino, Drill, Power BI/SSAS and ODBC/OLE DB/ADOMD have no implementation of this shared strategy. Their authentication positives skip with a reason; unsupported-strategy and applicable conflict guards still run. File URL userinfo cases skip because the URL grammar rejects them before strategy validation.
+
+The existing Windows OLE DB jobs strictly select `TestCategory=OleDB` and require every selected test to pass. That category remains on the three original transport cases and Oracle's provider-specific scalar case, rather than leaking onto every inherited authentication case. This preserves their original required transport checks without treating unsupported authentication skips as successful logins or changing workflow/runner filters. The broader authentication cases remain available in unfiltered QA; the focused Windows OLE DB jobs do not verify them.
 
 No external credential acquisition exists for this strategy. Token/certificate/password sources belong to other selected strategies, and every query attempt to combine competing authentication settings is rejected. Reusing a pooled physical session is not a new OS handshake. Switching process identity/impersonation is out of scope. Remote SQL Kerberos, delegation/domains, TCP ident, PostgreSQL GSSAPI/SSPI, Windows peer, physical-handshake cancellation, and arbitrary-server policy verification are unverified. Pool-wait cancellation is named separately. No claim is made that client configuration can distinguish peer from trust on an arbitrary server.
 

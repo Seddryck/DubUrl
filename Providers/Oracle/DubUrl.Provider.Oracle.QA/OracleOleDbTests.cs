@@ -22,7 +22,7 @@ public sealed class OracleOleDbTests : OleDbContract
     }
     protected override string SelectFirstCustomerSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=?";
-    [Test]
+    [Test, Category("OleDB")]
     public void ReadsOracleDateNumberAndNull()
     {
         using var connection = CreateConnectionUrl().Open();

@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace DubUrl.ProviderTesting;
 
-[Category("OleDB")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
 public abstract class OleDbContract : CliConnectionCheckContract
 {
@@ -12,18 +11,18 @@ public abstract class OleDbContract : CliConnectionCheckContract
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectCustomerByIdSql { get; }
 
-    [Test]
+    [Test, Category("OleDB")]
     public void Connect()
     {
         using var connection = CreateConnectionUrl().Connect();
         Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
     }
 
-    [Test]
+    [Test, Category("OleDB")]
     public void QueryCustomer()
         => AssertScalar(SelectFirstCustomerSql, null, "Nikola Tesla");
 
-    [Test]
+    [Test, Category("OleDB")]
     public void QueryCustomerWithParams()
         => AssertScalar(SelectCustomerByIdSql, 2, "Albert Einstein");
 
