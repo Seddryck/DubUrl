@@ -43,7 +43,7 @@ Local container runs are explicitly opt-in with DUBURL_CERT_QA_POSTGRES_CONTAINE
 | PostgreSQL / Npgsql | Supported | Isolated cert-only fixture above, executed by existing Linux QA. |
 | CockroachDB / Npgsql | Supported | Existing ordinary QA uses an insecure cluster, not a secure user-certificate target. Live cases explicitly skip. |
 | MySQL / MySqlConnector | Supported, including explicit supplemental source | Existing password QA does not provision a trusted certificate-required account with REQUIRE X509/SUBJECT/ISSUER. Live cases explicitly skip. |
-| MariaDB / MySqlConnector | Native alias/hook check under MySQL QA; existing five-adapter unit tests remain separate | No separate native MariaDB QA server/workflow; its ODBC fixture does not establish this support. Live cases are unverified. |
+| MariaDB / MySqlConnector | Native configuration cases in the upstream MariaDB QA suite and the alias/hook check under MySQL QA; existing five-adapter unit tests remain separate | The upstream MariaDB server is password-authenticated, without certificate-required identities or fixture PKI. Live certificate cases remain unverified; its ODBC login does not establish certificate support. |
 | SingleStore / SingleStoreConnector | Supported, including supplemental source | License-free upstream fixture does not configure certificate-required identities/trusted TLS; no MySQL-equivalence claim. Live cases explicitly skip. |
 | Timescale, QuestDB, CrateDB / Npgsql | Unsupported by this scoped adapter | Shared PostgreSQL wire protocol is not certificate-identity integration. |
 | MySql.Data, SQL Server, Oracle, Firebird, Trino | Unsupported by this strategy | SQL token/Entra upstream certificates and other mechanisms are separate. |

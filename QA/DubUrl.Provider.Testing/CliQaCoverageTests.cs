@@ -59,6 +59,17 @@ public class CliQaCoverageTests
     [TestCase(typeof(AdomdContract))]
     public void EveryTransportContractIncludesTheOperatingSystemIdentityCases(Type contract)
         => Assert.That(typeof(OperatingSystemIdentityQaContract).IsAssignableFrom(contract), Is.True);
+    [TestCase(typeof(OdbcContract), "ODBC")]
+    [TestCase(typeof(OleDbContract), "OleDB")]
+    public void StrictTransportCategoriesDoNotSelectOptionalAuthenticationCases(Type contract, string category)
+    {
+        Assert.That(contract.GetCustomAttributes(typeof(CategoryAttribute), inherit: false), Is.Empty);
+        var tests = contract.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly)
+            .Where(method => method.GetCustomAttributes(typeof(TestAttribute), inherit: false).Length > 0).ToArray();
+        Assert.That(tests, Has.Length.EqualTo(3));
+        foreach (var test in tests)
+            Assert.That(test.GetCustomAttributes(typeof(CategoryAttribute), inherit: false).Cast<CategoryAttribute>().Select(attribute => attribute.Name), Does.Contain(category));
+    }
     private static string FindRoot()
     {
         for (var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory); directory is not null; directory = directory.Parent)

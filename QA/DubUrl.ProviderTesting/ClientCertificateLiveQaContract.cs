@@ -12,7 +12,7 @@ public abstract partial class ClientCertificateAuthenticationQaContract
         var driver = CertificateDriver;
         driver.RequireSupported();
         if (driver.Driver.Provider != "Npgsql" || driver.Driver.Family != "postgresql")
-            Assert.Ignore("#1699: this QA has no isolated certificate-required account, trusted TLS server and negative-certificate fixture. CockroachDB is insecure; MySQL/SingleStore are ordinary password fixtures; MariaDB has no native QA server. Native hook passes are not live certificate login. Existing opt-in ClientCertificateLiveTests remain available for externally provisioned targets.");
+            Assert.Ignore("#1699: this QA has no isolated certificate-required account, trusted TLS server and negative-certificate fixture. CockroachDB is insecure; MySQL/MariaDB/SingleStore are ordinary password fixtures. Native hook passes are not live certificate login. Existing opt-in ClientCertificateLiveTests remain available for externally provisioned targets.");
         return postgresFixture ??= await CertificateQaPostgresFixture.CreateAsync();
     }
     private ConnectionUrl CertificateTarget(CertificateQaPostgresFixture fixture, CertificateQaScope scope, X509Certificate2 certificate, bool wrongHost = false, bool wrongCa = false)
