@@ -9,6 +9,20 @@ public abstract partial class ConnectionAuthentication
     private sealed class OperatingSystemAuthentication : ConnectionAuthentication
     {
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.OperatingSystemIdentity;
+        public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
+        {
+            if (context.ProviderInvariantName != "Microsoft.Data.SqlClient"
+                && (context.ProviderInvariantName != "Npgsql" || context.Scheme is not ("postgres" or "postgresql" or "pgsql")))
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            if (context.ProviderInvariantName == "Npgsql" && OperatingSystem.IsWindows())
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            return null;
+        }
+        public override ValueTask<UsernamePasswordCredentials?> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult(Resolve(context));
+        }
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };

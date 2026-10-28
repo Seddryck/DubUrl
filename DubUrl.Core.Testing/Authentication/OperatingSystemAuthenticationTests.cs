@@ -10,6 +10,19 @@ namespace DubUrl.Core.Testing.Authentication;
 [NonParallelizable]
 public class OperatingSystemAuthenticationTests
 {
+    [TestCase("Npgsql", "timescale")]
+    [TestCase("Npgsql", "questdb")]
+    [TestCase("Npgsql", "cockroach")]
+    [TestCase("MySqlConnector", "mysql")]
+    public async Task UnsupportedFamilyRejectsBeforeNativeCreation(string provider, string scheme)
+    {
+        var context = new AuthenticationContext(provider, scheme, "localhost", null, "app", null);
+        var strategy = ConnectionAuthentication.OperatingSystemIdentity();
+        Assert.That(() => strategy.Resolve(context), Throws.TypeOf<ConnectionAuthenticationException>()
+            .With.Property("Code").EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
+        var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => await strategy.ResolveAsync(context));
+        Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
+    }
     [TestCase("mssql://localhost/app")]
     [TestCase("mssql://localhost/app?Integrated%20Security=SSPI")]
     [TestCase("mssql://localhost/app?Trusted_Connection=true")]
