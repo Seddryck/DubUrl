@@ -204,11 +204,7 @@ public abstract class OperatingSystemIdentityQaContract
     {
         var pooled = scenario is "pool-reuse" or "pool-cancellation" or "cached-role-isolation";
         await using var scope = new IdentityQaConnectionScope(AuthenticationRegistry, pooled);
-        if (scenario == "mapped-role") location = location.Replace("alice@", "mapped_alice@", StringComparison.Ordinal);
-        if (scenario == "omitted-role") location = location.Replace("alice@", "", StringComparison.Ordinal);
-        if (scenario == "mismatched-role") location = location.Replace("alice@", "bob@", StringComparison.Ordinal);
-        if (scenario == "missing-socket") location = location.Replace("duburl-identity-socket", "duburl-identity-missing-" + Guid.NewGuid().ToString("N"), StringComparison.Ordinal);
-        if (scenario == "missing-instance") location = IdentityQaLocalDbFixture.Location("DubUrlMissing" + Guid.NewGuid().ToString("N"));
+        location = IdentityScenarioLocation(location, scenario);
         var target = IdentityTarget(location, scope.Registry);
         if (scenario is "mismatched-role" or "missing-socket" or "missing-instance")
         {
@@ -230,18 +226,7 @@ public abstract class OperatingSystemIdentityQaContract
                 await connection.OpenAsync();
                 await AssertLiveIdentityAsync(connection, sql, expected);
             }
-            if (scenario == "pool-cancellation")
-            {
-                using var budget = new CancellationTokenSource();
-                var pending = target.OpenAsync(budget.Token).AsTask();
-                await Task.Delay(100);
-                Assert.That(pending.IsCompleted, Is.False, "The single-session pool must be occupied before cancellation.");
-                budget.Cancel();
-                await Assert.ThrowsAsync(Is.InstanceOf<OperationCanceledException>(), async () =>
-                { await using var failed = await pending.WaitAsync(TimeSpan.FromSeconds(10)); });
-                Assert.That(scope.Registry.Connections, Has.Count.EqualTo(2));
-                await AssertIdentityDisposedAsync(scope.Registry.Connections[1], sql);
-            }
+            if (scenario == "pool-cancellation") await AssertIdentityPoolCancellationAsync(target, scope, sql);
         }
         if (scenario == "pool-reuse")
         {
@@ -257,6 +242,29 @@ public abstract class OperatingSystemIdentityQaContract
             await using var original = await target.OpenAsync();
             Assert.That(await AssertLiveIdentityAsync(original, false, "alice"), Is.EqualTo(session));
         }
+    }
+
+    private static string IdentityScenarioLocation(string location, string scenario) => scenario switch
+    {
+        "mapped-role" => location.Replace("alice@", "mapped_alice@", StringComparison.Ordinal),
+        "omitted-role" => location.Replace("alice@", "", StringComparison.Ordinal),
+        "mismatched-role" => location.Replace("alice@", "bob@", StringComparison.Ordinal),
+        "missing-socket" => location.Replace("duburl-identity-socket", "duburl-identity-missing-" + Guid.NewGuid().ToString("N"), StringComparison.Ordinal),
+        "missing-instance" => IdentityQaLocalDbFixture.Location("DubUrlMissing" + Guid.NewGuid().ToString("N")),
+        _ => location
+    };
+
+    private static async Task AssertIdentityPoolCancellationAsync(ConnectionUrl target, IdentityQaConnectionScope scope, bool sql)
+    {
+        using var budget = new CancellationTokenSource();
+        var pending = target.OpenAsync(budget.Token).AsTask();
+        await Task.Delay(100);
+        Assert.That(pending.IsCompleted, Is.False, "The single-session pool must be occupied before cancellation.");
+        budget.Cancel();
+        await Assert.ThrowsAsync(Is.InstanceOf<OperationCanceledException>(), async () =>
+        { await using var failed = await pending.WaitAsync(TimeSpan.FromSeconds(10)); });
+        Assert.That(scope.Registry.Connections, Has.Count.EqualTo(2));
+        await AssertIdentityDisposedAsync(scope.Registry.Connections[1], sql);
     }
 
     private static async Task<int> AssertLiveIdentityAsync(DbConnection connection, bool sql, string role)
