@@ -29,7 +29,7 @@ URL-only. A native pooled session may avoid a new OS handshake, so identity-nega
 tests must use fresh physical connections. Failure/cancellation disposes newly
 created connections, and sanitized errors omit provider/identity details.
 
-Validation: eight configuration tests and a live Windows LocalDB test passed on
+Historical implementation validation: eight configuration tests and a live Windows LocalDB test passed on
 .NET 10. The live test creates/removes a unique named instance and does not alter
 the default instance or its databases. Run it explicitly with:
 `dotnet test DubUrl.Core.Testing -f net10.0 --filter FullyQualifiedName~LocalDbAuthenticatesCurrentUser`.
@@ -40,4 +40,6 @@ The controlled Linux peer fixture is under `QA/Authentication/Peer`. Build with
 container with fixture-owned identities/configuration. The server requires peer,
 including explicit alice/mapped_alice mapping and no mapping for bob. Docker's
 Linux engine was unavailable locally; this fixture and Linux live behavior were
-not run. No machine-wide authentication/trust configuration is modified.
+not run during the original implementation. No machine-wide authentication/trust configuration is modified.
+
+The existing provider QA suites now include [the shared #1700 QA contract](operating-system-identity-qa.md), including automatic isolated PostgreSQL peer execution on the current Linux Actions runner and prerequisite-aware LocalDB cases. The new fixture runs the compiled test bundle without rebuilding or pulling SDK images. Consult that document and the PR's recorded TRX results for current coverage and precise unsupported cases.

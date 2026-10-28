@@ -53,6 +53,12 @@ public class CliQaCoverageTests
     [TestCase(typeof(AdomdContract))]
     public void EveryTransportContractIncludesTheClientCertificateCases(Type contract)
         => Assert.That(typeof(ClientCertificateAuthenticationQaContract).IsAssignableFrom(contract), Is.True);
+    [TestCase(typeof(ProviderContract))]
+    [TestCase(typeof(OdbcContract))]
+    [TestCase(typeof(OleDbContract))]
+    [TestCase(typeof(AdomdContract))]
+    public void EveryTransportContractIncludesTheOperatingSystemIdentityCases(Type contract)
+        => Assert.That(typeof(OperatingSystemIdentityQaContract).IsAssignableFrom(contract), Is.True);
     private static string FindRoot()
     {
         for (var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory); directory is not null; directory = directory.Parent)

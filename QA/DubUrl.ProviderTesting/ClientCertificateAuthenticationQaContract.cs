@@ -8,10 +8,8 @@ using NUnit.Framework;
 namespace DubUrl.ProviderTesting;
 
 [NonParallelizable]
-public abstract partial class ClientCertificateAuthenticationQaContract
+public abstract partial class ClientCertificateAuthenticationQaContract : OperatingSystemIdentityQaContract
 {
-    protected abstract string AuthenticationConnectionUrl { get; }
-    protected abstract ISchemeRegistry AuthenticationRegistry { get; }
     private X509Certificate2? certificate;
     private CertificateQaPostgresFixture? postgresFixture;
     private CertificateQaDriver CertificateDriver => new(new(AuthenticationConnectionUrl, AuthenticationRegistry));
