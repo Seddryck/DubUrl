@@ -203,7 +203,7 @@ public abstract class OperatingSystemIdentityQaContract
     private async Task ExerciseLiveIdentityAsync(string location, string scenario, bool sql)
     {
         var pooled = scenario is "pool-reuse" or "pool-cancellation" or "cached-role-isolation";
-        await using var scope = new IdentityQaConnectionScope(AuthenticationRegistry, pooled);
+        await using var scope = new IdentityQaConnectionScope(AuthenticationRegistry, pooled, sql);
         location = IdentityScenarioLocation(location, scenario);
         var target = IdentityTarget(location, scope.Registry);
         if (scenario is "mismatched-role" or "missing-socket" or "missing-instance")

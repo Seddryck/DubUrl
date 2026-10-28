@@ -10,12 +10,12 @@ namespace DubUrl.ProviderTesting;
 internal sealed class IdentityQaConnectionScope : IAsyncDisposable
 {
     internal TokenQaRegistry Registry { get; }
-    internal IdentityQaConnectionScope(ISchemeRegistry inner, bool pooling)
+    internal IdentityQaConnectionScope(ISchemeRegistry inner, bool pooling, bool sql)
     {
         Registry = new(inner);
         Registry.Options["Pooling"] = pooling;
         Registry.Options["Application Name"] = "DubUrlIdentityQa_" + Guid.NewGuid().ToString("N");
-        Registry.Options["Max Pool Size"] = 1;
+        Registry.Options[sql ? "Max Pool Size" : "Maximum Pool Size"] = 1;
     }
     public async ValueTask DisposeAsync()
     {
