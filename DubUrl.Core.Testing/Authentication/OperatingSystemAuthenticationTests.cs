@@ -10,6 +10,16 @@ namespace DubUrl.Core.Testing.Authentication;
 [NonParallelizable]
 public class OperatingSystemAuthenticationTests
 {
+    [TestCase("pg"), TestCase("pgx")]
+    public void ShortPostgreSqlAliasesRetainPlatformBehavior(string scheme)
+    {
+        var strategy = ConnectionAuthentication.OperatingSystemIdentity();
+        var context = new AuthenticationContext("Npgsql", scheme, "localhost", null, "app", "alice");
+        if (OperatingSystem.IsWindows())
+            Assert.That(() => strategy.Resolve(context), Throws.TypeOf<ConnectionAuthenticationException>()
+                .With.Property("Code").EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
+        else Assert.That(strategy.Resolve(context), Is.Null);
+    }
     [TestCase("Npgsql", "timescale")]
     [TestCase("Npgsql", "questdb")]
     [TestCase("Npgsql", "cockroach")]

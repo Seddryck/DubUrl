@@ -12,7 +12,7 @@ public abstract partial class ConnectionAuthentication
         public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
         {
             if (context.ProviderInvariantName != "Microsoft.Data.SqlClient"
-                && (context.ProviderInvariantName != "Npgsql" || context.Scheme is not ("postgres" or "postgresql" or "pgsql")))
+                && (context.ProviderInvariantName != "Npgsql" || context.Scheme is not ("postgres" or "postgresql" or "pgsql" or "pg" or "pgx")))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
             if (context.ProviderInvariantName == "Npgsql" && OperatingSystem.IsWindows())
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
