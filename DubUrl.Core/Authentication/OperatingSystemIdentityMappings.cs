@@ -160,4 +160,3 @@ internal static class OperatingSystemIdentityMappings
         if (removeUser) foreach (var key in new[] { "User ID", "UserID", "Uid", "User", "Username" }) builder.Remove(key);
     }
 }
-

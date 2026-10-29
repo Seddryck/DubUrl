@@ -155,4 +155,3 @@ public class OperatingSystemIdentityMappingTests
         _ => throw new ArgumentException(nameof(provider))
     };
 }
-
