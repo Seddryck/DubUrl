@@ -13,8 +13,9 @@ public sealed class CliCapabilities
     public IReadOnlyList<string> DiscoverableSchemes { get; init; } = [];
     public IReadOnlyList<string> ConnectionCommands { get; } = ["check"];
     public IReadOnlyList<string> ConnectionCheckModes { get; } = ["connection", "engine", "table"];
-    public IReadOnlyList<string> AuthenticationOptions { get; } = ["--password-prompt", "--credential-store", "--credential", "--username"];
     public IReadOnlyList<string> CredentialCommands { get; } = ["add", "remove", "exists"];
+    public IReadOnlyList<string> AuthenticationOptions { get; } = ["--password-prompt", "--credential-store", "--username", "--credential", "--os-identity", "--oauth", "--oauth-client-id", "--oauth-tenant", "--oauth-authority", "--oauth-scope", "--oauth-redirect-uri", "--oauth-login-hint", "--oauth-account", "--oauth-timeout", "--allow-oauth-interaction"];
+    public IReadOnlyList<string> OAuthFlows { get; } = ["sqlserver:browser", "sqlserver:device-code", "snowflake:browser"];
     public IReadOnlyList<string> CredentialStoreBackends { get; } = ["windows-credential-manager", "macos-keychain", "linux-secret-service"];
     public bool DeploymentAvailable => DeployableSchemes.Count > 0;
 

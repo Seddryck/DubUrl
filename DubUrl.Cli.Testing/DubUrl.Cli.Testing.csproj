@@ -35,5 +35,6 @@
     <ProjectReference Include="../Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj" />
     <ProjectReference Include="../Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj" />
     <ProjectReference Include="../Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj" />
+    <ProjectReference Include="../Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj" />
   </ItemGroup>
 </Project>

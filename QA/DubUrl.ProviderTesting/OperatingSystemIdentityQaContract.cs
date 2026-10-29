@@ -8,10 +8,8 @@ using NUnit.Framework;
 namespace DubUrl.ProviderTesting;
 
 [NonParallelizable]
-public abstract class OperatingSystemIdentityQaContract
+public abstract class OperatingSystemIdentityQaContract : CliOAuthQaContract
 {
-    protected abstract string AuthenticationConnectionUrl { get; }
-    protected abstract ISchemeRegistry AuthenticationRegistry { get; }
     private PasswordQaDriver IdentityDriver => new(AuthenticationConnectionUrl, AuthenticationRegistry);
     private bool SqlIdentity => IdentityDriver.Provider == "Microsoft.Data.SqlClient";
     private bool PeerIdentity => IdentityDriver.Provider == "Npgsql" && IdentityDriver.Family == "postgresql";

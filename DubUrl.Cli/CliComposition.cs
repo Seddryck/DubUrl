@@ -18,7 +18,8 @@ public static class CliComposition
         IEnumerable<IDubUrlProviderModule>? providerModules = null,
         IHiddenPasswordPrompt? passwordPrompt = null,
         IOsCredentialStore? credentialStore = null,
-        INamedCredentialStore? namedCredentialStore = null)
+        INamedCredentialStore? namedCredentialStore = null,
+        ICliOAuthSessionFactory? oauthSessionFactory = null)
     {
         console ??= new SystemCliConsole();
         configuration ??= new ConfigurationBuilder()
@@ -47,6 +48,7 @@ public static class CliComposition
         services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
         services.AddSingleton<INamedCredentialStore>(namedCredentialStore ?? new NamedCredentialStore(console.IsInteractive));
         services.AddSingleton(console);
+        services.AddSingleton<ICliOAuthSessionFactory>(oauthSessionFactory ?? new NativeCliOAuthSessionFactory());
         services.AddLogging(builder => builder
             .AddConfiguration(configuration.GetSection("Logging"))
             .AddSimpleConsole(options =>

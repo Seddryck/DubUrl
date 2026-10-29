@@ -7,6 +7,19 @@ namespace DubUrl.Authentication.SqlServer;
 /// <summary>MSAL system-browser authorization-code/PKCE session with an in-memory cache. Caller owns lifetime.</summary>
 public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDisposable
 {
+    private readonly bool useDeviceCode;
+    private readonly Func<string, string, DateTimeOffset, CancellationToken, Task>? deviceCodePrompt;
+    private readonly IMsalHttpClientFactory? httpClientFactory;
+    public EntraInteractiveOAuthSession() { }
+    public EntraInteractiveOAuthSession(bool useDeviceCode, Func<string, string, DateTimeOffset, CancellationToken, Task>? deviceCodePrompt)
+        : this(useDeviceCode, deviceCodePrompt, null) { }
+    internal EntraInteractiveOAuthSession(bool useDeviceCode, Func<string, string, DateTimeOffset, CancellationToken, Task>? deviceCodePrompt, IMsalHttpClientFactory? httpClientFactory)
+    {
+        if (useDeviceCode && deviceCodePrompt is null) throw new ArgumentNullException(nameof(deviceCodePrompt));
+        this.useDeviceCode = useDeviceCode;
+        this.deviceCodePrompt = deviceCodePrompt;
+        this.httpClientFactory = httpClientFactory;
+    }
     private readonly SemaphoreSlim acquisition = new(1, 1);
     private readonly object sync = new();
     private IPublicClientApplication? application;
@@ -26,8 +39,10 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
             if (application is null)
             {
                 sessionOptions = options;
-                application = PublicClientApplicationBuilder.Create(options.ClientId).WithAuthority(options.Authority.AbsoluteUri)
-                    .WithRedirectUri(options.RedirectUri.AbsoluteUri).Build();
+                var builder = PublicClientApplicationBuilder.Create(options.ClientId).WithAuthority(options.Authority.AbsoluteUri);
+                if (httpClientFactory is not null) builder = builder.WithHttpClientFactory(httpClientFactory);
+                if (!useDeviceCode) builder = builder.WithRedirectUri(options.RedirectUri.AbsoluteUri);
+                application = builder.Build();
                 tokenStrategy = SqlServerAuthentication.TokenCallback(new InteractiveSource(this));
             }
             (tokenStrategy ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed)).Configure(connection, context);
@@ -59,6 +74,8 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (OperationCanceledException) when (budget.IsCancellationRequested) { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationTimeout); }
+        catch (MsalClientException error) when (error.ErrorCode == MsalError.AuthenticationCanceledError)
+        { throw new OperationCanceledException(cancellationToken); }
         catch (ConnectionAuthenticationException) { throw; }
         catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed); }
         finally { if (entered) acquisition.Release(); }
@@ -71,7 +88,11 @@ public sealed class EntraInteractiveOAuthSession : IInteractiveOAuthSession, IDi
     }
     private Task<AuthenticationResult> AcquireInteractiveAsync(InteractiveOAuthOptions configured, CancellationToken cancellationToken)
     {
-        if (!configured.AllowInteraction || !Environment.UserInteractive) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
+        if (!configured.AllowInteraction) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
+        if (useDeviceCode)
+            return Application.AcquireTokenWithDeviceCode(configured.Scopes, result =>
+                deviceCodePrompt!(result.VerificationUrl, result.UserCode, result.ExpiresOn, cancellationToken)).ExecuteAsync(cancellationToken);
+        if (!Environment.UserInteractive) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
         // MSAL owns the external-browser authorization-code + PKCE protocol.
         var builder = Application.AcquireTokenInteractive(configured.Scopes).WithUseEmbeddedWebView(false)
             .WithSystemWebViewOptions(new SystemWebViewOptions

@@ -18,6 +18,7 @@ public class InspectionConnectionOwnershipTests
     public async Task OwnedConnection_IsDisposedOnSuccessOpenFailureAndMappingFailure(bool failOpen, bool failMapping)
     {
         var connection = new Mock<DbConnection>();
+        connection.Setup(item => item.DisposeAsync()).Callback(() => connection.Object.Dispose()).Returns(ValueTask.CompletedTask);
         connection.SetupGet(item => item.State).Returns(ConnectionState.Open);
         connection.Setup(item => item.OpenAsync(It.IsAny<CancellationToken>())).Returns(
             failOpen ? Task.FromException(new TimeoutException("sensitive")) : Task.CompletedTask);

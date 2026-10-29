@@ -99,7 +99,7 @@ internal static partial class SchemaCommand
         command.Options.Add(dropExisting);
         command.Options.Add(yes);
         authentication.AddTo(command);
-        command.SetAction(result => ExecuteSafely(services, "deploy", () =>
+        command.SetAction((result, actionToken) => ExecuteSafelyAsync(services, "deploy", () =>
             ExecuteDeployAsync(
                 services,
                 result.GetValue(input)!,
@@ -111,7 +111,7 @@ internal static partial class SchemaCommand
                 result.GetValue(dropExisting),
                 result.GetValue(yes),
                 authentication, result,
-                cancellationToken).GetAwaiter().GetResult()));
+                actionToken), result.GetValue(outputFormat) == "json"));
         return command;
     }
 
@@ -128,6 +128,7 @@ internal static partial class SchemaCommand
         CliAuthentication authentication, System.CommandLine.ParseResult parsed,
         CancellationToken cancellationToken)
     {
+        using var authenticationLifetime = authentication;
         cancellationToken.ThrowIfCancellationRequested();
         var json = IsJson(outputFormat);
         if (string.IsNullOrWhiteSpace(connectionName) == string.IsNullOrWhiteSpace(connectionEnvironment))
@@ -151,7 +152,7 @@ internal static partial class SchemaCommand
                 new SchemaDeploymentOptions { CreationOptions = creationOptions },
                 cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception) when (exception is not (OperationCanceledException or DubUrl.Authentication.ConnectionAuthenticationException))
         {
             throw new CliInputException("Deployment failed. Check authentication and provider configuration.");
         }
@@ -188,16 +189,29 @@ internal static partial class SchemaCommand
             throw new CliInputException("Destructive deployment was not confirmed.");
     }
 
-    private static int ExecuteSafely(IServiceProvider services, string command, Func<int> action)
+    private static int ExecuteSafely(IServiceProvider services, string command, Func<int> action, bool json = false)
+        => ExecuteSafelyAsync(services, command, () => Task.FromResult(action()), json).GetAwaiter().GetResult();
+
+    private static async Task<int> ExecuteSafelyAsync(IServiceProvider services, string command, Func<Task<int>> action, bool json = false)
     {
         try
         {
-            return action();
+            return await action().ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
             services.GetRequiredService<ICliConsole>().Error.WriteLine("Operation cancelled.");
             return CliExitCodes.Cancelled;
+        }
+        catch (DubUrl.Authentication.ConnectionAuthenticationException error)
+        {
+            WriteAuthenticationFailure(services, command, error.Code, error.Message, json);
+            return CliAuthentication.ExitCode(error);
+        }
+        catch (CliOAuthInputException error)
+        {
+            WriteAuthenticationFailure(services, command, "invalidInput", error.Message, json);
+            return CliExitCodes.InvalidInput;
         }
         catch (Exception exception) when (exception is CliInputException or SchemaDocumentException or IOException or UnauthorizedAccessException or DubUrl.Authentication.ConnectionAuthenticationException)
         {
@@ -205,6 +219,13 @@ internal static partial class SchemaCommand
             console.Error.WriteLine($"{command}: {exception.Message}");
             return CliExitCodes.InvalidInput;
         }
+    }
+
+    private static void WriteAuthenticationFailure(IServiceProvider services, string command, string code, string message, bool json)
+    {
+        var console = services.GetRequiredService<ICliConsole>();
+        if (json) console.Out.WriteLine(JsonSerializer.Serialize(new { command = "schema " + command, success = false, diagnostics = new[] { new { code, message } } }, CliJson.Options));
+        else console.Error.WriteLine($"{command}: {code}: {message}");
     }
 
     private static ISchemaDocument ReadDocument(IServiceProvider services, string input, string? formatName)

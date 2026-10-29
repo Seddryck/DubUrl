@@ -64,3 +64,7 @@ for implemented cases, fixture prerequisites and unsupported/unverified platform
 Native-store tests use only uniquely named fixture-owned entries and remove them;
 they do not enumerate or read pre-existing user entries. Platform availability
 does not imply that a skipped native smoke test passed.
+
+## OAuth CLI sign-in
+
+Explicit browser and device-code selection is documented in [OAuth sign-in from the CLI](cli-oauth.md), including supported providers, unattended/JSON behavior and exact live-validation gaps. Password selection remains available and is exclusive with OAuth.
