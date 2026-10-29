@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Renderers;
 using System;
 using System.Collections;
@@ -42,6 +42,7 @@ internal class DidotEngine
         {
             try
             {
+                if (input is AbsentTemplateInput absent) absent.Throw();
                 return (parameter ?? throw new InvalidOperationException("Use RenderCommand to render bound parameters."))(input);
             }
             catch (Exception exception)
@@ -52,8 +53,18 @@ internal class DidotEngine
         });
         if (renderer is not null)
         {
-            Engine.AddFormatter("value", (object? input) => renderer.Render(input, "value"));
-            Engine.AddFormatter("identity", (object? input) => renderer.Render(input, "identity"));
+            string RenderChecked(object? input, string format)
+            {
+                if (input is AbsentTemplateInput absent)
+                {
+                    try { absent.Throw(); }
+                    catch (ArgumentException exception) { failure.Value ??= exception; }
+                    return string.Empty;
+                }
+                return renderer.Render(input, format);
+            }
+            Engine.AddFormatter("value", (object? input) => RenderChecked(input, "value"));
+            Engine.AddFormatter("identity", (object? input) => RenderChecked(input, "identity"));
         }
         if (subTemplates is not null)
             foreach (var subTemplate in subTemplates)

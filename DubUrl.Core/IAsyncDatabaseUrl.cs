@@ -2,7 +2,7 @@ using DubUrl.Querying;
 
 namespace DubUrl;
 
-public interface IAsyncDatabaseUrl : IDatabaseUrl
+public partial interface IAsyncDatabaseUrl : IDatabaseUrl
 {
     Task<object?> ReadScalarAsync(string query, CancellationToken cancellationToken = default);
     Task<object?> ReadScalarAsync(ICommandProvider commandProvider, CancellationToken cancellationToken = default);
