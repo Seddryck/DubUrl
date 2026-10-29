@@ -15,11 +15,20 @@ Choose a method for commands that connect to a database: `connection check`, `sc
 | [Operating-system identity]({{ '/operating-system-authentication/' | relative_url }}) | Use the current OS identity, without a database password. | SQL Server / PostgreSQL connection URL; see method page |
 | [Client certificate]({{ '/client-certificate-authentication/' | relative_url }}) | Present a client certificate to the database over TLS. | No dedicated CLI selection |
 | [Access token]({{ '/sqlserver-token-authentication/' | relative_url }}) | Present an identity-provider access token to the database. | No dedicated CLI selection |
-| [Browser sign-in (OAuth)]({{ '/interactive-oauth/' | relative_url }}) | Sign in as a user in a local browser, with MFA where required. | `--oauth browser` |
-| [Device-code sign-in (OAuth)]({{ '/device-code-authentication/' | relative_url }}) | Sign in as a user in a browser on this or another device. | `--oauth device-code` |
 
 Each method page lists every database and Windows, Linux, and macOS support, prerequisites, and instructions for both interfaces. “No dedicated CLI selection” means use the Library for that method; it is not a password or OAuth option.
 
 Select the connection using `--connection <name>` or `--connection-env <variable>`. Choose one authentication method; do not combine OAuth with a password prompt or credential store. There is no `--password` option.
+
+## Experimental OAuth
+
+**OAuth sign-in is experimental and currently supports only the databases and native providers listed below.** It is not a general sign-in option for all DubUrl databases or for ODBC/OLE DB connections.
+
+| Database / endpoint | Native provider | Browser sign-in | Device-code sign-in |
+|---|---|---|---|
+| SQL Server / Azure SQL with Microsoft Entra authentication enabled | `Microsoft.Data.SqlClient` | [`--oauth browser`]({{ '/interactive-oauth/' | relative_url }}#sql-server--microsoft-entra) | [`--oauth device-code`]({{ '/device-code-authentication/' | relative_url }}) |
+| Snowflake | `Snowflake.Data` | [`--oauth browser`]({{ '/interactive-oauth/' | relative_url }}#snowflake) | Not supported |
+
+[Browser sign-in]({{ '/interactive-oauth/' | relative_url }}) opens a local browser and can satisfy the identity provider's MFA requirements. [Device-code sign-in]({{ '/device-code-authentication/' | relative_url }}) shows a code that you enter in a browser on this or another device; it is currently available only for Microsoft Entra SQL connections. Configure the identity provider, application and database access as described on the method pages.
 
 See [Library authentication]({{ '/authentication/' | relative_url }}) for application use.
