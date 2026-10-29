@@ -44,7 +44,9 @@ NTLM and is not advertised here as verified Kerberos.
 
 "Implemented" below means the shared strategy configures that exact route.
 Mapping tests exercise real closed native connections, not successful logins.
-The new network routes have no live domain/KDC/server acceptance evidence.
+MariaDB and SingleStore native routes have real Linux Kerberos evidence from the
+[isolated KDC fixtures](../QA/Authentication/Kerberos/README.md). Other new network
+routes remain unverified unless explicitly stated below.
 ADOMD expansion is outside this feature.
 
 | Database / selected driver | Client OS and driver capability | Implemented settings / limits | Live verification |
@@ -64,12 +66,12 @@ ADOMD expansion is outside this feature.
 | Drill / MapR Drill ODBC Driver or HPE Drill ODBC Driver | Windows SSPI/MIT; non-Windows MIT where vendor supports installed driver | `AuthenticationType=Kerberos`; explicit `KrbServiceHost`, default `KrbServiceName=drill`; optional Windows `UseOnlySSPI` | Unverified |
 | Trino / Simba Trino ODBC Driver | Windows native SSPI or MIT (`UseGSSAPI`); Linux/macOS MIT | `AuthenticationType=Kerberos Authentication`, `UseExistingKrbCreds=1`, `DelegateKrbCreds=0`, `SSL=1`; optional `KrbServiceName` | Unverified |
 | Trino / NReco.PrestoAdo 1.1.0 | No implemented Kerberos route | Explicitly unsupported; never substitutes ODBC | None |
-| MariaDB / MySqlConnector 2.6.2 | Windows SSPI; Linux/macOS GSSAPI with the required native libraries | Explicit URL database role required; no password supplied; server account must use gssapi exclusively; optional ServerSPN retained | Closed native mappings tested; live GSSAPI unverified |
+| MariaDB / MySqlConnector 2.6.2 | Windows SSPI; Linux/macOS GSSAPI with the required native libraries | Explicit URL database role required; no password supplied; server account must use gssapi exclusively; optional ServerSPN retained | Real Linux/.NET 8/9/10 login/TLS and missing/wrong-ticket rejection verified against MariaDB 11.4.13 |
 | MariaDB / MariaDB ODBC 3.1 or 3.2 | Vendor GSSAPI client plugin for the installed OS/architecture required | Preserve UID, TLS and PLUGIN_DIR; server-account plugin negotiation; no password or invented DEFAULT_AUTH/ServerSPN setting | Closed mappings tested; installed-driver login unverified |
-| MySQL / MySql.Data 26.7.0 | Windows/Linux; Enterprise Kerberos server plugin; macOS rejected | Explicitly select MySql.Data; DefaultAuthenticationPlugin=authentication_kerberos_client; Windows KerberosAuthMode defaults to SSPI, accepts explicit SSPI/GSSAPI/AUTO | Closed native mappings tested; live Kerberos unverified |
+| MySQL / MySql.Data 26.7.0 | Windows/Linux; Enterprise Kerberos server plugin; macOS rejected | Explicitly select MySql.Data; DefaultAuthenticationPlugin=authentication_kerberos_client; Windows KerberosAuthMode defaults to SSPI, accepts explicit SSPI/GSSAPI/AUTO | Mapping tested; live run blocked by unavailable Enterprise server/plugin |
 | MySQL / MySQL ODBC >=8.0.32 | Documented Windows/Linux clients with Enterprise server plugin and matching client plugin installed | DEFAULT_AUTH=authentication_kerberos_client; authentication-kerberos-mode=SSPI on Windows, GSSAPI on Linux; preserve explicit compatible mode/TLS/PLUGIN_DIR | Closed mappings tested; displayed 8.0 names do not establish installed patch version |
 | MySQL / default MySqlConnector 2.6.2 | MariaDB GSSAPI support does not implement the MySQL authentication_kerberos_client plugin | Explicitly unsupported for OS identity; never substitutes MySql.Data or another driver | None |
-| SingleStore / SingleStoreConnector 1.2.0 | Source-compatible auth_gssapi_client using default process credentials and platform NegotiateStream; server authentication_gss account/KDC prerequisites apply | Explicit URL database role required; no password; optional ServerSPN retained | Native mapping tested and client protocol/source compatibility checked; no live Kerberos login verified |
+| SingleStore / SingleStoreConnector 1.2.0 | Source-compatible auth_gssapi_client using default process credentials and platform NegotiateStream; server authentication_gss account/KDC prerequisites apply | Explicit URL database role required; no password; optional ServerSPN retained | Real Linux/.NET 8/9/10 login/TLS and missing/wrong-ticket rejection verified against SingleStore 9.1.1 |
 
 ODBC/OLE DB mappings validate the actual mapped driver/provider, not just the
 scheme. DSN/FileDSN and opaque nested authentication strings reject because they
@@ -157,9 +159,13 @@ Evidence: [SingleStore server account prerequisites](https://docs.singlestore.co
 [its GSSAPI exchange](https://github.com/memsql/singlestore-odbc-connector/blob/v1.2.2/libmariadb/plugins/auth/gssapi_client.c),
 [SingleStoreConnector 1.2.0 dispatch](https://github.com/memsql/SingleStoreNETConnector/blob/b684828029856c5d74d5b9ed09b5f76c9daa71e6/src/SingleStoreConnector/Core/ServerSession.cs)
 and [credential/SPN handling](https://github.com/memsql/SingleStoreNETConnector/blob/b684828029856c5d74d5b9ed09b5f76c9daa71e6/src/SingleStoreConnector/Protocol/Serialization/AuthGSSAPI.cs).
-Native closed-connection mapping tests also pass. No provisioned SingleStore
-Kerberos server/KDC was available; successful authentication, ticket renewal and
-pooling against such a server remain unverified.
+The [isolated fixture](../QA/Authentication/Kerberos/README.md) now also verifies
+real SingleStore 9.1.1 login using SingleStoreConnector 1.2.0 against an MIT KDC
+on Linux/.NET 8/9/10. Sync/async queries use certificate-verified TLS; missing and
+different-principal caches reject. The server account is exclusively
+`authentication_gss` and requires TLS. This adds live evidence to the source
+checks. Windows SSPI/AD, macOS, other server versions, ticket renewal/expiry and
+pooling remain unverified by this fixture.
 
 ### Opt-in real authentication tests
 
@@ -180,6 +186,12 @@ Missing fixtures explicitly skip. A successful account query is acceptance
 evidence only when the prerequisite plugin-only server policy is established;
 the query itself does not identify the negotiated authentication protocol.
 
+Alternatively, [run the isolated fixtures](../QA/Authentication/Kerberos/README.md)
+to provision the test-only KDC, TLS and MariaDB/SingleStore plugin-only accounts.
+That harness also runs `PluginOnlyAccountRejectsOtherOrMissingTicket` in separate
+processes with missing/wrong caches. MySQL remains blocked because its Enterprise
+server Kerberos plugin/image is unavailable; no Community/MariaDB substitute is used.
+
 ### References
 
 Checked against repository dependency declarations and these vendor sources:
@@ -199,7 +211,7 @@ Checked against repository dependency declarations and these vendor sources:
 - [Connector.NET 26.7.0 credential handling](https://github.com/mysql/mysql-connector-net/blob/26.7.0/MySQL.Data/src/Authentication/KerberosAuthenticationPlugin.cs) and [MySQL ODBC options](https://dev.mysql.com/doc/connector-odbc/en/connector-odbc-configuration-connection-parameters.html) define the selected native modes.
 
 Existing [OS-identity live QA](operating-system-identity-qa.md) remains available.
-Mapping passes must not be described as successful Kerberos logins. Windows/Linux/
-macOS network domains, KDCs and the corresponding protected servers are not
-provisioned by this feature. See the PR for the exact commands, TFMs and live
-fixtures actually run for this change.
+Mapping passes must not be described as successful Kerberos logins. The strategy
+does not provision production domains, KDCs or servers. The separate opt-in fixture
+provisions only disposable test containers. See its README and the PR for exact
+commands, TFMs and verified live scope.

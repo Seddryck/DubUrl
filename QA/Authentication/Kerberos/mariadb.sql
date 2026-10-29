@@ -1,0 +1,3 @@
+CREATE DATABASE app;
+CREATE USER 'alice'@'%' IDENTIFIED VIA gssapi USING 'alice@DUBURL.TEST' REQUIRE SSL;
+GRANT SELECT ON app.* TO 'alice'@'%';

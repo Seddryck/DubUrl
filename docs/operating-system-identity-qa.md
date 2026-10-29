@@ -29,3 +29,8 @@ The existing Windows OLE DB jobs strictly select `TestCategory=OleDB`, and Maria
 No external credential acquisition exists for this strategy. Token/certificate/password sources belong to other selected strategies, and every query attempt to combine competing authentication settings is rejected. Reusing a pooled physical session is not a new OS handshake. Switching process identity/impersonation is out of scope. Remote SQL Kerberos, delegation/domains, TCP ident, PostgreSQL GSSAPI/SSPI, Windows peer, physical-handshake cancellation, and arbitrary-server policy verification are unverified. Pool-wait cancellation is named separately. No claim is made that client configuration can distinguish peer from trust on an arbitrary server.
 
 GitHub Actions results are recorded in the PR and authentication QA workbook after complete TRX inspection, separately from unit tests and local checks.
+
+
+## Isolated native MariaDB and SingleStore Kerberos
+
+The [standalone fixture](../QA/Authentication/Kerberos/README.md) now supplies a private MIT KDC, TLS and real plugin-only MariaDB 11.4.13 / SingleStore 9.1.1 accounts. Linux/.NET 8/9/10 pass 36 live cases: sync/async authenticated queries, missing tickets and valid tickets for a different principal. MySQL's corresponding 18 cases remain blocked/skipped because no Enterprise server Kerberos plugin/image is available. The fixture verifies server policy, certificate trust/hostnames and TLS; it does not change the existing password QA deployments or workflows. The standalone runner checks exact outcomes and cleans up only its owned resources. See its README for commands, versions, result matrix and limits.

@@ -1,0 +1,54 @@
+services:
+  kdc:
+    build: { context: ., dockerfile: Dockerfile }
+    command: [bash, /fixture/kdc.sh]
+    volumes: [realm:/realm]
+    networks:
+      realm: { aliases: [kdc.fixture.test] }
+    healthcheck:
+      test: [CMD, test, -f, /realm/ready]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+  mariadb:
+    build: { context: ., dockerfile: MariaDb.Dockerfile }
+    depends_on:
+      kdc: { condition: service_healthy }
+    volumes:
+      - realm:/realm:ro
+      - ./mariadb-policy.sh:/fixture/policy.sh:ro
+    networks:
+      realm: { aliases: [mariadb.fixture.test] }
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+  singlestore:
+    image: ghcr.io/singlestore-labs/singlestoredb-dev@sha256:7ef945c3bf93e6b50b17cd8f5fbfa6f304f55ef04f45ccf408bbf051430a9457
+    entrypoint: [bash, /fixture/singlestore.sh]
+    cpus: 2
+    mem_limit: 4g
+    depends_on:
+      kdc: { condition: service_healthy }
+    volumes:
+      - realm:/realm:ro
+      - ./singlestore.sh:/fixture/singlestore.sh:ro
+      - ./krb5.conf:/etc/krb5.conf:ro
+      - ./singlestore-policy.sh:/fixture/policy.sh:ro
+    networks:
+      realm: { aliases: [singlestore.fixture.test] }
+  client:
+    build: { context: ., dockerfile: Dockerfile }
+    user: "10001:10001"
+    entrypoint: [bash, /fixture/client.sh]
+    volumes:
+      - realm:/realm:ro
+      - ${DUBURL_KERBEROS_TEST_DIR:?Set the compiled net10.0 test directory}:/tests:ro
+      - ${DUBURL_KERBEROS_RESULTS:?Set an empty results directory}:/results
+    networks: [realm]
+volumes:
+  realm:
+networks:
+  realm:
+    internal: true

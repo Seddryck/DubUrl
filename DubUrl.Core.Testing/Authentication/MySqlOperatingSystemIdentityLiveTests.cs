@@ -28,5 +28,32 @@ public class MySqlOperatingSystemIdentityLiveTests
         var actual = asynchronous ? await command.ExecuteScalarAsync(budget.Token) : command.ExecuteScalar();
         Assert.That(string.Equals(actual?.ToString(), account, StringComparison.Ordinal), Is.True,
             "The authenticated database account must match the fixture expectation; identity values are suppressed.");
+        if (Environment.GetEnvironmentVariable("DUBURL_KERBEROS_REQUIRE_TLS") == "1")
+        {
+            command.CommandText = "SHOW STATUS LIKE 'Ssl_cipher'";
+            await using var reader = await command.ExecuteReaderAsync(budget.Token);
+            Assert.That(await reader.ReadAsync(budget.Token) && !string.IsNullOrEmpty(reader.GetString(1)), Is.True,
+                "The isolated fixture requires an encrypted, certificate-verified connection.");
+        }
+    }
+
+    [TestCase("MARIADB", "MySqlConnector", false), TestCase("MARIADB", "MySqlConnector", true)]
+    [TestCase("MYSQL", "MySql.Data", false), TestCase("MYSQL", "MySql.Data", true)]
+    [TestCase("SINGLESTORE", "SingleStoreConnector", false), TestCase("SINGLESTORE", "SingleStoreConnector", true)]
+    public async Task PluginOnlyAccountRejectsOtherOrMissingTicket(string fixture, string provider, bool asynchronous)
+    {
+        var scenario = Environment.GetEnvironmentVariable("DUBURL_KERBEROS_NEGATIVE_SCENARIO");
+        var url = Environment.GetEnvironmentVariable("DUBURL_" + fixture + "_OS_QA_URL");
+        if (scenario is not ("missing" or "wrong") || string.IsNullOrWhiteSpace(url))
+            Assert.Ignore("Requires an isolated child process with a missing or different fixture principal's ticket cache.");
+        var target = new ConnectionUrl(url!, MySqlOperatingSystemIdentityTests.Registry(provider))
+            .WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
+        using var budget = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () =>
+        {
+            await using var connection = asynchronous ? await target.OpenAsync(budget.Token) : (DbConnection)target.Open();
+        });
+        Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.AuthenticationFailed));
+        Assert.That(error.InnerException, Is.Null);
     }
 }
