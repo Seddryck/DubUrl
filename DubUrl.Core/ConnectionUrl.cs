@@ -103,7 +103,7 @@ public class ConnectionUrl : BaseConnectionUrl
             catch (ConnectionAuthenticationException) { throw; }
             catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed); }
             cancellationToken.ThrowIfCancellationRequested();
-            connection = CreateAuthenticatedConnection(uri, credentials);
+            connection = CreateAuthenticatedConnection(uri, credentials, context);
             await authentication.ConfigureAsync(connection, context, cancellationToken).ConfigureAwait(false);
             return connection;
         }
@@ -153,7 +153,7 @@ public class ConnectionUrl : BaseConnectionUrl
             try { credentials = RequiredAuthentication.Resolve(context); }
             catch (ConnectionAuthenticationException) { throw; }
             catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed); }
-            connection = CreateAuthenticatedConnection(uri, credentials);
+            connection = CreateAuthenticatedConnection(uri, credentials, context);
             RequiredAuthentication.Configure(connection, context);
             return connection;
         }
@@ -174,10 +174,10 @@ public class ConnectionUrl : BaseConnectionUrl
             uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null));
     }
 
-    private DbConnection CreateAuthenticatedConnection(ConnectionUri uri, UsernamePasswordCredentials? credentials)
+    private DbConnection CreateAuthenticatedConnection(ConnectionUri uri, UsernamePasswordCredentials? credentials, AuthenticationContext context)
     {
         // This transient structured mapping is deliberately never stored in BaseConnectionUrl.Result.
-        var resolved = Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials));
+        var resolved = Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials, context));
         var connection = resolved.ProviderFactory.CreateConnection() ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
         try
         {

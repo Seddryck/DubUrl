@@ -117,8 +117,7 @@ public class OperatingSystemIdentityMappingTests
         Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
     }
 
-    [TestCase("MySqlConnector", "mysql"), TestCase("MySqlConnector", "maria")]
-    [TestCase("MySql.Data.MySqlClient", "mysql"), TestCase("SingleStoreConnector", "singlestore")]
+    [TestCase("MySqlConnector", "mysql"), TestCase("MySql.Data", "maria")]
     [TestCase("NReco.PrestoAdo", "trino"), TestCase("Npgsql", "questdb")]
     public async Task UnverifiedOrUnsupportedProviderNeverFallsBack(string provider, string scheme)
     {

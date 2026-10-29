@@ -59,7 +59,7 @@ public abstract class OperatingSystemIdentityQaContract
                 try
                 {
                     ConnectionAuthentication.OperatingSystemIdentity().Resolve(new(IdentityDriver.Provider,
-                        IdentityDriver.Family, null, null, null, null));
+                        IdentityDriver.Uri.Scheme.Canonical, null, null, null, IdentityDriver.Uri.HasUsername ? IdentityDriver.Uri.Username : null));
                     Assert.Ignore("#1728: mapping capability exists; this password-based fixture does not verify OS authentication or the installed driver's Kerberos configuration.");
                 }
                 catch (ConnectionAuthenticationException unsupported) when (unsupported.Code == AuthenticationDiagnosticCodes.UnsupportedAuthentication) { }

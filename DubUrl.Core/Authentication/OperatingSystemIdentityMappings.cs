@@ -21,16 +21,22 @@ internal static class OperatingSystemIdentityMappings
         {
             "Microsoft.Data.SqlClient" => IsSqlServer(family),
             "Npgsql" => IsPostgres(family),
+            "MySqlConnector" => MySqlOperatingSystemIdentityMappings.IsMariaDb(family),
+            "MySql.Data" => MySqlOperatingSystemIdentityMappings.IsMySql(family) && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()),
+            "SingleStoreConnector" => family is "sg" or "sgs" or "single" or "singlestore" or "singlestoredb",
             "IBM.Data.Db2" => family is "db2",
             "Oracle.ManagedDataAccess" or "Oracle.DataAccess" => family is "oracle" or "ora" or "or",
             "Teradata.Client" => family is "teradata" or "td" or "tera" or "teradatasql",
             "FirebirdSql.Data.FirebirdClient" => OperatingSystem.IsWindows() && family is "firebird" or "firebirdsql" or "fb",
-            "System.Data.Odbc" => IsSqlServer(family) || IsPostgres(family) || family is "trino" or "tr" or "drill",
+            "System.Data.Odbc" => IsSqlServer(family) || IsPostgres(family) || family is "trino" or "tr" or "drill"
+                || MySqlOperatingSystemIdentityMappings.IsMariaDb(family) || MySqlOperatingSystemIdentityMappings.IsMySql(family),
             "System.Data.OleDb" => OperatingSystem.IsWindows() && (IsSqlServer(family) || family is "oracle" or "ora" or "or"),
-            // Plugin negotiation alone does not enforce an OS-only authentication mechanism.
             _ => false
         };
         if (!supported) Unsupported();
+        if (context.ProviderInvariantName is "MySqlConnector" or "SingleStoreConnector"
+            && string.IsNullOrWhiteSpace(context.Username))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
     }
 
     internal static void Configure(DbConnectionStringBuilder builder, AuthenticationContext context)
@@ -39,6 +45,11 @@ internal static class OperatingSystemIdentityMappings
         {
             case "Microsoft.Data.SqlClient": ConfigureSqlServer(builder, context); break;
             case "Npgsql": ConfigurePostgres(builder); break;
+            case "MySqlConnector":
+            case "SingleStoreConnector":
+                RemoveCredentials(builder, false); // Role hint selects a server account, not another OS credential.
+                break;
+            case "MySql.Data": MySqlOperatingSystemIdentityMappings.ConfigureConnectorNet(builder); break;
             case "IBM.Data.Db2":
                 Require(builder, "TargetPrincipal");
                 RejectUser(context);
@@ -96,6 +107,11 @@ internal static class OperatingSystemIdentityMappings
         // DSNs/opaque driver paths do not establish the vendor/version contract safely.
         if (builder.ContainsKey("DSN") || builder.ContainsKey("FileDSN")) Unsupported();
         var driver = Get(builder, "Driver").Trim('{', '}');
+        if (MySqlOperatingSystemIdentityMappings.IsMariaDb(Family(context)) || MySqlOperatingSystemIdentityMappings.IsMySql(Family(context)))
+        {
+            MySqlOperatingSystemIdentityMappings.ConfigureOdbc(builder, context, driver);
+            return;
+        }
         if (IsSqlServer(Family(context)) && driver is "ODBC Driver 17 for SQL Server" or "ODBC Driver 18 for SQL Server")
         {
             RejectUser(context);

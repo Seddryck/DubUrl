@@ -19,7 +19,7 @@ user acquisition, impersonation or machine configuration occurs. OS identity
 conflicts with URL passwords (including explicitly empty ones), native password
 aliases, tokens, OAuth, client certificates and competing authentication options.
 CLI `--password-prompt`, `--credential-store` and `--username` also conflict.
-PostgreSQL and Trino may retain a URL database-role hint; it does not select a
+PostgreSQL, MariaDB, MySQL, SingleStore and Trino may retain a URL database-role hint; it does not select a
 different OS identity. SqlClient, Db2, Oracle, Teradata and Firebird reject URL
 usernames. A subsequent Library `WithAuthentication` call replaces the strategy.
 
@@ -64,9 +64,12 @@ ADOMD expansion is outside this feature.
 | Drill / MapR Drill ODBC Driver or HPE Drill ODBC Driver | Windows SSPI/MIT; non-Windows MIT where vendor supports installed driver | `AuthenticationType=Kerberos`; explicit `KrbServiceHost`, default `KrbServiceName=drill`; optional Windows `UseOnlySSPI` | Unverified |
 | Trino / Simba Trino ODBC Driver | Windows native SSPI or MIT (`UseGSSAPI`); Linux/macOS MIT | `AuthenticationType=Kerberos Authentication`, `UseExistingKrbCreds=1`, `DelegateKrbCreds=0`, `SSL=1`; optional `KrbServiceName` | Unverified |
 | Trino / NReco.PrestoAdo 1.1.0 | No implemented Kerberos route | Explicitly unsupported; never substitutes ODBC | None |
-| MariaDB / MySqlConnector 2.6.2 or MariaDB ODBC | Vendor GSSAPI plugin capability exists; MySqlConnector accepts `ServerSPN` | Unverified OS-only enforcement: strategy rejects rather than treating an empty password as proof of GSSAPI | None |
-| MySQL / MySql.Data 26.7.0 or MySQL ODBC | Enterprise/server-plugin/version/OS dependent; Connector.NET Kerberos excludes macOS; ODBC mode option requires >=8.0.32 | Unverified OS-only enforcement: strategy rejects; no implicit substitution of MySqlConnector | None |
-| SingleStore / SingleStoreConnector 1.2.0 | Client GSSAPI/SPNEGO code is not server-plugin acceptance evidence | Explicitly unverified and unsupported by this strategy | None |
+| MariaDB / MySqlConnector 2.6.2 | Windows SSPI; Linux/macOS GSSAPI with the required native libraries | Explicit URL database role required; no password supplied; server account must use gssapi exclusively; optional ServerSPN retained | Closed native mappings tested; live GSSAPI unverified |
+| MariaDB / MariaDB ODBC 3.1 or 3.2 | Vendor GSSAPI client plugin for the installed OS/architecture required | Preserve UID, TLS and PLUGIN_DIR; server-account plugin negotiation; no password or invented DEFAULT_AUTH/ServerSPN setting | Closed mappings tested; installed-driver login unverified |
+| MySQL / MySql.Data 26.7.0 | Windows/Linux; Enterprise Kerberos server plugin; macOS rejected | Explicitly select MySql.Data; DefaultAuthenticationPlugin=authentication_kerberos_client; Windows KerberosAuthMode defaults to SSPI, accepts explicit SSPI/GSSAPI/AUTO | Closed native mappings tested; live Kerberos unverified |
+| MySQL / MySQL ODBC >=8.0.32 | Documented Windows/Linux clients with Enterprise server plugin and matching client plugin installed | DEFAULT_AUTH=authentication_kerberos_client; authentication-kerberos-mode=SSPI on Windows, GSSAPI on Linux; preserve explicit compatible mode/TLS/PLUGIN_DIR | Closed mappings tested; displayed 8.0 names do not establish installed patch version |
+| MySQL / default MySqlConnector 2.6.2 | MariaDB GSSAPI support does not implement the MySQL authentication_kerberos_client plugin | Explicitly unsupported for OS identity; never substitutes MySql.Data or another driver | None |
+| SingleStore / SingleStoreConnector 1.2.0 | Source-compatible auth_gssapi_client using default process credentials and platform NegotiateStream; server authentication_gss account/KDC prerequisites apply | Explicit URL database role required; no password; optional ServerSPN retained | Native mapping tested and client protocol/source compatibility checked; no live Kerberos login verified |
 
 ODBC/OLE DB mappings validate the actual mapped driver/provider, not just the
 scheme. DSN/FileDSN and opaque nested authentication strings reject because they
@@ -89,6 +92,96 @@ Network connections never receive peer-only settings or have TLS weakened.
 
 ## Vendor evidence and verification boundaries
 
+### MariaDB and MySQL selection
+
+```shell
+duburl connection check 'maria://app_role@db.example.com/app?SSL%20Mode=VerifyFull&ServerSPN=mariadb%2Fdb.example.com' --os-identity --engine
+duburl connection check 'odbc+mysql://app_role@db.example.com/app?Driver=MySQL%20ODBC%209.4%20Unicode%20Driver&SSLMODE=VERIFY_IDENTITY' --os-identity --engine
+duburl connection check 'odbc+maria://app_role@db.example.com/app?Driver=MariaDB%20ODBC%203.2%20Driver' --os-identity --engine
+```
+
+MariaDB accounts must be configured for `gssapi` exclusively. A database-role
+hint is required for the native MySqlConnector and SingleStore mappers; omitting
+it fails with `MissingCredentials`, before native creation. Neither mapper
+guesses an account from the client's environment. `ServerSPN` is optional on those
+native routes; no value is invented. MariaDB ODBC has no corresponding SPN
+keyword, so that combination rejects; provision its client plugin where needed
+and use the vendor-supported `PLUGIN_DIR` option. Plugin architecture must match
+the driver. Modern Windows MariaDB ODBC bundles plugins; other installations may
+need the Connector/C plugin files. These are deployment prerequisites, not setup
+actions performed by the flag.
+
+For MySQL, use an Enterprise server account configured exclusively for Kerberos.
+`DEFAULT_AUTH`/`DefaultAuthenticationPlugin` select the MySQL Kerberos client
+plugin. Windows defaults to SSPI; explicit GSSAPI uses an existing MIT cache.
+Connector.NET also accepts explicit AUTO (SSPI then GSSAPI). Connector.NET's
+`KerberosAuthMode` is Windows-only and rejects on Linux; MySQL ODBC uses
+`authentication-kerberos-mode=GSSAPI` on Linux. The latter option requires ODBC
+8.0.32 or later. A driver display name containing only `8.0` cannot identify its
+patch version; verify that prerequisite independently. Explicit older versions,
+unknown drivers, cross-vendor driver selections and macOS MySQL Kerberos reject.
+
+`mysql://` normally selects MySqlConnector in the bundled native catalog, which
+does not implement MySQL's Kerberos plugin. The strategy never silently swaps
+that driver. CLI users can explicitly select the MySQL ODBC route above. Library
+applications can register `MySql.Data` as their chosen `mysql` provider using the
+existing `MySqlDataMapper` and `ProviderRegistration`; that explicit catalog
+selection is covered by tests. No new bundled MySql.Data connector pack is added.
+Userless Connector.NET calls derive their username from the native credential
+cache/current session. Its SSPI driver requires any supplied MySQL username to
+match the current Windows username; the strategy does not acquire another user's
+credentials to satisfy a mismatched role.
+
+These MySQL-family routes rely on the configured server account's plugin policy
+and the selected driver's negotiation. DubUrl supplies no password, invokes no
+credential source and adds no retry with another authentication strategy. This
+is not a client protocol allowlist: it cannot certify that an arbitrary endpoint
+or a misconfigured passwordless account actually requires Kerberos. Provision
+plugin-only accounts and verify server policy independently. Mapping tests are
+not proof of that policy or of a completed GSSAPI exchange.
+
+### SingleStore verification
+
+SingleStore's server account plugin is `authentication_gss`. Its vendor ODBC
+source registers the wire plugin as `auth_gssapi_client`, reads the NUL-terminated
+server SPN and exchanges GSSAPI/SSPI tokens using existing credentials. The
+installed SingleStoreConnector 1.2.0 source dispatches that same wire plugin,
+parses the same SPN field and calls `NegotiateStream` with
+`CredentialCache.DefaultNetworkCredentials`. A supplied `ServerSPN` additionally
+requires mutual authentication. Those checks establish source compatibility
+with the vendor client protocol rather than assuming that MariaDB support alone
+establishes SingleStore support.
+
+Evidence: [SingleStore server account prerequisites](https://docs.singlestore.com/db/v8.7/security/authentication/kerberos-authentication/configuring-singlestore-for-kerberos-authentication/),
+[vendor ODBC v1.2.2 wire plugin](https://github.com/memsql/singlestore-odbc-connector/blob/v1.2.2/libmariadb/plugins/auth/auth_gssapi_client.c),
+[its GSSAPI exchange](https://github.com/memsql/singlestore-odbc-connector/blob/v1.2.2/libmariadb/plugins/auth/gssapi_client.c),
+[SingleStoreConnector 1.2.0 dispatch](https://github.com/memsql/SingleStoreNETConnector/blob/b684828029856c5d74d5b9ed09b5f76c9daa71e6/src/SingleStoreConnector/Core/ServerSession.cs)
+and [credential/SPN handling](https://github.com/memsql/SingleStoreNETConnector/blob/b684828029856c5d74d5b9ed09b5f76c9daa71e6/src/SingleStoreConnector/Protocol/Serialization/AuthGSSAPI.cs).
+Native closed-connection mapping tests also pass. No provisioned SingleStore
+Kerberos server/KDC was available; successful authentication, ticket renewal and
+pooling against such a server remain unverified.
+
+### Opt-in real authentication tests
+
+`MySqlOperatingSystemIdentityLiveTests` provides synchronous/asynchronous query
+cases for each native provider. Provision a server account exclusively using
+MariaDB `gssapi`, MySQL `authentication_kerberos`, or SingleStore
+`authentication_gss`, and an existing OS ticket cache independently. Set
+both `URL` and `ACCOUNT` variables using the appropriate prefix:
+`DUBURL_MARIADB_OS_QA_`, `DUBURL_MYSQL_OS_QA_`, or `DUBURL_SINGLESTORE_OS_QA_`.
+For example, MariaDB uses `DUBURL_MARIADB_OS_QA_URL` and
+`DUBURL_MARIADB_OS_QA_ACCOUNT`. `ACCOUNT` is the exact expected
+`CURRENT_USER()` result; do not place a password in the URL. Select a finite
+native connection timeout in fixture configuration. Tests perform no account,
+KDC, ticket or machine configuration and print neither URL nor identity values.
+
+Run `dotnet test DubUrl.Core.Testing -f net10.0 --filter FullyQualifiedName~MySqlOperatingSystemIdentityLiveTests`.
+Missing fixtures explicitly skip. A successful account query is acceptance
+evidence only when the prerequisite plugin-only server policy is established;
+the query itself does not identify the negotiated authentication protocol.
+
+### References
+
 Checked against repository dependency declarations and these vendor sources:
 
 - [Npgsql security](https://www.npgsql.org/doc/security.html) and [connection parameters](https://www.npgsql.org/doc/connection-string-parameters.html).
@@ -101,8 +194,9 @@ Checked against repository dependency declarations and these vendor sources:
 - [Firebird authentication plugins](https://www.firebirdsql.org/docs/html/en/refdocs/fbconf/firebird-configuration-reference.html).
 - [Drill ODBC connection strings](https://drill.apache.org/docs/testing-the-odbc-connection/) and [ODBC settings](https://drill.apache.org/docs/odbc-configuration-reference/).
 - [Simba Trino Kerberos settings](https://documentation.insightsoftware.com/trino-online-documentation-windows/content/odbc/pr/configuring/authenticating/kerberos.htm).
-- [MariaDB GSSAPI plugin](https://mariadb.com/docs/server/reference/plugins/authentication-plugins/authentication-plugin-gssapi), [MySqlConnector options](https://mysqlconnector.net/connection-options/) and [2.6.2 handshake source](https://github.com/mysql-net/MySqlConnector/blob/2.6.2/src/MySqlConnector/Core/ServerSession.cs). The client starts with password mechanisms and accepts server-selected plugin switches; no per-connection OS-only allowlist was established.
-- [MySQL Connector.NET authentication](https://dev.mysql.com/doc/connector-net/en/connector-net-authentication.html) documents `DefaultAuthenticationPlugin=authentication_kerberos_client`, KerberosAuthMode and platform/plugin prerequisites. A default plugin is not an enforced allowlist. MariaDB GSSAPI does not establish MySQL authentication_kerberos_client support.
+- [MariaDB GSSAPI plugin](https://mariadb.com/docs/server/reference/plugins/authentication-plugins/authentication-plugin-gssapi), [ODBC client-plugin deployment](https://mariadb.com/docs/connectors/mariadb-connector-odbc/mariadb-connector-odbc-guide) and [MySqlConnector 2.6.2 GSSAPI source](https://github.com/mysql-net/MySqlConnector/blob/2.6.2/src/MySqlConnector/Protocol/Serialization/AuthGSSAPI.cs).
+- [MySQL Connector.NET authentication](https://dev.mysql.com/doc/connector-net/en/connector-net-authentication.html) documents `DefaultAuthenticationPlugin=authentication_kerberos_client`, KerberosAuthMode and platform/plugin prerequisites. The implementation selects that plugin explicitly and never obtains a password. MariaDB GSSAPI does not establish MySQL authentication_kerberos_client support.
+- [Connector.NET 26.7.0 credential handling](https://github.com/mysql/mysql-connector-net/blob/26.7.0/MySQL.Data/src/Authentication/KerberosAuthenticationPlugin.cs) and [MySQL ODBC options](https://dev.mysql.com/doc/connector-odbc/en/connector-odbc-configuration-connection-parameters.html) define the selected native modes.
 
 Existing [OS-identity live QA](operating-system-identity-qa.md) remains available.
 Mapping passes must not be described as successful Kerberos logins. Windows/Linux/
