@@ -16,7 +16,7 @@ public static class AuthenticationDiagnosticCodes
     public const string AuthenticationTimeout = nameof(AuthenticationTimeout);
 }
 
-public enum ConnectionAuthenticationKind { UsernamePassword, NativeToken, ClientCertificate, OperatingSystemIdentity, InteractiveOAuth }
+public enum ConnectionAuthenticationKind { UsernamePassword, NativeToken, ClientCertificate, OperatingSystemIdentity, InteractiveOAuth, FileSecret }
 
 /// <summary>A single runtime strategy. Applications own strategies, sources and their shared resources.</summary>
 [DebuggerDisplay("{ToString(),nq}")]

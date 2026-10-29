@@ -19,18 +19,19 @@ internal static class AuthenticationConfiguration
         {
             var key = Normalize(option.Key);
             if (IsCompatibleOperatingSystemOption(strategy.Kind, key, option.Value)) continue;
-            if (IsCredentialOption(key)) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+            if (IsCredentialOption(key) || strategy.Kind == ConnectionAuthenticationKind.FileSecret && key is "extendedproperties" or "jetoledbsystemdatabase")
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         }
     }
 
     private static bool RejectsUsername(ConnectionAuthenticationKind kind)
-        => kind is ConnectionAuthenticationKind.NativeToken or ConnectionAuthenticationKind.InteractiveOAuth;
+        => kind is ConnectionAuthenticationKind.NativeToken or ConnectionAuthenticationKind.InteractiveOAuth or ConnectionAuthenticationKind.FileSecret;
     private static bool IsCompatibleOperatingSystemOption(ConnectionAuthenticationKind kind, string key, string value)
         => kind == ConnectionAuthenticationKind.OperatingSystemIdentity
             && key is "integratedsecurity" or "trustedconnection"
             && value.ToLowerInvariant() is "true" or "sspi" or "yes";
     private static bool IsCredentialOption(string key)
-        => CredentialOptions.Contains(key) || key.StartsWith("oauth", StringComparison.Ordinal)
+        => CredentialOptions.Contains(key) || key == "encryptionkey" || key.StartsWith("oauth", StringComparison.Ordinal)
             || key.EndsWith("password", StringComparison.Ordinal) || key.EndsWith("token", StringComparison.Ordinal)
             || key.EndsWith("secret", StringComparison.Ordinal);
 
