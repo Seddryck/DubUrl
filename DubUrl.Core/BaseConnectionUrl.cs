@@ -20,7 +20,7 @@ public class BaseConnectionUrl
     private ResolvedConnection? result;
     protected ResolvedConnection Result { get => result ??= ParseDetail(); }
     protected ISchemeRegistry Registry { get; }
-    private IParser Parser { get; }
+    protected IParser Parser { get; }
     public string Url { get; }
 
     internal BaseConnectionUrl(string url, IParser parser, ISchemeRegistry builder)
@@ -30,7 +30,10 @@ public class BaseConnectionUrl
             => Result.ProviderFactory;
 
     private ResolvedConnection ParseDetail()
-        => Registry.Resolve(Parser.Parse(Url));
+        => ResolveConnection(Parser.Parse(Url));
+
+    protected virtual ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
+        => Registry.Resolve(connectionUri);
 
     public bool TryGetCapability<TCapability>(out TCapability? capability) where TCapability : class
         => Registry.TryGetCapability(Parser.Parse(Url).Scheme, out capability);

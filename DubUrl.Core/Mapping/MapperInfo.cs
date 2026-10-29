@@ -25,6 +25,7 @@ public record struct MapperInfo(
     public DubUrl.Discovery.SchemaDiscoveryCapability? SchemaDiscovery { get; init; }
     public Type ConnectivityType { get; init; } = typeof(DubUrl.Mapping.Connectivity.NativeConnectivity);
     public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
+    public ConnectionConfigurationCapability? ConnectionConfiguration { get; init; }
 }
 
 /// <summary>A snapshot of an existing Database attribute and the type carrying it.</summary>
