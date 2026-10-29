@@ -99,3 +99,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 
 .main-content main > p { max-width: 76ch; }
 .main-content pre.highlight, .main-content pre.highlight code { font-size: .875rem; }
+
+.auth-supported { color: #15803d; font-size: 1.1em; font-weight: 700; }
+.auth-unsupported { color: #b91c1c; font-size: 1.1em; font-weight: 700; }

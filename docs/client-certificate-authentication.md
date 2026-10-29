@@ -12,36 +12,47 @@ This differs from [Access token]({{ '/sqlserver-token-authentication/' | relativ
 
 ## Database and operating-system support
 
-The operating system is the **client** running DubUrl, not the database server. **Yes** requires the native provider and the database setup described below. **Conditional** names an extra platform or driver requirement. **No** means this documented DubUrl method is unavailable; it does not claim that the database itself lacks that authentication mechanism. ODBC, OLE DB, ADOMD, and ADBC are outside these shared authentication methods; their driver-specific sign-in settings are separate.
+{% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
+{% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
 
-| Database | Windows | Linux | macOS | CLI | Library | Requirements / reason |
-|---|---|---|---|---|---|---|
-| Apache Drill | No | No | No | No | No | No supported native route for this method. |
-| Azure Analysis Services | No | No | No | No | No | No supported native route for this method. |
-| CockroachDB | Yes | Yes | Yes | No | Yes | Npgsql; secure cluster with a certificate for the database user. |
-| CrateDB | No | No | No | No | No | No supported native route for this method. |
-| DuckDB | No | No | No | No | No | No supported native route for this method. |
-| Firebird SQL | No | No | No | No | No | No supported native route for this method. |
-| IBM Db2 | No | No | No | No | No | No supported native route for this method. |
-| MariaDB | Yes | Yes | Yes | No | Yes | MySqlConnector; account certificate restrictions, plus password if required. |
-| Microsoft Access | No | No | No | No | No | No supported native route for this method. |
-| Microsoft Excel | No | No | No | No | No | No supported native route for this method. |
-| Microsoft SQL Server | No | No | No | No | No | No supported native route for this method. |
-| MySQL | Yes | Yes | Yes | No | Yes | MySqlConnector; account certificate restrictions, plus password if required. |
-| Oracle Database | No | No | No | No | No | No supported native route for this method. |
-| PostgreSQL | Yes | Yes | Yes | No | Yes | Npgsql; server certificate authentication maps certificate identity to a role. |
-| Power BI Desktop | No | No | No | No | No | No supported native route for this method. |
-| Power BI Premium | No | No | No | No | No | No supported native route for this method. |
-| QuestDB | No | No | No | No | No | No supported native route for this method. |
-| SingleStore | Yes | Yes | Yes | No | Yes | SingleStoreConnector; deployment/account must require the client certificate. |
-| Snowflake | No | No | No | No | No | No supported native route for this method. |
-| SQL Server Analysis Services — Multidimensional | No | No | No | No | No | No supported native route for this method. |
-| SQL Server Analysis Services — Tabular | No | No | No | No | No | No supported native route for this method. |
-| SQLite | No | No | No | No | No | No supported native route for this method. |
-| Teradata | No | No | No | No | No | No supported native route for this method. |
-| Text files | No | No | No | No | No | No supported native route for this method. |
-| Timescale | No | No | No | No | No | No supported native route for this method. |
-| Trino | No | No | No | No | No | No supported native route for this method. |
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Each database has a separate row for each catalogued native ADO.NET, ODBC or OLE DB route. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+
+| Database | Driver route | Windows | Linux | macOS | CLI | Library | Requirements / reason |
+|---|---|---|---|---|---|---|---|
+| Apache Drill | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| CockroachDB | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ unsupported }} | {{ supported }} | Npgsql; secure cluster with a certificate for the database user. |
+| CrateDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| DuckDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| DuckDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Firebird SQL | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| IBM Db2 | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| MariaDB | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ unsupported }} | {{ supported }} | MySqlConnector; account certificate restrictions, plus password if required. |
+| MariaDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Access | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Access | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Excel | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Excel | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| Microsoft SQL Server | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| Microsoft SQL Server | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft SQL Server | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| MySQL | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ unsupported }} | {{ supported }} | MySqlConnector; account certificate restrictions, plus password if required. |
+| MySQL | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| MySQL | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| Oracle Database | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| Oracle Database | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| PostgreSQL | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ unsupported }} | {{ supported }} | Npgsql; server certificate authentication maps certificate identity to a role. |
+| PostgreSQL | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| QuestDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| QuestDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| SingleStore | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ unsupported }} | {{ supported }} | SingleStoreConnector; deployment/account must require the client certificate. |
+| Snowflake | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| SQLite | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| Teradata | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| Text files | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Timescale | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| Timescale | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Trino | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
+| Trino | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
 
 ## Prerequisites
 

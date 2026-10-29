@@ -10,36 +10,47 @@ The database authenticates the current process's OS identity. No database passwo
 
 ## Database and operating-system support
 
-The operating system is the **client** running DubUrl, not the database server. **Yes** requires the native provider and the database setup described below. **Conditional** names an extra platform or driver requirement. **No** means this documented DubUrl method is unavailable; it does not claim that the database itself lacks that authentication mechanism. ODBC, OLE DB, ADOMD, and ADBC are outside these shared authentication methods; their driver-specific sign-in settings are separate.
+{% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
+{% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
 
-| Database | Windows | Linux | macOS | CLI | Library | Requirements / reason |
-|---|---|---|---|---|---|---|
-| Apache Drill | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Azure Analysis Services | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| CockroachDB | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| CrateDB | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| DuckDB | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Firebird SQL | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| IBM Db2 | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| MariaDB | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Microsoft Access | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Microsoft Excel | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Microsoft SQL Server | Yes | Conditional | Conditional | URL | Yes | Windows identity; Kerberos setup on Linux/macOS. LocalDB: Windows only. |
-| MySQL | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Oracle Database | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| PostgreSQL | No | Yes | Yes | URL | Yes | Local Unix socket with server-enforced peer authentication; no TCP. |
-| Power BI Desktop | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Power BI Premium | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| QuestDB | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| SingleStore | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Snowflake | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| SQL Server Analysis Services — Multidimensional | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| SQL Server Analysis Services — Tabular | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| SQLite | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Teradata | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Text files | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Timescale | No | No | No | No | No | No shared operating-system identity selection for this database. |
-| Trino | No | No | No | No | No | No shared operating-system identity selection for this database. |
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Each database has a separate row for each catalogued native ADO.NET, ODBC or OLE DB route. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+
+| Database | Driver route | Windows | Linux | macOS | CLI | Library | Requirements / reason |
+|---|---|---|---|---|---|---|---|
+| Apache Drill | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| CockroachDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| CrateDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| DuckDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| DuckDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Firebird SQL | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| IBM Db2 | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| MariaDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| MariaDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Access | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Access | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Excel | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft Excel | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| Microsoft SQL Server | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Windows identity; Kerberos setup on Linux/macOS. LocalDB: Windows only. CLI: select this method through the connection URL; no dedicated sign-in option. |
+| Microsoft SQL Server | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Microsoft SQL Server | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| MySQL | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| MySQL | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| MySQL | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| Oracle Database | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| Oracle Database | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
+| PostgreSQL | ADO.NET | {{ unsupported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Local Unix socket with server-enforced peer authentication; no TCP. CLI: select this method through the connection URL; no dedicated sign-in option. |
+| PostgreSQL | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| QuestDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| QuestDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| SingleStore | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| Snowflake | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| SQLite | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| Teradata | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| Text files | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Timescale | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| Timescale | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+| Trino | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No shared operating-system identity selection for this database. |
+| Trino | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
 
 ## SQL Server
 
