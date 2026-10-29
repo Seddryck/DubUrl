@@ -1,51 +1,284 @@
-# Interactive authorization code with PKCE
+---
+title: "Browser sign-in (OAuth)"
+permalink: /interactive-oauth/
+nav_exclude: true
+---
 
-The common factory is `ConnectionAuthentication.OAuthInteractive(options)`. The
-dependency-light options/session contract is in core; optional provider sessions
-own identity SDK/native browser integration. No secrets, authorization codes or
-PKCE verifiers are added to the location URL or parsed cache. PKCE is mandatory
-in both selected native flows; no option disables it.
+# Browser sign-in (OAuth)
+
+A user signs in to the identity provider in the local system browser. The application receives authorization through an authorization-code flow with PKCE, then connects to the database as that user. MFA and conditional-access requirements remain controlled by the identity provider.
+
+## Database and operating-system support
+
+{% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
+{% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
+
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Database names span their catalogued native ADO.NET, ODBC and OLE DB driver rows. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+
+<table class="authentication-support">
+  <thead>
+    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Apache Drill</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CockroachDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CrateDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">DuckDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Firebird SQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">IBM Db2</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">MariaDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Access</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Excel</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">Microsoft SQL Server</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">MySQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Oracle Database</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">PostgreSQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">QuestDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SingleStore</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Snowflake</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SQLite</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Teradata</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Text files</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Timescale</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Trino</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+</table>
+
+**OLE DB is supported only on Windows.** All routes require a compatible provider or driver for the client OS and architecture.
+
+The shared API for this method supports the native ADO.NET routes marked above. ODBC and OLE DB sign-in settings for this method must be configured through the driver separately.
+
+- **Microsoft SQL Server:** Entra public client, local browser, and registered loopback redirect.
+- **Snowflake:** Enabled SNOWFLAKE$LOCAL_APPLICATION integration, permitted role, local browser.
 
 ## SQL Server / Microsoft Entra
 
+Use an Entra-enabled SQL endpoint and provision the user in the database. Register an Entra public-client application in the correct tenant, with a loopback browser redirect such as `http://localhost`. Grant the required consent and use the SQL audience for your cloud. The public Azure SQL scope is `https://database.windows.net/.default`.
+
+### CLI
+
+The named connection contains the SQL location without a username or password:
+
+```shell
+duburl connection check --connection sql-dev --engine --oauth browser --oauth-client-id 11111111-1111-1111-1111-111111111111 --oauth-tenant 22222222-2222-2222-2222-222222222222 --oauth-redirect-uri http://localhost
+```
+
+Replace the example GUIDs with the application's client ID and tenant ID. Use `--oauth-authority` instead of `--oauth-tenant` for a tenant-specific Microsoft authority, including a sovereign cloud. Use `--oauth-scope` for that cloud's SQL audience.
+
+### Library
+
+Add `DubUrl.Authentication.SqlServer` and import `DubUrl.Authentication.SqlServer` and `DubUrl.Authentication`:
+
 ```csharp
 using var session = new EntraInteractiveOAuthSession();
-var strategy = ConnectionAuthentication.OAuthInteractive(new InteractiveOAuthOptions
+var method = ConnectionAuthentication.OAuthInteractive(new InteractiveOAuthOptions
 {
-    ClientId = registeredPublicClientId,
+    ClientId = publicClientId,
     Authority = new Uri("https://login.microsoftonline.com/" + tenantId),
     RedirectUri = new Uri("http://localhost"),
     Scopes = ["https://database.windows.net/.default"],
     Session = session,
-    AllowInteraction = true,
-    AcquisitionTimeoutSeconds = 120
+    AllowInteraction = true
 });
 await using var connection = await new ConnectionUrl(sqlLocation)
-    .WithAuthentication(strategy).OpenAsync(cancellationToken);
+    .WithAuthentication(method).OpenAsync(cancellationToken);
 ```
 
-The optional SqlServer package uses MSAL 4.83.3's external system-browser
-authorization-code/PKCE path, without embedded webviews or a broker. MSAL owns
-fresh state/verifiers, response correlation, redirect handling and OIDC validation.
-Only database access tokens reach SqlClient 7.1.1's stable native callback. The
-configured tenant/audience is checked, permitting the documented public-cloud
-login.windows.net/login.microsoftonline.com authority aliases within that tenant.
-Register a native public client with the loopback redirect and provision the user
-in an Entra-enabled SQL endpoint. MFA/conditional access remains with Entra.
-LocalDB/unconfigured SQL containers are not equivalent test targets.
+## Snowflake
 
-The session keeps an in-memory MSAL cache, serializes acquisition, tries silent
-acquisition before interaction, and propagates actual token expiration. Explicit
-AllowInteraction is required; otherwise interaction-required failures are safe.
-Construction, metadata, Parse and ConnectAsync do not open a browser; acquisition
-occurs when native opening invokes the callback. A separate acquisition budget is
-linked with caller/provider cancellation. Pools can avoid acquisition entirely.
+Use the account's enabled `SNOWFLAKE$LOCAL_APPLICATION` security integration and a user permitted to assume the requested role. Sign-in runs on the user's computer with a local browser and loopback redirect. This method uses the built-in public client; it does not select a custom client-secret integration.
 
-## Snowflake local applications
+### CLI
+
+```shell
+duburl connection check --connection snowflake-dev --engine --oauth browser --oauth-account myorg-myaccount --oauth-scope session:role:PUBLIC
+```
+
+The account defaults to the URL host; `--oauth-account` must identify the same account. The defaults are client `LOCAL_APPLICATION`, authority `https://<account>.snowflakecomputing.com`, and redirect `http://127.0.0.1:41589/callback/`.
+
+### Library
+
+Add `DubUrl.Authentication.Snowflake` and import `DubUrl.Authentication.Snowflake` and `DubUrl.Authentication`:
 
 ```csharp
 using var session = new SnowflakeInteractiveOAuthSession(account);
-var strategy = ConnectionAuthentication.OAuthInteractive(new InteractiveOAuthOptions
+var method = ConnectionAuthentication.OAuthInteractive(new InteractiveOAuthOptions
 {
     ClientId = "LOCAL_APPLICATION",
     Authority = new Uri("https://" + account + ".snowflakecomputing.com"),
@@ -55,65 +288,21 @@ var strategy = ConnectionAuthentication.OAuthInteractive(new InteractiveOAuthOpt
     AllowInteraction = true
 });
 await using var connection = await new ConnectionUrl(snowflakeLocation)
-    .WithAuthentication(strategy).OpenAsync(cancellationToken);
+    .WithAuthentication(method).OpenAsync(cancellationToken);
 ```
 
-Snowflake.Data 6.3.0 (above the documented 4.8 minimum) supplies its native
-`oauth_authorization_code` flow with S256 challenge, fresh state and verifier,
-state validation and bounded loopback listener lifetime. The built-in public
-client uses the documented LOCAL_APPLICATION constants; no application secret is
-required. Trusted account and HTTPS endpoints are explicit and must agree with
-the selected location. No arbitrary OAuth query endpoints are accepted. Verify
-that the account's SNOWFLAKE$LOCAL_APPLICATION integration is enabled and permits
-the requested user/role; a token does not grant database/role authorization.
+A fresh Snowflake connection can require another browser sign-in. The native browser wait is bounded by the sign-in timeout, but cannot be cancelled immediately.
 
-The adapter does not query account integration metadata during configuration.
-An unavailable/disabled integration fails through sanitized native authentication;
-an administrator must inspect/enable it. Custom public-client integrations are not
-advertised by this adapter: the installed driver's custom configuration requires
-a client-secret field. Supply a separately verified IInteractiveOAuthSession for
-that case rather than silently adopting a confidential-client flow.
+## Interaction and settings
 
-Persistent caching is off by default. Driver 6.3 requires its native credential
-manager for cross-session access/refresh token caching; opting in via
-`useProtectedNativeCache: true` delegates to its supported protected OS backend,
-requires a stable LoginHint, and must be reviewed for the host's store availability.
-Default native pooling can reuse sessions; without native cache a fresh physical
-authentication may require another browser login. The session serializes native
-opens to avoid overlapping listeners. There is no invented in-memory refresh layer.
+Use the same CLI options on `schema deploy` and `schema inspect`. Browser sign-in needs a browser on the client and an available loopback port. For a human-operated command with redirected input/output, explicitly add `--allow-oauth-interaction`; `--yes` does not enable sign-in. For a host without a local browser, use [Device-code sign-in (OAuth)]({{ '/device-code-authentication/' | relative_url }}) where supported.
 
-**Native limitation:** this version's browser callback wait is synchronous and does
-not accept CancellationToken. It is bounded by AcquisitionTimeoutSeconds, runs off
-the caller's UI thread and is fully awaited before connection disposal. Cancellation
-is passed through other native operations and observed after that wait; immediate
-browser-wait cancellation is not supported. Native browser error-page rendering and
-internal diagnostics remain driver-owned; this adapter sanitizes returned exception
-chains but cannot promise universal redaction of caller-enabled SDK logging.
+`--oauth-timeout <seconds>` sets the sign-in budget (default 120, range 1–3600). For connection checks, `--timeout` separately governs the database operation; allow enough native connection time for sign-in. Do not combine OAuth with URL credentials, `--username`, `--password-prompt`, or `--credential-store`.
 
-## Ownership, failures and validation
+Optional identity defaults use `Authentication:OAuth` configuration. Environment variables use `DUBURL_Authentication__OAuth__` followed by `ClientId`, `Tenant` or `Authority`, `RedirectUri`, `Scopes` (space-separated), `LoginHint`, `Account`, or `TimeoutSeconds`. CLI options override their matching setting. `--oauth-login-hint` suggests a user account; it does not change database authorization. Always select `--oauth browser` explicitly.
 
-Sessions are caller-owned; reuse one session/strategy for one identity/pool and
-dispose only after active opens finish. Synchronous Connect/Open reject this
-async-first strategy. Unsafe redirects, competing passwords/certificates/tokens,
-query OAuth selectors and incompatible native modes fail without fallback. Browser
-unavailable, user denial, occupied port, callback timeout, revoked tokens and native
-errors become safe failures; cancellation remains separate where the SDK supports it.
-Do not enable detailed native logging containing authentication exchanges.
+In the Library, keep the session alive until active opens finish and set `AllowInteraction = true` when user sign-in is allowed. Use async opening. A previously signed-in session may continue without another browser prompt; signing out of the browser does not close existing database sessions.
 
-Entra ClearCacheAsync removes local MSAL accounts/tokens. This does not revoke
-tokens, terminate browser/identity-provider sessions, close database sessions or
-clear provider pools. Snowflake native protected-cache clearing is controlled by
-its OS/native tooling, not by deleting repository files. No tokens are persisted
-by DubUrl itself and no machine-wide trust/authentication configuration is changed.
+See [Microsoft public-client browser sign-in](https://learn.microsoft.com/en-us/entra/msal/dotnet/acquiring-tokens/desktop-mobile/acquiring-tokens-interactively) and [Snowflake OAuth for local applications](https://docs.snowflake.com/en/user-guide/oauth-local-applications).
 
-Six deterministic tests cover native adapter configuration, callback identity,
-unattended interaction, redirect validation, conflicts and lazy behavior. The live
-Entra/Snowflake tests are Explicit and were not run (no configured tenant/account or
-human sign-in). Native protocol suites are owned by the SDK/driver; this repository
-does not yet simulate full PKCE/state exchanges, renewal/concurrent browser behavior
-or all failure paths. These and the Snowflake cancellation/cache limitations remain
-validation/contract gaps, not completed live evidence.
-
-References: [SqlClient callbacks](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication),
-[Snowflake local applications](https://docs.snowflake.com/en/user-guide/oauth-local-applications),
-[exact Snowflake 6.3 flow](https://github.com/snowflakedb/snowflake-connector-net/blob/v6.3.0/Snowflake.Data/Core/Authenticator/OAuthAuthorizationCodeAuthenticator.cs).
+[CLI authentication]({{ '/cli-authentication/' | relative_url }}) · [Library authentication]({{ '/authentication/' | relative_url }})

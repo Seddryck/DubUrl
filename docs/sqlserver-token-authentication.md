@@ -1,60 +1,264 @@
-# SQL Server native tokens and certificate-backed Entra
+---
+title: "Access token"
+permalink: /sqlserver-token-authentication/
+nav_exclude: true
+---
 
-The optional `DubUrl.Authentication.SqlServer` package uses Microsoft.Data.SqlClient
-7.1.1 and MSAL 4.83.3, outside core. Applications can implement
-`ISqlServerTokenSource` with the native `SqlAuthenticationParameters` request and
-`SqlAuthenticationToken` result, or use the included certificate adapter:
+# Access token
+
+SQL Server accepts a short-lived Microsoft Entra access token instead of a database password. The token identifies a user or application and must be issued for the SQL resource accepted by that server.
+
+For a person signing in, use [Browser sign-in (OAuth)]({{ '/interactive-oauth/' | relative_url }}) or [Device-code sign-in (OAuth)]({{ '/device-code-authentication/' | relative_url }}). This page covers application-supplied tokens and certificate-based application sign-in.
+
+## Database and operating-system support
+
+{% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
+{% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
+
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Database names span their catalogued native ADO.NET, ODBC and OLE DB driver rows. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+
+<table class="authentication-support">
+  <thead>
+    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Apache Drill</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CockroachDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CrateDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">DuckDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Firebird SQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">IBM Db2</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">MariaDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Access</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Excel</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">Microsoft SQL Server</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">MySQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Oracle Database</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">PostgreSQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">QuestDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SingleStore</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Snowflake</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SQLite</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Teradata</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Text files</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Timescale</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Trino</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+</table>
+
+**OLE DB is supported only on Windows.** All routes require a compatible provider or driver for the client OS and architecture.
+
+The shared API for this method supports the native ADO.NET routes marked above. ODBC and OLE DB sign-in settings for this method must be configured through the driver separately.
+
+- **Microsoft SQL Server:** Entra-enabled SQL endpoint; token audience and database identity must match.
+
+## Prerequisites
+
+Use an Entra-enabled SQL endpoint, such as Azure SQL or an appropriately configured SQL Server. Provision the Entra user/application in the database and grant its permissions. An ordinary SQL login is not an Entra identity.
+
+For certificate-based application sign-in, register the public certificate on the Entra application and make its private key available only to the application. Configure the tenant authority and SQL resource for the relevant cloud. This is application authentication to Entra, not a TLS client-certificate handshake with SQL Server.
+
+## Library
+
+Use `DubUrl.Authentication.SqlServer`:
 
 ```csharp
 using DubUrl.Authentication.SqlServer;
-// Load a certificate/private key using application-owned configuration, not a URL.
-var source = new EntraCertificateTokenSource(clientId,
+
+var source = new EntraCertificateTokenSource(
+    clientId,
     new Uri("https://login.microsoftonline.com/" + tenantId),
-    new Uri("https://database.windows.net/"), certificate);
-var strategy = SqlServerAuthentication.TokenCallback(source);
+    new Uri("https://database.windows.net/"),
+    certificate);
 var target = new ConnectionUrl("mssql://server.database.windows.net/app")
-    .WithAuthentication(strategy);
+    .WithAuthentication(SqlServerAuthentication.TokenCallback(source));
 await using var connection = await target.OpenAsync(cancellationToken);
 ```
 
-The adapter authenticates an application to Entra with its certificate; SQL receives
-an access token, not that certificate in a TLS client-authentication handshake.
-Register the application's certificate in Entra and provision its database identity
-and permissions. Use an Entra-enabled Azure SQL/Managed Instance or supported SQL
-Server endpoint. LocalDB and ordinary SQL containers do not exercise this flow.
+For a different application token source, implement `ISqlServerTokenSource`. Return a `SqlAuthenticationToken` with the token and its real expiry for the requested authority/resource. Do not put a token, private key, or client secret in the URL.
 
-The configured authority and SQL resource are explicit trusted HTTPS values.
-Callback resource/authority must match them; no credential is forwarded to an
-arbitrary destination from the server. Sovereign clouds require their corresponding
-trusted authority and SQL resource. The adapter maps the SQL audience to
-`<resource-without-trailing-slash>/.default`, and propagates MSAL's actual expiration.
-If a server advertises a different trusted authority spelling, configure that exact
-authority explicitly rather than accepting arbitrary aliases.
+Reuse a source/strategy for one identity. When changing an application identity or certificate, retire its old pooled connections; an already authenticated database session does not sign in again just because the certificate changes.
 
-Configuration and Parse never acquire a token. One delegate instance is retained
-per strategy; reuse the same strategy and source for connections sharing an identity
-and pool. SqlClient controls callback timing and pooled authentication renewal;
-MSAL owns token caching. There is no additional retry/cache loop. Acquisition is
-async through the native callback even if a caller uses native synchronous opening;
-DubUrl does not block on an async credential source itself. Use OpenAsync in UI code.
-Caller owns certificates, sources, MSAL/application objects and returned connections;
-keep certificates usable while the source may need new tokens. No private key is
-exported, and failed acquisition never falls back to another authentication mode.
+## CLI
 
-Do not switch identities behind a shared strategy. For certificate rotation, build a
-new source/strategy, drain old work and clear the affected native pools deliberately;
-cached tokens/pooled sessions are not proof that a new certificate was used.
-Normal server certificate/hostname verification is enforced independently.
-Source/provider failures are sanitized; caller-controlled native token objects still
-contain sensitive access tokens and must never be logged.
+There is no dedicated CLI option to supply a token callback or select certificate-based application sign-in. Use the Library. The CLI's two OAuth options are user sign-in methods.
 
-Deterministic tests verify callback timing/identity, expiration, cancellation, safe
-failures and authority/audience validation. Live Entra authentication, certificate
-expiry/rotation and pooled refresh require an explicitly provisioned endpoint and
-application certificate; these were not run. For live checks, disable pooling and
-use a fresh source/cache for negative certificate tests, then separately test pooled
-reuse. Do not interpret cached-token success as certificate validation.
+See [Microsoft's SqlClient Entra authentication guidance](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication).
 
-The [provider token QA inventory](token-authentication-qa.md) distinguishes actual native configuration/negative I/O from opt-in Entra login, pool reuse and certificate tests. It documents every unsupported QA and the external live prerequisites. Existing CI is unchanged; ordinary SQL containers do not establish successful token authentication.
-
-Native behavior: [SqlClient callback and pooling contract](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication).
+[CLI authentication]({{ '/cli-authentication/' | relative_url }}) · [Library authentication]({{ '/authentication/' | relative_url }})

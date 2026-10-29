@@ -1,62 +1,278 @@
-# Shared client-certificate authentication
+---
+title: "Client certificate"
+permalink: /client-certificate-authentication/
+nav_exclude: true
+---
+
+# Client certificate
+
+The client presents a certificate and proves possession of its private key during the database's TLS handshake. The database authorizes the certificate identity, or requires a certificate in addition to an account password.
+
+This differs from [Access token]({{ '/sqlserver-token-authentication/' | relative_url }}): an Entra application certificate obtains a token from Entra; SQL Server does not receive that certificate as a TLS client identity.
+
+## Database and operating-system support
+
+{% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
+{% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
+
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Database names span their catalogued native ADO.NET, ODBC and OLE DB driver rows. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+
+<table class="authentication-support">
+  <thead>
+    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Apache Drill</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CockroachDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CrateDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">DuckDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Firebird SQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">IBM Db2</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">MariaDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Access</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Excel</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">Microsoft SQL Server</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">MySQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Oracle Database</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">PostgreSQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">QuestDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SingleStore</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Snowflake</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SQLite</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Teradata</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Text files</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Timescale</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Trino</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+</table>
+
+**OLE DB is supported only on Windows.** All routes require a compatible provider or driver for the client OS and architecture.
+
+The shared API for this method supports the native ADO.NET routes marked above. ODBC and OLE DB sign-in settings for this method must be configured through the driver separately.
+
+- **CockroachDB:** Npgsql; secure cluster with a certificate for the database user.
+- **MariaDB:** MySqlConnector; account certificate restrictions, plus password if required.
+- **MySQL:** MySqlConnector; account certificate restrictions, plus password if required.
+- **PostgreSQL:** Npgsql; server certificate authentication maps certificate identity to a role.
+- **SingleStore:** SingleStoreConnector; deployment/account must require the client certificate.
+
+## Prerequisites
+
+Obtain a client certificate with its private key and the server's trusted CA certificate. Configure the database to require and authorize that client certificate. The certificate identity must satisfy its role/account rules:
+
+- PostgreSQL: a `cert` authentication rule and certificate-to-role mapping.
+- CockroachDB: a secure cluster and a user certificate for the requested account.
+- MySQL and MariaDB: account restrictions such as `REQUIRE X509`, `SUBJECT`, or `ISSUER`.
+- SingleStore: a deployment and account configured to require client certificates.
+
+The client must also verify the server's certificate and hostname with `VerifyFull`. Configure `Root Certificate` for Npgsql or `SSL CA` for the MySQL-family driver. A private-key decryption password is separate from a database password.
+
+## Library
+
+Pass an application-loaded `X509Certificate2` containing the private key:
 
 ```csharp
-using DubUrl.Authentication;
-var target = new ConnectionUrl("postgres://alice@localhost/app?Root%20Certificate=" + escapedCaPath)
+var location = "postgres://alice@db.example.com/app?Root%20Certificate="
+    + Uri.EscapeDataString(caPath);
+var target = new ConnectionUrl(location)
     .WithAuthentication(ConnectionAuthentication.ClientCertificate(certificate));
 await using var connection = await target.OpenAsync(cancellationToken);
 ```
 
-The certificate must have its private key. No key export, temporary key file or
-machine-wide trust change is performed. Server verification is separate and always
-requires VerifyFull; explicitly weaker TLS settings conflict. Configure fixture-local
-root trust through the native Root Certificate/SSL CA setting. Caller owns the
-certificate and supplemental source and must keep them usable for future physical
-connections. Rotating certificates requires draining/clearing affected native pools;
-reused physical sessions do not prove a new identity handshake.
+For MySQL, MariaDB, or SingleStore accounts that also require a password, supply it explicitly:
 
-| Database | Tested native hook/version | Identity/password semantics |
-|---|---|---|
-| PostgreSQL | Npgsql 10.0.3 ProvideClientCertificatesCallback | cert pg_hba rule maps certificate CN to role (or explicit pg_ident mapping); no password fallback (`Require Auth=None`) |
-| CockroachDB | Npgsql 10.0.3 same native hook | secure cluster's user/certificate requirements apply independently; use certificate identity matching its account |
-| MySQL | MySqlConnector 2.6.2 ProvideClientCertificatesCallback | account REQUIRE X509/SUBJECT/ISSUER; account plugin may also require a password |
-| MariaDB | MySqlConnector 2.6.2 same native hook | configure account certificate restrictions and its password plugin independently |
-| SingleStore | SingleStoreConnector 1.2.0 ProvideClientCertificatesCallback | deployment must support required client certificates and account restrictions; not inferred from MySQL |
+```csharp
+var method = ConnectionAuthentication.ClientCertificate(certificate,
+    new ClientCertificateAuthenticationOptions
+    {
+        SupplementalCredentials = databaseCredentials
+    });
+var target = new ConnectionUrl(databaseLocation).WithAuthentication(method);
+await using var connection = await target.OpenAsync(cancellationToken);
+```
 
-For MySQL/MariaDB/SingleStore only, pass explicit
-`new ClientCertificateAuthenticationOptions { SupplementalCredentials = source }`
-to the shared factory when the account also requires credentials. The source resolves
-once per new logical connection, preserves cancellation and checks identities.
-Private-key decryption passwords are unrelated to DB passwords. Other providers
-(including SqlClient, SQLite, embedded DuckDB, Snowflake) reject this mechanism.
-Snowflake key-pair JWT and certificate-backed Entra tokens are distinct features.
+Here `databaseCredentials` is an `IUsernamePasswordCredentialSource`. PostgreSQL and CockroachDB do not accept this password supplement through this method. Keep the certificate and private key available for future connections. After replacing a certificate, retire existing pooled connections before requiring all sessions to use the new identity.
 
-The dependency-light core binds only the known native per-connection hooks by their
-version-tested type/property signatures; unsupported shapes fail closed. This path
-requires reflection metadata and is not advertised for trimmed/Native AOT clients.
-No global certificate cache or per-connection data source is created. Configuration,
-metadata and Parse remain lazy and never resolve supplemental credentials. Parse
-stays URL-only. Native provider connections can retain credentials in memory.
+## CLI
 
-## Isolated PostgreSQL fixture
+There is no dedicated CLI selection for this method. Use the Library; `--credential-store` supplies a database password, not a client certificate.
 
-Run `QA/Authentication/PostgreSql/create-fixture.sh` on a Linux Docker host with
-OpenSSL. Set `DUBURL_AUTH_FIXTURE_DIR` to its printed temporary directory and run `docker compose
--f QA/Authentication/PostgreSql/compose.yaml up -d`. The fixture uses cert-only host
-authentication for alice/app; no weaker host fallback is permitted. Generated keys
-remain outside the repository. Delete only that generated temporary directory and
-the fixture's containers/volumes when done.
+See [Npgsql TLS and certificate settings](https://www.npgsql.org/doc/security.html) and [MySqlConnector connection options](https://mysqlconnector.net/connection-options/).
 
-Set `DUBURL_POSTGRESQL_CERT_URL` to
-`postgres://alice@localhost:55432/app?Pooling=false&Root%20Certificate=<escaped-ca-path>`,
-and `DUBURL_POSTGRESQL_CERT_PEM`/`DUBURL_POSTGRESQL_CERT_KEY` to the generated alice
-certificate/key files. Execute the explicitly selected `ClientCertificateLiveTests`
-case with `dotnet test DubUrl.Core.Testing -f net10.0 --filter FullyQualifiedName~ClientCertificateLiveTests`.
-For other databases set analogous COCKROACHDB/MYSQL/MARIADB/SINGLESTORE variables,
-using a certificate-restricted test account and a trusted server certificate.
-SingleStore requires an appropriately configured certificate-required deployment; the ordinary upstream QA is now license-free. No cloud credentials
-are required by deterministic adapter tests.
-
-The [provider certificate QA inventory](client-certificate-qa.md) separates native configuration from real PostgreSQL certificate-only login, negative TLS/identity cases and native pool/rotation behavior, all discovered by the existing QA workflows without CI changes. Other databases' certificate-required live fixtures remain unprovisioned and explicitly skipped. Routine local runs do not start containers. Hook tests do not prove live authentication or supplemental account-plugin semantics. [Npgsql TLS behavior](https://www.npgsql.org/doc/security.html)
-and [MySqlConnector certificate options](https://mysqlconnector.net/connection-options/)
-describe the native boundaries.
+[CLI authentication]({{ '/cli-authentication/' | relative_url }}) · [Library authentication]({{ '/authentication/' | relative_url }})
