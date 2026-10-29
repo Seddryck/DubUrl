@@ -12,9 +12,9 @@ internal static class CliRootCommandFactory
         var console = services.GetRequiredService<ICliConsole>();
         var root = new RootCommand("Check database connections; inspect, validate, render, and deploy schemas.");
         root.Subcommands.Add(SchemaCommand.Create(services, cancellationToken));
-        root.Subcommands.Add(ConnectionCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CredentialCommand.Create(services, cancellationToken));
         root.Subcommands.Add(ConnectorCommand.Create(services, cancellationToken));
+        root.Subcommands.Add(ConnectionCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CreateCapabilitiesCommand(services));
         root.SetAction(_ =>
         {

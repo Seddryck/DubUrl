@@ -20,6 +20,13 @@ public static class CliHost
             services.GetRequiredService<ICliConsole>().Error.WriteLine("Invalid OAuth command options. Use --help for supported options; supplied values are not echoed.");
             return CliExitCodes.InvalidInput;
         }
+        // The URL selector can contain credentials. Parser diagnostics include rejected
+        // tokens verbatim, so use a credential-free message for this command.
+        if (parseResult.Errors.Count > 0 && args.Length >= 2 && args[0] == "connection" && args[1] == "check")
+        {
+            services.GetRequiredService<ICliConsole>().Error.WriteLine("Invalid connection check arguments. Run 'duburl connection check --help' for usage.");
+            return CliExitCodes.InvalidInput;
+        }
         try
         {
             var exitCode = await parseResult.InvokeAsync(cancellationToken: cancellationToken);

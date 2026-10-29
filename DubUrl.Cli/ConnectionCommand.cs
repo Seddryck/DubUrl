@@ -10,6 +10,11 @@ namespace DubUrl.Cli;
 
 internal static class ConnectionCommand
 {
+    internal static Option<bool> ReadOnlyOption() => new("--read-only")
+    {
+        Description = "Require native read-only access to the primary database file. Unsupported routes fail; this is not replica routing or a transaction default."
+    };
+
     private sealed record CheckInvocation(string? Url, string? Name, string? Environment, ConnectionCheckOptions Options, string? Format);
     public static Command Create(IServiceProvider services, CancellationToken cancellationToken)
     {
@@ -22,6 +27,8 @@ internal static class ConnectionCommand
         var table = new Option<string?>("--table") { Description = "Execute a zero-row SELECT against this qualified identifier." };
         var timeout = new Option<int>("--timeout") { DefaultValueFactory = _ => 15, Description = "Overall database-check budget in seconds (default 15)." };
         var format = new Option<string?>("--output-format") { Description = "human or json." };
+        var readOnly = ReadOnlyOption();
+        check.Options.Add(readOnly);
         var authentication = new CliAuthentication();
         authentication.AddTo(check);
         check.Arguments.Add(url);
@@ -33,13 +40,13 @@ internal static class ConnectionCommand
         check.Options.Add(format);
         check.SetAction((result, actionToken) => ExecuteAsync(services, new CheckInvocation(result.GetValue(url), result.GetValue(name), result.GetValue(environment),
             new() { Engine = result.GetValue(engine), Table = result.GetValue(table), TimeoutSeconds = result.GetValue(timeout) },
-            result.GetValue(format)), authentication, result, actionToken));
+            result.GetValue(format)), authentication, result, result.GetValue(readOnly), actionToken));
         group.Subcommands.Add(check);
         return group;
     }
 
     private static async Task<int> ExecuteAsync(IServiceProvider services, CheckInvocation request,
-        CliAuthentication authentication, System.CommandLine.ParseResult parsed, CancellationToken cancellationToken)
+        CliAuthentication authentication, System.CommandLine.ParseResult parsed, bool readOnly, CancellationToken cancellationToken)
     {
         using var authenticationLifetime = authentication;
         var console = services.GetRequiredService<ICliConsole>();
@@ -48,9 +55,11 @@ internal static class ConnectionCommand
             if (request.Format is not (null or "human" or "json")) throw new ArgumentException("Output format must be human or json.");
             var url = ResolveTarget(services, request.Url, request.Name, request.Environment);
             var target = authentication.Configure(services, parsed, url);
+            if (readOnly) target = target.WithReadOnly();
             var options = request.Options with { AuthenticationTimeoutSeconds = authentication.AcquisitionTimeoutSeconds };
             var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(target, options, cancellationToken).ConfigureAwait(false);
             Write(console, operation, request.Format == "json");
+            if (operation.Success && readOnly && request.Format != "json") console.Out.WriteLine("Connection opened with native read-only database access.");
             return GetExitCode(operation);
         }
         catch (OperationCanceledException)

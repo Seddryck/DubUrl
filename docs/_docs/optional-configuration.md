@@ -54,8 +54,10 @@ Only these four methods exist on the sealed `OptionalConnectionOptions` builder:
 - `WithConnectionTimeout(TimeSpan)`
 - `WithCommandTimeout(TimeSpan)`
 
-Authentication, encryption, read-only access, and time zone must remain required when their separate
-shared APIs are added. Ignoring them could change identity, transport security, permitted writes, or
+`WithReadOnly()` is available as a required method on the parent URL; see
+[read-only connections]({{ '/docs/read-only-connections/' | relative_url }}). Authentication, encryption,
+and time zone must also remain required when their separate shared APIs are added.
+Ignoring these settings could change identity, transport security, permitted writes, or
 query results. They are deliberately absent from the optional builder, which also exposes no raw
 connection-string escape hatch or parent URL.
 
@@ -110,6 +112,7 @@ optional requests are skipped. Further provider coverage and CLI flags remain se
 The mappings apply to every connection created from the configured URL, including reopening and
 native pool reuse. They require no post-open SQL. The current CLI has no flags for this configuration
 scope; adding the proposed CLI flags must reuse these mappings and strict defaults.
+The separate strict `--read-only` flag is described in the read-only connection guide.
 
 ## Declaring support in a provider
 
