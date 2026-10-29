@@ -19,19 +19,25 @@ internal static class AuthenticationConfiguration
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
-            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && key is "kerberosauthmode" or "authenticationkerberosmode")
-            {
-                if (!kerberosModes.Add(key) || !uri.Scheme.Parts.Any(MySqlOperatingSystemIdentityMappings.IsMySql)
-                    || !(option.Value.Equals("SSPI", StringComparison.OrdinalIgnoreCase) || option.Value.Equals("GSSAPI", StringComparison.OrdinalIgnoreCase)
-                        || key == "kerberosauthmode" && option.Value.Equals("AUTO", StringComparison.OrdinalIgnoreCase)))
-                    throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
-            }
-            if (IsCompatibleOperatingSystemOption(strategy.Kind, uri, key, option.Value)) continue;
-            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && IsOpaqueOrIdentityOption(key))
+            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && key is "kerberosauthmode" or "authenticationkerberosmode"
+                && (!kerberosModes.Add(key) || !IsCompatibleKerberosMode(uri, key, option.Value)))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
-            if (IsCredentialOption(key) || strategy.Kind == ConnectionAuthenticationKind.FileSecret && key is "extendedproperties" or "jetoledbsystemdatabase")
-                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+            ValidateOption(strategy.Kind, uri, key, option.Value);
         }
+    }
+
+    private static bool IsCompatibleKerberosMode(ConnectionUri uri, string key, string value)
+        => uri.Scheme.Parts.Any(MySqlOperatingSystemIdentityMappings.IsMySql)
+            && (value.Equals("SSPI", StringComparison.OrdinalIgnoreCase) || value.Equals("GSSAPI", StringComparison.OrdinalIgnoreCase)
+                || (key == "kerberosauthmode" && value.Equals("AUTO", StringComparison.OrdinalIgnoreCase)));
+
+    private static void ValidateOption(ConnectionAuthenticationKind kind, ConnectionUri uri, string key, string value)
+    {
+        if (IsCompatibleOperatingSystemOption(kind, uri, key, value)) return;
+        if (kind == ConnectionAuthenticationKind.OperatingSystemIdentity && IsOpaqueOrIdentityOption(key))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (IsCredentialOption(key) || (kind == ConnectionAuthenticationKind.FileSecret && key is "extendedproperties" or "jetoledbsystemdatabase"))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
 
     private static bool RejectsUsername(ConnectionAuthenticationKind kind)
@@ -89,5 +95,4 @@ internal static class AuthenticationConfiguration
             Scheme = uri.Scheme, Host = uri.Host, Port = uri.Port, Segments = uri.Segments, Options = uri.Options,
             Username = username, Password = password, HasUsername = hasUsername, HasPassword = hasPassword
         };
-
 }

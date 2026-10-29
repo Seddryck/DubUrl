@@ -50,13 +50,14 @@ internal static class MySqlOperatingSystemIdentityMappings
 
     private static bool MatchesDriver(string driver, string pattern, Version minimum)
     {
-        var match = Regex.Match(driver, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        var match = Regex.Match(driver, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         return match.Success && Version.TryParse(match.Groups[1].Value, out var version) && version >= minimum;
     }
 
     private static bool IsSupportedMySqlDriver(string driver)
     {
-        var match = Regex.Match(driver, @"^MySQL ODBC (\d+(?:\.\d+){1,2}) (?:ANSI|Unicode) Driver$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        var match = Regex.Match(driver, @"^MySQL ODBC (\d+(?:\.\d+){1,2}) (?:ANSI|Unicode) Driver$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         if (!match.Success || !Version.TryParse(match.Groups[1].Value, out var version) || version < new Version(8, 0)) return false;
         return version.Major != 8 || version.Minor != 0 || version.Build < 0 || version.Build >= 32;
     }
@@ -67,16 +68,21 @@ internal static class MySqlOperatingSystemIdentityMappings
         if (aliases.Length > 1) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         if (aliases.Length == 1)
         {
-            var mode = builder[aliases[0]].ToString() ?? "";
-            if (!mode.Equals("SSPI", StringComparison.OrdinalIgnoreCase) && !mode.Equals("GSSAPI", StringComparison.OrdinalIgnoreCase)
-                && !(windowsOnlyOption && mode.Equals("AUTO", StringComparison.OrdinalIgnoreCase)))
-                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
-            if (!OperatingSystem.IsWindows() && (windowsOnlyOption || mode.Equals("SSPI", StringComparison.OrdinalIgnoreCase))) Unsupported();
+            var mode = ValidateMode(builder[aliases[0]].ToString() ?? "", windowsOnlyOption);
             builder.Remove(aliases[0]);
-            builder[key] = mode.ToUpperInvariant();
+            builder[key] = mode;
         }
         else if (OperatingSystem.IsWindows()) builder[key] = "SSPI";
         else if (!windowsOnlyOption) builder[key] = "GSSAPI";
+    }
+
+    private static string ValidateMode(string mode, bool windowsOnlyOption)
+    {
+        if (!mode.Equals("SSPI", StringComparison.OrdinalIgnoreCase) && !mode.Equals("GSSAPI", StringComparison.OrdinalIgnoreCase)
+            && !(windowsOnlyOption && mode.Equals("AUTO", StringComparison.OrdinalIgnoreCase)))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (!OperatingSystem.IsWindows() && (windowsOnlyOption || mode.Equals("SSPI", StringComparison.OrdinalIgnoreCase))) Unsupported();
+        return mode.ToUpperInvariant();
     }
 
     private static string Normalize(string key) => new(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());

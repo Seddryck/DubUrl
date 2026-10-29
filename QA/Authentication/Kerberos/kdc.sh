@@ -23,11 +23,16 @@ for principal in alice bob; do
   chmod 400 "/realm/$principal.keytab"
 done
 for service in mariadb memsql mysql; do
-  case "$service" in mariadb) host=mariadb; owner=999;; memsql) host=singlestore; owner=999;; mysql) host=mysql; owner=999;; esac
+  case "$service" in
+    mariadb) host=mariadb;;
+    memsql) host=singlestore;;
+    mysql) host=mysql;;
+    *) echo 'Unexpected Kerberos service.' >&2; exit 1;;
+  esac
   principal="$service/$host.fixture.test@DUBURL.TEST"
   kadmin.local -q "addprinc -randkey $principal" >/dev/null 2>&1
   kadmin.local -q "ktadd -k /realm/$host.keytab $principal" >/dev/null 2>&1
-  chown "$owner" "/realm/$host.keytab"
+  chown 999 "/realm/$host.keytab"
   chmod 400 "/realm/$host.keytab"
   openssl rand -base64 32 > "/realm/$host-root.secret"
   if [[ "$host" = singlestore ]]; then chown 999 /realm/singlestore-root.secret; chmod 400 /realm/singlestore-root.secret; fi
@@ -38,8 +43,7 @@ for host in mariadb singlestore mysql; do
   openssl req -newkey rsa:2048 -nodes -keyout "/realm/$host-tls.key" -out "/realm/$host.csr" -subj "/CN=$host.fixture.test" >/dev/null 2>&1
   printf 'subjectAltName=DNS:%s.fixture.test,DNS:localhost,IP:127.0.0.1\nextendedKeyUsage=serverAuth\n' "$host" > /realm/extensions
   openssl x509 -req -in "/realm/$host.csr" -CA /realm/ca.crt -CAkey /realm/ca.key -CAcreateserial -out "/realm/$host.crt" -days 1 -extfile /realm/extensions >/dev/null 2>&1
-  if [[ "$host" = singlestore ]]; then owner=999; else owner=999; fi
-  chown "$owner" "/realm/$host-tls.key"
+  chown 999 "/realm/$host-tls.key"
   chmod 400 "/realm/$host-tls.key"
   chmod 444 "/realm/$host.crt"
 done

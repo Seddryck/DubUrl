@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $project = 'duburl-kerberos-' + [guid]::NewGuid().ToString('N').Substring(0, 12)
-if (!$ResultsDirectory) { $ResultsDirectory = Join-Path $taskRoot ".artifacts/kerberos/$project" }
+if (-not $ResultsDirectory) { $ResultsDirectory = Join-Path $taskRoot ".artifacts/kerberos/$project" }
 $ResultsDirectory = [IO.Path]::GetFullPath($ResultsDirectory)
 if ((Test-Path -LiteralPath $ResultsDirectory) -and @(Get-ChildItem -LiteralPath $ResultsDirectory -Force).Count) {
     throw 'Use a new or empty fixture results directory.'
@@ -26,7 +26,7 @@ function Invoke-FixtureDocker {
     if ($LASTEXITCODE -ne 0) { throw "Fixture Docker operation failed (exit $LASTEXITCODE)." }
 }
 try {
-    if (!$SkipBuild) {
+    if (-not $SkipBuild) {
         foreach ($framework in $Frameworks) {
             & dotnet build (Join-Path $taskRoot 'DubUrl.Core.Testing/DubUrl.Core.Testing.csproj') -f $framework --verbosity quiet
             if ($LASTEXITCODE -ne 0) { throw 'Fixture test bundle build failed.' }
@@ -43,7 +43,7 @@ try {
         if ($LASTEXITCODE -eq 0) { $ready = $true; break }
         Start-Sleep -Seconds 2
     }
-    if (!$ready) { throw 'The isolated SingleStore server did not become ready; no successful Kerberos login is inferred.' }
+    if (-not $ready) { throw 'The isolated SingleStore server did not become ready; no successful Kerberos login is inferred.' }
     Invoke-FixtureDocker ($compose + @('exec', '-T', 'singlestore', 'bash', '/fixture/policy.sh'))
     Invoke-FixtureDocker ($compose + @('run', '--rm', '--no-deps', '--user', '0', '--entrypoint', 'bash', 'client', '-c', 'chown 10001:10001 /results'))
     foreach ($framework in $Frameworks) {

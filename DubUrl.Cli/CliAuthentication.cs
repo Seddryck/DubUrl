@@ -28,15 +28,20 @@ internal sealed class CliAuthentication
         var entry = result.GetValue(reference);
         var user = result.GetValue(username);
         var useOsIdentity = result.GetValue(osIdentity);
-        if ((useOsIdentity && (usePrompt || entry is not null || user is not null))
-            || (usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
-            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        ValidateSelection(useOsIdentity, usePrompt, entry, user);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
         if (useOsIdentity) target = target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
         if (usePrompt || entry is not null)
             target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry, user)));
         target.ValidateAuthentication();
         return target;
+    }
+
+    private static void ValidateSelection(bool useOsIdentity, bool usePrompt, string? entry, string? user)
+    {
+        if ((useOsIdentity && (usePrompt || entry is not null || user is not null))
+            || (usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
 
     private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username) : IUsernamePasswordCredentialSource
