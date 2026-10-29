@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Provider.MySql.Mapping;
 
 [Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
+[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout")]
 public class MariaDbConnectorMapper : MySqlConnectorMapper
 {
     public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

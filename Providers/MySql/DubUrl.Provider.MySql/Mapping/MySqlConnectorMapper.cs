@@ -17,6 +17,7 @@ namespace DubUrl.Provider.MySql.Mapping;
 [Mapper<MySqlDatabase, NamedParametrizer>(
     "MySqlConnector"
 )]
+[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout")]
 public class MySqlConnectorMapper : BaseMapper
 {
     public MySqlConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

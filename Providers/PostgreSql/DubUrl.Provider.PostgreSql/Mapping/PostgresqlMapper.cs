@@ -17,6 +17,7 @@ namespace DubUrl.Provider.PostgreSql.Mapping;
     "Npgsql"
 )]
 [DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.PostgreSql.Discovery.PostgreSqlMetadataReader))]
+[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Timeout", CommandTimeout = "Command Timeout")]
 public class PostgresqlMapper : BaseMapper
 {
     public PostgresqlMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
