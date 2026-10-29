@@ -39,8 +39,8 @@ internal sealed class CliAuthentication
 
     private static void ValidateSelection(bool useOsIdentity, bool usePrompt, string? entry, string? user)
     {
-        if ((useOsIdentity && (usePrompt || entry is not null || user is not null))
-            || (usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
+        var sourceCount = (useOsIdentity ? 1 : 0) + (usePrompt ? 1 : 0) + (entry is null ? 0 : 1);
+        if (sourceCount > 1 || (user is not null && (useOsIdentity || sourceCount == 0)))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
 
