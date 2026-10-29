@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="/smoke/Program.cs" />
+    <Reference Include="/workspace/DubUrl.Cli.Testing/bin/Debug/net10.0/*.dll"
+               Exclude="/workspace/DubUrl.Cli.Testing/bin/Debug/net10.0/Microsoft.Test*.dll;/workspace/DubUrl.Cli.Testing/bin/Debug/net10.0/NUnit3.TestAdapter.dll;/workspace/DubUrl.Cli.Testing/bin/Debug/net10.0/testhost.dll" />
+  </ItemGroup>
+</Project>

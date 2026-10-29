@@ -9,3 +9,4 @@
 ###############################################################################
 * text=auto
 QA/Authentication/**/*.sh text eol=lf
+build/credential-store-smoke/*.sh text eol=lf

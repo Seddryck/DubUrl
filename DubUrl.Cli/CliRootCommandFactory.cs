@@ -13,6 +13,7 @@ internal static class CliRootCommandFactory
         var root = new RootCommand("Check database connections; inspect, validate, render, and deploy schemas.");
         root.Subcommands.Add(SchemaCommand.Create(services, cancellationToken));
         root.Subcommands.Add(ConnectionCommand.Create(services, cancellationToken));
+        root.Subcommands.Add(CredentialCommand.Create(services, cancellationToken));
         root.Subcommands.Add(ConnectorCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CreateCapabilitiesCommand(services));
         root.SetAction(_ =>
@@ -40,6 +41,7 @@ internal static class CliRootCommandFactory
             {
                 console.Out.WriteLine($"Schema document versions: {string.Join(", ", capabilities.SchemaDocumentVersions)}");
                 console.Out.WriteLine($"Connection commands: {string.Join(", ", capabilities.ConnectionCommands)}");
+                console.Out.WriteLine($"Credential commands: {string.Join(", ", capabilities.CredentialCommands)}");
                 console.Out.WriteLine($"Connection check modes: {string.Join(", ", capabilities.ConnectionCheckModes)}");
                 console.Out.WriteLine($"Schema commands: {string.Join(", ", capabilities.SchemaCommands)}");
                 console.Out.WriteLine($"Dialects: {string.Join(", ", capabilities.Dialects)}");
