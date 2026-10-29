@@ -3,6 +3,8 @@ namespace DubUrl.Cli;
 public static class CliExitCodes
 {
     public const int Success = 0;
+    public const int CredentialAbsent = 1;
+    public const int CredentialStoreFailed = 10;
     public const int ConnectionCheckFailed = 5;
     public const int UnexpectedError = 1;
     public const int InvalidInput = 2;

@@ -17,8 +17,10 @@ public static class CliComposition
         IProviderPackService? providerPackService = null,
         IEnumerable<IDubUrlProviderModule>? providerModules = null,
         IHiddenPasswordPrompt? passwordPrompt = null,
-        IOsCredentialStore? credentialStore = null)
+        IOsCredentialStore? credentialStore = null,
+        INamedCredentialStore? namedCredentialStore = null)
     {
+        console ??= new SystemCliConsole();
         configuration ??= new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true)
@@ -43,7 +45,8 @@ public static class CliComposition
         services.AddSingleton(configuration);
         services.AddSingleton<IHiddenPasswordPrompt>(passwordPrompt ?? new TerminalPasswordPrompt());
         services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
-        services.AddSingleton(console ?? new SystemCliConsole());
+        services.AddSingleton<INamedCredentialStore>(namedCredentialStore ?? new NamedCredentialStore(console.IsInteractive));
+        services.AddSingleton(console);
         services.AddLogging(builder => builder
             .AddConfiguration(configuration.GetSection("Logging"))
             .AddSimpleConsole(options =>

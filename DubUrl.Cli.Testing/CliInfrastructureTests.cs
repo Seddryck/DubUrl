@@ -31,6 +31,7 @@ public class CliInfrastructureTests
         var version = await RunProcessAsync(assembly, "--version");
         var help = await RunProcessAsync(assembly, "--help");
         var connectorHelp = await RunProcessAsync(assembly, "connector --help");
+        var credentialHelp = await RunProcessAsync(assembly, "credential add --help");
 
         Assert.Multiple(() =>
         {
@@ -40,6 +41,11 @@ public class CliInfrastructureTests
             Assert.That(help.StandardOutput, Does.Contain("schema"));
             Assert.That(help.StandardOutput, Does.Contain("capabilities"));
             Assert.That(help.StandardOutput, Does.Contain("connector"));
+            Assert.That(help.StandardOutput, Does.Contain("credential"));
+            Assert.That(credentialHelp.ExitCode, Is.Zero);
+            Assert.That(credentialHelp.StandardOutput, Does.Contain("--password-stdin"));
+            Assert.That(credentialHelp.StandardOutput, Does.Contain("--replace"));
+            Assert.That(credentialHelp.StandardOutput, Does.Contain("--username"));
             Assert.That(connectorHelp.ExitCode, Is.Zero);
             Assert.That(connectorHelp.StandardOutput, Does.Contain("not database servers"));
             Assert.That(connectorHelp.StandardOutput, Does.Contain("install"));

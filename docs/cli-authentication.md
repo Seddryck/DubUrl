@@ -4,6 +4,12 @@ Schema deployment and connection checking accept `--password-prompt`,
 `--credential-store <reference>`, and optional `--username <name>`.
 There is deliberately no password command-line option.
 
+For credentials managed by DubUrl, use `duburl credential add <name> --username <user>`
+and select them with `--credential <name>`. See [Named CLI credentials](named-credentials.md)
+for add/remove/exists, native-store prerequisites, exit codes and CI examples.
+This source is mutually exclusive with the legacy `--credential-store` reference
+and `--password-prompt`; an explicit username must agree with the stored username.
+
 ```text
 duburl schema deploy schema.json --connection development --username alice --password-prompt
 duburl connection check --connection development --credential-store development --engine
@@ -18,7 +24,7 @@ Redirected/unattended calls fail promptly without opening a prompt. Configuratio
 and URL credential conflicts follow the shared authentication contract. Dry runs
 validate combinations and render SQL without credential acquisition or DB opening.
 
-The OS store feature reads **existing** entries only:
+The legacy `--credential-store <reference>` option reads **existing** entries only:
 
 | Platform | Backend / reference | Provisioning and prerequisites |
 |---|---|---|

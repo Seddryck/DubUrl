@@ -19,23 +19,27 @@ internal sealed class CliAuthentication
 {
     private readonly Option<bool> prompt = new("--password-prompt") { Description = "Explicitly read a hidden password from the terminal." };
     private readonly Option<string?> reference = new("--credential-store") { Description = "Read an existing OS credential-store entry by reference." };
+    private readonly Option<string?> named = new("--credential") { Description = "Read a named credential saved with 'duburl credential add'." };
     private readonly Option<string?> username = new("--username") { Description = "Username for the selected external credential source." };
-    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(username); }
+    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
         var usePrompt = result.GetValue(prompt);
         var entry = result.GetValue(reference);
+        var credential = result.GetValue(named);
         var user = result.GetValue(username);
-        if ((usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
+        var sources = (usePrompt ? 1 : 0) + (entry is not null ? 1 : 0) + (credential is not null ? 1 : 0);
+        if (sources > 1 || (user is not null && sources == 0))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (credential is not null) credential = CredentialName.Normalize(credential);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
-        if (usePrompt || entry is not null)
-            target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry, user)));
+        if (sources > 0)
+            target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry ?? credential, user, credential is not null)));
         target.ValidateAuthentication();
         return target;
     }
 
-    private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username) : IUsernamePasswordCredentialSource
+    private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username, bool named) : IUsernamePasswordCredentialSource
     {
         public async ValueTask<UsernamePasswordCredentials> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
         {
@@ -48,7 +52,14 @@ internal sealed class CliAuthentication
                 return new(username, password);
             }
             var selectedReference = reference ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
-            var stored = await services.GetRequiredService<IOsCredentialStore>().ReadAsync(selectedReference, cancellationToken).ConfigureAwait(false);
+            UsernamePasswordCredentials stored;
+            try
+            {
+                IOsCredentialStore store = named ? services.GetRequiredService<INamedCredentialStore>() : services.GetRequiredService<IOsCredentialStore>();
+                stored = await store.ReadAsync(selectedReference, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed); }
             if (username is not null && stored.Username is not null && username != stored.Username)
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
             return new(username ?? stored.Username, stored.Password);
