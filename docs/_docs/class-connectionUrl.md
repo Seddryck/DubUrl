@@ -42,6 +42,10 @@ The default registry resolves factories that normally produce `DbConnection` ins
 
 ## Required and optional defaults
 
+`WithReadOnly()` requires verified native read-only access to the primary database. It is strict and
+is not exposed inside the optional builder. See [read-only connections]({{ '/docs/read-only-connections/' | relative_url }})
+for supported routes, write-mode precedence, instance-reuse safeguards, and scope limits.
+
 `WithApplicationName(...)`, `WithPooling(...)`, `WithConnectionTimeout(...)`, and
 `WithCommandTimeout(...)` return a new configured URL and reject unsupported settings by default.
 Use `WithOptional(options => ...)` to skip unsupported settings from that restricted set. Invalid

@@ -15,6 +15,13 @@ public static class CliHost
 
         var root = CliRootCommandFactory.Create(services, cancellationToken);
         var parseResult = root.Parse(args.Length == 0 ? ["--help"] : args);
+        // The URL selector can contain credentials. Parser diagnostics include rejected
+        // tokens verbatim, so use a credential-free message for this command.
+        if (parseResult.Errors.Count > 0 && args.Length >= 2 && args[0] == "connection" && args[1] == "check")
+        {
+            services.GetRequiredService<ICliConsole>().Error.WriteLine("Invalid connection check arguments. Run 'duburl connection check --help' for usage.");
+            return CliExitCodes.InvalidInput;
+        }
         try
         {
             var exitCode = await parseResult.InvokeAsync(cancellationToken: cancellationToken);

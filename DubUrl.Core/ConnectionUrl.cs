@@ -18,6 +18,7 @@ namespace DubUrl;
 public class ConnectionUrl : BaseConnectionUrl
 {
     private ConnectionConfigurationRequest[] configuration = [];
+    private bool readOnly;
     private IReadOnlyList<SkippedConnectionOption> skippedOptions = Array.Empty<SkippedConnectionOption>();
 
     /// <summary>Resolves configuration and reports unsupported optional settings without credentials.</summary>
@@ -38,6 +39,12 @@ public class ConnectionUrl : BaseConnectionUrl
     public ConnectionUrl WithCommandTimeout(TimeSpan timeout)
         => WithRequest(ConnectionConfigurationOption.CommandTimeout, OptionalConnectionOptions.ValidateTimeout(timeout));
 
+    /// <summary>Requires native read-only access to an existing primary database file.</summary>
+    /// <remarks>Strict and idempotent. Unsupported routes throw before creating a connection.
+    /// Temporary objects, attached databases and external side effects follow native engine rules.</remarks>
+    public ConnectionUrl WithReadOnly()
+        => new(Url, Parser, Registry) { configuration = configuration, readOnly = true };
+
     /// <summary>Skips unsupported settings only. Invalid values and provider failures still throw.</summary>
     public ConnectionUrl WithOptional(Action<OptionalConnectionOptions> configure)
     {
@@ -51,16 +58,19 @@ public class ConnectionUrl : BaseConnectionUrl
         => WithRequests([new(option, value, false)]);
 
     private ConnectionUrl WithRequests(ConnectionConfigurationRequest[] requests)
-        => new(Url, Parser, Registry) { configuration = [.. configuration, .. requests] };
+        => new(Url, Parser, Registry) { configuration = [.. configuration, .. requests], readOnly = readOnly };
 
     protected override ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
     {
         var resolved = base.ResolveConnection(connectionUri);
-        if (configuration.Length == 0) return resolved;
+        if (configuration.Length == 0 && !readOnly) return resolved;
         Registry.TryGetCapability<ConnectionConfigurationCapability>(connectionUri.Scheme, out var capability);
         var skipped = new List<SkippedConnectionOption>();
         var applicable = new List<ConnectionConfigurationRequest>();
         var provider = resolved.ProviderFactory.GetType().FullName ?? resolved.ProviderFactory.GetType().Name;
+        ReadOnlyConnectionCapability? readOnlyCapability = null;
+        if (readOnly && (!Registry.TryGetCapability(connectionUri.Scheme, out readOnlyCapability) || readOnlyCapability is null))
+            throw new NotSupportedException($"ReadOnly is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'. A transaction default or replica-routing hint is not native read-only file access.");
         foreach (var group in configuration.GroupBy(request => request.Option))
         {
             // An optional call must never weaken a required setting, irrespective of call order.
@@ -69,7 +79,7 @@ public class ConnectionUrl : BaseConnectionUrl
             else if (request.Optional) skipped.Add(new(request.Option, provider, "Unsupported by the selected provider route or requested pool-size configuration."));
             else throw new NotSupportedException($"{request.Option} is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'.");
         }
-        if (applicable.Count == 0)
+        if (applicable.Count == 0 && !readOnly)
         {
             skippedOptions = skipped.AsReadOnly();
             return resolved;
@@ -78,6 +88,8 @@ public class ConnectionUrl : BaseConnectionUrl
             ?? throw new NotSupportedException($"Provider '{provider}' does not supply a connection-string builder for shared configuration.");
         builder.ConnectionString = resolved.ConnectionString;
         foreach (var request in applicable) capability!.Apply(builder, request);
+        // Always last: optional/native options cannot silently weaken the required access mode.
+        if (readOnly) readOnlyCapability!.Apply(builder);
         skippedOptions = skipped.AsReadOnly();
         return resolved with { ConnectionString = builder.ConnectionString };
     }
@@ -97,6 +109,8 @@ public class ConnectionUrl : BaseConnectionUrl
         try
         {
             connection.ConnectionString = Result.ConnectionString;
+            if (readOnly && TryGetCapability<ReadOnlyConnectionCapability>(out var capability))
+                capability!.Configure(connection);
             return connection;
         }
         catch

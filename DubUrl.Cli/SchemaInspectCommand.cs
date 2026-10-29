@@ -24,8 +24,9 @@ internal static partial class SchemaCommand
         var partial = new Option<bool>("--allow-partial") { Description = "Deliberately export incomplete metadata with diagnostics on standard error. Strict export is the default." };
         var references = new Option<bool>("--include-references") { Description = "Include the transitive foreign-key target tables outside the filters." };
         var basic = new Option<bool>("--basic") { Description = "Request tables, columns, primary keys, and foreign keys only." };
+        var readOnly = ConnectionCommand.ReadOnlyOption();
         var command = new Command("inspect", "Read database metadata and export a versioned schema document. Does not change the database.");
-        foreach (var option in new Option[] { connection, environment, tables, schemas, output, format, partial, references, basic }) command.Options.Add(option);
+        foreach (var option in new Option[] { connection, environment, tables, schemas, output, format, partial, references, basic, readOnly }) command.Options.Add(option);
         command.SetAction(result => ExecuteSafely(services, "inspect", () =>
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -45,8 +46,17 @@ internal static partial class SchemaCommand
                 Features = result.GetValue(basic) ? [SchemaFeature.Tables, SchemaFeature.Columns, SchemaFeature.PrimaryKeys, SchemaFeature.ForeignKeys] : Enum.GetValues<SchemaFeature>()
             };
             var value = ResolveConnection(services, name, variable);
+            var target = new ConnectionUrl(value, services.GetRequiredService<ISchemeRegistry>());
+            if (result.GetValue(readOnly))
+            {
+                target = target.WithReadOnly();
+                try { _ = target.Parse(); }
+                catch (NotSupportedException) { throw new CliInputException("Native read-only file access is unsupported for this provider or database mode; use a verified SQLite or DuckDB file route."); }
+                catch (Exception exception) when (exception is ArgumentException or FormatException or DubUrlException)
+                { throw new CliInputException("The selected read-only connection configuration could not be resolved."); }
+            }
             var operation = services.GetRequiredService<ISchemaInspectionService>().InspectAsync(
-                new ConnectionUrl(value, services.GetRequiredService<ISchemeRegistry>()), options, cancellationToken).GetAwaiter().GetResult();
+                target, options, cancellationToken).GetAwaiter().GetResult();
             var console = services.GetRequiredService<ICliConsole>();
             foreach (var diagnostic in operation.Diagnostics)
                 console.Error.WriteLine($"{diagnostic.Code}: {diagnostic.Message}");

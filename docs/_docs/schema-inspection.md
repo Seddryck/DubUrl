@@ -6,6 +6,11 @@ Schema inspection reads catalogs into the existing schema domain model. The same
 
 ## CLI workflow
 
+Add `--read-only` to require the shared native read-only access mode on supported file routes.
+Unsupported routes fail before inspection; `--allow-partial` cannot relax this requirement. See
+[read-only connections]({{ '/docs/read-only-connections/' | relative_url }}) for the provider matrix
+and the difference from transaction defaults or read-replica routing.
+
 Use a named connection from the existing ConnectionStrings configuration, or an environment variable containing the URL. Specify exactly one selector; URLs are not command-line arguments.
 
 ```powershell

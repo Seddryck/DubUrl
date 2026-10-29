@@ -17,6 +17,7 @@ namespace DubUrl.Provider.Sqlite.Mapping;
 )]
 [DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.Sqlite.Discovery.SqliteMetadataReader))]
 [ConnectionConfiguration(Pooling = "Pooling")]
+[ReadOnlyConnection("Mode", "ReadOnly", "Data Source")]
 public class SqliteMapper : BaseMapper, IFileBasedMapper
 {
     public SqliteMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)
