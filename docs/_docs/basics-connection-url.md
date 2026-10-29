@@ -19,7 +19,7 @@ If the `port` is not the standard port it can be specified after the **host** an
 string connectionUrl = "mssql://{server}:{port}/{database_name}";
 ```
 
-If you don't want to use the Windows authentication but you prefer to specify a SQL Server login, you can specify the **SQL login** and its **password** before the host. The separation between SQL login and its password is provided by a colon `:` and the separation between the password and the host is marked by an at sign `@`.
+A SQL Server database login and password can appear before the host. A colon `:` separates them and an at sign `@` separates the credentials from the host. For other sign-in methods, see [Library authentication]({{ '/authentication/' | relative_url }}) or [CLI authentication]({{ '/cli-authentication/' | relative_url }}).
 ```csharp
 string connectionUrl = "mssql://{sql_login}:{password}@{server}/{database_name}";
 ```
