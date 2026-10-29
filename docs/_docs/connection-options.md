@@ -28,3 +28,9 @@ mssql://{server}/{database}?ConnectRetryCount=5&ConnectRetryInterval=3
 ```
 
 Use the provider's own documentation to determine which keywords and authentication methods it supports. DubUrl does not make provider-specific options portable across different databases.
+
+For portable Library defaults, use the shared `WithApplicationName(...)`, `WithPooling(...)`,
+`WithConnectionTimeout(...)`, and `WithCommandTimeout(...)` methods. They are strict by default;
+`WithOptional(...)` explicitly allows unsupported settings to be skipped. See
+[required and optional configuration]({{ '/docs/optional-configuration/' | relative_url }}) for
+the supported routes and fallback rules.

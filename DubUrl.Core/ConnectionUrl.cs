@@ -36,7 +36,7 @@ public class ConnectionUrl : BaseConnectionUrl
     public ConnectionUrl WithAuthentication(ConnectionAuthentication strategy)
     {
         ArgumentNullException.ThrowIfNull(strategy);
-        return new ConnectionUrl(Url, Parser, Registry) { authentication = strategy };
+        return new ConnectionUrl(Url, Parser, Registry) { authentication = strategy, configuration = configuration };
     }
 
     /// <summary>Validates strategy conflicts without retrieving credentials or creating a connection.</summary>
@@ -44,6 +44,75 @@ public class ConnectionUrl : BaseConnectionUrl
     {
         if (authentication is not null)
             AuthenticationConfiguration.Validate(Parser.Parse(Url), authentication);
+    }
+
+    private ConnectionConfigurationRequest[] configuration = [];
+    private IReadOnlyList<SkippedConnectionOption> skippedOptions = Array.Empty<SkippedConnectionOption>();
+
+    /// <summary>Resolves configuration and reports unsupported optional settings without credentials.</summary>
+    public IReadOnlyList<SkippedConnectionOption> SkippedOptions
+    {
+        get { _ = Result; return skippedOptions; }
+    }
+
+    public ConnectionUrl WithApplicationName(string applicationName)
+        => WithRequest(ConnectionConfigurationOption.ApplicationName, OptionalConnectionOptions.ValidateApplicationName(applicationName));
+
+    public ConnectionUrl WithPooling(ConnectionPoolingOptions options)
+        => WithRequest(ConnectionConfigurationOption.Pooling, OptionalConnectionOptions.ValidatePooling(options));
+
+    public ConnectionUrl WithConnectionTimeout(TimeSpan timeout)
+        => WithRequest(ConnectionConfigurationOption.ConnectionTimeout, OptionalConnectionOptions.ValidateTimeout(timeout));
+
+    public ConnectionUrl WithCommandTimeout(TimeSpan timeout)
+        => WithRequest(ConnectionConfigurationOption.CommandTimeout, OptionalConnectionOptions.ValidateTimeout(timeout));
+
+    /// <summary>Skips unsupported settings only. Invalid values and provider failures still throw.</summary>
+    public ConnectionUrl WithOptional(Action<OptionalConnectionOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        var options = new OptionalConnectionOptions();
+        configure(options);
+        return WithRequests(options.Snapshot());
+    }
+
+    private ConnectionUrl WithRequest(ConnectionConfigurationOption option, object value)
+        => WithRequests([new(option, value, false)]);
+
+    private ConnectionUrl WithRequests(ConnectionConfigurationRequest[] requests)
+        => new(Url, Parser, Registry) { authentication = authentication, configuration = [.. configuration, .. requests] };
+
+    protected override ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
+    {
+        return ApplyConfiguration(connectionUri, base.ResolveConnection(connectionUri));
+    }
+
+    private ResolvedConnection ApplyConfiguration(ConnectionUri connectionUri, ResolvedConnection resolved)
+    {
+        if (configuration.Length == 0) return resolved;
+        Registry.TryGetCapability<ConnectionConfigurationCapability>(connectionUri.Scheme, out var capability);
+        var skipped = new List<SkippedConnectionOption>();
+        var applicable = new List<ConnectionConfigurationRequest>();
+        var provider = resolved.ProviderFactory.GetType().FullName ?? resolved.ProviderFactory.GetType().Name;
+        foreach (var group in configuration.GroupBy(request => request.Option))
+        {
+            // An optional call must never weaken a required setting, irrespective of call order.
+            var request = group.LastOrDefault(item => !item.Optional) ?? group.Last();
+            if (capability?.Supports(request) == true) applicable.Add(request);
+            else if (request.Optional) skipped.Add(new(request.Option, provider, "Unsupported by the selected provider route or requested pool-size configuration."));
+            else throw new NotSupportedException($"{request.Option} is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'.");
+        }
+        if (applicable.Count == 0)
+        {
+            skippedOptions = skipped.AsReadOnly();
+            return resolved;
+        }
+        var builder = resolved.ProviderFactory.CreateConnectionStringBuilder()
+            ?? throw new NotSupportedException($"Provider '{provider}' does not supply a connection-string builder for shared configuration.");
+        builder.ConnectionString = resolved.ConnectionString;
+        foreach (var request in applicable) capability!.Apply(builder, request);
+        skippedOptions = skipped.AsReadOnly();
+        return resolved with { ConnectionString = builder.ConnectionString };
     }
 
     public ConnectionUrl(string url)
@@ -180,6 +249,7 @@ public class ConnectionUrl : BaseConnectionUrl
     {
         var uri = Parser.Parse(Url);
         AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
+        _ = Result; // Validate strict settings before acquiring runtime credentials.
         var provider = Registry.GetMapper(uri.Scheme).GetProviderName();
         return (uri, new(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
             uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null));
@@ -188,7 +258,7 @@ public class ConnectionUrl : BaseConnectionUrl
     private DbConnection CreateAuthenticatedConnection(ConnectionUri uri, UsernamePasswordCredentials? credentials, AuthenticationContext context)
     {
         // This transient structured mapping is deliberately never stored in BaseConnectionUrl.Result.
-        var resolved = Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials, context));
+        var resolved = ApplyConfiguration(uri, Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials, context)));
         var connection = resolved.ProviderFactory.CreateConnection() ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
         try
         {

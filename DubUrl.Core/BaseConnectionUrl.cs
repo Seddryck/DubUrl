@@ -30,7 +30,10 @@ public class BaseConnectionUrl
             => Result.ProviderFactory;
 
     private ResolvedConnection ParseDetail()
-        => Registry.Resolve(Parser.Parse(Url));
+        => ResolveConnection(Parser.Parse(Url));
+
+    protected virtual ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
+        => Registry.Resolve(connectionUri);
 
     public bool TryGetCapability<TCapability>(out TCapability? capability) where TCapability : class
         => Registry.TryGetCapability(Parser.Parse(Url).Scheme, out capability);
