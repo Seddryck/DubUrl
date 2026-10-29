@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.MicroOrm;
 
-public class DatabaseUrl : DubUrl.DatabaseUrl
+public partial class DatabaseUrl : DubUrl.DatabaseUrl
 {
     private IReflectionCache ReflectionCache { get; set; } = new ReflectionCache();
 
