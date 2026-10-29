@@ -17,7 +17,8 @@ public static class CliComposition
         IProviderPackService? providerPackService = null,
         IEnumerable<IDubUrlProviderModule>? providerModules = null,
         IHiddenPasswordPrompt? passwordPrompt = null,
-        IOsCredentialStore? credentialStore = null)
+        IOsCredentialStore? credentialStore = null,
+        ICliOAuthSessionFactory? oauthSessionFactory = null)
     {
         configuration ??= new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -43,6 +44,7 @@ public static class CliComposition
         services.AddSingleton(configuration);
         services.AddSingleton<IHiddenPasswordPrompt>(passwordPrompt ?? new TerminalPasswordPrompt());
         services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
+        services.AddSingleton<ICliOAuthSessionFactory>(oauthSessionFactory ?? new NativeCliOAuthSessionFactory());
         services.AddSingleton(console ?? new SystemCliConsole());
         services.AddLogging(builder => builder
             .AddConfiguration(configuration.GetSection("Logging"))

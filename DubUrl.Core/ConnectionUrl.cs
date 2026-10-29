@@ -115,18 +115,29 @@ public class ConnectionUrl : BaseConnectionUrl
         }
     }
 
-    public virtual async ValueTask<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+    public virtual ValueTask<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        => OpenConfiguredAsync(null, cancellationToken);
+
+    /// <summary>Creates an owned connection, applies caller configuration before opening through the selected strategy, and disposes it on failure.</summary>
+    public virtual ValueTask<DbConnection> OpenAsync(Action<DbConnection> configureConnection, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(configureConnection);
+        return OpenConfiguredAsync(configureConnection, cancellationToken);
+    }
+
+    private async ValueTask<DbConnection> OpenConfiguredAsync(Action<DbConnection>? configureConnection, CancellationToken cancellationToken)
     {
         var connection = await ConnectAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            configureConnection?.Invoke(connection);
             await OpenPreparedAsync(connection, cancellationToken).ConfigureAwait(false);
             return connection;
         }
         catch (Exception exception)
         {
             await connection.DisposeAsync().ConfigureAwait(false);
-            if (authentication is not null && exception is not OperationCanceledException)
+            if (authentication is not null && exception is not (OperationCanceledException or ConnectionAuthenticationException))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
             throw;
         }

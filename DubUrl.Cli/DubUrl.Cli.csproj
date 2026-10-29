@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
+    <ProjectReference Include="../DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj" />
+    <ProjectReference Include="../DubUrl.Authentication.Snowflake/DubUrl.Authentication.Snowflake.csproj" />
   </ItemGroup>
 
   <ItemGroup>

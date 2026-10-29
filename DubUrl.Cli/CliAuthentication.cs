@@ -15,12 +15,15 @@ public interface IOsCredentialStore
     ValueTask<UsernamePasswordCredentials> ReadAsync(string reference, CancellationToken cancellationToken = default);
 }
 
-internal sealed class CliAuthentication
+internal sealed class CliAuthentication : IDisposable
 {
+    private readonly CliOAuthOptions oauth = new();
+    private IDisposable? oauthLifetime;
+    internal int AcquisitionTimeoutSeconds => oauth.AcquisitionTimeoutSeconds;
     private readonly Option<bool> prompt = new("--password-prompt") { Description = "Explicitly read a hidden password from the terminal." };
     private readonly Option<string?> reference = new("--credential-store") { Description = "Read an existing OS credential-store entry by reference." };
     private readonly Option<string?> username = new("--username") { Description = "Username for the selected external credential source." };
-    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(username); }
+    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(username); oauth.AddTo(command); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
         var usePrompt = result.GetValue(prompt);
@@ -29,11 +32,23 @@ internal sealed class CliAuthentication
         if ((usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
+        if (oauth.IsSelected(result))
+        {
+            if (usePrompt || entry is not null || user is not null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+            target = oauth.Configure(services, result, target, out var lifetime);
+            oauthLifetime = lifetime;
+        }
         if (usePrompt || entry is not null)
             target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry, user)));
         target.ValidateAuthentication();
         return target;
     }
+
+    public void Dispose() => oauthLifetime?.Dispose();
+    internal static int ExitCode(ConnectionAuthenticationException error)
+        => error.Code is AuthenticationDiagnosticCodes.CredentialConflict or AuthenticationDiagnosticCodes.UnsupportedAuthentication
+            or AuthenticationDiagnosticCodes.MissingCredentials or AuthenticationDiagnosticCodes.SynchronousCredentialsRequired
+            ? CliExitCodes.InvalidInput : CliExitCodes.ConnectionCheckFailed;
 
     private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username) : IUsernamePasswordCredentialSource
     {

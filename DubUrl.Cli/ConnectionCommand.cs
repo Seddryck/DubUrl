@@ -31,9 +31,9 @@ internal static class ConnectionCommand
         check.Options.Add(table);
         check.Options.Add(timeout);
         check.Options.Add(format);
-        check.SetAction(result => ExecuteAsync(services, new CheckInvocation(result.GetValue(url), result.GetValue(name), result.GetValue(environment),
+        check.SetAction((result, actionToken) => ExecuteAsync(services, new CheckInvocation(result.GetValue(url), result.GetValue(name), result.GetValue(environment),
             new() { Engine = result.GetValue(engine), Table = result.GetValue(table), TimeoutSeconds = result.GetValue(timeout) },
-            result.GetValue(format)), authentication, result, cancellationToken).GetAwaiter().GetResult());
+            result.GetValue(format)), authentication, result, actionToken));
         group.Subcommands.Add(check);
         return group;
     }
@@ -41,13 +41,15 @@ internal static class ConnectionCommand
     private static async Task<int> ExecuteAsync(IServiceProvider services, CheckInvocation request,
         CliAuthentication authentication, System.CommandLine.ParseResult parsed, CancellationToken cancellationToken)
     {
+        using var authenticationLifetime = authentication;
         var console = services.GetRequiredService<ICliConsole>();
         try
         {
             if (request.Format is not (null or "human" or "json")) throw new ArgumentException("Output format must be human or json.");
             var url = ResolveTarget(services, request.Url, request.Name, request.Environment);
-            var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(
-                authentication.Configure(services, parsed, url), request.Options, cancellationToken).ConfigureAwait(false);
+            var target = authentication.Configure(services, parsed, url);
+            var options = request.Options with { AuthenticationTimeoutSeconds = authentication.AcquisitionTimeoutSeconds };
+            var operation = await services.GetRequiredService<IConnectionCheckService>().CheckAsync(target, options, cancellationToken).ConfigureAwait(false);
             Write(console, operation, request.Format == "json");
             return GetExitCode(operation);
         }
@@ -56,7 +58,17 @@ internal static class ConnectionCommand
             await console.Error.WriteLineAsync("Operation cancelled.").ConfigureAwait(false);
             return CliExitCodes.Cancelled;
         }
-        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException or DubUrl.Authentication.ConnectionAuthenticationException)
+        catch (ConnectionAuthenticationException error)
+        {
+            Write(console, new(false, GetMode(request.Options), null, 0, [new(error.Code, error.Message)]), request.Format == "json");
+            return CliAuthentication.ExitCode(error);
+        }
+        catch (CliOAuthInputException error)
+        {
+            Write(console, new(false, GetMode(request.Options), null, 0, [new("invalidInput", error.Message)]), request.Format == "json");
+            return CliExitCodes.InvalidInput;
+        }
+        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or DubUrlException)
         {
             // Do not emit parser/provider exception messages: they may contain URL components or paths.
             Write(console, InvalidResult(request.Options), request.Format == "json");

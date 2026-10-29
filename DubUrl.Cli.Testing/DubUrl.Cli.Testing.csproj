@@ -27,5 +27,6 @@
     <ProjectReference Include="../Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj" />
     <ProjectReference Include="../Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj" />
     <ProjectReference Include="../Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="../Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj" />
   </ItemGroup>
 </Project>

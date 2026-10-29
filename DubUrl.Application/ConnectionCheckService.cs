@@ -10,6 +10,8 @@ public sealed record ConnectionCheckOptions
     public bool Engine { get; init; }
     public string? Table { get; init; }
     public int TimeoutSeconds { get; init; } = 15;
+    /// <summary>Additional bounded opening allowance for interactive authentication. Query execution retains TimeoutSeconds.</summary>
+    public int AuthenticationTimeoutSeconds { get; init; }
 }
 public sealed record ConnectionCheckDiagnostic(string Code, string Message, string? NativeCode = null, string? SqlState = null);
 public sealed record ConnectionCheckResult(bool Success, string Mode, string? Provider, long ElapsedMilliseconds,
@@ -26,7 +28,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(options);
-        if (options.TimeoutSeconds <= 0 || (options.Engine && options.Table is not null))
+        if (options.TimeoutSeconds <= 0 || options.AuthenticationTimeoutSeconds is < 0 or > 3600 || (options.Engine && options.Table is not null))
             throw new ArgumentException("Specify a positive timeout and at most one of engine or table.");
         var family = ConnectionCheckSql.GetFamily(ConnectionUri.Parse(target.Url).Scheme.Canonical);
         using var attempt = new CheckAttempt(options, family, cancellationToken);
@@ -36,7 +38,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             return attempt.Result(true, []);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested) { throw new OperationCanceledException(cancellationToken); }
-        catch (OperationCanceledException) when (attempt.AcquiringCredentials) { throw; }
+        catch (OperationCanceledException) when (attempt.AcquiringCredentials || !attempt.TimedOut) { throw; }
         catch (Exception error) when (error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException
             || error.GetType().FullName == "BAMCIS.PrestoClient.Model.PrestoQueryException")
         { return attempt.Result(false, [attempt.Classify(error)]); }
@@ -53,6 +55,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         private string? provider;
         private bool executing;
         internal bool AcquiringCredentials { get; private set; } = true;
+        internal bool TimedOut => budget.IsCancellationRequested;
         internal CheckAttempt(ConnectionCheckOptions options, string family, CancellationToken cancellationToken)
         {
             this.options = options; this.family = family;
@@ -66,12 +69,17 @@ public sealed class ConnectionCheckService : IConnectionCheckService
             using var connection = await target.ConnectAsync(cancellationToken).ConfigureAwait(false);
             AcquiringCredentials = false;
             var databaseClock = Stopwatch.StartNew();
-            budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
+            budget.CancelAfter(TimeSpan.FromSeconds((double)options.TimeoutSeconds + options.AuthenticationTimeoutSeconds));
             provider = connection.GetType().Namespace;
             ValidateFileProvider(family, provider);
             RequireExistingFile(connection, family);
             await target.OpenPreparedAsync(connection, budget.Token).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
+            if (options.AuthenticationTimeoutSeconds > 0)
+            {
+                databaseClock.Restart();
+                budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
+            }
             if (sql is not null) await ExecuteStatementAsync(connection, databaseClock).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
         }
