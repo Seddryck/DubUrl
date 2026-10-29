@@ -77,16 +77,17 @@ public class CliAuthenticationTests
     }
 
     [Test]
-    public async Task UnsupportedAuthenticationIsInvalidInputAndDoesNotReadStore()
+    public async Task CredentialStoreUsesProviderMappingWithoutAnAllowlist()
     {
-        System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
+        System.Data.Common.DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
         var store = new CountingStore();
         var console = new RecordingConsole();
         await using var services = CliComposition.CreateDefault(console,
             providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], credentialStore: store);
-        var exit = await CliHost.InvokeAsync(["connection", "check", "sqlite:///:memory:", "--credential-store", "fixture", "--output-format", "json"], services);
-        Assert.That(exit, Is.EqualTo(2));
-        Assert.That(store.Calls, Is.Zero);
+        // NReco's Open only changes state; actual server authentication occurs when executing a query.
+        var exit = await CliHost.InvokeAsync(["connection", "check", "trino://localhost/pg/public?UseSsl=true", "--credential-store", "fixture", "--output-format", "json"], services);
+        Assert.That(exit, Is.Zero);
+        Assert.That(store.Calls, Is.EqualTo(1));
         Assert.That(console.Output.ToString(), Does.Not.Contain("sentinel"));
     }
 

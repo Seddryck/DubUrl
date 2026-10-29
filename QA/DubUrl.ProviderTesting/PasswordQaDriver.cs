@@ -8,7 +8,8 @@ namespace DubUrl.ProviderTesting;
 
 internal sealed class PasswordQaDriver(string url, ISchemeRegistry registry)
 {
-    private static readonly HashSet<string> Supported =
+    // These fixtures have lifecycle/cancellation recipes; this is not a runtime provider allowlist.
+    private static readonly HashSet<string> FixtureRecipes =
     [
         "Microsoft.Data.SqlClient", "Npgsql", "MySqlConnector", "MySql.Data.MySqlClient", "MySql.Data",
         "SingleStoreConnector", "Oracle.ManagedDataAccess", "FirebirdSql.Data.FirebirdClient", "Snowflake.Data",
@@ -19,15 +20,15 @@ internal sealed class PasswordQaDriver(string url, ISchemeRegistry registry)
     internal ISchemeRegistry Registry { get; } = registry;
     internal string Provider => Registry.GetMapper(Uri.Scheme).GetProviderName();
     internal string Family => Application.ConnectionCheckSql.GetFamily(Uri.Scheme.Canonical);
-    internal bool SupportsStrategy => Supported.Contains(Provider);
+    internal bool HasFixtureRecipe => FixtureRecipes.Contains(Provider);
     internal UsernamePasswordCredentials Credentials => new(Uri.Username, Uri.Password);
     internal string Location => RemoveUserInfo(url);
     internal string ProbeSql => Application.ConnectionCheckSql.Engine(Family);
 
     internal void RequireStrategy()
     {
-        if (!SupportsStrategy)
-            Assert.Ignore($"#1689: {Provider} has no native username/password strategy adapter; this QA cannot authenticate through that strategy.");
+        if (!HasFixtureRecipe)
+            Assert.Ignore($"#1689: {Provider} has no verified username/password QA recipe; runtime credentials still use its existing mapper.");
     }
 
     internal void RequirePasswordAuthentication()

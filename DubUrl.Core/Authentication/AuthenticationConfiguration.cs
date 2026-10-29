@@ -61,11 +61,4 @@ internal static class AuthenticationConfiguration
             Username = username, Password = password, HasUsername = hasUsername, HasPassword = hasPassword
         };
 
-    internal static void ValidatePasswordProvider(string provider)
-    {
-        if (provider is not ("Microsoft.Data.SqlClient" or "Npgsql" or "MySqlConnector" or "MySql.Data.MySqlClient"
-            or "MySql.Data" or "SingleStoreConnector" or "Oracle.ManagedDataAccess" or "FirebirdSql.Data.FirebirdClient"
-            or "Snowflake.Data" or "IBM.Data.Db2" or "Teradata.Client" or "Teradata.Client.Provider"))
-            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
-    }
 }

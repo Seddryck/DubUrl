@@ -170,8 +170,6 @@ public class ConnectionUrl : BaseConnectionUrl
         var uri = Parser.Parse(Url);
         AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
         var provider = Registry.GetMapper(uri.Scheme).GetProviderName();
-        if (RequiredAuthentication.Kind == ConnectionAuthenticationKind.UsernamePassword)
-            AuthenticationConfiguration.ValidatePasswordProvider(provider);
         return (uri, new(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
             uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null));
     }

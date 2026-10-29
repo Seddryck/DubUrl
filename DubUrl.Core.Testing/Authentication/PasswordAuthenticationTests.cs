@@ -20,6 +20,8 @@ public class PasswordAuthenticationTests
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
         DbProviderFactories.RegisterFactory("Npgsql", NpgsqlFactory.Instance);
         DbProviderFactories.RegisterFactory("MySqlConnector", MySqlConnectorFactory.Instance);
+        DbProviderFactories.RegisterFactory("NReco.PrestoAdo", NReco.PrestoAdo.PrestoDbFactory.Instance);
+        DbProviderFactories.RegisterFactory("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance);
         registry = new ProviderCatalogBuilder().AddModule(new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)).Build();
     }
 
@@ -121,6 +123,58 @@ public class PasswordAuthenticationTests
         Assert.That(ConnectionUri.Parse("postgres://alice:@localhost/app").HasPassword, Is.True);
         Assert.That(ConnectionUri.Parse("postgres://localhost/app").HasUsername, Is.False);
         Assert.That(ConnectionUri.Parse("postgres://alice@localhost/app").HasUsername, Is.True);
+    }
+
+    [TestCase("trino://localhost/pg/public?UseSsl=true", "User", "Password", false)]
+    [TestCase("trino://localhost/pg/public?UseSsl=true", "User", "Password", true)]
+    [TestCase("odbc+mssql://localhost/app?Driver=FixtureDriver", "UID", "PWD", false)]
+    [TestCase("odbc+mssql://localhost/app?Driver=FixtureDriver", "UID", "PWD", true)]
+    [TestCase("odbc+drill://localhost/dfs?Driver=FixtureDriver", "UID", "PWD", false)]
+    [TestCase("odbc+drill://localhost/dfs?Driver=FixtureDriver", "UID", "PWD", true)]
+    public async Task RuntimeCredentialsReachExistingProviderMapping(string url, string userKey, string passwordKey, bool asynchronous)
+    {
+        const string password = "x;Password='y@%+";
+        var target = new ConnectionUrl(url, registry)
+            .WithAuthentication(ConnectionAuthentication.UsernamePassword("alice", password));
+        using var connection = asynchronous ? await target.ConnectAsync() : (DbConnection)target.Connect();
+        if (connection is NReco.PrestoAdo.PrestoConnection)
+        {
+            // NReco 1.1.0 does not retain its assigned ConnectionString; inspect the actual client configuration.
+            var config = typeof(NReco.PrestoAdo.PrestoConnection)
+                .GetField("config", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .GetValue(connection)!;
+            Assert.That(config.GetType().GetProperty(userKey)!.GetValue(config), Is.EqualTo("alice"));
+            Assert.That(config.GetType().GetProperty(passwordKey)!.GetValue(config), Is.EqualTo(password));
+        }
+        else
+        {
+            var builder = new System.Data.Odbc.OdbcConnectionStringBuilder { ConnectionString = connection.ConnectionString };
+            Assert.That(builder[userKey], Is.EqualTo("alice"));
+            // ODBC retains the braces used to quote semicolons in a parsed value.
+            Assert.That(builder[passwordKey], Is.EqualTo("{" + password + "}"));
+            if (url.StartsWith("odbc+drill", StringComparison.Ordinal))
+                Assert.That(builder["AuthenticationType"], Is.EqualTo("Plain"));
+        }
+        Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
+        Assert.That(target.Url, Is.EqualTo(url));
+        Assert.That(target.Parse(), Does.Not.Contain(password));
+    }
+
+    [Test]
+    public async Task CustomProviderDoesNotNeedACorePasswordAllowlistEntry()
+    {
+        const string invariant = "Custom.PasswordProvider";
+        var mapper = (BaseMapper)registry.GetMapper("mssql");
+        mapper.SetProviderMetadata(invariant, null);
+        var catalog = new ProviderCatalogBuilder();
+        catalog.AddProvider(new ProviderRegistration("Custom", ["custom"], invariant,
+            () => SqlClientFactory.Instance, mapper.GetDialect(), mapper.GetParametrizer, _ => mapper));
+        var target = new ConnectionUrl("custom://localhost/app", catalog.Build())
+            .WithAuthentication(ConnectionAuthentication.UsernamePassword("alice", "sentinel"));
+        using var connection = await target.ConnectAsync();
+        var builder = new SqlConnectionStringBuilder(connection.ConnectionString);
+        Assert.That(builder.UserID, Is.EqualTo("alice"));
+        Assert.That(builder.Password, Is.EqualTo("sentinel"));
     }
 
     private sealed class RotatingSource : ISynchronousUsernamePasswordCredentialSource

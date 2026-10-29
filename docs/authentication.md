@@ -35,10 +35,11 @@ blocking on async work. Cancellation flows through resolution and provider openi
 Sources receive selected provider/scheme/host/port/database/username metadata only.
 No fallback follows missing credentials, source failure or unsupported strategies.
 
-Username/password supports native SqlClient, Npgsql, MySqlConnector, MySql.Data,
-SingleStoreConnector, Oracle Managed, Firebird, Snowflake, Db2 and Teradata mappings.
-ODBC/OLE DB and embedded file providers reject this strategy. Native provider
-validation determines accepted empty values and server authentication requirements.
+Username/password uses the selected provider's existing credential mapping without
+a provider allowlist, including NReco.PrestoAdo, ODBC and OLE DB. The provider/driver
+must be installed and support the requested authentication mode; OLE DB requires
+Windows. Provider validation determines accepted empty values and server requirements.
+File providers do not acquire server-account authentication simply by receiving credentials.
 
 Authentication errors use stable safe codes without raw source/provider messages
 or inner exception chains. Formatting/debugger displays redact credential objects.

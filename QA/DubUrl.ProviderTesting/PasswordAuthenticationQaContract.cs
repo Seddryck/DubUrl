@@ -20,19 +20,10 @@ public abstract class PasswordAuthenticationQaContract : CliPasswordAuthenticati
         var driver = Driver;
         using var source = new PasswordQaSource(driver.Credentials);
         var observed = new PasswordQaRegistry(driver.Registry);
-        if (driver.SupportsStrategy)
-        {
-            await using var connection = await driver.Target(source, observed).ConnectAsync();
-            Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
-            Assert.That(source.Calls, Is.EqualTo(1));
-        }
-        else
-        {
-            var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => await driver.Target(source, observed).ConnectAsync());
-            Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
-            Assert.That(source.Calls, Is.Zero);
-            Assert.That(observed.Connections, Is.Empty);
-        }
+        driver.RequireStrategy();
+        await using var connection = await driver.Target(source, observed).ConnectAsync();
+        Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
+        Assert.That(source.Calls, Is.EqualTo(1));
     }
 
     [TestCase(false), TestCase(true), Category("PasswordAuthentication")]
