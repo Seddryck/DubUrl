@@ -10,8 +10,9 @@ namespace DubUrl.Cli.Testing;
 
 public class CliAuthenticationTests
 {
-    [TestCase("connection"), TestCase("schema")]
-    public async Task CommandCancellationWithoutCallerTokenReturns130(string command)
+    [TestCase("connection", false), TestCase("schema", false)]
+    [TestCase("connection", true), TestCase("schema", true)]
+    public async Task CommandCancellationWithoutCallerTokenReturns130(string command, bool osIdentity)
     {
         var console = new RecordingConsole();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
@@ -20,6 +21,7 @@ public class CliAuthenticationTests
         string[] arguments = command == "connection"
             ? ["connection", "check", "mssql://localhost/app", "--output-format", "json"]
             : ["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--output-format", "json"];
+        if (osIdentity) arguments = [.. arguments, "--os-identity"];
         var exit = await CliHost.InvokeAsync(arguments, new AbortingServices(services));
         Assert.That(exit, Is.EqualTo(130));
         Assert.That(console.Output.ToString(), Is.Empty);
@@ -44,6 +46,7 @@ public class CliAuthenticationTests
     }
     [TestCase("--password-prompt")]
     [TestCase("--credential-store", "development")]
+    [TestCase("--os-identity")]
     public async Task DryRunNeverReadsSecrets(params string[] arguments)
     {
         System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
@@ -63,6 +66,9 @@ public class CliAuthenticationTests
 
     [TestCase("--password-prompt", "--credential-store", "development")]
     [TestCase("--username", "alice")]
+    [TestCase("--os-identity", "--password-prompt")]
+    [TestCase("--os-identity", "--credential-store", "development")]
+    [TestCase("--os-identity", "--username", "alice")]
     public async Task ConflictsFailWithoutAcquisition(params string[] arguments)
     {
         System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
@@ -89,6 +95,82 @@ public class CliAuthenticationTests
         Assert.That(exit, Is.Zero);
         Assert.That(store.Calls, Is.EqualTo(1));
         Assert.That(console.Output.ToString(), Does.Not.Contain("sentinel"));
+    }
+
+    [TestCase("json"), TestCase("human")]
+    public async Task OsIdentityUsesTheSharedStrategyWithoutReadingSecrets(string format)
+    {
+        System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+        var console = new RecordingConsole();
+        var prompt = new CountingPrompt();
+        var store = new CountingStore();
+        await using var services = CliComposition.CreateDefault(console,
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, credentialStore: store);
+        var capture = new IdentityCheck();
+        var exit = await CliHost.InvokeAsync(["connection", "check", "mssql://db.example/app", "--os-identity", "--engine", "--output-format", format],
+            new CheckServices(services, capture));
+        Assert.That(exit, Is.Zero, console.Errors.ToString());
+        Assert.That(capture.Calls, Is.EqualTo(1));
+        Assert.That(prompt.Calls + store.Calls, Is.Zero);
+        if (format == "json")
+        {
+            using var json = System.Text.Json.JsonDocument.Parse(console.Output.ToString());
+            Assert.That(json.RootElement.GetProperty("success").GetBoolean(), Is.True);
+        }
+        else Assert.That(console.Output.ToString(), Does.Contain("succeeded"));
+    }
+
+    [TestCase("mssql://alice:sensitive-sentinel@db/app")]
+    [TestCase("mssql://db/app?Password=sensitive-sentinel")]
+    [TestCase("mssql://db/app?AccessToken=sensitive-sentinel")]
+    [TestCase("mssql://db/app?OAuthClientId=sensitive-sentinel")]
+    public async Task OsIdentityRejectsUrlConflictsBeforeCheckOrAcquisition(string url)
+    {
+        var console = new RecordingConsole();
+        var prompt = new CountingPrompt();
+        var store = new CountingStore();
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, credentialStore: store);
+        var capture = new IdentityCheck();
+        var exit = await CliHost.InvokeAsync(["connection", "check", url, "--os-identity", "--output-format", "json"], new CheckServices(services, capture));
+        Assert.That(exit, Is.EqualTo(2));
+        Assert.That(capture.Calls + prompt.Calls + store.Calls, Is.Zero);
+        Assert.That(console.Output.ToString() + console.Errors.ToString(), Does.Not.Contain("sensitive-sentinel"));
+    }
+
+    [Test]
+    public async Task OsIdentityUnsupportedProviderHasSafeDiagnostic()
+    {
+        System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);
+        var console = new RecordingConsole();
+        var prompt = new CountingPrompt();
+        var store = new CountingStore();
+        await using var services = CliComposition.CreateDefault(console,
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, credentialStore: store);
+        var exit = await CliHost.InvokeAsync(["connection", "check", "sqlite:///:memory:", "--os-identity", "--output-format", "json"], services);
+        Assert.That(exit, Is.EqualTo(2));
+        Assert.That(console.Output.ToString(), Does.Contain("UnsupportedAuthentication"));
+        Assert.That(prompt.Calls + store.Calls, Is.Zero);
+    }
+
+    private sealed class CheckServices(IServiceProvider inner, IConnectionCheckService check) : IServiceProvider
+    {
+        public object? GetService(Type type) => type == typeof(IConnectionCheckService) ? check : inner.GetService(type);
+    }
+    private sealed class IdentityCheck : IConnectionCheckService
+    {
+        public int Calls { get; private set; }
+        public async Task<ConnectionCheckResult> CheckAsync(ConnectionUrl target, ConnectionCheckOptions options, CancellationToken cancellationToken = default)
+        {
+            Calls++;
+            Assert.That(options.Engine, Is.True);
+            // Exercise the actual Library pipeline, without claiming a database login.
+            await using var actual = await target.ConnectAsync(cancellationToken);
+            await using var expected = await new ConnectionUrl("mssql://db.example/app")
+                .WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity()).ConnectAsync(cancellationToken);
+            Assert.That(actual.ConnectionString, Is.EqualTo(expected.ConnectionString));
+            Assert.That(new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(actual.ConnectionString).IntegratedSecurity, Is.True);
+            return new(true, "engine", "Microsoft.Data.SqlClient", 0, []);
+        }
     }
 
     private sealed class CountingPrompt : IHiddenPasswordPrompt

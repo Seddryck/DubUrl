@@ -10,6 +10,21 @@ for add/remove/exists, native-store prerequisites, exit codes and CI examples.
 This source is mutually exclusive with the legacy `--credential-store` reference
 and `--password-prompt`; an explicit username must agree with the stored username.
 
+Use `--os-identity` to select the same shared Library strategy as
+`target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity())`:
+
+```shell
+duburl connection check 'mssql://sql.example.com/app' --os-identity --engine
+duburl connection check 'postgres://app_role@db.example.com/app?SSL%20Mode=VerifyFull' --os-identity --output-format json
+```
+
+It also applies to schema deployment. It conflicts with `--password-prompt`,
+`--credential-store` and `--username`; a permitted database-role hint belongs in
+the URL. URL passwords, tokens, OAuth and competing native authentication options
+reject before prompting or accessing a credential store. Without the flag,
+existing URL-only behavior is unchanged. See the
+[driver and platform support table](operating-system-authentication.md).
+
 ```text
 duburl schema deploy schema.json --connection development --username alice --password-prompt
 duburl connection check --connection development --credential-store development --engine

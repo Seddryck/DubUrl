@@ -39,7 +39,8 @@ internal class MySqlDataRewriter : MySqlConnectorRewriter
             if (!string.IsNullOrEmpty(urlInfo.Password))
                 Specificator.Execute(PASSWORD_KEYWORD, urlInfo.Password);
 
-            if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password))
+            if (string.IsNullOrEmpty(urlInfo.Username) && string.IsNullOrEmpty(urlInfo.Password)
+                && !urlInfo.Options.Keys.Any(key => key.Replace(" ", "").Equals("DefaultAuthenticationPlugin", StringComparison.OrdinalIgnoreCase)))
                 Specificator.Execute(SSPI_KEYWORD, "sspi");
         }
     }

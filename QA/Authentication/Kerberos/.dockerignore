@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!MariaDb.Dockerfile
+!krb5.conf
+!*.sh
+!*.sql

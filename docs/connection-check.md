@@ -4,6 +4,10 @@
 `--connection development` (`ConnectionStrings:development` configuration) or
 `--connection-env DATABASE_URL`. Exactly one selector is required.
 
+Add `--os-identity` to use the current process identity or ticket cache through
+the [shared Library strategy and supported driver mappings](operating-system-authentication.md).
+For example: `duburl connection check 'mssql://sql.example.com/app' --os-identity --engine`.
+
 `--engine` executes `SELECT 1`; Oracle uses `SELECT 1 FROM DUAL`, Db2 uses
 `SELECT 1 FROM SYSIBM.SYSDUMMY1`, and Firebird uses `SELECT 1 FROM RDB$DATABASE`.
 `--table public.customers` instead executes exactly

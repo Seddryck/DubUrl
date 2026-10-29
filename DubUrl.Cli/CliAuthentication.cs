@@ -21,18 +21,21 @@ internal sealed class CliAuthentication
     private readonly Option<string?> reference = new("--credential-store") { Description = "Read an existing OS credential-store entry by reference." };
     private readonly Option<string?> named = new("--credential") { Description = "Read a named credential saved with 'duburl credential add'." };
     private readonly Option<string?> username = new("--username") { Description = "Username for the selected external credential source." };
-    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); }
+    private readonly Option<bool> osIdentity = new("--os-identity") { Description = "Use the current process identity or existing ticket cache through the selected driver." };
+    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); command.Options.Add(osIdentity); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
         var usePrompt = result.GetValue(prompt);
         var entry = result.GetValue(reference);
         var credential = result.GetValue(named);
         var user = result.GetValue(username);
+        var useOsIdentity = result.GetValue(osIdentity);
         var sources = (usePrompt ? 1 : 0) + (entry is not null ? 1 : 0) + (credential is not null ? 1 : 0);
-        if (sources > 1 || (user is not null && sources == 0))
+        if (sources > 1 || (user is not null && sources == 0) || (useOsIdentity && (sources > 0 || user is not null)))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         if (credential is not null) credential = CredentialName.Normalize(credential);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
+        if (useOsIdentity) target = target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
         if (sources > 0)
             target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry ?? credential, user, credential is not null)));
         target.ValidateAuthentication();

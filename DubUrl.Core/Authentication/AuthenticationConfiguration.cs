@@ -15,10 +15,20 @@ internal static class AuthenticationConfiguration
     {
         if (uri.HasPassword) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         if (RejectsUsername(strategy.Kind) && uri.HasUsername) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        var kerberosModes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
-            if (IsCompatibleOperatingSystemOption(strategy.Kind, key, option.Value)) continue;
+            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && key is "kerberosauthmode" or "authenticationkerberosmode")
+            {
+                if (!kerberosModes.Add(key) || !uri.Scheme.Parts.Any(MySqlOperatingSystemIdentityMappings.IsMySql)
+                    || !(option.Value.Equals("SSPI", StringComparison.OrdinalIgnoreCase) || option.Value.Equals("GSSAPI", StringComparison.OrdinalIgnoreCase)
+                        || key == "kerberosauthmode" && option.Value.Equals("AUTO", StringComparison.OrdinalIgnoreCase)))
+                    throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+            }
+            if (IsCompatibleOperatingSystemOption(strategy.Kind, uri, key, option.Value)) continue;
+            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && IsOpaqueOrIdentityOption(key))
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
             if (IsCredentialOption(key) || strategy.Kind == ConnectionAuthenticationKind.FileSecret && key is "extendedproperties" or "jetoledbsystemdatabase")
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         }
@@ -26,17 +36,35 @@ internal static class AuthenticationConfiguration
 
     private static bool RejectsUsername(ConnectionAuthenticationKind kind)
         => kind is ConnectionAuthenticationKind.NativeToken or ConnectionAuthenticationKind.InteractiveOAuth or ConnectionAuthenticationKind.FileSecret;
-    private static bool IsCompatibleOperatingSystemOption(ConnectionAuthenticationKind kind, string key, string value)
-        => kind == ConnectionAuthenticationKind.OperatingSystemIdentity
-            && key is "integratedsecurity" or "trustedconnection"
-            && value.ToLowerInvariant() is "true" or "sspi" or "yes";
+    private static bool IsCompatibleOperatingSystemOption(ConnectionAuthenticationKind kind, ConnectionUri uri, string key, string value)
+    {
+        if (kind != ConnectionAuthenticationKind.OperatingSystemIdentity) return false;
+        if (key is "integratedsecurity" or "trustedconnection") return value.ToLowerInvariant() is "true" or "sspi" or "yes";
+        if (key is "defaultauth" or "defaultauthenticationplugin")
+            return uri.Scheme.Parts.Any(MySqlOperatingSystemIdentityMappings.IsMySql)
+                && value.Equals("authentication_kerberos_client", StringComparison.OrdinalIgnoreCase);
+        return key == "authentication" && uri.Scheme.Parts.Contains("db2", StringComparer.OrdinalIgnoreCase)
+            && value.Equals("KERBEROS", StringComparison.OrdinalIgnoreCase);
+    }
+    private static bool IsOpaqueOrIdentityOption(string key)
+        => key is "pqopt" or "d5" or "connsettings" or "a6" or "extendedproperties" or "providerstring"
+            or "dsn" or "filedsn" or "savefile" or "authenticationtype" or "authmech" or "authenticationmechanism"
+            or "authenticationstring" or "defaultauth" or "defaultauthenticationplugin" or "osauthent"
+            or "krbusername" or "kerberosusername" or "krbkeytab" or "keytab" or "keytabfilepath"
+            or "delegationuid" or "delegatekerberoscredentials" or "useexistingkerberoscredentials"
+            or "useexistingkrbcreds" or "delegatekrbcreds" or "kerberoskeytab" or "kinittype"
+            or "extracredentials" or "krbkeytabfilepath" or "krbcachefilepath" or "kerberosprincipal"
+            or "openidtokenfile" or "ociconfigfile" or "ociconfigprofile" or "enablecleartextplugin"
+            or "password1" or "password2" or "password3" or "pwd1" or "pwd2" or "pwd3";
     private static bool IsCredentialOption(string key)
         => CredentialOptions.Contains(key) || key == "encryptionkey" || key.StartsWith("oauth", StringComparison.Ordinal)
             || key.EndsWith("password", StringComparison.Ordinal) || key.EndsWith("token", StringComparison.Ordinal)
             || key.EndsWith("secret", StringComparison.Ordinal);
 
-    internal static ConnectionUri Apply(ConnectionUri uri, ConnectionAuthentication strategy, UsernamePasswordCredentials? credentials)
+    internal static ConnectionUri Apply(ConnectionUri uri, ConnectionAuthentication strategy, UsernamePasswordCredentials? credentials, AuthenticationContext context)
     {
+        if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity)
+            uri = MySqlOperatingSystemIdentityMappings.PrepareLocation(uri, context);
         if (credentials is null)
         {
             if (strategy.Kind == ConnectionAuthenticationKind.UsernamePassword) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);

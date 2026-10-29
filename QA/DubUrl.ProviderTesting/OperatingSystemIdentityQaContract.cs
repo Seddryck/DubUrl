@@ -20,7 +20,7 @@ public abstract class OperatingSystemIdentityQaContract
 
     private void RequireAdapter()
     {
-        if (!SqlIdentity && !PeerIdentity) Assert.Ignore("#1700: no OS-identity adapter for this provider/family/transport. A password login or wire-compatible driver is not OS authentication.");
+        if (!SqlIdentity && !PeerIdentity) Assert.Ignore("#1728: no live OS-identity fixture recipe for this provider/family/transport. A password login or mapping pass is not OS authentication.");
     }
     private string IdentityLocation => SqlIdentity ? "mssql://localhost/master?Pooling=false"
         : "postgres://alice@localhost:55432/app?Host=%2Ftmp%2Fduburl-qa-peer&Pooling=false";
@@ -38,6 +38,14 @@ public abstract class OperatingSystemIdentityQaContract
     public async Task OsIdentityQa_AvailabilityIsExplicit()
     {
         var registry = new TokenQaRegistry(AuthenticationRegistry);
+        if (PeerIdentity && OperatingSystem.IsWindows())
+        {
+            await using var network = await IdentityTarget("postgres://alice@localhost/app?SSL%20Mode=Require", registry).ConnectAsync();
+            var settings = new DbConnectionStringBuilder { ConnectionString = network.ConnectionString };
+            Assert.That(settings["Require Auth"], Is.EqualTo("GSS, SSPI"));
+            Assert.That(settings["SSL Mode"], Is.EqualTo("Require"));
+            return;
+        }
         if (SqlIdentity || (PeerIdentity && !OperatingSystem.IsWindows()))
         {
             await using var connection = await IdentityTarget(IdentityLocation, registry).ConnectAsync();
@@ -46,10 +54,20 @@ public abstract class OperatingSystemIdentityQaContract
         }
         else
         {
+            if (!PeerIdentity)
+            {
+                try
+                {
+                    ConnectionAuthentication.OperatingSystemIdentity().Resolve(new(IdentityDriver.Provider,
+                        IdentityDriver.Uri.Scheme.Canonical, null, null, null, IdentityDriver.Uri.HasUsername ? IdentityDriver.Uri.Username : null));
+                    Assert.Ignore("#1728: mapping capability exists; this password-based fixture does not verify OS authentication or the installed driver's Kerberos configuration.");
+                }
+                catch (ConnectionAuthenticationException unsupported) when (unsupported.Code == AuthenticationDiagnosticCodes.UnsupportedAuthentication) { }
+            }
             var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () =>
             { await using var connection = await IdentityTarget(IdentityDriver.Location, registry).ConnectAsync(); });
             Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
-            Assert.That(registry.Connections, Is.Empty);
+            Assert.That(registry.Connections, Has.Count.EqualTo(PeerIdentity ? 1 : 0));
             AssertSafeIdentity(error);
         }
     }
@@ -164,15 +182,19 @@ public abstract class OperatingSystemIdentityQaContract
     {
         if (!PeerIdentity) Assert.Ignore("#1700: local peer endpoint guard applies only to native PostgreSQL.");
         var registry = new TokenQaRegistry(AuthenticationRegistry);
+        if (host == "localhost")
+        {
+            await using var network = await IdentityTarget("postgres://alice@localhost/app?SSL%20Mode=Require", registry).ConnectAsync();
+            var settings = new DbConnectionStringBuilder { ConnectionString = network.ConnectionString };
+            Assert.That(settings["Require Auth"], Is.EqualTo("GSS, SSPI"));
+            Assert.That(settings["SSL Mode"], Is.EqualTo("Require"));
+            return;
+        }
         var error = Assert.Throws<ConnectionAuthenticationException>(() => IdentityTarget("postgres://alice@localhost/app?Host=" + host, registry).Connect());
         Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
         AssertSafeIdentity(error);
-        if (OperatingSystem.IsWindows()) Assert.That(registry.Connections, Is.Empty);
-        else
-        {
-            Assert.That(registry.Connections, Has.Count.EqualTo(1));
-            await CertificateQaDriver.AssertDisposedAsync(registry.Connections.Single());
-        }
+        Assert.That(registry.Connections, Has.Count.EqualTo(1));
+        await CertificateQaDriver.AssertDisposedAsync(registry.Connections.Single());
     }
 
     [TestCase("sync"), TestCase("async"), TestCase("mapped-role"), TestCase("mismatched-role")]
