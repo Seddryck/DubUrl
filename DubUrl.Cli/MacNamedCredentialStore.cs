@@ -8,6 +8,7 @@ internal sealed class MacNamedCredentialStore(bool interactive) : INativeNamedCr
 {
     private const string Security = "/System/Library/Frameworks/Security.framework/Security";
     private const string CoreFoundation = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
+    private const string ValueDataKey = "kSecValueData";
     private const int NotFound = -25300;
     private static readonly IntPtr SecurityLibrary = NativeLibrary.Load(Security);
     private static readonly IntPtr FoundationLibrary = NativeLibrary.Load(CoreFoundation);
@@ -35,7 +36,7 @@ internal sealed class MacNamedCredentialStore(bool interactive) : INativeNamedCr
         {
             if (!CheckFound(status)) throw new CredentialStoreException();
             var account = CFDictionaryGetValue(result, Key("kSecAttrAccount"));
-            var data = CFDictionaryGetValue(result, Key("kSecValueData"));
+            var data = CFDictionaryGetValue(result, Key(ValueDataKey));
             if (account == IntPtr.Zero || data == IntPtr.Zero) throw new CredentialStoreException();
             var length = checked((int)CFDataGetLength(data));
             if (length > 5120) throw new CredentialStoreException();
@@ -52,23 +53,25 @@ internal sealed class MacNamedCredentialStore(bool interactive) : INativeNamedCr
 
     public void Write(string name, UsernamePasswordCredentials credentials, CancellationToken token)
     {
+        var storedUsername = credentials.Username ?? throw new CredentialStoreException();
+        var storedPassword = credentials.Password ?? throw new CredentialStoreException();
         using var query = Query(name);
         using var values = new Dictionary();
-        values.SetString("kSecAttrAccount", credentials.Username!);
-        var bytes = Encoding.UTF8.GetBytes(credentials.Password!);
+        values.SetString("kSecAttrAccount", storedUsername);
+        var bytes = Encoding.UTF8.GetBytes(storedPassword);
         try
         {
             var data = CFDataCreate(IntPtr.Zero, bytes, bytes.Length);
             if (data == IntPtr.Zero) throw new CredentialStoreException();
-            try { values.Set("kSecValueData", data); }
+            try { values.Set(ValueDataKey, data); }
             finally { CFRelease(data); }
             token.ThrowIfCancellationRequested();
             // Query by service only, so changing the username updates rather than duplicates the entry.
             var status = SecItemUpdate(query.Handle, values.Handle);
             if (status == NotFound)
             {
-                query.SetString("kSecAttrAccount", credentials.Username!);
-                query.Set("kSecValueData", CFDictionaryGetValue(values.Handle, Key("kSecValueData")));
+                query.SetString("kSecAttrAccount", storedUsername);
+                query.Set(ValueDataKey, CFDictionaryGetValue(values.Handle, Key(ValueDataKey)));
                 status = SecItemAdd(query.Handle, IntPtr.Zero);
             }
             if (status != 0) throw new CredentialStoreException();
@@ -115,16 +118,16 @@ internal sealed class MacNamedCredentialStore(bool interactive) : INativeNamedCr
             finally { CFRelease(text); }
         }
         public void Dispose() => CFRelease(Handle);
+        [DllImport(CoreFoundation)] private static extern IntPtr CFDictionaryCreateMutable(IntPtr allocator, nint capacity, IntPtr keys, IntPtr values);
+        [DllImport(CoreFoundation)] private static extern void CFDictionarySetValue(IntPtr dictionary, IntPtr key, IntPtr value);
+        [DllImport(CoreFoundation)] private static extern IntPtr CFStringCreateWithCString(IntPtr allocator, [MarshalAs(UnmanagedType.LPUTF8Str)] string text, uint encoding);
     }
 
     [DllImport(Security)] private static extern int SecItemCopyMatching(IntPtr query, out IntPtr result);
     [DllImport(Security)] private static extern int SecItemAdd(IntPtr attributes, IntPtr result);
     [DllImport(Security)] private static extern int SecItemUpdate(IntPtr query, IntPtr attributes);
     [DllImport(Security)] private static extern int SecItemDelete(IntPtr query);
-    [DllImport(CoreFoundation)] private static extern IntPtr CFDictionaryCreateMutable(IntPtr allocator, nint capacity, IntPtr keys, IntPtr values);
-    [DllImport(CoreFoundation)] private static extern void CFDictionarySetValue(IntPtr dictionary, IntPtr key, IntPtr value);
     [DllImport(CoreFoundation)] private static extern IntPtr CFDictionaryGetValue(IntPtr dictionary, IntPtr key);
-    [DllImport(CoreFoundation)] private static extern IntPtr CFStringCreateWithCString(IntPtr allocator, [MarshalAs(UnmanagedType.LPUTF8Str)] string text, uint encoding);
     [DllImport(CoreFoundation)] private static extern nint CFStringGetLength(IntPtr text);
     [DllImport(CoreFoundation)] private static extern nint CFStringGetMaximumSizeForEncoding(nint length, uint encoding);
     [DllImport(CoreFoundation)] [return: MarshalAs(UnmanagedType.I1)] private static extern bool CFStringGetCString(IntPtr text, byte[] buffer, nint size, uint encoding);

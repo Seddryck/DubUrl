@@ -6,14 +6,14 @@ namespace DubUrl.Cli;
 internal sealed class WindowsNamedCredentialStore : INativeNamedCredentialStore
 {
     private const int NotFound = 1168;
-    private static string Target(string name) => "DubUrl/" + name;
+    private static string GetTargetName(string name) => "DubUrl/" + name;
 
     public bool Exists(string name, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         // WinCred has no metadata-only API. Enumerate the exact target and inspect only its name/type;
         // never marshal or decode CredentialBlob during a presence check.
-        if (!CredEnumerate(Target(name), 0, out var count, out var entries))
+        if (!CredEnumerate(GetTargetName(name), 0, out var count, out var entries))
         {
             if (Marshal.GetLastWin32Error() == NotFound) return false;
             throw new CredentialStoreException();
@@ -23,7 +23,7 @@ internal sealed class WindowsNamedCredentialStore : INativeNamedCredentialStore
             for (var index = 0; index < count; index++)
             {
                 var entry = Marshal.PtrToStructure<Credential>(Marshal.ReadIntPtr(entries, checked(index * IntPtr.Size)));
-                if (entry.Type == 1 && string.Equals(Marshal.PtrToStringUni(entry.Target), Target(name), StringComparison.OrdinalIgnoreCase)) return true;
+                if (entry.Type == 1 && string.Equals(Marshal.PtrToStringUni(entry.Target), GetTargetName(name), StringComparison.OrdinalIgnoreCase)) return true;
             }
             return false;
         }
@@ -33,7 +33,7 @@ internal sealed class WindowsNamedCredentialStore : INativeNamedCredentialStore
     public UsernamePasswordCredentials Read(string name, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        if (!CredRead(Target(name), 1, 0, out var pointer)) throw new CredentialStoreException();
+        if (!CredRead(GetTargetName(name), 1, 0, out var pointer)) throw new CredentialStoreException();
         try
         {
             var entry = Marshal.PtrToStructure<Credential>(pointer);
@@ -45,20 +45,22 @@ internal sealed class WindowsNamedCredentialStore : INativeNamedCredentialStore
 
     public void Write(string name, UsernamePasswordCredentials credentials, CancellationToken token)
     {
-        var target = Marshal.StringToHGlobalUni(Target(name));
-        var username = Marshal.StringToHGlobalUni(credentials.Username!);
-        var secret = Marshal.StringToHGlobalUni(credentials.Password!);
+        var storedUsername = credentials.Username ?? throw new CredentialStoreException();
+        var storedPassword = credentials.Password ?? throw new CredentialStoreException();
+        var target = Marshal.StringToHGlobalUni(GetTargetName(name));
+        var username = Marshal.StringToHGlobalUni(storedUsername);
+        var secret = Marshal.StringToHGlobalUni(storedPassword);
         try
         {
             var entry = new Credential { Type = 1, Target = target, Username = username, Blob = secret,
-                Size = checked((uint)credentials.Password!.Length * 2), Persist = 2 }; // Local-machine persistence, current user.
+                Size = checked((uint)storedPassword.Length * 2), Persist = 2 }; // Local-machine persistence, current user.
             token.ThrowIfCancellationRequested();
             if (!CredWrite(ref entry, 0)) throw new CredentialStoreException();
         }
         finally
         {
             // Passwords may contain NUL; ZeroFreeGlobalAllocUnicode would stop at the first one.
-            for (var index = 0; index <= credentials.Password!.Length; index++) Marshal.WriteInt16(secret, index * 2, 0);
+            for (var index = 0; index <= storedPassword.Length; index++) Marshal.WriteInt16(secret, index * 2, 0);
             Marshal.FreeHGlobal(secret);
             Marshal.FreeHGlobal(username);
             Marshal.FreeHGlobal(target);
@@ -68,7 +70,7 @@ internal sealed class WindowsNamedCredentialStore : INativeNamedCredentialStore
     public void Remove(string name, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        if (!CredDelete(Target(name), 1, 0) && Marshal.GetLastWin32Error() != NotFound) throw new CredentialStoreException();
+        if (!CredDelete(GetTargetName(name), 1, 0) && Marshal.GetLastWin32Error() != NotFound) throw new CredentialStoreException();
     }
 
     [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]

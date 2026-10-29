@@ -42,16 +42,22 @@ internal interface INativeNamedCredentialStore
 
 internal sealed class NamedCredentialStore(bool interactive) : INamedCredentialStore
 {
-    private INativeNamedCredentialStore Backend => OperatingSystem.IsWindows() ? new WindowsNamedCredentialStore()
-        : OperatingSystem.IsMacOS() ? new MacNamedCredentialStore(interactive)
-        : OperatingSystem.IsLinux() ? new LinuxNamedCredentialStore()
-        : throw new CredentialStoreException();
+    private INativeNamedCredentialStore Backend
+    {
+        get
+        {
+            if (OperatingSystem.IsWindows()) return new WindowsNamedCredentialStore();
+            if (OperatingSystem.IsMacOS()) return new MacNamedCredentialStore(interactive);
+            if (OperatingSystem.IsLinux()) return new LinuxNamedCredentialStore();
+            throw new CredentialStoreException();
+        }
+    }
 
     public ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
         => ExecuteAsync(name, (backend, normalized) => backend.Exists(normalized, cancellationToken), cancellationToken);
 
-    public ValueTask<UsernamePasswordCredentials> ReadAsync(string name, CancellationToken cancellationToken = default)
-        => ExecuteAsync(name, (backend, normalized) => backend.Read(normalized, cancellationToken), cancellationToken);
+    public ValueTask<UsernamePasswordCredentials> ReadAsync(string reference, CancellationToken cancellationToken = default)
+        => ExecuteAsync(reference, (backend, normalized) => backend.Read(normalized, cancellationToken), cancellationToken);
 
     public async ValueTask AddAsync(string name, UsernamePasswordCredentials credentials, bool replace, CancellationToken cancellationToken = default)
     {
@@ -93,7 +99,12 @@ internal sealed class NamedCredentialStore(bool interactive) : INamedCredentialS
                     try
                     {
                         // Unix does not support WaitAny with a named mutex and cancellation event.
-                        while (!(acquired = mutex.WaitOne(100))) token.ThrowIfCancellationRequested();
+                        acquired = mutex.WaitOne(100);
+                        while (!acquired)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            acquired = mutex.WaitOne(100);
+                        }
                     }
                     catch (AbandonedMutexException) { acquired = true; }
                     token.ThrowIfCancellationRequested();

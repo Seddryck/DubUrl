@@ -96,7 +96,7 @@ internal sealed class LinuxNamedCredentialStore : INativeNamedCredentialStore
         private readonly CancellationTokenSource budget;
         private readonly CancellationTokenRegistration registration;
         private readonly List<IntPtr> strings = [];
-        private IntPtr collection;
+        private readonly IntPtr collection;
         public IntPtr Service { get; private set; }
         public IntPtr Attributes { get; private set; }
         public IntPtr Cancellable { get; }
@@ -147,6 +147,18 @@ internal sealed class LinuxNamedCredentialStore : INativeNamedCredentialStore
             if (error != IntPtr.Zero || budget.IsCancellationRequested) throw new CredentialStoreException();
         }
 
+        [DllImport(NativeLibraryName)] private static extern IntPtr secret_service_get_sync(int flags, IntPtr cancellable, out IntPtr error);
+        [DllImport(NativeLibraryName)] private static extern IntPtr secret_collection_for_alias_sync(IntPtr service, [MarshalAs(UnmanagedType.LPUTF8Str)] string alias, int flags, IntPtr cancellable, out IntPtr error);
+        [DllImport(NativeLibraryName)] private static extern IntPtr secret_collection_search_sync(IntPtr collection, IntPtr schema, IntPtr attributes, int flags, IntPtr cancellable, out IntPtr error);
+        [DllImport(NativeLibraryName)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_collection_get_locked(IntPtr collection);
+        [DllImport(NativeLibraryName)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_item_get_locked(IntPtr item);
+        [DllImport(Glib)] private static extern IntPtr g_hash_table_new(IntPtr hash, IntPtr equal);
+        [DllImport(Glib)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool g_hash_table_insert(IntPtr table, IntPtr key, IntPtr value);
+        [DllImport(Glib)] private static extern void g_hash_table_destroy(IntPtr table);
+        [DllImport(Glib)] private static extern void g_error_free(IntPtr error);
+        [DllImport(Gio)] private static extern IntPtr g_cancellable_new();
+        [DllImport(Gio)] private static extern void g_cancellable_cancel(IntPtr cancellable);
+
         private void AddAttribute(string name, string value)
         {
             var key = Marshal.StringToCoTaskMemUTF8(name);
@@ -171,6 +183,7 @@ internal sealed class LinuxNamedCredentialStore : INativeNamedCredentialStore
     private sealed class ItemList(IntPtr list) : IDisposable
     {
         public List<IntPtr> Items { get; } = GetItems(list);
+        [DllImport(Glib)] private static extern void g_list_free(IntPtr list);
         private static List<IntPtr> GetItems(IntPtr head)
         {
             var items = new List<IntPtr>();
@@ -185,29 +198,17 @@ internal sealed class LinuxNamedCredentialStore : INativeNamedCredentialStore
         }
     }
 
-    private const string Secret = "libsecret-1.so.0";
+    private const string NativeLibraryName = "libsecret-1.so.0";
     private const string Glib = "libglib-2.0.so.0";
     private const string GObject = "libgobject-2.0.so.0";
     private const string Gio = "libgio-2.0.so.0";
     private static readonly IntPtr GlibLibrary = NativeLibrary.Load(Glib);
-    [DllImport(Secret)] private static extern IntPtr secret_service_get_sync(int flags, IntPtr cancellable, out IntPtr error);
-    [DllImport(Secret)] private static extern IntPtr secret_collection_for_alias_sync(IntPtr service, [MarshalAs(UnmanagedType.LPUTF8Str)] string alias, int flags, IntPtr cancellable, out IntPtr error);
-    [DllImport(Secret)] private static extern IntPtr secret_collection_search_sync(IntPtr collection, IntPtr schema, IntPtr attributes, int flags, IntPtr cancellable, out IntPtr error);
-    [DllImport(Secret)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_collection_get_locked(IntPtr collection);
-    [DllImport(Secret)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_item_get_locked(IntPtr item);
-    [DllImport(Secret)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_item_load_secret_sync(IntPtr item, IntPtr cancellable, out IntPtr error);
-    [DllImport(Secret)] private static extern IntPtr secret_item_get_secret(IntPtr item);
-    [DllImport(Secret)] private static extern IntPtr secret_value_get(IntPtr value, out nuint length);
-    [DllImport(Secret)] private static extern IntPtr secret_value_new(byte[] secret, nint length, [MarshalAs(UnmanagedType.LPUTF8Str)] string contentType);
-    [DllImport(Secret)] private static extern void secret_value_unref(IntPtr value);
-    [DllImport(Secret)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_service_store_sync(IntPtr service, IntPtr schema, IntPtr attributes, [MarshalAs(UnmanagedType.LPUTF8Str)] string collection, [MarshalAs(UnmanagedType.LPUTF8Str)] string label, IntPtr value, IntPtr cancellable, out IntPtr error);
-    [DllImport(Secret)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_item_delete_sync(IntPtr item, IntPtr cancellable, out IntPtr error);
-    [DllImport(Glib)] private static extern IntPtr g_hash_table_new(IntPtr hash, IntPtr equal);
-    [DllImport(Glib)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool g_hash_table_insert(IntPtr table, IntPtr key, IntPtr value);
-    [DllImport(Glib)] private static extern void g_hash_table_destroy(IntPtr table);
-    [DllImport(Glib)] private static extern void g_error_free(IntPtr error);
-    [DllImport(Glib)] private static extern void g_list_free(IntPtr list);
+    [DllImport(NativeLibraryName)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_item_load_secret_sync(IntPtr item, IntPtr cancellable, out IntPtr error);
+    [DllImport(NativeLibraryName)] private static extern IntPtr secret_item_get_secret(IntPtr item);
+    [DllImport(NativeLibraryName)] private static extern IntPtr secret_value_get(IntPtr value, out nuint length);
+    [DllImport(NativeLibraryName)] private static extern IntPtr secret_value_new(byte[] secret, nint length, [MarshalAs(UnmanagedType.LPUTF8Str)] string contentType);
+    [DllImport(NativeLibraryName)] private static extern void secret_value_unref(IntPtr value);
+    [DllImport(NativeLibraryName)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_service_store_sync(IntPtr service, IntPtr schema, IntPtr attributes, [MarshalAs(UnmanagedType.LPUTF8Str)] string collection, [MarshalAs(UnmanagedType.LPUTF8Str)] string label, IntPtr value, IntPtr cancellable, out IntPtr error);
+    [DllImport(NativeLibraryName)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool secret_item_delete_sync(IntPtr item, IntPtr cancellable, out IntPtr error);
     [DllImport(GObject)] private static extern void g_object_unref(IntPtr instance);
-    [DllImport(Gio)] private static extern IntPtr g_cancellable_new();
-    [DllImport(Gio)] private static extern void g_cancellable_cancel(IntPtr cancellable);
 }

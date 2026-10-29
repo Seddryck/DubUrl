@@ -28,7 +28,7 @@ internal static class CredentialCommand
                 command.Options.Add(stdin);
                 command.Options.Add(replace);
             }
-            command.SetAction(result => ExecuteAsync(services, verb, result.GetValue(name)!,
+            command.SetAction(result => ExecuteAsync(services, verb, result.GetValue(name) ?? string.Empty,
                 verb == "add" ? result.GetValue(username) : null,
                 verb == "add" && result.GetValue(stdin), verb == "add" && result.GetValue(replace), token));
             group.Subcommands.Add(command);
@@ -50,46 +50,55 @@ internal static class CredentialCommand
                 await store.RemoveAsync(name, token).ConfigureAwait(false);
             else
             {
-                if (string.IsNullOrWhiteSpace(username) || username.Length > 513 || username.Any(char.IsControl))
-                    throw new ArgumentException("A nonempty username of up to 513 characters without control characters is required.");
-                if (!stdin && !console.IsInteractive)
-                {
-                    console.Error.WriteLine("Password input requires an interactive terminal. Use --password-stdin for automation.");
-                    return CliExitCodes.InvalidInput;
-                }
-                if (!replace && await store.ExistsAsync(name, token).ConfigureAwait(false))
-                    throw new CredentialStoreException(alreadyExists: true);
-                var password = stdin ? await ReadPasswordAsync(console.In, token).ConfigureAwait(false)
-                    : await services.GetRequiredService<IHiddenPasswordPrompt>().ReadAsync(token).ConfigureAwait(false);
-                var credentials = new UsernamePasswordCredentials(username, password);
-                NamedCredentialStore.ValidateCredentials(credentials);
-                token.ThrowIfCancellationRequested();
-                await store.AddAsync(name, credentials, replace, token).ConfigureAwait(false);
+                var exit = await AddAsync(services, store, name, username, stdin, replace, token).ConfigureAwait(false);
+                if (exit != CliExitCodes.Success) return exit;
             }
-            console.Out.WriteLine(verb == "add" ? "Credential saved." : "Credential removed or already absent.");
+            await console.Out.WriteLineAsync(verb == "add" ? "Credential saved." : "Credential removed or already absent.").ConfigureAwait(false);
             return CliExitCodes.Success;
         }
         catch (OperationCanceledException)
         {
-            console.Error.WriteLine("Operation cancelled.");
+            await console.Error.WriteLineAsync("Operation cancelled.").ConfigureAwait(false);
             return CliExitCodes.Cancelled;
         }
         catch (ArgumentException)
         {
             // Never forward arbitrary adapter exception messages: they can contain secrets.
-            console.Error.WriteLine("Invalid credential input. Use a portable name, a nonempty username and a password of at most 1280 UTF-16 code units.");
+            await console.Error.WriteLineAsync("Invalid credential input. Use a portable name, a nonempty username and a password of at most 1280 UTF-16 code units.").ConfigureAwait(false);
             return CliExitCodes.InvalidInput;
         }
         catch (CredentialStoreException exception)
         {
-            console.Error.WriteLine(new CredentialStoreException(exception.AlreadyExists).Message);
+            await console.Error.WriteLineAsync(new CredentialStoreException(exception.AlreadyExists).Message).ConfigureAwait(false);
             return CliExitCodes.CredentialStoreFailed;
         }
         catch
         {
-            console.Error.WriteLine(new CredentialStoreException().Message);
+            await console.Error.WriteLineAsync(new CredentialStoreException().Message).ConfigureAwait(false);
             return CliExitCodes.CredentialStoreFailed;
         }
+    }
+
+    private static async Task<int> AddAsync(IServiceProvider services, INamedCredentialStore store, string name,
+        string? username, bool stdin, bool replace, CancellationToken token)
+    {
+        var console = services.GetRequiredService<ICliConsole>();
+        if (string.IsNullOrWhiteSpace(username) || username.Length > 513 || username.Any(char.IsControl))
+            throw new ArgumentException("A nonempty username of up to 513 characters without control characters is required.");
+        if (!stdin && !console.IsInteractive)
+        {
+            await console.Error.WriteLineAsync("Password input requires an interactive terminal. Use --password-stdin for automation.").ConfigureAwait(false);
+            return CliExitCodes.InvalidInput;
+        }
+        if (!replace && await store.ExistsAsync(name, token).ConfigureAwait(false))
+            throw new CredentialStoreException(alreadyExists: true);
+        var password = stdin ? await ReadPasswordAsync(console.In, token).ConfigureAwait(false)
+            : await services.GetRequiredService<IHiddenPasswordPrompt>().ReadAsync(token).ConfigureAwait(false);
+        var credentials = new UsernamePasswordCredentials(username, password);
+        NamedCredentialStore.ValidateCredentials(credentials);
+        token.ThrowIfCancellationRequested();
+        await store.AddAsync(name, credentials, replace, token).ConfigureAwait(false);
+        return CliExitCodes.Success;
     }
 
     private static async Task<string> ReadPasswordAsync(TextReader input, CancellationToken token)
