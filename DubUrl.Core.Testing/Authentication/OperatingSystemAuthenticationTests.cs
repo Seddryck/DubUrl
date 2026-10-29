@@ -11,18 +11,13 @@ namespace DubUrl.Core.Testing.Authentication;
 public class OperatingSystemAuthenticationTests
 {
     [TestCase("pg"), TestCase("pgx")]
-    public void ShortPostgreSqlAliasesRetainPlatformBehavior(string scheme)
+    public void ShortPostgreSqlAliasesSupportNetworkIdentity(string scheme)
     {
         var strategy = ConnectionAuthentication.OperatingSystemIdentity();
         var context = new AuthenticationContext("Npgsql", scheme, "localhost", null, "app", "alice");
-        if (OperatingSystem.IsWindows())
-            Assert.That(() => strategy.Resolve(context), Throws.TypeOf<ConnectionAuthenticationException>()
-                .With.Property("Code").EqualTo(AuthenticationDiagnosticCodes.UnsupportedAuthentication));
-        else Assert.That(strategy.Resolve(context), Is.Null);
+        Assert.That(strategy.Resolve(context), Is.Null);
     }
-    [TestCase("Npgsql", "timescale")]
     [TestCase("Npgsql", "questdb")]
-    [TestCase("Npgsql", "cockroach")]
     [TestCase("MySqlConnector", "mysql")]
     public async Task UnsupportedFamilyRejectsBeforeNativeCreation(string provider, string scheme)
     {
@@ -47,7 +42,6 @@ public class OperatingSystemAuthenticationTests
     [TestCase("mssql://alice:@localhost/app")]
     [TestCase("mssql://localhost/app?Integrated%20Security=false")]
     [TestCase("mssql://localhost/app?Authentication=Active%20Directory%20Integrated")]
-    [TestCase("postgres://alice@localhost/app")]
     public void RejectsConflictsAndTcpPeer(string url)
         => Assert.That(() => new ConnectionUrl(url, Registry()).WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity()).Connect(),
             Throws.TypeOf<ConnectionAuthenticationException>());

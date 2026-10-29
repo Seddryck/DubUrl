@@ -30,6 +30,7 @@ internal class Db2Rewriter : ConnectionStringRewriter, DubUrl.Conversion.IRevers
                 new ServerMapper(),
                 new SingleSegmentTokenMapper(DATABASE_KEYWORD, EXCEPTION_DATABASE_NAME, required: true),
                 new AuthentificationMapper(),
+                new TargetPrincipalMapper(),
               ]
         )
     { }
@@ -41,6 +42,16 @@ internal class Db2Rewriter : ConnectionStringRewriter, DubUrl.Conversion.IRevers
             Specificator.Execute(SERVER_KEYWORD,
                 $"{urlInfo.Host}{(urlInfo.Port > 0 ? $":{urlInfo.Port}" : string.Empty)}"
             );
+        }
+    }
+
+    internal class TargetPrincipalMapper : BaseTokenMapper
+    {
+        public override void Execute(ConnectionUri urlInfo)
+        {
+            foreach (var option in urlInfo.Options)
+                if (option.Key.Equals("TargetPrincipal", StringComparison.OrdinalIgnoreCase))
+                    Specificator.Execute("TargetPrincipal", option.Value);
         }
     }
 

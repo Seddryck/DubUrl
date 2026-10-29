@@ -20,15 +20,19 @@ internal sealed class CliAuthentication
     private readonly Option<bool> prompt = new("--password-prompt") { Description = "Explicitly read a hidden password from the terminal." };
     private readonly Option<string?> reference = new("--credential-store") { Description = "Read an existing OS credential-store entry by reference." };
     private readonly Option<string?> username = new("--username") { Description = "Username for the selected external credential source." };
-    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(username); }
+    private readonly Option<bool> osIdentity = new("--os-identity") { Description = "Use the current process identity or existing ticket cache through the selected driver." };
+    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(username); command.Options.Add(osIdentity); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
         var usePrompt = result.GetValue(prompt);
         var entry = result.GetValue(reference);
         var user = result.GetValue(username);
-        if ((usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
+        var useOsIdentity = result.GetValue(osIdentity);
+        if ((useOsIdentity && (usePrompt || entry is not null || user is not null))
+            || (usePrompt && entry is not null) || (user is not null && !usePrompt && entry is null))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
+        if (useOsIdentity) target = target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
         if (usePrompt || entry is not null)
             target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry, user)));
         target.ValidateAuthentication();

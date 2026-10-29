@@ -18,7 +18,9 @@ internal static class AuthenticationConfiguration
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
-            if (IsCompatibleOperatingSystemOption(strategy.Kind, key, option.Value)) continue;
+            if (IsCompatibleOperatingSystemOption(strategy.Kind, uri, key, option.Value)) continue;
+            if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && IsOpaqueOrIdentityOption(key))
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
             if (IsCredentialOption(key) || strategy.Kind == ConnectionAuthenticationKind.FileSecret && key is "extendedproperties" or "jetoledbsystemdatabase")
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         }
@@ -26,10 +28,22 @@ internal static class AuthenticationConfiguration
 
     private static bool RejectsUsername(ConnectionAuthenticationKind kind)
         => kind is ConnectionAuthenticationKind.NativeToken or ConnectionAuthenticationKind.InteractiveOAuth or ConnectionAuthenticationKind.FileSecret;
-    private static bool IsCompatibleOperatingSystemOption(ConnectionAuthenticationKind kind, string key, string value)
-        => kind == ConnectionAuthenticationKind.OperatingSystemIdentity
-            && key is "integratedsecurity" or "trustedconnection"
-            && value.ToLowerInvariant() is "true" or "sspi" or "yes";
+    private static bool IsCompatibleOperatingSystemOption(ConnectionAuthenticationKind kind, ConnectionUri uri, string key, string value)
+    {
+        if (kind != ConnectionAuthenticationKind.OperatingSystemIdentity) return false;
+        if (key is "integratedsecurity" or "trustedconnection") return value.ToLowerInvariant() is "true" or "sspi" or "yes";
+        return key == "authentication" && uri.Scheme.Parts.Contains("db2", StringComparer.OrdinalIgnoreCase)
+            && value.Equals("KERBEROS", StringComparison.OrdinalIgnoreCase);
+    }
+    private static bool IsOpaqueOrIdentityOption(string key)
+        => key is "pqopt" or "d5" or "connsettings" or "a6" or "extendedproperties" or "providerstring"
+            or "dsn" or "filedsn" or "savefile" or "authenticationtype" or "authmech" or "authenticationmechanism"
+            or "authenticationstring" or "defaultauth" or "defaultauthenticationplugin" or "osauthent"
+            or "krbusername" or "kerberosusername" or "krbkeytab" or "keytab" or "keytabfilepath"
+            or "delegationuid" or "delegatekerberoscredentials" or "useexistingkerberoscredentials"
+            or "useexistingkrbcreds" or "delegatekrbcreds" or "kerberoskeytab" or "kinittype"
+            or "extracredentials" or "krbkeytabfilepath" or "krbcachefilepath" or "kerberosprincipal"
+            or "password1" or "password2" or "password3" or "pwd1" or "pwd2" or "pwd3";
     private static bool IsCredentialOption(string key)
         => CredentialOptions.Contains(key) || key == "encryptionkey" || key.StartsWith("oauth", StringComparison.Ordinal)
             || key.EndsWith("password", StringComparison.Ordinal) || key.EndsWith("token", StringComparison.Ordinal)
