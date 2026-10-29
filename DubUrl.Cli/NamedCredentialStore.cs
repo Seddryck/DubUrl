@@ -42,15 +42,12 @@ internal interface INativeNamedCredentialStore
 
 internal sealed class NamedCredentialStore(bool interactive) : INamedCredentialStore
 {
-    private INativeNamedCredentialStore Backend
+    private INativeNamedCredentialStore CreateBackend()
     {
-        get
-        {
-            if (OperatingSystem.IsWindows()) return new WindowsNamedCredentialStore();
-            if (OperatingSystem.IsMacOS()) return new MacNamedCredentialStore(interactive);
-            if (OperatingSystem.IsLinux()) return new LinuxNamedCredentialStore();
-            throw new CredentialStoreException();
-        }
+        if (OperatingSystem.IsWindows()) return new WindowsNamedCredentialStore();
+        if (OperatingSystem.IsMacOS()) return new MacNamedCredentialStore(interactive);
+        if (OperatingSystem.IsLinux()) return new LinuxNamedCredentialStore();
+        throw new CredentialStoreException();
     }
 
     public ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
@@ -108,7 +105,7 @@ internal sealed class NamedCredentialStore(bool interactive) : INamedCredentialS
                     }
                     catch (AbandonedMutexException) { acquired = true; }
                     token.ThrowIfCancellationRequested();
-                    return action(Backend, normalized);
+                    return action(CreateBackend(), normalized);
                 }
                 finally { if (acquired) mutex.ReleaseMutex(); }
             }
