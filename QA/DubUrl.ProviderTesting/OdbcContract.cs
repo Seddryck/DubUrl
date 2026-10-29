@@ -4,11 +4,11 @@ using NUnit.Framework;
 
 namespace DubUrl.ProviderTesting;
 
-[Category("ODBC")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class OdbcContract
+public abstract class OdbcContract : CliConnectionCheckContract
 {
     protected abstract string ConnectionUrl { get; }
+    protected override string CliConnectionUrl => ConnectionUrl;
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectCustomerByIdSql { get; }
     protected virtual bool SupportsParameters => true;
@@ -17,18 +17,18 @@ public abstract class OdbcContract
     public void RegisterProviderFactories()
         => new ProviderFactoriesRegistrator().Register();
 
-    [Test]
+    [Test, Category("ODBC")]
     public void Connect()
     {
         using var connection = new ConnectionUrl(ConnectionUrl).Connect();
         Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
     }
 
-    [Test, Category("ConnectionUrl")]
+    [Test, Category("ConnectionUrl"), Category("ODBC")]
     public void QueryCustomer()
         => AssertScalar(SelectFirstCustomerSql, null, 1, "Nikola Tesla");
 
-    [Test, Category("ConnectionUrl")]
+    [Test, Category("ConnectionUrl"), Category("ODBC")]
     public void QueryCustomerWithParams()
     {
         if (!SupportsParameters)

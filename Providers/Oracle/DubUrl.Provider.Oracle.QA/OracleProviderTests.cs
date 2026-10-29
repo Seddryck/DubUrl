@@ -9,6 +9,7 @@ namespace DubUrl.Provider.Oracle.QA;
 public sealed class OracleProviderTests : ProviderContract
 {
     protected override string ConnectionUrl => OracleTestDatabase.ConnectionUrl;
+    protected override string CliTableName => "\"Customer\"";
     protected override string SelectFirstCustomerSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=:CustId";
     protected override string SelectCustomerByPositionSql => SelectCustomerByIdSql;

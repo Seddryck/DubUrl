@@ -45,6 +45,8 @@ public class Parser : IParser
                 Port = uri.IsDefaultPort ? 0 : uri.Port,
                 Username = username,
                 Password = password,
+                HasUsername = uri.GetComponents(UriComponents.StrongAuthority, UriFormat.UriEscaped).Contains('@'),
+                HasPassword = uri.UserInfo.Contains(':'),
                 Segments = segments,
                 Options = options,
             };

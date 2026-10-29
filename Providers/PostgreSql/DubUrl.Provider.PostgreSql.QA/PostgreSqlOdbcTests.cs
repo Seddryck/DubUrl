@@ -16,6 +16,7 @@ public sealed class PostgreSqlOdbcTests : OdbcContract
     protected override string ConnectionUrl
         => "odbc+pgsql://postgres:Password12!@localhost:5432/DubUrl?TrustServerCertificate=Yes"
             + (explicitDriver ? "&Driver=PostgreSQL%20Unicode" : string.Empty);
+    protected override string CliTableName => "\"Customer\"";
     protected override string SelectFirstCustomerSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=?";
 }

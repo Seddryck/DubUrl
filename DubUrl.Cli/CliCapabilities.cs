@@ -11,6 +11,10 @@ public sealed class CliCapabilities
     public IReadOnlyList<string> Providers { get; }
     public IReadOnlyList<string> DeployableSchemes { get; }
     public IReadOnlyList<string> DiscoverableSchemes { get; init; } = [];
+    public IReadOnlyList<string> ConnectionCommands { get; } = ["check"];
+    public IReadOnlyList<string> ConnectionCheckModes { get; } = ["connection", "engine", "table"];
+    public IReadOnlyList<string> AuthenticationOptions { get; } = ["--password-prompt", "--credential-store", "--username"];
+    public IReadOnlyList<string> CredentialStoreBackends { get; } = ["windows-credential-manager", "macos-keychain", "linux-secret-service"];
     public bool DeploymentAvailable => DeployableSchemes.Count > 0;
 
     public CliCapabilities(

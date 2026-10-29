@@ -7,6 +7,7 @@ namespace DubUrl.Provider.Timescale.QA;
 public sealed class TimescaleProviderTests : ProviderContract
 {
     protected override string ConnectionUrl => "ts://postgres:Password12!@localhost/DubUrl";
+    protected override string CliTableName => "\"Customer\"";
     protected override string SelectFirstCustomerSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=@CustId";
     protected override string SelectCustomerByPositionSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=($1)";

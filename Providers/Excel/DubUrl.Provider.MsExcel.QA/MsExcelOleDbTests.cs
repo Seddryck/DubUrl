@@ -9,6 +9,7 @@ namespace DubUrl.Provider.MsExcel.QA;
 public sealed class MsExcelOleDbTests : OleDbContract
 {
     private SchemeRegistry? registry;
+    protected override ISchemeRegistry CliRegistry => registry!;
     [OneTimeSetUp]
     public void RegisterProviderFactories()
     {

@@ -3,6 +3,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="PrestoClient" Version="0.351.0-beta" />
+    <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
     <PackageReference Include="NUnit" Version="5.0.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.15.0">
       <PrivateAssets>all</PrivateAssets>
@@ -26,5 +28,6 @@
     <ProjectReference Include="../Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj" />
     <ProjectReference Include="../Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj" />
     <ProjectReference Include="../Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj" />
+    <ProjectReference Include="../Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj" />
   </ItemGroup>
 </Project>

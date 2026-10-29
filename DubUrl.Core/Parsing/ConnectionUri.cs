@@ -15,6 +15,10 @@ public sealed class ConnectionUri : IEquatable<ConnectionUri>
     private IReadOnlyDictionary<string, string> options =
         new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
 
+    private bool? hasUsername;
+    private bool? hasPassword;
+    public bool HasUsername { get => hasUsername ?? Username.Length > 0; init => hasUsername = value; }
+    public bool HasPassword { get => hasPassword ?? Password.Length > 0; init => hasPassword = value; }
     public string Host { get; init; } = string.Empty;
     public int Port { get; init; }
     public string Username { get; init; } = string.Empty;
@@ -60,6 +64,7 @@ public sealed class ConnectionUri : IEquatable<ConnectionUri>
             Port = Port,
             Username = Username,
             Password = Password,
+            HasUsername = HasUsername, HasPassword = HasPassword,
             Segments = Segments,
             Options = updated,
         };

@@ -27,14 +27,14 @@ public static class CliHost
                 ? CliExitCodes.InvalidInput
                 : exitCode;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
             services.GetRequiredService<ICliConsole>().Error.WriteLine("Operation cancelled.");
             return CliExitCodes.Cancelled;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            services.GetRequiredService<ICliConsole>().Error.WriteLine($"Unexpected error: {exception.Message}");
+            services.GetRequiredService<ICliConsole>().Error.WriteLine("Unexpected error. No connection details are reported.");
             return CliExitCodes.UnexpectedError;
         }
     }

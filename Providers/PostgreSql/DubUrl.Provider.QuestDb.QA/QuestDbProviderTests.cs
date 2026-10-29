@@ -7,6 +7,7 @@ namespace DubUrl.Provider.QuestDb.QA;
 public sealed class QuestDbProviderTests : ProviderContract
 {
     protected override string ConnectionUrl => "questdb://admin:quest@localhost:8812/";
+    protected override string CliTableName => "\"Customer\"";
     protected override string SelectFirstCustomerSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=@CustId";
     protected override string SelectCustomerByPositionSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=($1)";

@@ -6,6 +6,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
     <PackageReference Include="System.Data.Odbc" Version="10.0.12" />
     <PackageReference Include="System.Data.OleDb" Version="10.0.12" />
+    <PackageReference Update="System.Data.OleDb" Version="9.0.21" Condition="'$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
@@ -13,6 +14,7 @@
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="CreateFilePasswordFixture.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\..\QA\DubUrl.QA\MsAccess\DubUrl.accdb" Link="MsAccess\DubUrl.accdb" CopyToOutputDirectory="PreserveNewest" />
     <None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" />
     <QaInfrastructure Include="infrastructure\**\*" />

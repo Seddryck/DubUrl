@@ -20,7 +20,7 @@ public class BaseConnectionUrl
     private ResolvedConnection? result;
     protected ResolvedConnection Result { get => result ??= ParseDetail(); }
     protected ISchemeRegistry Registry { get; }
-    private IParser Parser { get; }
+    protected IParser Parser { get; }
     public string Url { get; }
 
     internal BaseConnectionUrl(string url, IParser parser, ISchemeRegistry builder)

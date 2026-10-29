@@ -1,0 +1,6 @@
+.git
+.worktrees
+.artifacts
+**/bin
+**/obj
+work

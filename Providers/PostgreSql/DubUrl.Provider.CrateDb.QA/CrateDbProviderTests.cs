@@ -5,6 +5,7 @@ namespace DubUrl.Provider.CrateDb.QA;
 public sealed class CrateDbProviderTests : ProviderContract
 {
     protected override string ConnectionUrl => "cratedb://crate@localhost:5432/crate?SSL Mode=Disable&Pooling=false&No Reset On Close=true";
+    protected override string CliTableName => "doc.\"Customer\"";
     protected override string SelectFirstCustomerSql => "select \"FullName\" from doc.\"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from doc.\"Customer\" where \"CustomerId\"=@CustId";
     protected override string SelectCustomerByPositionSql => "select \"FullName\" from doc.\"Customer\" where \"CustomerId\"=($1)";

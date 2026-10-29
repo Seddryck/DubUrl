@@ -15,7 +15,9 @@ public static class CliComposition
         ICliConsole? console = null,
         IConfiguration? configuration = null,
         IProviderPackService? providerPackService = null,
-        IEnumerable<IDubUrlProviderModule>? providerModules = null)
+        IEnumerable<IDubUrlProviderModule>? providerModules = null,
+        IHiddenPasswordPrompt? passwordPrompt = null,
+        IOsCredentialStore? credentialStore = null)
     {
         configuration ??= new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -39,6 +41,8 @@ public static class CliComposition
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
+        services.AddSingleton<IHiddenPasswordPrompt>(passwordPrompt ?? new TerminalPasswordPrompt());
+        services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
         services.AddSingleton(console ?? new SystemCliConsole());
         services.AddLogging(builder => builder
             .AddConfiguration(configuration.GetSection("Logging"))
@@ -60,6 +64,7 @@ public static class CliComposition
         services.AddSingleton<ISchemaScriptDeploymentExecutor, SchemaScriptDeploymentExecutor>();
         services.AddSingleton<ISchemaDocumentService, SchemaDocumentService>();
         services.AddSingleton<ISchemaDeploymentService, SchemaDeploymentService>();
+        services.AddSingleton<IConnectionCheckService, ConnectionCheckService>();
         services.AddSingleton(capabilities);
         if (providerPackService is not null)
         {
