@@ -13,44 +13,220 @@ The database authenticates a named database account using its password. A termin
 {% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
 {% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
 
-The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Each database has a separate row for each catalogued native ADO.NET, ODBC or OLE DB route. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Database names span their catalogued native ADO.NET, ODBC and OLE DB driver rows. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
 
-| Database | Driver route | Windows | Linux | macOS | CLI | Library | Requirements / reason |
-|---|---|---|---|---|---|---|---|
-| Apache Drill | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. Credentials select Plain authentication; enable it on the Drill server. Driver distribution requires HPE access. |
-| CockroachDB | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Npgsql connection to a password-enabled endpoint. |
-| CrateDB | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Npgsql connection to a password-enabled endpoint. |
-| DuckDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| DuckDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Firebird SQL | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| IBM Db2 | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install the matching OS-specific IBM package; supported OS, architecture and .NET versions are required. See platform prerequisites below. |
-| MariaDB | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| MariaDB | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. |
-| Microsoft Access | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Microsoft Access | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Microsoft Excel | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Microsoft Excel | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Microsoft SQL Server | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| Microsoft SQL Server | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. |
-| Microsoft SQL Server | OLE DB | {{ supported }} | {{ unsupported }} | {{ unsupported }} | {{ supported }} | {{ supported }} | Windows only; install a compatible OLE DB provider and enable account/password sign-in on the server. |
-| MySQL | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| MySQL | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. |
-| MySQL | OLE DB | {{ supported }} | {{ unsupported }} | {{ unsupported }} | {{ supported }} | {{ supported }} | Windows only; install a compatible OLE DB provider and enable account/password sign-in on the server. |
-| Oracle Database | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| Oracle Database | OLE DB | {{ supported }} | {{ unsupported }} | {{ unsupported }} | {{ supported }} | {{ supported }} | Windows only; install a compatible OLE DB provider and enable account/password sign-in on the server. |
-| PostgreSQL | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| PostgreSQL | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. |
-| QuestDB | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Npgsql connection to a password-enabled endpoint. |
-| QuestDB | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. |
-| SingleStore | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Password-enabled database account. |
-| Snowflake | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Account policy must allow password sign-in; use OAuth when required. |
-| SQLite | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Teradata | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install the Teradata provider for a supported client OS and version. See platform prerequisites below. |
-| Text files | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | File access and file passwords are separate from server-account username/password authentication. |
-| Timescale | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Npgsql connection to a password-enabled endpoint. |
-| Timescale | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. |
-| Trino | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | NReco.PrestoAdo; UseSsl=true and TrinoHeaders=1. Enable password authentication on Trino. |
-| Trino | ODBC | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | {{ supported }} | Install a compatible ODBC driver for the client OS and architecture; configure its password authentication options. Enable TLS and password authentication on Trino; the Simba driver requires its installer/licence. |
+<table class="authentication-support">
+  <thead>
+    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th><th scope="col">CLI</th><th scope="col">Library</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Apache Drill</th>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CockroachDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CrateDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">DuckDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Firebird SQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">IBM Db2</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">MariaDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Access</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Excel</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">Microsoft SQL Server</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ supported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">MySQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ supported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Oracle Database</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ supported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">PostgreSQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">QuestDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SingleStore</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Snowflake</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SQLite</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Teradata</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Text files</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Timescale</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Trino</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+    </tr>
+  </tbody>
+</table>
+
+**OLE DB is supported only on Windows.** All routes require a compatible provider or driver for the client OS and architecture.
+
+- **IBM Db2 and Teradata:** install the OS-specific package/provider and use its supported platform and runtime versions; see [platform prerequisites](#platform-prerequisites).
+- **Apache Drill (ODBC):** enable Plain authentication on the server; the compatible driver requires HPE distribution access.
+- **Trino:** enable HTTPS and password authentication. With NReco.PrestoAdo, set `UseSsl=true` and `TrinoHeaders=1`. The Simba ODBC route requires its installer/licence.
+- **Snowflake:** account policy must allow password sign-in; use OAuth when required.
+- **File databases and files:** file access and file passwords are separate from server-account username/password authentication.
 
 ## Prerequisites
 

@@ -15,44 +15,218 @@ For a person signing in, use [Browser sign-in (OAuth)]({{ '/interactive-oauth/' 
 {% assign supported = '<span class="auth-supported" role="img" aria-label="Supported" title="Supported">&#10004;</span>' %}
 {% assign unsupported = '<span class="auth-unsupported" role="img" aria-label="Not supported" title="Not supported">&#10008;</span>' %}
 
-The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Each database has a separate row for each catalogued native ADO.NET, ODBC or OLE DB route. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
+The operating system is the **client** running DubUrl, not the database server. {{ supported }} means this authentication method is supported through the listed driver route; install the required provider or driver and satisfy the prerequisites in the notes. {{ unsupported }} means this documented method is unavailable for that route. Database names span their catalogued native ADO.NET, ODBC and OLE DB driver rows. Driver-specific sign-in options for other methods are separate from the shared APIs shown here.
 
-| Database | Driver route | Windows | Linux | macOS | CLI | Library | Requirements / reason |
-|---|---|---|---|---|---|---|---|
-| Apache Drill | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| CockroachDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| CrateDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| DuckDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| DuckDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Firebird SQL | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| IBM Db2 | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| MariaDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| MariaDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Microsoft Access | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Microsoft Access | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
-| Microsoft Excel | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Microsoft Excel | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
-| Microsoft SQL Server | ADO.NET | {{ supported }} | {{ supported }} | {{ supported }} | {{ unsupported }} | {{ supported }} | Entra-enabled SQL endpoint; token audience and database identity must match. |
-| Microsoft SQL Server | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Microsoft SQL Server | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
-| MySQL | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| MySQL | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| MySQL | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
-| Oracle Database | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| Oracle Database | OLE DB | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no OLE DB adapter. Driver-specific authentication options are configured separately. |
-| PostgreSQL | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| PostgreSQL | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| QuestDB | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| QuestDB | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| SingleStore | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| Snowflake | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| SQLite | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| Teradata | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| Text files | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Timescale | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| Timescale | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
-| Trino | ADO.NET | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | No supported native route for this method. |
-| Trino | ODBC | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | {{ unsupported }} | The shared API for this method has no ODBC adapter. Driver-specific authentication options are configured separately. |
+<table class="authentication-support">
+  <thead>
+    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th><th scope="col">CLI</th><th scope="col">Library</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Apache Drill</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CockroachDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">CrateDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">DuckDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Firebird SQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">IBM Db2</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">MariaDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Access</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Microsoft Excel</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">Microsoft SQL Server</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ unsupported }}</td><td>{{ supported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="3">MySQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Oracle Database</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">OLE DB</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">PostgreSQL</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">QuestDB</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SingleStore</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Snowflake</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">SQLite</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Teradata</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup">Text files</th>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Timescale</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th scope="rowgroup" rowspan="2">Trino</th>
+      <th scope="row">ADO.NET</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+    <tr>
+      <th scope="row">ODBC</th>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+    </tr>
+  </tbody>
+</table>
+
+**OLE DB is supported only on Windows.** All routes require a compatible provider or driver for the client OS and architecture.
+
+The shared API for this method supports the native ADO.NET routes marked above. ODBC and OLE DB sign-in settings for this method must be configured through the driver separately.
+
+- **Microsoft SQL Server:** Entra-enabled SQL endpoint; token audience and database identity must match.
 
 ## Prerequisites
 
