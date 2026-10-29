@@ -36,7 +36,14 @@ public class FilePathTokenMapper : BaseTokenMapper
     {
         if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1
             && string.IsNullOrEmpty(urlInfo.Segments[0]))
-            return urlInfo.Segments.Skip(1).ToArray();
+        {
+            var absoluteSegments = urlInfo.Segments.Skip(1).ToArray();
+            var first = absoluteSegments[0];
+            var windowsDrive = first.Length == 2 && char.IsLetter(first[0]) && first[1] == ':';
+            if (!OperatingSystem.IsWindows() && !windowsDrive)
+                absoluteSegments[0] = Path.DirectorySeparatorChar + first;
+            return absoluteSegments;
+        }
 
         var segments = new List<string>();
         if (!string.Equals(urlInfo.Host, "localhost", StringComparison.InvariantCultureIgnoreCase)
