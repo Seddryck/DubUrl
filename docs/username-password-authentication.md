@@ -10,11 +10,11 @@ The database authenticates a named database account using its password. A termin
 
 ## Database and operating-system support
 
-The operating system is the **client** running DubUrl, not the database server. **Yes** requires the native provider and the database setup described below. **Conditional** names an extra platform or driver requirement. **No** means this documented DubUrl method is unavailable; it does not claim that the database itself lacks that authentication mechanism. ODBC, OLE DB, ADOMD, and ADBC are outside these shared authentication methods; their driver-specific sign-in settings are separate.
+The operating system is the **client** running DubUrl, not the database server. **Yes** requires the provider and the database setup described below. **Conditional** names an extra platform or driver requirement. **No** means the listed route does not provide this server-account method; it does not claim that the database itself lacks that authentication mechanism. Username/password credentials use the selected provider's existing mapping without a provider allowlist, including native ADO.NET providers, ODBC and OLE DB. ODBC requires a compatible installed driver and its authentication options; OLE DB requires Windows and an installed provider. File access and other authentication methods retain their own requirements.
 
 | Database | Windows | Linux | macOS | CLI | Library | Requirements / reason |
 |---|---|---|---|---|---|---|
-| Apache Drill | No | No | No | No | No | No supported native route for this method. |
+| Apache Drill | Conditional | Conditional | Conditional | Yes | Yes | ODBC driver supporting the client OS; credentials select Plain authentication. The Drill server must enable password authentication. |
 | Azure Analysis Services | No | No | No | No | No | No supported native route for this method. |
 | CockroachDB | Yes | Yes | Yes | Yes | Yes | Npgsql connection to a password-enabled endpoint. |
 | CrateDB | Yes | Yes | Yes | Yes | Yes | Npgsql connection to a password-enabled endpoint. |
@@ -39,9 +39,11 @@ The operating system is the **client** running DubUrl, not the database server. 
 | Teradata | Conditional | Conditional | Conditional | Yes | Yes | Matching Teradata driver and supported OS version required. |
 | Text files | No | No | No | No | No | File access or file passwords are not this server-account method. |
 | Timescale | Yes | Yes | Yes | Yes | Yes | Npgsql connection to a password-enabled endpoint. |
-| Trino | No | No | No | No | No | No supported native route for this method. |
+| Trino | Yes | Yes | Yes | Yes | Yes | NReco.PrestoAdo with UseSsl=true and TrinoHeaders=1; enable password authentication on the Trino server. ODBC is also available with a compatible installed driver. |
 
 ## Prerequisites
+
+For ODBC and OLE DB routes to other databases in the table, the installed driver/provider and its supported client operating systems determine availability. Pass required driver-specific authentication options in the connection URL; supplying runtime credentials does not install a driver or enable authentication on the server. These routes can use the same CLI password prompt, credential store, or Library credential source described below.
 
 Create a database account, enable its password authentication, and grant access to the requested database. Connect with TLS appropriate to the database. Snowflake account policy may require MFA or disallow password-only sign-in; choose [Browser sign-in (OAuth)]({{ '/interactive-oauth/' | relative_url }}) when required.
 
