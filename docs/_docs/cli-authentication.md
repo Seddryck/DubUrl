@@ -11,8 +11,8 @@ Choose a method for commands that connect to a database: `connection check`, `sc
 
 | Method | When to choose it | CLI selection |
 |---|---|---|
-| [Username and password]({{ '/username-password-authentication/' | relative_url }}) | Sign in with a database account and password. | `--password-prompt`, `--credential-store`, or a configured connection URL |
-| [Operating-system identity]({{ '/operating-system-authentication/' | relative_url }}) | Use the current OS identity, without a database password. | SQL Server / PostgreSQL connection URL; see method page |
+| [Username and password]({{ '/username-password-authentication/' | relative_url }}) | Sign in with a database account and password. | `--password-prompt`, `--credential-store`, `--credential`, or a configured connection URL |
+| [Operating-system identity]({{ '/operating-system-authentication/' | relative_url }}) | Use the current OS identity, without a database password. | `--os-identity`; see method page |
 | [Client certificate]({{ '/client-certificate-authentication/' | relative_url }}) | Present a client certificate to the database over TLS. | No dedicated CLI selection |
 | [Access token]({{ '/sqlserver-token-authentication/' | relative_url }}) | Present an identity-provider access token to the database. | No dedicated CLI selection |
 

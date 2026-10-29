@@ -69,6 +69,9 @@ public class CliAuthenticationTests
     [TestCase("--os-identity", "--password-prompt")]
     [TestCase("--os-identity", "--credential-store", "development")]
     [TestCase("--os-identity", "--username", "alice")]
+    [TestCase("--os-identity", "--credential", "development")]
+    [TestCase("--oauth", "browser", "--credential", "development")]
+    [TestCase("--oauth", "device-code", "--os-identity")]
     public async Task ConflictsFailWithoutAcquisition(params string[] arguments)
     {
         System.Data.Common.DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", Microsoft.Data.Sqlite.SqliteFactory.Instance);

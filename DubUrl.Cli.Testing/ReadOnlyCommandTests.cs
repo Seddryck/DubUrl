@@ -73,8 +73,10 @@ public class ReadOnlyCommandTests
         var args = new List<string> { "connection", "check", Url + "?Mode=ReadWriteCreate" };
         if (readOnly) args.Add("--read-only");
         var code = await CliHost.InvokeAsync(args.ToArray(), services);
-        Assert.That(code, Is.EqualTo(readOnly ? CliExitCodes.ProviderOperationFailed : CliExitCodes.Success));
-        Assert.That(File.Exists(path), Is.EqualTo(!readOnly));
+        // The full check command never creates a missing file, with or without
+        // the explicit strict read-only flag.
+        Assert.That(code, Is.EqualTo(CliExitCodes.ConnectionCheckFailed));
+        Assert.That(File.Exists(path), Is.False);
     }
 
     [Test]

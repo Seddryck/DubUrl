@@ -270,7 +270,7 @@ The entry belongs to your OS user account; it is not private storage reserved fo
 
 macOS Keychain can restrict which apps or tools may read an item and ask you to approve access. **Allow Once** permits one read; **Always Allow** permits later reads by that reader without another approval. See [Apple's guide to Keychain access permissions](https://support.apple.com/en-ie/guide/keychain-access/kyca1243/mac).
 
-The CLI reads existing entries; it does not create them. On Windows a stored username and explicit username must agree. Choose either the prompt or the credential store. `--credential-store development` identifies the saved entry; it does not switch the database to OS-identity authentication. The CLI retrieves the account password and sends it through the selected database driver.
+The --credential-store option reads existing entries. To create and manage DubUrl entries, use the [named credential commands]({{ '/named-credentials/' | relative_url }}) and select them with --credential. On Windows a stored username and explicit username must agree. Choose either the prompt or the credential store. `--credential-store development` identifies the saved entry; it does not switch the database to OS-identity authentication. The CLI retrieves the account password and sends it through the selected database driver.
 
 For automation, inject a password-bearing connection URL through your environment or named connection configuration:
 

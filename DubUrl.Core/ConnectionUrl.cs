@@ -263,10 +263,26 @@ public class ConnectionUrl : BaseConnectionUrl
     {
         var uri = Parser.Parse(Url);
         AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
-        _ = Result; // Validate strict settings before acquiring runtime credentials.
+        ValidateConfigurationSupport(uri);
         var provider = Registry.GetMapper(uri.Scheme).GetProviderName();
         return (uri, new(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
             uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null));
+    }
+
+    private void ValidateConfigurationSupport(ConnectionUri uri)
+    {
+        // Check policy without mapping an unauthenticated URL: some mappers require
+        // credentials or native authentication options supplied by the strategy.
+        if (readOnly && !Registry.TryGetCapability<ReadOnlyConnectionCapability>(uri.Scheme, out _))
+            throw new NotSupportedException("Native read-only access is unsupported for the selected provider route.");
+        if (configuration.Length == 0) return;
+        Registry.TryGetCapability<ConnectionConfigurationCapability>(uri.Scheme, out var capability);
+        foreach (var group in configuration.GroupBy(request => request.Option))
+        {
+            var request = group.LastOrDefault(item => !item.Optional) ?? group.Last();
+            if (!request.Optional && capability?.Supports(request) != true)
+                throw new NotSupportedException("A required connection option is unsupported for the selected provider route.");
+        }
     }
 
     private DbConnection CreateAuthenticatedConnection(ConnectionUri uri, UsernamePasswordCredentials? credentials, AuthenticationContext context)

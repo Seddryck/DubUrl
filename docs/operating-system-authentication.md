@@ -239,4 +239,4 @@ Support marks identify implemented driver mappings, not verified live authentica
 
 See [exact driver settings and verification boundaries]({{ '/operating-system-identity-mappings/' | relative_url }}) for CLI/Library examples, platform prerequisites, TLS/role rules, fixture commands and unverified live routes.
 
-[CLI authentication]({{ '/cli-authentication/' | relative_url }}) · [Library authentication]({{ '/authentication/' | relative_url }})
+[CLI authentication]({{ '/cli-authentication/' | relative_url }}) Â· [Library authentication]({{ '/authentication/' | relative_url }})

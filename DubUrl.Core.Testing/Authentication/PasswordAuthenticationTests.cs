@@ -177,6 +177,59 @@ public class PasswordAuthenticationTests
         Assert.That(builder.Password, Is.EqualTo("sentinel"));
     }
 
+    [TestCase(true, true), TestCase(true, false)]
+    [TestCase(false, true), TestCase(false, false)]
+    public async Task FluentConfigurationPreservesRuntimeCredentialsInEitherOrder(bool authenticationFirst, bool asynchronous)
+    {
+        var source = new RotatingSource();
+        var original = new ConnectionUrl("mssql://localhost/app", registry);
+        ConnectionUrl Configure(ConnectionUrl target) => target.WithApplicationName("Integration")
+            .WithOptional(options => options.WithApplicationName("Optional").WithPooling(new() { Enabled = false }));
+        var target = authenticationFirst
+            ? Configure(original.WithAuthentication(ConnectionAuthentication.UsernamePassword(source)))
+            : Configure(original).WithAuthentication(ConnectionAuthentication.UsernamePassword(source));
+        Assert.That(target.Parse(), Does.Not.Contain("sentinel"));
+        Assert.That(source.Calls, Is.Zero);
+        using var first = asynchronous ? await target.ConnectAsync() : (DbConnection)target.Connect();
+        using var second = asynchronous ? await target.ConnectAsync() : (DbConnection)target.Connect();
+        var mapped = new SqlConnectionStringBuilder(first.ConnectionString);
+        Assert.That(mapped.ApplicationName, Is.EqualTo("Integration"));
+        Assert.That(mapped.Pooling, Is.False);
+        Assert.That(mapped.UserID, Is.EqualTo("alice"));
+        Assert.That(mapped.Password, Is.EqualTo("sentinel1"));
+        Assert.That(new SqlConnectionStringBuilder(second.ConnectionString).Password, Is.EqualTo("sentinel2"));
+        Assert.That(source.Calls, Is.EqualTo(2));
+        Assert.That(target.Parse(), Does.Not.Contain("sentinel"));
+        Assert.That(original.Parse(), Does.Not.Contain("Integration"));
+    }
+
+    [TestCase(true), TestCase(false)]
+    public void StrictReadOnlySurvivesAuthenticationAndOptionalCallsBeforeAcquisition(bool authenticationFirst)
+    {
+        var source = new RotatingSource();
+        var original = new ConnectionUrl("mssql://localhost/app", registry);
+        var target = authenticationFirst
+            ? original.WithAuthentication(ConnectionAuthentication.UsernamePassword(source)).WithReadOnly()
+            : original.WithReadOnly().WithAuthentication(ConnectionAuthentication.UsernamePassword(source));
+        target = target.WithOptional(options => options.WithApplicationName("Optional"));
+        Assert.Throws<ConnectionAuthenticationException>(() => target.Connect());
+        Assert.That(source.Calls, Is.Zero);
+        Assert.Throws<NotSupportedException>(() => target.Parse());
+    }
+
+    [Test]
+    public async Task OptionalUnsupportedSettingsPreserveRuntimeCredentialResolution()
+    {
+        var source = new RotatingSource();
+        var target = new ConnectionUrl("trino://localhost/pg/public?UseSsl=true", registry)
+            .WithAuthentication(ConnectionAuthentication.UsernamePassword(source))
+            .WithOptional(options => options.WithApplicationName("Optional"));
+        using var connection = await target.ConnectAsync();
+        Assert.That(source.Calls, Is.EqualTo(1));
+        Assert.That(target.SkippedOptions.Single().Option, Is.EqualTo(ConnectionConfigurationOption.ApplicationName));
+        Assert.That(target.Parse(), Does.Not.Contain("sentinel"));
+    }
+
     private sealed class RotatingSource : ISynchronousUsernamePasswordCredentialSource
     {
         public int Calls { get; private set; }

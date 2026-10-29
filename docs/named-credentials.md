@@ -1,3 +1,9 @@
+---
+title: Named CLI credentials
+permalink: /named-credentials/
+nav_exclude: true
+---
+
 # Named CLI credentials
 
 Save a username/password pair under a portable name, then reference it without
