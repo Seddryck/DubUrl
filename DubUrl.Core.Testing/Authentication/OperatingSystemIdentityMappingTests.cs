@@ -147,10 +147,19 @@ public class OperatingSystemIdentityMappingTests
     {
         "System.Data.Odbc" => new System.Data.Odbc.OdbcConnection(),
         "System.Data.OleDb" when OperatingSystem.IsWindows() => new System.Data.OleDb.OleDbConnection(),
-        "IBM.Data.Db2" => new IBM.Data.Db2.DB2Connection(),
+        // Net.IBM.Data.Db2 bundles the Windows client. Its finalizer can crash the
+        // test host on Unix even if construction or configuration errors are caught.
+        "IBM.Data.Db2" => CreateDb2Connection(),
         "Oracle.ManagedDataAccess" => new Oracle.ManagedDataAccess.Client.OracleConnection(),
         "Teradata.Client" => new Teradata.Client.Provider.TdConnection(),
         "FirebirdSql.Data.FirebirdClient" => new FirebirdSql.Data.FirebirdClient.FbConnection(),
         _ => throw new ArgumentException(nameof(provider))
     };
+
+    private static DbConnection CreateDb2Connection()
+    {
+        if (!OperatingSystem.IsWindows())
+            Assert.Ignore("The referenced Net.IBM.Data.Db2 package requires the Windows native client.");
+        return new IBM.Data.Db2.DB2Connection();
+    }
 }

@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DubUrl.Authentication;
 
@@ -6,38 +7,56 @@ namespace DubUrl.Authentication;
 // the actual mapped ODBC/OLE DB driver. Never substitute a different driver.
 internal static class OperatingSystemIdentityMappings
 {
+    private const string IntegratedSecurity = "Integrated Security";
     internal static string Family(AuthenticationContext context)
         => context.Scheme.Split('+').FirstOrDefault(part => part is not ("odbc" or "oledb")) ?? "";
     private static bool IsPostgres(string family)
         => family is "pg" or "pgx" or "pgsql" or "postgres" or "postgresql" or "ts" or "timescale" or "cr" or "cockroach" or "cockroachdb" or "crdb" or "cdb";
     private static bool IsSqlServer(string family)
         => family is "mssql" or "ms" or "sqlserver" or "mssqlserver";
+    [DoesNotReturn]
     private static void Unsupported() => throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
     private static void Conflict() => throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     internal static void ValidateProvider(AuthenticationContext context)
     {
         var family = Family(context);
-        var supported = context.ProviderInvariantName switch
-        {
-            "Microsoft.Data.SqlClient" => IsSqlServer(family),
-            "Npgsql" => IsPostgres(family),
-            "MySqlConnector" => MySqlOperatingSystemIdentityMappings.IsMariaDb(family),
-            "MySql.Data" => MySqlOperatingSystemIdentityMappings.IsMySql(family) && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()),
-            "SingleStoreConnector" => family is "sg" or "sgs" or "single" or "singlestore" or "singlestoredb",
-            "IBM.Data.Db2" => family is "db2",
-            "Oracle.ManagedDataAccess" or "Oracle.DataAccess" => family is "oracle" or "ora" or "or",
-            "Teradata.Client" => family is "teradata" or "td" or "tera" or "teradatasql",
-            "FirebirdSql.Data.FirebirdClient" => OperatingSystem.IsWindows() && family is "firebird" or "firebirdsql" or "fb",
-            "System.Data.Odbc" => IsSqlServer(family) || IsPostgres(family) || family is "trino" or "tr" or "drill"
-                || MySqlOperatingSystemIdentityMappings.IsMariaDb(family) || MySqlOperatingSystemIdentityMappings.IsMySql(family),
-            "System.Data.OleDb" => OperatingSystem.IsWindows() && (IsSqlServer(family) || family is "oracle" or "ora" or "or"),
-            _ => false
-        };
-        if (!supported) Unsupported();
+        if (!SupportsProvider(context.ProviderInvariantName, family)) Unsupported();
         if (context.ProviderInvariantName is "MySqlConnector" or "SingleStoreConnector"
             && string.IsNullOrWhiteSpace(context.Username))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
     }
+
+    private static bool SupportsProvider(string provider, string family)
+        => provider switch
+        {
+            "Microsoft.Data.SqlClient" => IsSqlServer(family),
+            "Npgsql" => IsPostgres(family),
+            "MySqlConnector" => MySqlOperatingSystemIdentityMappings.IsMariaDb(family),
+            "MySql.Data" => SupportsConnectorNet(family),
+            "SingleStoreConnector" => family is "sg" or "sgs" or "single" or "singlestore" or "singlestoredb",
+            _ => SupportsAdditionalProvider(provider, family)
+        };
+
+    private static bool SupportsAdditionalProvider(string provider, string family)
+        => provider switch
+        {
+            "IBM.Data.Db2" => family is "db2",
+            "Oracle.ManagedDataAccess" or "Oracle.DataAccess" => family is "oracle" or "ora" or "or",
+            "Teradata.Client" => family is "teradata" or "td" or "tera" or "teradatasql",
+            "FirebirdSql.Data.FirebirdClient" => OperatingSystem.IsWindows() && family is "firebird" or "firebirdsql" or "fb",
+            "System.Data.Odbc" => SupportsOdbc(family),
+            "System.Data.OleDb" => OperatingSystem.IsWindows() && (IsSqlServer(family) || family is "oracle" or "ora" or "or"),
+            _ => false
+        };
+
+    private static bool SupportsConnectorNet(string family)
+        => MySqlOperatingSystemIdentityMappings.IsMySql(family) && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux());
+
+    private static bool IsMySqlFamily(string family)
+        => MySqlOperatingSystemIdentityMappings.IsMariaDb(family) || MySqlOperatingSystemIdentityMappings.IsMySql(family);
+
+    private static bool SupportsOdbc(string family)
+        => IsSqlServer(family) || IsPostgres(family) || family is "trino" or "tr" or "drill" || IsMySqlFamily(family);
 
     internal static void Configure(DbConnectionStringBuilder builder, AuthenticationContext context)
     {
@@ -65,13 +84,13 @@ internal static class OperatingSystemIdentityMappings
             case "Teradata.Client":
                 RejectUser(context);
                 RemoveCredentials(builder, true);
-                builder["Integrated Security"] = true;
+                builder[IntegratedSecurity] = true;
                 builder["Authentication Mechanism"] = "SPNEGO";
                 break;
             case "FirebirdSql.Data.FirebirdClient":
                 RejectUser(context);
                 RemoveCredentials(builder, true);
-                builder["Integrated Security"] = true;
+                builder[IntegratedSecurity] = true;
                 break;
             case "System.Data.Odbc": ConfigureOdbc(builder, context); break;
             case "System.Data.OleDb": ConfigureOleDb(builder, context); break;
@@ -85,7 +104,7 @@ internal static class OperatingSystemIdentityMappings
         if (!OperatingSystem.IsWindows() && Get(builder, "Data Source").StartsWith("(localdb)", StringComparison.OrdinalIgnoreCase)) Unsupported();
         RemoveCredentials(builder, true);
         builder.Remove("Trusted_Connection");
-        builder["Integrated Security"] = true;
+        builder[IntegratedSecurity] = true;
     }
 
     private static void ConfigurePostgres(DbConnectionStringBuilder builder)
@@ -96,7 +115,7 @@ internal static class OperatingSystemIdentityMappings
         var socket = hosts.Any(value => value.Trim().StartsWith('/'));
         if (socket && (OperatingSystem.IsWindows() || hosts.Length != 1)) Unsupported();
         RemoveCredentials(builder, false);
-        builder.Remove("Integrated Security");
+        builder.Remove(IntegratedSecurity);
         builder.Remove("Trusted_Connection");
         builder["Require Auth"] = socket ? "None" : "GSS, SSPI";
         if (socket) builder["SSL Mode"] = "Disable";
@@ -107,20 +126,24 @@ internal static class OperatingSystemIdentityMappings
         // DSNs/opaque driver paths do not establish the vendor/version contract safely.
         if (builder.ContainsKey("DSN") || builder.ContainsKey("FileDSN")) Unsupported();
         var driver = Get(builder, "Driver").Trim('{', '}');
-        if (MySqlOperatingSystemIdentityMappings.IsMariaDb(Family(context)) || MySqlOperatingSystemIdentityMappings.IsMySql(Family(context)))
+        if (IsMySqlFamily(Family(context)))
         {
             MySqlOperatingSystemIdentityMappings.ConfigureOdbc(builder, context, driver);
             return;
         }
+        ConfigureOdbcDriver(builder, context, driver);
+    }
+
+    private static void ConfigureOdbcDriver(DbConnectionStringBuilder builder, AuthenticationContext context, string driver)
+    {
         if (IsSqlServer(Family(context)) && driver is "ODBC Driver 17 for SQL Server" or "ODBC Driver 18 for SQL Server")
         {
             RejectUser(context);
             RemoveCredentials(builder, true);
-            builder.Remove("Integrated Security");
+            builder.Remove(IntegratedSecurity);
             builder["Trusted_Connection"] = "yes";
         }
-        else if (IsPostgres(Family(context)) && (driver.StartsWith("PostgreSQL Unicode", StringComparison.Ordinal)
-            || driver.StartsWith("PostgreSQL ANSI", StringComparison.Ordinal)))
+        else if (IsPostgres(Family(context)) && IsPostgresDriver(driver))
         {
             // libpq >=16 supports require_auth; older versions fail on this parameter.
             RemoveCredentials(builder, false);
@@ -135,15 +158,21 @@ internal static class OperatingSystemIdentityMappings
             builder["SSL"] = 1;
         }
         else if (Family(context) == "drill" && driver is "MapR Drill ODBC Driver" or "HPE Drill ODBC Driver")
-        {
-            RejectUser(context);
-            RemoveCredentials(builder, true);
-            Require(builder, "KrbServiceHost");
-            builder["AuthenticationType"] = "Kerberos";
-            if (!builder.ContainsKey("KrbServiceName")) builder["KrbServiceName"] = "drill";
-            if (!OperatingSystem.IsWindows() && builder.ContainsKey("UseOnlySSPI")) Unsupported();
-        }
+            ConfigureDrill(builder, context);
         else Unsupported();
+    }
+
+    private static bool IsPostgresDriver(string driver)
+        => driver.StartsWith("PostgreSQL Unicode", StringComparison.Ordinal) || driver.StartsWith("PostgreSQL ANSI", StringComparison.Ordinal);
+
+    private static void ConfigureDrill(DbConnectionStringBuilder builder, AuthenticationContext context)
+    {
+        RejectUser(context);
+        RemoveCredentials(builder, true);
+        Require(builder, "KrbServiceHost");
+        builder["AuthenticationType"] = "Kerberos";
+        if (!builder.ContainsKey("KrbServiceName")) builder["KrbServiceName"] = "drill";
+        if (!OperatingSystem.IsWindows() && builder.ContainsKey("UseOnlySSPI")) Unsupported();
     }
 
     private static void ConfigureOleDb(DbConnectionStringBuilder builder, AuthenticationContext context)
@@ -152,7 +181,7 @@ internal static class OperatingSystemIdentityMappings
         var provider = Get(builder, "Provider");
         RemoveCredentials(builder, true);
         if (IsSqlServer(Family(context)) && provider is "MSOLEDBSQL" or "MSOLEDBSQL19")
-            builder["Integrated Security"] = "SSPI";
+            builder[IntegratedSecurity] = "SSPI";
         else if (Family(context) is "oracle" or "ora" or "or" && provider == "OraOLEDB.Oracle")
         {
             builder["OSAuthent"] = 1;

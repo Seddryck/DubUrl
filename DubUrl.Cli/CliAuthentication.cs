@@ -34,8 +34,7 @@ internal sealed class CliAuthentication : IDisposable
         var user = result.GetValue(username);
         var useOsIdentity = result.GetValue(osIdentity);
         var sources = (usePrompt ? 1 : 0) + (entry is not null ? 1 : 0) + (credential is not null ? 1 : 0);
-        if (sources > 1 || (user is not null && sources == 0) || (useOsIdentity && (sources > 0 || user is not null)))
-            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        ValidateSelection(useOsIdentity, sources, user);
         if (credential is not null) credential = CredentialName.Normalize(credential);
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
         if (useOsIdentity) target = target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
@@ -49,6 +48,13 @@ internal sealed class CliAuthentication : IDisposable
         }
         target.ValidateAuthentication();
         return target;
+    }
+
+    private static void ValidateSelection(bool useOsIdentity, int passwordSources, string? user)
+    {
+        var sourceCount = passwordSources + (useOsIdentity ? 1 : 0);
+        if (sourceCount > 1 || (user is not null && (useOsIdentity || sourceCount == 0)))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
 
     public void Dispose() => oauthLifetime?.Dispose();

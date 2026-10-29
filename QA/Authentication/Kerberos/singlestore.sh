@@ -6,9 +6,11 @@ for key in gssapi_keytab_path gssapi_principal_name ssl_ca ssl_cert ssl_key; do
     gssapi_keytab_path) value=/realm/singlestore.keytab;;
     gssapi_principal_name) value=memsql/singlestore.fixture.test@DUBURL.TEST;;
     ssl_ca) value=/realm/ca.crt;; ssl_cert) value=/realm/singlestore.crt;; ssl_key) value=/realm/singlestore-tls.key;;
+    *) echo 'Unexpected SingleStore configuration key.' >&2; exit 1;;
   esac
   memsqlctl -jy update-config --all --key "$key" --value "$value" >/dev/null
 done
-export ROOT_PASSWORD="$(cat /realm/singlestore-root.secret)"
+ROOT_PASSWORD="$(cat /realm/singlestore-root.secret)"
+export ROOT_PASSWORD
 export ENABLE_STUDIO=0
 exec /scripts/start.sh
