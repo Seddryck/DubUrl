@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying.Parametrizing;
+using DubUrl.Querying.Parametrizing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,8 @@ public class CommandProvisionerFactory
     {
         if (provider is Templating.RenderedTemplateCommand rendered)
             return [new Templating.TemplateCommandProvisioner(() => rendered)];
+        if (provider is Templating.TypedTemplateCommand typed)
+            return [new Templating.TemplateCommandProvisioner(() => typed.RenderCommand(connectionUrl.Dialect, connectionUrl.Parametrizer))];
         if (provider is Templating.EmbeddedTemplateCommand template)
             return [new Templating.TemplateCommandProvisioner(() => template.RenderCommand(
                 connectionUrl.Dialect, connectionUrl.Connectivity, connectionUrl.Parametrizer))];

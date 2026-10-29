@@ -103,6 +103,97 @@ can implement `GetPlaceholder`, `CreateTemplateParameter`, and
 parameter creation, and command configuration together. These hooks do not change
 binding behavior for handwritten SQL.
 
+## Strongly typed template inputs
+
+Use `TypedCommandTemplate<TParameters>` when a reusable query has a fixed input
+contract. Public readable instance properties map to template attributes by their
+exact, case-sensitive names. Static properties and indexers are not inputs.
+Unknown names are rejected even inside disabled branches. Property accessors and
+contract validation are cached; every render owns its values and bindings. Keep
+template definitions immutable and do not mutate inputs during rendering.
+
+```csharp
+using DubUrl.Querying.Templating;
+
+public sealed record CustomerQuery(string Table, Optional<int> CustomerId = default);
+
+public sealed class CustomerTemplate : TypedCommandTemplate<CustomerQuery>
+{
+    public override string TemplateText => """
+        SELECT * FROM $Table; format="identity"$
+        $if(CustomerId.HasValue)$
+        WHERE CustomerId = $CustomerId.Value; format="parameter"$
+        $endif$
+        """;
+}
+
+// In a query method:
+var template = new CustomerTemplate();
+var allCustomers = database.ReadMultiple(template, new CustomerQuery("Customer"));
+var oneCustomer = database.ReadSingle(template,
+    new CustomerQuery("Customer", Optional<int>.Some(42)));
+var command = template.RenderCommand(database,
+    new CustomerQuery("Customer", Optional<int>.Some(42)));
+```
+
+The dictionary API remains available alongside this API. Its equivalent inputs
+are `new Dictionary<string, object?> { ["Table"] = "Customer",
+["CustomerId"] = new Dictionary<string, object?> { ["HasValue"] = true,
+["Value"] = 42 } }`. Both routes use the same SQL renderer and connector binding.
+`template.Render(database, inputs)` also supports string-only literal templates.
+
+### Absence and null
+
+Always use `Optional<T>` for an input that may be omitted. Nullable types permit
+null; they do not indicate absence.
+
+| Contract | Meaning |
+| --- | --- |
+| `int` / `string` | Required, non-null input |
+| `int?` / `string?` | Required input that permits null |
+| `Optional<int>` / `Optional<string>` | May be absent; a supplied value cannot be null |
+| `Optional<int?>` / `Optional<string?>` | May be absent or explicitly supplied as null |
+
+`default(Optional<T>)` and `Optional<T>.None` are absent.
+`Optional<string?>.Some(null)` is present and binds SQL NULL when its clause is
+enabled. `Optional<string>.Some(null!)` is rejected by contract validation. Zero,
+false, and an empty string are supplied values, never absence markers.
+
+Check `$if(CustomerId.HasValue)$` explicitly, then access `CustomerId.Value`.
+Using the optional wrapper directly is rejected. Disabled clauses generate no SQL
+or bindings. Binding an absent optional in an active clause fails with the input
+name and guidance to guard the clause. Nullability is validated independently of
+branch activity; reference inputs permit null only when explicitly annotated as
+nullable, so enable nullable annotations on contracts that accept null.
+`TemplateParameter` and existing parameter metadata remain supported,
+including inside optional values.
+
+### Query API coverage
+
+Typed overloads are available through the concrete database and its existing
+interfaces. All overloads forward to the existing executor:
+
+| API family | Sync | Async | Existing variants covered |
+| --- | --- | --- | --- |
+| `ReadScalar` | Yes | Yes | Object, generic, non-null |
+| `ReadSingle` | Yes | Yes | Object, non-null; MicroOrm generic |
+| `ReadFirst` | Yes | Yes | Object, non-null; MicroOrm generic |
+| `ReadMultiple` | Yes | Yes | Streaming objects; MicroOrm generic |
+| `ExecuteReader` | Yes | Yes | Caller-disposed owned reader |
+
+For methods with a generic result, specify both result and input types, for
+example `database.ReadScalar<int, CountQuery>(countTemplate, inputs)` or
+`microOrm.ReadSingle<Customer, CustomerQuery>(template, inputs)`. Alternatively,
+use `database.ReadScalar<int>(countTemplate.RenderCommand(database, inputs))`.
+`template.Bind(inputs)` snapshots the contract's property values into an
+`ICommandProvider` adapter, which defers connector-specific rendering until
+execution and can be passed to existing query methods as well. Collection and
+other reference-valued inputs should be treated as immutable until execution.
+
+Async overloads accept the existing cancellation token. Single-row cardinality,
+null-result handling, transactions, reader disposal, and connection ownership
+follow the corresponding existing query API.
+
 ## Connection ownership
 
 A rendered template follows the same lifetime rules as a SQL string. Scalar queries release their lease after reading the value; streaming rows and ADO.NET readers keep it until enumeration or disposal completes. See [reading rows]({{ '/docs/read-rows/' | relative_url }}) and [connection reuse]({{ '/docs/connection-source/' | relative_url }}).
