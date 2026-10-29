@@ -252,7 +252,9 @@ duburl connection check --connection development --username alice --password-pro
 
 The named connection contains the location, without a password. Supply the username either there or with `--username`. The prompt requires an interactive terminal.
 
-To supply that same database password from an existing OS credential-store entry instead of typing it:
+An **OS credential-store entry** is a saved password in your operating system's password manager, identified by a name such as `development`. It can also contain the database username. Create the entry once, then let the CLI retrieve it on later runs: you do not have to type the database password for every command. The OS may still ask you to unlock the store or approve access.
+
+To use the entry named `development`:
 
 ```shell
 duburl connection check --connection development --username alice --credential-store development --engine
@@ -260,9 +262,13 @@ duburl connection check --connection development --username alice --credential-s
 
 | Client OS | Store | What the reference identifies | Required setup |
 |---|---|---|---|
-| Windows | Credential Manager | Generic Credential target | Create a Generic Credential with the target, username and password in Credential Manager. |
-| Linux | Secret Service | Item with attributes `service=duburl`, `entry=<reference>` | Install `secret-tool` and provide an unlocked keyring and usable session bus. Supply the database username separately. |
-| macOS | Keychain | Generic-password service | Create the service/password in Keychain Access and allow access from the current session. Supply the database username separately. |
+| Windows | Credential Manager | Generic Credential target | Open **Windows Credentials > Add a generic credential**. Use `development` as the Internet or network address, then enter the database username and password. Follow this [step-by-step creation guide](https://help.sap.com/docs/SAP_BUSINESS_ONE/68a2e87fb29941b5bf959a184d9c6727/ee306036875c4e4391cdd4ca30561c66.html), substituting your database credentials. Microsoft also documents [creating generic credentials with cmdkey](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey). |
+| Linux | Secret Service | Item with attributes `service=duburl`, `entry=<reference>` | Install `secret-tool` and provide an unlocked keyring and usable session bus. Create the entry with `secret-tool store --label="DubUrl development" service duburl entry development`; it prompts for the password. See the [secret-tool storage guide and examples](https://manpages.ubuntu.com/manpages/stonking/man1/secret-tool.1.html). Supply the database username separately. |
+| macOS | Keychain | Generic-password service | In Keychain Access, create a password item in your login keychain named `development`. Follow the [Keychain Access tutorial's Add Keychain Item section](https://its.uiowa.edu/services/macos/how-use-keychain-access-macos). Permit access when prompted and supply the database username separately. |
+
+The entry belongs to your OS user account; it is not private storage reserved for DubUrl. On Windows, other desktop apps running as your user can read generic credentials from the same logon session ([Microsoft's access model](https://learn.microsoft.com/en-us/windows/win32/api/wincred/nf-wincred-credreadw)). On typical Linux desktops, apps running with your user's privileges can read entries in an unlocked keyring ([GNOME's explanation](https://wiki.gnome.org/Projects/GnomeKeyring/SecurityFAQ)); sandboxing or the Secret Service implementation's policies may restrict access. Naming the entry `development` does not limit it to one app.
+
+macOS Keychain can restrict which apps or tools may read an item and ask you to approve access. **Allow Once** permits one read; **Always Allow** permits later reads by that reader without another approval. See [Apple's guide to Keychain access permissions](https://support.apple.com/en-ie/guide/keychain-access/kyca1243/mac).
 
 The CLI reads existing entries; it does not create them. On Windows a stored username and explicit username must agree. Choose either the prompt or the credential store. `--credential-store development` identifies the saved entry; it does not switch the database to OS-identity authentication. The CLI retrieves the account password and sends it through the selected database driver.
 
