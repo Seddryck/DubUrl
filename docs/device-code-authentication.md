@@ -17,205 +17,205 @@ The operating system is the **client** running DubUrl, not the database server. 
 
 <table class="authentication-support">
   <thead>
-    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th><th scope="col">CLI</th><th scope="col">Library</th></tr>
+    <tr><th scope="col">Database</th><th scope="col">Driver route</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS</th></tr>
   </thead>
   <tbody>
     <tr>
       <th scope="rowgroup">Apache Drill</th>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">CockroachDB</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">CrateDB</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">DuckDB</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">Firebird SQL</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">IBM Db2</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">MariaDB</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">Microsoft Access</th>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">OLE DB</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">Microsoft Excel</th>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">OLE DB</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="3">Microsoft SQL Server</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
+      <td>{{ supported }}</td><td>{{ supported }}</td><td>{{ supported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">OLE DB</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="3">MySQL</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">OLE DB</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">Oracle Database</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">OLE DB</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">PostgreSQL</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">QuestDB</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">SingleStore</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">Snowflake</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">SQLite</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">Teradata</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup">Text files</th>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">Timescale</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
   <tbody>
     <tr>
       <th scope="rowgroup" rowspan="2">Trino</th>
       <th scope="row">ADO.NET</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
     <tr>
       <th scope="row">ODBC</th>
-      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
+      <td>{{ unsupported }}</td><td>{{ unsupported }}</td><td>{{ unsupported }}</td>
     </tr>
   </tbody>
 </table>
