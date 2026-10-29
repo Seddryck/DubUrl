@@ -224,7 +224,7 @@ The operating system is the **client** running DubUrl, not the database server. 
 
 - **IBM Db2 and Teradata:** install the OS-specific package/provider and use its supported platform and runtime versions; see [platform prerequisites](#platform-prerequisites).
 - **Apache Drill (ODBC):** enable Plain authentication on the server; the compatible driver requires HPE distribution access.
-- **Trino:** enable HTTPS and password authentication. With NReco.PrestoAdo, set `UseSsl=true` and `TrinoHeaders=1`. The Simba ODBC route requires its installer/licence.
+- **Trino:** the server endpoint must expose HTTPS for password authentication; see [Trino's server configuration](https://trino.io/docs/current/security/password-file.html). On the client, set `UseSsl=true` for NReco.PrestoAdo; DubUrl already defaults `TrinoHeaders=1`. Automatic HTTPS selection is tracked in [#1726](https://github.com/Seddryck/DubUrl/issues/1726). The Simba ODBC route requires its installer/licence.
 - **Snowflake:** account policy must allow password sign-in; use OAuth when required.
 - **File databases and files:** file access and file passwords are separate from server-account username/password authentication.
 
@@ -232,7 +232,9 @@ The operating system is the **client** running DubUrl, not the database server. 
 
 For ODBC and OLE DB routes, the installed driver/provider and its supported client operating systems determine availability. Pass required driver-specific authentication options in the connection URL. These routes use the same CLI password prompt, credential store, or Library credential source described below.
 
-Create a database account, enable its password authentication, and grant access to the requested database. Connect with TLS appropriate to the database. Snowflake account policy may require MFA or disallow password-only sign-in; choose [Browser sign-in (OAuth)]({{ '/interactive-oauth/' | relative_url }}) when required.
+For each supported server connection, a database administrator must enable username/password authentication on the server, create or authorize the account, and grant it access to the requested database. Configure TLS on the server endpoint and configure the client driver to use it, following that database's requirements. DubUrl's connection options configure the client; they do not enable authentication or HTTPS on the server.
+
+Snowflake account policy may require MFA or disallow password-only sign-in; choose [Browser sign-in (OAuth)]({{ '/interactive-oauth/' | relative_url }}) when required.
 
 ## CLI
 
