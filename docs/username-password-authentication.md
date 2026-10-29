@@ -224,7 +224,7 @@ The operating system is the **client** running DubUrl, not the database server. 
 
 - **IBM Db2 and Teradata:** install the OS-specific package/provider and use its supported platform and runtime versions; see [platform prerequisites](#platform-prerequisites).
 - **Apache Drill (ODBC):** enable Plain authentication on the server; the compatible driver requires HPE distribution access.
-- **Trino:** the server endpoint must expose HTTPS for password authentication; see [Trino's server configuration](https://trino.io/docs/current/security/password-file.html). On the client, set `UseSsl=true` for NReco.PrestoAdo; DubUrl already defaults `TrinoHeaders=1`. Automatic HTTPS selection is tracked in [#1726](https://github.com/Seddryck/DubUrl/issues/1726). The Simba ODBC route requires its installer/licence.
+- **Trino:** the server endpoint must expose HTTPS for password authentication; see [Trino's server configuration](https://trino.io/docs/current/security/password-file.html). On the client, set `UseSsl=true` for NReco.PrestoAdo; DubUrl already defaults `TrinoHeaders=1`. Automatic HTTPS selection is tracked in [#1726](https://github.com/Seddryck/DubUrl/issues/1726).
 - **Snowflake:** account policy must allow password sign-in; use OAuth when required.
 - **File databases and files:** file access and file passwords are separate from server-account username/password authentication.
 
