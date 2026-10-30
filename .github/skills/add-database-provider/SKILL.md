@@ -1,6 +1,6 @@
 ---
 name: add-database-provider
-description: Add support for a database engine, an alternative ADO.NET provider, or an ODBC, OLE DB, or ADBC driver in DubUrl. Guide provider ownership, URL mapping, SQL behavior, discovery, connector distribution, QA, and documentation. Use for extending database connectivity; not for merely installing an existing connector.
+description: Add support for a database engine, an alternative ADO.NET provider, or an ODBC, OLE DB, or ADBC driver in DubUrl, including implementation, unit and integration tests, live QA, CI, connector distribution, and documentation. Use for extending database connectivity; not for merely installing an existing connector.
 ---
 
 # Add a database or provider
@@ -82,20 +82,69 @@ Do not add CLI switches or hard-coded host lists just to expose a database. Veri
 
 Use `connectors/Build-ConnectorArtifacts.ps1`, `Test-ConnectorArtifacts.ps1`, `Test-ConnectorArchiveSet.ps1`, and `Test-ConnectorDependencies.ps1` as applicable; read their parameters first. Artifact building currently processes all ready selections, so prefer focused provider/catalog checks first and report when full archive validation is deferred. Use task-local output paths; the build script recreates its output directory.
 
-## Add meaningful tests and live QA
+## Add and run the tests
 
 - Colocate provider unit tests under the owning project's `Tests/`. `Provider.Build.props` excludes them from shipping assemblies; `DubUrl.Core.Testing` includes provider test sources. Shared ADBC and OLE DB infrastructure also have dedicated runners (`DubUrl.Adbc.Testing`, `DubUrl.OleDb.Testing`); check project inclusions to choose the actual runner.
 - Cover the changed metadata/discovery, forward rewriting, reverse conversion, locator matching/ranking, SQL behavior, and capability contracts. Run relevant `QA/DubUrl.Provider.Testing` boundary, binding, and default-discovery tests when adding a family, technology, or packaging selection.
+
+Use this inventory to decide which existing suites to extend. Add observable assertions for the new provider, not only updates to expected counts or names.
+
+| Area | Test location and required evidence |
+| --- | --- |
+| Metadata and registration | Provider `Tests/` and `DubUrl.Core.Testing/Mapping/`: engine aliases, invariant name, correct dialect/parametrizer, constructor discovery, alternative selection, missing factory, and duplicate-alias handling. |
+| Forward and reverse conversion | Provider `Tests/Rewriting/` and `Tests/Conversion/`: defaults, omitted/empty/encoded values, credentials/options, file paths, malformed input, and semantic round trips for the new provider. |
+| Driver discovery | Owning ODBC provider tests, `DubUrl.OleDb.Testing`, or `DubUrl.Adbc.Testing` as appropriate: accepted and rejected names, architecture/version/encoding preference, deterministic ties, explicit override, and no-driver errors using injected inventories. |
+| Query execution and SQL | Provider `Tests/Sql/` and relevant Core tests: quoting, literals, types/functions/casters, bound parameter values/types/order, repeated parameters, and nulls. Assert executed command content and bindings rather than an unrelated mocked return value. |
+| Schema | `DubUrl.Schema.Testing/ProviderSchemaSqlRendererTests.cs` and relevant renderer/discovery suites: supported DDL, unsupported-operation diagnostics, name qualification, native types, and provider capability declarations. |
+| Configuration/authentication/bulk | Existing suites in `DubUrl.Core.Testing`, driver authentication projects, and `DubUrl.BulkCopy.Testing`: supported behavior and negative cases for the capabilities actually introduced. |
+| Boundaries and host integration | `QA/DubUrl.Provider.Testing/ProviderSourceBoundaryTest.cs`, `ProviderBindingTest.cs`, `DefaultProviderDiscoveryTest.cs`; `DubUrl.Application.Testing/BundledProviderCatalogTests.cs` and `ConnectorServiceTests.cs`; affected CLI/Worker tests. Verify the new selection is reachable without eagerly loading unrelated providers. |
+
+Choose filters from actual test class names and run the affected project first. For example, after substituting the real provider test names and a supported installed framework:
+
+```powershell
+dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj --configuration Release --framework net10.0 --filter 'FullyQualifiedName~ExampleRewriterTest|FullyQualifiedName~ExampleConversionTest'
+dotnet test QA/DubUrl.Provider.Testing/DubUrl.Provider.Testing.csproj --configuration Release --framework net10.0 --filter 'FullyQualifiedName~ProviderSourceBoundaryTest|FullyQualifiedName~ProviderBindingTest|FullyQualifiedName~DefaultProviderDiscoveryTest|FullyQualifiedName~CliQaCoverageTests'
+```
+
+These are command shapes, not evidence that tests ran. Replace example filters, inspect the runner's executed count, and retain results. Add a regression case for any defect discovered while onboarding; do not broaden to unrelated suites without a reason.
+
+## Add reproducible live QA and CI coverage
+
 - Add or extend `Providers/<Family>/DubUrl.Provider.<Database>.QA/` with the appropriate shared `ProviderContract`, `OdbcContract`, `OleDbContract`, or `AdomdContract` from `QA/DubUrl.ProviderTesting`. Cover connection, query, parameters, templates, return conversion, and relevant authentication/schema/CLI contracts. Demonstrate the intended engine and transport rather than testing only a compatible substitute.
 - Supply a validated `qa-manifest.json`, matching capability categories and supported TFMs/OSes/RIDs, provider-owned `infrastructure/`, and the `build/ProviderQaBundle.targets` import. Copy the required manifest/infrastructure into the bundle. State unsupported features and licensed-driver gaps explicitly; avoid disabling inherited assertions just to obtain a green run.
 - Extend the appropriate `QA/DubUrl.QA/<Database>/` deployment script and `.github/workflows/qa-*.yml`. Reuse readiness, isolation, cleanup, filtering, and TRX checks in `Run-ProviderQaSuite.ps1`. Required categories must execute tests: zero tests, missing results, and unexpected skips are failures. Keep secrets out of logs and bundles.
 - Select CI frameworks and OS runners from actual support and native prerequisites. Follow the repository CI skill when substantially changing delivery workflows. Local QA must not install/register machine-wide prerequisites without permission.
 
-## Documentation and validation
+For each supported database/driver pair, include these QA deliverables:
 
-Update applicable provider/locator pages in `docs/_docs/`, installation prerequisites, URL examples, capability/authentication coverage, and `docs/provider-qa-coverage.md`. Include both a normal connection example and any required driver selection. For a new brand, inspect `docs/_data/brand_colors.yml` and database icon licensing/attribution where applicable.
+1. A fixture using that actual database and driver, with deterministic seed data and expected results. Supply named/positional query examples, typed/null/date/time return cases, and supported template/ORM paths through the shared contracts. Record reasons for each `Supports*` override.
+2. A CLI connection-check path inherited from `CliConnectionCheckContract`, plus the applicable password, OS identity, token/OAuth, or certificate contracts. Verify unsupported authentication produces the expected diagnostic. Inspect `QA/DubUrl.Provider.Testing/CliQaCoverageTests.cs`: its provider-suite inventory currently has an explicit count that must be reviewed when adding a QA project, while preserving its transport-contract checks.
+3. Infrastructure under the QA project: Compose/service configuration or local fixture, initialization scripts/data, bounded readiness, isolated database/schema names and ports, and cleanup after success, failure, or cancellation. Keep credentials and generated certificate/private-key material out of tracked fixtures and artifacts.
+4. A deployment entry point under `QA/DubUrl.QA/<Database>/` that selects the new project and test categories. Ensure new QA dependencies, native libraries, and infrastructure are included in the runnable bundle rather than relying on the developer checkout or an unrelated provider's output.
+5. A CI job for every claimed transport/platform combination, with framework/category filters, prerequisite checks, TRX verification, and result/bundle upload. Separate optional licensed-driver gaps from required categories; do not allow a required category to pass entirely skipped.
+6. A recorded local smoke run when prerequisites exist, including the exact command, framework, database/driver versions, categories, and executed/passed/skipped counts. If prerequisites are absent, still complete fixtures, scripts, CI wiring, and documentation; explicitly report the live run as not performed.
+
+Use `docs/qa-boundaries.md` and `docs/provider-qa-coverage.md` for the current split between mocked tests and live suites. Read `docs/provider-authentication-qa.md`, `docs/cli-authentication-qa.md`, `docs/token-authentication-qa.md`, `docs/client-certificate-qa.md`, or `docs/operating-system-identity-qa.md` only for the authentication modes being added.
+
+## Update user and maintainer documentation
+
+Treat docs as part of database/provider support, not an optional follow-up. Update applicable rows below; mark the others reused or not applicable in the completion report.
+
+| Documentation | What to add or update |
+| --- | --- |
+| Provider reference | `docs/_docs/native-ado-net-providers.md`, `odbc-driver-locators.md`, `oledb-provider-locators.md`, `adbc-providers.md`, or `adomd-providers.md`: database aliases, selected driver/provider, discovery rules, supported platforms, and limitations. Generated tables also need regenerated data. |
+| Installation and selection | `docs/_docs/installation-ado-net-provider.md`, `choose-provider.md`, and `provider-packs.md`: the real family package and driver dependencies or connector ID, default/alternative selection, native prerequisites, architecture restrictions, and licensing steps. Distinguish NuGet usage from installed connector usage. |
+| Working examples | A minimal connection and query using real supported aliases, correct imports/packages, escaping, and disposal; include an explicit transport/alternative-provider example when applicable. Add file/in-memory forms only where supported and use placeholder credentials. |
+| Feature support | Applicable schema, discovery, read-only, pooling/timeouts, bulk-copy, and authentication pages: supported behavior, required configuration, unsupported combinations, and expected diagnostics. Keep advertised support consistent with actual tests and QA. |
+| QA instructions and coverage | `docs/provider-qa-coverage.md`, `docs/qa-boundaries.md`, and applicable authentication QA pages: exact local commands and filters, prerequisites, seeding/readiness/cleanup, platform/TFM coverage, output locations, and intentional gaps. |
+| Branding and navigation | For a new brand, inspect `docs/_data/brand_colors.yml`, generated brand metadata, and database icon licensing/attribution. Add navigation links only when introducing a new page, following the existing frontmatter and navigation data conventions. |
+| Overview | Update `README.md` or support summaries when they enumerate databases, providers, or capabilities affected by the addition. Avoid unrelated prose rewrites. |
 
 Regenerate affected provider data with the root `generate-adonet-info.ps1`, `generate-odbc-driver-info.ps1`, `generate-oledb-provider-info.ps1`, or `generate-adomd-info.ps1` scripts as appropriate. Read each script's prerequisites and exit-code conventions first: the generators can return exit code 1 to signal changed data. `build/Import-DocumentationAssemblies.ps1` expects a built `QA/DubUrl.QA` output for net8.0; ensure the new assembly participates. Review generated diffs rather than hand-editing derived catalogs or copying stale output.
+
+Check affected `docs/_data/natives.json`, `odbc.json`, `oledb.json`, and `adomd.json` for the expected entry and unchanged unrelated providers. Validate page frontmatter, local links, example imports, package names, aliases, and agreement with generated metadata. Use `build/verify-doc-examples.ps1` for examples it actually covers; extend its case selection when adding a relevant snippet rather than claiming it validates every Markdown code block. Build/preview affected documentation pages using the repository's existing site workflow when layout or generated tables change.
+
+## Validate and hand off
 
 Validate in increasing scope:
 
