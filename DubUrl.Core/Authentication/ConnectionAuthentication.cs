@@ -27,6 +27,9 @@ public abstract partial class ConnectionAuthentication
         => null;
     public virtual ValueTask<UsernamePasswordCredentials?> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
     { cancellationToken.ThrowIfCancellationRequested(); return new(Resolve(context)); }
+    /// <summary>Checks route support without acquiring secrets or loading files.</summary>
+    public virtual void ValidateContext(AuthenticationContext context) { }
+    internal virtual void ValidateMappedConnection(string connectionString, AuthenticationContext context) { }
     public abstract void Configure(DbConnection connection, AuthenticationContext context);
     public virtual ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, CancellationToken cancellationToken = default)
     { cancellationToken.ThrowIfCancellationRequested(); Configure(connection, context); return ValueTask.CompletedTask; }

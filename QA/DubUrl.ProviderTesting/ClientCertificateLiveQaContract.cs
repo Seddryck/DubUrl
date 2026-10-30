@@ -16,7 +16,7 @@ public abstract partial class ClientCertificateAuthenticationQaContract
         return postgresFixture ??= await CertificateQaPostgresFixture.CreateAsync();
     }
     private ConnectionUrl CertificateTarget(CertificateQaPostgresFixture fixture, CertificateQaScope scope, X509Certificate2 certificate, bool wrongHost = false, bool wrongCa = false)
-        => new ConnectionUrl(fixture.Url(wrongHost, wrongCa), scope.Registry).WithAuthentication(ConnectionAuthentication.ClientCertificate(certificate));
+        => new ConnectionUrl(fixture.Url(wrongHost, wrongCa, includeCa: false), scope.Registry).WithAuthentication(ConnectionAuthentication.ClientCertificate(new X509CertificateOptions(certificate), fixture.CaPath(wrongCa)));
 
     [TestCase(false), TestCase(true), Category("ClientCertificateAuthentication")]
     public async Task CertificateQa_LiveCertificateAuthenticatesWithoutPassword(bool asynchronous)
@@ -32,6 +32,20 @@ public abstract partial class ClientCertificateAuthenticationQaContract
             Assert.That(!settings.TryGetValue("Password", out var password) || string.IsNullOrEmpty(password.ToString()), Is.True);
         }
         Assert.That(fixture.Certificates.Client.HasPrivateKey, Is.True);
+    }
+
+    [TestCase("pem", false), TestCase("pem", true), TestCase("encrypted-pem", false), TestCase("encrypted-pem", true)]
+    [TestCase("pfx", false), TestCase("pfx", true), TestCase("p12", false), TestCase("p12", true), Category("ClientCertificateAuthentication")]
+    public async Task CertificateQa_LiveFileOptionsAuthenticateAndQuery(string form, bool asynchronous)
+    {
+        var fixture = await RequireCertificateServerAsync();
+        await using var scope = new CertificateQaScope(AuthenticationRegistry);
+        using var options = await fixture.FileOptionsAsync(form);
+        var target = new ConnectionUrl(fixture.Url(includeCa: false), scope.Registry)
+            .WithAuthentication(ConnectionAuthentication.ClientCertificate(options, fixture.CaPath()));
+        await using var connection = asynchronous ? await target.OpenAsync() : (DbConnection)target.Open();
+        await PasswordQaDriver.ProbeAsync(connection, "SELECT 1");
+        Assert.That(await ServerSerialAsync(connection), Is.EqualTo(CertificateQaPostgresFixture.Serial(fixture.Certificates.Client)));
     }
 
     [Test, Category("ClientCertificateAuthentication")]
@@ -162,19 +176,13 @@ public abstract partial class ClientCertificateAuthenticationQaContract
     }
 
     [Test, Category("ClientCertificateAuthentication")]
-    public async Task CertificateQa_LiveCachedSessionDoesNotValidateReplacementIdentity()
+    public async Task CertificateQa_LiveCachedSessionCannotAuthenticateDifferentCertificateOptions()
     {
         var fixture = await RequireCertificateServerAsync();
         await using var scope = new CertificateQaScope(AuthenticationRegistry, pooling: true);
-        int session;
-        await using (var first = await CertificateTarget(fixture, scope, fixture.Certificates.Client).OpenAsync()) session = await SessionAsync(first);
+        await using (var first = await CertificateTarget(fixture, scope, fixture.Certificates.Client).OpenAsync())
+            await PasswordQaDriver.ProbeAsync(first, "SELECT 1");
         var wrongIdentity = CertificateTarget(fixture, scope, fixture.Certificates.WrongIdentity);
-        await using (var reused = await wrongIdentity.OpenAsync())
-        {
-            Assert.That(await SessionAsync(reused), Is.EqualTo(session));
-            Assert.That(await ServerSerialAsync(reused), Is.EqualTo(CertificateQaPostgresFixture.Serial(fixture.Certificates.Client)), "A reused session still has its old client identity; this is not acceptance of the replacement certificate.");
-        }
-        scope.ClearPools();
         var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => { await using var connection = await wrongIdentity.OpenAsync(); });
         AssertSafe(error!);
         await CertificateQaDriver.AssertDisposedAsync(scope.Registry.Connections[^1]);

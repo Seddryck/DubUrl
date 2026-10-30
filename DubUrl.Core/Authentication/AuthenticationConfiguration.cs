@@ -33,6 +33,14 @@ internal static class AuthenticationConfiguration
 
     private static void ValidateOption(ConnectionAuthenticationKind kind, ConnectionUri uri, string key, string value)
     {
+        if (kind == ConnectionAuthenticationKind.ClientCertificate)
+        {
+            if (IsOpaqueOrIdentityOption(key) || (key.StartsWith("ssl", StringComparison.Ordinal) && key != "sslmode")
+                || key is "rootcertificate" or "trustservercertificate" or "checkcertificaterevocation" or "forcetls" or "tlspeerfp" or "tlspeerfplist" or "tlskeypwd" or "gssencmode" or "gssencryptionmode" or "kerberosauthmode" or "authenticationkerberosmode")
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+            if (key == "sslmode" && !value.Equals("VerifyFull", StringComparison.OrdinalIgnoreCase))
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        }
         if (IsCompatibleOperatingSystemOption(kind, uri, key, value)) return;
         if (kind == ConnectionAuthenticationKind.OperatingSystemIdentity && IsOpaqueOrIdentityOption(key))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);

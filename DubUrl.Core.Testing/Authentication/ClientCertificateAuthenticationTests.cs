@@ -15,6 +15,7 @@ public class ClientCertificateAuthenticationTests
 {
     [TestCase("postgres://alice@localhost/app")]
     [TestCase("cockroach://alice@localhost/app")]
+    [TestCase("timescale://alice@localhost/app")]
     [TestCase("mysql://alice@localhost/app")]
     [TestCase("mariadb://alice@localhost/app")]
     [TestCase("singlestore://alice@localhost/app")]
@@ -100,7 +101,6 @@ public class ClientCertificateAuthenticationTests
 
     [TestCase("Microsoft.Data.SqlClient", "mssql")]
     [TestCase("Npgsql", "questdb")]
-    [TestCase("Npgsql", "timescale")]
     [TestCase("MySql.Data.MySqlClient", "mysql")]
     public async Task UnsupportedCertificateContextRejectsBeforeSourceAcquisition(string provider, string scheme)
     {
