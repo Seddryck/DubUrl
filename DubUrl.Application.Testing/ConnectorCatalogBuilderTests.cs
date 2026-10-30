@@ -78,7 +78,8 @@ public class ConnectorCatalogBuilderTests
         Assert.That(source.SignatureUri, Is.EqualTo(mode == "signed" ? new Uri("https://example.test/catalog/current.json.sig") : null));
         if (mode == "signed")
         {
-            Assert.That(source.MinimumRevision, Is.EqualTo(1));
+            Assert.That(source.MinimumRevision, Is.GreaterThan(0));
+            Assert.That(source.TrustedSigningKeys.Single().KeyId, Is.EqualTo(ConnectorCatalogSignature.GetKeyId(fixture.Key)));
             Assert.That(File.ReadAllText(source.TrustedSigningKeys.Single().PublicKeyPath), Does.Contain("BEGIN PUBLIC KEY").And.Not.Contain("PRIVATE KEY"));
         }
     }
@@ -93,7 +94,7 @@ public class ConnectorCatalogBuilderTests
         var failure = await Assert.ThrowsAsync<ConnectorOperationException>(async () => await new ConnectorCatalogBuilder().CreateAsync(new()
         {
             InputDirectory = fixture.Input, OutputDirectory = fixture.Output, ArchiveBaseUri = new Uri("https://example.test/packs/"),
-            TrustMode = "signed", SigningKey = publicKey, KeyId = "key-1", Revision = 1, ExpiresAt = DateTimeOffset.UtcNow.AddHours(1),
+            TrustMode = "signed", SigningKey = publicKey, PublisherStatePath = Path.Combine(fixture.Root, "publisher-state"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1),
         }));
         Assert.That(failure!.Code, Is.EqualTo("catalog-signing-failed"));
         Assert.That(Directory.Exists(fixture.Output), Is.False);
@@ -214,8 +215,8 @@ public class ConnectorCatalogBuilderTests
         {
             InputDirectory = Input, OutputDirectory = output ?? Output, ArchiveBaseUri = new Uri("https://example.test/packs/"), TrustMode = mode,
             CatalogUri = catalogUri,
-            SigningKey = mode == "signed" ? Key : null, KeyId = mode == "signed" ? "key-1" : null,
-            Revision = mode == "signed" ? 1 : null, ExpiresAt = mode == "signed" ? DateTimeOffset.UtcNow.AddHours(1) : null,
+            SigningKey = mode == "signed" ? Key : null,
+            PublisherStatePath = mode == "signed" ? Path.Combine(Root, "publisher-state") : null,
         };
         public void Pack(string name, string id = "fixture", string version = "1.0.0", string[]? aliases = null, string? fault = null)
         {

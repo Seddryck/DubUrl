@@ -6,20 +6,27 @@ using System.Text.RegularExpressions;
 
 namespace DubUrl.Application;
 
-/// <summary>A detached v1 RSA-PSS/SHA-256 signature. Expiry is UTC Unix time in seconds.</summary>
+/// <summary>A detached v1 RSA-PSS/SHA-256 signature. Expiry is UTC Unix seconds, or zero for no expiration.</summary>
 public sealed record ConnectorCatalogSignature(
     int SchemaVersion, string SourceId, string KeyId, long Revision, long ExpiresAt, string Signature)
 {
     internal static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>Signs exact catalog bytes and freshness metadata. The caller owns and protects the private key.</summary>
-    public static byte[] Sign(byte[] catalog, RSA privateKey, string sourceId, string keyId, long revision, DateTimeOffset expiresAt)
+    public static byte[] Sign(byte[] catalog, RSA privateKey, string sourceId, string keyId, long revision, DateTimeOffset? expiresAt)
     {
-        var document = new ConnectorCatalogSignature(1, sourceId.ToLowerInvariant(), keyId, revision, expiresAt.ToUnixTimeSeconds(), "");
+        var document = new ConnectorCatalogSignature(1, sourceId.ToLowerInvariant(), keyId, revision, expiresAt?.ToUnixTimeSeconds() ?? 0, "");
         document.Validate();
         ValidateKeySize(privateKey);
         var signature = privateKey.SignData(document.Payload(catalog), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
         return JsonSerializer.SerializeToUtf8Bytes(document with { Signature = Convert.ToBase64String(signature) }, JsonOptions);
+    }
+
+    /// <summary>Stable identifier derived from the SHA-256 fingerprint of the public SubjectPublicKeyInfo.</summary>
+    public static string GetKeyId(RSA key)
+    {
+        ValidateKeySize(key);
+        return "sha256-" + Convert.ToHexString(SHA256.HashData(key.ExportSubjectPublicKeyInfo())).ToLowerInvariant();
     }
 
     internal static ConnectorCatalogSignature Read(byte[] bytes)
@@ -59,7 +66,7 @@ public sealed record ConnectorCatalogSignature(
     private void Validate()
     {
         if (SchemaVersion != 1 || !IsSafeName(SourceId) || SourceId != SourceId.ToLowerInvariant()
-            || !IsSafeName(KeyId) || Revision < 1 || ExpiresAt <= 0)
+            || !IsSafeName(KeyId) || Revision < 1 || ExpiresAt < 0)
             throw new InvalidDataException();
     }
 

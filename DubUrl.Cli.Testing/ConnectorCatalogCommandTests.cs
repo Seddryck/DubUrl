@@ -31,6 +31,7 @@ public class ConnectorCatalogCommandTests
         {
             using var document = JsonDocument.Parse(console.Output);
             Assert.That(document.RootElement.GetProperty("success").GetBoolean(), Is.True);
+            Assert.That(document.RootElement.GetProperty("command").GetString(), Is.EqualTo("catalog create"));
             Assert.That(document.RootElement.GetProperty("result").GetProperty("trustMode").GetString(), Is.EqualTo(mode));
             Assert.That(document.RootElement.GetProperty("result").GetProperty("catalogSha256").GetString(), Has.Length.EqualTo(64));
         }
@@ -52,21 +53,22 @@ public class ConnectorCatalogCommandTests
     [TestCase("missing-password")]
     [TestCase("bad-password")]
     [TestCase("expired")]
-    [TestCase("bad-revision")]
+    [TestCase("bad-expiry")]
     [TestCase("bad-key")]
     [TestCase("url")]
     [TestCase("mode")]
+    [TestCase("state")]
     public async Task InvalidInputs_FailWithRedactedJsonAndNoPublishedOutput(string failure)
     {
         using var fixture = new Fixture();
         var args = fixture.Arguments("signed").Concat(new[] { "--json" }).ToArray();
         if (failure == "missing-password") Environment.SetEnvironmentVariable(fixture.Variable, null);
         if (failure == "bad-password") Environment.SetEnvironmentVariable(fixture.Variable, "invalid-password");
-        if (failure == "expired") args[Array.IndexOf(args, "--expires-at") + 1] = "2000-01-01T00:00:00Z";
-        if (failure == "bad-revision") args[Array.IndexOf(args, "--revision") + 1] = "https://user:password@secret.test/?token=secret";
+        if (failure is "expired" or "bad-expiry") args = args.Concat(new[] { "--expires-at", failure == "expired" ? "2000-01-01T00:00:00Z" : "https://user:password@secret.test/?token=secret" }).ToArray();
         if (failure == "bad-key") await File.WriteAllTextAsync(fixture.PrivatePath, "invalid key");
         if (failure == "url") args[Array.IndexOf(args, "--archive-base-uri") + 1] = "https://user:password@secret.test/?token=secret";
         if (failure == "mode") args[Array.IndexOf(args, "--trust-mode") + 1] = "unknown";
+        if (failure == "state") await File.WriteAllTextAsync(Path.Combine(fixture.Root, "publisher-state"), "occupied");
         var console = new ConsoleCapture();
         await using var services = CliComposition.CreateForCommand(args, console, fixture.Configuration);
         Assert.That(await CliHost.InvokeAsync(args, services), Is.EqualTo(CliExitCodes.ProviderOperationFailed));
@@ -131,6 +133,38 @@ public class ConnectorCatalogCommandTests
         Assert.That(console.Output + console.Errors, Does.Not.Contain("secret").And.Not.Contain("password"));
     }
 
+    [TestCase("default")]
+    [TestCase("none")]
+    [TestCase("custom")]
+    public async Task SignedDefaults_UseDerivedIdentityAutomaticRevisionsAndChosenExpiry(string expiryChoice)
+    {
+        using var fixture = new Fixture();
+        var args = fixture.Arguments("signed").Concat(new[] { "--json" }).ToList();
+        var customExpiry = DateTimeOffset.UtcNow.AddHours(2);
+        if (expiryChoice != "default") args.AddRange(["--expires-at", expiryChoice == "none" ? "none" : customExpiry.ToString("o")]);
+        var before = DateTimeOffset.UtcNow;
+        var console = new ConsoleCapture();
+        await using (var services = CliComposition.CreateForCommand(args.ToArray(), console))
+            Assert.That(await CliHost.InvokeAsync(args.ToArray(), services), Is.Zero, console.Errors);
+        var signature = JsonSerializer.Deserialize<ConnectorCatalogSignature>(File.ReadAllBytes(Path.Combine(fixture.Output, "connector-catalog.json.sig")), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        using var key = RSA.Create();
+        key.ImportFromPem(File.ReadAllText(Path.Combine(fixture.Output, "catalog-public.pem")));
+        Assert.That(signature.KeyId, Is.EqualTo(ConnectorCatalogSignature.GetKeyId(key)));
+        if (expiryChoice == "none") Assert.That(signature.ExpiresAt, Is.Zero);
+        else if (expiryChoice == "custom") Assert.That(signature.ExpiresAt, Is.EqualTo(customExpiry.ToUnixTimeSeconds()));
+        else Assert.That(signature.ExpiresAt, Is.InRange(before.AddDays(7).ToUnixTimeSeconds(), DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds()));
+        using var result = JsonDocument.Parse(console.Output);
+        Assert.That(result.RootElement.GetProperty("result").GetProperty("catalogRevision").GetInt64(), Is.EqualTo(signature.Revision));
+        var secondOutput = Path.Combine(fixture.Root, "second-output");
+        args[args.IndexOf("--output") + 1] = secondOutput;
+        var secondConsole = new ConsoleCapture();
+        await using var secondServices = CliComposition.CreateForCommand(args.ToArray(), secondConsole);
+        Assert.That(await CliHost.InvokeAsync(args.ToArray(), secondServices), Is.Zero);
+        var next = JsonSerializer.Deserialize<ConnectorCatalogSignature>(File.ReadAllBytes(Path.Combine(secondOutput, "connector-catalog.json.sig")), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        Assert.That(next.Revision, Is.GreaterThan(signature.Revision));
+        Assert.That(next.KeyId, Is.EqualTo(signature.KeyId));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } = Path.Combine(Path.GetTempPath(), "duburl-catalog-cli-" + Guid.NewGuid().ToString("N"));
@@ -163,10 +197,10 @@ public class ConnectorCatalogCommandTests
         }
         public IEnumerable<string> Arguments(string mode)
         {
-            var arguments = new List<string> { "connector", "catalog", "create", Input, "--output", Output,
+            var arguments = new List<string> { "catalog", "create", Input, "--output", Output,
                 "--archive-base-uri", "https://example.test/packs/", "--trust-mode", mode };
-            if (mode == "signed") arguments.AddRange(["--signing-key", PrivatePath, "--key-id", "key-1", "--revision", "42",
-                "--expires-at", DateTimeOffset.UtcNow.AddHours(1).ToString("o"), "--signing-password-env", Variable]);
+            if (mode == "signed") arguments.AddRange(["--signing-key", PrivatePath, "--publisher-state", Path.Combine(Root, "publisher-state"),
+                "--signing-password-env", Variable]);
             return arguments;
         }
         public void Dispose() { Environment.SetEnvironmentVariable(Variable, null); Directory.Delete(Root, true); }

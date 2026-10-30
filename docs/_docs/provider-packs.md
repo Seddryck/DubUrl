@@ -219,7 +219,11 @@ obtain the same merged `ProviderPackCatalog`, then pass it to `ConnectorService`
 Provision public keys through trusted deployment configuration, independently of the catalog server.
 Only PEM SubjectPublicKeyInfo `PUBLIC KEY` files are accepted on clients; private keys and certificates
 are not public-key configuration. Relative `PublicKeyPath` values in CLI configuration resolve from
-the application directory. Key IDs are case-sensitive simple names, unique within the source.
+the application directory. Key IDs are case-sensitive simple names, unique within the source. The
+publisher derives new key IDs as `sha256-` followed by the lowercase SHA-256 fingerprint of the public
+SubjectPublicKeyInfo bytes. Use the ID emitted in generated settings. Existing explicitly named trusted
+keys and catalogs remain valid. A derived ID can also match the fingerprint of a public key already
+trusted under a legacy alias; deriving IDs does not let the server introduce new trusted keys.
 
 ```json
 {
@@ -228,7 +232,7 @@ the application directory. Key IDs are case-sensitive simple names, unique withi
   "TrustMode": "signed",
   "SignatureUri": "https://connectors.example.org/catalog.json.sig",
   "TrustedSigningKeys": [
-    { "KeyId": "corporate-2026", "PublicKeyPath": "corporate-catalog-public.pem" }
+    { "KeyId": "sha256-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "PublicKeyPath": "corporate-catalog-public.pem" }
   ],
   "MinimumRevision": 1,
   "Enabled": true
@@ -238,7 +242,7 @@ the application directory. Key IDs are case-sensitive simple names, unique withi
 Version 1 uses RSA-PSS with SHA-256, with RSA keys from 2048 to 8192 bits; 3072 bits is a practical
 publishing choice. The format fixes the algorithm; downloaded metadata cannot select a different one.
 The detached JSON document contains `schemaVersion` (1), lowercase `sourceId`, `keyId`, positive integer
-`revision`, `expiresAt` (UTC Unix seconds), and `signature` (base64 RSA signature). Verification signs the
+`revision`, `expiresAt` (UTC Unix seconds, or 0 for no expiration), and `signature` (base64 RSA signature). Verification signs the
 UTF-8 header below, followed immediately by the exact catalog bytes. Each header line ends with LF,
 including the last line; integers use invariant decimal formatting. Catalog JSON is never reserialized
 for verification. The source ID binds a signature to its configured source, case-insensitively.
@@ -255,7 +259,8 @@ The signature authenticates both the catalog and its freshness metadata. Expired
 revisions below `MinimumRevision` (default 1) are rejected. Clients persist the highest accepted revision
 under `<provider-store>/catalog-revisions`, independently of key IDs. Lower revisions and different
 payloads at the same revision are rejected across processes; the identical signed payload may be
-reloaded until it expires. Renewing expiry or changing keys requires a higher revision. State is advanced
+reloaded until it expires, or indefinitely when explicitly signed without expiration. Publishing allocates
+a new higher revision automatically, including expiry renewals and key changes. State is advanced
 only for successfully parsed, unambiguous catalogs. Corrupt, inaccessible, or unwritable state fails the
 source closed. Other healthy sources and installed connectors remain usable.
 
@@ -263,8 +268,10 @@ Protect configuration, public keys, system time, and revision state with normal 
 Keep the state directory across upgrades and key rotation. Deleting or relocating the provider store
 resets the client's high-water mark. A fresh client can verify an unexpired signature, but cannot know
 the latest revision from that signature alone: use a centrally provisioned `MinimumRevision` for a
-bootstrap floor, plus short publication expiry windows. There is no online revocation or transparency
-service. To roll back content deliberately, sign the earlier content with a new, higher revision.
+bootstrap floor, plus publication expiry windows. With no expiration, a fresh client cannot reject a
+signature based on its age; revision rollback checks still apply once a newer revision is accepted.
+There is no online revocation or transparency service. To roll back content deliberately, republish the
+earlier content; automatic revision allocation makes it a newer publication.
 
 For rotation, deploy both the current and next public keys first, publish the next revision signed by
 the new key, then remove the retired key from clients. Retain the same source ID and revision state.
@@ -280,14 +287,17 @@ for publisher tooling and protected key generation. The implementation uses .NET
 The CLI can prepare a catalog directly from approved top-level ZIP archives:
 
 ```text
-duburl connector catalog create <folder> --output <new-output-folder> --archive-base-uri https://connectors.example.org/packs/ --trust-mode sha256 --json
+duburl catalog create <folder> --output <new-output-folder> --archive-base-uri https://connectors.example.org/packs/ --trust-mode sha256 --json
 ```
 
 Use `--trust-mode unsigned` to opt into endpoint/local-deployment trust, or `--trust-mode signed` with
-`--signing-key`, `--key-id`, `--revision`, and `--expires-at`. Signing passwords come from the environment
+`--signing-key`. Key IDs are derived and revisions managed automatically. Expiration defaults to seven
+days; optionally use `--expires-at <ISO-8601-timestamp>` or `--expires-at none`. Signing passwords come from the environment
 variable named by `--signing-password-env` (default `DUBURL_CATALOG_SIGNING_PASSWORD`), never a password
 argument. `--catalog-uri` optionally supplies the published catalog location; otherwise settings use the
-generated local file. `--source-id` defaults to `enterprise`.
+generated local file. `--source-id` defaults to `enterprise`. Keep the persistent publisher revision state
+across output folders and key rotation; `--publisher-state` optionally chooses its directory. The default
+is `DubUrl/catalog-publication-revisions` beneath local application data, separate from client stores.
 
 The new snapshot contains a validated catalog, unchanged copies in `archives/`, and `source-settings.json`.
 Pinned mode adds a document digest; signed mode adds a detached signature and public PEM. Subfolders
