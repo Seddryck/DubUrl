@@ -48,7 +48,7 @@ internal sealed class ConnectorCatalogRevisionStore(string rootPath)
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
-    private static async Task<FileStream> AcquireLockAsync(string path, CancellationToken cancellationToken)
+    internal static async Task<FileStream> AcquireLockAsync(string path, CancellationToken cancellationToken)
     {
         var elapsed = Stopwatch.StartNew();
         while (true)

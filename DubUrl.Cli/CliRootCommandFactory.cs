@@ -10,9 +10,7 @@ internal static class CliRootCommandFactory
     internal static RootCommand CreateCatalogPublisher(IServiceProvider services, CancellationToken cancellationToken)
     {
         var root = new RootCommand("Prepare connector catalogs for administrator-managed publication.");
-        var connector = new Command("connector");
-        connector.Subcommands.Add(ConnectorCatalogCommand.Create(services, cancellationToken));
-        root.Subcommands.Add(connector);
+        root.Subcommands.Add(ConnectorCatalogCommand.Create(services, cancellationToken));
         return root;
     }
 
@@ -23,6 +21,7 @@ internal static class CliRootCommandFactory
         root.Subcommands.Add(SchemaCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CredentialCommand.Create(services, cancellationToken));
         root.Subcommands.Add(ConnectorCommand.Create(services, cancellationToken));
+        root.Subcommands.Add(ConnectorCatalogCommand.Create(services, cancellationToken));
         root.Subcommands.Add(ConnectionCommand.Create(services, cancellationToken));
         root.Subcommands.Add(CreateCapabilitiesCommand(services));
         root.SetAction(_ =>

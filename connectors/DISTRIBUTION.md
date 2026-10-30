@@ -98,7 +98,7 @@ internal hosting do not bypass compatibility, integrity or activation checks.
 
 ## Create a catalog from a folder with the CLI
 
-Use `connector catalog create` to turn approved provider-pack ZIP archives into a new publication
+Use `catalog create` to turn approved provider-pack ZIP archives into a new publication
 snapshot. It reads only top-level files with a `.zip` extension, case-insensitively. It ignores subfolders
 and unrelated files, derives identities from manifests rather than filenames, and never loads provider
 assemblies. Include exactly one archive per canonical connector: duplicate IDs, versions of the same
@@ -109,7 +109,7 @@ Host API/TFM/RID compatibility is still checked at installation, not inferred fr
 The default trust policy is `sha256`:
 
 ```powershell
-duburl connector catalog create C:\approved\packs --output C:\staging\snapshot-42 --archive-base-uri https://connectors.example.org/packs/ --catalog-uri https://connectors.example.org/catalog.json --source-id enterprise --json
+duburl catalog create C:\approved\packs --output C:\staging\snapshot-42 --archive-base-uri https://connectors.example.org/packs/ --catalog-uri https://connectors.example.org/catalog.json --source-id enterprise --json
 ```
 
 The output directory must not already exist, even if empty. Archives are copied unchanged into its
@@ -122,7 +122,7 @@ Choose `unsigned` explicitly to trust the configured HTTPS endpoint or protected
 without a catalog-document pin or signature. Individual archive SHA-256 checks remain mandatory:
 
 ```powershell
-duburl connector catalog create C:\approved\packs --output C:\staging\snapshot-43 --archive-base-uri https://connectors.example.org/packs/ --trust-mode unsigned
+duburl catalog create C:\approved\packs --output C:\staging\snapshot-43 --archive-base-uri https://connectors.example.org/packs/ --trust-mode unsigned
 ```
 
 For signed publication, provision an encrypted PKCS#8 private PEM on the publisher and inject its
@@ -130,17 +130,19 @@ password into a process environment variable from your secret store. For example
 `CORPORATE_CATALOG_SIGNING_PASSWORD` already populated securely:
 
 ```powershell
-$expiry = [DateTimeOffset]::UtcNow.AddDays(7).ToString('o')
 try {
-    duburl connector catalog create C:\approved\packs --output C:\staging\snapshot-44 --archive-base-uri https://connectors.example.org/packs/ --catalog-uri https://connectors.example.org/catalog.json --trust-mode signed --source-id enterprise --signing-key C:\secure\catalog-signing-private.pem --key-id corporate-2026 --revision 44 --expires-at $expiry --signing-password-env CORPORATE_CATALOG_SIGNING_PASSWORD --json
+    duburl catalog create C:\approved\packs --output C:\staging\snapshot-44 --archive-base-uri https://connectors.example.org/packs/ --catalog-uri https://connectors.example.org/catalog.json --trust-mode signed --source-id enterprise --signing-key C:\secure\catalog-signing-private.pem --signing-password-env CORPORATE_CATALOG_SIGNING_PASSWORD --json
 } finally {
     Remove-Item Env:CORPORATE_CATALOG_SIGNING_PASSWORD -ErrorAction SilentlyContinue
 }
 ```
 
 `--signing-password-env` defaults to `DUBURL_CATALOG_SIGNING_PASSWORD`; there is no password-value
-argument. Signed mode requires the key, key ID, positive revision, and future expiry. Signing arguments
-in another mode, unknown modes, missing credentials, and signing failures are rejected without an
+argument. Signed mode requires only the protected key and its password. The key ID is derived from
+the public-key fingerprint, revisions are allocated automatically, and expiry defaults to seven days.
+Use `--expires-at <ISO-8601-timestamp>` to choose another expiry, or `--expires-at none` for no expiration.
+There are no `--key-id` or `--revision` arguments. Signing arguments in another mode, unknown modes,
+missing credentials, and signing failures are rejected without an
 automatic downgrade. Private keys are never copied or exported into the snapshot. The generated public
 PEM uses the existing signature format and can be provisioned independently to clients.
 
@@ -157,7 +159,8 @@ The generated artifacts are:
 
 Identical inputs and options produce identical catalog bytes and document digest; RSA-PSS signatures
 are intentionally nondeterministic. `--json` reports `command`, `success`, and a `result` containing
-`trustMode`, `connectorCount`, `catalogSha256`, and relative `artifacts`. The digest in unsigned/signed
+`trustMode`, `connectorCount`, `catalogSha256`, and relative `artifacts`. Signed results also report
+`signingKeyId`, `catalogRevision`, and `signatureExpiresAt` (null for no expiration). The digest in unsigned/signed
 results is an informational fingerprint, not an extra client pin. Failures return safe diagnostic codes
 and messages without paths, credentials, or authenticated URLs. Exit codes are 0 for success, 2 for
 argument parsing errors, 5 for preparation/validation/signing failures, and 130 for cancellation.
@@ -197,7 +200,7 @@ openssl pkey -in C:\secure\catalog-signing-private.pem -pubout -out C:\deploymen
 These commands prompt for the private-key passphrase. Do not put it on the command line or commit
 keys or passphrases. See the OpenSSL [genpkey](https://docs.openssl.org/3.0/man1/openssl-genpkey/)
 and [pkey](https://docs.openssl.org/3.3/man1/openssl-pkey/) documentation. Distribute only the public PEM
-through your trusted client configuration channel, with a stable source ID and chosen key ID.
+through your trusted client configuration channel, with a stable source ID and the derived key ID emitted by the publisher.
 
 The publisher utility reads an encrypted PEM key and the process environment variable
 `DUBURL_CATALOG_SIGNING_PASSWORD`. Inject that value from the publishing secret store; do not embed it
@@ -205,20 +208,33 @@ in scripts, arguments, source control, or logs. Prepare a new staging directory 
 distribution catalog. For example, from the repository root with the .NET 10 runtime installed:
 
 ```powershell
-$expiry = [DateTimeOffset]::UtcNow.AddDays(7).ToString('o')
 try {
-    dotnet run --project connectors/Signing/ConnectorCatalog.Sign.csproj -f net10.0 -- C:\staging\catalog.json C:\staging\catalog.json.sig C:\secure\catalog-signing-private.pem enterprise corporate-2026 42 $expiry
+    dotnet run --project connectors/Signing/ConnectorCatalog.Sign.csproj -f net10.0 -- C:\staging\catalog.json C:\staging\catalog.json.sig C:\secure\catalog-signing-private.pem enterprise
 } finally {
     Remove-Item Env:DUBURL_CATALOG_SIGNING_PASSWORD -ErrorAction SilentlyContinue
 }
 ```
 
-Replace revision 42 with the next monotonically increasing revision for this source. Expiry renewal,
-metadata changes, key rotation, and content changes all require a new revision. The utility validates the
+The utility derives the key ID and allocates a revision automatically using the same publication state
+as the CLI. It defaults to seven days of validity. An optional fifth argument selects an ISO 8601 expiry,
+`none`, or `default`; an optional sixth argument selects the persistent publisher state directory.
+The utility validates the
 catalog metadata, signs its exact bytes and freshness metadata using RSA-PSS/SHA-256, and creates a new
-signature file. It refuses an existing output file, requires a future expiry, and emits no key material or
-underlying exception details. Hosts can instead use `ConnectorCatalogSignature.Sign` with a host-owned
-RSA key; the serialized signature format and client verification are the same.
+signature file. It refuses an existing output file, rejects a past explicit expiry, and emits no key material
+or underlying exception details. Hosts can instead use `ConnectorCatalogPublication.SignAsync` with a
+host-owned RSA key for the same defaults and automatic revisions. `ConnectorCatalogSignature.Sign`
+remains the low-level API for hosts that already manage explicit signed metadata.
+
+Automatic revisions are per source ID, independent of signing key or output folder. Publisher state
+defaults to `DubUrl/catalog-publication-revisions` beneath local application data, separate from client
+provider stores. Override it with `--publisher-state <directory>`. Keep and back up this directory across
+builds, renewals, machine migrations, and key rotation. Concurrent publishers must use the same state
+directory on a filesystem with working file locks, or transfer its latest state when moving publishers.
+The initial floor is current UTC Unix milliseconds; the saved high-water mark guarantees increasing
+numbers even when the publisher clock moves backwards. Revisions are reserved before signing and
+are never reused, so failed publication can leave harmless gaps. Corrupt, inaccessible, exhausted, or
+unwritable state fails signing rather than silently resetting the counter. Deleting state loses this
+guarantee; existing clients continue rejecting any revision below their saved high-water mark.
 
 Verify the staged pair using the intended source/key configuration and a separate test provider store.
 Publish immutable archives first, then switch both stable catalog and signature routes to the prepared
@@ -227,11 +243,13 @@ on its next catalog load; there is no fallback to unsigned loading. Keep the con
 clients need no configuration change for routine updates. Existing installed packs and healthy sources
 remain usable if signing, hosting, or verification fails.
 
-Use short expiry windows consistent with your deployment availability and renew before expiry. Persist
+Keep the default expiry or choose a duration consistent with deployment availability and renew before expiry.
+`--expires-at none` explicitly disables time-based freshness; clients still verify signatures and reject
+revision rollback, but fresh clients cannot reject an old signature based on age alone. Persist
 client revision state under the provider store's `catalog-revisions` directory. A fresh or reset client
-cannot detect an older, still-unexpired catalog below the newest published revision unless administrators
+cannot detect an older, still-valid catalog below the newest published revision unless administrators
 provision an appropriate `MinimumRevision`. Protect this floor, system time, public keys, and local state.
-For an intentional content rollback, publish the earlier content as a new higher revision.
+For an intentional content rollback, republish the earlier content; automatic allocation gives it a new higher revision.
 
 Rotate keys by distributing both public keys, publishing a higher revision using the new key, and then
 removing the old public key. Preserve source IDs and revision state throughout rotation. Private keys

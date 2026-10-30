@@ -15,13 +15,18 @@ public sealed class ConnectorCatalogBuildOptions
     public string TrustMode { get; init; } = "sha256";
     /// <summary>Host-owned private key, required only in signed mode. Never serialized or copied to output.</summary>
     [JsonIgnore] public RSA? SigningKey { get; init; }
-    public string? KeyId { get; init; }
-    public long? Revision { get; init; }
     public DateTimeOffset? ExpiresAt { get; init; }
+    public bool NoExpiration { get; init; }
+    public string? PublisherStatePath { get; init; }
     public override string ToString() => "Connector catalog build options (locations and signing material redacted)";
 }
 
-public sealed record ConnectorCatalogBuildResult(string TrustMode, int ConnectorCount, string CatalogSha256, IReadOnlyList<string> Artifacts);
+public sealed record ConnectorCatalogBuildResult(string TrustMode, int ConnectorCount, string CatalogSha256, IReadOnlyList<string> Artifacts)
+{
+    public string? SigningKeyId { get; init; }
+    public long? CatalogRevision { get; init; }
+    public DateTimeOffset? SignatureExpiresAt { get; init; }
+}
 
 /// <summary>Prepares an unpublished snapshot from top-level ZIP archives. Never loads provider code or accesses HTTP.</summary>
 public sealed class ConnectorCatalogBuilder
@@ -88,6 +93,7 @@ public sealed class ConnectorCatalogBuilder
                 ["Id"] = options.SourceId, ["Uri"] = catalogUri.AbsoluteUri, ["Enabled"] = true, ["TrustMode"] = options.TrustMode,
             };
             var artifacts = new List<string> { CatalogName, "archives/", "source-settings.json" };
+            SignedConnectorCatalog? publication = null;
             if (options.TrustMode == "sha256")
             {
                 sourceSettings["Sha256"] = catalogDigest;
@@ -96,21 +102,28 @@ public sealed class ConnectorCatalogBuilder
             }
             if (options.TrustMode == "signed")
             {
-                var signature = ConnectorCatalogSignature.Sign(bytes, options.SigningKey!, options.SourceId, options.KeyId!, options.Revision!.Value, options.ExpiresAt!.Value);
-                await File.WriteAllBytesAsync(Path.Combine(staging, CatalogName + ".sig"), signature, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    publication = await ConnectorCatalogPublication.SignAsync(bytes, options.SigningKey!, options.SourceId,
+                        options.ExpiresAt, options.NoExpiration, options.PublisherStatePath, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (exception is IOException or InvalidDataException or JsonException or UnauthorizedAccessException or CryptographicException or ArgumentException)
+                { throw Failure("catalog-signing-failed", "Signing failed. Check the private key and persistent publisher state."); }
+                await File.WriteAllBytesAsync(Path.Combine(staging, CatalogName + ".sig"), publication.Signature, cancellationToken).ConfigureAwait(false);
                 await File.WriteAllTextAsync(Path.Combine(staging, "catalog-public.pem"), options.SigningKey!.ExportSubjectPublicKeyInfoPem(), cancellationToken).ConfigureAwait(false);
                 sourceSettings["SignatureUri"] = catalogUri.AbsoluteUri + ".sig";
-                sourceSettings["TrustedSigningKeys"] = new[] { new { KeyId = options.KeyId!, PublicKeyPath = Path.Combine(destination, "catalog-public.pem") } };
-                sourceSettings["MinimumRevision"] = options.Revision.Value;
+                sourceSettings["TrustedSigningKeys"] = new[] { new { KeyId = publication.KeyId, PublicKeyPath = Path.Combine(destination, "catalog-public.pem") } };
+                sourceSettings["MinimumRevision"] = publication.Revision;
                 artifacts.AddRange([CatalogName + ".sig", "catalog-public.pem"]);
             }
             await File.WriteAllBytesAsync(Path.Combine(staging, "source-settings.json"), JsonSerializer.SerializeToUtf8Bytes(
                 new { ProviderPacks = new { Sources = new[] { sourceSettings } } }, JsonOptions), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            if (options.TrustMode == "signed" && options.ExpiresAt <= DateTimeOffset.UtcNow)
+            if (publication?.ExpiresAt is not null && publication.ExpiresAt <= DateTimeOffset.UtcNow)
                 throw Failure("catalog-options-invalid", "The signing expiry elapsed before publication. Choose a future expiry and rebuild.");
             Directory.Move(staging, destination);
-            return new(options.TrustMode, entries.Count, catalogDigest, artifacts);
+            return new(options.TrustMode, entries.Count, catalogDigest, artifacts)
+            { SigningKeyId = publication?.KeyId, CatalogRevision = publication?.Revision, SignatureExpiresAt = publication?.ExpiresAt };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw new ConnectorOperationCanceledException(cancellationToken); }
         catch (Exception exception) when (exception is InvalidDataException or JsonException or ProviderPackException)
@@ -130,12 +143,12 @@ public sealed class ConnectorCatalogBuilder
         if (options.CatalogUri is not null) ValidateUri(options.CatalogUri, allowFile: true);
         if (options.TrustMode == "signed")
         {
-            if (options.SigningKey is null || !ConnectorCatalogSignature.IsSafeName(options.KeyId) || options.Revision is null or < 1
-                || options.ExpiresAt is null || options.ExpiresAt <= DateTimeOffset.UtcNow || options.SigningKey.KeySize is < 2048 or > 8192)
-                throw Failure("catalog-options-invalid", "Signed catalogs require a private signing key, key ID, positive revision, and future expiry.");
+            if (options.SigningKey is null || (options.NoExpiration && options.ExpiresAt is not null)
+                || options.ExpiresAt <= DateTimeOffset.UtcNow || options.SigningKey.KeySize is < 2048 or > 8192)
+                throw Failure("catalog-options-invalid", "Signed catalogs require a private signing key and either a future expiry or no expiration.");
         }
         else if (options.TrustMode is not ("sha256" or "unsigned") || options.SigningKey is not null
-            || options.KeyId is not null || options.Revision is not null || options.ExpiresAt is not null)
+            || options.PublisherStatePath is not null || options.NoExpiration || options.ExpiresAt is not null)
             throw Failure("catalog-options-invalid", "Select sha256, unsigned, or signed. Signing options are valid only in signed mode.");
     }
 

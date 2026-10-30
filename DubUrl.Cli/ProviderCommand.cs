@@ -17,7 +17,6 @@ internal static class ConnectorCommand
         command.Subcommands.Add(CreateInstall(services, cancellationToken));
         command.Subcommands.Add(CreateUninstall(services));
         command.Subcommands.Add(CreateMirror(services, cancellationToken));
-        command.Subcommands.Add(ConnectorCatalogCommand.Create(services, cancellationToken));
         return command;
     }
 

@@ -13,17 +13,17 @@ public static class CliHost
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(services);
 
-        var root = args.Length >= 2 && args[0] == "connector" && args[1] == "catalog"
+        var root = args.Length >= 1 && args[0] == "catalog"
             ? CliRootCommandFactory.CreateCatalogPublisher(services, cancellationToken)
             : CliRootCommandFactory.Create(services, cancellationToken);
         var parseResult = root.Parse(args.Length == 0 ? ["--help"] : args);
-        if (parseResult.Errors.Count > 0 && args.Length >= 3 && args[0] == "connector" && args[1] == "catalog" && args[2] == "create")
+        if (parseResult.Errors.Count > 0 && args.Length >= 2 && args[0] == "catalog" && args[1] == "create")
         {
-            const string message = "Invalid catalog creation arguments. Run 'duburl connector catalog create --help' for usage; supplied values are not echoed.";
+            const string message = "Invalid catalog creation arguments. Run 'duburl catalog create --help' for usage; supplied values are not echoed.";
             var console = services.GetRequiredService<ICliConsole>();
             if (args.Contains("--json")) console.Out.WriteLine(System.Text.Json.JsonSerializer.Serialize(new
             {
-                command = "connector catalog create", success = false,
+                command = "catalog create", success = false,
                 diagnostics = new[] { new { code = "catalog-arguments-invalid", message } },
             }, CliJson.Options));
             else console.Error.WriteLine(message);

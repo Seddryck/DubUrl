@@ -73,12 +73,10 @@ public sealed class TrustedConnectorCatalogs(HttpClient httpClient, string? revi
                 {
                     signature = ConnectorCatalogSignature.Read(await ReadAsync(source.SignatureUri!, source.BearerTokenEnvironmentVariable, cancellationToken).ConfigureAwait(false));
                     if (signature.SourceId != source.Id.ToLowerInvariant() || signature.Revision < source.MinimumRevision
-                        || signature.ExpiresAt <= _time.GetUtcNow().ToUnixTimeSeconds())
+                        || (signature.ExpiresAt != 0 && signature.ExpiresAt <= _time.GetUtcNow().ToUnixTimeSeconds()))
                         throw new InvalidDataException();
-                    var trustedKey = source.TrustedSigningKeys.SingleOrDefault(key => key.KeyId == signature.KeyId)
-                        ?? throw new InvalidDataException();
                     using var key = RSA.Create();
-                    ConnectorCatalogSignature.ImportPublicKey(key, await File.ReadAllTextAsync(trustedKey.PublicKeyPath, cancellationToken).ConfigureAwait(false));
+                    await ImportVerificationKeyAsync(key, source, signature.KeyId, cancellationToken).ConfigureAwait(false);
                     if (!key.VerifyData(signature.Payload(bytes), Convert.FromBase64String(signature.Signature), HashAlgorithmName.SHA256, RSASignaturePadding.Pss))
                         throw new InvalidDataException();
                     keyFingerprint = Convert.ToHexString(SHA256.HashData(key.ExportSubjectPublicKeyInfo())).ToLowerInvariant();
@@ -126,7 +124,7 @@ public sealed class TrustedConnectorCatalogs(HttpClient httpClient, string? revi
         {
             try
             {
-                if (pending.Signature.ExpiresAt <= _time.GetUtcNow().ToUnixTimeSeconds()) throw new InvalidDataException();
+                if (pending.Signature.ExpiresAt != 0 && pending.Signature.ExpiresAt <= _time.GetUtcNow().ToUnixTimeSeconds()) throw new InvalidDataException();
                 await _revisions.AcceptAsync(pending.Source.Id, pending.Signature.Revision, pending.PayloadSha256, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -142,6 +140,25 @@ public sealed class TrustedConnectorCatalogs(HttpClient httpClient, string? revi
     private static bool IsSourceFailure(Exception exception)
         => exception is IOException or InvalidDataException or UnauthorizedAccessException or HttpRequestException
             or OperationCanceledException or JsonException or ArgumentException or InvalidOperationException or FormatException or CryptographicException;
+
+    private static async Task ImportVerificationKeyAsync(RSA key, ConnectorCatalogSource source, string keyId, CancellationToken cancellationToken)
+    {
+        var named = source.TrustedSigningKeys.SingleOrDefault(candidate => candidate.KeyId == keyId);
+        if (named is not null)
+        {
+            ConnectorCatalogSignature.ImportPublicKey(key, await File.ReadAllTextAsync(named.PublicKeyPath, cancellationToken).ConfigureAwait(false));
+            return;
+        }
+        // A derived identity may refer to an already trusted public key configured under a legacy alias.
+        // Only configured local key files establish trust; downloaded IDs never add a key.
+        if (keyId.Length != 71 || !keyId.StartsWith("sha256-", StringComparison.Ordinal)) throw new InvalidDataException();
+        foreach (var approved in source.TrustedSigningKeys)
+        {
+            ConnectorCatalogSignature.ImportPublicKey(key, await File.ReadAllTextAsync(approved.PublicKeyPath, cancellationToken).ConfigureAwait(false));
+            if (ConnectorCatalogSignature.GetKeyId(key) == keyId) return;
+        }
+        throw new InvalidDataException();
+    }
 
     private static void ValidateSource(ConnectorCatalogSource source)
     {

@@ -18,14 +18,13 @@ internal static class ConnectorCatalogCommand
         var sourceId = new Option<string?>("--source-id") { Description = "Stable catalog source ID (default enterprise)." };
         var catalogUri = new Option<string?>("--catalog-uri") { Description = "Published catalog HTTPS or file URI. Defaults to the generated local catalog." };
         var signingKey = new Option<string?>("--signing-key") { Description = "Protected encrypted PKCS#8 private PEM; signed mode only." };
-        var keyId = new Option<string?>("--key-id") { Description = "Signing key ID provisioned to clients." };
-        var revision = new Option<string?>("--revision") { Description = "Positive, monotonically increasing source revision." };
-        var expires = new Option<string?>("--expires-at") { Description = "Future signature expiry as an ISO 8601 timestamp." };
+        var expires = new Option<string?>("--expires-at") { Description = "ISO 8601 expiry or 'none'. Defaults to seven days from signing." };
+        var publisherState = new Option<string?>("--publisher-state") { Description = "Persistent publisher revision directory. Defaults to DubUrl/catalog-publication-revisions in local application data." };
         var passwordEnv = new Option<string?>("--signing-password-env") { Description = "Password environment variable (default DUBURL_CATALOG_SIGNING_PASSWORD). Never pass the password itself." };
         var json = new Option<bool>("--json") { Description = "Write stable result metadata with relative artifact references." };
         var create = new Command("create", "Prepare a catalog from top-level archives without uploading, installing, or loading provider code.");
         create.Arguments.Add(folder);
-        foreach (var option in new Option[] { output, archiveBase, mode, sourceId, catalogUri, signingKey, keyId, revision, expires, passwordEnv, json })
+        foreach (var option in new Option[] { output, archiveBase, mode, sourceId, catalogUri, signingKey, expires, publisherState, passwordEnv, json })
             create.Options.Add(option);
         create.SetAction(async result =>
         {
@@ -38,14 +37,9 @@ internal static class ConnectorCatalogCommand
                 if (!Uri.TryCreate(result.GetValue(archiveBase), UriKind.Absolute, out var baseUri)
                     || (result.GetValue(catalogUri) is string location && !Uri.TryCreate(location, UriKind.Absolute, out _)))
                     throw new ConnectorOperationException("catalog-url-invalid", "Specify an absolute hosting URI without credentials, query, or fragment.");
-                long? sourceRevision = null;
                 DateTimeOffset? expiry = null;
-                if (result.GetValue(revision) is string revisionText)
-                {
-                    if (!long.TryParse(revisionText, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed)) throw InvalidSigning();
-                    sourceRevision = parsed;
-                }
-                if (result.GetValue(expires) is string expiresText)
+                var noExpiration = string.Equals(result.GetValue(expires), "none", StringComparison.OrdinalIgnoreCase);
+                if (!noExpiration && result.GetValue(expires) is string expiresText)
                 {
                     if (!DateTimeOffset.TryParse(expiresText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsed)) throw InvalidSigning();
                     expiry = parsed;
@@ -65,9 +59,9 @@ internal static class ConnectorCatalogCommand
                     InputDirectory = result.GetValue(folder)!, OutputDirectory = result.GetValue(output)!, ArchiveBaseUri = baseUri,
                     CatalogUri = result.GetValue(catalogUri) is string uri ? new Uri(uri) : null,
                     TrustMode = trustMode, SourceId = result.GetValue(sourceId) ?? "enterprise", SigningKey = key,
-                    KeyId = result.GetValue(keyId), Revision = sourceRevision, ExpiresAt = expiry,
+                    ExpiresAt = expiry, NoExpiration = noExpiration, PublisherStatePath = result.GetValue(publisherState),
                 }, cancellationToken).ConfigureAwait(false);
-                if (asJson) console.Out.WriteLine(JsonSerializer.Serialize(new { command = "connector catalog create", success = true, result = built }, CliJson.Options));
+                if (asJson) console.Out.WriteLine(JsonSerializer.Serialize(new { command = "catalog create", success = true, result = built }, CliJson.Options));
                 else console.Out.WriteLine($"Prepared {built.ConnectorCount} connectors in {built.TrustMode} mode. Catalog SHA-256: {built.CatalogSha256}. Artifacts: {string.Join(", ", built.Artifacts)}");
                 return CliExitCodes.Success;
             }
@@ -81,7 +75,7 @@ internal static class ConnectorCatalogCommand
 
             int Report(string code, string message, int exitCode)
             {
-                if (asJson) console.Out.WriteLine(JsonSerializer.Serialize(new { command = "connector catalog create", success = false, diagnostics = new[] { new { code, message } } }, CliJson.Options));
+                if (asJson) console.Out.WriteLine(JsonSerializer.Serialize(new { command = "catalog create", success = false, diagnostics = new[] { new { code, message } } }, CliJson.Options));
                 else console.Error.WriteLine($"{code}: {message}");
                 return exitCode;
             }
@@ -92,5 +86,5 @@ internal static class ConnectorCatalogCommand
     }
 
     private static ConnectorOperationException InvalidSigning()
-        => new("catalog-options-invalid", "Select signed mode with an encrypted private key, password environment variable, key ID, positive revision, and future expiry.");
+        => new("catalog-options-invalid", "Signed mode requires an encrypted private key and password environment variable. Optional expiry must be a future timestamp or 'none'.");
 }
