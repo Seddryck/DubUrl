@@ -119,6 +119,12 @@ foreach ($entry in $entries) {
             throw "Connector '$($entry.provider)' still carries a legacy connector assembly."
         }
         $bulkAdapters = @($archivePaths | Where-Object { $_ -like 'DubUrl.Provider.*.BulkCopy.dll' })
+        if ($entry.provider -eq 'duckdb-native' -and $archivePaths -cnotcontains 'DubUrl.Provider.DuckDb.Native.dll') {
+            throw 'The native DuckDB connector must include its encrypted-connection adapter.'
+        }
+        if ($entry.provider -ne 'duckdb-native' -and $archivePaths -ccontains 'DubUrl.Provider.DuckDb.Native.dll') {
+            throw 'A non-native DuckDB connector must not carry the encrypted-connection adapter.'
+        }
         $expectedAdapter = switch ($entry.provider) {
             'duckdb-native' { 'DubUrl.Provider.DuckDb.Native.BulkCopy.dll' }
             'sqlserver-sqlclient' { 'DubUrl.Provider.SqlServer.SqlClient.BulkCopy.dll' }

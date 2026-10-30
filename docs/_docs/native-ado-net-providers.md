@@ -27,6 +27,8 @@ To embrace the world of DubUrl, you need to follow some conventions regarding th
 
 ### Additional packages
 
+For [encrypted DuckDB files]({{ '/duckdb-encryption/' | relative_url }}), add `DubUrl.Provider.DuckDb.Native` alongside the DuckDB family provider and driver, or install the native DuckDB connector archive. Encryption requires native DuckDB 1.4.0 or later. The prepared connection remains a `DuckDBConnection` subclass.
+
 For SQLite, install the full `Microsoft.Data.Sqlite` package to include the default native SQLite bundle. If you deliberately use `Microsoft.Data.Sqlite.Core`, configure its SQLitePCLRaw provider separately. Do not copy DLLs manually as a general installation procedure.
 
 ### Example

@@ -37,9 +37,9 @@ Existing `.accdb` password-protected files must use encryption compatible with t
 
 For a vault or other runtime source, implement `IFileSecretCredentialSource.ResolveAsync(AuthenticationContext, CancellationToken)` and return `FileSecretCredentials`. Implement `ISynchronousFileSecretCredentialSource.Resolve` as well when synchronous `Connect()` / `Open()` must work. Supply the source to `ConnectionAuthentication.FilePassword(source)`.
 
-Each connection creation resolves once, without caching secrets on `ConnectionUrl` or mutating shared strategy state. The caller owns the source; disposing the connection never disposes it. An async-only source is rejected by synchronous operations instead of being blocked on. Sources receive location metadata without URLs or secrets.
+Access resolves once per connection creation. DuckDB defers resolution until opening and resolves once per open cycle, without caching runtime secrets on `ConnectionUrl` or mutating shared strategy state. The caller owns the source; disposing the connection never disposes it. An async-only source is rejected by synchronous operations instead of being blocked on. Sources receive location metadata without URLs or secrets.
 
-The provider-neutral source/credential contract represents a file secret, allowing future adapters to use an encryption key. This change adds only Access support. DuckDB encrypted attachment is tracked separately in [#1725](https://github.com/Seddryck/DubUrl/issues/1725); Excel and standard SQLite are not supported by this method.
+The same provider-neutral source/credential contract also supports [encrypted DuckDB files](../duckdb-encryption/). Use the native DuckDB adapter with `FilePassword(key)` or a runtime source. Excel and standard SQLite are not supported by this method.
 
 ## Conflicts
 

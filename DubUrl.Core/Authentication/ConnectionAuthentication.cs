@@ -14,6 +14,7 @@ public static class AuthenticationDiagnosticCodes
     public const string InvalidCertificate = nameof(InvalidCertificate);
     public const string InteractionRequired = nameof(InteractionRequired);
     public const string AuthenticationTimeout = nameof(AuthenticationTimeout);
+    public const string UnsupportedProviderVersion = nameof(UnsupportedProviderVersion);
 }
 
 public enum ConnectionAuthenticationKind { UsernamePassword, NativeToken, ClientCertificate, OperatingSystemIdentity, InteractiveOAuth, FileSecret }
@@ -83,6 +84,7 @@ public interface ISynchronousUsernamePasswordCredentialSource : IUsernamePasswor
 /// <summary>Selected location metadata only. Never includes a URL, query string, password or token.</summary>
 public sealed class AuthenticationContext(string providerInvariantName, string scheme, string? host, int? port, string? database, string? username)
 {
+    internal bool SupportsFileSecretConnection { get; init; }
     public string ProviderInvariantName { get; } = providerInvariantName;
     public string Scheme { get; } = scheme;
     public string? Host { get; } = host;
@@ -100,7 +102,7 @@ public sealed class ConnectionAuthenticationException : Exception
     private static string KnownCode(string code) => code switch
     {
         AuthenticationDiagnosticCodes.CredentialConflict or AuthenticationDiagnosticCodes.CredentialResolutionFailed or AuthenticationDiagnosticCodes.MissingCredentials or AuthenticationDiagnosticCodes.UnsupportedAuthentication
-            or AuthenticationDiagnosticCodes.SynchronousCredentialsRequired or AuthenticationDiagnosticCodes.AuthenticationFailed or AuthenticationDiagnosticCodes.InvalidCertificate or AuthenticationDiagnosticCodes.InteractionRequired or AuthenticationDiagnosticCodes.AuthenticationTimeout => code,
+            or AuthenticationDiagnosticCodes.SynchronousCredentialsRequired or AuthenticationDiagnosticCodes.AuthenticationFailed or AuthenticationDiagnosticCodes.InvalidCertificate or AuthenticationDiagnosticCodes.InteractionRequired or AuthenticationDiagnosticCodes.AuthenticationTimeout or AuthenticationDiagnosticCodes.UnsupportedProviderVersion => code,
         _ => AuthenticationDiagnosticCodes.AuthenticationFailed
     };
     private static string MessageFor(string code) => KnownCode(code) switch
@@ -113,6 +115,7 @@ public sealed class ConnectionAuthenticationException : Exception
         AuthenticationDiagnosticCodes.InvalidCertificate => "The client certificate is unavailable or has no usable private key.",
         AuthenticationDiagnosticCodes.InteractionRequired => "Explicit user interaction is required for authentication.",
         AuthenticationDiagnosticCodes.AuthenticationTimeout => "The interactive authentication attempt timed out.",
+        AuthenticationDiagnosticCodes.UnsupportedProviderVersion => "This authentication method requires a newer native provider version.",
         _ => "Database authentication failed."
     };
 }

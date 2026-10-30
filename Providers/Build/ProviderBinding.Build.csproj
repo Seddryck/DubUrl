@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\DuckDb\DubUrl.Provider.DuckDb.Adbc\DubUrl.Provider.DuckDb.Adbc.csproj" Condition="'$(ConnectorTechnology)' == 'DuckDbAdbc'" />
     <ProjectReference Include="..\DuckDb\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
+    <ProjectReference Include="..\DuckDb\DubUrl.Provider.DuckDb.Native\DubUrl.Provider.DuckDb.Native.csproj" Condition="'$(ConnectorTechnology)' == 'DuckDb'" />
     <ProjectReference Include="..\SqlServer\DubUrl.Provider.SqlServer.SqlClient.BulkCopy\DubUrl.Provider.SqlServer.SqlClient.BulkCopy.csproj" Condition="'$(ConnectorTechnology)' == 'SqlClient'" />
     <ProjectReference Include="..\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" Condition="'$(ConnectorFamily)' == 'Access'" />
     <ProjectReference Include="..\Db2\DubUrl.Provider.Db2\DubUrl.Provider.Db2.csproj" Condition="'$(ConnectorFamily)' == 'Db2'" />

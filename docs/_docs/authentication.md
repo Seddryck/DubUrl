@@ -21,6 +21,7 @@ does not imply a lack of ordinary server-authenticated TLS; SQL Server is one ex
 | [Operating-system identity]({{ '/operating-system-authentication/' | relative_url }}) | Use the current OS identity, without a database password. | `ConnectionAuthentication.OperatingSystemIdentity()` |
 | [Client certificate]({{ '/client-certificate-authentication/' | relative_url }}) | Present a client certificate to the database over TLS. | `ConnectionAuthentication.ClientCertificate(...)` |
 | [Access token]({{ '/sqlserver-token-authentication/' | relative_url }}) | Present an identity-provider access token to the database. | `SqlServerAuthentication.TokenCallback(...)` |
+| [File password or encryption key]({{ '/file-password-authentication/' | relative_url }}) | Unlock an Access file or an [encrypted DuckDB file]({{ '/duckdb-encryption/' | relative_url }}). | `ConnectionAuthentication.FilePassword(...)` |
 
 Each method page lists database and Windows, Linux, and macOS support, prerequisites, and instructions for both interfaces.
 
