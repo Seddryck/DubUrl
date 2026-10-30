@@ -50,10 +50,12 @@ internal static class TransportEncryption
         Require(supplied, keyword, "yes", "true", "mandatory", "strict");
         Require(supplied, "TrustServerCertificate", "no", "false");
         Require(supplied, "Trust Server Certificate", "no", "false");
-        var encryptionValue = (odbc, driver) switch { (true, _) => "yes", (_, "MSOLEDBSQL19") => "Mandatory", _ => "True" };
-        if (!supplied.ContainsKey(keyword)) builder[keyword] = encryptionValue;
+        if (!supplied.ContainsKey(keyword)) builder[keyword] = SqlServerEncryptionValue(odbc, driver);
         builder[odbc ? "TrustServerCertificate" : "Trust Server Certificate"] = odbc ? "no" : "false";
     }
+
+    private static string SqlServerEncryptionValue(bool odbc, string driver)
+        => (odbc, driver) switch { (true, _) => "yes", (_, "MSOLEDBSQL19") => "Mandatory", _ => "True" };
 
     private static void ApplyPostgres(DbConnectionStringBuilder builder, DbConnectionStringBuilder supplied, ConnectionEncryption encryption)
     {

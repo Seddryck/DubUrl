@@ -163,7 +163,6 @@ public sealed class ConnectionConfigurationCapability
         if (builder.TryGetValue("Connection Reset", out var reset) && !Convert.ToBoolean(reset))
             throw new ArgumentException("Session time zones require native connection reset on pool checkout.");
     }
-
 }
 
 /// <summary>Declares mappings on a specific mapper/driver route. Deliberately not inherited.</summary>
