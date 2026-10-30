@@ -15,7 +15,7 @@ public sealed class CliCapabilities
     public IReadOnlyList<string> ConnectionCheckModes { get; } = ["connection", "engine", "table"];
     public IReadOnlyList<string> ConnectionOptions { get; } = CliConnectionOptions.Names;
     public IReadOnlyList<string> CredentialCommands { get; } = ["add", "remove", "exists"];
-    public IReadOnlyList<string> AuthenticationOptions { get; } = ["--password-prompt", "--credential-store", "--username", "--credential", "--os-identity", "--client-certificate", "--client-key", "--ca-certificate", "--certificate-password-prompt", "--certificate-credential-store", "--oauth", "--oauth-client-id", "--oauth-tenant", "--oauth-authority", "--oauth-scope", "--oauth-redirect-uri", "--oauth-login-hint", "--oauth-account", "--oauth-timeout", "--allow-oauth-interaction"];
+    public IReadOnlyList<string> AuthenticationOptions { get; } = ["--password-prompt", "--username", "--credential", "--os-identity", "--client-certificate", "--client-key", "--ca-certificate", "--certificate-password-prompt", "--certificate-credential", "--oauth", "--oauth-client-id", "--oauth-tenant", "--oauth-authority", "--oauth-scope", "--oauth-redirect-uri", "--oauth-login-hint", "--oauth-account", "--oauth-timeout", "--allow-oauth-interaction"];
     public IReadOnlyList<string> OAuthFlows { get; } = ["sqlserver:browser", "sqlserver:device-code", "snowflake:browser"];
     public IReadOnlyList<string> CredentialStoreBackends { get; } = ["windows-credential-manager", "macos-keychain", "linux-secret-service"];
     public bool DeploymentAvailable => DeployableSchemes.Count > 0;

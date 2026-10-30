@@ -17,9 +17,9 @@ Every existing provider QA fixture, including the Oracle and license-free Single
 | Missing / locked / unavailable controlled store (3) | Injected acquisition failures, safe JSON and no native connection. These do not prove real locked-store behavior. |
 | Rejected stored credentials, human / JSON output (2) | A unique nonexistent principal reaches the real database, fails authentication, disposes its native connection and does not expose the generated password. No shared QA login is deliberately locked out. |
 | Missing/unavailable real OS-store reference (1) | Production OS adapter, a unique nonexistent reference, safe failure and no connection creation. A missing backend is not a successful retrieval. |
-| Real Windows stored credential authentication (1) | Production CredReadW adapter and real database authentication using a temporary fixture-owned Credential Manager entry. |
+| Real Windows stored credential authentication (1) | Production CredOS adapter and real database authentication using a temporary fixture-owned Credential Manager entry. |
 | Real Windows secret preservation (1) | Production adapter round trip of special characters/trailing line terminators. This is an OS-store test, not a database login. |
-| Real Linux Secret Service authentication (1) | Production secret-tool adapter and real database authentication, only if an existing unlocked session is available. |
+| Real Linux Secret Service authentication (1) | Production CredOS adapter and real database authentication, only if an existing unlocked session is available. |
 | Real macOS Keychain authentication (1) | Explicit skip: existing QA has no macOS runner or isolated Keychain fixture. |
 | Real hidden-terminal login / Escape / schema deployment (3) | Actual CLI entry point and TerminalPasswordPrompt under a Linux pseudo-terminal, with initial terminal echo enabled. Successful input includes a backspace; output must not contain the password. Escape must return 130. Deployment uses a temporary schema file containing no credentials. |
 
@@ -27,9 +27,12 @@ All output checks use raw/encoded password comparisons without printing the expe
 
 ## Real backend safety and prerequisites
 
-The production credential-store adapter remains read-only. QA provisioning is separate: Windows writes one uniquely named generic entry with session-only persistence, reads that exact entry and removes it in `finally`. It never enumerates or reads existing user entries. Password bytes are passed in memory and the temporary unmanaged blob is zeroed. See [CREDENTIALW](https://learn.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credentialw).
-
-Linux provisioning uses `secret-tool store` with the password on stdin, only after checking for the existing utility, a session bus, a default collection and its unlocked state. Only the unique `service=duburl, entry=<fixture reference>` item is cleared. Tests do not install a keyring, start/unlock a user collection or change the session configuration. Missing prerequisites are explicit skips.
+QA provisions random fixture-owned named credentials through `INamedCredentialStore`,
+the same CredOS-backed interface used by the CLI. Windows and Linux lifecycle
+fixtures create one entry with `AddAsync`, resolve it with `--credential`, and
+remove it in async disposal. They contain no native credential-manager interop or
+password-bearing helper process. Missing or inaccessible native stores are explicit
+skips. Tests do not install, unlock or reconfigure the user's store.
 
 The Linux terminal fixture uses util-linux `script`, the existing QA runtime/dependency manifests and the actual CLI executable assembly. Passwords are sent only through the pseudo-terminal input stream; they are absent from command arguments, configuration, environment and files. The transcript file is `/dev/null`. Windows ConPTY/macOS native-terminal fixtures are not implemented, so their real hidden-input cases remain skipped. Controlled console interactivity is not evidence for those native terminals.
 
@@ -58,12 +61,12 @@ The Linux terminal fixture uses util-linux `script`, the existing QA runtime/dep
 | SingleStore | Native controlled prompt/store and real Linux terminal login/Escape | Upstream #1709 supplies a license-free fixture. A CLI deployment/dry-run recipe for this family is not yet enabled; ODBC fixtures remain ignored. |
 | Oracle | Native controlled prompt/store and real Linux terminal login/Escape | Upstream #1709 supplies the fixture; a CLI authentication deployment/dry-run recipe is not yet enabled. No native Secret Service pass is inferred from terminal login. |
 
-There is no macOS provider QA workflow. Native Keychain retrieval, real locked/unavailable-store UI behavior, Windows/macOS no-echo terminal behavior and backend helper-process cancellation are not inferred from controlled-adapter tests. These remain explicit verification gaps. No CI configuration is changed to manufacture a passing platform result.
+There is no macOS provider QA workflow. Native Keychain retrieval, real locked/unavailable-store UI behavior, Windows/macOS no-echo terminal behavior and native backend cancellation are not inferred from controlled-adapter tests. These remain explicit verification gaps. No CI configuration is changed to manufacture a passing platform result.
 
 ## Certificate CLI acceptance fixtures
 
 `CliCertificateTests` exercises parsing, shared Library mapping, hidden-prompt and fake OS-store sources, independent supplemental database credentials, dry runs, disposal, cancellation and safe errors. These tests do not claim live database authentication or native OS-store access.
 
-`CliCertificateLiveTests` is opt-in through fixture environment settings: `DUBURL_CLI_CERT_URL` (no password, CA or certificate options; disable pooling), `DUBURL_CLI_CERT_PEM`, `_KEY`, `_PFX`, `_P12`, and `_CA` (each suffix uses the `DUBURL_CLI_CERT` prefix). `_PASSWORD_REFERENCE` optionally selects an existing OS credential-store reference for encrypted bundles. Negative cases additionally require `_REJECTED_PEM`/`_REJECTED_KEY`, `_UNTRUSTED_CA`, or `_WRONG_HOST_URL`. Use a certificate-required isolated account and unencrypted PEM for the negative cases. Missing prerequisites are explicit skips. No machine configuration or external account is created by these tests.
+`CliCertificateLiveTests` is opt-in through fixture environment settings: `DUBURL_CLI_CERT_URL` (no password, CA or certificate options; disable pooling), `DUBURL_CLI_CERT_PEM`, `_KEY`, `_PFX`, `_P12`, and `_CA` (each suffix uses the `DUBURL_CLI_CERT` prefix). `_PASSWORD_REFERENCE` optionally selects an existing DubUrl named credential for encrypted bundles. Negative cases additionally require `_REJECTED_PEM`/`_REJECTED_KEY`, `_UNTRUSTED_CA`, or `_WRONG_HOST_URL`. Use a certificate-required isolated account and unencrypted PEM for the negative cases. Missing prerequisites are explicit skips. No machine configuration or external account is created by these tests.
 
 The Library's external `ClientCertificateLiveTests` uses `DUBURL_<DATABASE>_CERT_URL`, `_PEM`, `_KEY`, and `_CA` (POSTGRESQL, COCKROACHDB, TIMESCALEDB, MYSQL, MARIADB, SINGLESTORE). Supply CA trust separately from the URL. The existing isolated PostgreSQL provider QA also exercises PEM, encrypted PEM, PFX/P12, rejected identity, wrong CA, hostname mismatch, reopening, pool isolation and rotation. Its automatic Docker fixture requires the provisioned Linux runner; Windows/macOS skip that fixture.

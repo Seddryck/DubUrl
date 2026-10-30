@@ -10,10 +10,6 @@ public interface IHiddenPasswordPrompt
 {
     ValueTask<string> ReadAsync(CancellationToken cancellationToken = default);
 }
-public interface IOsCredentialStore
-{
-    ValueTask<UsernamePasswordCredentials> ReadAsync(string reference, CancellationToken cancellationToken = default);
-}
 
 internal sealed class CliAuthentication : IDisposable
 {
@@ -23,14 +19,13 @@ internal sealed class CliAuthentication : IDisposable
     private IDisposable? oauthLifetime;
     internal int AcquisitionTimeoutSeconds => oauth.AcquisitionTimeoutSeconds;
     private readonly Option<bool> prompt = new("--password-prompt") { Description = "Explicitly read a hidden password from the terminal." };
-    private readonly Option<string?> reference = new("--credential-store") { Description = "Read an existing OS credential-store entry by reference." };
     private readonly Option<string?> named = new("--credential") { Description = "Read a named credential saved with 'duburl credential add'." };
     private readonly Option<string?> username = new("--username") { Description = "Username for the selected external credential source." };
     private readonly Option<bool> osIdentity = new("--os-identity") { Description = "Use the current process identity or existing ticket cache through the selected driver." };
-    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); command.Options.Add(osIdentity); oauth.AddTo(command); certificate.AddTo(command); connectionOptions.AddTo(command); }
+    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(named); command.Options.Add(username); command.Options.Add(osIdentity); oauth.AddTo(command); certificate.AddTo(command); connectionOptions.AddTo(command); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
-        var password = new PasswordSelection(result.GetValue(prompt), result.GetValue(reference), result.GetValue(named), result.GetValue(username));
+        var password = new PasswordSelection(result.GetValue(prompt), result.GetValue(named), result.GetValue(username));
         var useOsIdentity = result.GetValue(osIdentity);
         var useCertificate = certificate.IsSelected(result);
         var useOAuth = oauth.IsSelected(result);
@@ -65,11 +60,11 @@ internal sealed class CliAuthentication : IDisposable
         return configured;
     }
 
-    private sealed record PasswordSelection(bool Prompt, string? Reference, string? Credential, string? Username)
+    private sealed record PasswordSelection(bool Prompt, string? Credential, string? Username)
     {
-        internal int Count => (Prompt ? 1 : 0) + (Reference is not null ? 1 : 0) + (Credential is not null ? 1 : 0);
+        internal int Count => (Prompt ? 1 : 0) + (Credential is not null ? 1 : 0);
         internal Source CreateSource(IServiceProvider services)
-            => new(services, Prompt, Reference ?? Credential, Username, Credential is not null);
+            => new(services, Prompt, Credential, Username);
     }
 
     private static void ValidateSelection(bool useOsIdentity, int passwordSources, string? user)
@@ -85,7 +80,7 @@ internal sealed class CliAuthentication : IDisposable
             or AuthenticationDiagnosticCodes.MissingCredentials or AuthenticationDiagnosticCodes.SynchronousCredentialsRequired
             ? CliExitCodes.InvalidInput : CliExitCodes.ConnectionCheckFailed;
 
-    private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username, bool named) : IUsernamePasswordCredentialSource
+    private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username) : IUsernamePasswordCredentialSource
     {
         public ValueTask<UsernamePasswordCredentials> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
             => prompt ? ResolvePromptAsync(context, cancellationToken) : ResolveStoredAsync(cancellationToken);
@@ -105,7 +100,7 @@ internal sealed class CliAuthentication : IDisposable
             UsernamePasswordCredentials stored;
             try
             {
-                IOsCredentialStore store = named ? services.GetRequiredService<INamedCredentialStore>() : services.GetRequiredService<IOsCredentialStore>();
+                var store = services.GetRequiredService<INamedCredentialStore>();
                 stored = await store.ReadAsync(selectedReference, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { throw; }

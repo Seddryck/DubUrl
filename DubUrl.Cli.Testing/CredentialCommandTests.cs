@@ -59,6 +59,17 @@ public class CredentialCommandTests
     }
 
     [Test]
+    public async Task OversizedUsernameIsRejectedBeforePromptOrStoreAccess()
+    {
+        var store = new MemoryStore();
+        var prompt = new TestPrompt();
+        var console = new TestConsole(interactive: true);
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, namedCredentialStore: store);
+        Assert.That(await CliHost.InvokeAsync(["credential", "add", "orders-dev", "--username", new string('u', 513)], services), Is.EqualTo(2));
+        Assert.That(prompt.Calls + store.Writes + store.Reads, Is.Zero);
+    }
+
+    [Test]
     public async Task PromptLimitIsValidatedBeforeCallingStore()
     {
         var store = new MemoryStore();
@@ -78,8 +89,28 @@ public class CredentialCommandTests
         using var result = System.Text.Json.JsonDocument.Parse(console.Output.ToString());
         Assert.That(result.RootElement.GetProperty("credentialCommands").EnumerateArray().Select(c => c.GetString()), Is.EqualTo(new[] { "add", "remove", "exists" }));
         Assert.That(result.RootElement.GetProperty("authenticationOptions").EnumerateArray().Select(c => c.GetString()), Does.Contain("--credential"));
+        Assert.That(result.RootElement.GetProperty("authenticationOptions").EnumerateArray().Select(c => c.GetString()), Does.Contain("--certificate-credential"));
+        Assert.That(result.RootElement.GetProperty("authenticationOptions").EnumerateArray().Select(c => c.GetString()), Does.Not.Contain("--credential-store"));
+        Assert.That(result.RootElement.GetProperty("authenticationOptions").EnumerateArray().Select(c => c.GetString()), Does.Not.Contain("--certificate-credential-store"));
         Assert.That(store.Calls, Is.Zero);
         AssertNoSecret(console);
+    }
+
+    [TestCase("connection", "--credential-store")]
+    [TestCase("schema", "--credential-store")]
+    [TestCase("connection", "--certificate-credential-store")]
+    [TestCase("schema", "--certificate-credential-store")]
+    public async Task RemovedStoreOptionsAreRejectedWithoutAcquiringSecrets(string command, string option)
+    {
+        var store = new MemoryStore();
+        var prompt = new TestPrompt();
+        var console = new TestConsole();
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, namedCredentialStore: store);
+        string[] arguments = command == "connection"
+            ? ["connection", "check", "trino://localhost/app", option, "legacy-entry"]
+            : ["schema", "deploy", "schema.json", "--connection", "development", option, "legacy-entry"];
+        Assert.That(await CliHost.InvokeAsync(arguments, services), Is.EqualTo(2));
+        Assert.That(store.Calls + prompt.Calls, Is.Zero);
     }
 
     [TestCase("../escape")]
@@ -199,7 +230,6 @@ public class CredentialCommandTests
     }
 
     [TestCase("--password-prompt")]
-    [TestCase("--credential-store", "legacy")]
     public async Task NamedCredentialConflictsWithOtherSources(params string[] extra)
     {
         var store = new MemoryStore();

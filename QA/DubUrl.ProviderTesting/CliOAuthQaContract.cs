@@ -27,7 +27,7 @@ public abstract class CliOAuthQaContract
             Is.EqualTo(supported ? "InteractionRequired" : "UnsupportedAuthentication"));
         Assert.That(harness.Observed.Connections.All(connection => !connection.OpenStarted), Is.True, "No interactive sign-in or database opening is authorized by ordinary QA.");
     }
-    [TestCase("--password-prompt"), TestCase("--credential-store", "entry"), Category("CliOAuthAuthentication")]
+    [TestCase("--password-prompt"), TestCase("--credential", "entry"), Category("CliOAuthAuthentication")]
     public async Task CliOAuthQa_CredentialConflictsDoNotAcquire(params string[] conflict)
     {
         var driver = OAuthDriver;

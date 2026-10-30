@@ -83,8 +83,8 @@ internal static class CredentialCommand
         string? username, bool stdin, bool replace, CancellationToken token)
     {
         var console = services.GetRequiredService<ICliConsole>();
-        if (string.IsNullOrWhiteSpace(username) || username.Length > 513 || username.Any(char.IsControl))
-            throw new ArgumentException("A nonempty username of up to 513 characters without control characters is required.");
+        if (string.IsNullOrWhiteSpace(username) || username.Length > 512 || username.Any(char.IsControl))
+            throw new ArgumentException("A nonempty username of up to 512 characters without control characters is required.");
         if (!stdin && !console.IsInteractive)
         {
             await console.Error.WriteLineAsync("Password input requires an interactive terminal. Use --password-stdin for automation.").ConfigureAwait(false);
@@ -95,7 +95,7 @@ internal static class CredentialCommand
         var password = stdin ? await ReadPasswordAsync(console.In, token).ConfigureAwait(false)
             : await services.GetRequiredService<IHiddenPasswordPrompt>().ReadAsync(token).ConfigureAwait(false);
         var credentials = new UsernamePasswordCredentials(username, password);
-        NamedCredentialStore.ValidateCredentials(credentials);
+        CredentialInput.ValidateCredentials(credentials);
         token.ThrowIfCancellationRequested();
         await store.AddAsync(name, credentials, replace, token).ConfigureAwait(false);
         return CliExitCodes.Success;

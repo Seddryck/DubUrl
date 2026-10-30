@@ -17,7 +17,7 @@ public class CliCertificateLiveTests
         var ca = Required("CA");
         string[] key = form == "PEM" ? ["--client-key", Required("KEY")] : [];
         var passwordReference = Environment.GetEnvironmentVariable("DUBURL_CLI_CERT_PASSWORD_REFERENCE");
-        string[] password = passwordReference is null ? [] : ["--certificate-credential-store", passwordReference];
+        string[] password = passwordReference is null ? [] : ["--certificate-credential", passwordReference];
         var exit = await Invoke(["connection", "check", url, "--client-certificate", path, .. key, "--ca-certificate", ca, .. password, "--engine", "--output-format", "json"]);
         Assert.That(exit, Is.Zero, "Live certificate login/query failed; private driver diagnostics are suppressed.");
     }

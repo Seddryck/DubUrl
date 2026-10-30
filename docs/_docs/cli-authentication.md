@@ -11,7 +11,7 @@ Choose a method for commands that connect to a database: `connection check`, `sc
 
 | Method | When to choose it | CLI selection |
 |---|---|---|
-| [Username and password]({{ '/username-password-authentication/' | relative_url }}) | Sign in with a database account and password. | `--password-prompt`, `--credential-store`, `--credential`, or a configured connection URL |
+| [Username and password]({{ '/username-password-authentication/' | relative_url }}) | Sign in with a database account and password. | `--password-prompt`, `--credential`, or a configured connection URL |
 | [Operating-system identity]({{ '/operating-system-authentication/' | relative_url }}) | Use the current OS identity, without a database password. | `--os-identity`; see method page |
 | [Client certificate]({{ '/client-certificate-authentication/' | relative_url }}) | Present a client certificate to the database over TLS. | `--client-certificate` with PEM key or PFX/P12; optional CA and separate decryption sources |
 | [Access token]({{ '/sqlserver-token-authentication/' | relative_url }}) | Present an identity-provider access token to the database. | No dedicated CLI selection |
@@ -35,4 +35,4 @@ See [Library authentication]({{ '/authentication/' | relative_url }}) for applic
 
 ## Client certificates
 
-Use `--client-certificate client.crt --client-key client.key` for PEM, or `--client-certificate client.pfx` (also `.p12`) for a bundle. Add `--ca-certificate server-ca.crt` for custom server trust; omission preserves normal trust and hostname verification. Encrypted keys/bundles use either `--certificate-password-prompt` or `--certificate-credential-store OS-reference`, independently of database `--password-prompt`/`--credential-store` options. See [complete examples and driver prerequisites]({{ '/client-certificate-authentication/' | relative_url }}).
+Use `--client-certificate client.crt --client-key client.key` for PEM, or `--client-certificate client.pfx` (also `.p12`) for a bundle. Add `--ca-certificate server-ca.crt` for custom server trust; omission preserves normal trust and hostname verification. Encrypted keys/bundles use either `--certificate-password-prompt` or `--certificate-credential name`, independently of database `--password-prompt`/`--credential` options. See [complete examples and driver prerequisites]({{ '/client-certificate-authentication/' | relative_url }}).

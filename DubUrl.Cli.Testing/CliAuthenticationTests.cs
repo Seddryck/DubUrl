@@ -45,7 +45,7 @@ public class CliAuthenticationTests
             => throw new OperationCanceledException(cancellationToken);
     }
     [TestCase("--password-prompt")]
-    [TestCase("--credential-store", "development")]
+    [TestCase("--credential", "development")]
     [TestCase("--os-identity")]
     public async Task DryRunNeverReadsSecrets(params string[] arguments)
     {
@@ -56,7 +56,7 @@ public class CliAuthenticationTests
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         { ["ConnectionStrings:test"] = "sqlite:///:memory:" }).Build();
         await using var services = CliComposition.CreateDefault(console, configuration,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, credentialStore: store);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, namedCredentialStore: store);
         var exit = await CliHost.InvokeAsync(["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--dry-run", .. arguments], services);
         Assert.That(exit, Is.Zero, console.Errors.ToString());
         Assert.That(prompt.Calls, Is.Zero);
@@ -64,12 +64,11 @@ public class CliAuthenticationTests
         Assert.That(console.Output.ToString() + console.Errors.ToString(), Does.Not.Contain("sentinel"));
     }
 
-    [TestCase("--password-prompt", "--credential-store", "development")]
+    [TestCase("--password-prompt", "--credential", "development")]
     [TestCase("--username", "alice")]
     [TestCase("--os-identity", "--password-prompt")]
-    [TestCase("--os-identity", "--credential-store", "development")]
-    [TestCase("--os-identity", "--username", "alice")]
     [TestCase("--os-identity", "--credential", "development")]
+    [TestCase("--os-identity", "--username", "alice")]
     [TestCase("--oauth", "browser", "--credential", "development")]
     [TestCase("--oauth", "device-code", "--os-identity")]
     public async Task ConflictsFailWithoutAcquisition(params string[] arguments)
@@ -78,7 +77,7 @@ public class CliAuthenticationTests
         var prompt = new CountingPrompt();
         var store = new CountingStore();
         var console = new RecordingConsole();
-        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, credentialStore: store);
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, namedCredentialStore: store);
         var exit = await CliHost.InvokeAsync(["connection", "check", "postgres://localhost/app", "--output-format", "json", .. arguments], services);
         Assert.That(exit, Is.EqualTo(2));
         Assert.That(prompt.Calls + store.Calls, Is.Zero);
@@ -92,9 +91,9 @@ public class CliAuthenticationTests
         var store = new CountingStore();
         var console = new RecordingConsole();
         await using var services = CliComposition.CreateDefault(console,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], credentialStore: store);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], namedCredentialStore: store);
         // NReco's Open only changes state; actual server authentication occurs when executing a query.
-        var exit = await CliHost.InvokeAsync(["connection", "check", "trino://localhost/pg/public?UseSsl=true", "--credential-store", "fixture", "--output-format", "json"], services);
+        var exit = await CliHost.InvokeAsync(["connection", "check", "trino://localhost/pg/public?UseSsl=true", "--credential", "fixture", "--output-format", "json"], services);
         Assert.That(exit, Is.Zero);
         Assert.That(store.Calls, Is.EqualTo(1));
         Assert.That(console.Output.ToString(), Does.Not.Contain("sentinel"));
@@ -108,7 +107,7 @@ public class CliAuthenticationTests
         var prompt = new CountingPrompt();
         var store = new CountingStore();
         await using var services = CliComposition.CreateDefault(console,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, credentialStore: store);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, namedCredentialStore: store);
         var capture = new IdentityCheck();
         var exit = await CliHost.InvokeAsync(["connection", "check", "mssql://db.example/app", "--os-identity", "--engine", "--output-format", format],
             new CheckServices(services, capture));
@@ -132,7 +131,7 @@ public class CliAuthenticationTests
         var console = new RecordingConsole();
         var prompt = new CountingPrompt();
         var store = new CountingStore();
-        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, credentialStore: store);
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, namedCredentialStore: store);
         var capture = new IdentityCheck();
         var exit = await CliHost.InvokeAsync(["connection", "check", url, "--os-identity", "--output-format", "json"], new CheckServices(services, capture));
         Assert.That(exit, Is.EqualTo(2));
@@ -148,7 +147,7 @@ public class CliAuthenticationTests
         var prompt = new CountingPrompt();
         var store = new CountingStore();
         await using var services = CliComposition.CreateDefault(console,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, credentialStore: store);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: prompt, namedCredentialStore: store);
         var exit = await CliHost.InvokeAsync(["connection", "check", "sqlite:///:memory:", "--os-identity", "--output-format", "json"], services);
         Assert.That(exit, Is.EqualTo(2));
         Assert.That(console.Output.ToString(), Does.Contain("UnsupportedAuthentication"));
@@ -181,8 +180,12 @@ public class CliAuthenticationTests
         public int Calls { get; private set; }
         public ValueTask<string> ReadAsync(CancellationToken cancellationToken = default) { Calls++; return new("sentinel"); }
     }
-    private sealed class CountingStore : IOsCredentialStore
+    private sealed class CountingStore : INamedCredentialStore
     {
+        public ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public ValueTask AddAsync(string name, UsernamePasswordCredentials credentials, bool replace, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public ValueTask RemoveAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
         public int Calls { get; private set; }
         public ValueTask<UsernamePasswordCredentials> ReadAsync(string reference, CancellationToken cancellationToken = default)
         { Calls++; return new(new UsernamePasswordCredentials("alice", "sentinel")); }
