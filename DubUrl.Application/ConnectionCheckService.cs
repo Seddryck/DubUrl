@@ -88,14 +88,17 @@ public sealed class ConnectionCheckService : IConnectionCheckService
                 databaseClock.Restart();
                 budget.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
             }
-            if (sql is not null) await ExecuteStatementAsync(connection, databaseClock).ConfigureAwait(false);
+            if (sql is not null) await ExecuteStatementAsync(connection, databaseClock, target.ConfiguredCommandTimeout).ConfigureAwait(false);
             budget.Token.ThrowIfCancellationRequested();
         }
-        private async Task ExecuteStatementAsync(DbConnection connection, Stopwatch databaseClock)
+        private async Task ExecuteStatementAsync(DbConnection connection, Stopwatch databaseClock, int? configuredTimeout)
         {
             using var command = connection.CreateCommand();
             command.CommandText = sql ?? throw new InvalidOperationException("No check statement was selected.");
-            command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - databaseClock.Elapsed.TotalSeconds));
+            var remaining = Math.Max(1, (int)Math.Ceiling(options.TimeoutSeconds - databaseClock.Elapsed.TotalSeconds));
+            // The overall check budget still bounds infinite native command defaults.
+            command.CommandTimeout = configuredTimeout is > 0
+                ? Math.Min(command.CommandTimeout, remaining) : remaining;
             executing = true;
             // Successful execution with zero rows is success. No alternate query follows.
             using var reader = await command.ExecuteReaderAsync(budget.Token).ConfigureAwait(false);

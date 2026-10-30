@@ -90,7 +90,8 @@ public class OptionalConnectionOptionsTest
             .WithApplicationName("Reporting").WithPooling(new() { Enabled = false })
             .WithConnectionTimeout(TimeSpan.FromSeconds(10)).WithCommandTimeout(TimeSpan.FromSeconds(20)));
         Assert.That(target.Parse(), Is.EqualTo(original));
-        Assert.That(target.SkippedOptions.Select(skip => skip.Option), Is.EquivalentTo(Enum.GetValues<ConnectionConfigurationOption>()));
+        Assert.That(target.SkippedOptions.Select(skip => skip.Option), Is.EquivalentTo(new[] { ConnectionConfigurationOption.ApplicationName,
+            ConnectionConfigurationOption.Pooling, ConnectionConfigurationOption.ConnectionTimeout, ConnectionConfigurationOption.CommandTimeout }));
         Assert.That(string.Join(" ", target.SkippedOptions), Does.Not.Contain("redaction-marker"));
     }
 

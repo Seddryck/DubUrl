@@ -31,6 +31,7 @@ internal class TeradataRewriter : ConnectionStringRewriter, DubUrl.Conversion.IR
                 new PortNumberMapper(),
                 new SingleSegmentTokenMapper(DATABASE_KEYWORD, EXCEPTION_DATABASE_NAME, required: false),
                 new AuthentificationMapper(),
+                new OptionsMapper(),
               ]
         )
     { }

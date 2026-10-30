@@ -12,6 +12,7 @@ namespace DubUrl.Provider.Odbc.Mapping;
 [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
     "System.Data.Odbc"
 )]
+[ConnectionConfiguration(Tls = "Odbc")]
 public class PostgresqlOdbcMapper : BaseMapper, IOdbcMapper
 {
     public PostgresqlOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, IEnumerable<Type> locatorOptions)

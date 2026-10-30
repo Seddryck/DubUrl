@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.Oracle.Metadata;
 using DubUrl.Provider.Oracle.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -15,6 +15,7 @@ namespace DubUrl.Provider.Oracle.Mapping;
 [Mapper<OracleDatabase, OracleParametrizer>(
     "Oracle.ManagedDataAccess"
 )]
+[ConnectionConfiguration(ApplicationName = "property:ModuleName", Pooling = "Pooling", MinPoolSize = "Min Pool Size", MaxPoolSize = "Max Pool Size", ConnectionTimeout = "Connection Timeout", MaxLifetime = "Connection Lifetime", TimeZone = "sql:oracle")]
 public class OracleManagedDataAccessMapper : BaseMapper
 {
     public OracleManagedDataAccessMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

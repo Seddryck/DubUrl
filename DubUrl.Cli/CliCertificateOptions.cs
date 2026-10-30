@@ -8,11 +8,10 @@ internal sealed class CliCertificateOptions : IDisposable
 {
     private readonly Option<string?> certificate = new("--client-certificate") { Description = "Client certificate: PEM with --client-key, or a PFX/P12 bundle." };
     private readonly Option<string?> key = new("--client-key") { Description = "Matching PEM private-key file." };
-    private readonly Option<string?> ca = new("--ca-certificate") { Description = "Optional PEM CA file for server verification; otherwise use normal trust." };
     private readonly Option<bool> prompt = new("--certificate-password-prompt") { Description = "Read a hidden key/bundle decryption password, separate from the database password." };
     private readonly Option<string?> store = new("--certificate-credential-store") { Description = "Read only the decryption password from an existing OS credential-store reference." };
     private CertificateOptions? lifetime;
-    private Option[] Options => [certificate, key, ca, prompt, store];
+    private Option[] Options => [certificate, key, prompt, store];
     internal void AddTo(Command command) { foreach (var option in Options) command.Options.Add(option); }
     internal bool IsSelected(ParseResult result)
     {
@@ -21,7 +20,7 @@ internal sealed class CliCertificateOptions : IDisposable
         if (!selected && Options.Skip(1).Any(option => result.GetResult(option) is { Implicit: false })) Conflict();
         return selected;
     }
-    internal ConnectionUrl Configure(IServiceProvider services, ParseResult result, ConnectionUrl target, IUsernamePasswordCredentialSource? supplemental)
+    internal ConnectionUrl Configure(IServiceProvider services, ParseResult result, ConnectionUrl target, IUsernamePasswordCredentialSource? supplemental, string? caPath)
     {
         var path = result.GetValue(certificate) ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         var keyPath = result.GetValue(key);
@@ -33,7 +32,7 @@ internal sealed class CliCertificateOptions : IDisposable
         if (bundle ? keyPath is not null : string.IsNullOrWhiteSpace(keyPath)) Conflict();
         var source = usePrompt || reference is not null ? new PasswordSource(services, usePrompt, reference) : null;
         lifetime = CreateOptions(path, keyPath, bundle, source, supplemental);
-        return target.WithAuthentication(ConnectionAuthentication.ClientCertificate(lifetime, result.GetValue(ca)));
+        return target.WithAuthentication(ConnectionAuthentication.ClientCertificate(lifetime, caPath));
     }
     private static CertificateOptions CreateOptions(string path, string? keyPath, bool bundle,
         IUsernamePasswordCredentialSource? decryption, IUsernamePasswordCredentialSource? supplemental)

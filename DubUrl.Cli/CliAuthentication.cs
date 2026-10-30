@@ -19,6 +19,7 @@ internal sealed class CliAuthentication : IDisposable
 {
     private readonly CliOAuthOptions oauth = new();
     private readonly CliCertificateOptions certificate = new();
+    private readonly CliConnectionOptions connectionOptions = new();
     private IDisposable? oauthLifetime;
     internal int AcquisitionTimeoutSeconds => oauth.AcquisitionTimeoutSeconds;
     private readonly Option<bool> prompt = new("--password-prompt") { Description = "Explicitly read a hidden password from the terminal." };
@@ -26,7 +27,7 @@ internal sealed class CliAuthentication : IDisposable
     private readonly Option<string?> named = new("--credential") { Description = "Read a named credential saved with 'duburl credential add'." };
     private readonly Option<string?> username = new("--username") { Description = "Username for the selected external credential source." };
     private readonly Option<bool> osIdentity = new("--os-identity") { Description = "Use the current process identity or existing ticket cache through the selected driver." };
-    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); command.Options.Add(osIdentity); oauth.AddTo(command); certificate.AddTo(command); }
+    public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); command.Options.Add(osIdentity); oauth.AddTo(command); certificate.AddTo(command); connectionOptions.AddTo(command); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
         var password = new PasswordSelection(result.GetValue(prompt), result.GetValue(reference), result.GetValue(named), result.GetValue(username));
@@ -39,12 +40,19 @@ internal sealed class CliAuthentication : IDisposable
         if (password.Credential is not null) password = password with { Credential = CredentialName.Normalize(password.Credential) };
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
         if (useOsIdentity) target = target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
-        if (useCertificate) target = certificate.Configure(services, result, target, password.Count > 0 ? password.CreateSource(services) : null);
+        if (useCertificate) target = certificate.Configure(services, result, target, password.Count > 0 ? password.CreateSource(services) : null, connectionOptions.CaPath(result));
         else if (password.Count > 0)
             target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(password.CreateSource(services)));
         if (useOAuth)
             target = ConfigureOAuth(services, result, target, password, useOsIdentity);
-        target.ValidateAuthentication();
+        try
+        {
+            target = connectionOptions.Configure(result, target);
+            target.ValidateAuthentication();
+            target.ValidateConfiguration();
+        }
+        catch (Exception error) when (error is ArgumentException or NotSupportedException)
+        { throw new CliOAuthInputException("Invalid or unsupported connection configuration. Check TLS verification conflicts, timeout ranges, pooling settings and provider support."); }
         return target;
     }
 
