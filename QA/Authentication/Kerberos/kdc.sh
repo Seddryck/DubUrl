@@ -35,7 +35,10 @@ for service in mariadb memsql mysql; do
   chown 999 "/realm/$host.keytab"
   chmod 400 "/realm/$host.keytab"
   openssl rand -base64 32 > "/realm/$host-root.secret"
-  if [[ "$host" = singlestore ]]; then chown 999 /realm/singlestore-root.secret; chmod 400 /realm/singlestore-root.secret; fi
+  if [[ "$host" = singlestore || "$host" = mariadb ]]; then
+    chown 999 "/realm/$host-root.secret"
+    chmod 400 "/realm/$host-root.secret"
+  fi
 done
 openssl req -x509 -newkey rsa:2048 -nodes -keyout /realm/ca.key -out /realm/ca.crt -days 1 -subj /CN=DubUrlKerberosFixtureCA >/dev/null 2>&1
 chmod 444 /realm/ca.crt

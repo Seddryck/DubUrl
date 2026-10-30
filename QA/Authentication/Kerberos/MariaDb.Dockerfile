@@ -6,4 +6,5 @@ RUN apt-get update \
 COPY krb5.conf /etc/krb5.conf
 COPY mariadb.sh /fixture/
 COPY mariadb.sql /docker-entrypoint-initdb.d/kerberos.sql
+USER mysql
 ENTRYPOINT ["bash", "/fixture/mariadb.sh"]
