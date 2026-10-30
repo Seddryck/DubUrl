@@ -7,7 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="../../DubUrl.Core/DubUrl.Core.csproj" />
     <ProjectReference Include="../../Providers/*/DubUrl.Provider.*/*.csproj"
-                      Exclude="../../Providers/*/*.QA/*.csproj;../../Providers/*/*.BulkCopy/*.csproj" />
+                      Exclude="../../Providers/*/*.QA/*.csproj;../../Providers/*/*.BulkCopy/*.csproj;../../Providers/*/*.Native/*.csproj" />
     <ProjectReference Include="../../DubUrl.OleDb/DubUrl.OleDb.csproj" />
   </ItemGroup>
 </Project>

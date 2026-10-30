@@ -20,6 +20,8 @@ dotnet add package Npgsql
 
 Install only the providers your application uses. For SQLite, the full `Microsoft.Data.Sqlite` package includes its default native SQLite bundle. `Microsoft.Data.Sqlite.Core` requires you to configure a compatible SQLitePCLRaw provider separately.
 
+Opening an [encrypted DuckDB file]({{ '/duckdb-encryption/' | relative_url }}) also requires `DubUrl.Provider.DuckDb.Native`. Installed native DuckDB connector archives supply this adapter automatically. The encryption guide lists the matching managed and native dependencies and the two supported key inputs.
+
 ## Register the provider factory
 
 Register each selected factory at application startup, before resolving its connection URL:

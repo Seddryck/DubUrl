@@ -21,9 +21,9 @@ public class ConnectionUrl : BaseConnectionUrl
     private ConnectionAuthentication? authentication;
     private ConnectionAuthentication RequiredAuthentication => authentication ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
     internal bool HasAuthentication => authentication is not null;
-    public override IDialect Dialect => HasAuthentication ? Registry.GetMapper(Parser.Parse(Url).Scheme).GetDialect() : base.Dialect;
-    public override IConnectivity Connectivity => HasAuthentication ? Registry.GetMapper(Parser.Parse(Url).Scheme).GetConnectivity() : base.Connectivity;
-    public override IParametrizer Parametrizer => HasAuthentication ? Registry.GetMapper(Parser.Parse(Url).Scheme).GetParametrizer() : base.Parametrizer;
+    public override IDialect Dialect => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme).GetDialect() : base.Dialect;
+    public override IConnectivity Connectivity => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme).GetConnectivity() : base.Connectivity;
+    public override IParametrizer Parametrizer => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme).GetParametrizer() : base.Parametrizer;
     public override DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider
     {
         get
@@ -36,7 +36,7 @@ public class ConnectionUrl : BaseConnectionUrl
     public ConnectionUrl WithAuthentication(ConnectionAuthentication strategy)
     {
         ArgumentNullException.ThrowIfNull(strategy);
-        return new ConnectionUrl(Url, Parser, Registry) { authentication = strategy, configuration = configuration, readOnly = readOnly };
+        return new ConnectionUrl(RawUrl, Parser, Registry) { authentication = strategy, configuration = configuration, readOnly = readOnly };
     }
 
     /// <summary>Validates strategy conflicts without retrieving credentials or creating a connection.</summary>
@@ -50,7 +50,7 @@ public class ConnectionUrl : BaseConnectionUrl
     public void ValidateConfiguration()
     {
         if (configuration.Length == 0 && !readOnly) return;
-        var uri = Parser.Parse(Url);
+        var uri = Parser.Parse(RawUrl);
         ValidateConfigurationSupport(uri);
         if (authentication is null) _ = Result;
     }
@@ -109,7 +109,7 @@ public class ConnectionUrl : BaseConnectionUrl
     /// <remarks>Strict and idempotent. Unsupported routes throw before creating a connection.
     /// Temporary objects, attached databases and external side effects follow native engine rules.</remarks>
     public ConnectionUrl WithReadOnly()
-        => new(Url, Parser, Registry) { authentication = authentication, configuration = configuration, readOnly = true };
+        => new(RawUrl, Parser, Registry) { authentication = authentication, configuration = configuration, readOnly = true };
 
     /// <summary>Skips unsupported settings only. Invalid values and provider failures still throw.</summary>
     public ConnectionUrl WithOptional(Action<OptionalConnectionOptions> configure)
@@ -124,10 +124,13 @@ public class ConnectionUrl : BaseConnectionUrl
         => WithRequests([new(option, value, false)]);
 
     private ConnectionUrl WithRequests(ConnectionConfigurationRequest[] requests)
-        => new(Url, Parser, Registry) { authentication = authentication, configuration = [.. configuration, .. requests], readOnly = readOnly };
+        => new(RawUrl, Parser, Registry) { authentication = authentication, configuration = [.. configuration, .. requests], readOnly = readOnly };
 
     protected override ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
     {
+        if (connectionUri.Options.Keys.Any(key => FileSecretConnectionCapability.IsOption(key, "ENCRYPTION_KEY"))
+            && !Registry.TryGetCapability<FileSecretConnectionCapability>(connectionUri.Scheme, out _))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
         return ApplyConfiguration(connectionUri, base.ResolveConnection(connectionUri));
     }
 
@@ -186,10 +189,9 @@ public class ConnectionUrl : BaseConnectionUrl
     public virtual IDbConnection Connect()
     {
         if (authentication is not null) return ConnectAuthenticated();
-        var connection = GetProviderFactory().CreateConnection() ?? throw new ArgumentNullException();
+        var connection = CreatePreparedConnection(Result, Parser.Parse(RawUrl));
         try
         {
-            connection.ConnectionString = Result.ConnectionString;
             if (readOnly && TryGetCapability<ReadOnlyConnectionCapability>(out var capability))
                 capability!.Configure(connection);
             ConfigureSession(connection);
@@ -214,7 +216,7 @@ public class ConnectionUrl : BaseConnectionUrl
         catch (Exception exception)
         {
             connection.Dispose();
-            if (authentication is not null && exception is not OperationCanceledException && !IsNativeTimeout(exception))
+            if (authentication is not null && exception is not (OperationCanceledException or ConnectionAuthenticationException) && !IsNativeTimeout(exception))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
             throw;
         }
@@ -334,12 +336,13 @@ public class ConnectionUrl : BaseConnectionUrl
 
     private (ConnectionUri Uri, AuthenticationContext Context) PrepareAuthentication()
     {
-        var uri = Parser.Parse(Url);
+        var uri = Parser.Parse(RawUrl);
         AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
         ValidateConfigurationSupport(uri);
         var provider = Registry.GetMapper(uri.Scheme).GetProviderName();
         var context = new AuthenticationContext(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
-            uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null);
+            uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null)
+        { SupportsFileSecretConnection = Registry.TryGetCapability<FileSecretConnectionCapability>(uri.Scheme, out _) };
         RequiredAuthentication.ValidateContext(context);
         RequiredAuthentication.ValidateConnectionConfiguration(
             configuration.LastOrDefault(r => r.Option == ConnectionConfigurationOption.Encryption)?.Value as ConnectionEncryption,
@@ -388,15 +391,28 @@ public class ConnectionUrl : BaseConnectionUrl
     {
         // This transient structured mapping is deliberately never stored in BaseConnectionUrl.Result.
         var resolved = ApplyConfiguration(uri, Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials, context)));
-        var connection = resolved.ProviderFactory.CreateConnection() ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+        var connection = CreatePreparedConnection(resolved, uri);
         try
         {
-            connection.ConnectionString = resolved.ConnectionString;
             if (readOnly && TryGetCapability<ReadOnlyConnectionCapability>(out var capability))
                 capability!.Configure(connection);
             ConfigureSession(connection);
             return connection;
         }
+        catch { connection.Dispose(); throw; }
+    }
+
+    private DbConnection CreatePreparedConnection(ResolvedConnection resolved, ConnectionUri uri)
+    {
+        if (Registry.TryGetCapability<FileSecretConnectionCapability>(uri.Scheme, out var capability) && capability is not null)
+        {
+            var credentials = FileSecretConnectionCapability.GetUrlCredentials(uri, capability.OptionName);
+            if (credentials is not null || authentication?.Kind == ConnectionAuthenticationKind.FileSecret)
+                return capability.Create(resolved.ProviderFactory, resolved.ConnectionString, credentials);
+        }
+        var connection = resolved.ProviderFactory.CreateConnection()
+            ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+        try { connection.ConnectionString = resolved.ConnectionString; return connection; }
         catch { connection.Dispose(); throw; }
     }
 }

@@ -11,8 +11,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Provider.DuckDb.Native.BulkCopy\DubUrl.Provider.DuckDb.Native.BulkCopy.csproj" />
+    <ProjectReference Include="..\DubUrl.Provider.DuckDb.Native\DubUrl.Provider.DuckDb.Native.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\..\..\DubUrl.Application\DubUrl.Application.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
   </ItemGroup>

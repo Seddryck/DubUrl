@@ -24,10 +24,23 @@ internal class DuckdbRewriter : ConnectionStringRewriter, DubUrl.Conversion.IRev
         : base(   new UniqueAssignmentSpecificator(csb),
                   [
                     new DataSourceMapper(rootPath, databaseKeyword),
-                    new OptionsMapper(),
+                    new EncryptionOptionsMapper(databaseKeyword == DATABASE_KEYWORD),
                   ]
         )
     { this.databaseKeyword = databaseKeyword; }
+
+    private sealed class EncryptionOptionsMapper(bool supportsEncryption) : OptionsMapper
+    {
+        public override void Execute(ConnectionUri uri)
+        {
+            var credentials = DubUrl.Authentication.FileSecretConnectionCapability.GetUrlCredentials(uri, "ENCRYPTION_KEY");
+            if (credentials is not null && !supportsEncryption)
+                throw new DubUrl.Authentication.ConnectionAuthenticationException(DubUrl.Authentication.AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            foreach (var option in uri.Options)
+                if (!DubUrl.Authentication.FileSecretConnectionCapability.IsOption(option.Key, "ENCRYPTION_KEY"))
+                    Specificator.Execute(option.Key, option.Value);
+        }
+    }
 
     internal class DataSourceMapper(string rootPath, string databaseKeyword = DATABASE_KEYWORD)
         : FilePathTokenMapper(databaseKeyword, rootPath, "DuckDB", ":memory:")

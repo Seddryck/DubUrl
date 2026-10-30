@@ -27,6 +27,7 @@ public record struct MapperInfo(
     public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
     public ConnectionConfigurationCapability? ConnectionConfiguration { get; init; }
     public ReadOnlyConnectionCapability? ReadOnlyConnection { get; init; }
+    public DubUrl.Authentication.FileSecretConnectionCapability? FileSecretConnection { get; init; }
 }
 
 /// <summary>A snapshot of an existing Database attribute and the type carrying it.</summary>

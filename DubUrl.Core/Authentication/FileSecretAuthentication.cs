@@ -25,7 +25,7 @@ public interface ISynchronousFileSecretCredentialSource : IFileSecretCredentialS
 
 public abstract partial class ConnectionAuthentication
 {
-    /// <summary>Unlocks an Access database through Windows ACE OLE DB. No database username is used.</summary>
+    /// <summary>Unlocks a database file through a supported file-secret adapter. No database username is used.</summary>
     public static ConnectionAuthentication FilePassword(string password)
         => FilePassword(new FixedFileSecretSource(new(password)));
 
@@ -43,6 +43,7 @@ public abstract partial class ConnectionAuthentication
     private sealed class FilePasswordAuthentication(IFileSecretCredentialSource source) : ConnectionAuthentication
     {
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.FileSecret;
+        public override void ValidateContext(AuthenticationContext context) => ValidateProvider(context);
 
         // Preflight runs before native mapping/creation, without acquiring a secret.
         public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
@@ -53,6 +54,7 @@ public abstract partial class ConnectionAuthentication
 
         private static void ValidateProvider(AuthenticationContext context)
         {
+            if (context.SupportsFileSecretConnection) return;
             var parts = context.Scheme.Split('+');
             if (!OperatingSystem.IsWindows() || context.ProviderInvariantName != "System.Data.OleDb"
                 || parts.Length != 2 || !parts.Contains("oledb", StringComparer.Ordinal)
@@ -62,6 +64,7 @@ public abstract partial class ConnectionAuthentication
 
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
+            if (ConfigureDeferred(connection, context)) return;
             var builder = Prepare(connection, context);
             if (source is not ISynchronousFileSecretCredentialSource synchronous)
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.SynchronousCredentialsRequired);
@@ -74,6 +77,7 @@ public abstract partial class ConnectionAuthentication
         public override async ValueTask ConfigureAsync(DbConnection connection, AuthenticationContext context, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (ConfigureDeferred(connection, context)) return;
             var builder = Prepare(connection, context);
             FileSecretCredentials credentials;
             try { credentials = await source.ResolveAsync(context, cancellationToken).ConfigureAwait(false); }
@@ -81,6 +85,16 @@ public abstract partial class ConnectionAuthentication
             catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed); }
             cancellationToken.ThrowIfCancellationRequested();
             Apply(connection, builder, credentials);
+        }
+
+        private bool ConfigureDeferred(DbConnection connection, AuthenticationContext context)
+        {
+            ValidateProvider(context);
+            if (!context.SupportsFileSecretConnection) return false;
+            if (connection is not IFileSecretConnection prepared || connection.State != ConnectionState.Closed)
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            prepared.ConfigureFileSecret(source, context);
+            return true;
         }
 
         private static DbConnectionStringBuilder Prepare(DbConnection connection, AuthenticationContext context)

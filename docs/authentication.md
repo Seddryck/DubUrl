@@ -1,8 +1,7 @@
 # Runtime authentication
 
-For protected Access files, use the separate [file-password method]({{ '/file-password-authentication/' | relative_url }}).
-It unlocks a database file without supplying a database-account username. Its shared
-file-secret source contract can support future encryption-key adapters.
+For protected Access and encrypted DuckDB files, use the separate [file-password method]({{ '/file-password-authentication/' | relative_url }}).
+It unlocks a database file without supplying a database-account username. The same source contract supplies DuckDB encryption keys.
 
 Keep database location and authentication separate:
 

@@ -79,3 +79,16 @@ Reference documentation: [IBM container setup](https://www.ibm.com/docs/en/db2/1
 [Oracle Free silent setup](https://docs.oracle.com/en/database/oracle/oracle-database/26/xeinw/installing-oracle-database-xe.html),
 [Oracle ODAC](https://www.oracle.com/database/technologies/net-downloads.html),
 [Microsoft OLE DB setup](https://learn.microsoft.com/en-us/sql/connect/oledb/applications/installing-oledb-driver-for-sql-server).
+## Encrypted DuckDB files
+
+The native DuckDB fixture creates a fresh encrypted database with a generated runtime key and removes it after each case. It uses DuckDB.NET/native DuckDB 1.5.6 from NuGet and needs no external database, CLI, or ODBC installation for this focused run:
+
+```powershell
+dotnet test Providers/DuckDb/DubUrl.Provider.DuckDb.QA/DubUrl.Provider.DuckDb.QA.csproj -c Release --filter 'FullyQualifiedName~EncryptedConnectionTests|FullyQualifiedName~ReadOnlyConnectionTests|FullyQualifiedName~QaManifestTests' --logger 'trx;LogFilePrefix=duckdb-native' --results-directory .test-results/encrypted-duckdb
+```
+
+The project runs on .NET 8, 9, and 10 by default. Windows x64 is verified. Use `-f net10.0` for one framework. The existing DuckDB CI workflow runs these cases with the provider suite. This command does not install or register machine-wide drivers.
+
+Coverage includes both key inputs, all caller/helper opening paths, state/events during native initialization, schema discovery, typed bulk copy in an isolated driver context, read-only access, source ownership and refresh, failure/cancellation cleanup, redaction, and native file-ownership restrictions. Binding tests establish that the encryption key can be a prepared parameter while the attachment path requires SQL literal escaping. See [encrypted DuckDB usage](../duckdb-encryption/) for prerequisites and native API limitations.
+
+The full ODBC provider suite, non-Windows live QA, and the complete connector archive matrix are separate checks. A native connector dependency publish and rewritten dependency-root check cover inclusion of the encrypted adapter; they do not claim full archive lifecycle validation.

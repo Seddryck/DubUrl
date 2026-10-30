@@ -103,8 +103,8 @@ public sealed class ConnectionUri : IEquatable<ConnectionUri>
 
     private static bool IsSensitiveOption(string key)
     {
-        var normalized = key.Replace(" ", "").Replace("_", "").Replace("-", "").ToLowerInvariant();
-        return normalized is "pwd" or "passwd"
+        var normalized = new string(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+        return normalized is "pwd" or "passwd" or "encryptionkey"
             || normalized.EndsWith("password", StringComparison.Ordinal)
             || normalized.EndsWith("token", StringComparison.Ordinal)
             || normalized.EndsWith("secret", StringComparison.Ordinal);
