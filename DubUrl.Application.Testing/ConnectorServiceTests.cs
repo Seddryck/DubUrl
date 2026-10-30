@@ -11,6 +11,52 @@ namespace DubUrl.Application.Testing;
 public class ConnectorServiceTests
 {
     [Test]
+    public async Task NonDefaultCatalog_InstallRetainsVerifiedProvenanceWhenSourceIsDisabledOrFails()
+    {
+        var root = CreateStorePath();
+        var path = root + ".json";
+        var package = CreatePackage("private-provider", "1.0.0");
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(new ProviderPackCatalogDocument(2,
+            [package.Entry with { Aliases = ["corp"], CatalogProvenance = new("forged", "forged", "0", null, null) }]),
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        await File.WriteAllBytesAsync(path, bytes);
+        var digest = Convert.ToHexString(SHA256.HashData(bytes));
+        using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri!));
+        var loader = new TrustedConnectorCatalogs(http);
+        var source = new ConnectorCatalogSource { Id = "enterprise", Uri = new Uri(path), Sha256 = digest };
+        var store = new ProviderPackStore(root);
+        try
+        {
+            var catalog = await loader.LoadAsync([source]);
+            var service = new ConnectorService(store, catalog, http);
+            var installed = await service.InstallAsync("CORP");
+            Assert.Multiple(() =>
+            {
+                Assert.That(installed.CatalogSource, Is.EqualTo("enterprise"));
+                Assert.That(installed.CatalogProvenance!.EntryId, Is.EqualTo("private-provider"));
+                Assert.That(installed.CatalogProvenance.CatalogSha256, Is.EqualTo(digest.ToLowerInvariant()));
+                Assert.That(installed.CatalogProvenance.ArchiveSha256, Is.EqualTo(package.Entry.Sha256));
+            });
+            File.Delete(path);
+            foreach (var unavailable in new[] { await loader.LoadAsync([source]), await loader.LoadAsync([]) })
+            {
+                var listed = new ConnectorService(new ProviderPackStore(root), unavailable, http).List().Single();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(listed.Active, Is.True);
+                    Assert.That(listed.Listed, Is.False);
+                    Assert.That(listed.CatalogProvenance, Is.EqualTo(installed.CatalogProvenance));
+                });
+            }
+        }
+        finally
+        {
+            File.Delete(path);
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
+    [Test]
     public async Task Offline_ApprovedArchive_InstallsAndReinstallsWithoutHttp()
     {
         var root = CreateStorePath();
@@ -466,12 +512,15 @@ public class ConnectorServiceTests
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
 
-    [Test]
-    public async Task Install_UnknownConnector_DoesNotDownload()
+    [TestCase("unknown")]
+    [TestCase("https://user:password@example.test/package.zip?token=secret")]
+    [TestCase("arbitrary-package-id")]
+    public async Task Install_UnknownConnector_DoesNotDownload(string requested)
     {
         var service = CreateService(CreateStorePath());
-        var exception = await Assert.ThrowsAsync<ConnectorOperationException>(async () => await service.InstallAsync("unknown"));
+        var exception = await Assert.ThrowsAsync<ConnectorOperationException>(async () => await service.InstallAsync(requested));
         Assert.That(exception!.Code, Is.EqualTo("connector-not-curated"));
+        Assert.That(exception.ToString(), Does.Not.Contain("password").And.Not.Contain("secret"));
     }
 
     [TestCase(false)]

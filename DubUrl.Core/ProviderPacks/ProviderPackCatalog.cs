@@ -52,6 +52,7 @@ public sealed class ProviderPackCatalog
     }
 
     public IReadOnlyCollection<ConnectorDefinition> Entries => _canonicalEntries;
+    public IReadOnlyList<ProviderPackDiagnostic> Diagnostics { get; init; } = [];
 
     public static ProviderPackCatalog Read(Stream stream)
     {

@@ -14,10 +14,15 @@ public sealed record CliProviderPack(
     bool Unhealthy,
     IReadOnlyList<string> Aliases,
     IReadOnlyList<string> Schemes,
-    IReadOnlyList<ProviderPackDiagnostic> Diagnostics);
+    IReadOnlyList<ProviderPackDiagnostic> Diagnostics)
+{
+    public ConnectorCatalogProvenance? CatalogProvenance { get; init; }
+    public string? CatalogSource => CatalogProvenance?.SourceId;
+}
 
 public interface IProviderPackService
 {
+    IReadOnlyList<ProviderPackDiagnostic> CatalogDiagnostics => [];
     IReadOnlyList<CliProviderPack> List();
     Task<CliProviderPack> InstallAsync(string connector, CancellationToken cancellationToken);
     Task<CliProviderPack> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken);
@@ -26,6 +31,7 @@ public interface IProviderPackService
 
 public sealed class ProviderPackService(IConnectorService connectors) : IProviderPackService
 {
+    public IReadOnlyList<ProviderPackDiagnostic> CatalogDiagnostics => connectors.CatalogDiagnostics;
     public IReadOnlyList<CliProviderPack> List()
     {
         try { return connectors.List().Select(ToCliPack).ToArray(); }
@@ -52,7 +58,7 @@ public sealed class ProviderPackService(IConnectorService connectors) : IProvide
 
     private static CliProviderPack ToCliPack(ConnectorInfo pack)
         => new(pack.Id, pack.Version, pack.Source, pack.State, pack.Listed, pack.Installed,
-            pack.Active, pack.Unhealthy, pack.Aliases, pack.Schemes, pack.Diagnostics);
+            pack.Active, pack.Unhealthy, pack.Aliases, pack.Schemes, pack.Diagnostics) { CatalogProvenance = pack.CatalogProvenance };
 
     private static ProviderPackCommandException ToCommandException(ConnectorOperationException exception)
         => new(exception.Code, exception.Message,

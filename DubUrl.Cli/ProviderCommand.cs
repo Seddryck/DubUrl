@@ -72,19 +72,23 @@ internal static class ConnectorCommand
         {
             var console = services.GetRequiredService<ICliConsole>();
             var connectors = services.GetRequiredService<IProviderPackService>().List();
+            var diagnostics = services.GetRequiredService<IProviderPackService>().CatalogDiagnostics;
             if (result.GetValue(json))
             {
                 console.Out.WriteLine(JsonSerializer.Serialize(new
                 {
                     command = "connector list",
                     connectors,
+                    diagnostics,
                 }, CliJson.Options));
             }
             else
             {
-                console.Out.WriteLine("ID\tVERSION\tSOURCE\tSTATE\tLISTED\tINSTALLED\tACTIVE\tUNHEALTHY\tALIASES");
+                foreach (var diagnostic in diagnostics)
+                    console.Error.WriteLine($"{diagnostic.Code}: {diagnostic.Message}");
+                console.Out.WriteLine("ID\tVERSION\tSOURCE\tSTATE\tLISTED\tINSTALLED\tACTIVE\tUNHEALTHY\tALIASES\tCATALOG");
                 foreach (var connector in connectors)
-                    console.Out.WriteLine($"{connector.Id}\t{connector.Version}\t{connector.Source}\t{connector.State}\t{connector.Listed}\t{connector.Installed}\t{connector.Active}\t{connector.Unhealthy}\t{string.Join(',', connector.Aliases)}");
+                    console.Out.WriteLine($"{connector.Id}\t{connector.Version}\t{connector.Source}\t{connector.State}\t{connector.Listed}\t{connector.Installed}\t{connector.Active}\t{connector.Unhealthy}\t{string.Join(',', connector.Aliases)}\t{connector.CatalogSource}");
             }
             return Task.FromResult(CliExitCodes.Success);
         }));
