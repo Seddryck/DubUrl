@@ -32,10 +32,14 @@ internal sealed class CliCertificateOptions : IDisposable
             || Path.GetExtension(path).Equals(".p12", StringComparison.OrdinalIgnoreCase);
         if (bundle ? keyPath is not null : string.IsNullOrWhiteSpace(keyPath)) Conflict();
         var source = usePrompt || reference is not null ? new PasswordSource(services, usePrompt, reference) : null;
-        lifetime = bundle ? new Pkcs12CertificateOptions(path) { DecryptionPasswordSource = source, SupplementalCredentials = supplemental }
-            : new X509CertificateOptions(path, keyPath ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict)) { DecryptionPasswordSource = source, SupplementalCredentials = supplemental };
+        lifetime = CreateOptions(path, keyPath, bundle, source, supplemental);
         return target.WithAuthentication(ConnectionAuthentication.ClientCertificate(lifetime, result.GetValue(ca)));
     }
+    private static CertificateOptions CreateOptions(string path, string? keyPath, bool bundle,
+        IUsernamePasswordCredentialSource? decryption, IUsernamePasswordCredentialSource? supplemental)
+        => bundle ? new Pkcs12CertificateOptions(path) { DecryptionPasswordSource = decryption, SupplementalCredentials = supplemental }
+            : new X509CertificateOptions(path, keyPath ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict))
+                { DecryptionPasswordSource = decryption, SupplementalCredentials = supplemental };
     public void Dispose() { lifetime?.Dispose(); lifetime = null; }
     private static void Conflict() => throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     private sealed class PasswordSource(IServiceProvider services, bool prompt, string? reference) : IUsernamePasswordCredentialSource
