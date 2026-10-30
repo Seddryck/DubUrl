@@ -10,6 +10,59 @@ namespace DubUrl.Cli.Testing;
 
 public class ConnectorCommandTests
 {
+    [TestCase(false, "healthy")]
+    [TestCase(true, "healthy")]
+    [TestCase(false, "disabled")]
+    [TestCase(true, "disabled")]
+    [TestCase(false, "missing")]
+    [TestCase(true, "missing")]
+    public async Task List_NamedSources_ReportsSourceAndSafeFailuresInTextAndJson(bool jsonOutput, string officialState)
+    {
+        var path = Path.GetTempFileName();
+        var entry = new ConnectorDefinition
+        {
+            Provider = "enterprise-pack", Version = "1.0.0", Aliases = ["corp"],
+            DownloadUri = new Uri("https://private.test/archive?token=secret"), Sha256 = new string('0', 64),
+            DubUrlApiRange = "*", Assembly = "fixture.dll", Driver = "Fixture", ImplementationAssemblies = ["fixture.dll"],
+            Databases = [new("Fixture", ["corp"])], TargetFrameworks = ["net10.0"], RuntimeIdentifiers = [],
+        };
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(new ProviderPackCatalogDocument(2, [entry]), new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        await File.WriteAllBytesAsync(path, bytes);
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ProviderPacks:StorePath"] = path + ".store",
+            ["ProviderPacks:OfficialEnabled"] = officialState == "disabled" ? "false" : "true",
+            ["ProviderPacks:CatalogPath"] = officialState == "missing" ? path + ".missing" : null,
+            ["ProviderPacks:Sources:0:Id"] = "enterprise",
+            ["ProviderPacks:Sources:0:Uri"] = new Uri(path).AbsoluteUri,
+            ["ProviderPacks:Sources:0:Sha256"] = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)),
+            ["ProviderPacks:Sources:1:Id"] = "unavailable",
+            ["ProviderPacks:Sources:1:Uri"] = "https://user:password@private.test/catalog?token=secret",
+            ["ProviderPacks:Sources:1:Sha256"] = new string('0', 64),
+        }).Build();
+        var console = new TestConsole();
+        try
+        {
+            await using var services = CliComposition.CreateDefault(console, configuration);
+            Assert.That(await CliHost.InvokeAsync(jsonOutput ? ["connector", "list", "--json"] : ["connector", "list"], services), Is.Zero);
+            var output = console.StandardOutput + console.StandardError;
+            Assert.Multiple(() =>
+            {
+                Assert.That(output, Does.Contain("enterprise-pack").And.Contain("enterprise").And.Contain("unavailable"));
+                Assert.That(output, Does.Not.Contain("private.test").And.Not.Contain("secret").And.Not.Contain("password"));
+                if (officialState == "healthy") Assert.That(output, Does.Contain("postgresql-npgsql").And.Contain("official"));
+                else Assert.That(output, Does.Not.Contain("postgresql-npgsql"));
+            });
+            if (jsonOutput)
+            {
+                using var document = JsonDocument.Parse(console.StandardOutput);
+                var connector = document.RootElement.GetProperty("connectors").EnumerateArray().Single(item => item.GetProperty("id").GetString() == "enterprise-pack");
+                Assert.That(connector.GetProperty("catalogSource").GetString(), Is.EqualTo("enterprise"));
+            }
+        }
+        finally { File.Delete(path); }
+    }
+
     [Test]
     public async Task Mirror_PinnedSelection_WritesValidatedCatalogAndImmutableArchive()
     {
@@ -68,14 +121,23 @@ public class ConnectorCommandTests
     }
 
     [Test]
-    public void List_ExplicitMissingCatalog_FailsWithoutBundledFallback()
+    public async Task List_ExplicitMissingCatalog_ReportsSourceFailureWithoutBundledFallback()
     {
+        var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["ProviderPacks:CatalogPath"] = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json"),
+            ["ProviderPacks:StorePath"] = root,
+            ["ProviderPacks:CatalogPath"] = root + ".json",
         }).Build();
-        var exception = Assert.Throws<ConnectorOperationException>(() => CliComposition.CreateDefault(new TestConsole(), configuration));
-        Assert.That(exception!.Code, Is.EqualTo("connector-catalog-missing"));
+        var console = new TestConsole();
+        await using var services = CliComposition.CreateDefault(console, configuration);
+        Assert.That(await CliHost.InvokeAsync(["connector", "list", "--json"], services), Is.Zero);
+        using var document = JsonDocument.Parse(console.StandardOutput);
+        Assert.Multiple(() =>
+        {
+            Assert.That(document.RootElement.GetProperty("connectors").GetArrayLength(), Is.Zero);
+            Assert.That(document.RootElement.GetProperty("diagnostics")[0].GetProperty("code").GetString(), Is.EqualTo("connector-source-unavailable"));
+        });
     }
 
     [Test]

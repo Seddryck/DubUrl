@@ -117,6 +117,7 @@ public sealed class ProviderPackStore
             }
 
             ValidateManifest(manifest, catalogEntry);
+            manifest = manifest with { CatalogProvenance = catalogEntry.CatalogProvenance };
             var contentRoot = Path.Combine(stagingRoot, "content");
             Directory.CreateDirectory(contentRoot);
             await ExtractArchiveAsync(package, contentRoot, cancellationToken).ConfigureAwait(false);

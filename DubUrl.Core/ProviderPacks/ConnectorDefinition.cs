@@ -8,6 +8,9 @@ public sealed record ConnectorDefinition
     public const string FileName = "provider-pack.json";
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ConnectorCatalogProvenance? CatalogProvenance { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Uri? DownloadUri { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Sha256 { get; init; }
@@ -57,3 +60,7 @@ public sealed record ConnectorDefinition
 }
 
 public sealed record ConnectorDatabase(string Name, IReadOnlyList<string> Schemes);
+
+/// <summary>Installation origin without catalog locations or authentication material.</summary>
+public sealed record ConnectorCatalogProvenance(
+    string SourceId, string EntryId, string EntryVersion, string? CatalogSha256, string? ArchiveSha256);

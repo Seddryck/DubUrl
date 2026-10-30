@@ -13,13 +13,18 @@ public sealed record ConnectorInfo(
     bool Unhealthy,
     IReadOnlyList<string> Aliases,
     IReadOnlyList<string> Schemes,
-    IReadOnlyList<ProviderPackDiagnostic> Diagnostics);
+    IReadOnlyList<ProviderPackDiagnostic> Diagnostics)
+{
+    public ConnectorCatalogProvenance? CatalogProvenance { get; init; }
+    public string? CatalogSource => CatalogProvenance?.SourceId;
+}
 
 /// <summary>Manages connectors from a host-supplied curated catalog and provider store.</summary>
 /// <remarks>The host owns the HTTP client. Installation does not load modules into the current process.
 /// Cancellation throws OperationCanceledException with the supplied token.</remarks>
 public interface IConnectorService
 {
+    IReadOnlyList<ProviderPackDiagnostic> CatalogDiagnostics => [];
     IReadOnlyList<ConnectorInfo> List();
     Task<ConnectorInfo> InstallAsync(string connector, CancellationToken cancellationToken = default);
     Task<ConnectorInfo> InstallOfflineAsync(string connector, string archivePath, CancellationToken cancellationToken = default);
@@ -31,6 +36,7 @@ public sealed class ConnectorService(
     ProviderPackCatalog catalog,
     HttpClient httpClient) : IConnectorService
 {
+    public IReadOnlyList<ProviderPackDiagnostic> CatalogDiagnostics => catalog.Diagnostics;
     public ConnectorService(ProviderPackStore store, HttpClient httpClient)
         : this(store, BundledProviderCatalog.Create(), httpClient) { }
 
@@ -63,7 +69,7 @@ public sealed class ConnectorService(
                 false,
                 entry.Aliases ?? [],
                 entry.Schemes ?? [],
-                []));
+                []) { CatalogProvenance = entry.CatalogProvenance });
         return installed.Concat(available)
             .OrderBy(connector => connector.Id, StringComparer.OrdinalIgnoreCase)
             .ThenBy(connector => connector.Source, StringComparer.Ordinal)
@@ -89,7 +95,7 @@ public sealed class ConnectorService(
         if (!catalog.TryGet(connector, out var entry))
             throw new ConnectorOperationException(
                 "connector-not-curated",
-                $"Connector '{connector}' is not available in the curated catalog.");
+                "The requested connector is not available in the curated catalog.");
         if (entry is null)
             throw new InvalidOperationException("The connector catalog returned an empty entry.");
 
@@ -184,7 +190,7 @@ public sealed class ConnectorService(
             unhealthy,
             catalogEntry?.Aliases ?? [],
             pack.Manifest.Schemes,
-            pack.Diagnostics);
+            pack.Diagnostics) { CatalogProvenance = pack.Manifest.CatalogProvenance };
     }
 
     private static string GetState(bool active, bool unhealthy)

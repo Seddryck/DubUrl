@@ -78,11 +78,30 @@ public static class CliComposition
             var httpClient = new HttpClient();
             services.AddSingleton(httpClient);
             services.AddSingleton(store);
-            services.AddSingleton(CreateProviderPackCatalog(configuration));
+            services.AddSingleton(_ => CreateTrustedCatalog(configuration, httpClient).GetAwaiter().GetResult());
             services.AddSingleton<IConnectorService, ConnectorService>();
             services.AddSingleton<IProviderPackService, ProviderPackService>();
         }
         return services.BuildServiceProvider();
+    }
+
+    private static Task<ProviderPackCatalog> CreateTrustedCatalog(IConfiguration configuration, HttpClient httpClient)
+    {
+        ProviderPackCatalog? official = null;
+        if (configuration.GetValue("ProviderPacks:OfficialEnabled", true))
+        {
+            try { official = CreateProviderPackCatalog(configuration); }
+            catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException
+                or System.Text.Json.JsonException or ArgumentException or ConnectorOperationException)
+            {
+                // An explicitly configured snapshot never falls back to a different catalog.
+                official = new ProviderPackCatalog([])
+                {
+                    Diagnostics = [new("connector-source-unavailable", "Catalog source 'official' could not be loaded or verified.")],
+                };
+            }
+        }
+        return new TrustedConnectorCatalogs(httpClient).LoadAsync(ReadCatalogSources(configuration), official);
     }
 
     private static ProviderPackCatalog CreateProviderPackCatalog(IConfiguration configuration)
@@ -102,6 +121,22 @@ public static class CliComposition
         return entries.Count == 0 && !File.Exists(catalogPath)
             ? BundledProviderCatalog.Create()
             : new(entries);
+    }
+
+    private static IEnumerable<ConnectorCatalogSource> ReadCatalogSources(IConfiguration configuration)
+    {
+        foreach (var section in configuration.GetSection("ProviderPacks:Sources").GetChildren())
+        {
+            // Invalid locations produce a safe per-source failure without echoing configuration values.
+            yield return new ConnectorCatalogSource
+            {
+                Id = section["Id"] ?? string.Empty,
+                Uri = Uri.TryCreate(section["Uri"], UriKind.Absolute, out var uri) ? uri : new Uri("invalid", UriKind.Relative),
+                Sha256 = section["Sha256"] ?? string.Empty,
+                Enabled = section.GetValue("Enabled", true),
+                BearerTokenEnvironmentVariable = section["BearerTokenEnvironmentVariable"],
+            };
+        }
     }
 
     private static IEnumerable<ConnectorDefinition> ReadConfiguredEntries(IConfiguration configuration)

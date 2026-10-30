@@ -127,6 +127,67 @@ new-process activation, and uninstallation. `ProviderPacks:CatalogPath` selects 
 accepts canonical IDs and aliases from these curated entries only and never accepts an arbitrary URL, feed,
 or package ID.
 
+## Additional trusted catalogs
+
+Administrators can add named sources in `appsettings.json` or equivalent configuration. The official
+catalog stays enabled by default, alongside these sources. `ProviderPacks:OfficialEnabled: false`
+disables it explicitly. The existing `CatalogPath` and inline `Catalog` settings still configure the
+official distributor snapshot; protect those local files and configuration with deployment permissions.
+The bundled definitions are trusted as part of the application distribution.
+
+```json
+{
+  "ProviderPacks": {
+    "OfficialEnabled": true,
+    "Sources": [
+      {
+        "Id": "enterprise",
+        "Uri": "https://connectors.example.org/catalog.json",
+        "Enabled": true,
+        "Sha256": "<64 hexadecimal characters supplied by your administrator>",
+        "BearerTokenEnvironmentVariable": "CORPORATE_CONNECTOR_CATALOG_TOKEN"
+      }
+    ]
+  }
+}
+```
+
+Each source has a stable, case-insensitively unique ID containing letters, numbers, dots, underscores,
+or hyphens (maximum 128 characters; first character alphanumeric). `official` is reserved.
+`Enabled` defaults to true. `Uri` must be an absolute HTTPS URL or a `file:` URI to a managed local
+snapshot. Obtain the catalog SHA-256 through a trusted, independent deployment channel and update
+the pin deliberately when approving a new snapshot. The loader verifies the exact document bytes
+before parsing; schema and distribution metadata are then validated. Every archive must have an
+HTTPS location and its own SHA-256 digest, which installation verifies before extraction.
+
+HTTPS uses the operating system's certificate validation. Optional bearer authentication reads the
+named process environment variable at load time; missing credentials fail that source. The bearer
+header applies only to the catalog request and is never put on the shared HTTP client's default
+headers or passed to archive downloads. Archives must be accessible independently, for example
+through approved signed URLs. URL user-info authentication is rejected. Query strings may carry
+authentication, but locations, queries, credential variable names, tokens, and underlying transport
+exceptions are excluded from command output and persisted provenance. Store tokens outside source
+control. Application hosts own their HTTP client, including redirect and logging policy.
+
+Sources and entries are merged in stable ordinal order. Canonical IDs and aliases share one
+case-insensitive namespace across all enabled, successfully verified catalogs. A collision fails the
+merge with `connector-catalog-collision`, naming both source IDs; configuration order never selects a
+winner. An inaccessible, malformed, or unverified source contributes no entries and reports
+`connector-source-unavailable`. Healthy sources remain usable. Source loading is deferred until
+connector management is requested, so catalog availability does not affect installed module loading.
+
+`duburl connector list` includes a `CATALOG` column; `--json` includes `catalogSource`,
+`catalogProvenance`, and top-level source `diagnostics`. Installed entries retain their source ID,
+canonical entry ID/version, catalog digest (for pinned sources), and archive digest in their local
+manifest, even after a source fails or is disabled. No catalog or download URL is part of provenance.
+Existing installations without provenance remain readable. Source selection and arbitrary URLs are
+not install arguments: `connector install` still accepts only an ID or alias in the effective catalog,
+including when using `--archive` for offline installation.
+
+Application hosts can call `TrustedConnectorCatalogs.LoadAsync(sources, officialCatalog, token)` to
+obtain the same merged `ProviderPackCatalog`, then pass it to `ConnectorService`. Inspect
+`IConnectorService.CatalogDiagnostics` for safe per-source failures.
+
 ## In-process host management
 
 `DubUrl.Application` exposes `IConnectorService` and its `ConnectorService` implementation. Hosts supply
