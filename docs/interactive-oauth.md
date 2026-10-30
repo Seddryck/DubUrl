@@ -297,7 +297,7 @@ A fresh Snowflake connection can require another browser sign-in. The native bro
 
 Use the same CLI options on `schema deploy` and `schema inspect`. Browser sign-in needs a browser on the client and an available loopback port. For a human-operated command with redirected input/output, explicitly add `--allow-oauth-interaction`; `--yes` does not enable sign-in. For a host without a local browser, use [Device-code sign-in (OAuth)]({{ '/device-code-authentication/' | relative_url }}) where supported.
 
-`--oauth-timeout <seconds>` sets the sign-in budget (default 120, range 1–3600). For connection checks, `--timeout` separately governs the database operation; allow enough native connection time for sign-in. Do not combine OAuth with URL credentials, `--username`, `--password-prompt`, or `--credential-store`.
+`--oauth-timeout <seconds>` sets the sign-in budget (default 120, range 1–3600). For connection checks, `--timeout` separately governs the database operation; allow enough native connection time for sign-in. Do not combine OAuth with URL credentials, `--username`, `--password-prompt`, or `--credential`.
 
 Optional identity defaults use `Authentication:OAuth` configuration. Environment variables use `DUBURL_Authentication__OAuth__` followed by `ClientId`, `Tenant` or `Authority`, `RedirectUri`, `Scopes` (space-separated), `LoginHint`, `Account`, or `TimeoutSeconds`. CLI options override their matching setting. `--oauth-login-hint` suggests a user account; it does not change database authorization. Always select `--oauth browser` explicitly.
 

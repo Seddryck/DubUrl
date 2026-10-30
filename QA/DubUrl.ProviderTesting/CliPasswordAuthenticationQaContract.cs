@@ -33,7 +33,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         driver.RequirePasswordAuthentication();
         var adapters = new CliPasswordQaAdapters(driver.Credentials);
         await using var harness = new CliPasswordQaHarness(driver, adapters);
-        var result = await harness.CheckAsync(["--credential-store", "fixture-entry", "--engine"], selector: selector);
+        var result = await harness.CheckAsync(["--credential", "fixture-entry", "--engine"], selector: selector);
         AssertSuccess(result, driver);
         Assert.That(adapters.StoreCalls, Is.EqualTo(1));
         Assert.That(adapters.PromptCalls, Is.Zero);
@@ -83,7 +83,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         await using var harness = new CliPasswordQaHarness(driver, adapters, interactive: true, location: location);
         string[] options = conflict switch
         {
-            "sources" => ["--password-prompt", "--credential-store", "fixture-entry", "--username", "qa"],
+            "sources" => ["--password-prompt", "--credential", "fixture-entry", "--username", "qa"],
             "username-alone" => ["--username", "qa"],
             _ => ["--password-prompt", "--username", "qa"]
         };
@@ -103,7 +103,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         var location = identity == "url" ? UsernameLocation(driver, "qa-mismatched-user") : null;
         await using var harness = new CliPasswordQaHarness(driver, adapters, location: location);
         string[] user = identity == "option" ? ["--username", "qa-mismatched-user"] : [];
-        var result = await harness.CheckAsync(["--credential-store", "fixture-entry", .. user]);
+        var result = await harness.CheckAsync(["--credential", "fixture-entry", .. user]);
         Assert.That(result.ExitCode, Is.EqualTo(2));
         result.AssertSafe(driver.Uri.Password);
         Assert.That(adapters.StoreCalls, Is.EqualTo(1));
@@ -167,7 +167,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         driver.RequireStrategy();
         var adapters = new CliPasswordQaAdapters(driver.Credentials) { Failure = failure };
         await using var harness = new CliPasswordQaHarness(driver, adapters);
-        var result = await harness.CheckAsync(["--credential-store", "fixture-entry"]);
+        var result = await harness.CheckAsync(["--credential", "fixture-entry"]);
         Assert.That(result.ExitCode, Is.EqualTo(5));
         result.AssertJson(false);
         result.AssertSafe("qa-sensitive-store-sentinel");
@@ -184,7 +184,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         var password = Guid.NewGuid().ToString("N") + "!Aa1";
         var adapters = new CliPasswordQaAdapters(new("qa_absent_" + Guid.NewGuid().ToString("N")[..12], password));
         await using var harness = new CliPasswordQaHarness(driver, adapters);
-        var result = await harness.CheckAsync(["--credential-store", "fixture-entry", "--engine"], json: json);
+        var result = await harness.CheckAsync(["--credential", "fixture-entry", "--engine"], json: json);
         Assert.That(result.ExitCode, Is.EqualTo(5));
         result.AssertSafe(password);
         if (json) result.AssertJson(false);
@@ -198,7 +198,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         var driver = Driver;
         driver.RequireStrategy();
         await using var harness = new CliPasswordQaHarness(driver);
-        var result = await harness.CheckAsync(["--credential-store", "DubUrl-QA-absent-" + Guid.NewGuid().ToString("N"), "--username", driver.Uri.Username]);
+        var result = await harness.CheckAsync(["--credential", "DubUrl-QA-absent-" + Guid.NewGuid().ToString("N"), "--username", driver.Uri.Username]);
         Assert.That(result.ExitCode, Is.EqualTo(5));
         result.AssertJson(false);
         result.AssertSafe(driver.Uri.Password);
@@ -210,9 +210,9 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
     {
         var driver = Driver;
         driver.RequirePasswordAuthentication();
-        await using var entry = CliPasswordQaNativeStore.CreateWindows(driver.Credentials);
+        await using var entry = await CliPasswordQaNativeStore.CreateWindowsAsync(driver.Credentials);
         await using var harness = new CliPasswordQaHarness(driver);
-        var result = await harness.CheckAsync(["--credential-store", entry.Reference, "--engine"]);
+        var result = await harness.CheckAsync(["--credential", entry.Reference, "--engine"]);
         AssertSuccess(result, driver);
         AssertOpenedAndDisposed(harness);
     }
@@ -222,7 +222,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
     {
         var driver = Driver;
         var secret = "qa_" + Guid.NewGuid().ToString("N") + "=+ ;\r\n\n";
-        await using var entry = CliPasswordQaNativeStore.CreateWindows(new("qa-user", secret));
+        await using var entry = await CliPasswordQaNativeStore.CreateWindowsAsync(new("qa-user", secret));
         await using var harness = new CliPasswordQaHarness(driver);
         var resolved = await harness.NativeStore.ReadAsync(entry.Reference);
         Assert.That(resolved.Username == "qa-user", Is.True);
@@ -237,7 +237,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
         driver.RequirePasswordAuthentication();
         await using var entry = await CliPasswordQaNativeStore.CreateLinuxAsync(driver.Credentials);
         await using var harness = new CliPasswordQaHarness(driver);
-        var result = await harness.CheckAsync(["--credential-store", entry.Reference, "--username", driver.Uri.Username, "--engine"]);
+        var result = await harness.CheckAsync(["--credential", entry.Reference, "--username", driver.Uri.Username, "--engine"]);
         AssertSuccess(result, driver);
         AssertOpenedAndDisposed(harness);
     }
@@ -279,7 +279,7 @@ public abstract class CliPasswordAuthenticationQaContract : TokenAuthenticationQ
 
     private static string[] SourceOptions(PasswordQaDriver driver, string source) => source == "prompt"
         ? ["--password-prompt", "--username", driver.Uri.Username]
-        : ["--credential-store", "fixture-entry"];
+        : ["--credential", "fixture-entry"];
     private static string UsernameLocation(PasswordQaDriver driver, string username)
         => AddUserInfo(driver.WithOptions(false), Uri.EscapeDataString(username));
     private static string AddUserInfo(string location, string userInfo)

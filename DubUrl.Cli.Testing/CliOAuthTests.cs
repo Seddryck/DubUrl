@@ -51,7 +51,7 @@ public class CliOAuthTests
         Assert.That(qa.Factory.Created, Is.Empty);
         Assert.That(qa.Observed.Connections, Is.Empty);
     }
-    [TestCase("--password-prompt"), TestCase("--credential-store", "entry"), TestCase("--username", "alice")]
+    [TestCase("--password-prompt"), TestCase("--credential", "entry"), TestCase("--username", "alice")]
     [TestCase("--credential", "entry"), TestCase("--os-identity")]
     public async Task ConflictingCredentialSourcesFailBeforeCreation(params string[] conflict)
     {

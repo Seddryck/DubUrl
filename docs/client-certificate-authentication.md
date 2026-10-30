@@ -87,15 +87,15 @@ Certificate selection uses the same Library strategy for `connection check`, `sc
 ```shell
 duburl connection check 'postgres://alice@db.example.com/app' --client-certificate client.crt --client-key client.key --ca-certificate server-ca.crt --engine
 duburl connection check 'postgres://alice@db.example.com/app' --client-certificate client.pfx --certificate-password-prompt --engine
-duburl connection check 'postgres://alice@db.example.com/app' --client-certificate client.p12 --certificate-credential-store database-client-certificate --engine
+duburl connection check 'postgres://alice@db.example.com/app' --client-certificate client.p12 --certificate-credential database-client-certificate --engine
 duburl schema deploy schema.json --connection production --client-certificate client.crt --client-key client.key --ca-certificate server-ca.crt
 ```
 
-Use `--certificate-password-prompt` for an encrypted PEM key or bundle. The prompt is hidden and requires an interactive terminal; cancellation returns exit code 130. For headless execution, `--certificate-credential-store` reads an existing Windows Credential Manager, Linux Secret Service or macOS Keychain entry by its OS reference. Its stored username is ignored. See [OS credential-store setup and access requirements]({{ '/cli-authentication/' | relative_url }}) for creating entries and unlocking the appropriate user session/keychain. Denied access, missing entries and invalid material fail safely; authentication failures from connection checks use exit code 5. Never pass a plaintext decryption password on the command line.
+Use `--certificate-password-prompt` for an encrypted PEM key or bundle. The prompt is hidden and requires an interactive terminal; cancellation returns exit code 130. For headless execution, `--certificate-credential` reads a named credential saved with `duburl credential add` through CredOS. Its stored username is ignored. See [OS credential-store setup and access requirements]({{ '/cli-authentication/' | relative_url }}) for creating named entries and unlocking the appropriate user session/keychain. Denied access, missing entries and invalid material fail safely; authentication failures from connection checks use exit code 5. Never pass a plaintext decryption password on the command line.
 
 The two certificate password sources are mutually exclusive. `--client-key` is required for PEM and forbidden for `.pfx`/`.p12`. Certificate-specific options require `--client-certificate`. OS identity and OAuth selections conflict with certificate selection. These conflicts and unsupported routes are validated before prompting or reading stores. Schema deployment `--dry-run` loads no certificate and reads no secrets.
 
-`--password-prompt`, `--credential-store` and `--credential` remain separate database-password sources. For example, a MySQL account can use `--certificate-password-prompt --credential-store database-account` together. The certificate decryption password unlocks local material; it is never used as the database-account password. CLI-owned options are disposed after command execution on success, failure and cancellation.
+`--password-prompt` and `--credential` remain separate database-password sources. For example, a MySQL account can use `--certificate-password-prompt --credential database-account` together. The certificate decryption password unlocks local material; it is never used as the database-account password. CLI-owned options are disposed after command execution on success, failure and cancellation.
 
 ## Database, driver and client-OS support
 

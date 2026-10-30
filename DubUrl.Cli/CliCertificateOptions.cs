@@ -10,7 +10,7 @@ internal sealed class CliCertificateOptions : IDisposable
     private readonly Option<string?> key = new("--client-key") { Description = "Matching PEM private-key file." };
     private readonly Option<string?> ca = new("--ca-certificate") { Description = "Optional PEM CA file for server verification; otherwise use normal trust." };
     private readonly Option<bool> prompt = new("--certificate-password-prompt") { Description = "Read a hidden key/bundle decryption password, separate from the database password." };
-    private readonly Option<string?> store = new("--certificate-credential-store") { Description = "Read only the decryption password from an existing OS credential-store reference." };
+    private readonly Option<string?> store = new("--certificate-credential") { Description = "Read the decryption password from a named credential saved with 'duburl credential add'." };
     private CertificateOptions? lifetime;
     private Option[] Options => [certificate, key, ca, prompt, store];
     internal void AddTo(Command command) { foreach (var option in Options) command.Options.Add(option); }
@@ -27,6 +27,7 @@ internal sealed class CliCertificateOptions : IDisposable
         var keyPath = result.GetValue(key);
         var usePrompt = result.GetValue(prompt);
         var reference = result.GetValue(store);
+        if (reference is not null) reference = CredentialName.Normalize(reference);
         if (usePrompt && reference is not null) Conflict();
         var bundle = Path.GetExtension(path).Equals(".pfx", StringComparison.OrdinalIgnoreCase)
             || Path.GetExtension(path).Equals(".p12", StringComparison.OrdinalIgnoreCase);
@@ -55,7 +56,7 @@ internal sealed class CliCertificateOptions : IDisposable
             }
             try
             {
-                var stored = await services.GetRequiredService<IOsCredentialStore>().ReadAsync(reference ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials), cancellationToken).ConfigureAwait(false);
+                var stored = await services.GetRequiredService<INamedCredentialStore>().ReadAsync(reference ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials), cancellationToken).ConfigureAwait(false);
                 if (stored.Password is null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
                 return new(password: stored.Password);
             }

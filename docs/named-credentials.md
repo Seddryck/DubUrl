@@ -120,10 +120,6 @@ fallback lookup takes place. Usernames longer than 512 UTF-16 code units or inva
 Unicode values must also be corrected before reuse. Avoid concurrent writes from
 old and new CLI versions: they use different mutex namespaces.
 
-CredOS does not expose arbitrary native-target reads. The read-only adapter for
-legacy `--credential-store` references remains separate to preserve their existing
-mappings; those entries are not implicitly treated as CredOS-managed credentials.
-
 See the [CredOS API contract](https://github.com/Seddryck/CredOS/blob/v0.1.0/docs/api.md).
 If NuGet indexing is delayed, download `CredOS.0.1.0.nupkg` from the
 [official release](https://github.com/Seddryck/CredOS/releases/tag/v0.1.0) into a
@@ -131,14 +127,20 @@ local directory, then restore with both `--source <directory>` and
 `--source https://api.nuget.org/v3/index.json`. No repository or machine-wide
 NuGet source configuration is needed.
 
-## Existing credential references
+## Migrating existing credential references
 
-`--credential <name>` uses entries managed by these commands. The existing
-`--credential-store <reference>` continues reading explicitly provisioned OS entries
-using its original mappings; it does not change meaning or try another source on
-failure. See [CLI authentication](cli-authentication.md). `--credential`,
-`--credential-store` and `--password-prompt` are mutually exclusive. An optional
-`--username` must agree with the stored username. Dry runs validate the selection
+`--credential-store <reference>` has been removed. Recreate credentials with
+`duburl credential add <name> --username <user>`, then replace the old option with
+`--credential <name>`. The CLI rejects the removed option; it does not attempt an
+arbitrary native-target read or fall back to another source.
+
+For encrypted certificates, replace `--certificate-credential-store <reference>`
+with `--certificate-credential <name>`, using a credential created by the same
+`credential add` command. Only its password is used for decryption; its username
+is ignored. The named certificate and database credentials can be different.
+
+`--credential` and `--password-prompt` are mutually exclusive. An optional
+`--username` must agree with the stored username. Dry runs validate selections
 without accessing the store or prompting.
 
 `duburl capabilities --json` advertises `credentialCommands` and the

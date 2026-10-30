@@ -25,7 +25,7 @@ public class MySqlOperatingSystemIdentityCliTests
         var secrets = new ForbiddenSecrets();
         IDubUrlProviderModule module = scheme == "mysql" ? new ConnectorNetModule()
             : new AttributeProviderModule(typeof(MariaDbConnectorMapper).Assembly);
-        await using var services = CliComposition.CreateDefault(console, providerModules: [module], passwordPrompt: secrets, credentialStore: secrets);
+        await using var services = CliComposition.CreateDefault(console, providerModules: [module], passwordPrompt: secrets, namedCredentialStore: secrets);
         var check = new MappingCheck(scheme);
         var exit = await CliHost.InvokeAsync(["connection", "check", scheme + "://mapped_role@db.example/app", "--os-identity", "--engine", "--output-format", format],
             new CheckServices(services, check));
@@ -75,8 +75,12 @@ public class MySqlOperatingSystemIdentityCliTests
                 context => new MySqlDataMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer)));
         }
     }
-    private sealed class ForbiddenSecrets : IHiddenPasswordPrompt, IOsCredentialStore
+    private sealed class ForbiddenSecrets : IHiddenPasswordPrompt, INamedCredentialStore
     {
+        public ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public ValueTask AddAsync(string name, UsernamePasswordCredentials credentials, bool replace, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public ValueTask RemoveAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
         public int Calls { get; private set; }
         public ValueTask<string> ReadAsync(CancellationToken cancellationToken = default) { Calls++; throw new AssertionException("OS identity must not prompt."); }
         public ValueTask<UsernamePasswordCredentials> ReadAsync(string reference, CancellationToken cancellationToken = default)

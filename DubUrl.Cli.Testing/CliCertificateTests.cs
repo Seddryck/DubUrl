@@ -47,14 +47,14 @@ public class CliCertificateTests
         Environment.SetEnvironmentVariable("DUBURL_CERT_TEST_URL", url);
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:test"] = url }).Build();
         await using var services = CliComposition.CreateDefault(console, configuration,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, credentialStore: secrets);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, namedCredentialStore: secrets);
         string[] target = selection == "named" ? ["--connection", "test"] : selection == "environment" ? ["--connection-env", "DUBURL_CERT_TEST_URL"] : [url];
         string[] certificate = form is "pem" or "encrypted"
             ? ["--client-certificate", FilePath("client.crt"), "--client-key", FilePath(form == "pem" ? "client.key" : "encrypted.key")]
             : ["--client-certificate", FilePath("client." + form)];
-        string[] password = form == "pfx" ? ["--certificate-password-prompt"] : form == "encrypted" ? ["--certificate-credential-store", "key"] : [];
+        string[] password = form == "pfx" ? ["--certificate-password-prompt"] : form == "encrypted" ? ["--certificate-credential", "key"] : [];
         var exit = await CliHost.InvokeAsync(["connection", "check", .. target, .. certificate, .. password,
-            "--ca-certificate", FilePath("client.crt"), "--credential-store", "database", "--engine"], new CheckServices(services, check));
+            "--ca-certificate", FilePath("client.crt"), "--credential", "database", "--engine"], new CheckServices(services, check));
         Assert.That(exit, Is.Zero, console.Errors.ToString());
         Assert.That(check.Calls, Is.EqualTo(1));
         Assert.That(secrets.Prompts, Is.EqualTo(form == "pfx" ? 1 : 0));
@@ -65,17 +65,17 @@ public class CliCertificateTests
     [TestCase("--client-key", "key")]
     [TestCase("--ca-certificate", "ca")]
     [TestCase("--certificate-password-prompt")]
-    [TestCase("--certificate-credential-store", "key")]
+    [TestCase("--certificate-credential", "key")]
     [TestCase("--client-certificate", "client.crt")]
     [TestCase("--client-certificate", "client.p12", "--client-key", "key")]
-    [TestCase("--client-certificate", "client.pfx", "--certificate-password-prompt", "--certificate-credential-store", "key")]
+    [TestCase("--client-certificate", "client.pfx", "--certificate-password-prompt", "--certificate-credential", "key")]
     [TestCase("--client-certificate", "client.pfx", "--os-identity")]
     [TestCase("--client-certificate", "client.pfx", "--oauth", "browser")]
     public async Task ConflictsNeverAcquireSecrets(params string[] arguments)
     {
         var console = new ConsoleStub(true); var secrets = new Secrets();
         await using var services = CliComposition.CreateDefault(console,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, credentialStore: secrets);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, namedCredentialStore: secrets);
         var exit = await CliHost.InvokeAsync(["connection", "check", "mysql://alice@localhost/app", .. arguments], services);
         Assert.That(exit, Is.EqualTo(2));
         Assert.That(secrets.Reads + secrets.Prompts, Is.Zero);
@@ -85,10 +85,10 @@ public class CliCertificateTests
     {
         var console = new ConsoleStub(false); var secrets = new Secrets { Behavior = behavior };
         await using var services = CliComposition.CreateDefault(console,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], credentialStore: secrets);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], namedCredentialStore: secrets);
         var extension = behavior == "empty" ? "p12" : "pfx";
         var exit = await CliHost.InvokeAsync(["connection", "check", "mysql://alice@localhost/app", "--client-certificate", FilePath("client." + extension),
-            "--certificate-credential-store", "key"], new CheckServices(services, new Check()));
+            "--certificate-credential", "key"], new CheckServices(services, new Check()));
         Assert.That(exit, Is.EqualTo(expected), console.Errors.ToString());
         Assert.That(console.Output.ToString() + console.Errors.ToString(), Does.Not.Contain("sentinel"));
     }
@@ -107,7 +107,7 @@ public class CliCertificateTests
         var console = new ConsoleStub(false); var secrets = new Secrets();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:test"] = "mysql://alice@localhost/app" }).Build();
         await using var services = CliComposition.CreateDefault(console, configuration,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, credentialStore: secrets);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, namedCredentialStore: secrets);
         var exit = await CliHost.InvokeAsync(["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--dry-run", "--client-certificate", FilePath("absent.pfx"), "--certificate-password-prompt"], services);
         Assert.That(exit, Is.Zero, console.Errors.ToString()); Assert.That(secrets.Prompts + secrets.Reads, Is.Zero);
     }
@@ -116,7 +116,7 @@ public class CliCertificateTests
     {
         var console = new ConsoleStub(true); var secrets = new Secrets();
         await using var services = CliComposition.CreateDefault(console,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, credentialStore: secrets);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, namedCredentialStore: secrets);
         var exit = await CliHost.InvokeAsync(["connection", "check", "mssql://alice@localhost/app", "--client-certificate", FilePath("client.pfx"), "--certificate-password-prompt"], services);
         Assert.That(exit, Is.EqualTo(2)); Assert.That(secrets.Prompts + secrets.Reads, Is.Zero);
     }
@@ -126,7 +126,7 @@ public class CliCertificateTests
         var console = new ConsoleStub(true); var secrets = new Secrets(); var check = new Check();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:test"] = "mysql://alice@localhost/app" }).Build();
         await using var services = CliComposition.CreateDefault(console, configuration,
-            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, credentialStore: secrets);
+            providerModules: [new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)], passwordPrompt: secrets, namedCredentialStore: secrets);
         var exit = await CliHost.InvokeAsync(["schema", "deploy", "-", "--input-format", "json", "--connection", "test", "--client-certificate", FilePath("client.pfx"), "--certificate-password-prompt"], new CheckServices(services, check));
         Assert.That(exit, Is.Zero, console.Errors.ToString()); Assert.That(check.Calls, Is.EqualTo(1)); Assert.That(secrets.Prompts, Is.EqualTo(1));
         Assert.That(() => check.Certificate!.GetCertHash(), Throws.Exception);
@@ -143,10 +143,10 @@ public class CliCertificateTests
     public async Task CapabilitiesAdvertiseCertificateOptionsWithoutAcquiringSecrets()
     {
         var console = new ConsoleStub(false); var secrets = new Secrets();
-        await using var services = CliComposition.CreateDefault(console, passwordPrompt: secrets, credentialStore: secrets);
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: secrets, namedCredentialStore: secrets);
         var exit = await CliHost.InvokeAsync(["capabilities", "--json"], services);
         Assert.That(exit, Is.Zero);
-        foreach (var option in new[] { "--client-certificate", "--client-key", "--ca-certificate", "--certificate-password-prompt", "--certificate-credential-store" })
+        foreach (var option in new[] { "--client-certificate", "--client-key", "--ca-certificate", "--certificate-password-prompt", "--certificate-credential" })
             Assert.That(console.Output.ToString(), Does.Contain(option));
         Assert.That(secrets.Prompts + secrets.Reads, Is.Zero);
     }
@@ -170,8 +170,12 @@ public class CliCertificateTests
             return new(true, "engine", "MySqlConnector", 0, []);
         }
     }
-    private sealed class Secrets : IOsCredentialStore, IHiddenPasswordPrompt
+    private sealed class Secrets : INamedCredentialStore, IHiddenPasswordPrompt
     {
+        public ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public ValueTask AddAsync(string name, UsernamePasswordCredentials credentials, bool replace, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public ValueTask RemoveAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
         public string? Behavior { get; init; }
         public int Prompts { get; private set; }
         public int Reads { get; private set; }

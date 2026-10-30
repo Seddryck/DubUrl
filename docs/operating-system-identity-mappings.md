@@ -24,7 +24,7 @@ The original URL is unchanged. No password prompt, credential-store read, altern
 user acquisition, impersonation or machine configuration occurs. OS identity
 conflicts with URL passwords (including explicitly empty ones), native password
 aliases, tokens, OAuth, client certificates and competing authentication options.
-CLI password prompts, named credentials, credential-store references, OAuth and --username also conflict.
+CLI password prompts, named credentials, OAuth and --username also conflict.
 PostgreSQL, MariaDB, MySQL, SingleStore and Trino may retain a URL database-role hint; it does not select a
 different OS identity. SqlClient, Db2, Oracle, Teradata and Firebird reject URL
 usernames. A subsequent Library `WithAuthentication` call replaces the strategy.

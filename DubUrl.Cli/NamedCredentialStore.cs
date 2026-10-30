@@ -3,9 +3,10 @@ using DubUrl.Authentication;
 
 namespace DubUrl.Cli;
 
-/// <summary>Manages one username/password pair per portable name, separately from legacy OS references.</summary>
-public interface INamedCredentialStore : IOsCredentialStore
+/// <summary>Manages one username/password pair per portable name, using the application-scoped native store.</summary>
+public interface INamedCredentialStore
 {
+    ValueTask<UsernamePasswordCredentials> ReadAsync(string name, CancellationToken cancellationToken = default);
     ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default);
     ValueTask AddAsync(string name, UsernamePasswordCredentials credentials, bool replace, CancellationToken cancellationToken = default);
     ValueTask RemoveAsync(string name, CancellationToken cancellationToken = default);

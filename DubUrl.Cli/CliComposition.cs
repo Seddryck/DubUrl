@@ -17,7 +17,6 @@ public static class CliComposition
         IProviderPackService? providerPackService = null,
         IEnumerable<IDubUrlProviderModule>? providerModules = null,
         IHiddenPasswordPrompt? passwordPrompt = null,
-        IOsCredentialStore? credentialStore = null,
         INamedCredentialStore? namedCredentialStore = null,
         ICliOAuthSessionFactory? oauthSessionFactory = null)
     {
@@ -45,7 +44,6 @@ public static class CliComposition
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
         services.AddSingleton<IHiddenPasswordPrompt>(passwordPrompt ?? new TerminalPasswordPrompt());
-        services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
         services.AddSingleton<INamedCredentialStore>(namedCredentialStore ?? new CredOsNamedCredentialStore());
         services.AddSingleton(console);
         services.AddSingleton<ICliOAuthSessionFactory>(oauthSessionFactory ?? new NativeCliOAuthSessionFactory());

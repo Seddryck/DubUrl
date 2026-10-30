@@ -17,7 +17,7 @@ internal sealed class CliPasswordQaHarness : IAsyncDisposable
     private readonly QaConsole console;
     private readonly string location;
     internal PasswordQaRegistry Observed { get; }
-    internal IOsCredentialStore NativeStore => services.GetRequiredService<IOsCredentialStore>();
+    internal INamedCredentialStore NativeStore => services.GetRequiredService<INamedCredentialStore>();
 
     internal CliPasswordQaHarness(PasswordQaDriver driver, CliPasswordQaAdapters? adapters = null,
         bool interactive = false, string? location = null, string document = "")
@@ -30,7 +30,7 @@ internal sealed class CliPasswordQaHarness : IAsyncDisposable
             ["ConnectionStrings:qa"] = this.location,
             ["ProviderPacks:StorePath"] = Path.Combine(Path.GetTempPath(), "DubUrlQaUnusedPacks", Guid.NewGuid().ToString("N"))
         }).Build();
-        services = CliComposition.CreateDefault(console, configuration, passwordPrompt: adapters, credentialStore: adapters);
+        services = CliComposition.CreateDefault(console, configuration, passwordPrompt: adapters, namedCredentialStore: adapters);
         facade = new(services, Observed);
     }
 
@@ -99,8 +99,12 @@ internal sealed record CliPasswordQaResult(int ExitCode, string Output, string E
 }
 
 /// <summary>Controlled source adapters; positive cases still run the real CLI and native database I/O.</summary>
-internal sealed class CliPasswordQaAdapters(UsernamePasswordCredentials credentials) : IHiddenPasswordPrompt, IOsCredentialStore
+internal sealed class CliPasswordQaAdapters(UsernamePasswordCredentials credentials) : IHiddenPasswordPrompt, INamedCredentialStore
 {
+    public ValueTask<bool> ExistsAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    public ValueTask AddAsync(string name, UsernamePasswordCredentials credentials, bool replace, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    public ValueTask RemoveAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
     internal string? Failure { get; init; }
     internal bool Block { get; init; }
     internal int PromptCalls { get; private set; }
