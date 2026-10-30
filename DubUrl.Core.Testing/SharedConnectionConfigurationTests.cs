@@ -213,7 +213,7 @@ public class SharedConnectionConfigurationTests
     {
         if (transport == "OleDb" && !OperatingSystem.IsWindows()) Assert.Ignore("OLE DB requires Windows.");
         var builder = new DbConnectionStringBuilder(transport == "Odbc") { ConnectionString = native };
-        new ConnectionConfigurationCapability(tls: transport).Apply(builder, new(ConnectionConfigurationOption.Encryption, ConnectionEncryption.Tls(), false));
+        new ConnectionConfigurationCapability { Tls = transport }.Apply(builder, new(ConnectionConfigurationOption.Encryption, ConnectionEncryption.Tls(), false));
         Assert.That(builder[key].ToString(), Is.EqualTo(expected));
         if (native.Contains("PostgreSQL")) Assert.That(builder["Pqopt"].ToString(), Does.Contain("sslrootcert='system'").And.Contain("gssencmode=disable"));
     }
@@ -225,7 +225,7 @@ public class SharedConnectionConfigurationTests
     public void DriverTls_RejectsOpaqueAndInsecureSettings(string native)
     {
         var builder = new DbConnectionStringBuilder(true) { ConnectionString = native };
-        Assert.That(() => new ConnectionConfigurationCapability(tls: "Odbc").Apply(builder,
+        Assert.That(() => new ConnectionConfigurationCapability { Tls = "Odbc" }.Apply(builder,
             new(ConnectionConfigurationOption.Encryption, ConnectionEncryption.Tls(), false)), Throws.Exception);
     }
 

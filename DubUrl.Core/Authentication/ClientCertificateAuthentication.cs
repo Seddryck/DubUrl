@@ -193,10 +193,16 @@ public abstract partial class ConnectionAuthentication
         {
             // libpq >=16 enforces certificate-only authentication and system trust.
             builder["SSLmode"] = "verify-full";
-            var trustOptions = builder.TryGetValue("Pqopt", out var configuredTrust) ? configuredTrust.ToString()!.Trim('{', '}')
-                : "gssencmode=disable sslrootcert=" + QuoteLibpq(caPath is null ? "system" : Path.GetFullPath(caPath));
+            var trustOptions = GetPostgresTrustOptions(builder);
             builder["Pqopt"] = trustOptions + " require_auth=none sslcertmode=require sslcert=" + QuoteLibpq(pem.CertificatePath ?? "")
                 + " sslkey=" + QuoteLibpq(pem.KeyPath ?? "");
+        }
+        private string GetPostgresTrustOptions(DbConnectionStringBuilder builder)
+        {
+            if (builder.TryGetValue("Pqopt", out var configuredTrust))
+                return (Convert.ToString(configuredTrust) ?? "").Trim('{', '}');
+            var root = caPath is null ? "system" : Path.GetFullPath(caPath);
+            return "gssencmode=disable sslrootcert=" + QuoteLibpq(root);
         }
         private void IsolatePool(DbConnectionStringBuilder builder)
         {

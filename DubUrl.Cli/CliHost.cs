@@ -17,7 +17,7 @@ public static class CliHost
         var parseResult = root.Parse(args.Length == 0 ? ["--help"] : args);
         if (parseResult.Errors.Count > 0 && args.Any(argument => CliConnectionOptions.Names.Contains(argument.Split('=')[0])))
         {
-            services.GetRequiredService<ICliConsole>().Error.WriteLine("Invalid connection configuration options. Use --help for supported flags and duration syntax; supplied values are not echoed.");
+            await services.GetRequiredService<ICliConsole>().Error.WriteLineAsync("Invalid connection configuration options. Use --help for supported flags and duration syntax; supplied values are not echoed.").ConfigureAwait(false);
             return CliExitCodes.InvalidInput;
         }
         if (parseResult.Errors.Count > 0 && args.Any(argument => argument.StartsWith("--oauth", StringComparison.Ordinal) || argument == "--allow-oauth-interaction"))

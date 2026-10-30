@@ -145,10 +145,7 @@ internal static class OperatingSystemIdentityMappings
         }
         else if (IsPostgres(Family(context)) && IsPostgresDriver(driver))
         {
-            // libpq >=16 supports require_auth; older versions fail on this parameter.
-            RemoveCredentials(builder, false);
-            var trustOptions = Get(builder, "Pqopt").Trim('{', '}');
-            builder["Pqopt"] = "{" + (trustOptions.Length == 0 ? "" : trustOptions + " ") + "require_auth=gss,sspi}";
+            ConfigurePostgresOdbcIdentity(builder);
         }
         else if (Family(context) is "trino" or "tr" && driver == "Simba Trino ODBC Driver")
         {
@@ -161,6 +158,17 @@ internal static class OperatingSystemIdentityMappings
         else if (Family(context) == "drill" && driver is "MapR Drill ODBC Driver" or "HPE Drill ODBC Driver")
             ConfigureDrill(builder, context);
         else Unsupported();
+    }
+
+    private static void ConfigurePostgresOdbcIdentity(DbConnectionStringBuilder builder)
+    {
+        // libpq >=16 supports require_auth; older versions fail on this parameter.
+        const string requiredAuth = "require_auth=gss,sspi";
+        RemoveCredentials(builder, false);
+        var options = Get(builder, "Pqopt").Trim('{', '}');
+        if (!options.EndsWith(requiredAuth, StringComparison.Ordinal))
+            options = options.Length == 0 ? requiredAuth : options + " " + requiredAuth;
+        builder["Pqopt"] = "{" + options + "}";
     }
 
     private static bool IsPostgresDriver(string driver)

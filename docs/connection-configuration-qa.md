@@ -56,3 +56,24 @@ Not run:
 Native mapping tests and fake lifecycle tests do **not** prove these live behaviors. The documented
 support table distinguishes the implemented route contracts, external prerequisites and rejected
 options; live server verification remains a separate fixture requirement.
+
+## CI follow-up
+
+The first Linux core run found two repeated-configuration failures in
+`OperatingSystemIdentityMappingTests.MappingsConfigureClosedNativeConnections`: psqlODBC identity
+configuration appended `require_auth` more than once. Configuration now preserves the existing TLS
+trust options and adds the authentication restriction only once. A new regression case combines
+custom-CA TLS with repeated identity configuration on the same closed native connection.
+
+After that fix and the quality-gate refactoring, Windows validation reran these focused selections
+on each of net8.0, net9.0 and net10.0:
+
+- Core: `SharedConnectionConfigurationTests`, `OptionalConnectionOptionsTest`,
+  `ConnectionConfigurationMappingTest`, `OperatingSystemIdentityMappingTests`,
+  `CertificateOptionsTests`: **163 passed per framework**.
+- CLI: `SharedConnectionOptionsTests`, `CliCertificateTests`, `CliAuthenticationTests`,
+  `ConnectionCheckLifecycleTests`: **77 passed per framework**.
+
+Total: **720 passed executions**. The full solution build and `git diff --check` passed again.
+The complete test suites and live external fixtures were not run locally for this follow-up;
+GitHub's Linux and provider workflows validate those separately.

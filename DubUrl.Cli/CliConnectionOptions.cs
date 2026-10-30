@@ -29,26 +29,40 @@ internal sealed class CliConnectionOptions
             throw new CliOAuthInputException("Specify each connection option only once.");
         if (result.GetValue(tls) || result.GetValue(ca) is not null)
             target = target.WithEncryption(ConnectionEncryption.Tls(result.GetValue(ca)));
+        target = ConfigureTimeouts(result, target);
+        target = ConfigureSession(result, target);
+        return ConfigurePooling(result, target);
+    }
+
+    private ConnectionUrl ConfigureTimeouts(ParseResult result, ConnectionUrl target)
+    {
         if (result.GetValue(connectionTimeout) is string connect) target = target.WithConnectionTimeout(ParseDuration(connect));
         if (result.GetValue(commandTimeout) is string command) target = target.WithCommandTimeout(ParseDuration(command));
+        return target;
+    }
+
+    private ConnectionUrl ConfigureSession(ParseResult result, ConnectionUrl target)
+    {
         if (result.GetValue(application) is string name) target = target.WithApplicationName(name);
         if (result.GetValue(zone) is string timeZone) target = target.WithTimeZone(timeZone);
-        if (new Option[] { pooling, min, max, idle, lifetime }.Any(o => result.GetResult(o) is { Implicit: false }))
-        {
-            var enabled = result.GetValue(pooling) switch
-            {
-                null or "enabled" => true,
-                "disabled" => false,
-                _ => throw new CliOAuthInputException("--pooling must be enabled or disabled.")
-            };
-            target = target.WithPooling(new()
-            {
-                Enabled = enabled, MinSize = result.GetValue(min), MaxSize = result.GetValue(max),
-                IdleTimeout = result.GetValue(idle) is string idleValue ? ParseDuration(idleValue) : null,
-                MaxLifetime = result.GetValue(lifetime) is string age ? ParseDuration(age) : null
-            });
-        }
         return target;
+    }
+
+    private ConnectionUrl ConfigurePooling(ParseResult result, ConnectionUrl target)
+    {
+        if (!new Option[] { pooling, min, max, idle, lifetime }.Any(o => result.GetResult(o) is { Implicit: false })) return target;
+        var enabled = result.GetValue(pooling) switch
+        {
+            null or "enabled" => true,
+            "disabled" => false,
+            _ => throw new CliOAuthInputException("--pooling must be enabled or disabled.")
+        };
+        return target.WithPooling(new()
+        {
+            Enabled = enabled, MinSize = result.GetValue(min), MaxSize = result.GetValue(max),
+            IdleTimeout = result.GetValue(idle) is string idleValue ? ParseDuration(idleValue) : null,
+            MaxLifetime = result.GetValue(lifetime) is string age ? ParseDuration(age) : null
+        });
     }
 
     internal static TimeSpan ParseDuration(string value)

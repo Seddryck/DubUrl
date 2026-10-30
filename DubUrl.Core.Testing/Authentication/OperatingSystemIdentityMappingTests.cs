@@ -10,6 +10,24 @@ namespace DubUrl.Core.Testing.Authentication;
 
 public class OperatingSystemIdentityMappingTests
 {
+    [Test]
+    public void PostgresOdbcTlsTrustSurvivesRepeatedIdentityConfiguration()
+    {
+        using var connection = CreateNative("System.Data.Odbc");
+        var settings = new DbConnectionStringBuilder(true) { ConnectionString = "Driver={PostgreSQL Unicode};Server=db" };
+        TransportEncryption.Apply(settings, ConnectionEncryption.Tls("server-ca.pem"), true);
+        connection.ConnectionString = settings.ConnectionString;
+        var strategy = ConnectionAuthentication.OperatingSystemIdentity();
+        var context = new AuthenticationContext("System.Data.Odbc", "postgres+odbc", "db", null, "app", null);
+        strategy.Configure(connection, context);
+        var first = connection.ConnectionString;
+        strategy.Configure(connection, context);
+        Assert.That(connection.ConnectionString, Is.EqualTo(first));
+        var configured = new DbConnectionStringBuilder(true) { ConnectionString = first };
+        Assert.That(configured["Pqopt"].ToString(), Does.Contain("gssencmode=disable").And.Contain("sslrootcert=").And.Contain("require_auth=gss,sspi"));
+        Assert.That(configured["SSLmode"].ToString(), Is.EqualTo("verify-full"));
+        Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
+    }
     [TestCase("odbc+mssql://db/app?Driver=ODBC%20Driver%2018%20for%20SQL%20Server", "System.Data.Odbc", "Trusted_Connection", "yes")]
     [TestCase("odbc+postgres://alice@db/app?Driver=PostgreSQL%20Unicode&SSLmode=verify-full", "System.Data.Odbc", "Pqopt", "{require_auth=gss,sspi}")]
     [TestCase("odbc+drill://db/dfs?Driver=MapR%20Drill%20ODBC%20Driver&KrbServiceHost=db.example", "System.Data.Odbc", "AuthenticationType", "Kerberos")]

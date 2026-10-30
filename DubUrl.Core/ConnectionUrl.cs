@@ -95,15 +95,15 @@ public class ConnectionUrl : BaseConnectionUrl
         // Zone identifiers and numeric offsets only; never interpolate SQL or replace a zone with today's offset.
         if (timeZone.Length > 255 || timeZone.Any(c => !(char.IsAsciiLetterOrDigit(c) || c is '/' or '_' or '-' or '+' or ':' or '.')))
             throw new ArgumentException("Use a named time zone or an offset such as +02:00.", nameof(timeZone));
-        if (!char.IsAsciiLetter(timeZone[0]))
-        {
-            if (!System.Text.RegularExpressions.Regex.IsMatch(timeZone, @"^[+-]\d{2}:[0-5]\d$", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))
-                || !TimeSpan.TryParseExact(timeZone[1..], @"hh\:mm", System.Globalization.CultureInfo.InvariantCulture, out var offset)
-                || offset > (timeZone[0] == '-' ? TimeSpan.FromHours(12) : TimeSpan.FromHours(14)))
-                throw new ArgumentException("Offsets must be between -12:00 and +14:00 in signed HH:mm format.", nameof(timeZone));
-        }
+        if (!char.IsAsciiLetter(timeZone[0]) && !IsTimeZoneOffset(timeZone))
+            throw new ArgumentException("Offsets must be between -12:00 and +14:00 in signed HH:mm format.", nameof(timeZone));
         return WithRequest(ConnectionConfigurationOption.TimeZone, timeZone);
     }
+
+    private static bool IsTimeZoneOffset(string value)
+        => System.Text.RegularExpressions.Regex.IsMatch(value, @"^[+-]\d{2}:[0-5]\d$", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))
+            && TimeSpan.TryParseExact(value[1..], @"hh\:mm", System.Globalization.CultureInfo.InvariantCulture, out var offset)
+            && offset <= (value[0] == '-' ? TimeSpan.FromHours(12) : TimeSpan.FromHours(14));
 
     /// <summary>Requires native read-only access to an existing primary database file.</summary>
     /// <remarks>Strict and idempotent. Unsupported routes throw before creating a connection.
@@ -290,7 +290,7 @@ public class ConnectionUrl : BaseConnectionUrl
                 catch { throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed); }
             }
         }
-        finally { SessionTimeZone.SetCancellation(connection, default); }
+        finally { SessionTimeZone.SetCancellation(connection, CancellationToken.None); }
     }
 
     private static bool IsNativeTimeout(Exception error)
@@ -306,8 +306,8 @@ public class ConnectionUrl : BaseConnectionUrl
 
     private void ConfigureSession(DbConnection connection)
     {
-        if (configuration.Length > 0 && TryGetCapability<ConnectionConfigurationCapability>(out var capability))
-            capability!.Configure(connection, configuration);
+        if (configuration.Length > 0 && TryGetCapability<ConnectionConfigurationCapability>(out var capability) && capability is not null)
+            capability.Configure(connection, configuration);
     }
     private DbConnection ConnectAuthenticated()
     {
@@ -349,8 +349,9 @@ public class ConnectionUrl : BaseConnectionUrl
         {
             // Mapping-only preflight: validate native settings before a password prompt, token
             // acquisition or certificate-file load. These placeholders never reach a connection.
+            var validationUsername = uri.HasUsername ? uri.Username : "configuration-validation";
             var placeholder = RequiredAuthentication.Kind == ConnectionAuthenticationKind.UsernamePassword
-                ? new UsernamePasswordCredentials(uri.HasUsername ? uri.Username : "configuration-validation", "") : null;
+                ? new UsernamePasswordCredentials(validationUsername, "") : null;
             _ = ApplyConfiguration(uri, Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, placeholder, context)));
         }
         if (RequiredAuthentication.Kind == ConnectionAuthenticationKind.ClientCertificate && provider == "System.Data.Odbc")
@@ -360,10 +361,7 @@ public class ConnectionUrl : BaseConnectionUrl
 
     private void ValidateConfigurationSupport(ConnectionUri uri)
     {
-        var encryption = configuration.LastOrDefault(r => r.Option == ConnectionConfigurationOption.Encryption)?.Value as ConnectionEncryption;
-        if (authentication?.ServerCaPath is string ca && encryption?.CaPath is string selectedCa
-            && !string.Equals(Path.GetFullPath(ca), selectedCa, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-            throw new ArgumentException("Certificate authentication and encryption specify conflicting CA files.");
+        ValidateServerTrust();
         // Check policy without mapping an unauthenticated URL: some mappers require
         // credentials or native authentication options supplied by the strategy.
         if (readOnly && !Registry.TryGetCapability<ReadOnlyConnectionCapability>(uri.Scheme, out _))
@@ -376,6 +374,14 @@ public class ConnectionUrl : BaseConnectionUrl
             if (!request.Optional && capability?.Supports(request) != true)
                 throw new NotSupportedException("A required connection option is unsupported for the selected provider route.");
         }
+    }
+
+    private void ValidateServerTrust()
+    {
+        var encryption = configuration.LastOrDefault(r => r.Option == ConnectionConfigurationOption.Encryption)?.Value as ConnectionEncryption;
+        if (authentication?.ServerCaPath is not string ca || encryption?.CaPath is not string selectedCa) return;
+        if (!string.Equals(Path.GetFullPath(ca), selectedCa, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            throw new ArgumentException("Certificate authentication and encryption specify conflicting CA files.");
     }
 
     private DbConnection CreateAuthenticatedConnection(ConnectionUri uri, UsernamePasswordCredentials? credentials, AuthenticationContext context)

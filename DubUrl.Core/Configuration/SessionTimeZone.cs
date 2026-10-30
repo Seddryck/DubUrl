@@ -30,7 +30,15 @@ internal static class SessionTimeZone
                 state.Cancellation.ThrowIfCancellationRequested();
                 using var command = connection.CreateCommand();
                 command.CommandText = sql;
-                using var registration = state.Cancellation.Register(() => { try { command.Cancel(); } catch { } });
+                using var registration = state.Cancellation.Register(() =>
+                {
+                    try { command.Cancel(); }
+                    catch
+                    {
+                        // Cancellation is best effort: the executing command owns the failure.
+                        // Do not replace caller cancellation with a driver's Cancel exception.
+                    }
+                });
                 command.ExecuteNonQuery();
                 state.Cancellation.ThrowIfCancellationRequested();
             }
