@@ -15,6 +15,7 @@ namespace DubUrl.Provider.Teradata.Mapping;
 [Mapper<TeradataDatabase, PositionalParametrizer>(
     "Teradata.Client"
 )]
+[ConnectionConfiguration(ApplicationName = "queryband:ApplicationName", Pooling = "Connection Pooling", MinPoolSize = "Min Pool Size", MaxPoolSize = "Max Pool Size", ConnectionTimeout = "Connection Timeout", IdleTimeout = "Connection Pooling Timeout", Tls = "Teradata", TimeZone = "sql:teradata")]
 public class TeradataMapper : BaseMapper
 {
     public TeradataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

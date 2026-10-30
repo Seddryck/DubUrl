@@ -6,7 +6,9 @@ public enum ConnectionConfigurationOption
     ApplicationName,
     Pooling,
     ConnectionTimeout,
-    CommandTimeout
+    CommandTimeout,
+    Encryption,
+    TimeZone
 }
 
 /// <summary>Credential-free information about an unsupported optional setting.</summary>

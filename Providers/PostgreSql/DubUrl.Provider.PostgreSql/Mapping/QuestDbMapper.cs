@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.PostgreSql.Metadata;
 using DubUrl.Provider.PostgreSql.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -15,6 +15,7 @@ namespace DubUrl.Provider.PostgreSql.Mapping;
 [Mapper<QuestDbDatabase, NpgsqlParametrizer>(
     "Npgsql"
 )]
+[ConnectionConfiguration(Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Timeout", CommandTimeout = "Command Timeout", IdleTimeout = "Connection Idle Lifetime", MaxLifetime = "Connection Lifetime", Tls = "Npgsql")]
 public class QuestDbMapper : PostgresqlMapper
 {
     public QuestDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

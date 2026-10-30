@@ -9,6 +9,12 @@ nav_order: 8
 
 Choose one authentication method when opening a database connection. Your database must grant the selected identity access. Keep credentials outside the connection URL when using an explicit authentication method.
 
+Configure server verification independently with `.WithEncryption(ConnectionEncryption.Tls())` or
+`.WithEncryption(ConnectionEncryption.Tls("server-ca.crt"))`. See
+[connection encryption and defaults]({{ '/connection-configuration/' | relative_url }}) for TLS,
+timeouts, pooling, application names and session time zones. A lack of client-certificate login support
+does not imply a lack of ordinary server-authenticated TLS; SQL Server is one example.
+
 | Method | When to choose it | Library selection |
 |---|---|---|
 | [Username and password]({{ '/username-password-authentication/' | relative_url }}) | Sign in with a database account and password. | `ConnectionAuthentication.UsernamePassword(...)` or `.Password(...)` |

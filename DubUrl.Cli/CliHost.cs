@@ -15,6 +15,11 @@ public static class CliHost
 
         var root = CliRootCommandFactory.Create(services, cancellationToken);
         var parseResult = root.Parse(args.Length == 0 ? ["--help"] : args);
+        if (parseResult.Errors.Count > 0 && args.Any(argument => CliConnectionOptions.Names.Contains(argument.Split('=')[0])))
+        {
+            await services.GetRequiredService<ICliConsole>().Error.WriteLineAsync("Invalid connection configuration options. Use --help for supported flags and duration syntax; supplied values are not echoed.").ConfigureAwait(false);
+            return CliExitCodes.InvalidInput;
+        }
         if (parseResult.Errors.Count > 0 && args.Any(argument => argument.StartsWith("--oauth", StringComparison.Ordinal) || argument == "--allow-oauth-interaction"))
         {
             services.GetRequiredService<ICliConsole>().Error.WriteLine("Invalid OAuth command options. Use --help for supported options; supplied values are not echoed.");

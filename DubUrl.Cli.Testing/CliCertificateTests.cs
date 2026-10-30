@@ -63,7 +63,6 @@ public class CliCertificateTests
         Assert.That(() => check.Certificate!.GetCertHash(), Throws.Exception, "CLI must dispose its loaded certificate after the connection is disposed.");
     }
     [TestCase("--client-key", "key")]
-    [TestCase("--ca-certificate", "ca")]
     [TestCase("--certificate-password-prompt")]
     [TestCase("--certificate-credential", "key")]
     [TestCase("--client-certificate", "client.crt")]

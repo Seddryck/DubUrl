@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.MySql.Metadata;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Provider.MySql.Mapping;
 
 [Mapper<MariaDbDatabase, NamedParametrizer>("MySqlConnector")]
-[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout")]
+[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout", IdleTimeout = "Connection Idle Timeout", MaxLifetime = "Connection Lifetime", Tls = "MySql", TimeZone = "sql:mysql")]
 public class MariaDbConnectorMapper : MySqlConnectorMapper
 {
     public MariaDbConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

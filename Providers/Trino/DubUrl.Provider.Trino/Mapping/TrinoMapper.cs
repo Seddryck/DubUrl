@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.Trino.Metadata;
 using DubUrl.Provider.Trino.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -15,6 +15,7 @@ namespace DubUrl.Provider.Trino.Mapping;
 [Mapper<TrinoDatabase, NamedParametrizer>(
     "NReco.PrestoAdo"
 )]
+[ConnectionConfiguration(Tls = "Trino")]
 public class TrinoMapper : BaseMapper
 {
     public TrinoMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
