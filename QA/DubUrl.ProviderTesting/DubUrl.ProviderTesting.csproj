@@ -5,6 +5,8 @@
     <Description>Reusable live provider QA contracts for DubUrl provider modules.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <!-- The private CLI project reference does not propagate its package dependencies to QA consumers. -->
+    <PackageReference Include="CredOS" Version="0.1.0" IncludeAssets="runtime" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="DbReader" Version="4.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.12" />

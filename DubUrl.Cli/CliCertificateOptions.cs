@@ -24,16 +24,20 @@ internal sealed class CliCertificateOptions : IDisposable
     {
         var path = result.GetValue(certificate) ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         var keyPath = result.GetValue(key);
+        var source = CreateDecryptionSource(services, result);
+        var bundle = Path.GetExtension(path).Equals(".pfx", StringComparison.OrdinalIgnoreCase)
+            || Path.GetExtension(path).Equals(".p12", StringComparison.OrdinalIgnoreCase);
+        if (bundle ? keyPath is not null : string.IsNullOrWhiteSpace(keyPath)) Conflict();
+        lifetime = CreateOptions(path, keyPath, bundle, source, supplemental);
+        return target.WithAuthentication(ConnectionAuthentication.ClientCertificate(lifetime, caPath));
+    }
+    private PasswordSource? CreateDecryptionSource(IServiceProvider services, ParseResult result)
+    {
         var usePrompt = result.GetValue(prompt);
         var reference = result.GetValue(store);
         if (reference is not null) reference = CredentialName.Normalize(reference);
         if (usePrompt && reference is not null) Conflict();
-        var bundle = Path.GetExtension(path).Equals(".pfx", StringComparison.OrdinalIgnoreCase)
-            || Path.GetExtension(path).Equals(".p12", StringComparison.OrdinalIgnoreCase);
-        if (bundle ? keyPath is not null : string.IsNullOrWhiteSpace(keyPath)) Conflict();
-        var source = usePrompt || reference is not null ? new PasswordSource(services, usePrompt, reference) : null;
-        lifetime = CreateOptions(path, keyPath, bundle, source, supplemental);
-        return target.WithAuthentication(ConnectionAuthentication.ClientCertificate(lifetime, caPath));
+        return usePrompt || reference is not null ? new PasswordSource(services, usePrompt, reference) : null;
     }
     private static CertificateOptions CreateOptions(string path, string? keyPath, bool bundle,
         IUsernamePasswordCredentialSource? decryption, IUsernamePasswordCredentialSource? supplemental)
