@@ -78,14 +78,14 @@ public static class CliComposition
             var httpClient = new HttpClient();
             services.AddSingleton(httpClient);
             services.AddSingleton(store);
-            services.AddSingleton(_ => CreateTrustedCatalog(configuration, httpClient).GetAwaiter().GetResult());
+            services.AddSingleton(_ => CreateTrustedCatalog(configuration, httpClient, store).GetAwaiter().GetResult());
             services.AddSingleton<IConnectorService, ConnectorService>();
             services.AddSingleton<IProviderPackService, ProviderPackService>();
         }
         return services.BuildServiceProvider();
     }
 
-    private static Task<ProviderPackCatalog> CreateTrustedCatalog(IConfiguration configuration, HttpClient httpClient)
+    private static Task<ProviderPackCatalog> CreateTrustedCatalog(IConfiguration configuration, HttpClient httpClient, ProviderPackStore store)
     {
         ProviderPackCatalog? official = null;
         if (configuration.GetValue("ProviderPacks:OfficialEnabled", true))
@@ -101,7 +101,8 @@ public static class CliComposition
                 };
             }
         }
-        return new TrustedConnectorCatalogs(httpClient).LoadAsync(ReadCatalogSources(configuration), official);
+        return new TrustedConnectorCatalogs(httpClient, Path.Combine(store.RootPath, "catalog-revisions"))
+            .LoadAsync(ReadCatalogSources(configuration), official);
     }
 
     private static ProviderPackCatalog CreateProviderPackCatalog(IConfiguration configuration)
@@ -132,7 +133,20 @@ public static class CliComposition
             {
                 Id = section["Id"] ?? string.Empty,
                 Uri = Uri.TryCreate(section["Uri"], UriKind.Absolute, out var uri) ? uri : new Uri("invalid", UriKind.Relative),
-                Sha256 = section["Sha256"] ?? string.Empty,
+                TrustMode = section["TrustMode"] ?? "sha256",
+                Sha256 = section["Sha256"],
+                SignatureUri = section["SignatureUri"] is string signatureUri
+                    ? (Uri.TryCreate(signatureUri, UriKind.Absolute, out var parsedSignatureUri) ? parsedSignatureUri : new Uri("invalid", UriKind.Relative))
+                    : null,
+                TrustedSigningKeys = section.GetSection("TrustedSigningKeys").GetChildren()
+                    .Select(key => new ConnectorCatalogSigningKey
+                    {
+                        KeyId = key["KeyId"] ?? string.Empty,
+                        PublicKeyPath = string.IsNullOrWhiteSpace(key["PublicKeyPath"]) ? string.Empty
+                            : Path.Combine(AppContext.BaseDirectory, key["PublicKeyPath"]!),
+                    }).ToArray(),
+                MinimumRevision = long.TryParse(section["MinimumRevision"] ?? "1", System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var minimumRevision) ? minimumRevision : 0,
                 Enabled = section.GetValue("Enabled", true),
                 BearerTokenEnvironmentVariable = section["BearerTokenEnvironmentVariable"],
             };

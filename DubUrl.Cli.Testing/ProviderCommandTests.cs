@@ -10,13 +10,16 @@ namespace DubUrl.Cli.Testing;
 
 public class ConnectorCommandTests
 {
-    [TestCase(false, "healthy")]
-    [TestCase(true, "healthy")]
-    [TestCase(false, "disabled")]
-    [TestCase(true, "disabled")]
-    [TestCase(false, "missing")]
-    [TestCase(true, "missing")]
-    public async Task List_NamedSources_ReportsSourceAndSafeFailuresInTextAndJson(bool jsonOutput, string officialState)
+    private static IEnumerable<TestCaseData> NamedCatalogCases()
+    {
+        foreach (var mode in new[] { "sha256", "unsigned", "signed" })
+            foreach (var official in new[] { "healthy", "disabled", "missing" })
+                foreach (var json in new[] { true, false })
+                    yield return new TestCaseData(json, official, mode);
+    }
+
+    [TestCaseSource(nameof(NamedCatalogCases))]
+    public async Task List_NamedSources_ReportsSourceAndSafeFailuresInTextAndJson(bool jsonOutput, string officialState, string trustMode)
     {
         var path = Path.GetTempFileName();
         var entry = new ConnectorDefinition
@@ -28,6 +31,9 @@ public class ConnectorCommandTests
         };
         var bytes = JsonSerializer.SerializeToUtf8Bytes(new ProviderPackCatalogDocument(2, [entry]), new JsonSerializerOptions(JsonSerializerDefaults.Web));
         await File.WriteAllBytesAsync(path, bytes);
+        using var key = System.Security.Cryptography.RSA.Create(2048);
+        await File.WriteAllTextAsync(path + ".public.pem", key.ExportSubjectPublicKeyInfoPem());
+        await File.WriteAllBytesAsync(path + ".sig", ConnectorCatalogSignature.Sign(bytes, key, "enterprise", "key-1", 1, DateTimeOffset.UtcNow.AddHours(1)));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ProviderPacks:StorePath"] = path + ".store",
@@ -35,11 +41,16 @@ public class ConnectorCommandTests
             ["ProviderPacks:CatalogPath"] = officialState == "missing" ? path + ".missing" : null,
             ["ProviderPacks:Sources:0:Id"] = "enterprise",
             ["ProviderPacks:Sources:0:Uri"] = new Uri(path).AbsoluteUri,
-            ["ProviderPacks:Sources:0:Sha256"] = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)),
+            ["ProviderPacks:Sources:0:TrustMode"] = trustMode,
+            ["ProviderPacks:Sources:0:Sha256"] = trustMode == "sha256" ? Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)) : null,
+            ["ProviderPacks:Sources:0:SignatureUri"] = trustMode == "signed" ? new Uri(path + ".sig").AbsoluteUri : null,
+            ["ProviderPacks:Sources:0:TrustedSigningKeys:0:KeyId"] = trustMode == "signed" ? "key-1" : null,
+            ["ProviderPacks:Sources:0:TrustedSigningKeys:0:PublicKeyPath"] = trustMode == "signed" ? path + ".public.pem" : null,
+            ["ProviderPacks:Sources:0:MinimumRevision"] = "1",
             ["ProviderPacks:Sources:1:Id"] = "unavailable",
             ["ProviderPacks:Sources:1:Uri"] = "https://user:password@private.test/catalog?token=secret",
             ["ProviderPacks:Sources:1:Sha256"] = new string('0', 64),
-        }).Build();
+        }.Where(pair => pair.Value is not null)).Build();
         var console = new TestConsole();
         try
         {
@@ -58,9 +69,16 @@ public class ConnectorCommandTests
                 using var document = JsonDocument.Parse(console.StandardOutput);
                 var connector = document.RootElement.GetProperty("connectors").EnumerateArray().Single(item => item.GetProperty("id").GetString() == "enterprise-pack");
                 Assert.That(connector.GetProperty("catalogSource").GetString(), Is.EqualTo("enterprise"));
+                Assert.That(connector.GetProperty("catalogProvenance").GetProperty("trustMode").GetString(), Is.EqualTo(trustMode));
             }
         }
-        finally { File.Delete(path); }
+        finally
+        {
+            File.Delete(path);
+            File.Delete(path + ".sig");
+            File.Delete(path + ".public.pem");
+            if (Directory.Exists(path + ".store")) Directory.Delete(path + ".store", true);
+        }
     }
 
     [Test]

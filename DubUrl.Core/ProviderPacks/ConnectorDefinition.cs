@@ -63,4 +63,10 @@ public sealed record ConnectorDatabase(string Name, IReadOnlyList<string> Scheme
 
 /// <summary>Installation origin without catalog locations or authentication material.</summary>
 public sealed record ConnectorCatalogProvenance(
-    string SourceId, string EntryId, string EntryVersion, string? CatalogSha256, string? ArchiveSha256);
+    string SourceId, string EntryId, string EntryVersion, string? CatalogSha256, string? ArchiveSha256)
+{
+    public string? TrustMode { get; init; }
+    public string? SigningKeyId { get; init; }
+    public string? SigningKeySha256 { get; init; }
+    public long? CatalogRevision { get; init; }
+}

@@ -28,7 +28,7 @@ public class TrustedConnectorCatalogsTests
                 Assert.That(first.Entries.Select(entry => entry.Provider), Is.EqualTo(second.Entries.Select(entry => entry.Provider)));
                 Assert.That(first.Entries.Select(entry => entry.Provider), Is.EqualTo(new[] { "official-pack", "other", "private" }));
                 Assert.That(first.TryGet("CORP", out var entry), Is.True);
-                Assert.That(entry!.CatalogProvenance, Is.EqualTo(new ConnectorCatalogProvenance("z", "private", "1.0.0", sources[0].Sha256.ToLowerInvariant(), entry.Sha256)));
+                Assert.That(entry!.CatalogProvenance, Is.EqualTo(new ConnectorCatalogProvenance("z", "private", "1.0.0", sources[0].Sha256!.ToLowerInvariant(), entry.Sha256) { TrustMode = "sha256" }));
             });
         }
         finally { File.Delete(path); }

@@ -95,3 +95,64 @@ fragments in that base URL. Configure TLS trust through your normal administrati
 Before rollout, block public endpoints and verify listing and installation using only the replacement
 catalog and internal archive host. For fully isolated clients, use `--archive` instead. Catalog updates and
 internal hosting do not bypass compatibility, integrity or activation checks.
+
+## Sign and publish an updatable catalog
+
+Named sources support three explicit trust modes: `sha256` (the compatible default), `unsigned`, and
+`signed`. See [source configuration and trust policies](../docs/_docs/provider-packs.md#additional-trusted-catalogs).
+`unsigned` explicitly trusts the managed HTTPS endpoint or protected local snapshot without a document
+pin or signature. `signed` lets clients retain a configured public key while administrators publish
+authenticated updates. Archive hashes remain mandatory in every mode; installing by arbitrary URL or
+package ID is never enabled by these settings.
+
+Keep the private key on the publishing system, outside this repository and outside client installations.
+Use a protected secret store and narrowly scoped publishing access. For a local encrypted PKCS#8 RSA
+key, OpenSSL can create the key and export its public SubjectPublicKeyInfo PEM:
+
+```powershell
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -aes-256-cbc -out C:\secure\catalog-signing-private.pem
+openssl pkey -in C:\secure\catalog-signing-private.pem -pubout -out C:\deployment\corporate-catalog-public.pem
+```
+
+These commands prompt for the private-key passphrase. Do not put it on the command line or commit
+keys or passphrases. See the OpenSSL [genpkey](https://docs.openssl.org/3.0/man1/openssl-genpkey/)
+and [pkey](https://docs.openssl.org/3.3/man1/openssl-pkey/) documentation. Distribute only the public PEM
+through your trusted client configuration channel, with a stable source ID and chosen key ID.
+
+The publisher utility reads an encrypted PEM key and the process environment variable
+`DUBURL_CATALOG_SIGNING_PASSWORD`. Inject that value from the publishing secret store; do not embed it
+in scripts, arguments, source control, or logs. Prepare a new staging directory containing a valid
+distribution catalog. For example, from the repository root with the .NET 10 runtime installed:
+
+```powershell
+$expiry = [DateTimeOffset]::UtcNow.AddDays(7).ToString('o')
+try {
+    dotnet run --project connectors/Signing/ConnectorCatalog.Sign.csproj -f net10.0 -- C:\staging\catalog.json C:\staging\catalog.json.sig C:\secure\catalog-signing-private.pem enterprise corporate-2026 42 $expiry
+} finally {
+    Remove-Item Env:DUBURL_CATALOG_SIGNING_PASSWORD -ErrorAction SilentlyContinue
+}
+```
+
+Replace revision 42 with the next monotonically increasing revision for this source. Expiry renewal,
+metadata changes, key rotation, and content changes all require a new revision. The utility validates the
+catalog metadata, signs its exact bytes and freshness metadata using RSA-PSS/SHA-256, and creates a new
+signature file. It refuses an existing output file, requires a future expiry, and emits no key material or
+underlying exception details. Hosts can instead use `ConnectorCatalogSignature.Sign` with a host-owned
+RSA key; the serialized signature format and client verification are the same.
+
+Verify the staged pair using the intended source/key configuration and a separate test provider store.
+Publish immutable archives first, then switch both stable catalog and signature routes to the prepared
+snapshot. A client fetching mismatched files during an update rejects that source safely and can retry
+on its next catalog load; there is no fallback to unsigned loading. Keep the configured URLs stable so
+clients need no configuration change for routine updates. Existing installed packs and healthy sources
+remain usable if signing, hosting, or verification fails.
+
+Use short expiry windows consistent with your deployment availability and renew before expiry. Persist
+client revision state under the provider store's `catalog-revisions` directory. A fresh or reset client
+cannot detect an older, still-unexpired catalog below the newest published revision unless administrators
+provision an appropriate `MinimumRevision`. Protect this floor, system time, public keys, and local state.
+For an intentional content rollback, publish the earlier content as a new higher revision.
+
+Rotate keys by distributing both public keys, publishing a higher revision using the new key, and then
+removing the old public key. Preserve source IDs and revision state throughout rotation. Private keys
+never go to clients; catalogs cannot establish or replace their own trust roots.
