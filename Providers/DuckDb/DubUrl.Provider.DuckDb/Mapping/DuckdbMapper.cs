@@ -18,6 +18,7 @@ namespace DubUrl.Provider.DuckDb.Mapping;
 )]
 [DubUrl.BulkCopy.BulkCopyProvider("DubUrl.Provider.DuckDb.Native.BulkCopy", "DubUrl.Provider.DuckDb.Native.BulkCopy.DuckDbBulkCopyProvider")]
 [DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.DuckDb.Discovery.DuckDbMetadataReader))]
+[ReadOnlyConnection("access_mode", "READ_ONLY", "DataSource", "SELECT readonly FROM duckdb_databases() WHERE database_name = current_database()")]
 public class DuckdbMapper : BaseMapper, IFileBasedMapper
 {
     public DuckdbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, string rootPath)

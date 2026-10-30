@@ -12,11 +12,13 @@ namespace DubUrl.ProviderTesting;
 
 [Category("AdomdProvider")]
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class AdomdContract
+public abstract class AdomdContract : CliConnectionCheckContract
 {
     private SchemeRegistry registry = null!;
+    protected override ISchemeRegistry CliRegistry => registry;
     protected abstract SchemeRegistry CreateSchemeRegistry();
     protected abstract string ConnectionUrl { get; }
+    protected override string CliConnectionUrl => ConnectionUrl;
     protected abstract string InvalidConnectionUrl { get; }
     protected abstract string SelectFirstCustomerSql { get; }
     protected abstract string SelectFirstCustomerRowSql { get; }
@@ -126,7 +128,7 @@ public abstract class AdomdContract
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection().Build())
             .AddDubUrl(new DubUrlServiceOptions())
-            .AddSingleton(registry);
+            .AddSingleton<ISchemeRegistry>(registry);
         return microOrm ? services.WithMicroOrm() : services;
     }
     private void RequirePrimitives() => Require(SupportsPrimitives, "Primitive queries are not implemented.");

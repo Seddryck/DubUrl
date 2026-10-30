@@ -9,6 +9,7 @@ namespace DubUrl.Provider.MsSqlServer.QA;
 public sealed class MsSqlServerOleDbTests : OleDbContract
 {
     private SchemeRegistry? registry;
+    protected override ISchemeRegistry CliRegistry => registry!;
     [OneTimeSetUp]
     public void RegisterProviderFactories()
     {

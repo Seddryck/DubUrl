@@ -23,10 +23,7 @@ public sealed class SchemaInspector
         {
             if (!connection.TryGetCapability<SchemaDiscoveryCapability>(out var capability))
                 return Failure("SDI001", MetadataCoverage.Unsupported, "The provider does not support schema discovery.");
-            using var created = connection.Connect();
-            if (created is not DbConnection owned) throw new NotSupportedException("Schema inspection requires a DbConnection.");
-            capability!.Reader.ConfigureOwnedConnection(owned);
-            await owned.OpenAsync(cancellationToken).ConfigureAwait(false);
+            using var owned = await connection.OpenAsync(capability!.Reader.ConfigureOwnedConnection, cancellationToken).ConfigureAwait(false);
             return await InspectAsync(owned, capability!.Reader, options, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }

@@ -55,6 +55,7 @@
     <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" Condition="'$(ConnectorTechnology)' == 'Trino'" />
     <PackageReference Include="System.Data.Odbc" Version="10.0.12" Condition="'$(ConnectorTechnology)' == 'Odbc'" />
     <PackageReference Include="System.Data.OleDb" Version="10.0.12" Condition="'$(ConnectorTechnology)' == 'OleDb'" />
+    <PackageReference Update="System.Data.OleDb" Version="9.0.21" Condition="'$(ConnectorTechnology)' == 'OleDb' AND '$(ConnectorFamily)' == 'Access' AND '$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
 
 </Project>

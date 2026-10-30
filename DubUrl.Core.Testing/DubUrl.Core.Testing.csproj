@@ -19,6 +19,7 @@
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="System.Data.Odbc" Version="10.0.12" />
     <PackageReference Include="System.Data.OleDb" Version="10.0.12" />
+    <PackageReference Update="System.Data.OleDb" Version="9.0.21" Condition="'$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Net.IBM.Data.Db2" Version="8.0.0.300" Condition="'$(TargetFramework)' == 'net8.0'" />
@@ -51,6 +52,8 @@
   <ItemGroup>
     <None Include="..\connectors\connector-matrix.json" Link="connector-matrix.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="../DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj" />
+    <ProjectReference Include="../DubUrl.Authentication.Snowflake/DubUrl.Authentication.Snowflake.csproj" />
     <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
     <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />
     <ProjectReference Include="..\Providers\*\DubUrl.Provider.*\*.csproj" Exclude="..\Providers\*\*.QA\*.csproj" />

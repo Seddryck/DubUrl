@@ -40,6 +40,18 @@ Console.WriteLine(command.ExecuteScalar());
 
 The default registry resolves factories that normally produce `DbConnection` instances, but the public return contract is `IDbConnection`. Use an explicit cast/type check before depending on provider-specific or asynchronous `DbConnection` members.
 
+## Required and optional defaults
+
+`WithReadOnly()` requires verified native read-only access to the primary database. It is strict and
+is not exposed inside the optional builder. See [read-only connections]({{ '/docs/read-only-connections/' | relative_url }})
+for supported routes, write-mode precedence, instance-reuse safeguards, and scope limits.
+
+`WithApplicationName(...)`, `WithPooling(...)`, `WithConnectionTimeout(...)`, and
+`WithCommandTimeout(...)` return a new configured URL and reject unsupported settings by default.
+Use `WithOptional(options => ...)` to skip unsupported settings from that restricted set. Invalid
+configuration and provider failures still throw. See [required and optional configuration]({{ '/docs/optional-configuration/' | relative_url }})
+for examples, precedence, diagnostics, and the exact provider support matrix.
+
 ## Custom mappings and dialects
 
 For ASP.NET Core applications and other hosts using dependency injection, see

@@ -17,7 +17,9 @@ The scheme selects the provider. The database path and supported options depend 
 
 ## Choose authentication
 
-For providers that support integrated authentication, omit explicit login credentials and configure the provider as required by your environment. To use database credentials, place the login and password before the host. Store real connection URLs in application configuration or an environment variable rather than in source code.
+Choose a method in [Library authentication]({{ '/authentication/' | relative_url }}) or [CLI authentication]({{ '/cli-authentication/' | relative_url }}). Both guides use the same method names and link to shared instructions with database and operating-system support tables.
+
+A connection URL describes the database location. For an explicit authentication method, keep passwords and competing sign-in settings out of that URL. Store real credentials in application configuration, a credential store, or the environment as described by the chosen method.
 
 ## Pass provider options
 
@@ -28,3 +30,9 @@ mssql://{server}/{database}?ConnectRetryCount=5&ConnectRetryInterval=3
 ```
 
 Use the provider's own documentation to determine which keywords and authentication methods it supports. DubUrl does not make provider-specific options portable across different databases.
+
+For portable Library defaults, use the shared `WithApplicationName(...)`, `WithPooling(...)`,
+`WithConnectionTimeout(...)`, and `WithCommandTimeout(...)` methods. They are strict by default;
+`WithOptional(...)` explicitly allows unsupported settings to be skipped. See
+[required and optional configuration]({{ '/docs/optional-configuration/' | relative_url }}) for
+the supported routes and fallback rules.

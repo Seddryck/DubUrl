@@ -199,6 +199,8 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
             })
         { BulkCopyProvider = info.BulkCopyProvider };
         if (info.SchemaDiscovery is not null) registration.WithCapabilities(info.SchemaDiscovery);
+        if (info.ConnectionConfiguration is not null) registration.WithCapabilities(info.ConnectionConfiguration);
+        if (info.ReadOnlyConnection is not null) registration.WithCapabilities(info.ReadOnlyConnection);
         return registration;
     }
 

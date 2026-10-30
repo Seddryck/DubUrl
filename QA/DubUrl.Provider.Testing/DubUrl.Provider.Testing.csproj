@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="../DubUrl.ProviderTesting/DubUrl.ProviderTesting.csproj" />
     <ProjectReference Include="..\..\Providers\Build\ProviderBinding.Build.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="NUnit" Version="5.0.0" />

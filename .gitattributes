@@ -8,3 +8,5 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto
+QA/Authentication/**/*.sh text eol=lf
+build/credential-store-smoke/*.sh text eol=lf

@@ -14,6 +14,25 @@ namespace DubUrl.OleDb.Testing;
 
 public class ProviderCatalogBuilderTests
 {
+    [TestCase(false), TestCase(true), Platform("Win"), NonParallelizable]
+    public async Task RuntimePasswordCredentialsReachOleDbMapping(bool asynchronous)
+    {
+        const string password = "x;Password='y@%+";
+        const string url = "oledb+mssql://localhost/app?Provider=MSOLEDBSQL";
+        var registry = new ProviderCatalogBuilder()
+            .AddModule(new AttributeProviderModule([.. new AssemblyTypesProbe().Assemblies, typeof(OleDbRewriter).Assembly, typeof(SchemeRegistry).Assembly]))
+            .Build();
+        var target = new ConnectionUrl(url, registry)
+            .WithAuthentication(DubUrl.Authentication.ConnectionAuthentication.UsernamePassword("alice", password));
+        using var connection = asynchronous ? await target.ConnectAsync() : (DbConnection)target.Connect();
+        var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };
+        Assert.That(builder["User ID"], Is.EqualTo("alice"));
+        Assert.That(builder["Password"], Is.EqualTo(password));
+        Assert.That(connection.State, Is.EqualTo(System.Data.ConnectionState.Closed));
+        Assert.That(target.Url, Is.EqualTo(url));
+        Assert.That(target.Parse(), Does.Not.Contain(password));
+    }
+
     [SetUp]
     public void DefaultRegistration()
     {

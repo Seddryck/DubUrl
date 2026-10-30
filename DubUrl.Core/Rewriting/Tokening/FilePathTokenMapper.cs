@@ -36,7 +36,7 @@ public class FilePathTokenMapper : BaseTokenMapper
     {
         if (string.IsNullOrEmpty(urlInfo.Host) && urlInfo.Segments.Count > 1
             && string.IsNullOrEmpty(urlInfo.Segments[0]))
-            return urlInfo.Segments.Skip(1).ToArray();
+            return GetLocalSegments(urlInfo.Segments);
 
         var segments = new List<string>();
         if (!string.Equals(urlInfo.Host, "localhost", StringComparison.InvariantCultureIgnoreCase)
@@ -44,5 +44,19 @@ public class FilePathTokenMapper : BaseTokenMapper
             segments.Add(urlInfo.Host);
         segments.AddRange(urlInfo.Segments);
         return segments;
+    }
+
+    private static IReadOnlyList<string> GetLocalSegments(IReadOnlyList<string> segments)
+    {
+        // Older callers construct two leading empty segments instead of using Parser.
+        // Those retain their historical root-relative behavior on every platform.
+        if (string.IsNullOrEmpty(segments[1]))
+            return segments.SkipWhile(string.IsNullOrEmpty).ToArray();
+        var absoluteSegments = segments.Skip(1).ToArray();
+        var first = absoluteSegments[0];
+        var windowsDrive = first.Length == 2 && char.IsLetter(first[0]) && first[1] == ':';
+        if (!OperatingSystem.IsWindows() && !windowsDrive)
+            absoluteSegments[0] = Path.DirectorySeparatorChar + first;
+        return absoluteSegments;
     }
 }

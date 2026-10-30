@@ -43,6 +43,15 @@ public class DuckdbRewriterTest
     }
 
     [Test]
+    [Platform(Exclude = "Win")]
+    public void UnixAbsoluteFilePath_IgnoresConfiguredRoot()
+    {
+        var rewriter = new DuckdbRewriter(ConnectionStringBuilder, "/configured/root");
+        var result = rewriter.Execute(ConnectionUri.Parse("duckdb:////tmp/duburl/data.duckdb"));
+        Assert.That(result[DuckdbRewriter.DATABASE_KEYWORD], Is.EqualTo("/tmp/duburl/data.duckdb"));
+    }
+
+    [Test]
     [TestCase("data.db", "")]
     [TestCase("localhost", "data.db")]
     [TestCase(".", "data.db")]

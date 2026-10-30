@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>Snowflake native authorization-code/PKCE sessions for DubUrl.</Description></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../DubUrl.Core/DubUrl.Core.csproj" />
+    <PackageReference Include="Snowflake.Data" Version="6.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+  </ItemGroup>
+</Project>

@@ -42,6 +42,15 @@ public class SqliteRewriterTest
     }
 
     [Test]
+    [Platform(Exclude = "Win")]
+    public void UnixAbsoluteFilePath_IgnoresConfiguredRoot()
+    {
+        var rewriter = new SqliteRewriter(ConnectionStringBuilder, "/configured/root");
+        var result = rewriter.Execute(ConnectionUri.Parse("sqlite:////tmp/duburl/data.db"));
+        Assert.That(result[SqliteRewriter.DATABASE_KEYWORD], Is.EqualTo("/tmp/duburl/data.db"));
+    }
+
+    [Test]
     [TestCase("data.db", "")]
     [TestCase("localhost", "data.db")]
     [TestCase(".", "data.db")]

@@ -21,6 +21,7 @@ namespace DubUrl.Provider.Odbc.Mapping;
 [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
     "System.Data.Odbc"
 )]
+[ReadOnlyConnection("access_mode", "READ_ONLY", "Database", "SELECT readonly FROM duckdb_databases() WHERE database_name = current_database()")]
 public class DuckdbOdbcMapper : BaseMapper, IOdbcMapper
 {
     public DuckdbOdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, IEnumerable<Type> locatorOptions)

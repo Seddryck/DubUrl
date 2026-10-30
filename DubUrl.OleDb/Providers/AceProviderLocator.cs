@@ -42,6 +42,7 @@ public abstract class AceProviderLocator : BaseProviderLocator
     public AceProviderLocator()
     : base(GetRegexPattern<AceProviderLocator>(),
         [
+            new OptionsMapper(),
             new OleDbRewriter.DataSourceMapper()
         ])
     { }

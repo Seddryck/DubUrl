@@ -39,6 +39,8 @@ SQL is written to standard output unless `--output` is supplied. Diagnostics and
 
 ## Deploy safely
 
+Choose how to sign in using [CLI authentication]({{ '/cli-authentication/' | relative_url }}). It links to database and operating-system support for each method.
+
 Named connections are read from `ConnectionStrings` in `DubUrl.Cli/appsettings.json` or from environment-backed configuration. A connection can also be selected by environment-variable name, keeping credential-bearing URLs out of process arguments.
 
 ```powershell

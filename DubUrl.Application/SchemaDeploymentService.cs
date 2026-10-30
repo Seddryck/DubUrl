@@ -46,12 +46,17 @@ public sealed class SchemaDeploymentService : ISchemaDeploymentService
         {
             throw;
         }
-        catch (Exception exception) when (exception is DbException or InvalidOperationException or TimeoutException)
+        catch (DubUrl.Authentication.ConnectionAuthenticationException error)
+        {
+            return new SchemaDeploymentResult(false, document.Version, dialectName, render.Sql,
+                render.Diagnostics.Append(SchemaOperationPipeline.Error(error.Code, error.Message, "$")).ToArray());
+        }
+        catch (Exception exception) when (exception is DbException or InvalidOperationException or TimeoutException or DubUrl.Authentication.ConnectionAuthenticationException)
         {
             return new SchemaDeploymentResult(false, document.Version, dialectName, render.Sql,
                 render.Diagnostics
                     .Append(SchemaOperationPipeline.Error(
-                        SchemaApplicationDiagnosticCodes.DeploymentFailed, exception.Message, "$"))
+                        SchemaApplicationDiagnosticCodes.DeploymentFailed, "Database deployment failed. Check authentication and provider configuration.", "$"))
                     .ToArray());
         }
     }

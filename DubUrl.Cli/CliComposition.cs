@@ -15,8 +15,13 @@ public static class CliComposition
         ICliConsole? console = null,
         IConfiguration? configuration = null,
         IProviderPackService? providerPackService = null,
-        IEnumerable<IDubUrlProviderModule>? providerModules = null)
+        IEnumerable<IDubUrlProviderModule>? providerModules = null,
+        IHiddenPasswordPrompt? passwordPrompt = null,
+        IOsCredentialStore? credentialStore = null,
+        INamedCredentialStore? namedCredentialStore = null,
+        ICliOAuthSessionFactory? oauthSessionFactory = null)
     {
+        console ??= new SystemCliConsole();
         configuration ??= new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true)
@@ -39,7 +44,11 @@ public static class CliComposition
 
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
-        services.AddSingleton(console ?? new SystemCliConsole());
+        services.AddSingleton<IHiddenPasswordPrompt>(passwordPrompt ?? new TerminalPasswordPrompt());
+        services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
+        services.AddSingleton<INamedCredentialStore>(namedCredentialStore ?? new NamedCredentialStore(console.IsInteractive));
+        services.AddSingleton(console);
+        services.AddSingleton<ICliOAuthSessionFactory>(oauthSessionFactory ?? new NativeCliOAuthSessionFactory());
         services.AddLogging(builder => builder
             .AddConfiguration(configuration.GetSection("Logging"))
             .AddSimpleConsole(options =>
@@ -60,6 +69,7 @@ public static class CliComposition
         services.AddSingleton<ISchemaScriptDeploymentExecutor, SchemaScriptDeploymentExecutor>();
         services.AddSingleton<ISchemaDocumentService, SchemaDocumentService>();
         services.AddSingleton<ISchemaDeploymentService, SchemaDeploymentService>();
+        services.AddSingleton<IConnectionCheckService, ConnectionCheckService>();
         services.AddSingleton(capabilities);
         if (providerPackService is not null)
         {

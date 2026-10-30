@@ -11,6 +11,7 @@ namespace DubUrl.Provider.MsAccess.QA;
 public sealed class MsAccessOleDbTests : OleDbContract
 {
     private SchemeRegistry? registry;
+    protected override ISchemeRegistry CliRegistry => registry!;
 
     [OneTimeSetUp]
     public void RegisterProviderFactories()

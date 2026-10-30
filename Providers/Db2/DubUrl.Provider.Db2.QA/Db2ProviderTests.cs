@@ -11,6 +11,7 @@ public sealed class Db2ProviderTests : ProviderContract
     internal static string Url => Environment.GetEnvironmentVariable("DUBURL_DB2_QA_URL")
         ?? throw new InvalidOperationException("Run QA/DubUrl.QA/Db2/deploy-db2-test-env.ps1 first.");
     protected override string ConnectionUrl => Url;
+    protected override string CliTableName => "\"Customer\"";
     protected override string SelectFirstCustomerSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=1";
     protected override string SelectCustomerByIdSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=@CustId";
     protected override string SelectCustomerByPositionSql => "select \"FullName\" from \"Customer\" where \"CustomerId\"=?";
