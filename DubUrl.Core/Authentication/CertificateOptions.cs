@@ -42,12 +42,16 @@ public abstract class CertificateOptions : IDisposable
         {
             CheckDisposed();
             if (loaded is not null) return loaded;
-            var password = DecryptionPasswordSource is null ? Password
-                : DecryptionPasswordSource is ISynchronousUsernamePasswordCredentialSource sync ? sync.Resolve(context).Password
-                : throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.SynchronousCredentialsRequired);
+            var password = ResolvePassword(context);
             return LoadChecked(RequirePassword(password));
         }
         finally { gate.Release(); }
+    }
+    private string? ResolvePassword(AuthenticationContext context)
+    {
+        if (DecryptionPasswordSource is null) return Password;
+        if (DecryptionPasswordSource is ISynchronousUsernamePasswordCredentialSource sync) return sync.Resolve(context).Password;
+        throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.SynchronousCredentialsRequired);
     }
     internal async ValueTask<X509Certificate2> GetAsync(AuthenticationContext context, CancellationToken token)
     {
@@ -85,6 +89,12 @@ public abstract class CertificateOptions : IDisposable
     }
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing) return;
         gate.Wait();
         try
         {
@@ -106,7 +116,6 @@ public abstract class CertificateOptions : IDisposable
             }
         }
         finally { gate.Release(); }
-        GC.SuppressFinalize(this);
     }
     public sealed override string ToString() => "CertificateOptions [REDACTED]";
 }
@@ -131,8 +140,9 @@ public sealed class X509CertificateOptions : CertificateOptions
     protected override X509Certificate2 Load(string? password)
     {
         if (certificate is not null) return certificate;
-        using var pem = password is null ? X509Certificate2.CreateFromPemFile(CertificatePath!, KeyPath)
-            : X509Certificate2.CreateFromEncryptedPemFile(CertificatePath!, password, KeyPath);
+        var certificatePath = CertificatePath ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InvalidCertificate);
+        using var pem = password is null ? X509Certificate2.CreateFromPemFile(certificatePath, KeyPath)
+            : X509Certificate2.CreateFromEncryptedPemFile(certificatePath, password, KeyPath);
         // Reimport so Windows TLS can use the private key; never persist it to a machine/user key store.
 #pragma warning disable SYSLIB0057
         return new X509Certificate2(pem.Export(X509ContentType.Pkcs12), (string?)null, X509KeyStorageFlags.EphemeralKeySet);

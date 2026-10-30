@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Security.Cryptography.X509Certificates;
 
 namespace DubUrl.Authentication;
@@ -23,47 +24,53 @@ public abstract partial class ConnectionAuthentication
 
     private sealed class CertificateAuthentication(CertificateOptions options, string? caPath) : ConnectionAuthentication
     {
+        private const string ConnectorNet = "MySql.Data";
+        private const string Odbc = "System.Data.Odbc";
+        private static readonly TimeSpan DriverMatchTimeout = TimeSpan.FromSeconds(1);
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.ClientCertificate;
         public override void ValidateContext(AuthenticationContext context)
         {
             options.ValidateSelection();
             var family = OperatingSystemIdentityMappings.Family(context);
-            var fileRoute = context.ProviderInvariantName is "MySql.Data" or "System.Data.Odbc";
-            var supported = context.ProviderInvariantName switch
-            {
-                "Npgsql" => IsPostgres(family),
-                "MySqlConnector" => IsMySql(family),
-                "SingleStoreConnector" => family is "sg" or "sgs" or "single" or "singlestore" or "singlestoredb",
-                "MySql.Data" => IsMySql(family),
-                "System.Data.Odbc" => IsPostgres(family) || IsMySql(family),
-                _ => false
-            };
-            if (!supported) Unsupported();
+            if (!SupportsProvider(context.ProviderInvariantName, family)) Unsupported();
             if (string.IsNullOrWhiteSpace(context.Username))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
+            ValidateSupplement(context, family);
+            ValidateFileOptions(context.ProviderInvariantName);
+        }
+        private static bool SupportsProvider(string provider, string family) => provider switch
+        {
+            "Npgsql" => IsPostgres(family),
+            "MySqlConnector" or ConnectorNet => IsMySql(family),
+            "SingleStoreConnector" => IsSingleStore(family),
+            Odbc => IsPostgres(family) || IsMySql(family),
+            _ => false
+        };
+        private void ValidateSupplement(AuthenticationContext context, string family)
+        {
             if (options.SupplementalCredentials is not null && !IsMySql(family)
                 && context.ProviderInvariantName != "SingleStoreConnector") Unsupported();
-            if (fileRoute && options is not X509CertificateOptions { IsUnencryptedPem: true })
-            {
-                // Connector/NET accepts PKCS#12 through CertificateFile, but that setting doubles
-                // as its CA file for PEM. It has no independent custom-CA setting for a PFX bundle.
-                if (context.ProviderInvariantName != "MySql.Data" || options is not Pkcs12CertificateOptions || caPath is not null) Unsupported();
-            }
-
+        }
+        private void ValidateFileOptions(string provider)
+        {
+            if (provider is not (ConnectorNet or Odbc)) return;
+            if (options is X509CertificateOptions { IsUnencryptedPem: true }) return;
+            // Connector/NET's CertificateFile setting cannot represent both a bundle and a CA.
+            if (provider != ConnectorNet || options is not Pkcs12CertificateOptions || caPath is not null) Unsupported();
         }
         internal override void ValidateMappedConnection(string connectionString, AuthenticationContext context)
         {
             var builder = new DbConnectionStringBuilder(true) { ConnectionString = connectionString };
             if (builder.ContainsKey("DSN") || builder.ContainsKey("FileDSN")) Unsupported();
-            var driver = builder.TryGetValue("Driver", out var value) ? value.ToString()!.Trim('{', '}') : "";
+            var driver = builder.TryGetValue("Driver", out var value) ? (value.ToString() ?? "").Trim('{', '}') : "";
             var family = OperatingSystemIdentityMappings.Family(context);
             if (!(IsPostgres(family) && IsPostgresDriver(driver))
                 && !(IsMySql(family) && IsMySqlDriver(driver))
                 && !(family is "maria" or "mariadb" && IsMariaDbDriver(driver))) Unsupported();
         }
-        private static bool IsPostgresDriver(string driver) => System.Text.RegularExpressions.Regex.IsMatch(driver, @"^PostgreSQL (Unicode|ANSI)(\(x64\))?$");
-        private static bool IsMySqlDriver(string driver) => System.Text.RegularExpressions.Regex.IsMatch(driver, @"^MySQL ODBC (?:[89]|[1-9]\d+)\.\d+(?:\.\d+)? (Unicode |ANSI )?Driver$");
-        private static bool IsMariaDbDriver(string driver) => System.Text.RegularExpressions.Regex.IsMatch(driver, @"^MariaDB ODBC 3\.[1-9]\d*(?:\.\d+)? Driver$");
+        private static bool IsPostgresDriver(string driver) => Regex.IsMatch(driver, @"^PostgreSQL (Unicode|ANSI)(\(x64\))?$", RegexOptions.None, DriverMatchTimeout);
+        private static bool IsMySqlDriver(string driver) => Regex.IsMatch(driver, @"^MySQL ODBC (?:[89]|[1-9]\d+)\.\d+(?:\.\d+)? (Unicode |ANSI )?Driver$", RegexOptions.None, DriverMatchTimeout);
+        private static bool IsMariaDbDriver(string driver) => Regex.IsMatch(driver, @"^MariaDB ODBC 3\.[1-9]\d*(?:\.\d+)? Driver$", RegexOptions.None, DriverMatchTimeout);
         public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
         {
             ValidateContext(context);
@@ -97,7 +104,7 @@ public abstract partial class ConnectionAuthentication
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
             ValidateContext(context);
-            if (context.ProviderInvariantName is "System.Data.Odbc" or "MySql.Data")
+            if (context.ProviderInvariantName is Odbc or ConnectorNet)
             {
                 ConfigureFileRoute(connection, context);
                 return;
@@ -105,11 +112,7 @@ public abstract partial class ConnectionAuthentication
             var npgsql = connection.GetType().FullName == "Npgsql.NpgsqlConnection";
             if (!npgsql && connection.GetType().FullName is not ("MySqlConnector.MySqlConnection" or "SingleStoreConnector.SingleStoreConnection")) Unsupported();
             var builder = new DbConnectionStringBuilder { ConnectionString = connection.ConnectionString };
-            foreach (var key in builder.Keys.Cast<string>())
-            {
-                var normalized = new string(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
-                if (normalized == "sslmode" && !string.Equals(builder[key].ToString(), "VerifyFull", StringComparison.OrdinalIgnoreCase)) Conflict();
-            }
+            ValidateTlsMode(builder);
             builder["SSL Mode"] = "VerifyFull";
             if (caPath is not null) builder[npgsql ? "Root Certificate" : "SSL CA"] = Path.GetFullPath(caPath);
             if (npgsql)
@@ -122,61 +125,70 @@ public abstract partial class ConnectionAuthentication
             options.RegisterPool(connection);
             InstallCallback(connection, options.Get(context));
         }
+        private static void ValidateTlsMode(DbConnectionStringBuilder builder)
+        {
+            foreach (var key in builder.Keys.Cast<string>())
+            {
+                var normalized = new string(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+                if (normalized == "sslmode" && !string.Equals(builder[key].ToString(), "VerifyFull", StringComparison.OrdinalIgnoreCase)) Conflict();
+            }
+        }
         private void ConfigureFileRoute(DbConnection connection, AuthenticationContext context)
         {
-            var odbc = context.ProviderInvariantName == "System.Data.Odbc";
+            var odbc = context.ProviderInvariantName == Odbc;
             if (connection.GetType().FullName != (odbc ? "System.Data.Odbc.OdbcConnection" : "MySql.Data.MySqlClient.MySqlConnection")) Unsupported();
-            if (odbc) ValidateMappedConnection(connection.ConnectionString, context);
             var builder = new DbConnectionStringBuilder(odbc) { ConnectionString = connection.ConnectionString };
-            var family = OperatingSystemIdentityMappings.Family(context);
-            if (!odbc)
+            if (odbc)
             {
-                builder["SSL Mode"] = "VerifyFull";
-                builder["Pooling"] = false; // Connector/NET has no application-name pool discriminator.
-                if (options is Pkcs12CertificateOptions bundle)
-                {
-                    builder["CertificateFile"] = bundle.BundlePath;
-                    builder["CertificatePassword"] = options.ResolvedPassword ?? "";
-                }
-                else
-                {
-                    var pem = (X509CertificateOptions)options;
-                    builder["SslCert"] = pem.CertificatePath!;
-                    builder["SslKey"] = pem.KeyPath!;
-                    if (caPath is not null) builder["SslCa"] = Path.GetFullPath(caPath);
-                }
+                ValidateMappedConnection(connection.ConnectionString, context);
+                ConfigureOdbc(builder, context);
             }
-            else
-            {
-                if (builder.ContainsKey("DSN") || builder.ContainsKey("FileDSN")) Unsupported();
-                var driver = builder.TryGetValue("Driver", out var value) ? value.ToString()!.Trim('{', '}') : "";
-                var pem = (X509CertificateOptions)options;
-                if (IsPostgres(family) && IsPostgresDriver(driver))
-                {
-                    // libpq >=16 enforces certificate-only authentication and system trust.
-                    builder["SSLmode"] = "verify-full";
-                    builder["Pqopt"] = "require_auth=none gssencmode=disable sslcertmode=require sslcert=" + QuoteLibpq(pem.CertificatePath!) + " sslkey=" + QuoteLibpq(pem.KeyPath!)
-                        + " sslrootcert=" + QuoteLibpq(caPath is null ? "system" : Path.GetFullPath(caPath));
-                }
-                else if (IsMySql(family) && IsMySqlDriver(driver))
-                {
-                    builder["SSLMODE"] = "VERIFY_IDENTITY";
-                    builder["SSLCERT"] = pem.CertificatePath!;
-                    builder["SSLKEY"] = pem.KeyPath!;
-                    if (caPath is not null) builder["SSLCA"] = Path.GetFullPath(caPath);
-                }
-                else if (family is "maria" or "mariadb" && IsMariaDbDriver(driver))
-                {
-                    builder["SSLVERIFY"] = 1;
-                    builder["FORCETLS"] = 1;
-                    builder["SSLCERT"] = pem.CertificatePath!;
-                    builder["SSLKEY"] = pem.KeyPath!;
-                    if (caPath is not null) builder["SSLCA"] = Path.GetFullPath(caPath);
-                }
-                else Unsupported();
-            }
+            else ConfigureConnectorNet(builder);
             connection.ConnectionString = builder.ConnectionString;
             if (!odbc) options.RegisterPool(connection);
+        }
+        private void ConfigureConnectorNet(DbConnectionStringBuilder builder)
+        {
+            builder["SSL Mode"] = "VerifyFull";
+            builder["Pooling"] = false; // Connector/NET has no application-name pool discriminator.
+            if (options is Pkcs12CertificateOptions bundle)
+            {
+                builder["CertificateFile"] = bundle.BundlePath;
+                builder["CertificatePassword"] = options.ResolvedPassword ?? "";
+                return;
+            }
+            var pem = (X509CertificateOptions)options;
+            builder["SslCert"] = pem.CertificatePath;
+            builder["SslKey"] = pem.KeyPath;
+            if (caPath is not null) builder["SslCa"] = Path.GetFullPath(caPath);
+        }
+        private void ConfigureOdbc(DbConnectionStringBuilder builder, AuthenticationContext context)
+        {
+            var family = OperatingSystemIdentityMappings.Family(context);
+            var pem = (X509CertificateOptions)options;
+            if (IsPostgres(family))
+            {
+                ConfigurePostgresOdbc(builder, pem);
+                return;
+            }
+            var driver = builder["Driver"].ToString()?.Trim('{', '}') ?? "";
+            if (IsMySqlDriver(driver)) builder["SSLMODE"] = "VERIFY_IDENTITY";
+            else
+            {
+                builder["SSLVERIFY"] = 1;
+                builder["FORCETLS"] = 1;
+            }
+            builder["SSLCERT"] = pem.CertificatePath;
+            builder["SSLKEY"] = pem.KeyPath;
+            if (caPath is not null) builder["SSLCA"] = Path.GetFullPath(caPath);
+        }
+        private void ConfigurePostgresOdbc(DbConnectionStringBuilder builder, X509CertificateOptions pem)
+        {
+            // libpq >=16 enforces certificate-only authentication and system trust.
+            builder["SSLmode"] = "verify-full";
+            builder["Pqopt"] = "require_auth=none gssencmode=disable sslcertmode=require sslcert=" + QuoteLibpq(pem.CertificatePath ?? "")
+                + " sslkey=" + QuoteLibpq(pem.KeyPath ?? "")
+                + " sslrootcert=" + QuoteLibpq(caPath is null ? "system" : Path.GetFullPath(caPath));
         }
         private void IsolatePool(DbConnectionStringBuilder builder)
         {
@@ -190,14 +202,21 @@ public abstract partial class ConnectionAuthentication
             var property = connection.GetType().GetProperty("ProvideClientCertificatesCallback")
                 ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
             var returnType = property.PropertyType.GetMethod("Invoke")?.ReturnType;
-            var name = returnType == typeof(void) ? nameof(CertificateCallback.Add)
-                : returnType == typeof(ValueTask) ? nameof(CertificateCallback.AddValueTask)
-                : returnType == typeof(Task) ? nameof(CertificateCallback.AddTask)
-                : throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+            var name = CallbackMethodName(returnType);
             var callback = new CertificateCallback(certificate);
             property.SetValue(connection, Delegate.CreateDelegate(property.PropertyType, callback,
-                typeof(CertificateCallback).GetMethod(name, BindingFlags.Instance | BindingFlags.Public)!));
+                typeof(CertificateCallback).GetMethod(name, BindingFlags.Instance | BindingFlags.Public)
+                    ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication)));
         }
+        private static string CallbackMethodName(Type? returnType)
+        {
+            if (returnType == typeof(void)) return nameof(CertificateCallback.Add);
+            if (returnType == typeof(ValueTask)) return nameof(CertificateCallback.AddValueTask);
+            if (returnType == typeof(Task)) return nameof(CertificateCallback.AddTask);
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
+        }
+        private static bool IsSingleStore(string family)
+            => family is "sg" or "sgs" or "single" or "singlestore" or "singlestoredb";
         private static bool IsPostgres(string scheme)
             => scheme is "postgres" or "postgresql" or "pgsql" or "pg" or "pgx" or "ts" or "timescale"
                 or "cr" or "cockroach" or "cockroachdb" or "crdb" or "cdb";

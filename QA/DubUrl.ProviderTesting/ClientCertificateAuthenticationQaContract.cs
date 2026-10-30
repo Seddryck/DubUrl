@@ -193,15 +193,14 @@ public abstract partial class ClientCertificateAuthenticationQaContract : Operat
     }
 
     [TestCase("disabled"), TestCase("required"), TestCase("verify-ca"), Category("ClientCertificateAuthentication")]
-    public async Task CertificateQa_WeakTlsRejectsAndDisposesNativeConnection(string mode)
+    public async Task CertificateQa_WeakTlsRejectsBeforeNativeConnectionCreation(string mode)
     {
         var driver = CertificateDriver;
         driver.RequireSupported();
         var registry = new TokenQaRegistry(AuthenticationRegistry);
         var error = await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () => { await using var connection = await driver.Target(Certificate, registry, location: driver.Location(weakMode: mode)).ConnectAsync(); });
         Assert.That(error!.Code, Is.EqualTo(AuthenticationDiagnosticCodes.CredentialConflict));
-        Assert.That(registry.Connections, Has.Count.EqualTo(1));
-        await CertificateQaDriver.AssertDisposedAsync(registry.Connections[0]);
+        Assert.That(registry.Connections, Is.Empty);
         Assert.That(Certificate.HasPrivateKey, Is.True);
         AssertSafe(error);
     }

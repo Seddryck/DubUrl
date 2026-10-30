@@ -23,7 +23,7 @@ internal sealed class CliCertificateOptions : IDisposable
     }
     internal ConnectionUrl Configure(IServiceProvider services, ParseResult result, ConnectionUrl target, IUsernamePasswordCredentialSource? supplemental)
     {
-        var path = result.GetValue(certificate)!;
+        var path = result.GetValue(certificate) ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         var keyPath = result.GetValue(key);
         var usePrompt = result.GetValue(prompt);
         var reference = result.GetValue(store);
@@ -33,7 +33,7 @@ internal sealed class CliCertificateOptions : IDisposable
         if (bundle ? keyPath is not null : string.IsNullOrWhiteSpace(keyPath)) Conflict();
         var source = usePrompt || reference is not null ? new PasswordSource(services, usePrompt, reference) : null;
         lifetime = bundle ? new Pkcs12CertificateOptions(path) { DecryptionPasswordSource = source, SupplementalCredentials = supplemental }
-            : new X509CertificateOptions(path, keyPath!) { DecryptionPasswordSource = source, SupplementalCredentials = supplemental };
+            : new X509CertificateOptions(path, keyPath ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict)) { DecryptionPasswordSource = source, SupplementalCredentials = supplemental };
         return target.WithAuthentication(ConnectionAuthentication.ClientCertificate(lifetime, result.GetValue(ca)));
     }
     public void Dispose() { lifetime?.Dispose(); lifetime = null; }
@@ -51,7 +51,7 @@ internal sealed class CliCertificateOptions : IDisposable
             }
             try
             {
-                var stored = await services.GetRequiredService<IOsCredentialStore>().ReadAsync(reference!, cancellationToken).ConfigureAwait(false);
+                var stored = await services.GetRequiredService<IOsCredentialStore>().ReadAsync(reference ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials), cancellationToken).ConfigureAwait(false);
                 if (stored.Password is null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
                 return new(password: stored.Password);
             }
