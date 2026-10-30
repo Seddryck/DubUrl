@@ -10,25 +10,47 @@ namespace DubUrl.Application.Testing;
 
 public class ConnectorServiceTests
 {
-    [Test]
-    public async Task NonDefaultCatalog_InstallRetainsVerifiedProvenanceWhenSourceIsDisabledOrFails()
+    [TestCase("sha256", false)]
+    [TestCase("unsigned", false)]
+    [TestCase("signed", false)]
+    [TestCase("unsigned", true)]
+    [TestCase("signed", true)]
+    public async Task NonDefaultCatalog_EnforcesArchiveIntegrityAndRetainsProvenance(string mode, bool wrongArchiveHash)
     {
         var root = CreateStorePath();
         var path = root + ".json";
         var package = CreatePackage("private-provider", "1.0.0");
         var bytes = JsonSerializer.SerializeToUtf8Bytes(new ProviderPackCatalogDocument(2,
-            [package.Entry with { Aliases = ["corp"], CatalogProvenance = new("forged", "forged", "0", null, null) }]),
+            [package.Entry with { Aliases = ["corp"], Sha256 = wrongArchiveHash ? new string('0', 64) : package.Entry.Sha256,
+                CatalogProvenance = new("forged", "forged", "0", null, null) }]),
             new JsonSerializerOptions(JsonSerializerDefaults.Web));
         await File.WriteAllBytesAsync(path, bytes);
         var digest = Convert.ToHexString(SHA256.HashData(bytes));
         using var http = new HttpClient(new ArchiveHandler(package.Archive.ToArray(), package.Entry.DownloadUri!));
-        var loader = new TrustedConnectorCatalogs(http);
-        var source = new ConnectorCatalogSource { Id = "enterprise", Uri = new Uri(path), Sha256 = digest };
+        var statePath = root + ".revisions";
+        var loader = new TrustedConnectorCatalogs(http, statePath);
+        using var signingKey = RSA.Create(2048);
+        var publicKeyPath = root + ".public.pem";
+        await File.WriteAllTextAsync(publicKeyPath, signingKey.ExportSubjectPublicKeyInfoPem());
+        await File.WriteAllBytesAsync(path + ".sig", ConnectorCatalogSignature.Sign(bytes, signingKey, "enterprise", "key-1", 1, DateTimeOffset.UtcNow.AddHours(1)));
+        var source = new ConnectorCatalogSource
+        {
+            Id = "enterprise", Uri = new Uri(path), TrustMode = mode, Sha256 = mode == "sha256" ? digest : null,
+            SignatureUri = mode == "signed" ? new Uri(path + ".sig") : null,
+            TrustedSigningKeys = mode == "signed" ? [new() { KeyId = "key-1", PublicKeyPath = publicKeyPath }] : [],
+        };
         var store = new ProviderPackStore(root);
         try
         {
             var catalog = await loader.LoadAsync([source]);
             var service = new ConnectorService(store, catalog, http);
+            if (wrongArchiveHash)
+            {
+                var exception = await Assert.ThrowsAsync<ConnectorOperationException>(async () => await service.InstallAsync("corp"));
+                Assert.That(exception!.Code, Is.EqualTo("pack-integrity"));
+                Assert.That(store.Inspect(), Is.Empty);
+                return;
+            }
             var installed = await service.InstallAsync("CORP");
             Assert.Multiple(() =>
             {
@@ -36,6 +58,8 @@ public class ConnectorServiceTests
                 Assert.That(installed.CatalogProvenance!.EntryId, Is.EqualTo("private-provider"));
                 Assert.That(installed.CatalogProvenance.CatalogSha256, Is.EqualTo(digest.ToLowerInvariant()));
                 Assert.That(installed.CatalogProvenance.ArchiveSha256, Is.EqualTo(package.Entry.Sha256));
+                Assert.That(installed.CatalogProvenance.TrustMode, Is.EqualTo(mode));
+                Assert.That(installed.CatalogProvenance.SigningKeyId, Is.EqualTo(mode == "signed" ? "key-1" : null));
             });
             File.Delete(path);
             foreach (var unavailable in new[] { await loader.LoadAsync([source]), await loader.LoadAsync([]) })
@@ -52,6 +76,9 @@ public class ConnectorServiceTests
         finally
         {
             File.Delete(path);
+            File.Delete(path + ".sig");
+            File.Delete(publicKeyPath);
+            if (Directory.Exists(statePath)) Directory.Delete(statePath, true);
             if (Directory.Exists(root)) Directory.Delete(root, true);
         }
     }

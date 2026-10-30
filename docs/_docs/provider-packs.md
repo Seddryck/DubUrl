@@ -155,15 +155,39 @@ The bundled definitions are trusted as part of the application distribution.
 Each source has a stable, case-insensitively unique ID containing letters, numbers, dots, underscores,
 or hyphens (maximum 128 characters; first character alphanumeric). `official` is reserved.
 `Enabled` defaults to true. `Uri` must be an absolute HTTPS URL or a `file:` URI to a managed local
-snapshot. Obtain the catalog SHA-256 through a trusted, independent deployment channel and update
-the pin deliberately when approving a new snapshot. The loader verifies the exact document bytes
-before parsing; schema and distribution metadata are then validated. Every archive must have an
+snapshot. Select the catalog trust policy with `TrustMode`:
+
+| Mode | Required configuration | How catalog updates are approved |
+|---|---|---|
+| `sha256` (default) | `Sha256` | Deploy a new independently approved document hash to clients. Existing configurations keep working. |
+| `unsigned` | Explicit `TrustMode: "unsigned"`; omit `Sha256` and signing settings | Trust the configured HTTPS endpoint and its normal TLS validation, or administrator-managed local file permissions. |
+| `signed` | `SignatureUri`, `TrustedSigningKeys`; omit `Sha256` | Publish a new signature using a configured trusted key. Client configuration stays unchanged. |
+
+Missing or mismatched pins, failed signatures, unknown modes, and conflicting trust settings reject
+the source; they never select a weaker mode automatically. For `sha256`, obtain the catalog digest
+through a trusted independent channel and update the pin deliberately. `unsigned` allows the endpoint
+or local deployment administrator to replace catalog contents without a separate content-approval step.
+It is an explicit trust decision, not a way to recover from verification failure. For example:
+
+```json
+{
+  "Id": "enterprise",
+  "Uri": "https://connectors.example.org/catalog.json",
+  "TrustMode": "unsigned",
+  "Enabled": true
+}
+```
+
+Updates become available on the next catalog load (the next CLI invocation, or a host's next explicit
+`LoadAsync` call). There is no automatic background refresh of an existing service instance. In every
+mode, schema and distribution metadata are validated. Every archive must have an
 HTTPS location and its own SHA-256 digest, which installation verifies before extraction.
 
 HTTPS uses the operating system's certificate validation. Optional bearer authentication reads the
 named process environment variable at load time; missing credentials fail that source. The bearer
-header applies only to the catalog request and is never put on the shared HTTP client's default
-headers or passed to archive downloads. Archives must be accessible independently, for example
+header applies to the catalog and, in signed mode, its configured signature on the same HTTPS origin.
+Signature locations on another origin or transport are rejected before requests. Headers are never
+put on the shared HTTP client's defaults or passed to archive downloads. Archives must be accessible independently, for example
 through approved signed URLs. URL user-info authentication is rejected. Query strings may carry
 authentication, but locations, queries, credential variable names, tokens, and underlying transport
 exceptions are excluded from command output and persisted provenance. Store tokens outside source
@@ -179,7 +203,9 @@ connector management is requested, so catalog availability does not affect insta
 `duburl connector list` includes a `CATALOG` column; `--json` includes `catalogSource`,
 `catalogProvenance`, and top-level source `diagnostics`. Installed entries retain their source ID,
 canonical entry ID/version, catalog digest (for pinned sources), and archive digest in their local
-manifest, even after a source fails or is disabled. No catalog or download URL is part of provenance.
+manifest, even after a source fails or is disabled. The document digest is a content fingerprint in
+unsigned mode, not a configured trust pin. Provenance records the selected trust mode and, for signed
+catalogs, the verified key ID, public-key fingerprint, and revision. No catalog or download URL is part of provenance.
 Existing installations without provenance remain readable. Source selection and arbitrary URLs are
 not install arguments: `connector install` still accepts only an ID or alias in the effective catalog,
 including when using `--archive` for offline installation.
@@ -187,6 +213,67 @@ including when using `--archive` for offline installation.
 Application hosts can call `TrustedConnectorCatalogs.LoadAsync(sources, officialCatalog, token)` to
 obtain the same merged `ProviderPackCatalog`, then pass it to `ConnectorService`. Inspect
 `IConnectorService.CatalogDiagnostics` for safe per-source failures.
+
+### Signed catalogs
+
+Provision public keys through trusted deployment configuration, independently of the catalog server.
+Only PEM SubjectPublicKeyInfo `PUBLIC KEY` files are accepted on clients; private keys and certificates
+are not public-key configuration. Relative `PublicKeyPath` values in CLI configuration resolve from
+the application directory. Key IDs are case-sensitive simple names, unique within the source.
+
+```json
+{
+  "Id": "enterprise",
+  "Uri": "https://connectors.example.org/catalog.json",
+  "TrustMode": "signed",
+  "SignatureUri": "https://connectors.example.org/catalog.json.sig",
+  "TrustedSigningKeys": [
+    { "KeyId": "corporate-2026", "PublicKeyPath": "corporate-catalog-public.pem" }
+  ],
+  "MinimumRevision": 1,
+  "Enabled": true
+}
+```
+
+Version 1 uses RSA-PSS with SHA-256, with RSA keys from 2048 to 8192 bits; 3072 bits is a practical
+publishing choice. The format fixes the algorithm; downloaded metadata cannot select a different one.
+The detached JSON document contains `schemaVersion` (1), lowercase `sourceId`, `keyId`, positive integer
+`revision`, `expiresAt` (UTC Unix seconds), and `signature` (base64 RSA signature). Verification signs the
+UTF-8 header below, followed immediately by the exact catalog bytes. Each header line ends with LF,
+including the last line; integers use invariant decimal formatting. Catalog JSON is never reserialized
+for verification. The source ID binds a signature to its configured source, case-insensitively.
+
+```text
+DubUrl.ConnectorCatalog/v1
+<lowercase-source-id>
+<key-id>
+<revision>
+<expiresAt>
+```
+
+The signature authenticates both the catalog and its freshness metadata. Expired signatures and
+revisions below `MinimumRevision` (default 1) are rejected. Clients persist the highest accepted revision
+under `<provider-store>/catalog-revisions`, independently of key IDs. Lower revisions and different
+payloads at the same revision are rejected across processes; the identical signed payload may be
+reloaded until it expires. Renewing expiry or changing keys requires a higher revision. State is advanced
+only for successfully parsed, unambiguous catalogs. Corrupt, inaccessible, or unwritable state fails the
+source closed. Other healthy sources and installed connectors remain usable.
+
+Protect configuration, public keys, system time, and revision state with normal deployment permissions.
+Keep the state directory across upgrades and key rotation. Deleting or relocating the provider store
+resets the client's high-water mark. A fresh client can verify an unexpired signature, but cannot know
+the latest revision from that signature alone: use a centrally provisioned `MinimumRevision` for a
+bootstrap floor, plus short publication expiry windows. There is no online revocation or transparency
+service. To roll back content deliberately, sign the earlier content with a new, higher revision.
+
+For rotation, deploy both the current and next public keys first, publish the next revision signed by
+the new key, then remove the retired key from clients. Retain the same source ID and revision state.
+The server cannot add a new trusted key through a catalog or signature document. Removing a key
+blocks future loads signed by it; it does not uninstall previously installed provider packs.
+
+See [catalog signing and publication](https://github.com/Seddryck/DubUrl/blob/main/connectors/DISTRIBUTION.md#sign-and-publish-an-updatable-catalog)
+for publisher tooling and protected key generation. The implementation uses .NET's built-in
+[RSA signing and verification APIs](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.rsa).
 
 ## In-process host management
 
