@@ -30,6 +30,7 @@ public sealed class OptionalConnectionOptions
     internal static string ValidateApplicationName(string applicationName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(applicationName);
+        if (applicationName.Any(char.IsControl)) throw new ArgumentException("Application names cannot contain control characters.", nameof(applicationName));
         return applicationName;
     }
 

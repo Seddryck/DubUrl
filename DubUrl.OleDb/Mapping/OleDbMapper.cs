@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping.Connectivity;
+using DubUrl.Mapping.Connectivity;
 using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using System;
@@ -19,6 +19,7 @@ namespace DubUrl.OleDb.Mapping;
 [WrapperMapper<OleDbConnectivity, PositionalParametrizer>(
     "System.Data.OleDb"
 )]
+[ConnectionConfiguration(Tls = "OleDb")]
 public class OleDbMapper : BaseMapper, IOleDbMapper
 {
     public OleDbMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer) 

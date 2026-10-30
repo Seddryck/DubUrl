@@ -56,7 +56,7 @@ Only these four methods exist on the sealed `OptionalConnectionOptions` builder:
 
 `WithReadOnly()` is available as a required method on the parent URL; see
 [read-only connections]({{ '/docs/read-only-connections/' | relative_url }}). Authentication, encryption,
-and time zone must also remain required when their separate shared APIs are added.
+and time zone remain required through their shared APIs.
 Ignoring these settings could change identity, transport security, permitted writes, or
 query results. They are deliberately absent from the optional builder, which also exposes no raw
 connection-string escape hatch or parent URL.
@@ -94,25 +94,10 @@ execution deadline; explicit per-command `CommandTimeout` values override the co
 
 ## Current provider mappings
 
-Support belongs to the exact mapper/driver route, not to every server using the same wire protocol.
-The following native routes declare mappings in this implementation:
-
-| Database / provider | Application name | Pooling | Connection timeout | Command timeout |
-|---|---|---|---|---|
-| SQL Server / Microsoft.Data.SqlClient | `Application Name` | `Pooling`, `Min Pool Size`, `Max Pool Size` | `Connect Timeout` | `Command Timeout` |
-| PostgreSQL / Npgsql | `Application Name` | `Pooling`, `Minimum Pool Size`, `Maximum Pool Size` | `Timeout` | `Command Timeout` |
-| MySQL and MariaDB / MySqlConnector | `Application Name` (`program_name`) | `Pooling`, `Minimum Pool Size`, `Maximum Pool Size` | `Connection Timeout` | `Default Command Timeout` |
-| SQLite / Microsoft.Data.Sqlite | Unsupported | `Pooling` only; no size limits | Unsupported | Unsupported |
-
-SQLite's native default command timeout primarily governs busy/lock waits and is deliberately not
-mapped as a portable command execution timeout here. Other routes, including ODBC, OLE DB, and
-PostgreSQL-compatible server aliases, currently have no declared mappings: strict requests fail and
-optional requests are skipped. Further provider coverage and CLI flags remain separate work.
-
-The mappings apply to every connection created from the configured URL, including reopening and
-native pool reuse. They require no post-open SQL. The current CLI has no flags for this configuration
-scope; adding the proposed CLI flags must reuse these mappings and strict defaults.
-The separate strict `--read-only` flag is described in the read-only connection guide.
+See [connection encryption and defaults]({{ '/connection-configuration/' | relative_url }}) for the
+complete Library/CLI examples, exact driver mappings, platform prerequisites, native timing and pool
+semantics, session initialization, and explicit unsupported routes. The shared `--tls`, timeout,
+pooling, application-name and time-zone CLI flags use the same required Library options.
 
 ## Declaring support in a provider
 

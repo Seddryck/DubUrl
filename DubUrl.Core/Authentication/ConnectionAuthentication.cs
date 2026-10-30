@@ -23,6 +23,8 @@ public enum ConnectionAuthenticationKind { UsernamePassword, NativeToken, Client
 public abstract partial class ConnectionAuthentication
 {
     public abstract ConnectionAuthenticationKind Kind { get; }
+    internal virtual string? ServerCaPath => null;
+    internal virtual void ValidateConnectionConfiguration(ConnectionEncryption? encryption, ConnectionPoolingOptions? pooling, AuthenticationContext context) { }
     public virtual UsernamePasswordCredentials? Resolve(AuthenticationContext context)
         => null;
     public virtual ValueTask<UsernamePasswordCredentials?> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)

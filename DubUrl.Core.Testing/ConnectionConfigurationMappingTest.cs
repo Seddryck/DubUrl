@@ -87,7 +87,9 @@ public class ConnectionConfigurationMappingTest
         var assembly = typeof(PostgresqlMapper).Assembly;
         var mappings = AttributeProviderModule.Discover(assembly);
         Assert.That(mappings.Single(info => info.MapperType == typeof(PostgresqlMapper)).ConnectionConfiguration, Is.Not.Null);
-        Assert.That(mappings.Where(info => info.MapperType != typeof(PostgresqlMapper))
-            .Select(info => info.ConnectionConfiguration), Is.All.Null);
+        Assert.That(mappings.Single(info => info.MapperType == typeof(TimescaleMapper)).ConnectionConfiguration, Is.Not.Null);
+        Assert.That(mappings.Single(info => info.MapperType == typeof(CrateDbMapper)).ConnectionConfiguration!.TimeZone, Is.Null);
+        Assert.That(mappings.Single(info => info.MapperType == typeof(QuestDbMapper)).ConnectionConfiguration!.TimeZone, Is.Null);
+        Assert.That(mappings.Single(info => info.MapperType == typeof(CockRoachMapper)).ConnectionConfiguration!.TimeZone, Is.EqualTo("Timezone"));
     }
 }

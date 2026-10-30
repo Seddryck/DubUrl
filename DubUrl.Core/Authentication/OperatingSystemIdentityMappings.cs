@@ -147,7 +147,8 @@ internal static class OperatingSystemIdentityMappings
         {
             // libpq >=16 supports require_auth; older versions fail on this parameter.
             RemoveCredentials(builder, false);
-            builder["Pqopt"] = "{require_auth=gss,sspi}";
+            var trustOptions = Get(builder, "Pqopt").Trim('{', '}');
+            builder["Pqopt"] = "{" + (trustOptions.Length == 0 ? "" : trustOptions + " ") + "require_auth=gss,sspi}";
         }
         else if (Family(context) is "trino" or "tr" && driver == "Simba Trino ODBC Driver")
         {

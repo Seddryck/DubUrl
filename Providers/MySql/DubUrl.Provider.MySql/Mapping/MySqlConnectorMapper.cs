@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.MySql.Metadata;
 using DubUrl.Provider.MySql.Rewriting;
 using DubUrl.Querying.Dialects;
@@ -17,7 +17,7 @@ namespace DubUrl.Provider.MySql.Mapping;
 [Mapper<MySqlDatabase, NamedParametrizer>(
     "MySqlConnector"
 )]
-[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout")]
+[ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout", IdleTimeout = "Connection Idle Timeout", MaxLifetime = "Connection Lifetime", Tls = "MySql", TimeZone = "sql:mysql")]
 public class MySqlConnectorMapper : BaseMapper
 {
     public MySqlConnectorMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

@@ -8,6 +8,13 @@ permalink: /cli/
 
 `duburl` validates versioned schema documents, renders deterministic SQL, and deploys schemas through the same application services used by other DubUrl hosts.
 
+Connection-consuming commands share `--tls`, `--ca-certificate` (implies TLS),
+`--connection-timeout`, `--command-timeout`, `--pooling`, `--pool-min-size`, `--pool-max-size`,
+`--pool-idle-timeout`, `--pool-max-lifetime`, `--application-name` and `--time-zone`.
+See [connection encryption and defaults]({{ '/connection-configuration/' | relative_url }}) for units,
+precedence, provider/platform support and examples. Unsupported options fail explicitly. `--timeout`
+on connection checks remains the overall check budget.
+
 The framework-dependent tool and archives require a matching [.NET runtime](https://dotnet.microsoft.com/download/dotnet): .NET 8, 9, or 10 according to the target framework in the package or archive name. Windows installers currently target .NET 10.
 
 ## Install

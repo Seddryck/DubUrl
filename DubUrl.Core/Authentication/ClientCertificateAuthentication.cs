@@ -28,6 +28,13 @@ public abstract partial class ConnectionAuthentication
         private const string Odbc = "System.Data.Odbc";
         private static readonly TimeSpan DriverMatchTimeout = TimeSpan.FromSeconds(1);
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.ClientCertificate;
+        internal override string? ServerCaPath => caPath;
+        internal override void ValidateConnectionConfiguration(ConnectionEncryption? encryption, ConnectionPoolingOptions? pooling, AuthenticationContext context)
+        {
+            if (context.ProviderInvariantName != ConnectorNet) return;
+            if (options is Pkcs12CertificateOptions && encryption?.CaPath is not null) Unsupported();
+            if (pooling?.Enabled == true) Unsupported(); // File credentials cannot safely isolate a Connector/NET pool.
+        }
         public override void ValidateContext(AuthenticationContext context)
         {
             options.ValidateSelection();
@@ -186,9 +193,10 @@ public abstract partial class ConnectionAuthentication
         {
             // libpq >=16 enforces certificate-only authentication and system trust.
             builder["SSLmode"] = "verify-full";
-            builder["Pqopt"] = "require_auth=none gssencmode=disable sslcertmode=require sslcert=" + QuoteLibpq(pem.CertificatePath ?? "")
-                + " sslkey=" + QuoteLibpq(pem.KeyPath ?? "")
-                + " sslrootcert=" + QuoteLibpq(caPath is null ? "system" : Path.GetFullPath(caPath));
+            var trustOptions = builder.TryGetValue("Pqopt", out var configuredTrust) ? configuredTrust.ToString()!.Trim('{', '}')
+                : "gssencmode=disable sslrootcert=" + QuoteLibpq(caPath is null ? "system" : Path.GetFullPath(caPath));
+            builder["Pqopt"] = trustOptions + " require_auth=none sslcertmode=require sslcert=" + QuoteLibpq(pem.CertificatePath ?? "")
+                + " sslkey=" + QuoteLibpq(pem.KeyPath ?? "");
         }
         private void IsolatePool(DbConnectionStringBuilder builder)
         {

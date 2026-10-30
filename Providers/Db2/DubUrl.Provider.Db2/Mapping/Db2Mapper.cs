@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Provider.Db2.Mapping;
 
 [Mapper<Db2Database, NamedParametrizer>("IBM.Data.Db2")]
+[ConnectionConfiguration(ApplicationName = "ClientApplicationName", ConnectionTimeout = "Connect Timeout")]
 public class Db2Mapper : BaseMapper
 {
     public Db2Mapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

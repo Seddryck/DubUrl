@@ -7,6 +7,31 @@ namespace DubUrl.Cli.Testing;
 
 public class ConnectionCheckLifecycleTests
 {
+    [TestCase(3, 3), TestCase(60, 15), TestCase(0, 15)]
+    public async Task SharedCommandDefaultIsRespectedWithinOverallCheckBudget(int seconds, int expected)
+    {
+        var connection = new RecordingConnection();
+        var catalog = new DubUrl.Mapping.ProviderCatalogBuilder();
+        var info = DubUrl.Mapping.AttributeProviderModule.Discover(typeof(DubUrl.Provider.PostgreSql.Mapping.PostgresqlMapper).Assembly)
+            .Single(m => m.MapperType == typeof(DubUrl.Provider.PostgreSql.Mapping.PostgresqlMapper));
+        var dialects = new DubUrl.Querying.Dialects.DialectRegistryBuilder();
+        dialects.AddDialect(info.DialectType, ["postgres"]);
+        catalog.AddProvider(new DubUrl.Mapping.ProviderRegistration("PostgreSQL", ["postgres"], "Npgsql", () => new RecordingFactory(connection),
+            dialects.Build().Get("postgres"),
+            () => (DubUrl.Querying.Parametrizing.IParametrizer)Activator.CreateInstance(info.ParametrizerType)!,
+            context => new DubUrl.Provider.PostgreSql.Mapping.PostgresqlMapper(context.ConnectionStringBuilder, context.Dialect, context.Parametrizer))
+            .WithCapabilities(info.ConnectionConfiguration!));
+        var target = new ConnectionUrl("postgres://localhost/app", catalog.Build()).WithCommandTimeout(TimeSpan.FromSeconds(seconds));
+        var result = await new ConnectionCheckService().CheckAsync(target, new() { Engine = true, TimeoutSeconds = 15 });
+        Assert.That(result.Success, Is.True);
+        Assert.That(connection.ExecutedTimeout, Is.EqualTo(expected));
+        Assert.That(connection.WasDisposed && connection.CommandDisposed, Is.True);
+    }
+    private sealed class RecordingFactory(RecordingConnection connection) : DbProviderFactory
+    {
+        public override DbConnection CreateConnection() => connection;
+        public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new Npgsql.NpgsqlConnectionStringBuilder();
+    }
     [Test]
     public void AcquisitionAbortWithoutCallerTokenRemainsCancellation()
         => Assert.That(async () => await new ConnectionCheckService().CheckAsync(new AbortedAcquisition(), new()),
@@ -110,6 +135,7 @@ public class ConnectionCheckLifecycleTests
         public bool WasDisposed { get; private set; }
         public bool CommandDisposed { get; set; }
         public List<string> Statements { get; } = [];
+        public int ExecutedTimeout { get; set; }
         [System.Diagnostics.CodeAnalysis.AllowNull]
         public override string ConnectionString { get; set; } = "";
         public override string Database => "app";
@@ -133,7 +159,7 @@ public class ConnectionCheckLifecycleTests
     {
         [System.Diagnostics.CodeAnalysis.AllowNull]
         public override string CommandText { get; set; } = "";
-        public override int CommandTimeout { get; set; }
+        public override int CommandTimeout { get; set; } = new Npgsql.NpgsqlConnectionStringBuilder(owner.ConnectionString).CommandTimeout;
         public override CommandType CommandType { get; set; }
         public override bool DesignTimeVisible { get; set; }
         public override UpdateRowSource UpdatedRowSource { get; set; }
@@ -148,6 +174,7 @@ public class ConnectionCheckLifecycleTests
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
             owner.Statements.Add(CommandText);
+            owner.ExecutedTimeout = CommandTimeout;
             if (owner.QueryFailure is { } failure) throw failure;
             return new DataTable().CreateDataReader();
         }

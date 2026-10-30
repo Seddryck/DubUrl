@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.Provider.Odbc.Connectivity;
 using DubUrl.Provider.Odbc.Drivers.Discovery;
 using DubUrl.Provider.Odbc.Rewriting;
@@ -22,6 +22,7 @@ namespace DubUrl.Provider.Odbc.Mapping;
 [WrapperMapper<OdbcConnectivity, PositionalParametrizer>(
     "System.Data.Odbc"
 )]
+[ConnectionConfiguration(Tls = "Odbc")]
 public class OdbcMapper : BaseMapper, IOdbcMapper
 {
     public OdbcMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer, IEnumerable<Type> locatorOptions)

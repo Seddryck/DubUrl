@@ -14,6 +14,12 @@ This differs from [Access token]({{ '/sqlserver-token-authentication/' | relativ
 
 The single options-based entry point is `ConnectionAuthentication.ClientCertificate(CertificateOptions certificateOptions, string? caPath = null)`. It configures the generated native connection and leaves the original URL unchanged.
 
+Server trust can also be configured independently with
+`.WithEncryption(ConnectionEncryption.Tls("server-ca.crt"))`. The two APIs accept identical CA paths
+and reject conflicting custom paths. See [connection encryption and defaults]({{ '/connection-configuration/' | relative_url }})
+for ordinary TLS support, separate authentication/encryption examples and shared server prerequisites.
+The CLI's single `--ca-certificate` option now implies TLS even without client-certificate login.
+
 For an already-loaded certificate, the caller retains ownership:
 
 ```csharp

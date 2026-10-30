@@ -16,6 +16,22 @@ public class CertificateOptionsTests
     private X509Certificate2 certificate = null!;
     private ISchemeRegistry registry = null!;
     private string FilePath(string name) => Path.Combine(directory, name);
+    [TestCase(true), TestCase(false)]
+    public async Task IndependentEncryptionPreservesClientCallbackAndLegacyCaInEitherOrder(bool authenticationFirst)
+    {
+        using var options = new X509CertificateOptions(certificate);
+        var strategy = ConnectionAuthentication.ClientCertificate(options, FilePath("client.crt"));
+        var original = new ConnectionUrl("postgres://alice@localhost/app", registry);
+        var target = authenticationFirst ? original.WithAuthentication(strategy).WithEncryption(ConnectionEncryption.Tls(FilePath("client.crt")))
+            : original.WithEncryption(ConnectionEncryption.Tls(FilePath("client.crt"))).WithAuthentication(strategy);
+        await using var connection = (NpgsqlConnection)await target.ConnectAsync();
+        Assert.That(new NpgsqlConnectionStringBuilder(connection.ConnectionString).RootCertificate, Is.EqualTo(FilePath("client.crt")));
+        Assert.That(Invoke(connection)[0], Is.SameAs(certificate));
+        Assert.That(connection.ConnectionString, Does.Contain(options.PoolIdentity));
+        Assert.That(target.Url, Is.EqualTo(original.Url));
+        var conflict = target.WithEncryption(ConnectionEncryption.Tls(FilePath("other.crt")));
+        Assert.Throws<ArgumentException>(() => conflict.ValidateAuthentication());
+    }
     [SetUp]
     public void Setup()
     {
