@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using NUnit.Framework;
+using DubUrl.Authentication;
 
 namespace DubUrl.ProviderTesting;
 
@@ -62,10 +63,27 @@ internal sealed class CertificateQaPostgresFixture : IAsyncDisposable
         }
         Require(false, "reach bounded certificate-only server readiness");
     }
-    internal string Url(bool wrongHost = false, bool wrongCa = false, bool plaintext = false)
+    internal string Url(bool wrongHost = false, bool wrongCa = false, bool plaintext = false, bool includeCa = true)
         => "postgres://alice@" + (wrongHost ? "127.0.0.1" : "localhost") + ":" + port.ToString(CultureInfo.InvariantCulture)
             + "/app?Pooling=false&Timeout=5&SSL%20Mode=" + (plaintext ? "Disable" : "VerifyFull")
-            + "&Root%20Certificate=" + Uri.EscapeDataString(Path.Combine(directory, wrongCa ? "other-ca.crt" : "ca.crt"));
+            + (includeCa ? "&Root%20Certificate=" + Uri.EscapeDataString(CaPath(wrongCa)) : "");
+    internal string CaPath(bool wrongCa = false) => Path.Combine(directory, wrongCa ? "other-ca.crt" : "ca.crt");
+    internal async Task<CertificateOptions> FileOptionsAsync(string form)
+    {
+        if (form is "pfx" or "p12")
+        {
+            var path = Path.Combine(directory, "client." + form);
+            await File.WriteAllBytesAsync(path, Certificates.Client.Export(X509ContentType.Pkcs12, "fixture-passphrase"));
+            if (OperatingSystem.IsLinux()) File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            return new Pkcs12CertificateOptions(path, "fixture-passphrase");
+        }
+        await WriteAsync("client.crt", Certificates.Client.ExportCertificatePem());
+        using var key = Certificates.Client.GetRSAPrivateKey();
+        await WriteAsync("client.key", form == "encrypted-pem"
+            ? key!.ExportEncryptedPkcs8PrivateKeyPem("fixture-passphrase", new PbeParameters(PbeEncryptionAlgorithm.Aes256Cbc, HashAlgorithmName.SHA256, 1000))
+            : key!.ExportPkcs8PrivateKeyPem());
+        return new X509CertificateOptions(Path.Combine(directory, "client.crt"), Path.Combine(directory, "client.key"), form == "encrypted-pem" ? "fixture-passphrase" : null);
+    }
     internal static string Serial(X509Certificate2 certificate)
         => BigInteger.Parse("0" + certificate.GetSerialNumberString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
     private async Task WriteAsync(string name, string contents)

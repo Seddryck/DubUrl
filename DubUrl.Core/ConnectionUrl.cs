@@ -43,7 +43,7 @@ public class ConnectionUrl : BaseConnectionUrl
     public void ValidateAuthentication()
     {
         if (authentication is not null)
-            AuthenticationConfiguration.Validate(Parser.Parse(Url), authentication);
+            _ = PrepareAuthentication();
     }
 
     private ConnectionConfigurationRequest[] configuration = [];
@@ -274,8 +274,12 @@ public class ConnectionUrl : BaseConnectionUrl
         AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
         ValidateConfigurationSupport(uri);
         var provider = Registry.GetMapper(uri.Scheme).GetProviderName();
-        return (uri, new(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
-            uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null));
+        var context = new AuthenticationContext(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
+            uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null);
+        RequiredAuthentication.ValidateContext(context);
+        if (RequiredAuthentication.Kind == ConnectionAuthenticationKind.ClientCertificate && provider == "System.Data.Odbc")
+            RequiredAuthentication.ValidateMappedConnection(Registry.Resolve(uri).ConnectionString, context);
+        return (uri, context);
     }
 
     private void ValidateConfigurationSupport(ConnectionUri uri)

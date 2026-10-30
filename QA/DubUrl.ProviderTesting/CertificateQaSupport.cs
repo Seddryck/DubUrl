@@ -10,7 +10,7 @@ internal sealed class CertificateQaDriver(PasswordQaDriver driver)
 {
     internal PasswordQaDriver Driver => driver;
     internal bool Supported => driver.Provider is "MySqlConnector" or "SingleStoreConnector"
-        || (driver.Provider == "Npgsql" && (driver.Family is "postgresql" or "cockroachdb"));
+        || (driver.Provider == "Npgsql" && (driver.Family is "postgresql" or "cockroachdb" or "timescale"));
     internal bool Supplemental => driver.Provider is "MySqlConnector" or "SingleStoreConnector";
     internal void RequireSupported()
     {
@@ -29,7 +29,7 @@ internal sealed class CertificateQaDriver(PasswordQaDriver driver)
             var position = location.IndexOf("://", StringComparison.Ordinal) + 3;
             location = location[..position] + Uri.EscapeDataString(Driver.Uri.Username) + "@" + location[position..];
         }
-        var options = Driver.Uri.Options.Where(pair => Normalize(pair.Key) is not ("sslmode" or "pooling"))
+        var options = Driver.Uri.Options.Where(pair => Normalize(pair.Key) is not ("sslmode" or "pooling" or "trustservercertificate"))
             .Select(pair => Uri.EscapeDataString(pair.Key) + "=" + Uri.EscapeDataString(pair.Value)).ToList();
         options.Add("Pooling=false");
         if (weakMode is not null) options.Add("SSL%20Mode=" + NativeMode(weakMode));

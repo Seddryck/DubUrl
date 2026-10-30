@@ -13,6 +13,7 @@ public class ClientCertificateLiveTests
 {
     [TestCase("POSTGRESQL")]
     [TestCase("COCKROACHDB")]
+    [TestCase("TIMESCALEDB")]
     [TestCase("MYSQL")]
     [TestCase("MARIADB")]
     [TestCase("SINGLESTORE")]
@@ -20,14 +21,15 @@ public class ClientCertificateLiveTests
     {
         var prefix = "DUBURL_" + database + "_CERT_";
         var url = Required(prefix + "URL"); // URL must contain no secret and must disable pooling.
-        using var certificate = X509Certificate2.CreateFromPemFile(Required(prefix + "PEM"), Required(prefix + "KEY"));
+        using var options = new X509CertificateOptions(Required(prefix + "PEM"), Required(prefix + "KEY"));
+        var caPath = Required(prefix + "CA");
         Register();
         var registry = new ProviderCatalogBuilder().AddModule(new AttributeProviderModule(new AssemblyTypesProbe().Assemblies)).Build();
         var location = new ConnectionUrl(url, registry);
         var builder = new DbConnectionStringBuilder { ConnectionString = location.Parse() };
         Assert.That(builder.Keys.Cast<string>().Any(k => k.Equals("pooling", StringComparison.OrdinalIgnoreCase)
             && builder[k].ToString()!.Equals("false", StringComparison.OrdinalIgnoreCase)), Is.True, "Fresh physical connections are mandatory.");
-        await using (var connection = await location.WithAuthentication(ConnectionAuthentication.ClientCertificate(certificate)).OpenAsync())
+        await using (var connection = await location.WithAuthentication(ConnectionAuthentication.ClientCertificate(options, caPath)).OpenAsync())
         {
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT 1";
@@ -44,7 +46,7 @@ public class ClientCertificateLiveTests
             .CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
         await Assert.ThrowsAsync<ConnectionAuthenticationException>(async () =>
         {
-            await using var connection = await location.WithAuthentication(ConnectionAuthentication.ClientCertificate(untrusted)).OpenAsync();
+            await using var connection = await location.WithAuthentication(ConnectionAuthentication.ClientCertificate(new X509CertificateOptions(untrusted), caPath)).OpenAsync();
         });
     }
 

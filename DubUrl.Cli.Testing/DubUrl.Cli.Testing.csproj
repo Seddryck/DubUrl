@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="MySql.Data" Version="26.7.0" />
     <PackageReference Include="SingleStoreConnector" Version="1.2.0" />

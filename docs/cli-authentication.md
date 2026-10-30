@@ -68,3 +68,7 @@ does not imply that a skipped native smoke test passed.
 ## OAuth CLI sign-in
 
 Explicit browser and device-code selection is documented in [OAuth sign-in from the CLI](cli-oauth.md), including supported providers, unattended/JSON behavior and exact live-validation gaps. Password selection remains available and is exclusive with OAuth.
+
+## TLS client certificates
+
+Use `--client-certificate client.crt --client-key client.key`, or `--client-certificate client.pfx` (also `.p12`). Optionally add `--ca-certificate server-ca.crt`. Encrypted material uses `--certificate-password-prompt` or `--certificate-credential-store OS-reference`, separately from database passwords. See [Client certificate]({{ '/client-certificate-authentication/' | relative_url }}) for complete examples, driver prerequisites and lifetime rules.

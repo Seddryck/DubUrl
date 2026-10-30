@@ -33,10 +33,25 @@ internal static class AuthenticationConfiguration
 
     private static void ValidateOption(ConnectionAuthenticationKind kind, ConnectionUri uri, string key, string value)
     {
+        if (kind == ConnectionAuthenticationKind.ClientCertificate) ValidateCertificateOption(key, value);
         if (IsCompatibleOperatingSystemOption(kind, uri, key, value)) return;
         if (kind == ConnectionAuthenticationKind.OperatingSystemIdentity && IsOpaqueOrIdentityOption(key))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
         if (IsCredentialOption(key) || (kind == ConnectionAuthenticationKind.FileSecret && key is "extendedproperties" or "jetoledbsystemdatabase"))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+    }
+
+    private static readonly HashSet<string> CertificateConflicts =
+    [
+        "rootcertificate", "trustservercertificate", "checkcertificaterevocation", "forcetls", "tlspeerfp",
+        "tlspeerfplist", "tlskeypwd", "gssencmode", "gssencryptionmode", "kerberosauthmode", "authenticationkerberosmode"
+    ];
+    private static void ValidateCertificateOption(string key, string value)
+    {
+        if (IsOpaqueOrIdentityOption(key) || CertificateConflicts.Contains(key)
+            || (key.StartsWith("ssl", StringComparison.Ordinal) && key != "sslmode"))
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (key == "sslmode" && !value.Equals("VerifyFull", StringComparison.OrdinalIgnoreCase))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
     }
 

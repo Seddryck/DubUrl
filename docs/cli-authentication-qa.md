@@ -59,3 +59,11 @@ The Linux terminal fixture uses util-linux `script`, the existing QA runtime/dep
 | Oracle | Native controlled prompt/store and real Linux terminal login/Escape | Upstream #1709 supplies the fixture; a CLI authentication deployment/dry-run recipe is not yet enabled. No native Secret Service pass is inferred from terminal login. |
 
 There is no macOS provider QA workflow. Native Keychain retrieval, real locked/unavailable-store UI behavior, Windows/macOS no-echo terminal behavior and backend helper-process cancellation are not inferred from controlled-adapter tests. These remain explicit verification gaps. No CI configuration is changed to manufacture a passing platform result.
+
+## Certificate CLI acceptance fixtures
+
+`CliCertificateTests` exercises parsing, shared Library mapping, hidden-prompt and fake OS-store sources, independent supplemental database credentials, dry runs, disposal, cancellation and safe errors. These tests do not claim live database authentication or native OS-store access.
+
+`CliCertificateLiveTests` is opt-in through fixture environment settings: `DUBURL_CLI_CERT_URL` (no password, CA or certificate options; disable pooling), `DUBURL_CLI_CERT_PEM`, `_KEY`, `_PFX`, `_P12`, and `_CA` (each suffix uses the `DUBURL_CLI_CERT` prefix). `_PASSWORD_REFERENCE` optionally selects an existing OS credential-store reference for encrypted bundles. Negative cases additionally require `_REJECTED_PEM`/`_REJECTED_KEY`, `_UNTRUSTED_CA`, or `_WRONG_HOST_URL`. Use a certificate-required isolated account and unencrypted PEM for the negative cases. Missing prerequisites are explicit skips. No machine configuration or external account is created by these tests.
+
+The Library's external `ClientCertificateLiveTests` uses `DUBURL_<DATABASE>_CERT_URL`, `_PEM`, `_KEY`, and `_CA` (POSTGRESQL, COCKROACHDB, TIMESCALEDB, MYSQL, MARIADB, SINGLESTORE). Supply CA trust separately from the URL. The existing isolated PostgreSQL provider QA also exercises PEM, encrypted PEM, PFX/P12, rejected identity, wrong CA, hostname mismatch, reopening, pool isolation and rotation. Its automatic Docker fixture requires the provisioned Linux runner; Windows/macOS skip that fixture.
