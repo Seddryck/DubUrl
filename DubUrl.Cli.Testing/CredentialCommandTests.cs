@@ -59,6 +59,17 @@ public class CredentialCommandTests
     }
 
     [Test]
+    public async Task OversizedUsernameIsRejectedBeforePromptOrStoreAccess()
+    {
+        var store = new MemoryStore();
+        var prompt = new TestPrompt();
+        var console = new TestConsole(interactive: true);
+        await using var services = CliComposition.CreateDefault(console, passwordPrompt: prompt, namedCredentialStore: store);
+        Assert.That(await CliHost.InvokeAsync(["credential", "add", "orders-dev", "--username", new string('u', 513)], services), Is.EqualTo(2));
+        Assert.That(prompt.Calls + store.Writes + store.Reads, Is.Zero);
+    }
+
+    [Test]
     public async Task PromptLimitIsValidatedBeforeCallingStore()
     {
         var store = new MemoryStore();

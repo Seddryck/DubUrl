@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "CredOS": {
+        "type": "Direct",
+        "requested": "[0.1.0, )",
+        "resolved": "0.1.0",
+        "contentHash": "sGuzBXtdHvBmKHepnBtqebLQ1BZ6dJnkQZKLCYaTZyNp2dIjaLD/i2rgYN6/0/+Ms4ndZ8UsKLkC6DrHY3Zdnw=="
+      },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
         "requested": "[2.0.5, )",
@@ -1167,6 +1173,12 @@
       }
     },
     "net8.0": {
+      "CredOS": {
+        "type": "Direct",
+        "requested": "[0.1.0, )",
+        "resolved": "0.1.0",
+        "contentHash": "sGuzBXtdHvBmKHepnBtqebLQ1BZ6dJnkQZKLCYaTZyNp2dIjaLD/i2rgYN6/0/+Ms4ndZ8UsKLkC6DrHY3Zdnw=="
+      },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
         "requested": "[2.0.5, )",
@@ -2434,6 +2446,12 @@
       }
     },
     "net9.0": {
+      "CredOS": {
+        "type": "Direct",
+        "requested": "[0.1.0, )",
+        "resolved": "0.1.0",
+        "contentHash": "sGuzBXtdHvBmKHepnBtqebLQ1BZ6dJnkQZKLCYaTZyNp2dIjaLD/i2rgYN6/0/+Ms4ndZ8UsKLkC6DrHY3Zdnw=="
+      },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
         "requested": "[2.0.5, )",

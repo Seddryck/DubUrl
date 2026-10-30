@@ -46,7 +46,7 @@ public static class CliComposition
         services.AddSingleton(configuration);
         services.AddSingleton<IHiddenPasswordPrompt>(passwordPrompt ?? new TerminalPasswordPrompt());
         services.AddSingleton<IOsCredentialStore>(credentialStore ?? new OsCredentialStore());
-        services.AddSingleton<INamedCredentialStore>(namedCredentialStore ?? new NamedCredentialStore(console.IsInteractive));
+        services.AddSingleton<INamedCredentialStore>(namedCredentialStore ?? new CredOsNamedCredentialStore());
         services.AddSingleton(console);
         services.AddSingleton<ICliOAuthSessionFactory>(oauthSessionFactory ?? new NativeCliOAuthSessionFactory());
         services.AddLogging(builder => builder

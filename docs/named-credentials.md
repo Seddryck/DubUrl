@@ -23,7 +23,8 @@ automation. There is no `--password <value>` option. `--password-stdin` reads to
 removes exactly one final LF or CRLF, and preserves all other whitespace, embedded
 line endings and password characters. An empty password is allowed. Passwords
 must fit the portable Windows limit of 1280 UTF-16 code units; stdin reading is
-bounded. Usernames must be nonempty, at most 513 characters, without control characters.
+bounded. Usernames must be nonempty, at most 512 UTF-16 code units, without control
+characters. Usernames and passwords must be well-formed Unicode.
 
 For PowerShell, a CI-injected password can be piped without including its literal
 value in the command (disable command tracing and use the CI platform's masking):
@@ -71,8 +72,8 @@ decodes the blob during `exists`.
 
 | Platform | Mapping and prerequisites |
 | --- | --- |
-| Windows | Current-user Credential Manager generic credential, target `DubUrl/<name>`, stored username and UTF-16 password blob. Local-machine persistence survives logoff for this user on this machine. |
-| macOS | Keychain generic password, service `DubUrl/<name>`, account set to the username and UTF-8 password data. Uses native Security/CoreFoundation APIs and the user's default Keychain behavior. Replacement searches by service so a username change updates the existing entry. |
+| Windows | Current-user Credential Manager generic credential, target `duburl/<name>`, stored username and UTF-16 password blob. Local-machine persistence survives logoff for this user on this machine. |
+| macOS | Keychain generic password, service `duburl/<name>`, account set to the username and UTF-8 password data. Uses native Security/CoreFoundation APIs and the user's default Keychain behavior. Replacement searches by service so a username change updates the existing entry. |
 | Linux | Native `libsecret-1.so.0` and a Secret Service implementation reachable through the session bus, with an existing default collection. Attributes are `application=duburl`, `credential=<name>`; the username/password pair is JSON inside secret data, not lookup attributes. |
 
 Entries persist according to the native store's policy; passwords are never passed
@@ -89,11 +90,46 @@ budget. Headless servers,
 SSH sessions, containers and CI may lack the libraries, session bus, service or
 unlocked collection. These produce a store error, never an absent-entry result.
 
-On macOS, interactive use may display a native Keychain access/unlock dialog;
-non-interactive commands prohibit native authentication UI and fail if access
-requires it. Native Security/WinCred calls are synchronous; cancellation is checked
+On macOS, CredOS disables native authentication UI for every command. Unlock the
+Keychain externally before retrying if access requires it. Native Security/WinCred
+calls are synchronous; cancellation is checked
 before calls and mutations, but cannot interrupt an already running native call.
 A successful write is not rolled back if cancellation arrives after the OS commits it.
+
+## CredOS integration and compatibility
+
+The CLI references the `CredOS` 0.1.0 NuGet package. Only the internal
+`CredOsNamedCredentialStore` adapter uses CredOS types. Commands, authentication
+sources and hosts depend on DubUrl's `INamedCredentialStore`, which exposes only
+DubUrl credential values, cancellation tokens and DubUrl exceptions. The adapter
+converts values and maps duplicate failures to `CredentialStoreException` with
+`AlreadyExists=true`; other backend failures become a safe store error without an
+inner exception. Cancellation remains cancellation. Tests and embedding hosts can
+supply their own `INamedCredentialStore` through `CliComposition.CreateDefault`.
+The Core, Application and authentication libraries have no CredOS package reference.
+The CLI still needs the CredOS runtime assembly; an interface isolates source/API
+dependencies, it does not remove the implementation's runtime dependency.
+
+CredOS owns native API calls, per-name locking, persistence and timeouts. It uses
+the application scope `duburl`. Existing Windows entries remain addressable because
+WinCred targets are case-insensitive, and Linux attributes/JSON retain the same
+mapping. On macOS the old service was `DubUrl/<name>`; CredOS uses
+`duburl/<name>`. Recreate old named entries with `credential add` before relying on
+them, then remove the old service using Keychain Access. No automatic copying or
+fallback lookup takes place. Usernames longer than 512 UTF-16 code units or invalid
+Unicode values must also be corrected before reuse. Avoid concurrent writes from
+old and new CLI versions: they use different mutex namespaces.
+
+CredOS does not expose arbitrary native-target reads. The read-only adapter for
+legacy `--credential-store` references remains separate to preserve their existing
+mappings; those entries are not implicitly treated as CredOS-managed credentials.
+
+See the [CredOS API contract](https://github.com/Seddryck/CredOS/blob/v0.1.0/docs/api.md).
+If NuGet indexing is delayed, download `CredOS.0.1.0.nupkg` from the
+[official release](https://github.com/Seddryck/CredOS/releases/tag/v0.1.0) into a
+local directory, then restore with both `--source <directory>` and
+`--source https://api.nuget.org/v3/index.json`. No repository or machine-wide
+NuGet source configuration is needed.
 
 ## Existing credential references
 
