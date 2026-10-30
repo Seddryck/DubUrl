@@ -28,8 +28,7 @@ public sealed class ConnectionCheckService : IConnectionCheckService
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(options);
-        if (options.TimeoutSeconds <= 0 || options.AuthenticationTimeoutSeconds is < 0 or > 3600 || (options.Engine && options.Table is not null))
-            throw new ArgumentException("Specify a positive timeout and at most one of engine or table.");
+        ValidateOptions(options);
         var family = ConnectionCheckSql.GetFamily(ConnectionUri.Parse(target.Url).Scheme.Canonical);
         using var attempt = new CheckAttempt(options, family, cancellationToken);
         try
@@ -39,10 +38,19 @@ public sealed class ConnectionCheckService : IConnectionCheckService
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested) { throw new OperationCanceledException(cancellationToken); }
         catch (OperationCanceledException) when (attempt.AcquiringCredentials || !attempt.TimedOut) { throw; }
-        catch (Exception error) when (error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException
-            || error.GetType().FullName == "BAMCIS.PrestoClient.Model.PrestoQueryException")
+        catch (Exception error) when (IsCheckFailure(error))
         { return attempt.Result(false, [attempt.Classify(error)]); }
     }
+
+    private static void ValidateOptions(ConnectionCheckOptions options)
+    {
+        if (options.TimeoutSeconds <= 0 || options.AuthenticationTimeoutSeconds is < 0 or > 3600 || (options.Engine && options.Table is not null))
+            throw new ArgumentException("Specify a positive timeout and at most one of engine or table.");
+    }
+
+    private static bool IsCheckFailure(Exception error)
+        => error is DbException or OperationCanceledException or TimeoutException or IOException or ConnectionAuthenticationException
+            || error.GetType().FullName == "BAMCIS.PrestoClient.Model.PrestoQueryException";
 
     private sealed class CheckAttempt : IDisposable
     {

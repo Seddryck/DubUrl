@@ -28,26 +28,34 @@ internal sealed class CliAuthentication : IDisposable
     public void AddTo(Command command) { command.Options.Add(prompt); command.Options.Add(reference); command.Options.Add(named); command.Options.Add(username); command.Options.Add(osIdentity); oauth.AddTo(command); }
     public ConnectionUrl Configure(IServiceProvider services, ParseResult result, string url)
     {
-        var usePrompt = result.GetValue(prompt);
-        var entry = result.GetValue(reference);
-        var credential = result.GetValue(named);
-        var user = result.GetValue(username);
+        var password = new PasswordSelection(result.GetValue(prompt), result.GetValue(reference), result.GetValue(named), result.GetValue(username));
         var useOsIdentity = result.GetValue(osIdentity);
-        var sources = (usePrompt ? 1 : 0) + (entry is not null ? 1 : 0) + (credential is not null ? 1 : 0);
-        ValidateSelection(useOsIdentity, sources, user);
-        if (credential is not null) credential = CredentialName.Normalize(credential);
+        ValidateSelection(useOsIdentity, password.Count, password.Username);
+        if (password.Credential is not null) password = password with { Credential = CredentialName.Normalize(password.Credential) };
         var target = new ConnectionUrl(url, services.GetRequiredService<ISchemeRegistry>());
         if (useOsIdentity) target = target.WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
-        if (sources > 0)
-            target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(new Source(services, usePrompt, entry ?? credential, user, credential is not null)));
+        if (password.Count > 0)
+            target = target.WithAuthentication(ConnectionAuthentication.UsernamePassword(password.CreateSource(services)));
         if (oauth.IsSelected(result))
-        {
-            if (sources > 0 || user is not null || useOsIdentity) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
-            target = oauth.Configure(services, result, target, out var lifetime);
-            oauthLifetime = lifetime;
-        }
+            target = ConfigureOAuth(services, result, target, password, useOsIdentity);
         target.ValidateAuthentication();
         return target;
+    }
+
+    private ConnectionUrl ConfigureOAuth(IServiceProvider services, ParseResult result, ConnectionUrl target, PasswordSelection password, bool useOsIdentity)
+    {
+        if (password.Count > 0 || password.Username is not null || useOsIdentity)
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        var configured = oauth.Configure(services, result, target, out var lifetime);
+        oauthLifetime = lifetime;
+        return configured;
+    }
+
+    private sealed record PasswordSelection(bool Prompt, string? Reference, string? Credential, string? Username)
+    {
+        internal int Count => (Prompt ? 1 : 0) + (Reference is not null ? 1 : 0) + (Credential is not null ? 1 : 0);
+        internal Source CreateSource(IServiceProvider services)
+            => new(services, Prompt, Reference ?? Credential, Username, Credential is not null);
     }
 
     private static void ValidateSelection(bool useOsIdentity, int passwordSources, string? user)
@@ -65,16 +73,20 @@ internal sealed class CliAuthentication : IDisposable
 
     private sealed class Source(IServiceProvider services, bool prompt, string? reference, string? username, bool named) : IUsernamePasswordCredentialSource
     {
-        public async ValueTask<UsernamePasswordCredentials> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
+        public ValueTask<UsernamePasswordCredentials> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
+            => prompt ? ResolvePromptAsync(context, cancellationToken) : ResolveStoredAsync(cancellationToken);
+
+        private async ValueTask<UsernamePasswordCredentials> ResolvePromptAsync(AuthenticationContext context, CancellationToken cancellationToken)
         {
-            if (prompt)
-            {
-                if (!services.GetRequiredService<ICliConsole>().IsInteractive)
-                    throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
-                if (username is null && context.Username is null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
-                var password = await services.GetRequiredService<IHiddenPasswordPrompt>().ReadAsync(cancellationToken).ConfigureAwait(false);
-                return new(username, password);
-            }
+            if (!services.GetRequiredService<ICliConsole>().IsInteractive)
+                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.InteractionRequired);
+            if (username is null && context.Username is null) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.MissingCredentials);
+            var password = await services.GetRequiredService<IHiddenPasswordPrompt>().ReadAsync(cancellationToken).ConfigureAwait(false);
+            return new(username, password);
+        }
+
+        private async ValueTask<UsernamePasswordCredentials> ResolveStoredAsync(CancellationToken cancellationToken)
+        {
             var selectedReference = reference ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialResolutionFailed);
             UsernamePasswordCredentials stored;
             try

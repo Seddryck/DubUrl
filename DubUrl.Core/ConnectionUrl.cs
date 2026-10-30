@@ -98,12 +98,33 @@ public class ConnectionUrl : BaseConnectionUrl
     {
         if (configuration.Length == 0 && !readOnly) return resolved;
         Registry.TryGetCapability<ConnectionConfigurationCapability>(connectionUri.Scheme, out var capability);
-        var skipped = new List<SkippedConnectionOption>();
-        var applicable = new List<ConnectionConfigurationRequest>();
         var provider = resolved.ProviderFactory.GetType().FullName ?? resolved.ProviderFactory.GetType().Name;
-        ReadOnlyConnectionCapability? readOnlyCapability = null;
-        if (readOnly && (!Registry.TryGetCapability(connectionUri.Scheme, out readOnlyCapability) || readOnlyCapability is null))
-            throw new NotSupportedException($"ReadOnly is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'. A transaction default or replica-routing hint is not native read-only file access.");
+        var readOnlyCapability = ResolveReadOnlyCapability(connectionUri, provider);
+        var applicable = ResolveConfigurationRequests(connectionUri, capability, provider, out var skipped);
+        skippedOptions = skipped.AsReadOnly();
+        if (applicable.Count == 0 && !readOnly) return resolved;
+        var builder = resolved.ProviderFactory.CreateConnectionStringBuilder()
+            ?? throw new NotSupportedException($"Provider '{provider}' does not supply a connection-string builder for shared configuration.");
+        builder.ConnectionString = resolved.ConnectionString;
+        foreach (var request in applicable) capability!.Apply(builder, request);
+        // Always last: optional/native options cannot silently weaken the required access mode.
+        readOnlyCapability?.Apply(builder);
+        return resolved with { ConnectionString = builder.ConnectionString };
+    }
+
+    private ReadOnlyConnectionCapability? ResolveReadOnlyCapability(ConnectionUri connectionUri, string provider)
+    {
+        if (!readOnly) return null;
+        if (Registry.TryGetCapability<ReadOnlyConnectionCapability>(connectionUri.Scheme, out var capability) && capability is not null)
+            return capability;
+        throw new NotSupportedException($"ReadOnly is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'. A transaction default or replica-routing hint is not native read-only file access.");
+    }
+
+    private List<ConnectionConfigurationRequest> ResolveConfigurationRequests(ConnectionUri connectionUri,
+        ConnectionConfigurationCapability? capability, string provider, out List<SkippedConnectionOption> skipped)
+    {
+        skipped = [];
+        var applicable = new List<ConnectionConfigurationRequest>();
         foreach (var group in configuration.GroupBy(request => request.Option))
         {
             // An optional call must never weaken a required setting, irrespective of call order.
@@ -112,19 +133,7 @@ public class ConnectionUrl : BaseConnectionUrl
             else if (request.Optional) skipped.Add(new(request.Option, provider, "Unsupported by the selected provider route or requested pool-size configuration."));
             else throw new NotSupportedException($"{request.Option} is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'.");
         }
-        if (applicable.Count == 0 && !readOnly)
-        {
-            skippedOptions = skipped.AsReadOnly();
-            return resolved;
-        }
-        var builder = resolved.ProviderFactory.CreateConnectionStringBuilder()
-            ?? throw new NotSupportedException($"Provider '{provider}' does not supply a connection-string builder for shared configuration.");
-        builder.ConnectionString = resolved.ConnectionString;
-        foreach (var request in applicable) capability!.Apply(builder, request);
-        // Always last: optional/native options cannot silently weaken the required access mode.
-        if (readOnly) readOnlyCapability!.Apply(builder);
-        skippedOptions = skipped.AsReadOnly();
-        return resolved with { ConnectionString = builder.ConnectionString };
+        return applicable;
     }
 
     public ConnectionUrl(string url)
