@@ -7,6 +7,15 @@ namespace DubUrl.Cli;
 
 internal static class CliRootCommandFactory
 {
+    internal static RootCommand CreateCatalogPublisher(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        var root = new RootCommand("Prepare connector catalogs for administrator-managed publication.");
+        var connector = new Command("connector");
+        connector.Subcommands.Add(ConnectorCatalogCommand.Create(services, cancellationToken));
+        root.Subcommands.Add(connector);
+        return root;
+    }
+
     public static RootCommand Create(IServiceProvider services, CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<ICliConsole>();

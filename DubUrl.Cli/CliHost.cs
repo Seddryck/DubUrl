@@ -13,8 +13,22 @@ public static class CliHost
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(services);
 
-        var root = CliRootCommandFactory.Create(services, cancellationToken);
+        var root = args.Length >= 2 && args[0] == "connector" && args[1] == "catalog"
+            ? CliRootCommandFactory.CreateCatalogPublisher(services, cancellationToken)
+            : CliRootCommandFactory.Create(services, cancellationToken);
         var parseResult = root.Parse(args.Length == 0 ? ["--help"] : args);
+        if (parseResult.Errors.Count > 0 && args.Length >= 3 && args[0] == "connector" && args[1] == "catalog" && args[2] == "create")
+        {
+            const string message = "Invalid catalog creation arguments. Run 'duburl connector catalog create --help' for usage; supplied values are not echoed.";
+            var console = services.GetRequiredService<ICliConsole>();
+            if (args.Contains("--json")) console.Out.WriteLine(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                command = "connector catalog create", success = false,
+                diagnostics = new[] { new { code = "catalog-arguments-invalid", message } },
+            }, CliJson.Options));
+            else console.Error.WriteLine(message);
+            return CliExitCodes.InvalidInput;
+        }
         if (parseResult.Errors.Count > 0 && args.Any(argument => CliConnectionOptions.Names.Contains(argument.Split('=')[0])))
         {
             await services.GetRequiredService<ICliConsole>().Error.WriteLineAsync("Invalid connection configuration options. Use --help for supported flags and duration syntax; supplied values are not echoed.").ConfigureAwait(false);

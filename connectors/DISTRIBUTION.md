@@ -96,6 +96,86 @@ Before rollout, block public endpoints and verify listing and installation using
 catalog and internal archive host. For fully isolated clients, use `--archive` instead. Catalog updates and
 internal hosting do not bypass compatibility, integrity or activation checks.
 
+## Create a catalog from a folder with the CLI
+
+Use `connector catalog create` to turn approved provider-pack ZIP archives into a new publication
+snapshot. It reads only top-level files with a `.zip` extension, case-insensitively. It ignores subfolders
+and unrelated files, derives identities from manifests rather than filenames, and never loads provider
+assemblies. Include exactly one archive per canonical connector: duplicate IDs, versions of the same
+connector, conflicting aliases, and filenames differing only by case are rejected instead of choosing a
+winner. Invalid ZIPs, unsafe paths/links, incomplete manifests, and missing required assemblies also fail.
+Host API/TFM/RID compatibility is still checked at installation, not inferred from the publisher's runtime.
+
+The default trust policy is `sha256`:
+
+```powershell
+duburl connector catalog create C:\approved\packs --output C:\staging\snapshot-42 --archive-base-uri https://connectors.example.org/packs/ --catalog-uri https://connectors.example.org/catalog.json --source-id enterprise --json
+```
+
+The output directory must not already exist, even if empty. Archives are copied unchanged into its
+`archives` subdirectory and referenced by their URL-encoded original filenames beneath
+`--archive-base-uri`. The command hashes the copied bytes, validates metadata and contents, and stages
+all artifacts before renaming the complete snapshot into place. It leaves input archives unchanged and
+never uploads, starts a server, installs connectors, or modifies client configuration.
+
+Choose `unsigned` explicitly to trust the configured HTTPS endpoint or protected local deployment
+without a catalog-document pin or signature. Individual archive SHA-256 checks remain mandatory:
+
+```powershell
+duburl connector catalog create C:\approved\packs --output C:\staging\snapshot-43 --archive-base-uri https://connectors.example.org/packs/ --trust-mode unsigned
+```
+
+For signed publication, provision an encrypted PKCS#8 private PEM on the publisher and inject its
+password into a process environment variable from your secret store. For example, with
+`CORPORATE_CATALOG_SIGNING_PASSWORD` already populated securely:
+
+```powershell
+$expiry = [DateTimeOffset]::UtcNow.AddDays(7).ToString('o')
+try {
+    duburl connector catalog create C:\approved\packs --output C:\staging\snapshot-44 --archive-base-uri https://connectors.example.org/packs/ --catalog-uri https://connectors.example.org/catalog.json --trust-mode signed --source-id enterprise --signing-key C:\secure\catalog-signing-private.pem --key-id corporate-2026 --revision 44 --expires-at $expiry --signing-password-env CORPORATE_CATALOG_SIGNING_PASSWORD --json
+} finally {
+    Remove-Item Env:CORPORATE_CATALOG_SIGNING_PASSWORD -ErrorAction SilentlyContinue
+}
+```
+
+`--signing-password-env` defaults to `DUBURL_CATALOG_SIGNING_PASSWORD`; there is no password-value
+argument. Signed mode requires the key, key ID, positive revision, and future expiry. Signing arguments
+in another mode, unknown modes, missing credentials, and signing failures are rejected without an
+automatic downgrade. Private keys are never copied or exported into the snapshot. The generated public
+PEM uses the existing signature format and can be provisioned independently to clients.
+
+The generated artifacts are:
+
+| Artifact | When present | Purpose |
+|---|---|---|
+| `connector-catalog.json` | Every mode | Validated catalog, deterministically ordered by canonical ID. |
+| `archives/` | Every mode | Byte-for-byte copies of eligible input ZIPs. |
+| `source-settings.json` | Every mode | A `ProviderPacks:Sources` configuration example for this source. |
+| `connector-catalog.json.sha256` | `sha256` | Exact document hash also embedded in the configuration example. |
+| `connector-catalog.json.sig` | `signed` | Detached signature over catalog bytes and freshness metadata. |
+| `catalog-public.pem` | `signed` | Public key for trusted client deployment. |
+
+Identical inputs and options produce identical catalog bytes and document digest; RSA-PSS signatures
+are intentionally nondeterministic. `--json` reports `command`, `success`, and a `result` containing
+`trustMode`, `connectorCount`, `catalogSha256`, and relative `artifacts`. The digest in unsigned/signed
+results is an informational fingerprint, not an extra client pin. Failures return safe diagnostic codes
+and messages without paths, credentials, or authenticated URLs. Exit codes are 0 for success, 2 for
+argument parsing errors, 5 for preparation/validation/signing failures, and 130 for cancellation.
+
+Publish `archives/*` at the supplied archive base URI, preserving filenames and bytes. Publish the
+catalog at `--catalog-uri` and, in signed mode, its signature at the same URI plus `.sig`. Both hosting
+URLs must be clean absolute HTTPS locations without user-info, query, or fragment. The catalog URI
+may instead be an absolute `file:` URI. When omitted, it defaults to the final local catalog path, so the
+generated settings can be consumed locally with explicit `connector install <id> --archive <path>`.
+
+Merge the example source into managed client settings, preserving any other sources and key-rotation
+overlap. `--source-id` defaults to `enterprise`; `official` is reserved. The generated public-key path is
+the absolute snapshot path, so adjust it when deploying the public key elsewhere. A signed example
+sets `MinimumRevision` to the published revision as a fresh-client floor. Distribute the public key and
+configuration through a trusted channel, not by trusting keys advertised by the catalog endpoint. The
+official catalog stays enabled unless clients explicitly set `ProviderPacks:OfficialEnabled` to false.
+See the signing guidance below for key creation, rotation, expiry renewal, and revision continuity.
+
 ## Sign and publish an updatable catalog
 
 Named sources support three explicit trust modes: `sha256` (the compatible default), `unsigned`, and
