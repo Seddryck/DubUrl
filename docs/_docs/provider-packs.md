@@ -291,8 +291,10 @@ duburl catalog create <folder> --output <new-output-folder> --archive-base-uri h
 ```
 
 Use `--trust-mode unsigned` to opt into endpoint/local-deployment trust, or `--trust-mode signed` with
-`--signing-key`. Key IDs are derived and revisions managed automatically. Expiration defaults to seven
-days; optionally use `--expires-at <ISO-8601-timestamp>` or `--expires-at none`. Signing passwords come from the environment
+`--signing-key <encrypted-PEM-path>` or `--signing-key -` for encrypted PEM from redirected stdin.
+Key IDs are derived and revisions managed automatically. Expiration defaults to none; omit
+`--expires-at` or use `--expires-at none`, or provide an ISO 8601 timestamp to enable expiration.
+Signing passwords come from the environment
 variable named by `--signing-password-env` (default `DUBURL_CATALOG_SIGNING_PASSWORD`), never a password
 argument. `--catalog-uri` optionally supplies the published catalog location; otherwise settings use the
 generated local file. `--source-id` defaults to `enterprise`. Keep the persistent publisher revision state

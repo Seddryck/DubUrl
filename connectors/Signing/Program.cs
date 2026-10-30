@@ -6,7 +6,7 @@ using DubUrl.Core.ProviderPacks;
 
 if (args.Length is < 4 or > 6)
 {
-    Console.Error.WriteLine("Usage: ConnectorCatalog.Sign <catalog> <new-signature> <encrypted-private-pem> <source-id> [expiry-UTC|none|default] [publisher-state-directory]");
+    Console.Error.WriteLine("Usage: ConnectorCatalog.Sign <catalog> <new-signature> <encrypted-private-pem-or-> <source-id> [expiry-UTC|none|default] [publisher-state-directory]");
     return 2;
 }
 
@@ -25,7 +25,9 @@ try
     var bytes = await File.ReadAllBytesAsync(args[0]);
     using (var stream = new MemoryStream(bytes)) ProviderPackCatalog.Read(stream);
     using var key = RSA.Create();
-    key.ImportFromEncryptedPem(await File.ReadAllTextAsync(args[2]), password);
+    if (args[2] == "-" && !Console.IsInputRedirected) throw new InvalidDataException();
+    var pem = args[2] == "-" ? await Console.In.ReadToEndAsync() : await File.ReadAllTextAsync(args[2]);
+    key.ImportFromEncryptedPem(pem, password);
     var publication = await ConnectorCatalogPublication.SignAsync(bytes, key, args[3], expiry, noExpiration,
         args.Length == 6 ? args[5] : null);
     // CreateNew prevents accidentally replacing the catalog, private key, or an existing published signature.

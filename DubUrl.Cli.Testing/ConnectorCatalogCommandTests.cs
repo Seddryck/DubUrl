@@ -142,7 +142,6 @@ public class ConnectorCatalogCommandTests
         var args = fixture.Arguments("signed").Concat(new[] { "--json" }).ToList();
         var customExpiry = DateTimeOffset.UtcNow.AddHours(2);
         if (expiryChoice != "default") args.AddRange(["--expires-at", expiryChoice == "none" ? "none" : customExpiry.ToString("o")]);
-        var before = DateTimeOffset.UtcNow;
         var console = new ConsoleCapture();
         await using (var services = CliComposition.CreateForCommand(args.ToArray(), console))
             Assert.That(await CliHost.InvokeAsync(args.ToArray(), services), Is.Zero, console.Errors);
@@ -150,9 +149,8 @@ public class ConnectorCatalogCommandTests
         using var key = RSA.Create();
         key.ImportFromPem(File.ReadAllText(Path.Combine(fixture.Output, "catalog-public.pem")));
         Assert.That(signature.KeyId, Is.EqualTo(ConnectorCatalogSignature.GetKeyId(key)));
-        if (expiryChoice == "none") Assert.That(signature.ExpiresAt, Is.Zero);
-        else if (expiryChoice == "custom") Assert.That(signature.ExpiresAt, Is.EqualTo(customExpiry.ToUnixTimeSeconds()));
-        else Assert.That(signature.ExpiresAt, Is.InRange(before.AddDays(7).ToUnixTimeSeconds(), DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds()));
+        if (expiryChoice == "custom") Assert.That(signature.ExpiresAt, Is.EqualTo(customExpiry.ToUnixTimeSeconds()));
+        else Assert.That(signature.ExpiresAt, Is.Zero);
         using var result = JsonDocument.Parse(console.Output);
         Assert.That(result.RootElement.GetProperty("result").GetProperty("catalogRevision").GetInt64(), Is.EqualTo(signature.Revision));
         var secondOutput = Path.Combine(fixture.Root, "second-output");
@@ -163,6 +161,39 @@ public class ConnectorCatalogCommandTests
         var next = JsonSerializer.Deserialize<ConnectorCatalogSignature>(File.ReadAllBytes(Path.Combine(secondOutput, "connector-catalog.json.sig")), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
         Assert.That(next.Revision, Is.GreaterThan(signature.Revision));
         Assert.That(next.KeyId, Is.EqualTo(signature.KeyId));
+    }
+
+    [TestCase("valid")]
+    [TestCase("empty")]
+    [TestCase("malformed")]
+    [TestCase("wrong-password")]
+    [TestCase("interactive")]
+    public async Task SigningKey_FromStdin_IsValidatedWithoutEchoingKeyMaterial(string input)
+    {
+        using var fixture = new Fixture();
+        var args = fixture.Arguments("signed").Concat(new[] { "--json" }).ToArray();
+        args[Array.IndexOf(args, "--signing-key") + 1] = "-";
+        var pem = input == "empty" ? "" : input == "malformed" ? "private-key-material-secret" : File.ReadAllText(fixture.PrivatePath);
+        if (input == "wrong-password") Environment.SetEnvironmentVariable(fixture.Variable, "wrong-password-secret");
+        var console = new ConsoleCapture { In = new StringReader(pem), IsInputRedirected = input != "interactive" };
+        await using var services = CliComposition.CreateForCommand(args, console);
+        Assert.That(await CliHost.InvokeAsync(args, services), Is.EqualTo(input == "valid" ? CliExitCodes.Success : CliExitCodes.ProviderOperationFailed));
+        Assert.That(console.Output + console.Errors, Does.Not.Contain(fixture.Password).And.Not.Contain("BEGIN ENCRYPTED PRIVATE KEY")
+            .And.Not.Contain("private-key-material-secret").And.Not.Contain("wrong-password-secret"));
+        using var document = JsonDocument.Parse(console.Output);
+        Assert.That(document.RootElement.GetProperty("success").GetBoolean(), Is.EqualTo(input == "valid"));
+        if (input == "valid")
+        {
+            var sourceConfiguration = new ConfigurationBuilder().AddJsonFile(Path.Combine(fixture.Output, "source-settings.json"))
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                { ["ProviderPacks:OfficialEnabled"] = "false", ["ProviderPacks:StorePath"] = Path.Combine(fixture.Root, "consumer-store") }).Build();
+            var consumer = new ConsoleCapture();
+            await using var client = CliComposition.CreateDefault(consumer, sourceConfiguration);
+            Assert.That(await CliHost.InvokeAsync(["connector", "list", "--json"], client), Is.Zero);
+            using var listed = JsonDocument.Parse(consumer.Output);
+            Assert.That(listed.RootElement.GetProperty("connectors")[0].GetProperty("id").GetString(), Is.EqualTo("fixture"));
+        }
+        else Assert.That(Directory.Exists(fixture.Output), Is.False);
     }
 
     private sealed class Fixture : IDisposable
@@ -208,12 +239,12 @@ public class ConnectorCatalogCommandTests
 
     private sealed class ConsoleCapture : ICliConsole
     {
-        public TextReader In => TextReader.Null;
+        public TextReader In { get; init; } = TextReader.Null;
         public StringWriter OutputWriter { get; } = new();
         public StringWriter ErrorWriter { get; } = new();
         public TextWriter Out => OutputWriter;
         public TextWriter Error => ErrorWriter;
-        public bool IsInputRedirected => true;
+        public bool IsInputRedirected { get; init; } = true;
         public bool IsInteractive => false;
         public string Output => OutputWriter.ToString();
         public string Errors => ErrorWriter.ToString();
