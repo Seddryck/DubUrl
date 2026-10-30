@@ -11,6 +11,12 @@ namespace DubUrl.Cli;
 
 public static class CliComposition
 {
+    /// <summary>Catalog publication needs only a console, never provider modules, client catalogs, credentials, or a store.</summary>
+    public static ServiceProvider CreateForCommand(string[] args, ICliConsole? console = null, IConfiguration? configuration = null)
+        => args.Length >= 2 && args[0] == "connector" && args[1] == "catalog"
+            ? new ServiceCollection().AddSingleton<ICliConsole>(console ?? new SystemCliConsole()).BuildServiceProvider()
+            : CreateDefault(console, configuration);
+
     public static ServiceProvider CreateDefault(
         ICliConsole? console = null,
         IConfiguration? configuration = null,

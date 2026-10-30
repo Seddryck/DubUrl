@@ -275,6 +275,28 @@ See [catalog signing and publication](https://github.com/Seddryck/DubUrl/blob/ma
 for publisher tooling and protected key generation. The implementation uses .NET's built-in
 [RSA signing and verification APIs](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.rsa).
 
+### Create a catalog from a provider-pack folder
+
+The CLI can prepare a catalog directly from approved top-level ZIP archives:
+
+```text
+duburl connector catalog create <folder> --output <new-output-folder> --archive-base-uri https://connectors.example.org/packs/ --trust-mode sha256 --json
+```
+
+Use `--trust-mode unsigned` to opt into endpoint/local-deployment trust, or `--trust-mode signed` with
+`--signing-key`, `--key-id`, `--revision`, and `--expires-at`. Signing passwords come from the environment
+variable named by `--signing-password-env` (default `DUBURL_CATALOG_SIGNING_PASSWORD`), never a password
+argument. `--catalog-uri` optionally supplies the published catalog location; otherwise settings use the
+generated local file. `--source-id` defaults to `enterprise`.
+
+The new snapshot contains a validated catalog, unchanged copies in `archives/`, and `source-settings.json`.
+Pinned mode adds a document digest; signed mode adds a detached signature and public PEM. Subfolders
+and unrelated files are ignored. Duplicate connector IDs, multiple versions, aliases, unsafe archives,
+and existing output directories are rejected. This operation prepares files only; administrators own
+publication and trusted configuration/key distribution. See the
+[complete CLI publication workflow](https://github.com/Seddryck/DubUrl/blob/main/connectors/DISTRIBUTION.md#create-a-catalog-from-a-folder-with-the-cli)
+for examples, artifact layout, security policy, exit codes, and deployment guidance.
+
 ## In-process host management
 
 `DubUrl.Application` exposes `IConnectorService` and its `ConnectorService` implementation. Hosts supply

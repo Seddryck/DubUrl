@@ -12,7 +12,7 @@ Console.CancelKeyPress += (_, eventArgs) =>
 
 try
 {
-    await using var services = CliComposition.CreateDefault();
+    await using var services = CliComposition.CreateForCommand(args);
     return await CliHost.InvokeAsync(args, services, cancellation.Token);
 }
 catch (DubUrl.Application.ConnectorOperationException exception)

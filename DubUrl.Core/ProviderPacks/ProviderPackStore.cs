@@ -297,7 +297,7 @@ public sealed class ProviderPackStore
         => left.Count == right.Count && left.Zip(right).All(pair => pair.First.Name == pair.Second.Name
             && pair.First.Schemes.SequenceEqual(pair.Second.Schemes, StringComparer.OrdinalIgnoreCase));
 
-    private static IEnumerable<string> RequiredAssemblyPaths(ConnectorDefinition definition)
+    internal static IEnumerable<string> RequiredAssemblyPaths(ConnectorDefinition definition)
         => new[] { definition.Assembly, definition.DriverAssemblyPath }.Concat(definition.ImplementationAssemblies).Distinct(StringComparer.OrdinalIgnoreCase);
 
     private static string GetAssemblyPath(string root, string relativePath)
@@ -397,7 +397,7 @@ public sealed class ProviderPackStore
     private static bool IsManifestStructurallyValid(ConnectorDefinition definition)
         => definition.HasCompleteMetadata();
 
-    private static string ValidateRelativePath(string path)
+    internal static string ValidateRelativePath(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path))
             throw new ProviderPackException(PathInvalid, "Connector archive paths must be relative.");
@@ -407,7 +407,7 @@ public sealed class ProviderPackStore
         return normalized;
     }
 
-    private static void ValidateIdentifier(string value, string parameterName)
+    internal static void ValidateIdentifier(string value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Provider and version identifiers cannot be empty.", parameterName);
