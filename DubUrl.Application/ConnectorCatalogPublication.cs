@@ -9,14 +9,12 @@ public sealed record SignedConnectorCatalog(byte[] Signature, string KeyId, long
 /// <summary>Signs with derived key identity, optional expiry, and a durable automatic per-source revision.</summary>
 public static class ConnectorCatalogPublication
 {
-    public static readonly TimeSpan DefaultLifetime = TimeSpan.FromDays(7);
-
     public static async Task<SignedConnectorCatalog> SignAsync(byte[] catalog, RSA privateKey, string sourceId,
         DateTimeOffset? expiresAt = null, bool noExpiration = false, string? publisherStatePath = null,
         CancellationToken cancellationToken = default)
     {
         if (!ConnectorCatalogSignature.IsSafeName(sourceId) || (noExpiration && expiresAt is not null)) throw new InvalidDataException();
-        DateTimeOffset? expiry = noExpiration ? null : expiresAt ?? DateTimeOffset.UtcNow.Add(DefaultLifetime);
+        DateTimeOffset? expiry = expiresAt;
         if (expiry is not null && expiry <= DateTimeOffset.UtcNow) throw new InvalidDataException();
         var keyId = ConnectorCatalogSignature.GetKeyId(privateKey);
         var revision = await ReserveAsync(publisherStatePath ?? DefaultStatePath(), sourceId,

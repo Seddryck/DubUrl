@@ -17,8 +17,8 @@ internal static class ConnectorCatalogCommand
         var mode = new Option<string?>("--trust-mode") { Description = "sha256 (default), unsigned, or signed." };
         var sourceId = new Option<string?>("--source-id") { Description = "Stable catalog source ID (default enterprise)." };
         var catalogUri = new Option<string?>("--catalog-uri") { Description = "Published catalog HTTPS or file URI. Defaults to the generated local catalog." };
-        var signingKey = new Option<string?>("--signing-key") { Description = "Protected encrypted PKCS#8 private PEM; signed mode only." };
-        var expires = new Option<string?>("--expires-at") { Description = "ISO 8601 expiry or 'none'. Defaults to seven days from signing." };
+        var signingKey = new Option<string?>("--signing-key") { Description = "Encrypted PKCS#8 private PEM path, or '-' for redirected stdin; signed mode only." };
+        var expires = new Option<string?>("--expires-at") { Description = "ISO 8601 expiry or 'none' (default: no expiration)." };
         var publisherState = new Option<string?>("--publisher-state") { Description = "Persistent publisher revision directory. Defaults to DubUrl/catalog-publication-revisions in local application data." };
         var passwordEnv = new Option<string?>("--signing-password-env") { Description = "Password environment variable (default DUBURL_CATALOG_SIGNING_PASSWORD). Never pass the password itself." };
         var json = new Option<bool>("--json") { Description = "Write stable result metadata with relative artifact references." };
@@ -49,8 +49,13 @@ internal static class ConnectorCatalogCommand
                     var path = result.GetValue(signingKey);
                     var password = Environment.GetEnvironmentVariable(result.GetValue(passwordEnv) ?? "DUBURL_CATALOG_SIGNING_PASSWORD");
                     if (string.IsNullOrWhiteSpace(path) || string.IsNullOrEmpty(password)) throw InvalidSigning();
+                    if (path == "-" && !console.IsInputRedirected)
+                        throw new ConnectorOperationException("catalog-options-invalid", "Use redirected stdin with '--signing-key -'. The key password must come from its environment variable.");
                     key = RSA.Create();
-                    key.ImportFromEncryptedPem(await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false), password);
+                    var pem = path == "-"
+                        ? await console.In.ReadToEndAsync(cancellationToken).ConfigureAwait(false)
+                        : await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+                    key.ImportFromEncryptedPem(pem, password);
                 }
                 else if (result.GetValue(signingKey) is not null || result.GetValue(passwordEnv) is not null)
                     throw InvalidSigning();

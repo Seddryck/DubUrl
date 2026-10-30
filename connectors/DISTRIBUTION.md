@@ -139,12 +139,25 @@ try {
 
 `--signing-password-env` defaults to `DUBURL_CATALOG_SIGNING_PASSWORD`; there is no password-value
 argument. Signed mode requires only the protected key and its password. The key ID is derived from
-the public-key fingerprint, revisions are allocated automatically, and expiry defaults to seven days.
-Use `--expires-at <ISO-8601-timestamp>` to choose another expiry, or `--expires-at none` for no expiration.
+the public-key fingerprint, revisions are allocated automatically, and expiry defaults to none.
+Omit `--expires-at` or use `--expires-at none` for no expiration. Use `--expires-at <ISO-8601-timestamp>`
+when an expiration is wanted.
 There are no `--key-id` or `--revision` arguments. Signing arguments in another mode, unknown modes,
 missing credentials, and signing failures are rejected without an
 automatic downgrade. Private keys are never copied or exported into the snapshot. The generated public
 PEM uses the existing signature format and can be provisioned independently to clients.
+
+Use `--signing-key -` to read the encrypted PEM from redirected stdin instead of a file. Only the key
+goes through stdin; its password still comes from the configured environment variable. For example,
+with `DUBURL_CATALOG_SIGNING_PASSWORD` already injected by the publishing secret store:
+
+```powershell
+Get-Content C:\secure\catalog-signing-private.pem -Raw | duburl catalog create C:\approved\packs --output C:\staging\snapshot-45 --archive-base-uri https://connectors.example.org/packs/ --trust-mode signed --signing-key - --json
+```
+
+A secret-management tool can supply the encrypted PEM through the same pipe. The command requires
+redirected input for `-`; empty, malformed, or incorrectly encrypted keys fail without echoing input or
+creating a published snapshot.
 
 The generated artifacts are:
 
@@ -216,9 +229,9 @@ try {
 ```
 
 The utility derives the key ID and allocates a revision automatically using the same publication state
-as the CLI. It defaults to seven days of validity. An optional fifth argument selects an ISO 8601 expiry,
+as the CLI. It defaults to no expiration. An optional fifth argument selects an ISO 8601 expiry,
 `none`, or `default`; an optional sixth argument selects the persistent publisher state directory.
-The utility validates the
+The key argument also accepts `-` for redirected encrypted PEM on stdin. The utility validates the
 catalog metadata, signs its exact bytes and freshness metadata using RSA-PSS/SHA-256, and creates a new
 signature file. It refuses an existing output file, rejects a past explicit expiry, and emits no key material
 or underlying exception details. Hosts can instead use `ConnectorCatalogPublication.SignAsync` with a
@@ -243,8 +256,8 @@ on its next catalog load; there is no fallback to unsigned loading. Keep the con
 clients need no configuration change for routine updates. Existing installed packs and healthy sources
 remain usable if signing, hosting, or verification fails.
 
-Keep the default expiry or choose a duration consistent with deployment availability and renew before expiry.
-`--expires-at none` explicitly disables time-based freshness; clients still verify signatures and reject
+No expiration is the default. Choose an explicit timestamp when time-based freshness is needed, and
+renew before that timestamp. Without expiration, clients still verify signatures and reject
 revision rollback, but fresh clients cannot reject an old signature based on age alone. Persist
 client revision state under the provider store's `catalog-revisions` directory. A fresh or reset client
 cannot detect an older, still-valid catalog below the newest published revision unless administrators

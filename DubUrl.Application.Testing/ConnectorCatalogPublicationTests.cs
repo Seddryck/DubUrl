@@ -8,7 +8,7 @@ namespace DubUrl.Application.Testing;
 public class ConnectorCatalogPublicationTests
 {
     [Test]
-    public async Task Defaults_DeriveStablePublicIdentityAndExpireInSevenDays()
+    public async Task Defaults_DeriveStablePublicIdentityWithoutExpiration()
     {
         using var fixture = new Fixture();
         var before = DateTimeOffset.UtcNow;
@@ -19,7 +19,8 @@ public class ConnectorCatalogPublicationTests
         {
             Assert.That(signed.KeyId, Is.EqualTo("sha256-" + Convert.ToHexString(SHA256.HashData(fixture.Key.ExportSubjectPublicKeyInfo())).ToLowerInvariant()));
             Assert.That(ConnectorCatalogSignature.GetKeyId(publicOnly), Is.EqualTo(signed.KeyId));
-            Assert.That(signed.ExpiresAt, Is.InRange(before.AddDays(7), DateTimeOffset.UtcNow.AddDays(7)));
+            Assert.That(signed.ExpiresAt, Is.Null);
+            Assert.That(ConnectorCatalogSignature.Read(signed.Signature).ExpiresAt, Is.Zero);
             Assert.That(signed.Revision, Is.GreaterThanOrEqualTo(before.ToUnixTimeMilliseconds()));
             Assert.That(ConnectorCatalogSignature.Read(signed.Signature).KeyId, Is.EqualTo(signed.KeyId));
         });
