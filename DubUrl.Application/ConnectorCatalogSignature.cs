@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace DubUrl.Application;
 
@@ -49,7 +48,8 @@ public sealed record ConnectorCatalogSignature(
     }
 
     internal static bool IsSafeName(string? value)
-        => value is not null && Regex.IsMatch(value, @"\A[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}\z");
+        => value is { Length: > 0 and <= 128 } && char.IsAsciiLetterOrDigit(value[0])
+            && value.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-');
 
     internal static void ImportPublicKey(RSA key, string pem)
     {
