@@ -75,5 +75,4 @@ public class ColumnViewModel
 
     private static PrimaryKeyConstraintViewModel? CreatePrimaryKey(bool includePrimaryKey, PrimaryKeyConstraint? primaryKey)
         => includePrimaryKey && primaryKey is not null ? new PrimaryKeyConstraintViewModel(primaryKey) : null;
-
 }
