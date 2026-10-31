@@ -13,6 +13,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 & (Join-Path $PSScriptRoot 'Test-ConnectorDependencies.ps1')
+& (Join-Path $PSScriptRoot 'Test-ConnectorNativeAdapters.ps1')
 
 $root = [IO.Path]::GetFullPath($ArtifactDirectory)
 $catalogPath = Join-Path $root 'connector-catalog.json'
@@ -104,11 +105,8 @@ foreach ($entry in $entries) {
             throw "Connector '$($entry.provider)' contains temporary dependency-collector output."
         }
         $driverAssembly = if ($manifest.PSObject.Properties['driverAssembly']) { $manifest.driverAssembly } else { $manifest.driver + '.dll' }
-        if (@($archivePaths | Where-Object {
-            $_ -cmatch '^DubUrl\.Provider\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.dll$' -and $_ -cne $driverAssembly
-        }).Count) {
-            throw "Connector '$($entry.provider)' still contains a per-driver binding DLL."
-        }
+        & (Join-Path $PSScriptRoot 'Assert-ConnectorNativeAdapters.ps1') `
+            -Provider $entry.provider -DriverAssembly $driverAssembly -ArchivePaths $archivePaths
         if ($manifest.PSObject.Properties['module'] -or $manifest.PSObject.Properties['type']) {
             throw "Connector definitions must not contain an entry-point type."
         }
@@ -119,12 +117,6 @@ foreach ($entry in $entries) {
             throw "Connector '$($entry.provider)' still carries a legacy connector assembly."
         }
         $bulkAdapters = @($archivePaths | Where-Object { $_ -like 'DubUrl.Provider.*.BulkCopy.dll' })
-        if ($entry.provider -eq 'duckdb-native' -and $archivePaths -cnotcontains 'DubUrl.Provider.DuckDb.Native.dll') {
-            throw 'The native DuckDB connector must include its encrypted-connection adapter.'
-        }
-        if ($entry.provider -ne 'duckdb-native' -and $archivePaths -ccontains 'DubUrl.Provider.DuckDb.Native.dll') {
-            throw 'A non-native DuckDB connector must not carry the encrypted-connection adapter.'
-        }
         $expectedAdapter = switch ($entry.provider) {
             'duckdb-native' { 'DubUrl.Provider.DuckDb.Native.BulkCopy.dll' }
             'sqlserver-sqlclient' { 'DubUrl.Provider.SqlServer.SqlClient.BulkCopy.dll' }
