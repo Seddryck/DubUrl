@@ -7,6 +7,8 @@ internal class PostgreSqlSchemaSqlRenderer : StandardSchemaSqlRenderer
 {
     internal static PostgreSqlSchemaSqlRenderer Default { get; } = new();
 
+    public override bool SupportsCommentRendering => true;
+
     public override string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name)
     {
         RejectQualifier(catalog, "Catalog", dialect);

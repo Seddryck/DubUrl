@@ -13,6 +13,7 @@ internal static class MysqlSchemaCapabilities
             SupportsVirtualGeneratedColumns = true,
             SupportsRegularExpressionChecks = true,
             SupportsViews = true,
-            NativeTypes = new HashSet<string>(["JSON", "GEOMETRY"], StringComparer.OrdinalIgnoreCase),
+            SupportsComments = true,
+            NativeTypes = new HashSet<string>(["JSON", "GEOMETRY", "VARCHAR", "CHAR", "TEXT", "BLOB"], StringComparer.OrdinalIgnoreCase),
         };
 }

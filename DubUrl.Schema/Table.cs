@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -48,6 +48,13 @@ public class Table
                 .ToArray();
         }
 
+        foreach (var unique in tableConstraints.OfType<UniquenessConstraint>())
+        {
+            if (unique.Columns.Count == 0)
+                throw new ArgumentException($"Table '{Name}' UNIQUE constraint requires explicit columns.", nameof(constraints));
+            if (unique.Columns.Any(column => !Columns.ContainsKey(column.Name)))
+                throw new ArgumentException($"Table '{Name}' UNIQUE constraint references an unknown column.", nameof(constraints));
+        }
         Constraints = new(tableConstraints);
         Description = string.IsNullOrWhiteSpace(description) ? null : description;
     }

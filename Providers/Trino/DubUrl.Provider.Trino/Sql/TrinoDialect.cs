@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.Trino.Sql.Casting;
+using DubUrl.Provider.Trino.Sql.Casting;
 using DubUrl.Provider.Trino.Sql.Rendering;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
@@ -25,6 +25,8 @@ namespace DubUrl.Provider.Trino.Sql;
 [ParentLanguage<SqlLanguage>]
 public class TrinoDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new() { SupportsComments = true };
+
     internal TrinoDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

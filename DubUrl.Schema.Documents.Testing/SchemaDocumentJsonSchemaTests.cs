@@ -131,7 +131,7 @@ public class SchemaDocumentJsonSchemaTests
         {
             Assert.That(script, Does.Contain("CONSTRAINT \"pk_customers\" PRIMARY KEY (\"tenant_id\", \"id\")"));
             Assert.That(script, Does.Contain("\"name_length\" INTEGER GENERATED ALWAYS AS (LENGTH(\"name\")) STORED"));
-            Assert.That(script, Does.Contain("CONSTRAINT \"ck_orders_amount\" CHECK \"amount\" >= 0"));
+            Assert.That(script, Does.Contain("CONSTRAINT \"ck_orders_amount\" CHECK (\"amount\" >= 0)"));
             Assert.That(script, Does.Contain("CONSTRAINT \"fk_orders_customer\" FOREIGN KEY (\"tenant_id\", \"customer_id\") REFERENCES \"sales\".\"customers\" (\"tenant_id\", \"id\")"));
             Assert.That(script, Does.Contain("CREATE UNIQUE INDEX \"sales\".\"ux_orders_tenant_amount\" ON \"sales\".\"orders\""));
             Assert.That(script, Does.Contain("\"tenant_id\" ASC").And.Contain("\"amount\" DESC"));

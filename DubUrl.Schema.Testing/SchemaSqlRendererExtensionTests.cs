@@ -64,7 +64,7 @@ public class SchemaSqlRendererExtensionTests
 
         var sql = new SchemaScriptRenderer(dialect).Render(new Schema([table], []));
 
-        Assert.That(sql, Does.Contain("CHECK ([Name] IS NOT NULL AND provider_match([Name], 'owner''s'))"));
+        Assert.That(sql, Does.Contain("CHECK (([Name] IS NOT NULL AND provider_match([Name], 'owner''s')))"));
     }
 
     [Test]
@@ -140,6 +140,7 @@ public class SchemaSqlRendererExtensionTests
 
     private sealed class CommentSqlRenderer : StandardSchemaSqlRenderer
     {
+        public override bool SupportsCommentRendering => true;
         public override string RenderComment(IDialect dialect, SchemaSqlObjectName table, string? column, string description)
             => $"PROVIDER_COMMENT {table.Schema}.{table.Name}{(column is null ? string.Empty : "." + column)} {description}";
     }

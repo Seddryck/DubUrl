@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +10,8 @@ public class Schema
     public OrderedImmutableDictionary<string, Table> Tables { get; }
     public OrderedImmutableDictionary<string, Index> Indexes { get; }
     public OrderedImmutableDictionary<string, View> Views { get; }
+    /// <summary>Pre-existing reference tables. Validated but never created or dropped.</summary>
+    public OrderedImmutableDictionary<string, Table> ExternalTables { get; }
 
     public Schema(Table[] tables)
         : this(tables, [], [])
@@ -20,6 +22,10 @@ public class Schema
     { }
 
     public Schema(Table[] tables, Index[] indexes, View[] views)
+        : this(tables, indexes, views, null)
+    { }
+
+    public Schema(Table[] tables, Index[] indexes, View[] views, Table[]? externalTables)
     {
         ArgumentNullException.ThrowIfNull(tables);
         ArgumentNullException.ThrowIfNull(indexes);
@@ -33,10 +39,21 @@ public class Schema
         Tables = OrderedImmutableDictionary<string, Table>.From(
             tables.Select(t => new KeyValuePair<string, Table>(t.Identity.Key, t)));
 
+        externalTables ??= [];
+        if (externalTables.Select(table => table.Identity.Key).Distinct(StringComparer.Ordinal).Count() != externalTables.Length
+            || externalTables.Any(table => Tables.ContainsKey(table.Identity.Key)))
+            throw new ArgumentException("External table identities must be unique and cannot also be created.", nameof(externalTables));
+        ExternalTables = OrderedImmutableDictionary<string, Table>.From(externalTables.Select(table =>
+            new KeyValuePair<string, Table>(table.Identity.Key, table)));
+
         foreach (var table in tables)
         foreach (var foreignKey in table.Constraints.OfType<Constraints.ForeignKeyConstraint>())
         {
-            if (!Tables.TryGetValue(foreignKey.TargetTable.Key, out var targetTable))
+            var missingSourceColumns = foreignKey.SourceColumns.Where(name => !table.Columns.ContainsKey(name)).ToArray();
+            if (missingSourceColumns.Length > 0)
+                throw new ArgumentException($"Foreign key '{foreignKey.Name}' references missing source column(s) {string.Join(", ", missingSourceColumns)} on table '{table.Name}'.", nameof(tables));
+            if (!Tables.TryGetValue(foreignKey.TargetTable.Key, out var targetTable)
+                && !ExternalTables.TryGetValue(foreignKey.TargetTable.Key, out targetTable))
                 throw new ArgumentException(
                     $"Foreign key '{foreignKey.Name}' on table '{table.Name}' references missing table '{foreignKey.TargetTableName}'.",
                     nameof(tables));

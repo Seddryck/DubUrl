@@ -23,7 +23,7 @@ public class SqlServerCommentRendererTests
     public void Descriptions_RenderExtendedPropertiesAfterTables_WithUnicodeAndEscaping()
     {
         var table = new Table(new DatabaseObjectName("Order's.表", schema: "sales'部"),
-            [new Column("Name's.列", DbType.String, description: "Owner's name\nPréféré 雪")],
+            [new VarLengthColumn("Name's.列", DbType.String, VarLengthColumn.Unbounded, description: "Owner's name\nPréféré 雪")],
             description: "Customer's record");
         var renderer = new SchemaScriptRenderer(dialect);
         var sql = renderer.Render(new Schema([table], []));

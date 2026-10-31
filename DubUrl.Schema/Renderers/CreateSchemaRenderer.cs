@@ -25,6 +25,7 @@ public class CreateSchemaRenderer : RendererEngine
         : this(dialect.DbTypeMapper, dialect.SqlFunctionMapper, CreateSchemaHelpers(dialect, dropIdentitySequences))
     {
         nativeTypes ??= NativeTypeRegistry.Default;
+        AddFormatter("columncomment", value => dialect.SchemaSqlRenderer.RenderColumnComment(dialect, (string)value!));
         AddFormatter("check", value => RenderCheck(value, dialect));
         AddFormatter("membership", value => RenderMembership(value, dialect));
         AddFormatter("regex", value => RenderRegex(value, dialect));
@@ -50,7 +51,7 @@ public class CreateSchemaRenderer : RendererEngine
     private static string RenderExpression(Expression expression, IDialect dialect)
         => SqlExpressionRenderer.Render(expression, dialect);
 
-    private static string RenderColumnType(object? value, IDialect dialect, NativeTypeRegistry nativeTypes)
+    internal static string RenderColumnType(object? value, IDialect dialect, NativeTypeRegistry nativeTypes)
     {
         if (value is not ColumnViewModel column)
             throw new ArgumentException("The column type formatter requires a column view model.", nameof(value));
@@ -70,10 +71,11 @@ public class CreateSchemaRenderer : RendererEngine
             throw new ArgumentException("The column specification formatter requires a column view model.", nameof(value));
 
         var type = RenderColumnType(column, dialect, nativeTypes);
-        if (column.Length > 0)
-            type += $"({column.Length})";
-        if (column.Precision > 0)
-            type += $"({column.Precision}, {column.Scale})";
+        type = dialect.SchemaSqlRenderer.RenderColumnType(dialect, type, column.DeclaredLength,
+            column.Precision, column.Scale,
+            column.NativeType is not null && nativeTypes.TryResolve(dialect, column.NativeType, out _));
+        if (column.IsKey)
+            dialect.SchemaSqlRenderer.ValidateKeyColumn(dialect, type, column.TableIdentity?.ToString() ?? "unknown", column.Name);
 
         return column.Generation switch
         {

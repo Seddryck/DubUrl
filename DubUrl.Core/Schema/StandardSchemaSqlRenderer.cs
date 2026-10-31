@@ -13,6 +13,27 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
     public StandardSchemaSqlRenderer(ISchemaSqlRenderer fallback)
         => this.fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
 
+    public virtual bool SupportsCommentRendering => fallback?.SupportsCommentRendering ?? false;
+    public virtual bool RequiresForeignKeyDependencyOrder => fallback?.RequiresForeignKeyDependencyOrder ?? false;
+    public virtual string RenderColumnComment(IDialect dialect, string description)
+        => fallback?.RenderColumnComment(dialect, description) ?? string.Empty;
+
+    public virtual string RenderColumnType(IDialect dialect, string type, int? length, int precision, int scale, bool nativeType)
+    {
+        if (fallback is not null) return fallback.RenderColumnType(dialect, type, length, precision, scale, nativeType);
+        if (length == -1)
+        {
+            if (type is not ("VARCHAR" or "TEXT"))
+                throw new NotSupportedException($"Unbounded type '{type}' is not supported by dialect '{dialect.GetType().Name}'.");
+        }
+        else if (length.HasValue) type += $"({length.Value})";
+        if (precision > 0) type += $"({precision}, {scale})";
+        return type;
+    }
+
+    public virtual void ValidateKeyColumn(IDialect dialect, string type, string table, string column)
+        => fallback?.ValidateKeyColumn(dialect, type, table, column);
+
     public virtual string RenderCreateIndexName(IDialect dialect, SchemaSqlObjectName index, SchemaSqlObjectName table)
         => fallback?.RenderCreateIndexName(dialect, index, table)
             ?? RenderObjectName(dialect, index.Catalog, index.Database, index.Schema, index.Name);

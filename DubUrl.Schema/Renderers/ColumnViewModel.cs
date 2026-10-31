@@ -13,6 +13,8 @@ public class ColumnViewModel
     public string Name { get; }
     public string Type { get; }
     public int Length { get; }
+    public int? DeclaredLength { get; }
+    public bool IsKey { get; internal set; }
     public int Precision { get; }
     public int Scale { get; }
     public Constraint? Nullable { get; }
@@ -35,6 +37,10 @@ public class ColumnViewModel
     { }
 
     public ColumnViewModel(Column column, bool includePrimaryKey, DatabaseObjectName? tableIdentity)
+        : this(column, includePrimaryKey, tableIdentity, false)
+    { }
+
+    public ColumnViewModel(Column column, bool includePrimaryKey, DatabaseObjectName? tableIdentity, bool suppressUnique)
     {
         TableIdentity = tableIdentity;
         Name = column.Name;
@@ -47,14 +53,16 @@ public class ColumnViewModel
         Generation = column.Generation;
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
-        Unique = column.Constraints.Get<UniquenessConstraint>();
+        Unique = suppressUnique || (includePrimaryKey && column.Constraints.Get<PrimaryKeyConstraint>() is not null)
+            ? null : column.Constraints.Get<UniquenessConstraint>();
         var primaryKey = includePrimaryKey ? column.Constraints.Get<PrimaryKeyConstraint>() : null;
         PrimaryKey = primaryKey is null ? null : new PrimaryKeyConstraintViewModel(primaryKey);
         Checks = [.. column.Constraints.OfType<CheckConstraint>()];
         MembershipChecks = [.. column.Constraints.OfType<MembershipCheckConstraint>()];
         RegexChecks = [.. column.Constraints.OfType<RegexCheckConstraint>()];
+        IsKey = column.Constraints.Get<PrimaryKeyConstraint>() is not null || Unique is not null;
         if (column is VarLengthColumn varLength)
-            Length = varLength.Length;
+            DeclaredLength = Length = varLength.Length;
         if (column is NumericColumn numeric)
         {
             Precision = numeric.Precision;

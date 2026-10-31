@@ -74,3 +74,17 @@ Creation renders tables and their constraints first, followed by deferred foreig
 Provider capabilities still apply. The renderer throws when the selected dialect cannot faithfully represent a requested identity, generated-column storage mode, regular-expression check, view, native type, or function.
 
 For a portable JSON or YAML representation of the same model, see [Schema documents]({{ site.baseurl }}/schema-documents/).
+
+## Safe column and constraint rendering
+
+SQL Server and Teradata character columns require explicit dimensions. Use `new VarLengthColumn("name", DbType.String, 120)` (or `.WithLength(120)`) for bounded strings. For intentional unbounded SQL Server text, use `VarLengthColumn.Unbounded` (`-1`), which renders `NVARCHAR(MAX)` or `VARCHAR(MAX)`. Fixed-width strings and key columns cannot use `MAX`. Teradata requires bounded `VARCHAR`/`CHAR`; an explicitly selected native `CLOB` is available for large non-key text. No default business length is guessed. Native types and logical fallbacks follow the same dimension policy.
+
+MySQL bounded logical strings render as `VARCHAR(length)`. Explicit native `VARCHAR`/`CHAR` dimensions are preserved. Primary, unique, unique-index and both foreign-key endpoints reject `TEXT`/`BLOB` key types with an error requesting bounded metadata.
+
+DuckDB foreign keys render inside `CREATE TABLE`. Tables are created in dependency order and dropped in reverse order. Dependency cycles produce an error. Self references are supported by current DuckDB for rows referencing previously inserted parents; same-statement self references remain subject to engine limitations. SQLite retains inline foreign keys without requiring dependency order.
+
+For an existing parent table, pass its metadata in `new Schema(tablesToCreate, indexes, views, externalTables: existingParents)`. External tables are validated as reference targets but never created or dropped. References without either created or external metadata still fail validation.
+
+A `UniquenessConstraint` on a column is omitted when that column is the complete primary key. Table uniqueness can be declared with `new UniquenessConstraint(columns, name)`; a set matching the primary key is also omitted, regardless of column order. A singleton unique column within a composite primary key is preserved.
+
+`SchemaScriptRenderer.EngineSupportsComments` describes database capability; `SupportsComments` describes the available renderer. SQL Server uses Unicode extended properties, MySQL uses column `COMMENT` clauses and table comments, and Snowflake uses `COMMENT ON`. Descriptions for an engine with an unimplemented renderer raise an actionable implementation-gap error. Engines without database comments, such as SQLite, expose false and omit descriptions.

@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying;
+using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Functions;
@@ -20,6 +20,8 @@ namespace DubUrl.Provider.Db2.Sql;
 [ParentLanguage<SqlLanguage>]
 public class Db2Dialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new() { SupportsComments = true };
+
     internal Db2Dialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

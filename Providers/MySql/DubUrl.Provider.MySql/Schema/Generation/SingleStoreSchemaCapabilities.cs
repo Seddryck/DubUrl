@@ -13,6 +13,7 @@ internal static class SingleStoreSchemaCapabilities
             SupportsVirtualGeneratedColumns = true,
             SupportsRegularExpressionChecks = true,
             SupportsViews = true,
+            SupportsComments = true,
             NativeTypes = new HashSet<string>(["JSON", "GEOGRAPHYPOINT", "GEOGRAPHY"], StringComparer.OrdinalIgnoreCase),
         };
 }

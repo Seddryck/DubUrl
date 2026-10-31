@@ -4,6 +4,22 @@ namespace DubUrl.Querying.Dialects;
 /// <remarks>Implementations belong to Core or provider assemblies and do not depend on schema models.</remarks>
 public interface ISchemaSqlRenderer
 {
+    /// <summary>Whether this implementation can render engine comments.</summary>
+    bool SupportsCommentRendering => false;
+
+    /// <summary>Renders an optional inline column comment, including its leading space.</summary>
+    string RenderColumnComment(IDialect dialect, string description) => string.Empty;
+
+    /// <summary>Whether referenced tables must precede referencing tables.</summary>
+    bool RequiresForeignKeyDependencyOrder => false;
+
+    /// <summary>Resolves dimensions after native or logical type selection. -1 means explicitly unbounded.</summary>
+    string RenderColumnType(IDialect dialect, string type, int? length, int precision, int scale, bool nativeType)
+        => StandardSchemaSqlRenderer.Instance.RenderColumnType(dialect, type, length, precision, scale, nativeType);
+
+    /// <summary>Rejects a resolved SQL type that cannot participate in a key.</summary>
+    void ValidateKeyColumn(IDialect dialect, string type, string table, string column) { }
+
     /// <summary>Renders a resolved SQL type with identity generation.</summary>
     string RenderIdentity(IDialect dialect, string type, long seed, long increment);
 

@@ -6,6 +6,27 @@ internal sealed class TSqlSchemaSqlRenderer : StandardSchemaSqlRenderer
 {
     internal static TSqlSchemaSqlRenderer Default { get; } = new();
 
+    public override bool SupportsCommentRendering => true;
+
+    public override string RenderColumnType(IDialect dialect, string type, int? length, int precision, int scale, bool nativeType)
+    {
+        if (type is "NVARCHAR" or "VARCHAR" or "NCHAR" or "CHAR")
+        {
+            if (length is null)
+                throw new ArgumentException($"SQL Server {type} requires an explicit length; use VarLengthColumn.Unbounded for VARCHAR(MAX)/NVARCHAR(MAX).");
+            if (length == -1)
+                return type is "VARCHAR" or "NVARCHAR" ? $"{type}(MAX)"
+                    : throw new NotSupportedException($"SQL Server {type} cannot be unbounded.");
+        }
+        return base.RenderColumnType(dialect, type, length, precision, scale, nativeType);
+    }
+
+    public override void ValidateKeyColumn(IDialect dialect, string type, string table, string column)
+    {
+        if (type.EndsWith("(MAX)", StringComparison.OrdinalIgnoreCase) || type is "TEXT" or "NTEXT" or "IMAGE")
+            throw new ArgumentException($"SQL Server key column '{table}.{column}' uses {type}; supply an explicit bounded key type and length.");
+    }
+
     public override string RenderIdentity(IDialect dialect, string type, long seed, long increment)
         => $"{type} IDENTITY({seed}, {increment})";
 

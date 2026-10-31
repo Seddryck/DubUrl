@@ -225,7 +225,7 @@ public class SchemaScriptRendererTests
         var result = schema.Render(GetModel());
         Assert.That(result, Is.EqualTo("CREATE TABLE [Customer] (" +
                                     "\r\n    [Id] INTEGER PRIMARY KEY," +
-                                    "\r\n    [Name] VARCHAR(50) CHECK LEN([Name]) >= 10" +
+                                    "\r\n    [Name] VARCHAR(50) CHECK (LEN([Name]) >= 10)" +
                                     "\r\n);" +
                                     "\r\n"));
     }
@@ -237,7 +237,7 @@ public class SchemaScriptRendererTests
         var result = schema.Render(GetModel());
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER PRIMARY KEY," +
-                                    "\r\n    Name VARCHAR(50) CHECK LENGTH(Name) >= 10" +
+                                    "\r\n    Name VARCHAR(50) CHECK (LENGTH(Name) >= 10)" +
                                     "\r\n);" +
                                     "\r\n"));
     }
@@ -262,7 +262,7 @@ public class SchemaScriptRendererTests
         var result = schema.Render(model);
         Assert.That(result, Is.EqualTo("CREATE TABLE Customer (" +
                                     "\r\n    Id INTEGER PRIMARY KEY," +
-                                    "\r\n    Age SMALLINT CHECK Age >= 18" +
+                                    "\r\n    Age SMALLINT CHECK (Age >= 18)" +
                                     "\r\n);" +
                                     "\r\n"));
     }
@@ -273,7 +273,7 @@ public class SchemaScriptRendererTests
         var table = new TableBuilder()
             .WithName("Customer")
             .WithColumns(columns => columns.Add(column => column
-                .WithName("Status").WithType(DbType.String)
+                .WithName("Status").WithType(DbType.String).WithLength(VarLengthColumn.Unbounded)
                 .WithCheck(check => check.WithMembership(
                     expression => expression.WithCurrentColumn(),
                     ["new", "owner's choice"]))))
@@ -281,7 +281,7 @@ public class SchemaScriptRendererTests
 
         var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
 
-        Assert.That(result, Does.Contain("Status VARCHAR CHECK Status IN ('new', 'owner''s choice')"));
+        Assert.That(result, Does.Contain("Status VARCHAR CHECK (Status IN ('new', 'owner''s choice'))"));
     }
 
     [Test]
@@ -290,7 +290,7 @@ public class SchemaScriptRendererTests
         var table = new TableBuilder()
             .WithName("Customer")
             .WithColumns(columns => columns.Add(column => column
-                .WithName("Status").WithType(DbType.String)
+                .WithName("Status").WithType(DbType.String).WithLength(VarLengthColumn.Unbounded)
                 .WithCheck(check => check.WithMembership(
                     expression => expression.WithCurrentColumn(),
                     ["new", null],
@@ -299,7 +299,7 @@ public class SchemaScriptRendererTests
 
         var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
 
-        Assert.That(result, Does.Contain("CHECK ([Status] IN ('new') OR [Status] IS NULL)"));
+        Assert.That(result, Does.Contain("CHECK (([Status] IN ('new') OR [Status] IS NULL))"));
     }
 
     [Test]
@@ -308,7 +308,7 @@ public class SchemaScriptRendererTests
         Assert.That(() => new TableBuilder()
                 .WithName("Customer")
                 .WithColumns(columns => columns.Add(column => column
-                    .WithName("Status").WithType(DbType.String)
+                    .WithName("Status").WithType(DbType.String).WithLength(VarLengthColumn.Unbounded)
                     .WithCheck(check => check.WithMembership(
                         expression => expression.WithCurrentColumn(),
                         [])))),
@@ -321,7 +321,7 @@ public class SchemaScriptRendererTests
         var table = new TableBuilder()
             .WithName("Customer")
             .WithColumns(columns => columns.Add(column => column
-                .WithName("Code").WithType(DbType.String)
+                .WithName("Code").WithType(DbType.String).WithLength(VarLengthColumn.Unbounded)
                 .WithCheck(check => check.WithRegex(
                     expression => expression.WithCurrentColumn(),
                     "^[A-Z']+$"))))
@@ -329,7 +329,7 @@ public class SchemaScriptRendererTests
 
         var result = new SchemaScriptRenderer(Pgsql).Render(new Schema([table], []));
 
-        Assert.That(result, Does.Contain("\"Code\" TEXT CHECK \"Code\" ~ '^[A-Z'']+$'"));
+        Assert.That(result, Does.Contain("\"Code\" TEXT CHECK (\"Code\" ~ '^[A-Z'']+$')"));
     }
 
     [Test]
@@ -338,7 +338,7 @@ public class SchemaScriptRendererTests
         var table = new TableBuilder()
             .WithName("Customer")
             .WithColumns(columns => columns.Add(column => column
-                .WithName("Code").WithType(DbType.String)
+                .WithName("Code").WithType(DbType.String).WithLength(VarLengthColumn.Unbounded)
                 .WithCheck(check => check.WithRegex(
                     expression => expression.WithCurrentColumn(),
                     "^[A-Z]+$",
@@ -347,7 +347,7 @@ public class SchemaScriptRendererTests
 
         var result = new SchemaScriptRenderer(DuckDb).Render(new Schema([table], []));
 
-        Assert.That(result, Does.Contain("CHECK (Code IS NOT NULL AND regexp_matches(Code, '^[A-Z]+$'))"));
+        Assert.That(result, Does.Contain("CHECK ((Code IS NOT NULL AND regexp_matches(Code, '^[A-Z]+$')))"));
     }
 
     [Test]
@@ -356,7 +356,7 @@ public class SchemaScriptRendererTests
         var table = new TableBuilder()
             .WithName("Customer")
             .WithColumns(columns => columns.Add(column => column
-                .WithName("Code").WithType(DbType.String)
+                .WithName("Code").WithType(DbType.String).WithLength(VarLengthColumn.Unbounded)
                 .WithCheck(check => check.WithRegex(
                     expression => expression.WithCurrentColumn(),
                     "^[A-Z]+$"))))
@@ -734,7 +734,7 @@ public class SchemaScriptRendererTests
     {
         var table = new Table("Customer", [
             new Column("Id", DbType.Int32),
-            new Column("Name", DbType.String)
+            new VarLengthColumn("Name", DbType.String, VarLengthColumn.Unbounded)
         ]);
         var indexes = new[]
         {
@@ -785,8 +785,8 @@ public class SchemaScriptRendererTests
     public void Render_TableChecks_UsesDialectFormattingAndPreservesOrder()
     {
         var table = new Table("Customer", [
-            new Column("Name", DbType.String),
-            new Column("Status", DbType.String)
+            new VarLengthColumn("Name", DbType.String, VarLengthColumn.Unbounded),
+            new VarLengthColumn("Status", DbType.String, VarLengthColumn.Unbounded)
         ], [
             new CheckConstraint(
                 new FunctionColumnIdentityExpression("Length", "Name"),
@@ -802,10 +802,10 @@ public class SchemaScriptRendererTests
         var result = new SchemaScriptRenderer(TSql).Render(new Schema([table], []));
 
         var namedCheck = result.IndexOf(
-            "CONSTRAINT [CK_Customer_NameLength] CHECK LEN([Name]) >= 2",
+            "CONSTRAINT [CK_Customer_NameLength] CHECK (LEN([Name]) >= 2)",
             StringComparison.Ordinal);
         var unnamedCheck = result.IndexOf(
-            "CHECK [Status] <> 'owner''s choice'",
+            "CHECK ([Status] <> 'owner''s choice')",
             StringComparison.Ordinal);
 
         Assert.Multiple(() =>
@@ -913,7 +913,7 @@ public class SchemaScriptRendererTests
     public void Render_SqlServerStoredGeneratedColumn_UsesComputedSyntax()
     {
         var table = new Table("Customer", [
-            new Column("Name", DbType.String),
+            new VarLengthColumn("Name", DbType.String, VarLengthColumn.Unbounded),
             new Column(
                 "NameLength",
                 DbType.Int32,
@@ -930,7 +930,7 @@ public class SchemaScriptRendererTests
     public void Render_PostgresqlStoredGeneratedColumn_UsesStructuredExpression()
     {
         var table = new Table("Customer", [
-            new Column("Name", DbType.String),
+            new VarLengthColumn("Name", DbType.String, VarLengthColumn.Unbounded),
             new Column(
                 "NameLength",
                 DbType.Int32,

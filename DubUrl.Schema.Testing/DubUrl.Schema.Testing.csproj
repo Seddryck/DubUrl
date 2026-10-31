@@ -2,6 +2,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="Moq" Version="4.21.0" />
+    <PackageReference Include="DuckDB.NET.Data" Version="1.5.6" />
+    <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.5.6" />
+    <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="NUnit" Version="5.0.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.15.0">
@@ -26,6 +29,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+    <ProjectReference Include="..\Providers\Teradata\DubUrl.Provider.Teradata\DubUrl.Provider.Teradata.csproj" />
+    <ProjectReference Include="..\Providers\Snowflake\DubUrl.Provider.Snowflake\DubUrl.Provider.Snowflake.csproj" />
     <ProjectReference Include="..\Providers\DuckDb\DubUrl.Provider.DuckDb\DubUrl.Provider.DuckDb.csproj" />
     <ProjectReference Include="..\Providers\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
     <ProjectReference Include="..\Providers\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />
