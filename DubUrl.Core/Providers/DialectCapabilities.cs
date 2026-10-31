@@ -19,6 +19,7 @@ public sealed record DialectCapabilities
     public bool SupportsStoredGeneratedColumns { get; init; }
     public bool SupportsVirtualGeneratedColumns { get; init; }
     public bool SupportsRegularExpressionChecks { get; init; }
+    /// <summary>Database comment capability, independent of ISchemaSqlRenderer.SupportsCommentRendering.</summary>
     public bool SupportsComments { get; init; }
     public bool SupportsViews { get; init; }
     public IReadOnlySet<string> NativeTypes { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

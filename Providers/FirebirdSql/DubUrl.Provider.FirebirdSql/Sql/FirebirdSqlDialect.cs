@@ -1,4 +1,4 @@
-﻿using DubUrl.Provider.FirebirdSql.Sql.Functions;
+using DubUrl.Provider.FirebirdSql.Sql.Functions;
 using DubUrl.Provider.FirebirdSql.Sql.Rendering;
 using DubUrl.Provider.FirebirdSql.Sql.Types;
 using DubUrl.Querying;
@@ -23,6 +23,8 @@ namespace DubUrl.Provider.FirebirdSql.Sql;
 [ParentLanguage<SqlLanguage>]
 public class FirebirdSqlDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new() { SupportsComments = true };
+
     internal FirebirdSqlDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

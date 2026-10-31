@@ -1,4 +1,4 @@
-﻿using DubUrl.Querying;
+using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Functions;
@@ -19,6 +19,8 @@ namespace DubUrl.Provider.Oracle.Sql;
 [ParentLanguage<SqlLanguage>]
 public class OracleDialect : BaseDialect
 {
+    public override DialectCapabilities Capabilities { get; } = new() { SupportsComments = true };
+
     internal OracleDialect(ILanguage language, string[] aliases, IRenderer renderer, ICaster[] casters, IDbTypeMapper dbTypeMapper, ISqlFunctionMapper sqlFunctionMapper)
         : base(language, aliases, renderer, casters, dbTypeMapper, sqlFunctionMapper) { }
 }

@@ -13,6 +13,6 @@ internal static class TSqlSchemaCapabilities
             SupportsVirtualGeneratedColumns = true,
             SupportsViews = true,
             SupportsComments = true,
-            NativeTypes = new HashSet<string>(["XML", "UNIQUEIDENTIFIER", "GEOGRAPHY", "GEOMETRY"], StringComparer.OrdinalIgnoreCase),
+            NativeTypes = new HashSet<string>(["VARCHAR", "NVARCHAR", "CHAR", "NCHAR", "XML", "UNIQUEIDENTIFIER", "GEOGRAPHY", "GEOMETRY"], StringComparer.OrdinalIgnoreCase),
         };
 }

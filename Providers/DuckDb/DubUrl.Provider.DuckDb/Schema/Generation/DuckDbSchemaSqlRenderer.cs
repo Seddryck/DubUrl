@@ -10,6 +10,11 @@ internal sealed class DuckDbSchemaSqlRenderer : StandardSchemaSqlRenderer, ISequ
 {
     internal static DuckDbSchemaSqlRenderer Default { get; } = new();
 
+    public override bool RenderForeignKeysInline(IDialect dialect) => true;
+    public override bool RequiresForeignKeyDependencyOrder => true;
+
+    public override bool SupportsCommentRendering => true;
+
     public override string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name)
     {
         RejectQualifier(catalog, "Catalog", dialect);
