@@ -46,41 +46,10 @@ public class SchemaScriptRenderer
 
     public virtual string Render(Schema schema)
     {
-        if (EngineSupportsComments && !SupportsComments && schema.Tables.Values.Any(table =>
-            table.Description is not null || table.Columns.Values.Any(column => column.Description is not null)))
-            throw new NotSupportedException($"Database comments are supported, but comment rendering is not implemented for '{Dialect.GetType().Name}'. Add a provider ISchemaSqlRenderer comment implementation or omit descriptions.");
-        var tables = new List<TableViewModel>();
-        var declaredTables = Dialect.SchemaSqlRenderer.RequiresForeignKeyDependencyOrder
-            ? TableDependencyPlanner.Order(schema.Tables.Values) : schema.Tables.Values.ToArray();
-        foreach (var table in declaredTables)
-        {
-            var tableRenderer = new TableViewModel(
-                table,
-                Dialect.SchemaSqlRenderer.RenderForeignKeysInline(Dialect));
-            tables.Add(tableRenderer);
-        }
-        // Validate both endpoints, including metadata for pre-existing reference tables.
-        foreach (var table in schema.Tables.Values)
-        foreach (var key in table.Constraints.OfType<Constraints.ForeignKeyConstraint>())
-        {
-            var source = tables.Single(item => item.Identity == table.Identity);
-            foreach (var name in key.SourceColumns)
-                source.Columns.Single(column => column.Name == name).IsKey = true;
-            var target = schema.Tables.TryGetValue(key.TargetTable.Key, out var created)
-                ? created : schema.ExternalTables[key.TargetTable.Key];
-            foreach (var name in key.TargetColumns)
-            {
-                var column = new ColumnViewModel(target.Columns[name]);
-                var type = CreateSchemaRenderer.RenderColumnType(column, Dialect, NativeTypes);
-                type = Dialect.SchemaSqlRenderer.RenderColumnType(Dialect, type, column.DeclaredLength,
-                    column.Precision, column.Scale,
-                    column.NativeType is not null && NativeTypes.TryResolve(Dialect, column.NativeType, out _));
-                Dialect.SchemaSqlRenderer.ValidateKeyColumn(Dialect, type, target.Identity.ToString(), name);
-            }
-        }
-        foreach (var index in schema.Indexes.Values.Where(index => index.IsUnique))
-        foreach (var name in index.Columns.Keys)
-            tables.Single(table => table.Identity == index.TableIdentity).Columns.Single(column => column.Name == name).IsKey = true;
+        ValidateCommentRendering(schema);
+        var tables = CreateTableModels(schema);
+        ValidateForeignKeys(schema, tables);
+        MarkUniqueIndexColumns(schema, tables);
         var indexes = schema.Indexes.Values.Select(index => new IndexViewModel(index)).ToArray();
         var orderedViews = ViewDependencyPlanner.Order(schema.Views.Values)
             .Select(view => new ViewViewModel(view)).ToArray();
@@ -100,6 +69,63 @@ public class SchemaScriptRenderer
         foreach (var renderer in Templates)
             script.Append(renderer.Render(model));
         return script.ToString();
+    }
+
+    private void ValidateCommentRendering(Schema schema)
+    {
+        if (EngineSupportsComments && !SupportsComments && schema.Tables.Values.Any(table =>
+            table.Description is not null || table.Columns.Values.Any(column => column.Description is not null)))
+            throw new NotSupportedException($"Database comments are supported, but comment rendering is not implemented for '{Dialect.GetType().Name}'. Add a provider ISchemaSqlRenderer comment implementation or omit descriptions.");
+    }
+
+    private TableViewModel[] CreateTableModels(Schema schema)
+    {
+        var tables = new List<TableViewModel>();
+        var declaredTables = Dialect.SchemaSqlRenderer.RequiresForeignKeyDependencyOrder
+            ? TableDependencyPlanner.Order(schema.Tables.Values) : schema.Tables.Values.ToArray();
+        foreach (var table in declaredTables)
+        {
+            var tableRenderer = new TableViewModel(
+                table,
+                Dialect.SchemaSqlRenderer.RenderForeignKeysInline(Dialect));
+            tables.Add(tableRenderer);
+        }
+        return tables.ToArray();
+    }
+
+    private void ValidateForeignKeys(Schema schema, TableViewModel[] tables)
+    {
+        // Validate both endpoints, including metadata for pre-existing reference tables.
+        foreach (var table in schema.Tables.Values)
+        foreach (var key in table.Constraints.OfType<Constraints.ForeignKeyConstraint>())
+        {
+            var source = tables.Single(item => item.Identity == table.Identity);
+            foreach (var name in key.SourceColumns)
+                source.Columns.Single(column => column.Name == name).IsKey = true;
+            var target = schema.Tables.TryGetValue(key.TargetTable.Key, out var created)
+                ? created : schema.ExternalTables[key.TargetTable.Key];
+            foreach (var name in key.TargetColumns)
+            {
+                ValidateKeyColumn(target, name);
+            }
+        }
+    }
+
+    private void ValidateKeyColumn(Table target, string name)
+    {
+        var column = new ColumnViewModel(target.Columns[name]);
+        var type = CreateSchemaRenderer.RenderColumnType(column, Dialect, NativeTypes);
+        type = Dialect.SchemaSqlRenderer.RenderColumnType(Dialect, type, column.DeclaredLength,
+            column.Precision, column.Scale,
+            column.NativeType is not null && NativeTypes.TryResolve(Dialect, column.NativeType, out _));
+        Dialect.SchemaSqlRenderer.ValidateKeyColumn(Dialect, type, target.Identity.ToString(), name);
+    }
+
+    private static void MarkUniqueIndexColumns(Schema schema, TableViewModel[] tables)
+    {
+        foreach (var index in schema.Indexes.Values.Where(index => index.IsUnique))
+        foreach (var name in index.Columns.Keys)
+            tables.Single(table => table.Identity == index.TableIdentity).Columns.Single(column => column.Name == name).IsKey = true;
     }
 
     protected internal string Render(object model)

@@ -46,6 +46,29 @@ public class Schema
         ExternalTables = OrderedImmutableDictionary<string, Table>.From(externalTables.Select(table =>
             new KeyValuePair<string, Table>(table.Identity.Key, table)));
 
+        ValidateForeignKeys(tables);
+
+        // Check for duplicate index names
+        var duplicatedIndexes = indexes.GroupBy(t => t.Identity).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        if (duplicatedIndexes.Length > 0)
+            throw new ArgumentException($"Duplicate index names found: {string.Join(", ", duplicatedIndexes.Select(identity => identity.ToString()))}", nameof(indexes));
+
+        Indexes = OrderedImmutableDictionary<string, Index>.From(
+            indexes.Select(t => new KeyValuePair<string, Index>(t.Identity.Key, t)));
+
+        ValidateIndexes(indexes);
+        ValidateViewIdentities(views);
+
+        Views = OrderedImmutableDictionary<string, View>.From(
+            views.Select(view => new KeyValuePair<string, View>(view.Identity.Key, view)));
+
+        ValidateViewSources(views);
+
+        _ = ViewDependencyPlanner.Order(Views.Values);
+    }
+
+    private void ValidateForeignKeys(Table[] tables)
+    {
         foreach (var table in tables)
         foreach (var foreignKey in table.Constraints.OfType<Constraints.ForeignKeyConstraint>())
         {
@@ -63,15 +86,10 @@ public class Schema
                     $"Foreign key '{foreignKey.Name}' references missing target column(s) {string.Join(", ", missingColumns)} on table '{targetTable.Name}'.",
                     nameof(tables));
         }
+    }
 
-        // Check for duplicate index names
-        var duplicatedIndexes = indexes.GroupBy(t => t.Identity).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
-        if (duplicatedIndexes.Length > 0)
-            throw new ArgumentException($"Duplicate index names found: {string.Join(", ", duplicatedIndexes.Select(identity => identity.ToString()))}", nameof(indexes));
-
-        Indexes = OrderedImmutableDictionary<string, Index>.From(
-            indexes.Select(t => new KeyValuePair<string, Index>(t.Identity.Key, t)));
-
+    private void ValidateIndexes(Index[] indexes)
+    {
         foreach (var index in indexes)
         {
             if (!Tables.ContainsKey(index.TableIdentity.Key))
@@ -85,7 +103,10 @@ public class Schema
                     $"Index '{index.Identity}' references missing column(s) {string.Join(", ", missingColumns)} on table '{table.Identity}'.",
                     nameof(indexes));
         }
+    }
 
+    private void ValidateViewIdentities(View[] views)
+    {
         var duplicatedViews = views.GroupBy(view => view.Identity).Where(group => group.Count() > 1)
             .Select(group => group.Key).ToArray();
         if (duplicatedViews.Length > 0)
@@ -99,17 +120,15 @@ public class Schema
             throw new ArgumentException(
                 $"Table and view identities must be unique: {string.Join(", ", tableViewCollisions.Select(identity => identity.ToString()))}",
                 nameof(views));
+    }
 
-        Views = OrderedImmutableDictionary<string, View>.From(
-            views.Select(view => new KeyValuePair<string, View>(view.Identity.Key, view)));
-
+    private void ValidateViewSources(View[] views)
+    {
         foreach (var view in views)
             if (!Tables.ContainsKey(view.Query.Source.Key) && !Views.ContainsKey(view.Query.Source.Key))
                 throw new ArgumentException(
                     $"View '{view.Identity}' references missing source relation '{view.Query.Source}'.",
                     nameof(views));
-
-        _ = ViewDependencyPlanner.Order(Views.Values);
     }
 
     public Table GetTable(DatabaseObjectName identity)

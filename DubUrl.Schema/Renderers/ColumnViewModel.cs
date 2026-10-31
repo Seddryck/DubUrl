@@ -53,14 +53,13 @@ public class ColumnViewModel
         Generation = column.Generation;
         Nullable = column.Constraints.Get<NullableConstraint>();
         NotNullable = column.Constraints.Get<NotNullableConstraint>();
-        Unique = suppressUnique || (includePrimaryKey && column.Constraints.Get<PrimaryKeyConstraint>() is not null)
-            ? null : column.Constraints.Get<UniquenessConstraint>();
-        var primaryKey = includePrimaryKey ? column.Constraints.Get<PrimaryKeyConstraint>() : null;
-        PrimaryKey = primaryKey is null ? null : new PrimaryKeyConstraintViewModel(primaryKey);
+        var columnPrimaryKey = column.Constraints.Get<PrimaryKeyConstraint>();
+        Unique = GetUniqueness(column, includePrimaryKey, suppressUnique, columnPrimaryKey);
+        PrimaryKey = CreatePrimaryKey(includePrimaryKey, columnPrimaryKey);
         Checks = [.. column.Constraints.OfType<CheckConstraint>()];
         MembershipChecks = [.. column.Constraints.OfType<MembershipCheckConstraint>()];
         RegexChecks = [.. column.Constraints.OfType<RegexCheckConstraint>()];
-        IsKey = column.Constraints.Get<PrimaryKeyConstraint>() is not null || Unique is not null;
+        IsKey = columnPrimaryKey is not null || Unique is not null;
         if (column is VarLengthColumn varLength)
             DeclaredLength = Length = varLength.Length;
         if (column is NumericColumn numeric)
@@ -69,4 +68,12 @@ public class ColumnViewModel
             Scale = numeric.Scale;
         }
     }
+
+    private static Constraint? GetUniqueness(Column column, bool includePrimaryKey, bool suppressUnique, PrimaryKeyConstraint? primaryKey)
+        => suppressUnique || (includePrimaryKey && primaryKey is not null)
+            ? null : column.Constraints.Get<UniquenessConstraint>();
+
+    private static PrimaryKeyConstraintViewModel? CreatePrimaryKey(bool includePrimaryKey, PrimaryKeyConstraint? primaryKey)
+        => includePrimaryKey && primaryKey is not null ? new PrimaryKeyConstraintViewModel(primaryKey) : null;
+
 }
