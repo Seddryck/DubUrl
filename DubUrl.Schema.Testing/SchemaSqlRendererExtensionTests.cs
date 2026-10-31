@@ -115,6 +115,35 @@ public class SchemaSqlRendererExtensionTests
     }
 
     // Strategies use only Core contracts; existing engine behavior is reused through explicit delegation.
+    [Test]
+    public void CommentOverride_ReceivesRawNamesAndDescriptions()
+    {
+        var dialect = new ProviderDialect(source, new CommentSqlRenderer());
+        var table = new Table(new DatabaseObjectName("Order", schema: "sales"),
+            [new Column("Id", DbType.Int32, description: "Owner's ID")], description: "Orders");
+        var sql = new SchemaScriptRenderer(dialect).Render(new Schema([table], []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("PROVIDER_COMMENT sales.Order Orders"));
+            Assert.That(sql, Does.Contain("PROVIDER_COMMENT sales.Order.Id Owner's ID"));
+        });
+    }
+
+    [Test]
+    public void CommentRendering_DelegatesToFallbackProvider()
+    {
+        var dialect = new ProviderDialect(source, new IdentityRenderer(source.SchemaSqlRenderer));
+        var sql = dialect.SchemaSqlRenderer.RenderComment(dialect, new("Order"), null, "Orders");
+        Assert.That(sql, Does.Contain("sys.sp_addextendedproperty"));
+    }
+
+    private sealed class CommentSqlRenderer : StandardSchemaSqlRenderer
+    {
+        public override string RenderComment(IDialect dialect, SchemaSqlObjectName table, string? column, string description)
+            => $"PROVIDER_COMMENT {table.Schema}.{table.Name}{(column is null ? string.Empty : "." + column)} {description}";
+    }
+
     private sealed class IdentityRenderer(ISchemaSqlRenderer fallback) : StandardSchemaSqlRenderer(fallback)
     {
         public override string RenderIdentity(IDialect dialect, string type, long seed, long increment)
