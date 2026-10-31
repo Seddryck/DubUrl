@@ -280,6 +280,7 @@ jobs:
             'DubUrl.Adomd/DubUrl.Adomd.csproj'
             'DubUrl.Adbc/DubUrl.Adbc.csproj'
             'Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj'
+            'Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj'
             'DubUrl.Schema/DubUrl.Schema.csproj'
             'DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj'
             'DubUrl.Application/DubUrl.Application.csproj'
@@ -418,6 +419,8 @@ jobs:
             project: DubUrl.Adbc/DubUrl.Adbc.csproj
           - package-id: DubUrl.Provider.DuckDb.Adbc
             project: Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj
+          - package-id: DubUrl.Provider.DuckDb.Native
+            project: Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj
           - package-id: DubUrl.Schema
             project: DubUrl.Schema/DubUrl.Schema.csproj
           - package-id: DubUrl.Schema.Documents
