@@ -22,4 +22,8 @@ public interface ISchemaSqlRenderer
 
     /// <summary>Selects inline constraints instead of separate ALTER TABLE statements.</summary>
     bool RenderForeignKeysInline(IDialect dialect);
+
+    /// <summary>Renders a description for a table, or a column when its raw name is supplied.</summary>
+    string RenderComment(IDialect dialect, SchemaSqlObjectName table, string? column, string description)
+        => StandardSchemaSqlRenderer.Instance.RenderComment(dialect, table, column, description);
 }

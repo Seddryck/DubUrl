@@ -20,6 +20,15 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
     public virtual bool RenderForeignKeysInline(IDialect dialect)
         => fallback?.RenderForeignKeysInline(dialect) ?? false;
 
+    public virtual string RenderComment(IDialect dialect, SchemaSqlObjectName table, string? column, string description)
+    {
+        if (fallback is not null)
+            return fallback.RenderComment(dialect, table, column, description);
+        var name = dialect.SchemaSqlRenderer.RenderObjectName(dialect, table.Catalog, table.Database, table.Schema, table.Name);
+        var target = column is null ? $"TABLE {name}" : $"COLUMN {name}.{dialect.Renderer.Render(column, "identity")}";
+        return $"COMMENT ON {target} IS {dialect.Renderer.Render(description, "value")};";
+    }
+
     public virtual string RenderIdentity(IDialect dialect, string type, long seed, long increment)
         => fallback?.RenderIdentity(dialect, type, seed, increment)
             ?? throw new NotSupportedException($"Identity columns are not supported by dialect '{dialect.GetType().Name}'.");

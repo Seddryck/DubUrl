@@ -460,7 +460,7 @@ public class SchemaScriptRendererTests
     public void Render_DescriptionsUnsupportedDialect_ExposesNoOpCapability()
     {
         var table = new Table("Customer", [new Column("Id", DbType.Int32, description: "Identifier")], description: "Customers");
-        var renderer = new SchemaScriptRenderer(TSql);
+        var renderer = new SchemaScriptRenderer(Sqlite);
 
         var result = renderer.Render(new Schema([table], []));
 
