@@ -63,5 +63,5 @@ The consumer docs pin follows the validated Schema commit; six importer tests an
 - The importer records the actual version/commit and retains format/metadata checks, per-file manifest hashes, safe archive paths, size limits, required specification content, collision checks and isolated staging. Local --bundle imports remain available.
 - Nine importer tests passed, including newer release/commit acceptance, latest-endpoint retrieval, malformed bundle/metadata, file-set/hash tampering, traversal, collisions and oversized downloads. Workflow lint and diff checks passed.
 - A live default download imported all 13 files from DubUrl.Schema 0.100.0, source be919e25bc6714ced8bb0ffa84921d420a3f82c8. Documentation verification compiled 31 snippet groups and executed 26 successfully.
-- DubUrlCi.slnf restored and built across its supported frameworks with zero errors and 27 platform-compatibility warnings. No C# application code or package versions changed.
+- DubUrlCi.slnf restored and built across its supported frameworks with zero errors and 27 platform-compatibility/deprecation warnings (CA1416/CS0618). No C# application code or package versions changed.
 - Application/database suites, a fresh Jekyll site build and publication were not rerun for this importer/workflow change.
