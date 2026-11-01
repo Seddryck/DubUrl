@@ -21,3 +21,7 @@
 - Hosted CI, site deployment and publication of the extracted release. The consuming PR must remain a draft until the release bundle exists and its actual source/checksum is pinned.
 
 The first CLI run used installed user provider packs and failed due to duplicate registrations. Rerunning with `DUBURL_PROVIDER_STORE` set to an empty task-local directory passed; no user store or machine configuration was changed.
+
+## GitVersion follow-up
+
+Schema now calculates releases from its inherited Conventional Commit/GitVersion configuration, starting at 0.100.0. Main pushes publish automatically; every package version is tagged and only zero-patch versions create a documentation release. Six real-history GitVersion tests, release guards, three-TFM versioned builds/packages/consumer smoke checks and documentation bundle checks passed in the Schema worktree. This metadata-only consumer update reran the six importer tests; unrelated application/database suites were not rerun.

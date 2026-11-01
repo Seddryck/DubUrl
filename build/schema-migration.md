@@ -10,6 +10,8 @@ Update `docs/schema-docs.lock.json` through a reviewed PR after a Schema release
 
 ## First cutover
 
-The initial package pin uses the already-published 0.55.1 baseline, so code builds do not depend on unpublished packages. Merge and release DubUrl.Schema 0.100.0 first for the documentation cutover. Verify its NuGet packages and ZIP exist, update the lock to the actual release manifest commit/checksum (a squash merge changes the source commit), update `SchemaPackageVersion` to 0.100.0 and regenerate CLI/worker lockfiles, then merge this consuming change. Do not merge the consuming PR while the release is unavailable. The previous DubUrl release remains usable throughout. Reverting the cutover commit restores the in-repository implementation if needed.
+The initial package pin uses the already-published 0.55.1 baseline, so code builds do not depend on unpublished packages. Merge DubUrl.Schema first; its GitVersion-based main workflow automatically publishes the initial 0.100.0 release after validation. Verify its NuGet packages and ZIP exist, update the lock to the actual release manifest commit/checksum (a squash merge changes the source commit), update `SchemaPackageVersion` to 0.100.0 and regenerate CLI/worker lockfiles, then merge this consuming change. Do not merge the consuming PR while the release is unavailable. The previous DubUrl release remains usable throughout. Reverting the cutover commit restores the in-repository implementation if needed.
 
 Schema and DubUrl versions are independent. The extraction baseline is DubUrl 0.55.1. When changing core dialect/metadata APIs, run the Schema compatibility workflow against candidate core/provider packages before merging the consuming change.
+
+Schema versions follow the same Conventional Commit/GitVersion configuration and automatic main-branch publishing as DubUrl. NuGet-only patch releases do not create GitHub documentation releases; pin the ZIP from a zero-patch release.
