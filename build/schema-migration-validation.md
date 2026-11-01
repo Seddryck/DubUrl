@@ -29,3 +29,8 @@ Schema now calculates releases from its inherited Conventional Commit/GitVersion
 ## CI scope and package reuse follow-up
 
 Schema's database jobs and embedded DuckDB cases now run only on .NET 10. Unit coverage remains on .NET 8/9/10 (Schema 176/176/181 cases; documents 127 each). The package job restores metadata and packs the tested matrix DLLs/PDBs with no build; provenance manifests and package payload hashes enforce reuse. Five artifact contract tests and a fresh-checkout packaging/consumer simulation passed, including deliberately invalid fixture source to prove no compilation occurs. External database and unrelated main-repository suites were not rerun for this CI-only change.
+
+
+## Installed SDK/runtime reuse follow-up
+
+Schema CI now reuses stable .NET 10 SDK/runtime installations, excludes previews and pins the detected SDK per job. It downloads only missing components; packaging requests only the extra .NET 8/9 consumer runtimes, preserving no-build package reuse. Eleven setup scenarios, script/workflow syntax checks and a full three-TFM Release build passed. Actual SDK downloads and domain/database suites were not repeated for this setup-only change.
