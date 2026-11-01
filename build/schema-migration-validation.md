@@ -25,3 +25,7 @@ The first CLI run used installed user provider packs and failed due to duplicate
 ## GitVersion follow-up
 
 Schema now calculates releases from its inherited Conventional Commit/GitVersion configuration, starting at 0.100.0. Main pushes publish automatically; every package version is tagged and only zero-patch versions create a documentation release. Six real-history GitVersion tests, release guards, three-TFM versioned builds/packages/consumer smoke checks and documentation bundle checks passed in the Schema worktree. This metadata-only consumer update reran the six importer tests; unrelated application/database suites were not rerun.
+
+## CI scope and package reuse follow-up
+
+Schema's database jobs and embedded DuckDB cases now run only on .NET 10. Unit coverage remains on .NET 8/9/10 (Schema 176/176/181 cases; documents 127 each). The package job restores metadata and packs the tested matrix DLLs/PDBs with no build; provenance manifests and package payload hashes enforce reuse. Five artifact contract tests and a fresh-checkout packaging/consumer simulation passed, including deliberately invalid fixture source to prove no compilation occurs. External database and unrelated main-repository suites were not rerun for this CI-only change.
