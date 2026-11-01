@@ -29,12 +29,23 @@ public interface ISchemaSqlRenderer
     /// <summary>Renders a predicate from an already-rendered expression and escaped SQL pattern literal.</summary>
     string RenderRegex(IDialect dialect, string expression, string pattern);
 
+    /// <summary>Quotes a literal column, constraint or projection identifier in schema SQL.</summary>
+    string RenderIdentifier(IDialect dialect, string name) => dialect.Renderer.Render(name, "identity");
+
     /// <summary>Validates qualification and quotes each raw identifier component using the dialect.</summary>
     string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name);
 
     /// <summary>Renders a CREATE INDEX name in the context of its owning table.</summary>
     string RenderCreateIndexName(IDialect dialect, SchemaSqlObjectName index, SchemaSqlObjectName table)
         => RenderObjectName(dialect, index.Catalog, index.Database, index.Schema, index.Name);
+
+    /// <summary>Renders the table after ON in CREATE INDEX.</summary>
+    string RenderIndexTableName(IDialect dialect, SchemaSqlObjectName table)
+        => RenderObjectName(dialect, table.Catalog, table.Database, table.Schema, table.Name);
+
+    /// <summary>Renders a REFERENCES target in the context of its owning table.</summary>
+    string RenderForeignKeyTarget(IDialect dialect, SchemaSqlObjectName table, SchemaSqlObjectName target)
+        => RenderObjectName(dialect, target.Catalog, target.Database, target.Schema, target.Name);
 
     /// <summary>Selects inline constraints instead of separate ALTER TABLE statements.</summary>
     bool RenderForeignKeysInline(IDialect dialect);

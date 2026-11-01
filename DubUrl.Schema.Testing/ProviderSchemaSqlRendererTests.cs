@@ -99,7 +99,7 @@ public class ProviderSchemaSqlRendererTests
     [TestCase("questdb", null, null, "sales", "\"sales\".\"Customer\"")]
     [TestCase("mysql", null, "store", null, "`store`.`Customer`")]
     [TestCase("singlestore", null, "store", null, "`store`.`Customer`")]
-    [TestCase("sqlite", null, "store", null, "store.Customer")]
+    [TestCase("sqlite", null, "store", null, "\"store\".\"Customer\"")]
     [TestCase("duckdb", null, "store", "sales", "store.sales.Customer")]
     public void QualifiedNames_PreserveProviderFormatting(string alias, string? catalog, string? database, string? schema, string expected)
     {

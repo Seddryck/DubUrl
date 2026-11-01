@@ -81,7 +81,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
             {
                 var ordered = key.OrderBy(part => part.Int("ordinal")).ToArray();
                 return new MetadataForeignKey(key.Key.Name!, ordered.Select(part => part.Text("column_name")!).ToArray(),
-                    new(ordered[0].Text("target_table")!, ordered[0].Text("target_schema"), ordered[0].Text("target_database")),
+                    new(ordered[0].Text("target_table")!, ordered[0].Text("target_schema"), ordered[0].Text("target_database"), ordered[0].Text("target_catalog")),
                     ordered.Select(part => part.Text("target_column")!).ToArray());
             }).ToArray() : [],
             Indexes = indexes,
@@ -170,7 +170,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         };
     }
 
-    private static MetadataView TryView(MetadataName identity, MetadataColumn[] inventory, string? sql)
+    private MetadataView TryView(MetadataName identity, MetadataColumn[] inventory, string? sql)
     {
         if (sql is null) return new(identity, inventory);
         var text = sql.Trim().TrimEnd(';').Trim();
@@ -183,12 +183,17 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         try
         {
             var source = MetadataNames.Parse(match.Groups[2].Value.Trim());
-            source = source with { Schema = source.Schema ?? identity.Schema };
+            source = ResolveViewSource(identity, source);
             var projections = ParseProjections(match.Groups[1].Value, source);
             return projections is null ? new(identity, inventory) : new(identity, inventory, source, projections);
         }
         catch (ArgumentException) { return new(identity, inventory); }
     }
+
+    /// <summary>Resolves parsed SQL qualification using the provider's native namespace semantics.</summary>
+    protected virtual MetadataName ResolveViewSource(MetadataName view, MetadataName source)
+        => source with { Schema = source.Schema ?? view.Schema, Database = source.Database ?? view.Database,
+            Catalog = source.Catalog ?? view.Catalog };
 
     private static List<MetadataProjection>? ParseProjections(string sql, MetadataName source)
     {
@@ -307,7 +312,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         }
         return rows;
     }
-    protected static MetadataName Identity(CatalogRow row) => new(row.Text("table_name")!, row.Text("schema_name"), row.Text("database_name"));
+    protected static MetadataName Identity(CatalogRow row) => new(row.Text("table_name")!, row.Text("schema_name"), row.Text("database_name"), row.Text("catalog_name"));
 }
 
 public sealed class CatalogRow(IReadOnlyDictionary<string, object?> values)

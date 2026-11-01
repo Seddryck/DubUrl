@@ -411,8 +411,8 @@ public class SchemaScriptRendererTests
 
         var result = new SchemaScriptRenderer(Sqlite).Render(new Schema([first, second], []));
 
-        Assert.That(result, Does.Contain("CONSTRAINT FK_First_Second FOREIGN KEY (SecondId) REFERENCES Second (Id)"));
-        Assert.That(result, Does.Contain("CONSTRAINT FK_Second_First FOREIGN KEY (FirstId) REFERENCES First (SecondId)"));
+        Assert.That(result, Does.Contain("CONSTRAINT FK_First_Second FOREIGN KEY (SecondId) REFERENCES \"Second\" (Id)"));
+        Assert.That(result, Does.Contain("CONSTRAINT FK_Second_First FOREIGN KEY (FirstId) REFERENCES \"First\" (SecondId)"));
         Assert.That(result, Does.Not.Contain("ALTER TABLE"));
     }
 
