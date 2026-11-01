@@ -38,3 +38,7 @@ Schema CI now reuses stable .NET 10 SDK/runtime installations, excludes previews
 ## Codecov follow-up
 
 Schema uploads the six canonical multi-target unit coverage reports in a separate Codecov job, using the same pinned action and GitHub OIDC authentication as DubUrl. The threshold check remains separate. Workflow lint, six-report selection and the existing coverage threshold passed against hosted artifacts. The consumer source/checksum pin now follows this Schema commit; importer tests were rerun. Application builds and database suites were not repeated for this workflow-only change.
+
+## Shared QA helper rename
+
+Schema's shared fixtures now live in the internal, non-packable DubUrl.Schema.QA project. Packaging transfers only the two published libraries. Five artifact tests, workflow lint, the three-TFM solution build, three live SQLite QA tests on .NET 10 and two-package validation passed. Other database/full unit suites were not rerun. The consumer pin follows the renamed project commit; six importer tests passed.
