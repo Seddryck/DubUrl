@@ -15,14 +15,14 @@ class BundleTests(unittest.TestCase):
     def make(self, root, entries=None, manifest_update=None):
         entries = entries or {"content/_docs/schemas.md": b"---\ntitle: Schemas\n---\n",
                               "content/schemas/schema-document/v1/schema.json": b"{}"}
-        manifest = {"bundleFormatVersion": 1, "packageVersion": "1.2.0", "sourceCommit": "a" * 40,
+        manifest = {"bundleFormatVersion": 1, "packageVersion": "0.100.0", "sourceCommit": "a" * 40,
                     "files": {n: hashlib.sha256(d).hexdigest() for n, d in entries.items()}}
         if manifest_update: manifest_update(manifest)
         bundle = root / "docs.zip"
         with zipfile.ZipFile(bundle, "w") as archive:
             for n, d in entries.items(): archive.writestr(n, d)
             archive.writestr("manifest.json", json.dumps(manifest))
-        return bundle, {"version": "1.2.0", "sourceCommit": "a" * 40,
+        return bundle, {"version": "0.100.0", "sourceCommit": "a" * 40,
                         "sha256": hashlib.sha256(bundle.read_bytes()).hexdigest()}
 
     def test_import_preserves_main_content_and_stable_urls(self):
