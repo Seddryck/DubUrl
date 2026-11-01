@@ -10,6 +10,46 @@ namespace DubUrl.Provider.Sqlite.QA;
 public class SqliteDiscoveryTests
 {
     [Test]
+    public async Task AttachedDatabasesKeepIndependentDefinitionsAndViewSources()
+    {
+        SQLitePCL.Batteries_V2.Init();
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            ATTACH DATABASE ':memory:' AS "aux.db";
+            CREATE TABLE main.t (raw TEXT, generated TEXT AS (upper(raw)) STORED,
+                CONSTRAINT main_check CHECK (length(raw) > 0));
+            CREATE TABLE "aux.db".t (raw TEXT, generated TEXT AS (lower(raw)) VIRTUAL,
+                CONSTRAINT aux_check CHECK (length(raw) < 10));
+            CREATE VIEW main.projection AS SELECT raw FROM main.t;
+            CREATE VIEW "aux.db".projection AS SELECT raw FROM t;
+            """;
+        await command.ExecuteNonQueryAsync();
+        var metadata = await new SqliteMetadataReader().ReadAsync(connection, new()
+        {
+            Features = [SchemaFeature.Tables, SchemaFeature.Columns, SchemaFeature.Generation, SchemaFeature.Checks, SchemaFeature.Views]
+        });
+        var main = metadata.Tables.Single(table => table.Identity.Database == "main");
+        var attached = metadata.Tables.Single(table => table.Identity.Database == "aux.db");
+        Assert.Multiple(() =>
+        {
+            Assert.That(metadata.Diagnostics, Is.Empty);
+            Assert.That(metadata.Coverage[SchemaFeature.Checks], Is.EqualTo(MetadataCoverage.Available));
+            Assert.That(main.Identity, Is.EqualTo(new MetadataName("t", Database: "main")));
+            Assert.That(attached.Identity, Is.EqualTo(new MetadataName("t", Database: "aux.db")));
+            Assert.That(main.Columns[1].Generation!.Expression!.Name, Is.EqualTo("Upper"));
+            Assert.That(main.Columns[1].Generation!.Stored, Is.True);
+            Assert.That(attached.Columns[1].Generation!.Expression!.Name, Is.EqualTo("Lower"));
+            Assert.That(attached.Columns[1].Generation!.Stored, Is.False);
+            Assert.That(main.Checks.Single().Name, Is.EqualTo("main_check"));
+            Assert.That(attached.Checks.Single().Name, Is.EqualTo("aux_check"));
+            Assert.That(metadata.Views.Single(view => view.Identity.Database == "main").Source, Is.EqualTo(main.Identity));
+            Assert.That(metadata.Views.Single(view => view.Identity.Database == "aux.db").Source, Is.EqualTo(attached.Identity));
+        });
+    }
+
+    [Test]
     public async Task ReadsGeneratedExpressionsStorageAndCheckNamesWithoutDefaults()
     {
         SQLitePCL.Batteries_V2.Init();

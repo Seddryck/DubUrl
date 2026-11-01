@@ -38,6 +38,14 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
         => fallback?.RenderCreateIndexName(dialect, index, table)
             ?? RenderObjectName(dialect, index.Catalog, index.Database, index.Schema, index.Name);
 
+    public virtual string RenderIndexTableName(IDialect dialect, SchemaSqlObjectName table)
+        => fallback?.RenderIndexTableName(dialect, table)
+            ?? RenderObjectName(dialect, table.Catalog, table.Database, table.Schema, table.Name);
+
+    public virtual string RenderForeignKeyTarget(IDialect dialect, SchemaSqlObjectName table, SchemaSqlObjectName target)
+        => fallback?.RenderForeignKeyTarget(dialect, table, target)
+            ?? RenderObjectName(dialect, target.Catalog, target.Database, target.Schema, target.Name);
+
     public virtual bool RenderForeignKeysInline(IDialect dialect)
         => fallback?.RenderForeignKeysInline(dialect) ?? false;
 
@@ -61,6 +69,9 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
     public virtual string RenderRegex(IDialect dialect, string expression, string pattern)
         => fallback?.RenderRegex(dialect, expression, pattern)
             ?? throw new NotSupportedException($"Regular-expression checks are not supported by dialect '{dialect.GetType().Name}'.");
+
+    public virtual string RenderIdentifier(IDialect dialect, string name)
+        => fallback?.RenderIdentifier(dialect, name) ?? dialect.Renderer.Render(name, "identity");
 
     public virtual string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name)
     {

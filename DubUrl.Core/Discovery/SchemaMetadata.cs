@@ -10,6 +10,10 @@ public enum MetadataCoverage { Available, Unsupported, Inaccessible, Absent, Unr
 public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, MetadataCoverage Coverage, string Message, MetadataName? Object = null);
 public sealed record DiscoveryOptions
 {
+    /// <summary>Literal database qualifiers, independent of schema and catalog qualifiers.</summary>
+    public IReadOnlyList<string> Databases { get; init; } = [];
+    /// <summary>Literal catalog qualifiers.</summary>
+    public IReadOnlyList<string> Catalogs { get; init; } = [];
     public IReadOnlyList<string> Schemas { get; init; } = [];
     public IReadOnlyList<MetadataName> Tables { get; init; } = [];
     public IReadOnlyList<SchemaFeature> Features { get; init; } = Enum.GetValues<SchemaFeature>();
