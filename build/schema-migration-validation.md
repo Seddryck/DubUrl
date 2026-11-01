@@ -46,3 +46,11 @@ Schema's shared fixtures now live in the internal, non-packable DubUrl.Schema.QA
 ## Mandatory shared database baseline
 
 All seven Schema QA providers now execute the shared baseline on .NET 10, with required per-provider TRX validation and retained feature tests. All seven live runs passed (27 tests, zero skips), including Oracle and MySQL baseline additions; containers/volumes were cleaned up. Five result guard tests, framework rejection, workflow/script syntax and the three-TFM solution build passed. The consumer pin follows this Schema commit; six importer tests passed. Full unit/document/package smoke suites were not repeated for this QA-only change.
+
+## Complete shared provider test structure
+
+Schema now requires 60 shared feature scenarios from every provider, with mandatory abstract observation/execution hooks and explicit supported/unsupported expectations. Every original QA regression remains. CI validates each shared result exactly once; global fixture guards and the runner restrict database execution to .NET 10.
+
+All seven final live suites passed: SQLite 63, DuckDB 64, MySQL 62+3, PostgreSQL 64, SQL Server 66, SingleStore 62, Oracle 63 (447 tests, zero skips). Nine result guard tests passed. The tests exposed and fixed dependency ordering for table replacement, retaining cyclic-schema rendering; Schema unit tests passed 177/177/182 across .NET 8/9/10. The solution built all TFMs without warnings/errors, and workflow/script syntax checks passed. QA/README.md in Schema documents each published provider's verified limitations.
+
+The consumer docs pin follows the validated Schema commit; six importer tests and local bundle verification passed. Full document unit suites, package smoke tests, GitVersion/release tests and publication were not repeated for this follow-up.
