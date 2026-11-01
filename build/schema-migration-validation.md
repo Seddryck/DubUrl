@@ -42,3 +42,7 @@ Schema uploads the six canonical multi-target unit coverage reports in a separat
 ## Shared QA helper rename
 
 Schema's shared fixtures now live in the internal, non-packable DubUrl.Schema.QA project. Packaging transfers only the two published libraries. Five artifact tests, workflow lint, the three-TFM solution build, three live SQLite QA tests on .NET 10 and two-package validation passed. Other database/full unit suites were not rerun. The consumer pin follows the renamed project commit; six importer tests passed.
+
+## Mandatory shared database baseline
+
+All seven Schema QA providers now execute the shared baseline on .NET 10, with required per-provider TRX validation and retained feature tests. All seven live runs passed (27 tests, zero skips), including Oracle and MySQL baseline additions; containers/volumes were cleaned up. Five result guard tests, framework rejection, workflow/script syntax and the three-TFM solution build passed. The consumer pin follows this Schema commit; six importer tests passed. Full unit/document/package smoke suites were not repeated for this QA-only change.
