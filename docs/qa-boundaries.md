@@ -5,31 +5,25 @@ permalink: /qa-boundaries/
 ---
 
 The shared QA projects are grouped in the solution's `QA` folder and physically located under `QA/`:
-`QA/DubUrl.QA`, `QA/DubUrl.Provider.Testing`, `QA/DubUrl.ProviderTesting`, and
-`QA/DubUrl.Schema.Testing.Contracts`. Project, assembly, and namespace names are unchanged.
+`QA/DubUrl.QA`, `QA/DubUrl.Provider.Testing`, and `QA/DubUrl.ProviderTesting`.
+Standalone schema deployment and discovery fixtures, together with `DubUrl.Schema.Testing.Contracts`, live in [DubUrl.Schema](https://github.com/Seddryck/DubUrl.Schema/tree/main/QA).
 Provider-specific live suites remain alongside their provider families under `Providers/<Family>/`.
 
 Provider QA follows the same ownership boundary as provider production code. A provider named `XYZ` uses these projects:
 
 - `DubUrl.Provider.XYZ` contains production provider registration, mapping, rewriting, dialect, and parameter behavior.
 - `DubUrl.Provider.XYZ.Testing` contains fast unit tests for that production project. It may reference test frameworks and test helpers, but production projects must never reference it.
-- `DubUrl.Provider.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable contracts from `DubUrl.ProviderTesting` and `DubUrl.Schema.Testing.Contracts`.
+- `DubUrl.Provider.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable provider contracts from `DubUrl.ProviderTesting`. Application-level integration tests may consume published Schema packages.
 
 Provider QA projects reference the provider-neutral Core project, published as `DubUrl`, and their own provider implementations explicitly. Shared QA contracts do not pull in an all-provider aggregate.
 
 ## Dependency convention
 
 ```text
-DubUrl                         DubUrl.Schema
-    ^                               ^
-    |                               |
-DubUrl.Provider.XYZ          DubUrl.Schema.Testing.Contracts
-    ^                               ^
-    |                               |
-DubUrl.Provider.XYZ.Testing   DubUrl.Provider.XYZ.QA
-                                    |
-DubUrl.ProviderTesting <------------+
+DubUrl -> DubUrl.Provider.XYZ -> provider unit and real-database QA
+DubUrl -> DubUrl.Schema (separate repository) -> schema contracts and database QA
 ```
+
 
 QA-only packages such as NUnit, Dapper, DbReader, database drivers, test hosts, and adapters belong in testing or QA projects. They must not be added to `DubUrl.Provider.XYZ` to support tests.
 
@@ -41,10 +35,10 @@ Run every capability owned by a provider:
 dotnet test Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.PostgreSql.QA.csproj
 ```
 
-Run only its Schema contract:
+Run standalone schema QA from the Schema repository:
 
 ```powershell
-dotnet test Providers/PostgreSql/DubUrl.Provider.PostgreSql.QA/DubUrl.Provider.PostgreSql.QA.csproj --filter "TestCategory=Schema"
+./QA/run.ps1 -Database PostgreSql -Framework net10.0
 ```
 
 PostgreSQL accepts `DUBURL_POSTGRESQL_QA_URL` for the DubUrl connection URL and `DUBURL_POSTGRESQL_QA_CONNECTION_STRING` for the driver connection string. Defaults match the bundled Compose environment.

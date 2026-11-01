@@ -155,6 +155,24 @@
         "resolved": "2.3.197",
         "contentHash": "QaJHansb139SUSPTle0i81RyCi608kWFFH4HzDEz8c9JCqJ0rXM6cjqPXTLSQNtlNgFDZ8gSsgxwFMB93P669Q=="
       },
+      "DubUrl.Schema": {
+        "type": "Transitive",
+        "resolved": "0.55.1",
+        "contentHash": "8lAeMpD5OzCUFBvsoWMnl39ZTYi3z7pW8dsxGmHZE1jF7XI/m883zjE52em86S+pf3VOuszlbADPqCc0UZAN1w==",
+        "dependencies": {
+          "Didot.Core": "0.34.0",
+          "DubUrl": "0.55.1"
+        }
+      },
+      "DubUrl.Schema.Documents": {
+        "type": "Transitive",
+        "resolved": "0.55.1",
+        "contentHash": "utFlGbR0n2cGy/kzpj8qFLNx5Q9+NUOHYNWjYTfjqM6t+BitmJgmVMv3kSpf3Utv3zJJ26cTSur7LWRvRQDFGQ==",
+        "dependencies": {
+          "DubUrl.Schema": "0.55.1",
+          "YamlDotNet": "18.1.0"
+        }
+      },
       "Fluid.Core": {
         "type": "Transitive",
         "resolved": "2.31.0",
@@ -739,15 +757,15 @@
       "duburl.application": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
-          "DubUrl.Schema": "[0.0.0, )",
-          "DubUrl.Schema.Documents": "[0.0.0, )"
+          "DubUrl": "[0.55.1, )",
+          "DubUrl.Schema": "[0.55.1, 0.55.1]",
+          "DubUrl.Schema.Documents": "[0.55.1, 0.55.1]"
         }
       },
       "duburl.authentication.snowflake": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
+          "DubUrl": "[0.55.1, )",
           "Snowflake.Data": "[6.3.0, )",
           "System.Security.Cryptography.Pkcs": "[9.0.21, )"
         }
@@ -755,24 +773,10 @@
       "duburl.authentication.sqlserver": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
+          "DubUrl": "[0.55.1, )",
           "Microsoft.Data.SqlClient": "[7.1.1, )",
           "Microsoft.Identity.Client": "[4.83.3, )",
           "System.Security.Cryptography.Pkcs": "[9.0.21, )"
-        }
-      },
-      "duburl.schema": {
-        "type": "Project",
-        "dependencies": {
-          "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
-        }
-      },
-      "duburl.schema.documents": {
-        "type": "Project",
-        "dependencies": {
-          "DubUrl.Schema": "[0.0.0, )",
-          "YamlDotNet": "[18.1.0, )"
         }
       }
     },
@@ -1330,6 +1334,24 @@
         "type": "Transitive",
         "resolved": "2.3.197",
         "contentHash": "QaJHansb139SUSPTle0i81RyCi608kWFFH4HzDEz8c9JCqJ0rXM6cjqPXTLSQNtlNgFDZ8gSsgxwFMB93P669Q=="
+      },
+      "DubUrl.Schema": {
+        "type": "Transitive",
+        "resolved": "0.55.1",
+        "contentHash": "8lAeMpD5OzCUFBvsoWMnl39ZTYi3z7pW8dsxGmHZE1jF7XI/m883zjE52em86S+pf3VOuszlbADPqCc0UZAN1w==",
+        "dependencies": {
+          "Didot.Core": "0.34.0",
+          "DubUrl": "0.55.1"
+        }
+      },
+      "DubUrl.Schema.Documents": {
+        "type": "Transitive",
+        "resolved": "0.55.1",
+        "contentHash": "utFlGbR0n2cGy/kzpj8qFLNx5Q9+NUOHYNWjYTfjqM6t+BitmJgmVMv3kSpf3Utv3zJJ26cTSur7LWRvRQDFGQ==",
+        "dependencies": {
+          "DubUrl.Schema": "0.55.1",
+          "YamlDotNet": "18.1.0"
+        }
       },
       "Fluid.Core": {
         "type": "Transitive",
@@ -1958,15 +1980,15 @@
       "duburl.application": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
-          "DubUrl.Schema": "[0.0.0, )",
-          "DubUrl.Schema.Documents": "[0.0.0, )"
+          "DubUrl": "[0.55.1, )",
+          "DubUrl.Schema": "[0.55.1, 0.55.1]",
+          "DubUrl.Schema.Documents": "[0.55.1, 0.55.1]"
         }
       },
       "duburl.authentication.snowflake": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
+          "DubUrl": "[0.55.1, )",
           "Snowflake.Data": "[6.3.0, )",
           "System.Security.Cryptography.Pkcs": "[9.0.21, )"
         }
@@ -1974,24 +1996,10 @@
       "duburl.authentication.sqlserver": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
+          "DubUrl": "[0.55.1, )",
           "Microsoft.Data.SqlClient": "[7.1.1, )",
           "Microsoft.Identity.Client": "[4.83.3, )",
           "System.Security.Cryptography.Pkcs": "[9.0.21, )"
-        }
-      },
-      "duburl.schema": {
-        "type": "Project",
-        "dependencies": {
-          "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
-        }
-      },
-      "duburl.schema.documents": {
-        "type": "Project",
-        "dependencies": {
-          "DubUrl.Schema": "[0.0.0, )",
-          "YamlDotNet": "[18.1.0, )"
         }
       }
     },
@@ -2603,6 +2611,24 @@
         "type": "Transitive",
         "resolved": "2.3.197",
         "contentHash": "QaJHansb139SUSPTle0i81RyCi608kWFFH4HzDEz8c9JCqJ0rXM6cjqPXTLSQNtlNgFDZ8gSsgxwFMB93P669Q=="
+      },
+      "DubUrl.Schema": {
+        "type": "Transitive",
+        "resolved": "0.55.1",
+        "contentHash": "8lAeMpD5OzCUFBvsoWMnl39ZTYi3z7pW8dsxGmHZE1jF7XI/m883zjE52em86S+pf3VOuszlbADPqCc0UZAN1w==",
+        "dependencies": {
+          "Didot.Core": "0.34.0",
+          "DubUrl": "0.55.1"
+        }
+      },
+      "DubUrl.Schema.Documents": {
+        "type": "Transitive",
+        "resolved": "0.55.1",
+        "contentHash": "utFlGbR0n2cGy/kzpj8qFLNx5Q9+NUOHYNWjYTfjqM6t+BitmJgmVMv3kSpf3Utv3zJJ26cTSur7LWRvRQDFGQ==",
+        "dependencies": {
+          "DubUrl.Schema": "0.55.1",
+          "YamlDotNet": "18.1.0"
+        }
       },
       "Fluid.Core": {
         "type": "Transitive",
@@ -3219,15 +3245,15 @@
       "duburl.application": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
-          "DubUrl.Schema": "[0.0.0, )",
-          "DubUrl.Schema.Documents": "[0.0.0, )"
+          "DubUrl": "[0.55.1, )",
+          "DubUrl.Schema": "[0.55.1, 0.55.1]",
+          "DubUrl.Schema.Documents": "[0.55.1, 0.55.1]"
         }
       },
       "duburl.authentication.snowflake": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
+          "DubUrl": "[0.55.1, )",
           "Snowflake.Data": "[6.3.0, )",
           "System.Security.Cryptography.Pkcs": "[9.0.21, )"
         }
@@ -3235,24 +3261,10 @@
       "duburl.authentication.sqlserver": {
         "type": "Project",
         "dependencies": {
-          "DubUrl": "[0.0.0, )",
+          "DubUrl": "[0.55.1, )",
           "Microsoft.Data.SqlClient": "[7.1.1, )",
           "Microsoft.Identity.Client": "[4.83.3, )",
           "System.Security.Cryptography.Pkcs": "[9.0.21, )"
-        }
-      },
-      "duburl.schema": {
-        "type": "Project",
-        "dependencies": {
-          "Didot.Core": "[0.34.0, )",
-          "DubUrl": "[0.0.0, )"
-        }
-      },
-      "duburl.schema.documents": {
-        "type": "Project",
-        "dependencies": {
-          "DubUrl.Schema": "[0.0.0, )",
-          "YamlDotNet": "[18.1.0, )"
         }
       }
     },

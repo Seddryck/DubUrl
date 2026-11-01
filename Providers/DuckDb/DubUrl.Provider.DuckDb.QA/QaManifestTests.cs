@@ -7,5 +7,5 @@ public sealed class QaManifestTests
 {
     [Test, Category("Manifest")]
     public void ManifestIsValid()
-        => QaManifest.Validate(Path.Combine(AppContext.BaseDirectory, "qa-manifest.json"), "duckdb", "Connection", "Querying", "ODBC", "Schema", "BulkCopy");
+        => QaManifest.Validate(Path.Combine(AppContext.BaseDirectory, "qa-manifest.json"), "duckdb", "Connection", "Querying", "ODBC", "BulkCopy");
 }

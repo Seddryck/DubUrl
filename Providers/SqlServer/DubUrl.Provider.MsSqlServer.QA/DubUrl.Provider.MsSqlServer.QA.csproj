@@ -3,7 +3,7 @@
   <ItemGroup><PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" /><PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" /><PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" /><PackageReference Include="NUnit" Version="5.0.0" /><PackageReference Include="NUnit3TestAdapter" Version="5.1.0" /><PackageReference Include="System.Data.Odbc" Version="10.0.12" /><PackageReference Include="System.Data.OleDb" Version="10.0.12" /></ItemGroup>
   <ItemGroup><ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" /><ProjectReference Include="..\..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" /><ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" /></ItemGroup>
   <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure\**\*" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="../../../QA/DubUrl.Schema.Testing.Contracts/DubUrl.Schema.Testing.Contracts.csproj" /></ItemGroup>
+  <ItemGroup></ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />
   <ItemGroup>
     <ProjectReference Include="../DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj" />

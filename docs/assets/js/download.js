@@ -15,9 +15,7 @@
     "DubUrl.Application",
     "DubUrl.BulkCopy",
     "DubUrl.Extensions",
-    "DubUrl.OleDb",
-    "DubUrl.Schema",
-    "DubUrl.Schema.Documents"
+    "DubUrl.OleDb"
   ]);
   const toolPackageIds = new Set(["DubUrl-cli", "DubUrl.Worker"]);
   const label = {
@@ -225,7 +223,7 @@
       const content = packages.length
         ? `<div class="download-grid">${packages.map(renderPackageCard).join("")}</div>`
         : `<div class="download-notice">No DubUrl library package matching version ${escapeHtml(state.packageVersion || versionOf(state.release))} was found on NuGet.</div>`;
-      return `<h2>.NET libraries</h2><p>Use DubUrl from a .NET application. Library packages are independent of operating system and architecture.</p>${versionPicker}${content}`;
+      return `<h2>.NET libraries</h2><p>Use DubUrl from a .NET application. Library packages are independent of operating system and architecture.</p><p>Schema libraries have their own release versions: <a href="https://www.nuget.org/packages/DubUrl.Schema">DubUrl.Schema</a> and <a href="https://www.nuget.org/packages/DubUrl.Schema.Documents">DubUrl.Schema.Documents</a>.</p>${versionPicker}${content}`;
     }
 
     function render() {

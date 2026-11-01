@@ -51,7 +51,7 @@ try {
     if ($initializationExitCode -ne 0) { throw 'SingleStore QA initialization failed.' }
 
     foreach ($framework in $frameworks) {
-        foreach ($suite in @('complete', 'schema')) {
+        foreach ($suite in @('complete')) {
             $result = Join-Path $repositoryRoot ".test-results/singlestore/$framework/$suite/$suite.trx"
             Remove-Item -LiteralPath $result -ErrorAction SilentlyContinue
         }
@@ -59,7 +59,7 @@ try {
     Run-ProviderQaSuite -project $project -provider singlestore -config $config -frameworks $frameworks -sdkVersions $sdkVersions
 
     foreach ($framework in $frameworks) {
-        foreach ($suite in @('complete', 'schema')) {
+        foreach ($suite in @('complete')) {
             $result = Join-Path $repositoryRoot ".test-results/singlestore/$framework/$suite/$suite.trx"
             [xml] $trx = Get-Content -LiteralPath $result -Raw
             if ([int]$trx.TestRun.ResultSummary.Counters.executed -le 0) { throw "SingleStore $suite QA did not execute any tests for $framework." }

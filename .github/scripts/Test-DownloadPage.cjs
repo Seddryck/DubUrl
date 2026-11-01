@@ -41,6 +41,8 @@ test("filters public libraries and user-facing tools", () => {
   assert.equal(download.isWantedPackage("DubUrl.Worker"), true);
   assert.equal(download.isWantedPackage("DubUrl.Worker.win-x64"), false);
   assert.equal(download.isWantedPackage("DubUrl.ProviderTesting"), false);
+  assert.equal(download.isWantedPackage("DubUrl.Schema"), false);
+  assert.equal(download.isWantedPackage("DubUrl.Schema.Documents"), false);
 });
 
 test("reconciles invalid downstream choices", () => {

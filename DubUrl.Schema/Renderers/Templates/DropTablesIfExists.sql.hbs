@@ -1,9 +1,0 @@
-{{#if model.TablesToDrop}}
-{{#each model.TablesToDrop}}
-DROP TABLE IF EXISTS {{objectname Identity}};
-{{/each}}
-{{else}}
-{{#each model.Tables}}
-DROP TABLE IF EXISTS {{objectname Identity}};
-{{/each}}
-{{/if}}

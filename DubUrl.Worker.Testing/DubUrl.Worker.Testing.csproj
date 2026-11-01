@@ -20,7 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Worker\DubUrl.Worker.csproj" />
     <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
-    <ProjectReference Include="..\DubUrl.Schema.Documents\DubUrl.Schema.Documents.csproj" />
+    <PackageReference Include="DubUrl.Schema.Documents" Version="[$(SchemaPackageVersion)]" />
   </ItemGroup>
 
 </Project>

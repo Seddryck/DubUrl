@@ -33,8 +33,6 @@ $packages = @(
     @{ Id = 'DubUrl.Adbc'; Assembly = 'DubUrl.Adbc' },
     @{ Id = 'DubUrl.Provider.DuckDb.Adbc'; Assembly = 'DubUrl.Provider.DuckDb.Adbc' },
     @{ Id = 'DubUrl.Provider.DuckDb.Native'; Assembly = 'DubUrl.Provider.DuckDb.Native' },
-    @{ Id = 'DubUrl.Schema'; Assembly = 'DubUrl.Schema' },
-    @{ Id = 'DubUrl.Schema.Documents'; Assembly = 'DubUrl.Schema.Documents' },
     @{ Id = 'DubUrl.Application'; Assembly = 'DubUrl.Application' },
     @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
 )
@@ -84,10 +82,6 @@ foreach ($package in $packages) {
         Assert-Condition ('DubUrl.Core' -notin $dependencies) "Package '$($package.Id)' depends on the retired DubUrl.Core package."
         if ($package.Id -eq 'DubUrl') {
             Assert-Condition (@($dependencies | Where-Object { $_ -like 'DubUrl.Provider.*' }).Count -eq 0) 'DubUrl must not bring provider implementations.'
-        }
-        if ($package.Id -eq 'DubUrl.Schema.Documents') {
-            $schemaPath = 'schemas/schema-document/v1/schema.json'
-            Assert-Condition ($entries -contains $schemaPath) "Package '$($package.Id)' has no schema at '$schemaPath'."
         }
         if ($package.Id -eq 'DubUrl') {
             Assert-Condition ($entries -contains 'buildTransitive/DubUrl.targets') "DubUrl package is missing its single-file dependency discovery target."

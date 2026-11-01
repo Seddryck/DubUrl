@@ -1,7 +1,9 @@
-param([switch]$GenerateOnly)
+param([switch]$GenerateOnly, [string]$DocsRoot)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot
 $project = Join-Path $PSScriptRoot 'DocumentationExamples'
+if (-not $DocsRoot) { $DocsRoot = Join-Path $repo 'artifacts/docs-site' }
+if (-not (Test-Path (Join-Path $DocsRoot '_docs/schema-model.md'))) { throw 'Assemble documentation first with build/import_schema_docs.py.' }
 $utf8 = [Text.UTF8Encoding]::new($false)
 $usings = [Collections.Generic.HashSet[string]]::new()
 foreach ($ns in @('System','System.IO','System.Linq','System.Collections.Generic','System.Threading','System.Threading.Tasks','System.Data','System.Data.Common','System.Globalization','DubUrl','DubUrl.Schema','DubUrl.Schema.Builders','DubUrl.Schema.Constraints','DubUrl.Schema.Documents','DubUrl.Application','DubUrl.Querying.Dialects','DubUrl.Provider.PostgreSql.Sql','Microsoft.Data.Sqlite')) { [void]$usings.Add("using $ns;") }
@@ -9,7 +11,7 @@ $classes = [Collections.Generic.List[string]]::new()
 $calls = [Collections.Generic.List[string]]::new()
 $compiled = 0
 function Snippet($page, $index) {
-  $path = Join-Path $repo "docs/_docs/$page.md"
+  $path = Join-Path $DocsRoot "_docs/$page.md"
   $text = [IO.File]::ReadAllText($path).Replace("`r`n", "`n")
   $blocks = [regex]::Matches($text, '(?ms)^```csharp\n(.*?)^```')
   if ($index -ge $blocks.Count) { throw "Missing C# block $index in $page" }
@@ -55,7 +57,7 @@ Add-Case Adomd (Snippet 'adomd-providers' 0) -CompileOnly
 Add-Case OleDb (Snippet 'oledb-provider-locators' 0) -CompileOnly
 Add-Case Odbc ((Snippet 'odbc-driver-locators' 0) + "`n" + (Snippet 'odbc-driver-locators' 1)) -CompileOnly
 
-$schemaText = [IO.File]::ReadAllText((Join-Path $repo 'docs/_docs/first-schema.md')).Replace("`r`n", "`n")
+$schemaText = [IO.File]::ReadAllText((Join-Path $DocsRoot '_docs/first-schema.md')).Replace("`r`n", "`n")
 $yaml = [regex]::Match($schemaText, '(?ms)^```yaml\n(.*?)^```').Groups[1].Value.Trim()
 if (-not $yaml) { throw 'First-schema YAML example missing' }
 $yamlLiteral = $yaml.Replace('"','""')
