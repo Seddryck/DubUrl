@@ -34,3 +34,7 @@ Schema's database jobs and embedded DuckDB cases now run only on .NET 10. Unit c
 ## Installed SDK/runtime reuse follow-up
 
 Schema CI now reuses stable .NET 10 SDK/runtime installations, excludes previews and pins the detected SDK per job. It downloads only missing components; packaging requests only the extra .NET 8/9 consumer runtimes, preserving no-build package reuse. Eleven setup scenarios, script/workflow syntax checks and a full three-TFM Release build passed. Actual SDK downloads and domain/database suites were not repeated for this setup-only change.
+
+## Codecov follow-up
+
+Schema uploads the six canonical multi-target unit coverage reports in a separate Codecov job, using the same pinned action and GitHub OIDC authentication as DubUrl. The threshold check remains separate. Workflow lint, six-report selection and the existing coverage threshold passed against hosted artifacts. The consumer source/checksum pin now follows this Schema commit; importer tests were rerun. Application builds and database suites were not repeated for this workflow-only change.
