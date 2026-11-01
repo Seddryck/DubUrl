@@ -2,8 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
-    <ProjectReference Include="..\DubUrl.Schema.Documents\DubUrl.Schema.Documents.csproj" />
-    <ProjectReference Include="..\DubUrl.Schema\DubUrl.Schema.csproj" />
+    <PackageReference Include="DubUrl.Schema.Documents" Version="[$(SchemaPackageVersion)]" />
+    <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
     <!-- Run the catalog generator on the build host, independently of the app's publish runtime. -->
     <ProjectReference Include="../connectors/Catalog/ConnectorCatalog.Build.csproj" ReferenceOutputAssembly="false" PrivateAssets="all"
                       GlobalPropertiesToRemove="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot" />

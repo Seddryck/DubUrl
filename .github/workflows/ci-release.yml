@@ -61,6 +61,13 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.401
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Test Schema documentation import
+        run: python build/test_schema_docs.py
+      - name: Assemble latest Schema release documentation
+        run: python build/import_schema_docs.py
       - name: Compile and run documentation examples
         shell: pwsh
         run: ./build/verify-doc-examples.ps1
@@ -165,8 +172,6 @@ jobs:
             'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
             'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj',
             'DubUrl.Application.Testing/DubUrl.Application.Testing.csproj',
-            'DubUrl.Schema.Testing/DubUrl.Schema.Testing.csproj',
-            'DubUrl.Schema.Documents.Testing/DubUrl.Schema.Documents.Testing.csproj',
             'DubUrl.BulkCopy.Testing/DubUrl.BulkCopy.Testing.csproj',
             'DubUrl.Cli.Testing/DubUrl.Cli.Testing.csproj',
             'DubUrl.Worker.Testing/DubUrl.Worker.Testing.csproj'
@@ -204,8 +209,6 @@ jobs:
             'DubUrl.Adomd',
             'DubUrl.Adbc',
             'DubUrl.Application',
-            'DubUrl.Schema',
-            'DubUrl.Schema.Documents',
             'DubUrl.BulkCopy',
             'DubUrl.Cli',
             'DubUrl.Worker'
@@ -281,8 +284,6 @@ jobs:
             'DubUrl.Adbc/DubUrl.Adbc.csproj'
             'Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj'
             'Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj'
-            'DubUrl.Schema/DubUrl.Schema.csproj'
-            'DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj'
             'DubUrl.Application/DubUrl.Application.csproj'
             'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
             'DubUrl.Worker/DubUrl.Worker.csproj'
@@ -327,8 +328,8 @@ jobs:
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 36) {
-            throw "Expected 36 coverage reports, found $($reports.Count)."
+          if ($reports.Count -ne 30) {
+            throw "Expected 30 coverage reports, found $($reports.Count)."
           }
 
           foreach ($report in $reports) {
@@ -421,10 +422,6 @@ jobs:
             project: Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj
           - package-id: DubUrl.Provider.DuckDb.Native
             project: Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj
-          - package-id: DubUrl.Schema
-            project: DubUrl.Schema/DubUrl.Schema.csproj
-          - package-id: DubUrl.Schema.Documents
-            project: DubUrl.Schema.Documents/DubUrl.Schema.Documents.csproj
           - package-id: DubUrl.Application
             project: DubUrl.Application/DubUrl.Application.csproj
           - package-id: DubUrl.BulkCopy

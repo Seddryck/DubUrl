@@ -252,4 +252,4 @@ Request cancellation uses the `$/cancelRequest` notification with the identifier
 
 Feature adapters register strongly typed handlers through `WorkerMethodRegistry`. They can report expected application failures by throwing `WorkerMethodException` with an application-owned code outside JSON-RPC's reserved `-32768` through `-32000` range. Unexpected exceptions are returned as a sanitized internal error without exception details.
 
-Schema inspection is available through schema.inspect with a configured connection reference, table/schema filters, basic and allowPartial options. Results retain the versioned document, feature coverage, completeness and diagnostics. See [inspection and export](../docs/_docs/schema-inspection.md) for a JSON-RPC example and provider limits.
+Schema inspection is available through schema.inspect with a configured connection reference, table/schema filters, basic and allowPartial options. Results retain the versioned document, feature coverage, completeness and diagnostics. See [inspection and export](https://seddryck.github.io/DubUrl/schema-inspection/) for a JSON-RPC example and provider limits.

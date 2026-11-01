@@ -6,5 +6,5 @@
   "targetFrameworks": [ "net8.0", "net9.0", "net10.0" ],
   "operatingSystems": [ "windows" ],
   "rids": [ "win-x64" ],
-  "capabilities": [ "Connection", "Querying", "ODBC", "Schema", "BulkCopy" ]
+  "capabilities": [ "Connection", "Querying", "ODBC", "BulkCopy" ]
 }

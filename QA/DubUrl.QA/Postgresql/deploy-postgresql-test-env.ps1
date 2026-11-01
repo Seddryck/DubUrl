@@ -42,7 +42,7 @@ if ($env:GITHUB_ACTIONS -eq "true" -or $container) {
 			-project $project `
 			-provider "postgresql" `
 			-config $config `
-			-frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
+			-frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter
 	}
 	finally {
 		[Environment]::SetEnvironmentVariable('DUBURL_POSTGRESQL_DISCOVERY_QA_CONNECTION_STRING', $previousDiscovery, 'Process')

@@ -1,8 +1,0 @@
-{{#each model.Views}}
-CREATE VIEW {{viewname Identity}} AS
-SELECT
-{{#each Projections}}
-    {{viewexpression Expression}}{{#if HasAlias}} AS {{identity Alias}}{{/if}}{{#unless @last}},{{/unless}}
-{{/each}}
-FROM {{objectname Source}};
-{{/each}}

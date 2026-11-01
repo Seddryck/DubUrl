@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:${JEKYLL_PORT:-4001}:4000"
     volumes:
-      - ./docs:/site
+      - ./artifacts/docs-site:/site
       - bundle_cache:/usr/local/bundle
 volumes:
   bundle_cache:

@@ -22,7 +22,7 @@ if ($env:GITHUB_ACTIONS -eq "true" -or $container) {
         $password = (& docker compose -f $composeFile exec -T mssqlserver printenv MSSQL_SA_PASSWORD).Trim()
         $env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING = "Server=localhost;Database=DubUrl;User Id=sa;Password=$password;TrustServerCertificate=True"
         if ($env:GITHUB_ACTIONS -eq 'true') { Write-Host "::add-mask::$password"; Write-Host "::add-mask::$env:DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING" }
-        Run-ProviderQaSuite -project $project -provider "mssqlserver" -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter -requiredCategories Discovery
+        Run-ProviderQaSuite -project $project -provider "mssqlserver" -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter
 	}
 	finally { [Environment]::SetEnvironmentVariable('DUBURL_SQLSERVER_DISCOVERY_QA_CONNECTION_STRING', $previousDiscovery, 'Process')
         & docker compose -f $composeFile down --volumes }

@@ -1,7 +1,6 @@
 using System.Data;
 using DubUrl.BulkCopy;
 using DubUrl.ProviderTesting;
-using DubUrl.Schema;
 using Moq;
 using NUnit.Framework;
 
@@ -23,38 +22,6 @@ public sealed class DuckDbProviderTests : ProviderContract
     protected override bool SupportsNamedParameters => false;
     protected override bool SupportsInterval => false;
 
-    [Test, Category("Schema")]
-    public void CreateTable()
-    {
-        var connection = new ConnectionUrl(ConnectionUrl);
-        connection.DeploySchema(s => s.WithTables(t => t.Add(x => x.WithName("Sales").WithColumns(c => c
-            .Add(y => y.WithName("SalesId").WithType(DbType.Int64))
-            .Add(y => y.WithName("CustomerId").WithType(DbType.Int32))
-            .Add(y => y.WithName("Amount").WithType(DbType.Decimal).WithPrecision(10).WithScale(2))
-        ))), SchemaCreationOptions.DropIfExists);
-        AssertTableEmpty(connection, "Sales");
-    }
-
-    [Test, Category("Schema")]
-    public void CreateIndex()
-    {
-        var connection = new ConnectionUrl(ConnectionUrl);
-        connection.DeploySchema(
-            schema => schema
-                .WithTables(tables => tables.Add(table => table
-                    .WithName("Orders")
-                    .WithColumns(columns => columns
-                        .Add(column => column.WithName("OrderId").WithType(DbType.Int64))
-                        .Add(column => column.WithName("ProductId").WithType(DbType.Int16))
-                        .Add(column => column.WithName("CustomerId").WithType(DbType.Int32)))))
-                .WithIndexes(indexes => indexes.Add(index => index
-                    .WithName("idx_ProductId")
-                    .OnTable("Orders")
-                    .WithColumns(columns => columns.Add(column => column.WithName("ProductId"))))),
-            SchemaCreationOptions.DropIfExists);
-        AssertTableEmpty(connection, "Orders");
-    }
-
     [Test]
     public void BulkCopy()
     {
@@ -71,9 +38,4 @@ public sealed class DuckDbProviderTests : ProviderContract
         Assert.That(command.ExecuteScalar(), Is.EqualTo(3));
     }
 
-    private static void AssertTableEmpty(ConnectionUrl connection, string table)
-    {
-        using var db = connection.Open(); using var command = db.CreateCommand(); command.CommandText = $"select count(*) from {table};";
-        Assert.That(command.ExecuteScalar(), Is.EqualTo(0));
-    }
 }

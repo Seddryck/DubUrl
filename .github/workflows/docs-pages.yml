@@ -2,9 +2,9 @@ name: Documentation website
 on:
   push:
     branches: [main]
-    paths: ['docs/**', '.github/workflows/docs-pages.yml']
+    paths: ['docs/**', 'build/*schema_doc*.py', '.github/workflows/docs-pages.yml']
   pull_request:
-    paths: ['docs/**', '.github/workflows/docs-pages.yml']
+    paths: ['docs/**', 'build/*schema_doc*.py', '.github/workflows/docs-pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -19,19 +19,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Test bundle import
+        run: python -m unittest discover -s build -p test_schema_docs.py
+      - name: Assemble latest Schema release documentation
+        run: python build/import_schema_docs.py
       - uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: docs
+          working-directory: artifacts/docs-site
       - name: Build Jekyll
-        working-directory: docs
+        working-directory: artifacts/docs-site
         env:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --strict_front_matter
+      - name: Check imported Schema URLs and links
+        run: python build/check_schema_doc_links.py
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_site
+          path: artifacts/docs-site/_site
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

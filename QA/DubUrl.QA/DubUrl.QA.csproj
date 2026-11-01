@@ -124,7 +124,6 @@
     <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
     <ProjectReference Include="..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
-    <ProjectReference Include="..\..\DubUrl.Schema\DubUrl.Schema.csproj" />
   </ItemGroup>
 
   <ItemGroup>
