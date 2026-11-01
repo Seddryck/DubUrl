@@ -2,16 +2,24 @@
 
 Schema implementation, schema document specifications, guides, and standalone database fixtures are maintained in https://github.com/Seddryck/DubUrl.Schema.
 
-Application services, the CLI, the worker, provider implementations, and their integration tests stay here and consume pinned Schema packages (`SchemaPackageVersion` in `Directory.Build.props`). Provider discovery/renderer implementations stay here; standalone SchemaInspector and DDL fixtures move with Schema. Existing application-level encrypted DuckDB and discovery tests remain integration checks here.
+Application services, the CLI, the worker, provider implementations, and their integration tests stay here and consume versioned Schema packages (SchemaPackageVersion in Directory.Build.props). Provider discovery/renderer implementations stay here; standalone SchemaInspector and DDL fixtures move with Schema. Existing application-level encrypted DuckDB and discovery tests remain integration checks here.
 
-The website stays here. Run `python build/import_schema_docs.py` before Jekyll or documentation example verification. It verifies the release checksum, version, source commit, per-file hashes, paths and collisions, then assembles `artifacts/docs-site`. No imported documentation is committed to this repository. Existing page permalinks and schema URLs are preserved. The front matter in imported pages supplies navigation to Just the Docs.
+## Single documentation website
 
-Update `docs/schema-docs.lock.json` through a reviewed PR after a Schema release. For local verification use `--bundle <schema-docs.zip>`; verification remains enabled. Preview an unreleased bundle using `--pin <temporary lock>` as well. Production never fetches the latest branch.
+The website stays here. Run `python build/import_schema_docs.py` before Jekyll or documentation example verification. By default it downloads schema-docs.zip from the latest published DubUrl.Schema GitHub release:
+
+https://github.com/Seddryck/DubUrl.Schema/releases/latest/download/schema-docs.zip
+
+Both CI documentation consumers use that default. There is no documentation version, source-commit or ZIP-checksum lock to update after a Schema release. The imported bundle's version and source commit are logged for traceability. NuGet dependency versions remain independent of this documentation policy.
+
+The importer still verifies bundle format and metadata, per-file manifest hashes, archive paths, required specification content and content collisions, then assembles artifacts/docs-site. No imported documentation is committed here. Existing page permalinks, JSON specification URLs and front-matter navigation are preserved.
+
+For local verification, use `--bundle <schema-docs.zip>` to import a local ZIP under the same structural/manifest checks. Choose a new staging directory with `--output <directory>` when an earlier output already exists.
 
 ## First cutover
 
-The initial package pin uses the already-published 0.55.1 baseline, so code builds do not depend on unpublished packages. Merge DubUrl.Schema first; its GitVersion-based main workflow automatically publishes the initial 0.100.0 release after validation. Verify its NuGet packages and ZIP exist, update the lock to the actual release manifest commit/checksum (a squash merge changes the source commit), update `SchemaPackageVersion` to 0.100.0 and regenerate CLI/worker lockfiles, then merge this consuming change. Do not merge the consuming PR while the release is unavailable. The previous DubUrl release remains usable throughout. Reverting the cutover commit restores the in-repository implementation if needed.
+The initial package baseline uses already-published 0.55.1 packages, so code builds do not require unpublished packages. Once DubUrl.Schema 0.100.0 is published, update SchemaPackageVersion and regenerate CLI/worker dependency lockfiles for the package cutover. Documentation downloads the latest published release automatically and does not require a matching package-version pin or a docs lock update.
 
 Schema and DubUrl versions are independent. The extraction baseline is DubUrl 0.55.1. When changing core dialect/metadata APIs, run the Schema compatibility workflow against candidate core/provider packages before merging the consuming change.
 
-Schema versions follow the same Conventional Commit/GitVersion configuration and automatic main-branch publishing as DubUrl. NuGet-only patch releases do not create GitHub documentation releases; pin the ZIP from a zero-patch release.
+Schema versions follow the same Conventional Commit/GitVersion configuration and automatic main-branch publishing as DubUrl. NuGet-only patch releases do not create GitHub documentation releases; the website consumes the latest published release that contains schema-docs.zip.

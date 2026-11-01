@@ -1,5 +1,7 @@
 # Schema extraction validation (2026-11-01)
 
+Current documentation policy: CI downloads the latest published Schema release ZIP without a local version/commit/checksum pin. Earlier pin-validation notes below describe the previous migration preview workflow and are superseded by this policy.
+
 ## Passed locally
 
 - `DubUrlCi.slnf` Release build for net8.0/net9.0/net10.0; locked restore against published Schema 0.55.1 packages. The package pin matches extraction source commit 7606da8d030c869dab0dd9d9946dcdd962dfe000.
@@ -18,7 +20,7 @@
 
 - The complete repository test suite: core outside the focused discovery filter, OleDb, Adomd, Adbc, extensions, bulk-copy, authentication fixtures and complete provider suites except SingleStore net8.0.
 - Main application/CLI/worker tests on net8.0/net9.0; their assemblies were built.
-- Hosted CI, site deployment and publication of the extracted release. The consuming PR must remain a draft until the release bundle exists and its actual source/checksum is pinned.
+- Hosted CI, site deployment and publication of the extracted release. The documentation jobs require a published release containing schema-docs.zip; the current importer selects the latest release automatically.
 
 The first CLI run used installed user provider packs and failed due to duplicate registrations. Rerunning with `DUBURL_PROVIDER_STORE` set to an empty task-local directory passed; no user store or machine configuration was changed.
 
@@ -54,3 +56,12 @@ Schema now requires 60 shared feature scenarios from every provider, with mandat
 All seven final live suites passed: SQLite 63, DuckDB 64, MySQL 62+3, PostgreSQL 64, SQL Server 66, SingleStore 62, Oracle 63 (447 tests, zero skips). Nine result guard tests passed. The tests exposed and fixed dependency ordering for table replacement, retaining cyclic-schema rendering; Schema unit tests passed 177/177/182 across .NET 8/9/10. The solution built all TFMs without warnings/errors, and workflow/script syntax checks passed. QA/README.md in Schema documents each published provider's verified limitations.
 
 The consumer docs pin follows the validated Schema commit; six importer tests and local bundle verification passed. Full document unit suites, package smoke tests, GitVersion/release tests and publication were not repeated for this follow-up.
+
+## Latest published documentation release
+
+- Removed docs/schema-docs.lock.json and the importer --pin option. Both documentation CI consumers now download schema-docs.zip through GitHub's latest published release endpoint. No version, source commit or ZIP checksum needs a repository update.
+- The importer records the actual version/commit and retains format/metadata checks, per-file manifest hashes, safe archive paths, size limits, required specification content, collision checks and isolated staging. Local --bundle imports remain available.
+- Nine importer tests passed, including newer release/commit acceptance, latest-endpoint retrieval, malformed bundle/metadata, file-set/hash tampering, traversal, collisions and oversized downloads. Workflow lint and diff checks passed.
+- A live default download imported all 13 files from DubUrl.Schema 0.100.0, source be919e25bc6714ced8bb0ffa84921d420a3f82c8. Documentation verification compiled 31 snippet groups and executed 26 successfully.
+- DubUrlCi.slnf restored and built across its supported frameworks with zero errors and 27 platform-compatibility warnings. No C# application code or package versions changed.
+- Application/database suites, a fresh Jekyll site build and publication were not rerun for this importer/workflow change.

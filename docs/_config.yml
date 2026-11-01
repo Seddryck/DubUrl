@@ -65,7 +65,6 @@ sass:
   style: compressed
   quiet_deps: true
 exclude:
-  - schema-docs.lock.json
   - Gemfile
   - Gemfile.lock
   - README.md

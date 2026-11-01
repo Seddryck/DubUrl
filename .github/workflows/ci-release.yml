@@ -64,7 +64,9 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - name: Assemble pinned Schema documentation
+      - name: Test Schema documentation import
+        run: python build/test_schema_docs.py
+      - name: Assemble latest Schema release documentation
         run: python build/import_schema_docs.py
       - name: Compile and run documentation examples
         shell: pwsh
