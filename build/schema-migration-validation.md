@@ -7,6 +7,7 @@
 - `DubUrl.Cli.Testing` net10.0: 312 passed, 18 existing platform/environment-dependent skips, using an isolated process-local provider store.
 - `DubUrl.Worker.Testing` net10.0: 27 passed.
 - `DubUrl.Core.Testing` net10.0 filtered to `FullyQualifiedName~DuckDbDiscoveryTests`: 13 passed.
+- Complete SingleStore provider QA on net8.0 passed after adding explicit Schema runtime dependencies to the shared provider QA project (the private CLI project reference does not propagate them).
 - Six documentation-import regression tests and eight existing download-page JavaScript tests.
 - Assembled single Jekyll site built in an isolated Ruby 3.3 container. All 10 imported Schema page URLs and local links plus the stable specification URL validated.
 - Existing documentation example verifier: 31 snippet groups compiled, 26 executed.
@@ -15,7 +16,7 @@
 
 ## Not run
 
-- The complete repository test suite: core outside the focused discovery filter, OleDb, Adomd, Adbc, extensions, bulk-copy, authentication fixtures and complete provider suites.
+- The complete repository test suite: core outside the focused discovery filter, OleDb, Adomd, Adbc, extensions, bulk-copy, authentication fixtures and complete provider suites except SingleStore net8.0.
 - Main application/CLI/worker tests on net8.0/net9.0; their assemblies were built.
 - Hosted CI, site deployment and publication of the extracted release. The consuming PR must remain a draft until the release bundle exists and its actual source/checksum is pinned.
 
