@@ -1,77 +1,69 @@
 name: CI and release
-
-on:
-  pull_request:
+'on':
+  pull_request: null
   push:
     branches:
-      - main
-  workflow_dispatch:
-
+    - main
+  workflow_dispatch: null
 concurrency:
   group: ci-release-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 permissions:
   contents: read
-
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
-
 jobs:
   linux-tests:
     name: Linux core tests (net10.0)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-      - name: Restore core test dependencies
-        run: dotnet restore DubUrl.Core.Testing/DubUrl.Core.Testing.csproj -p:TargetFramework=net10.0
-      - name: Build core tests natively
-        run: dotnet build DubUrl.Core.Testing/DubUrl.Core.Testing.csproj --configuration Release --framework net10.0 --no-restore --nologo
-      - name: Run core tests
-        run: >-
-          dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
-          --configuration Release --framework net10.0 --no-build --no-restore --nologo
-          --logger "trx;LogFileName=core-linux.trx" --results-directory .test-results/linux
-      - name: Verify tests executed
-        shell: pwsh
-        run: |
-          [xml] $results = Get-Content .test-results/linux/core-linux.trx -Raw
-          if ([int] $results.TestRun.ResultSummary.Counters.executed -le 0) {
-            throw 'Linux core tests did not execute any tests.'
-          }
-      - name: Upload Linux test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results-Linux-net10.0
-          path: .test-results/linux/*.trx
-          include-hidden-files: true
-          if-no-files-found: error
-
+    - uses: actions/checkout@v7
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.401
+    - name: Restore core test dependencies
+      run: dotnet restore DubUrl.Core.Testing/DubUrl.Core.Testing.csproj -p:TargetFramework=net10.0
+    - name: Build core tests natively
+      run: dotnet build DubUrl.Core.Testing/DubUrl.Core.Testing.csproj --configuration Release --framework net10.0 --no-restore --nologo
+    - name: Run core tests
+      run: dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj --configuration Release --framework net10.0 --no-build --no-restore --nologo --logger "trx;LogFileName=core-linux.trx" --results-directory .test-results/linux
+    - name: Verify tests executed
+      shell: pwsh
+      run: |
+        [xml] $results = Get-Content .test-results/linux/core-linux.trx -Raw
+        if ([int] $results.TestRun.ResultSummary.Counters.executed -le 0) {
+          throw 'Linux core tests did not execute any tests.'
+        }
+    - name: Upload Linux test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-Linux-net10.0
+        path: .test-results/linux/*.trx
+        include-hidden-files: true
+        if-no-files-found: error
   documentation-examples:
     name: Documentation examples
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-      - name: Test Schema documentation import
-        run: python build/test_schema_docs.py
-      - name: Assemble latest Schema release documentation
-        run: python build/import_schema_docs.py
-      - name: Compile and run documentation examples
-        shell: pwsh
-        run: ./build/verify-doc-examples.ps1
-
+    - uses: actions/checkout@v7
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.401
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+    - name: Check Tools extraction boundary
+      run: python build/test_tools_extraction.py
+    - name: Test Schema documentation import
+      run: python build/test_schema_docs.py
+    - name: Assemble latest Schema release documentation
+      run: python build/import_schema_docs.py
+    - name: Compile and run documentation examples
+      shell: pwsh
+      run: ./build/verify-doc-examples.ps1
   version:
     name: Calculate version
     runs-on: ubuntu-latest
@@ -82,47 +74,42 @@ jobs:
       semver: ${{ steps.gitversion.outputs.semVer }}
       patch: ${{ steps.gitversion.outputs.patch }}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
-        with:
-          versionSpec: 6.6.0
-
-      - name: Calculate version
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
-
-      - name: Validate version
-        shell: pwsh
-        run: |
-          $version = '${{ steps.gitversion.outputs.semVer }}'
-          if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
-            throw "GitVersion produced invalid SemVer '$version'."
-          }
-
-      - name: Apply expected labels to merged pull requests
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          . ./github.ps1
-          $repository = '${{ github.repository }}' -split '/', 2
-          $context = [PSCustomObject] @{
-            Id = '${{ github.sha }}'
-            Owner = $repository[0]
-            Repository = $repository[1]
-            SecretToken = $env:GITHUB_TOKEN
-          }
-          foreach ($id in ($context | Get-Commit-Associated-Pull-Requests)) {
-            $context.Id = $id
-            $context | Set-Pull-Request-Expected-Labels -Config '.github/conventional_commits_labels.json'
-          }
-
+    - name: Check out repository
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f
+      with:
+        versionSpec: 6.6.0
+    - name: Calculate version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f
+    - name: Validate version
+      shell: pwsh
+      run: |
+        $version = '${{ steps.gitversion.outputs.semVer }}'
+        if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+          throw "GitVersion produced invalid SemVer '$version'."
+        }
+    - name: Apply expected labels to merged pull requests
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        . ./github.ps1
+        $repository = '${{ github.repository }}' -split '/', 2
+        $context = [PSCustomObject] @{
+          Id = '${{ github.sha }}'
+          Owner = $repository[0]
+          Repository = $repository[1]
+          SecretToken = $env:GITHUB_TOKEN
+        }
+        foreach ($id in ($context | Get-Commit-Associated-Pull-Requests)) {
+          $context.Id = $id
+          $context | Set-Pull-Request-Expected-Labels -Config '.github/conventional_commits_labels.json'
+        }
   build:
     name: Build and unit tests (${{ matrix.framework }})
     needs: version
@@ -131,218 +118,184 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - framework: net8.0
-            sdk: 8.0.416
-          - framework: net9.0
-            sdk: 9.0.308
-          - framework: net10.0
-            sdk: 10.0.401
+        - framework: net8.0
+          sdk: 8.0.416
+        - framework: net9.0
+          sdk: 9.0.308
+        - framework: net10.0
+          sdk: 10.0.401
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
+    - name: Check out repository
+      uses: actions/checkout@v7
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ matrix.sdk }}
+    - name: Restore
+      run: dotnet restore DubUrlCi.slnf -p:TargetFramework=${{ matrix.framework }}
+    - name: Build
+      run: dotnet build DubUrlCi.slnf --configuration Release --framework ${{ matrix.framework }} --no-restore --nologo -p:Version=${{ needs.version.outputs.semver }} -p:ContinuousIntegrationBuild=true
+    - name: Test
+      shell: pwsh
+      run: |
+        $projects = @(
+          'DubUrl.Core.Testing/DubUrl.Core.Testing.csproj',
+          'QA/DubUrl.Provider.Testing/DubUrl.Provider.Testing.csproj',
+          'DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj',
+          'DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj',
+          'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
+          'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj',
+          'DubUrl.BulkCopy.Testing/DubUrl.BulkCopy.Testing.csproj'
+        )
+        $failedProjects = @()
 
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: ${{ matrix.sdk }}
-
-      - name: Restore
-        run: >-
-          dotnet restore DubUrlCi.slnf
-          -p:TargetFramework=${{ matrix.framework }}
-
-      - name: Build
-        run: >-
-          dotnet build DubUrlCi.slnf
-          --configuration Release
-          --framework ${{ matrix.framework }}
-          --no-restore
-          --nologo
-          -p:Version=${{ needs.version.outputs.semver }}
-          -p:ContinuousIntegrationBuild=true
-
-      - name: Test
-        shell: pwsh
-        run: |
-          $projects = @(
-            'DubUrl.Core.Testing/DubUrl.Core.Testing.csproj',
-            'QA/DubUrl.Provider.Testing/DubUrl.Provider.Testing.csproj',
-            'DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj',
-            'DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj',
-            'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
-            'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj',
-            'DubUrl.Application.Testing/DubUrl.Application.Testing.csproj',
-            'DubUrl.BulkCopy.Testing/DubUrl.BulkCopy.Testing.csproj',
-            'DubUrl.Cli.Testing/DubUrl.Cli.Testing.csproj',
-            'DubUrl.Worker.Testing/DubUrl.Worker.Testing.csproj'
-          )
-          $failedProjects = @()
-
-          foreach ($project in $projects) {
-            $projectName = [IO.Path]::GetFileNameWithoutExtension($project) -replace '\.Testing$', ''
-            dotnet test $project `
-              --configuration Release `
-              --framework '${{ matrix.framework }}' `
-              --no-build `
-              --no-restore `
-              --nologo `
-              --logger trx `
-              --results-directory ".test-results/$projectName/${{ matrix.framework }}" `
-              --collect:'XPlat Code Coverage'
-            if ($LASTEXITCODE -ne 0) {
-              $failedProjects += $project
-            }
-          }
-
-          if ($failedProjects.Count -ne 0) {
-            throw "Unit tests failed for: $($failedProjects -join ', ')."
-          }
-
-      - name: Collect coverage reports
-        shell: pwsh
-        run: |
-          $projects = @(
-            'DubUrl.Core',
-            'DubUrl.Provider',
-            'DubUrl.OleDb',
-            'DubUrl.Extensions',
-            'DubUrl.Adomd',
-            'DubUrl.Adbc',
-            'DubUrl.Application',
-            'DubUrl.BulkCopy',
-            'DubUrl.Cli',
-            'DubUrl.Worker'
-          )
-          New-Item -ItemType Directory -Force .coverage | Out-Null
-
-          foreach ($project in $projects) {
-            $reports = @(
-              Get-ChildItem ".test-results/$project/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
-                Where-Object FullName -NotMatch '[\\/]In[\\/]'
-            )
-            if ($reports.Count -ne 1) {
-              throw "Expected one canonical coverage report for $project, found $($reports.Count)."
-            }
-
-            Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
-          }
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .test-results
-          include-hidden-files: true
-          if-no-files-found: error
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .coverage
-          include-hidden-files: true
-          if-no-files-found: error
-
-      - name: Generate complete CLI dependency lock
-        if: matrix.framework == 'net10.0'
-        run: dotnet restore DubUrl.Cli/DubUrl.Cli.csproj --force-evaluate
-
-      - name: Upload CLI dependency lock
-        if: matrix.framework == 'net10.0'
-        uses: actions/upload-artifact@v7
-        with:
-          name: duburl-cli-dependency-lock
-          path: DubUrl.Cli/packages.lock.json
-          if-no-files-found: error
-
-      - name: Archive build outputs
-        shell: pwsh
-        run: |
-          $projects = @(
-            'DubUrl.Core/DubUrl.Core.csproj'
-            'Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
-            'Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
-            'Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj'
-            'Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj'
-            'Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj'
-            'Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj'
-            'Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj'
-            'Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj'
-            'Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj'
-            'Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj'
-            'Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj'
-            'Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj'
-            'Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj'
-            'Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
-            'Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
-            'Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
-            'Providers/Build/ProviderBinding.Build.csproj'
-            'DubUrl.OleDb/DubUrl.OleDb.csproj'
-            'DubUrl.Extensions/DubUrl.Extensions.csproj'
-            'DubUrl.Adomd/DubUrl.Adomd.csproj'
-            'DubUrl.Adbc/DubUrl.Adbc.csproj'
-            'Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj'
-            'Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj'
-            'DubUrl.Application/DubUrl.Application.csproj'
-            'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
-            'DubUrl.Worker/DubUrl.Worker.csproj'
-          )
-
-          $paths = @(
-            foreach ($project in $projects) {
-              $directory = Split-Path -Parent $project
-              "$directory/bin"
-              "$directory/obj"
-            }
-          ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
-
-          New-Item -ItemType Directory -Force .artifacts/build | Out-Null
-          tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
+        foreach ($project in $projects) {
+          $projectName = [IO.Path]::GetFileNameWithoutExtension($project) -replace '\.Testing$', ''
+          dotnet test $project `
+            --configuration Release `
+            --framework '${{ matrix.framework }}' `
+            --no-build `
+            --no-restore `
+            --nologo `
+            --logger trx `
+            --results-directory ".test-results/$projectName/${{ matrix.framework }}" `
+            --collect:'XPlat Code Coverage'
           if ($LASTEXITCODE -ne 0) {
-            throw "Failed to archive ${{ matrix.framework }} build outputs."
+            $failedProjects += $project
+          }
+        }
+
+        if ($failedProjects.Count -ne 0) {
+          throw "Unit tests failed for: $($failedProjects -join ', ')."
+        }
+    - name: Collect coverage reports
+      shell: pwsh
+      run: |
+        $projects = @(
+          'DubUrl.Core',
+          'DubUrl.Provider',
+          'DubUrl.OleDb',
+          'DubUrl.Extensions',
+          'DubUrl.Adomd',
+          'DubUrl.Adbc',
+          'DubUrl.BulkCopy'
+        )
+        New-Item -ItemType Directory -Force .coverage | Out-Null
+
+        foreach ($project in $projects) {
+          $reports = @(
+            Get-ChildItem ".test-results/$project/${{ matrix.framework }}" -Recurse -Filter coverage.cobertura.xml -File |
+              Where-Object FullName -NotMatch '[\\/]In[\\/]'
+          )
+          if ($reports.Count -ne 1) {
+            throw "Expected one canonical coverage report for $project, found $($reports.Count)."
           }
 
-      - name: Upload build outputs
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
+          Copy-Item $reports[0].FullName ".coverage/coverage.$project.${{ matrix.framework }}.xml"
+        }
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+        path: .test-results
+        include-hidden-files: true
+        if-no-files-found: error
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+        path: .coverage
+        include-hidden-files: true
+        if-no-files-found: error
+    - name: Archive build outputs
+      shell: pwsh
+      run: |
+        $projects = @(
+          'QA/DubUrl.ProviderTesting/DubUrl.ProviderTesting.csproj'
+            'Providers/SqlServer/DubUrl.Provider.SqlServer.SqlClient.BulkCopy/DubUrl.Provider.SqlServer.SqlClient.BulkCopy.csproj'
+            'Providers/DuckDb/DubUrl.Provider.DuckDb.Native.BulkCopy/DubUrl.Provider.DuckDb.Native.BulkCopy.csproj'
+            'DubUrl.Authentication.Snowflake/DubUrl.Authentication.Snowflake.csproj'
+            'DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj'
+          'DubUrl.Core/DubUrl.Core.csproj'
+          'Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj'
+          'Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj'
+          'Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj'
+          'Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj'
+          'Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj'
+          'Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj'
+          'Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj'
+          'Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj'
+          'Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj'
+          'Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj'
+          'Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj'
+          'Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj'
+          'Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj'
+          'Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj'
+          'Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj'
+          'Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj'
+          'Providers/Build/ProviderBinding.Build.csproj'
+          'DubUrl.OleDb/DubUrl.OleDb.csproj'
+          'DubUrl.Extensions/DubUrl.Extensions.csproj'
+          'DubUrl.Adomd/DubUrl.Adomd.csproj'
+          'DubUrl.Adbc/DubUrl.Adbc.csproj'
+          'Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj'
+          'Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj'
+          'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
+        )
 
+        $paths = @(
+          foreach ($project in $projects) {
+            $directory = Split-Path -Parent $project
+            "$directory/bin"
+            "$directory/obj"
+          }
+        ) | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ }
+
+        New-Item -ItemType Directory -Force .artifacts/build | Out-Null
+        tar -czf ".artifacts/build/build-${{ matrix.framework }}.tar.gz" @paths
+        if ($LASTEXITCODE -ne 0) {
+          throw "Failed to archive ${{ matrix.framework }} build outputs."
+        }
+    - name: Upload build outputs
+      uses: actions/upload-artifact@v7
+      with:
+        name: build-${{ matrix.framework }}-${{ needs.version.outputs.semver }}
+        path: .artifacts/build/build-${{ matrix.framework }}.tar.gz
+        compression-level: 0
+        retention-days: 1
+        if-no-files-found: error
   coverage-threshold:
     name: Coverage threshold
-    needs: [build, linux-tests]
+    needs:
+    - build
+    - linux-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Download coverage reports
-        uses: actions/download-artifact@v7
-        with:
-          pattern: coverage-*
-          path: .coverage
-          merge-multiple: true
+    - name: Download coverage reports
+      uses: actions/download-artifact@v7
+      with:
+        pattern: coverage-*
+        path: .coverage
+        merge-multiple: true
+    - name: Enforce one-percent line coverage
+      shell: pwsh
+      run: |
+        $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
+        if ($reports.Count -ne 21) {
+          throw "Expected 21 coverage reports, found $($reports.Count)."
+        }
 
-      - name: Enforce one-percent line coverage
-        shell: pwsh
-        run: |
-          $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-          if ($reports.Count -ne 30) {
-            throw "Expected 30 coverage reports, found $($reports.Count)."
+        foreach ($report in $reports) {
+          [xml] $coverage = Get-Content -LiteralPath $report.FullName -Raw
+          $lineRate = [double]::Parse(
+            $coverage.coverage.'line-rate',
+            [Globalization.CultureInfo]::InvariantCulture
+          )
+          if ($lineRate -lt 0.01) {
+            throw "Coverage in '$($report.FullName)' is $($lineRate * 100)%, below 1%."
           }
-
-          foreach ($report in $reports) {
-            [xml] $coverage = Get-Content -LiteralPath $report.FullName -Raw
-            $lineRate = [double]::Parse(
-              $coverage.coverage.'line-rate',
-              [Globalization.CultureInfo]::InvariantCulture
-            )
-            if ($lineRate -lt 0.01) {
-              throw "Coverage in '$($report.FullName)' is $($lineRate * 100)%, below 1%."
-            }
-          }
-
+        }
   coverage-upload:
     name: Upload coverage
     needs: build
@@ -351,1048 +304,442 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Download coverage reports
-        uses: actions/download-artifact@v7
-        with:
-          pattern: coverage-*
-          path: .coverage
-          merge-multiple: true
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        with:
-          directory: .coverage
-          fail_ci_if_error: true
-          use_oidc: true
-
+    - name: Download coverage reports
+      uses: actions/download-artifact@v7
+      with:
+        pattern: coverage-*
+        path: .coverage
+        merge-multiple: true
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
+      with:
+        directory: .coverage
+        fail_ci_if_error: true
+        use_oidc: true
   package:
     name: Package - ${{ matrix.package-id }}
     needs:
-      - version
-      - build
-      - coverage-threshold
+    - version
+    - build
+    - coverage-threshold
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - package-id: DubUrl
-            project: DubUrl.Core/DubUrl.Core.csproj
-          - package-id: DubUrl.Provider.Access
-            project: Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
-          - package-id: DubUrl.Provider.Db2
-            project: Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj
-          - package-id: DubUrl.Provider.Drill
-            project: Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj
-          - package-id: DubUrl.Provider.DuckDb
-            project: Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj
-          - package-id: DubUrl.Provider.Excel
-            project: Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj
-          - package-id: DubUrl.Provider.FirebirdSql
-            project: Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj
-          - package-id: DubUrl.Provider.MySql
-            project: Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj
-          - package-id: DubUrl.Provider.Odbc
-            project: Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj
-          - package-id: DubUrl.Provider.Oracle
-            project: Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj
-          - package-id: DubUrl.Provider.PostgreSql
-            project: Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj
-          - package-id: DubUrl.Provider.Snowflake
-            project: Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj
-          - package-id: DubUrl.Provider.Sqlite
-            project: Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj
-          - package-id: DubUrl.Provider.SqlServer
-            project: Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj
-          - package-id: DubUrl.Provider.Teradata
-            project: Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj
-          - package-id: DubUrl.Provider.Text
-            project: Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj
-          - package-id: DubUrl.Provider.Trino
-            project: Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj
-          - package-id: DubUrl.OleDb
-            project: DubUrl.OleDb/DubUrl.OleDb.csproj
-          - package-id: DubUrl.Extensions
-            project: DubUrl.Extensions/DubUrl.Extensions.csproj
-          - package-id: DubUrl.Adomd
-            project: DubUrl.Adomd/DubUrl.Adomd.csproj
-          - package-id: DubUrl.Adbc
-            project: DubUrl.Adbc/DubUrl.Adbc.csproj
-          - package-id: DubUrl.Provider.DuckDb.Adbc
-            project: Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj
-          - package-id: DubUrl.Provider.DuckDb.Native
-            project: Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj
-          - package-id: DubUrl.Application
-            project: DubUrl.Application/DubUrl.Application.csproj
-          - package-id: DubUrl.BulkCopy
-            project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
+        - package-id: DubUrl
+          project: DubUrl.Core/DubUrl.Core.csproj
+        - package-id: DubUrl.Provider.Access
+          project: Providers/Access/DubUrl.Provider.Access/DubUrl.Provider.Access.csproj
+        - package-id: DubUrl.Provider.Db2
+          project: Providers/Db2/DubUrl.Provider.Db2/DubUrl.Provider.Db2.csproj
+        - package-id: DubUrl.Provider.Drill
+          project: Providers/Drill/DubUrl.Provider.Drill/DubUrl.Provider.Drill.csproj
+        - package-id: DubUrl.Provider.DuckDb
+          project: Providers/DuckDb/DubUrl.Provider.DuckDb/DubUrl.Provider.DuckDb.csproj
+        - package-id: DubUrl.Provider.Excel
+          project: Providers/Excel/DubUrl.Provider.Excel/DubUrl.Provider.Excel.csproj
+        - package-id: DubUrl.Provider.FirebirdSql
+          project: Providers/FirebirdSql/DubUrl.Provider.FirebirdSql/DubUrl.Provider.FirebirdSql.csproj
+        - package-id: DubUrl.Provider.MySql
+          project: Providers/MySql/DubUrl.Provider.MySql/DubUrl.Provider.MySql.csproj
+        - package-id: DubUrl.Provider.Odbc
+          project: Providers/Odbc/DubUrl.Provider.Odbc/DubUrl.Provider.Odbc.csproj
+        - package-id: DubUrl.Provider.Oracle
+          project: Providers/Oracle/DubUrl.Provider.Oracle/DubUrl.Provider.Oracle.csproj
+        - package-id: DubUrl.Provider.PostgreSql
+          project: Providers/PostgreSql/DubUrl.Provider.PostgreSql/DubUrl.Provider.PostgreSql.csproj
+        - package-id: DubUrl.Provider.Snowflake
+          project: Providers/Snowflake/DubUrl.Provider.Snowflake/DubUrl.Provider.Snowflake.csproj
+        - package-id: DubUrl.Provider.Sqlite
+          project: Providers/Sqlite/DubUrl.Provider.Sqlite/DubUrl.Provider.Sqlite.csproj
+        - package-id: DubUrl.Provider.SqlServer
+          project: Providers/SqlServer/DubUrl.Provider.SqlServer/DubUrl.Provider.SqlServer.csproj
+        - package-id: DubUrl.Provider.Teradata
+          project: Providers/Teradata/DubUrl.Provider.Teradata/DubUrl.Provider.Teradata.csproj
+        - package-id: DubUrl.Provider.Text
+          project: Providers/Text/DubUrl.Provider.Text/DubUrl.Provider.Text.csproj
+        - package-id: DubUrl.Provider.Trino
+          project: Providers/Trino/DubUrl.Provider.Trino/DubUrl.Provider.Trino.csproj
+        - package-id: DubUrl.OleDb
+          project: DubUrl.OleDb/DubUrl.OleDb.csproj
+        - package-id: DubUrl.Extensions
+          project: DubUrl.Extensions/DubUrl.Extensions.csproj
+        - package-id: DubUrl.Adomd
+          project: DubUrl.Adomd/DubUrl.Adomd.csproj
+        - package-id: DubUrl.Adbc
+          project: DubUrl.Adbc/DubUrl.Adbc.csproj
+        - package-id: DubUrl.BulkCopy
+          project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
+        - package-id: DubUrl.Provider.DuckDb.Adbc
+          project: Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj
+        - package-id: DubUrl.Provider.DuckDb.Native
+          project: Providers/DuckDb/DubUrl.Provider.DuckDb.Native/DubUrl.Provider.DuckDb.Native.csproj
+        - package-id: DubUrl.Authentication.SqlServer
+          project: DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj
+        - package-id: DubUrl.Authentication.Snowflake
+          project: DubUrl.Authentication.Snowflake/DubUrl.Authentication.Snowflake.csproj
+        - package-id: DubUrl.ProviderTesting
+          project: QA/DubUrl.ProviderTesting/DubUrl.ProviderTesting.csproj
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Download build outputs
-        uses: actions/download-artifact@v7
-        with:
-          pattern: build-*-${{ needs.version.outputs.semver }}
-          path: .artifacts/build
-          merge-multiple: true
-
-      - name: Extract build outputs
-        shell: pwsh
-        run: |
-          $archives = @(Get-ChildItem .artifacts/build -Filter 'build-*.tar.gz' -File)
-          if ($archives.Count -ne 3) {
-            throw "Expected three framework build archives, found $($archives.Count)."
+    - name: Check out repository
+      uses: actions/checkout@v7
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.401
+    - name: Download build outputs
+      uses: actions/download-artifact@v7
+      with:
+        pattern: build-*-${{ needs.version.outputs.semver }}
+        path: .artifacts/build
+        merge-multiple: true
+    - name: Extract build outputs
+      shell: pwsh
+      run: |
+        $archives = @(Get-ChildItem .artifacts/build -Filter 'build-*.tar.gz' -File)
+        if ($archives.Count -ne 3) {
+          throw "Expected three framework build archives, found $($archives.Count)."
+        }
+        foreach ($archive in $archives | Sort-Object Name) {
+          tar -xzf $archive.FullName -C .
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to extract '$($archive.Name)'."
           }
-          foreach ($archive in $archives | Sort-Object Name) {
-            tar -xzf $archive.FullName -C .
-            if ($LASTEXITCODE -ne 0) {
-              throw "Failed to extract '$($archive.Name)'."
-            }
-          }
-
-      - name: Restore package project
-        run: dotnet restore "${{ matrix.project }}" --force-evaluate
-
-      - name: Pack
-        run: >-
-          dotnet pack "${{ matrix.project }}"
-          --configuration Release
-          --no-build
-          --no-restore
-          --nologo
-          --include-symbols
-          --output .artifacts/nuget
-          -p:Version=${{ needs.version.outputs.semver }}
-          -p:ContinuousIntegrationBuild=true
-
-      - name: Upload NuGet package
-        uses: actions/upload-artifact@v7
-        with:
-          name: nuget-${{ matrix.package-id }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/nuget
-          include-hidden-files: true
-          if-no-files-found: error
-
+        }
+    - name: Restore package project
+      run: dotnet restore "${{ matrix.project }}" --force-evaluate
+    - name: Pack
+      run: dotnet pack "${{ matrix.project }}" --configuration Release --no-build --no-restore --nologo --include-symbols --output .artifacts/nuget -p:Version=${{ needs.version.outputs.semver }} -p:ContinuousIntegrationBuild=true
+    - name: Upload NuGet package
+      uses: actions/upload-artifact@v7
+      with:
+        name: nuget-${{ matrix.package-id }}-${{ needs.version.outputs.semver }}
+        path: .artifacts/nuget
+        include-hidden-files: true
+        if-no-files-found: error
   validate-packages:
     name: Validate packages
     needs:
-      - version
-      - package
+    - version
+    - package
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Download NuGet packages
-        uses: actions/download-artifact@v7
-        with:
-          pattern: nuget-*
-          path: .artifacts/nuget
-          merge-multiple: true
-
-      - name: Validate release artifacts
-        shell: pwsh
-        run: >-
-          ./.github/scripts/Validate-ReleaseArtifacts.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -NuGetDirectory './.artifacts/nuget'
-
+    - name: Check out repository
+      uses: actions/checkout@v7
+    - name: Download NuGet packages
+      uses: actions/download-artifact@v7
+      with:
+        pattern: nuget-*
+        path: .artifacts/nuget
+        merge-multiple: true
+    - name: Validate release artifacts
+      shell: pwsh
+      run: ./.github/scripts/Validate-ReleaseArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -NuGetDirectory './.artifacts/nuget'
   package-connectors:
     name: Package connector packs and official catalog
     needs:
-      - version
-      - build
-      - coverage-threshold
+    - version
+    - build
+    - coverage-threshold
     runs-on: windows-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Test connector archive set validation
-        shell: pwsh
-        run: ./.github/scripts/Test-ConnectorArchiveSet.ps1
-
-      - name: Build connector artifacts
-        shell: pwsh
-        run: >-
-          ./connectors/Build-ConnectorArtifacts.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -OutputDirectory '../.artifacts/connectors'
-
-      - name: Preserve connector packaging inventory
-        shell: pwsh
-        run: |
-          # Building the lifecycle verifier can rewrite Core's obj inventory.
-          New-Item -ItemType Directory -Force .artifacts/validation-inputs | Out-Null
-          Copy-Item -LiteralPath DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt `
-            -Destination .artifacts/validation-inputs/CoreDependencyPaths.txt
-
-      - name: Validate connector artifacts and catalog
-        shell: pwsh
-        run: >-
-          ./connectors/Test-ConnectorArtifacts.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -ArtifactDirectory './.artifacts/connectors'
-          -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
-
-      - name: Upload internal connector validation inputs
-        uses: actions/upload-artifact@v7
-        with:
-          name: connector-validation-inputs-${{ needs.version.outputs.semver }}
-          path: .artifacts/validation-inputs/CoreDependencyPaths.txt
-          include-hidden-files: true
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload connector artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: connector-packs-${{ needs.version.outputs.semver }}
-          path: .artifacts/connectors
-          if-no-files-found: error
-
-  package-cli-nuget:
-    name: Package CLI NuGet tool
-    needs:
-      - version
-      - build
-      - package-connectors
-    runs-on: windows-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Download CLI dependency lock
-        uses: actions/download-artifact@v7
-        with:
-          name: duburl-cli-dependency-lock
-          path: DubUrl.Cli
-
-      - name: Download official connector catalog
-        uses: actions/download-artifact@v7
-        with:
-          name: connector-packs-${{ needs.version.outputs.semver }}
-          path: .artifacts/connectors
-
-      - name: Include official connector catalog
-        shell: pwsh
-        run: Copy-Item .artifacts/connectors/connector-catalog.json DubUrl.Cli/connector-catalog.json
-
-      - name: Pack and validate CLI packages
-        shell: pwsh
-        env:
-          GitVersion_SemVer: ${{ needs.version.outputs.semver }}
-        run: ./distribution/build-distribution.ps1 -Mode Pack -Version $env:GitVersion_SemVer -OutputRoot ../.artifacts/cli
-
-      - name: Install and execute local pointer package
-        shell: pwsh
-        run: |
-          dotnet tool install --tool-path .artifacts/tool DubUrl-cli `
-            --version '${{ needs.version.outputs.semver }}' `
-            --add-source .artifacts/cli/packages `
-            --ignore-failed-sources
-          if ($LASTEXITCODE -ne 0) { throw 'Installing the local CLI tool package failed.' }
-          & .artifacts/tool/duburl --version
-          if ($LASTEXITCODE -ne 0) { throw 'Executing the installed CLI tool failed.' }
-          $env:DUBURL_ProviderPacks__StorePath = (Join-Path $PWD '.artifacts/fresh-connector-store')
-          $listed = & .artifacts/tool/duburl connector list --json | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0) { throw 'Listing the official connector catalog failed.' }
-          $catalog = Get-Content .artifacts/connectors/connector-catalog.json -Raw | ConvertFrom-Json
-          $expectedIds = @($catalog.entries.provider | Sort-Object)
-          $actualIds = @($listed.connectors.id | Sort-Object)
-          if (@(Compare-Object $expectedIds $actualIds).Count -ne 0) {
-            throw 'The packaged CLI connector IDs do not match the official catalog.'
-          }
-          $connector = @($listed.connectors | Where-Object id -eq 'postgresql-npgsql')
-          if ($connector.Count -ne 1 `
-              -or -not $connector[0].listed `
-              -or $connector[0].installed `
-              -or $connector[0].active `
-              -or $connector[0].unhealthy) {
-            throw 'The packaged CLI did not report PostgreSQL as listed and not installed.'
-          }
-
-      - name: Upload CLI packages
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-nuget-${{ needs.version.outputs.semver }}
-          path: .artifacts/cli/packages/*.nupkg
-          if-no-files-found: error
-
-      - name: Upload CLI publish outputs (win-x64)
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-publish-win-x64-${{ needs.version.outputs.semver }}
-          path: |
-            .artifacts/cli/publish/net8.0/win-x64
-            .artifacts/cli/publish/net9.0/win-x64
-            .artifacts/cli/publish/net10.0/win-x64
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload CLI publish outputs (win-arm64)
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-publish-win-arm64-${{ needs.version.outputs.semver }}
-          path: |
-            .artifacts/cli/publish/net8.0/win-arm64
-            .artifacts/cli/publish/net9.0/win-arm64
-            .artifacts/cli/publish/net10.0/win-arm64
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload CLI publish outputs (linux-x64)
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-publish-linux-x64-${{ needs.version.outputs.semver }}
-          path: |
-            .artifacts/cli/publish/net8.0/linux-x64
-            .artifacts/cli/publish/net9.0/linux-x64
-            .artifacts/cli/publish/net10.0/linux-x64
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload CLI publish outputs (linux-musl-x64)
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-publish-linux-musl-x64-${{ needs.version.outputs.semver }}
-          path: |
-            .artifacts/cli/publish/net8.0/linux-musl-x64
-            .artifacts/cli/publish/net9.0/linux-musl-x64
-            .artifacts/cli/publish/net10.0/linux-musl-x64
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload CLI publish outputs (osx-x64)
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-publish-osx-x64-${{ needs.version.outputs.semver }}
-          path: |
-            .artifacts/cli/publish/net8.0/osx-x64
-            .artifacts/cli/publish/net9.0/osx-x64
-            .artifacts/cli/publish/net10.0/osx-x64
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload CLI publish outputs (osx-arm64)
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-publish-osx-arm64-${{ needs.version.outputs.semver }}
-          path: |
-            .artifacts/cli/publish/net8.0/osx-arm64
-            .artifacts/cli/publish/net9.0/osx-arm64
-            .artifacts/cli/publish/net10.0/osx-arm64
-          retention-days: 1
-          if-no-files-found: error
-
-  package-worker-nuget:
-    name: Package Worker NuGet tool
-    needs:
-      - version
-      - build
-    runs-on: windows-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Restore worker package project
-        run: dotnet restore DubUrl.Worker/DubUrl.Worker.csproj --locked-mode
-
-      - name: Pack worker tool
-        run: >-
-          dotnet pack DubUrl.Worker/DubUrl.Worker.csproj
-          --configuration Release
-          --no-restore
-          --nologo
-          --output .artifacts/worker
-          -p:Version=${{ needs.version.outputs.semver }}
-          -p:ContinuousIntegrationBuild=true
-
-      - name: Validate worker package set
-        shell: pwsh
-        run: >-
-          ./.github/scripts/Test-CliToolPackages.ps1
-          -PackageDirectory .artifacts/worker
-          -PackageId DubUrl.Worker
-          -CommandName duburl-worker
-          -BuildIdentity DubUrl.Worker
-          -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64;osx-x64;osx-arm64'
-
-      - name: Install and execute worker tool
-        shell: pwsh
-        run: |
-          dotnet tool install --tool-path .artifacts/worker-tool DubUrl.Worker `
-            --version '${{ needs.version.outputs.semver }}' `
-            --add-source .artifacts/worker `
-            --ignore-failed-sources
-          if ($LASTEXITCODE -ne 0) { throw 'Installing the local worker tool package failed.' }
-          & .artifacts/worker-tool/duburl-worker --version
-          if ($LASTEXITCODE -ne 0) { throw 'Executing the installed worker tool failed.' }
-
-      - name: Upload worker package
-        uses: actions/upload-artifact@v7
-        with:
-          name: worker-nuget-${{ needs.version.outputs.semver }}
-          path: .artifacts/worker/*.nupkg
-          if-no-files-found: error
-
-  package-worker-distributions:
-    name: Worker distribution (${{ matrix.runtime }})
-    needs:
-      - version
-      - build
-      - package-worker-nuget
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { runtime: win-x64, runner: windows-latest, native: true }
-          - { runtime: win-arm64, runner: windows-latest, native: false }
-          - { runtime: linux-x64, runner: ubuntu-latest, native: true }
-          - { runtime: linux-musl-x64, runner: ubuntu-latest, native: false }
-          - { runtime: osx-x64, runner: macos-15-intel, native: true }
-          - { runtime: osx-arm64, runner: macos-latest, native: true }
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Build worker distribution
-        id: distribution
-        shell: pwsh
-        run: |
-          ./distribution/build-worker-distribution.ps1 `
-            -Version '${{ needs.version.outputs.semver }}' `
-            -Runtime '${{ matrix.runtime }}' `
-            -OutputRoot ../.artifacts/worker-distribution
-          $archives = @(Get-ChildItem .artifacts/worker-distribution/archives -File)
-          if ($archives.Count -ne 1) {
-            throw "Expected one worker distribution archive, found $($archives.Count)."
-          }
-          "path=$($archives[0].FullName)" >> $env:GITHUB_OUTPUT
-
-      - name: Execute extracted native archive
-        if: matrix.native
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force .artifacts/worker-extracted | Out-Null
-          $archive = '${{ steps.distribution.outputs.path }}'
-          if ('${{ matrix.runtime }}' -like 'win-*') {
-            Expand-Archive -LiteralPath $archive -DestinationPath .artifacts/worker-extracted
-            & .artifacts/worker-extracted/duburl-worker.exe --version
-          }
-          else {
-            tar -xzf $archive -C .artifacts/worker-extracted
-            $executable = (Resolve-Path -LiteralPath .artifacts/worker-extracted/duburl-worker).Path
-            $mode = [IO.File]::GetUnixFileMode($executable)
-            $executeBits = [IO.UnixFileMode]::UserExecute `
-              -bor [IO.UnixFileMode]::GroupExecute `
-              -bor [IO.UnixFileMode]::OtherExecute
-            if (($mode -band $executeBits) -eq 0) { throw "Unix executable mode '$mode' is not executable." }
-            & $executable --version
-          }
-          if ($LASTEXITCODE -ne 0) { throw 'Executing the extracted worker archive failed.' }
-
-      - name: Upload worker distribution
-        uses: actions/upload-artifact@v7
-        with:
-          name: worker-distribution-net10.0-${{ matrix.runtime }}
-          path: .artifacts/worker-distribution/archives/duburl-worker-*
-          if-no-files-found: error
-
-  package-cli-distributions:
-    name: CLI distribution (${{ matrix.framework }}, ${{ matrix.runtime }})
-    needs:
-      - version
-      - build
-      - coverage-threshold
-      - package-cli-nuget
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { framework: net8.0, runtime: win-x64, runner: windows-latest, installer: false, native: true }
-          - { framework: net8.0, runtime: win-arm64, runner: windows-latest, installer: false, native: false }
-          - { framework: net8.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
-          - { framework: net8.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
-          - { framework: net8.0, runtime: osx-x64, runner: macos-15-intel, installer: false, native: true }
-          - { framework: net8.0, runtime: osx-arm64, runner: macos-latest, installer: false, native: true }
-          - { framework: net9.0, runtime: win-x64, runner: windows-latest, installer: false, native: true }
-          - { framework: net9.0, runtime: win-arm64, runner: windows-latest, installer: false, native: false }
-          - { framework: net9.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
-          - { framework: net9.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
-          - { framework: net9.0, runtime: osx-x64, runner: macos-15-intel, installer: false, native: true }
-          - { framework: net9.0, runtime: osx-arm64, runner: macos-latest, installer: false, native: true }
-          - { framework: net10.0, runtime: win-x64, runner: windows-latest, installer: true, native: true }
-          - { framework: net10.0, runtime: win-arm64, runner: windows-latest, installer: true, native: false }
-          - { framework: net10.0, runtime: linux-x64, runner: ubuntu-latest, installer: false, native: true }
-          - { framework: net10.0, runtime: linux-musl-x64, runner: ubuntu-latest, installer: false, native: false }
-          - { framework: net10.0, runtime: osx-x64, runner: macos-15-intel, installer: false, native: true }
-          - { framework: net10.0, runtime: osx-arm64, runner: macos-latest, installer: false, native: true }
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Download CLI publish outputs
-        uses: actions/download-artifact@v7
-        with:
-          name: cli-publish-${{ matrix.runtime }}-${{ needs.version.outputs.semver }}
-          path: .artifacts/cli/publish
-
-      - name: Validate Windows executable icon
-        if: startsWith(matrix.runtime, 'win-')
-        shell: pwsh
-        run: >-
-          ./.github/scripts/Test-WindowsExecutableIcon.ps1
-          -Executable '.artifacts/cli/publish/${{ matrix.framework }}/${{ matrix.runtime }}/duburl.exe'
-
-      - name: Archive CLI
-        id: archive
-        shell: pwsh
-        run: |
-          ./distribution/build-distribution.ps1 `
-            -Mode Archive `
-            -Version '${{ needs.version.outputs.semver }}' `
-            -Frameworks '${{ matrix.framework }}' `
-            -Runtimes '${{ matrix.runtime }}' `
-            -OutputRoot ../.artifacts/cli
-
-          $archives = @(Get-ChildItem .artifacts/cli/archives -File)
-          if ($archives.Count -ne 1) {
-            throw "Expected one CLI distribution archive, found $($archives.Count)."
-          }
-          "path=$($archives[0].FullName)" >> $env:GITHUB_OUTPUT
-
-      - name: Install Inno Setup
-        if: matrix.installer
-        shell: pwsh
-        run: ./distribution/Install-Iscc.ps1
-
-      - name: Build Windows installer
-        if: matrix.installer
-        shell: pwsh
-        run: >-
-          ./distribution/build-distribution.ps1
-          -Mode Bundle
-          -Version '${{ needs.version.outputs.semver }}'
-          -Frameworks '${{ matrix.framework }}'
-          -Runtimes '${{ matrix.runtime }}'
-          -OutputRoot ../.artifacts/cli
-
-      - name: Execute extracted native archive
-        if: matrix.native
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force .artifacts/extracted | Out-Null
-          $archive = '${{ steps.archive.outputs.path }}'
-          if ('${{ matrix.runtime }}' -like 'win-*') {
-            Expand-Archive -LiteralPath $archive -DestinationPath .artifacts/extracted
-            & .artifacts/extracted/duburl.exe --version
-            & .artifacts/extracted/duburl.exe --help
-          }
-          else {
-            tar -xzf $archive -C .artifacts/extracted
-            $executable = (Resolve-Path -LiteralPath .artifacts/extracted/duburl).Path
-            $mode = [IO.File]::GetUnixFileMode($executable)
-            $executeBits = [IO.UnixFileMode]::UserExecute `
-              -bor [IO.UnixFileMode]::GroupExecute `
-              -bor [IO.UnixFileMode]::OtherExecute
-            if (($mode -band $executeBits) -eq 0) { throw "Unix executable mode '$mode' is not executable." }
-            & $executable --version
-            & $executable --help
-          }
-          if ($LASTEXITCODE -ne 0) { throw 'Executing the extracted CLI archive failed.' }
-
-      - name: Upload distribution
-        uses: actions/upload-artifact@v7
-        with:
-          name: cli-distribution-${{ matrix.framework }}-${{ matrix.runtime }}
-          path: |
-            .artifacts/cli/archives/duburl-*
-            .artifacts/cli/installers/duburl-*-setup.exe
-          if-no-files-found: error
-
+    - name: Check out repository
+      uses: actions/checkout@v7
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.401
+    - name: Test connector archive set validation
+      shell: pwsh
+      run: ./.github/scripts/Test-ConnectorArchiveSet.ps1
+    - name: Build connector artifacts
+      shell: pwsh
+      run: ./connectors/Build-ConnectorArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -OutputDirectory '../.artifacts/connectors'
+    - name: Preserve connector packaging inventory
+      shell: pwsh
+      run: |
+        # Building the lifecycle verifier can rewrite Core's obj inventory.
+        New-Item -ItemType Directory -Force .artifacts/validation-inputs | Out-Null
+        Copy-Item -LiteralPath DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt `
+          -Destination .artifacts/validation-inputs/CoreDependencyPaths.txt
+    - name: Validate connector artifacts and catalog
+      shell: pwsh
+      run: ./connectors/Test-ConnectorArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -ArtifactDirectory './.artifacts/connectors' -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
+    - name: Upload internal connector validation inputs
+      uses: actions/upload-artifact@v7
+      with:
+        name: connector-validation-inputs-${{ needs.version.outputs.semver }}
+        path: .artifacts/validation-inputs/CoreDependencyPaths.txt
+        include-hidden-files: true
+        retention-days: 1
+        if-no-files-found: error
+    - name: Upload connector artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: connector-packs-${{ needs.version.outputs.semver }}
+        path: .artifacts/connectors
+        if-no-files-found: error
   validate-release-assets:
     name: Validate release assets
     needs:
-      - version
-      - package-cli-distributions
-      - package-worker-distributions
-      - package-connectors
-    # Lifecycle validation includes Windows-only Access, Excel, and OLE DB packs.
+    - version
+    - package-connectors
     runs-on: windows-latest
     steps:
-      - name: Check out tested commit
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          # The validator builds/runs the net8.0 lifecycle verifier with the current SDK.
-          dotnet-version: |
-            8.0.416
-            10.0.401
-
-      - name: Download CLI distributions
-        uses: actions/download-artifact@v7
-        with:
-          pattern: cli-distribution-*
-          path: .artifacts/release/cli
-          merge-multiple: true
-
-      - name: Download connector packs and catalog
-        uses: actions/download-artifact@v7
-        with:
-          name: connector-packs-${{ needs.version.outputs.semver }}
-          path: .artifacts/release
-
-      - name: Download worker distributions
-        uses: actions/download-artifact@v7
-        with:
-          pattern: worker-distribution-*
-          path: .artifacts/release/worker
-          merge-multiple: true
-
-      - name: Download internal connector validation inputs
-        uses: actions/download-artifact@v7
-        with:
-          name: connector-validation-inputs-${{ needs.version.outputs.semver }}
-          path: .artifacts/validation-inputs
-
-      - name: Test public release asset selection
-        shell: pwsh
-        run: ./.github/scripts/Test-ReleaseAssets.ps1
-
-      - name: Validate public release assets
-        shell: pwsh
-        run: >-
-          ./.github/scripts/Get-ReleaseAssets.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -ArtifactDirectory './.artifacts/release'
-
-      - name: Revalidate connector release assets
-        shell: pwsh
-        run: >-
-          ./connectors/Test-ConnectorArtifacts.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -ArtifactDirectory './.artifacts/release'
-          -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
-
+    - name: Check out tested commit
+      uses: actions/checkout@v7
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: |
+          8.0.416
+          10.0.401
+    - name: Download connector packs and catalog
+      uses: actions/download-artifact@v7
+      with:
+        name: connector-packs-${{ needs.version.outputs.semver }}
+        path: .artifacts/release
+    - name: Download internal connector validation inputs
+      uses: actions/download-artifact@v7
+      with:
+        name: connector-validation-inputs-${{ needs.version.outputs.semver }}
+        path: .artifacts/validation-inputs
+    - name: Test public release asset selection
+      shell: pwsh
+      run: ./.github/scripts/Test-ReleaseAssets.ps1
+    - name: Validate public release assets
+      shell: pwsh
+      run: ./.github/scripts/Get-ReleaseAssets.ps1 -Version '${{ needs.version.outputs.semver }}' -ArtifactDirectory './.artifacts/release'
+    - name: Revalidate connector release assets
+      shell: pwsh
+      run: ./connectors/Test-ConnectorArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -ArtifactDirectory './.artifacts/release' -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
   reserve-release:
     name: Reserve release identity
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
-      - version
-      - validate-packages
-      - validate-release-assets
-      - package-cli-nuget
-      - package-worker-nuget
-      - package-worker-distributions
-      - package-cli-distributions
-      - package-connectors
+    - version
+    - validate-packages
+    - validate-release-assets
+    - package-connectors
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Check out tested commit
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
+    - name: Check out tested commit
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - name: Test release guards
+      shell: pwsh
+      run: ./.github/scripts/Test-CliReleaseGuards.ps1
+    - name: Refresh release branch and tags
+      run: git fetch origin +refs/heads/main:refs/remotes/origin/main --force --tags
+    - name: Block release while AppVeyor is configured
+      shell: pwsh
+      run: |
+        if (Test-Path -LiteralPath './appveyor.yml') {
+          throw 'Release is blocked while appveyor.yml exists. Remove the legacy AppVeyor workflow before enabling GitHub publication.'
+        }
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f
+      with:
+        versionSpec: 6.6.0
+    - name: Recalculate version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f
+    - name: Validate tested commit and version
+      shell: pwsh
+      run: |
+        Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
+        $testedCommit = git rev-parse HEAD
+        Assert-TestedCommit -Actual $testedCommit -Expected '${{ github.sha }}'
+        Assert-VersionUnchanged `
+          -Built '${{ needs.version.outputs.semver }}' `
+          -Recalculated '${{ steps.gitversion.outputs.semVer }}'
+    - name: Reserve release tag
+      if: needs.version.outputs.patch == '0'
+      shell: pwsh
+      run: |
+        Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
+        $tag = 'v${{ needs.version.outputs.semver }}'
+        function Get-RemoteTagCommit {
+          $refs = @(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}")
+          if ($LASTEXITCODE -ne 0) { throw "Inspecting remote tag '$tag' failed." }
+          if ($refs.Count -eq 0) { return $null }
+          $peeled = @($refs | Where-Object { $_ -like "*refs/tags/$tag^{}" })
+          $ref = if ($peeled.Count -gt 0) { $peeled[0] } else { $refs[0] }
+          return ($ref -split '\s+')[0]
+        }
 
-      - name: Test release guards
-        shell: pwsh
-        run: ./.github/scripts/Test-CliReleaseGuards.ps1
-
-      - name: Refresh release branch and tags
-        run: git fetch origin +refs/heads/main:refs/remotes/origin/main --force --tags
-
-      - name: Block release while AppVeyor is configured
-        shell: pwsh
-        run: |
-          if (Test-Path -LiteralPath './appveyor.yml') {
-            throw 'Release is blocked while appveyor.yml exists. Remove the legacy AppVeyor workflow before enabling GitHub publication.'
+        $decision = Get-TagReservationDecision `
+          -ExistingCommit (Get-RemoteTagCommit) `
+          -ExpectedCommit '${{ github.sha }}'
+        if ($decision -eq 'reuse') {
+          Write-Host "Reusing '$tag' for the tested commit."
+        }
+        else {
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag --annotate $tag --message "DubUrl ${{ needs.version.outputs.semver }}" '${{ github.sha }}'
+          git push origin $tag
+          if ($LASTEXITCODE -ne 0) {
+            $decision = Get-TagReservationDecision `
+              -ExistingCommit (Get-RemoteTagCommit) `
+              -ExpectedCommit '${{ github.sha }}'
+            if ($decision -ne 'reuse') { throw "Reserving '$tag' failed." }
+            Write-Host "Tag '$tag' was created concurrently at the expected commit."
           }
-
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
-        with:
-          versionSpec: 6.6.0
-
-      - name: Recalculate version
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
-
-      - name: Validate tested commit and version
-        shell: pwsh
-        run: |
-          Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
-          $testedCommit = git rev-parse HEAD
-          Assert-TestedCommit -Actual $testedCommit -Expected '${{ github.sha }}'
-          Assert-VersionUnchanged `
-            -Built '${{ needs.version.outputs.semver }}' `
-            -Recalculated '${{ steps.gitversion.outputs.semVer }}'
-
-      - name: Reserve release tag
-        if: needs.version.outputs.patch == '0'
-        shell: pwsh
-        run: |
-          Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
-          $tag = 'v${{ needs.version.outputs.semver }}'
-          function Get-RemoteTagCommit {
-            $refs = @(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}")
-            if ($LASTEXITCODE -ne 0) { throw "Inspecting remote tag '$tag' failed." }
-            if ($refs.Count -eq 0) { return $null }
-            $peeled = @($refs | Where-Object { $_ -like "*refs/tags/$tag^{}" })
-            $ref = if ($peeled.Count -gt 0) { $peeled[0] } else { $refs[0] }
-            return ($ref -split '\s+')[0]
-          }
-
-          $decision = Get-TagReservationDecision `
-            -ExistingCommit (Get-RemoteTagCommit) `
-            -ExpectedCommit '${{ github.sha }}'
-          if ($decision -eq 'reuse') {
-            Write-Host "Reusing '$tag' for the tested commit."
-          }
-          else {
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git tag --annotate $tag --message "DubUrl ${{ needs.version.outputs.semver }}" '${{ github.sha }}'
-            git push origin $tag
-            if ($LASTEXITCODE -ne 0) {
-              $decision = Get-TagReservationDecision `
-                -ExistingCommit (Get-RemoteTagCommit) `
-                -ExpectedCommit '${{ github.sha }}'
-              if ($decision -ne 'reuse') { throw "Reserving '$tag' failed." }
-              Write-Host "Tag '$tag' was created concurrently at the expected commit."
-            }
-          }
-
+        }
   update-documentation:
     name: Update generated documentation
     needs:
-      - version
-      - reserve-release
+    - version
+    - reserve-release
     runs-on: windows-latest
     permissions:
       contents: write
     steps:
-      - name: Check out validated release commit
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 8.0.416
-
-      - name: Build documentation inputs
-        run: >-
-          dotnet build QA/DubUrl.QA/DubUrl.QA.csproj
-          --configuration Release
-          --framework net8.0
-          --nologo
-          -p:Version=${{ needs.version.outputs.semver }}
-          -p:ContinuousIntegrationBuild=true
-
-      - name: Regenerate and commit documentation
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.DOCUMENTATION_PUSH_TOKEN }}
-        run: |
-          & ./generate-adonet-info.ps1
-          $exitCode = $LastExitCode
-          & ./generate-odbc-driver-info.ps1
-          $exitCode += $LastExitCode
-          & ./generate-oledb-provider-info.ps1
-          $exitCode += $LastExitCode
-          & ./generate-adomd-info.ps1
-          $exitCode += $LastExitCode
-          if ($exitCode -gt 0) {
-            if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
-              throw 'DOCUMENTATION_PUSH_TOKEN is required to push generated documentation to protected main.'
-            }
-            Write-Host "`tUpdating README.md ..."
-            & ./generate-table-scheme.ps1
-            & ./generate-badge.ps1
-            Write-Host "`tSetting GitHub credentials ..."
-            & gh auth setup-git
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Configuring GitHub credentials failed.'
-            }
-            & git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            & git config user.name 'github-actions[bot]'
-            Write-Host "`tCreating commit ..."
-            & git add --all
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Staging generated documentation failed.'
-            }
-            & git status
-            & git commit -m 'docs: update automatically generated documentation'
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Committing generated documentation failed.'
-            }
-            Write-Host "`tPushing commit ..."
-            & git push origin HEAD:main
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Pushing generated documentation to main failed.'
-            }
-            Write-Host "`tNew commit uploaded."
+    - name: Check out validated release commit
+      uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 8.0.416
+    - name: Build documentation inputs
+      run: dotnet build QA/DubUrl.QA/DubUrl.QA.csproj --configuration Release --framework net8.0 --nologo -p:Version=${{ needs.version.outputs.semver }} -p:ContinuousIntegrationBuild=true
+    - name: Regenerate and commit documentation
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ secrets.DOCUMENTATION_PUSH_TOKEN }}
+      run: |
+        & ./generate-adonet-info.ps1
+        $exitCode = $LastExitCode
+        & ./generate-odbc-driver-info.ps1
+        $exitCode += $LastExitCode
+        & ./generate-oledb-provider-info.ps1
+        $exitCode += $LastExitCode
+        & ./generate-adomd-info.ps1
+        $exitCode += $LastExitCode
+        if ($exitCode -gt 0) {
+          if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
+            throw 'DOCUMENTATION_PUSH_TOKEN is required to push generated documentation to protected main.'
           }
-
+          Write-Host "`tUpdating README.md ..."
+          & ./generate-table-scheme.ps1
+          & ./generate-badge.ps1
+          Write-Host "`tSetting GitHub credentials ..."
+          & gh auth setup-git
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Configuring GitHub credentials failed.'
+          }
+          & git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          & git config user.name 'github-actions[bot]'
+          Write-Host "`tCreating commit ..."
+          & git add --all
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Staging generated documentation failed.'
+          }
+          & git status
+          & git commit -m 'docs: update automatically generated documentation'
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Committing generated documentation failed.'
+          }
+          Write-Host "`tPushing commit ..."
+          & git push origin HEAD:main
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Pushing generated documentation to main failed.'
+          }
+          Write-Host "`tNew commit uploaded."
+        }
   publish-nuget:
     name: Publish NuGet packages
     needs:
-      - version
-      - reserve-release
+    - version
+    - reserve-release
     runs-on: ubuntu-latest
     environment: release
     permissions:
       contents: read
       id-token: write
     steps:
-      - name: Check out tested commit
-        uses: actions/checkout@v7
+    - name: Check out tested commit
+      uses: actions/checkout@v7
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.401
+    - name: Download NuGet packages
+      uses: actions/download-artifact@v7
+      with:
+        pattern: nuget-*
+        path: .artifacts/nuget
+        merge-multiple: true
+    - name: Revalidate downloaded artifacts
+      shell: pwsh
+      run: ./.github/scripts/Validate-ReleaseArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -NuGetDirectory './.artifacts/nuget'
+    - name: Exchange GitHub identity for a NuGet API key
+      id: nuget-login
+      uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
+      with:
+        user: Seddryck
+    - name: Publish NuGet packages
+      shell: pwsh
+      run: |
+        Get-ChildItem .artifacts/nuget -Filter *.nupkg | ForEach-Object {
+          dotnet nuget push $_.FullName `
+            --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
+            --source 'https://api.nuget.org/v3/index.json' `
+            --skip-duplicate
 
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Download NuGet packages
-        uses: actions/download-artifact@v7
-        with:
-          pattern: nuget-*
-          path: .artifacts/nuget
-          merge-multiple: true
-
-      - name: Revalidate downloaded artifacts
-        shell: pwsh
-        run: >-
-          ./.github/scripts/Validate-ReleaseArtifacts.ps1
-          -Version '${{ needs.version.outputs.semver }}'
-          -NuGetDirectory './.artifacts/nuget'
-
-      - name: Exchange GitHub identity for a NuGet API key
-        id: nuget-login
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
-        with:
-          user: Seddryck
-
-      - name: Publish NuGet packages
-        shell: pwsh
-        run: |
-          Get-ChildItem .artifacts/nuget -Filter *.nupkg | ForEach-Object {
-            dotnet nuget push $_.FullName `
-              --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
-              --source 'https://api.nuget.org/v3/index.json' `
-              --skip-duplicate
-
-            if ($LASTEXITCODE -ne 0) {
-              throw "Publishing '$($_.Name)' failed."
-            }
+          if ($LASTEXITCODE -ne 0) {
+            throw "Publishing '$($_.Name)' failed."
           }
-
-  publish-cli-nuget:
-    name: Publish CLI NuGet tool
-    needs:
-      - version
-      - reserve-release
-      - package-cli-nuget
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Check out tested commit
-        uses: actions/checkout@v7
-
-      - name: Download CLI packages
-        uses: actions/download-artifact@v7
-        with:
-          name: cli-nuget-${{ needs.version.outputs.semver }}
-          path: .artifacts/cli
-
-      - name: Revalidate CLI package set
-        shell: pwsh
-        run: ./.github/scripts/Test-CliToolPackages.ps1 -PackageDirectory .artifacts/cli
-
-      - name: Exchange GitHub identity for a NuGet API key
-        id: nuget-login
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
-        with:
-          user: Seddryck
-
-      - name: Publish CLI packages
-        shell: pwsh
-        run: |
-          $packages = @(Get-ChildItem .artifacts/cli -Filter *.nupkg -File)
-          if ($packages.Count -ne 7) { throw "Expected seven CLI packages, found $($packages.Count)." }
-          foreach ($package in $packages) {
-            dotnet nuget push $package.FullName `
-              --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
-              --source 'https://api.nuget.org/v3/index.json' `
-              --skip-duplicate
-            if ($LASTEXITCODE -ne 0) { throw "Publishing '$($package.Name)' failed." }
-          }
-
-  publish-worker-nuget:
-    name: Publish Worker NuGet tool
-    needs:
-      - version
-      - reserve-release
-      - package-worker-nuget
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Check out tested commit
-        uses: actions/checkout@v7
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.401
-
-      - name: Download worker package
-        uses: actions/download-artifact@v7
-        with:
-          name: worker-nuget-${{ needs.version.outputs.semver }}
-          path: .artifacts/worker
-
-      - name: Revalidate worker package
-        shell: pwsh
-        run: |
-          $packages = @(Get-ChildItem .artifacts/worker -Filter *.nupkg -File)
-          if ($packages.Count -ne 7) { throw "Expected seven worker packages, found $($packages.Count)." }
-          ./.github/scripts/Test-CliToolPackages.ps1 `
-            -PackageDirectory .artifacts/worker `
-            -PackageId DubUrl.Worker `
-            -CommandName duburl-worker `
-            -BuildIdentity DubUrl.Worker `
-            -RuntimeIdentifiers 'win-x64;win-arm64;linux-x64;linux-musl-x64;osx-x64;osx-arm64'
-          dotnet tool install --tool-path .artifacts/worker-tool DubUrl.Worker `
-            --version '${{ needs.version.outputs.semver }}' `
-            --add-source .artifacts/worker `
-            --ignore-failed-sources
-          if ($LASTEXITCODE -ne 0) { throw 'Reinstalling the worker tool package failed.' }
-          & .artifacts/worker-tool/duburl-worker --version
-          if ($LASTEXITCODE -ne 0) { throw 'Re-executing the worker tool failed.' }
-
-      - name: Exchange GitHub identity for a NuGet API key
-        id: nuget-login
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
-        with:
-          user: Seddryck
-
-      - name: Publish worker package
-        shell: pwsh
-        run: |
-          Get-ChildItem .artifacts/worker -Filter *.nupkg -File | ForEach-Object {
-            dotnet nuget push $_.FullName `
-              --api-key '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' `
-              --source 'https://api.nuget.org/v3/index.json' `
-              --skip-duplicate
-            if ($LASTEXITCODE -ne 0) { throw "Publishing '$($_.Name)' failed." }
-          }
-
+        }
   github-release:
     name: Create GitHub release
     if: needs.version.outputs.patch == '0'
     needs:
-      - version
-      - publish-nuget
-      - publish-cli-nuget
-      - publish-worker-nuget
-      - package-cli-distributions
-      - package-worker-distributions
-      - package-connectors
-      - validate-release-assets
+    - version
+    - publish-nuget
+    - package-connectors
+    - validate-release-assets
     runs-on: windows-latest
     permissions:
       contents: write
       discussions: write
     steps:
-      - name: Check out tested commit
-        uses: actions/checkout@v7
+    - name: Check out tested commit
+      uses: actions/checkout@v7
+    - name: Download connector packs and catalog
+      uses: actions/download-artifact@v7
+      with:
+        name: connector-packs-${{ needs.version.outputs.semver }}
+        path: .artifacts/release
+    - name: Create release
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        $assets = @(
+          ./.github/scripts/Get-ReleaseAssets.ps1 `
+            -Version '${{ needs.version.outputs.semver }}' `
+            -ArtifactDirectory './.artifacts/release'
+        )
+        $tag = 'v${{ needs.version.outputs.semver }}'
+        if (gh release view $tag --repo '${{ github.repository }}' 2>$null) {
+          Write-Host "Release '$tag' already exists."
+        }
+        else {
+          gh release create $tag `
+            --repo '${{ github.repository }}' `
+            --title 'DubUrl ${{ needs.version.outputs.semver }}' `
+            --generate-notes `
+            --discussion-category 'Announcements' `
+            --verify-tag
+        }
 
-      - name: Download CLI distributions
-        uses: actions/download-artifact@v7
-        with:
-          pattern: cli-distribution-*
-          path: .artifacts/release/cli
-          merge-multiple: true
-
-      - name: Download connector packs and catalog
-        uses: actions/download-artifact@v7
-        with:
-          name: connector-packs-${{ needs.version.outputs.semver }}
-          path: .artifacts/release
-
-      - name: Download worker distributions
-        uses: actions/download-artifact@v7
-        with:
-          pattern: worker-distribution-*
-          path: .artifacts/release/worker
-          merge-multiple: true
-
-      - name: Create release
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $assets = @(
-            ./.github/scripts/Get-ReleaseAssets.ps1 `
-              -Version '${{ needs.version.outputs.semver }}' `
-              -ArtifactDirectory './.artifacts/release'
-          )
-          $tag = 'v${{ needs.version.outputs.semver }}'
-          if (gh release view $tag --repo '${{ github.repository }}' 2>$null) {
-            Write-Host "Release '$tag' already exists."
-          }
-          else {
-            gh release create $tag `
-              --repo '${{ github.repository }}' `
-              --title 'DubUrl ${{ needs.version.outputs.semver }}' `
-              --generate-notes `
-              --discussion-category 'Announcements' `
-              --verify-tag
-          }
-
-          gh release upload $tag @($assets.FullName) --clobber --repo '${{ github.repository }}'
-          if ($LASTEXITCODE -ne 0) { throw "Uploading CLI assets to '$tag' failed." }
+        gh release upload $tag @($assets.FullName) --clobber --repo '${{ github.repository }}'
+        if ($LASTEXITCODE -ne 0) { throw "Uploading CLI assets to '$tag' failed." }

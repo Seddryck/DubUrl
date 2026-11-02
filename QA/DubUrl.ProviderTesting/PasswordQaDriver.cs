@@ -19,11 +19,11 @@ internal sealed class PasswordQaDriver(string url, ISchemeRegistry registry)
     internal ConnectionUri Uri { get; } = ConnectionUri.Parse(url);
     internal ISchemeRegistry Registry { get; } = registry;
     internal string Provider => Registry.GetMapper(Uri.Scheme).GetProviderName();
-    internal string Family => Application.ConnectionCheckSql.GetFamily(Uri.Scheme.Canonical);
+    internal string Family => QaProbeSql.GetFamily(Uri.Scheme.Canonical);
     internal bool HasFixtureRecipe => FixtureRecipes.Contains(Provider);
     internal UsernamePasswordCredentials Credentials => new(Uri.Username, Uri.Password);
     internal string Location => RemoveUserInfo(url);
-    internal string ProbeSql => Application.ConnectionCheckSql.Engine(Family);
+    internal string ProbeSql => QaProbeSql.Engine(Family);
 
     internal void RequireStrategy()
     {

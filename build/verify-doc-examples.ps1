@@ -6,7 +6,7 @@ if (-not $DocsRoot) { $DocsRoot = Join-Path $repo 'artifacts/docs-site' }
 if (-not (Test-Path (Join-Path $DocsRoot '_docs/schema-model.md'))) { throw 'Assemble documentation first with build/import_schema_docs.py.' }
 $utf8 = [Text.UTF8Encoding]::new($false)
 $usings = [Collections.Generic.HashSet[string]]::new()
-foreach ($ns in @('System','System.IO','System.Linq','System.Collections.Generic','System.Threading','System.Threading.Tasks','System.Data','System.Data.Common','System.Globalization','DubUrl','DubUrl.Schema','DubUrl.Schema.Builders','DubUrl.Schema.Constraints','DubUrl.Schema.Documents','DubUrl.Application','DubUrl.Querying.Dialects','DubUrl.Provider.PostgreSql.Sql','Microsoft.Data.Sqlite')) { [void]$usings.Add("using $ns;") }
+foreach ($ns in @('System','System.IO','System.Linq','System.Collections.Generic','System.Threading','System.Threading.Tasks','System.Data','System.Data.Common','System.Globalization','DubUrl','DubUrl.Schema','DubUrl.Schema.Builders','DubUrl.Schema.Constraints','DubUrl.Schema.Documents','DubUrl.Querying.Dialects','DubUrl.Provider.PostgreSql.Sql','Microsoft.Data.Sqlite')) { [void]$usings.Add("using $ns;") }
 $classes = [Collections.Generic.List[string]]::new()
 $calls = [Collections.Generic.List[string]]::new()
 $compiled = 0
@@ -51,8 +51,6 @@ Add-Case SchemaBuilders ((Snippet 'schema-model' 0) + "`n" + (Snippet 'generate-
 Add-Case CustomRule ((Snippet 'customize-schema' 0) + "`n" + (Snippet 'customize-schema' 1)) '' 'var document = new SchemaDocumentReader().Read("schema.yaml"); Check.True(validator.Validate(document).Any(d => d.Code == "APP001"), "Application rule executes");'
 # The type is declared after the setup statements for a valid standalone C# snippet.
 Add-Case LiteralConverter ((Snippet 'customize-schema' 3) + "`n" + (Snippet 'customize-schema' 2)) '' 'Check.True(new HexInt32Converter().TryConvert("2A").Value is 42, "Hex literal conversion");'
-Add-Case ApplicationApi (Snippet 'schema-application-api' 0) 'var document = new SchemaDocumentReader().Read("schema.yaml");' 'Check.True(validation.IsSuccess && rendering.IsSuccess, "Transport-neutral schema API");'
-Add-Case DeploymentApi (Snippet 'schema-application-api' 1) 'var document = new SchemaDocumentReader().Read("schema.yaml"); var connectionUrl = new ConnectionUrl(Fixture.Url); var cancellationToken = CancellationToken.None;' -CompileOnly
 Add-Case Adomd (Snippet 'adomd-providers' 0) -CompileOnly
 Add-Case OleDb (Snippet 'oledb-provider-locators' 0) -CompileOnly
 Add-Case Odbc ((Snippet 'odbc-driver-locators' 0) + "`n" + (Snippet 'odbc-driver-locators' 1)) -CompileOnly

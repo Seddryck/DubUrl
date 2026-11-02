@@ -10,7 +10,7 @@ namespace DubUrl.ProviderTesting;
 
 /// <summary>The #1689 strategy against actual provider connections, with explicit capability/prerequisite exclusions.</summary>
 [NonParallelizable]
-public abstract class PasswordAuthenticationQaContract : CliPasswordAuthenticationQaContract
+public abstract class PasswordAuthenticationQaContract : TokenAuthenticationQaContract
 {
     private PasswordQaDriver Driver => new(AuthenticationConnectionUrl, AuthenticationRegistry);
 

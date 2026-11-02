@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace DubUrl.ProviderTesting;
 
 [FixtureLifeCycle(LifeCycle.SingleInstance)]
-public abstract class OdbcContract : CliConnectionCheckContract
+public abstract class OdbcContract : ConnectionQaContract
 {
     protected abstract string ConnectionUrl { get; }
     protected override string CliConnectionUrl => ConnectionUrl;

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
 		<ProjectReference Include="..\Providers\Build\ProviderBinding.Build.csproj" />
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.5.6" />
     <PackageReference Include="DuckDB.NET.Data" Version="1.5.6" />
@@ -54,7 +55,6 @@
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="../DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj" />
     <ProjectReference Include="../DubUrl.Authentication.Snowflake/DubUrl.Authentication.Snowflake.csproj" />
-    <ProjectReference Include="..\DubUrl.Application\DubUrl.Application.csproj" />
     <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />
     <ProjectReference Include="..\Providers\*\DubUrl.Provider.*\*.csproj" Exclude="..\Providers\*\*.QA\*.csproj" />
     <Compile Include="..\Providers\*\DubUrl.Provider.*\Tests\**\*.cs" Link="Providers\%(RecursiveDir)%(Filename)%(Extension)" />
@@ -68,4 +68,12 @@
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../connectors/Catalog/ConnectorCatalog.Build.csproj" ReferenceOutputAssembly="false" PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot" />
+  </ItemGroup>
+  <Import Project="../connectors/ConnectorCatalog.targets" />
+  <Target Name="EmbedTestConnectorCatalog" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateConnectorCatalog">
+    <ItemGroup><EmbeddedResource Include="$(ConnectorCatalogOutput)" LogicalName="DubUrl.ConnectorCatalog" /></ItemGroup>
+  </Target>
 </Project>

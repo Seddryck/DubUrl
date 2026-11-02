@@ -98,13 +98,12 @@
   }
 
   function packageVersionsForRelease(packages, releaseVersion) {
-    const requested = parseVersion(releaseVersion);
     return [...new Set(packages
       .filter((item) => !item.isTool)
       .map((item) => item.version)
       .filter((version) => {
         const candidate = parseVersion(version);
-        return candidate?.major === requested?.major && candidate?.minor === requested?.minor;
+        return candidate !== null;
       }))].sort(compareVersions);
   }
 
@@ -113,11 +112,22 @@
     return response;
   }
 
+  function mergeToolReleases(...releaseSets) {
+    const releases = new Map();
+    for (const release of releaseSets.flat()) {
+      if (release.draft || releases.has(release.tag_name)) continue;
+      if (!release.assets.some((asset) => parseAsset(asset, versionOf(release)))) continue;
+      releases.set(release.tag_name, release);
+    }
+    return [...releases.values()].sort((left, right) => compareVersions(versionOf(left), versionOf(right)));
+  }
+
   function mount(document) {
     const root = document.getElementById("download-app");
     if (!root) return;
 
     const repository = root.dataset.repository;
+    const legacyRepository = root.dataset.legacyRepository;
     const cliDocsUrl = root.dataset.cliDocsUrl;
     const githubApi = `https://api.github.com/repos/${repository}/releases`;
     const state = {
@@ -223,7 +233,7 @@
       const content = packages.length
         ? `<div class="download-grid">${packages.map(renderPackageCard).join("")}</div>`
         : `<div class="download-notice">No DubUrl library package matching version ${escapeHtml(state.packageVersion || versionOf(state.release))} was found on NuGet.</div>`;
-      return `<h2>.NET libraries</h2><p>Use DubUrl from a .NET application. Library packages are independent of operating system and architecture.</p><p>Schema libraries have their own release versions: <a href="https://www.nuget.org/packages/DubUrl.Schema">DubUrl.Schema</a> and <a href="https://www.nuget.org/packages/DubUrl.Schema.Documents">DubUrl.Schema.Documents</a>.</p>${versionPicker}${content}`;
+      return `<h2>.NET libraries</h2><p>Use DubUrl from a .NET application. Library packages have their own versions and are independent of the selected Tools release, operating system, and architecture.</p><p>Schema libraries have their own release versions: <a href="https://www.nuget.org/packages/DubUrl.Schema">DubUrl.Schema</a> and <a href="https://www.nuget.org/packages/DubUrl.Schema.Documents">DubUrl.Schema.Documents</a>.</p>${versionPicker}${content}`;
     }
 
     function render() {
@@ -231,7 +241,7 @@
       const latestStable = state.releases.find((item) => !item.prerelease);
       const releaseOptions = state.releases.map((release) => `<option value="${escapeHtml(release.id)}" ${release.id === state.release.id ? "selected" : ""}>${escapeHtml(versionOf(release))}${release.prerelease ? " — prerelease" : release === latestStable ? " — latest stable" : ""}</option>`).join("");
       const section = state.section === "packages" ? renderPackages() : renderProduct(state.section);
-      root.innerHTML = `<div class="download-toolbar"><div class="download-toolbar__row"><label for="download-release-version">Release version <select id="download-release-version" data-version>${releaseOptions}</select></label><div class="download-release-links"><a href="${escapeHtml(state.release.html_url)}">Release notes</a><a href="https://github.com/${repository}/releases/tag/${encodeURIComponent(state.release.tag_name)}">GitHub release</a></div></div></div><div class="download-tabs" role="tablist" aria-label="What do you want to use?">${[["cli", "DubUrl CLI"], ["packages", ".NET libraries"], ["worker", "JSON-RPC worker"]].map(([key, text]) => `<button id="download-tab-${key}" class="download-tab" type="button" role="tab" data-section="${key}" aria-controls="download-panel" aria-selected="${state.section === key}" tabindex="${state.section === key ? "0" : "-1"}">${text}</button>`).join("")}</div><section id="download-panel" class="download-panel" role="tabpanel" aria-labelledby="download-tab-${state.section}">${section}</section>`;
+      root.innerHTML = `<div class="download-toolbar"><div class="download-toolbar__row"><label for="download-release-version">Release version <select id="download-release-version" data-version>${releaseOptions}</select></label><div class="download-release-links"><a href="${escapeHtml(state.release.html_url)}">Release notes</a><a href="${escapeHtml(state.release.html_url)}">GitHub release</a></div></div></div><div class="download-tabs" role="tablist" aria-label="What do you want to use?">${[["cli", "DubUrl CLI"], ["packages", ".NET libraries"], ["worker", "JSON-RPC worker"]].map(([key, text]) => `<button id="download-tab-${key}" class="download-tab" type="button" role="tab" data-section="${key}" aria-controls="download-panel" aria-selected="${state.section === key}" tabindex="${state.section === key ? "0" : "-1"}">${text}</button>`).join("")}</div><section id="download-panel" class="download-panel" role="tabpanel" aria-labelledby="download-tab-${state.section}">${section}</section>`;
     }
 
     async function loadPackages() {
@@ -251,10 +261,9 @@
           const registrationUrl = `https://api.nuget.org/v3/registration5-gz-semver2/${item.id.toLowerCase()}/index.json`;
           const registration = await fetch(registrationUrl).then(checkResponse).then((response) => response.json());
           const pages = await Promise.all(registration.items.map((page) => page.items ? page : fetch(page["@id"]).then(checkResponse).then((response) => response.json())));
-          const requested = parseVersion(requestedVersion);
           return pages.flatMap((page) => page.items || []).map((leaf) => leaf.catalogEntry).filter((entry) => {
             const candidate = parseVersion(entry.version);
-            return candidate?.major === requested?.major && candidate?.minor === requested?.minor;
+            return candidate !== null;
           }).map((entry) => {
             const packageTypes = (entry.packageTypes || item.packageTypes || []).map((type) => type.name);
             return {
@@ -319,12 +328,11 @@
       }
     });
 
-    Promise.all([
-      fetch(`${githubApi}?per_page=100`).then(checkResponse).then((response) => response.json()),
-      fetch(`${githubApi}/latest`).then(checkResponse).then((response) => response.json())
-    ]).then(([releases, latest]) => {
-      state.releases = releases.filter((release) => !release.draft);
-      state.release = state.releases.find((release) => release.id === latest.id) || state.releases[0];
+    const releaseApis = [`${githubApi}?per_page=100`];
+    if (legacyRepository) releaseApis.push(`https://api.github.com/repos/${legacyRepository}/releases?per_page=100`);
+    Promise.allSettled(releaseApis.map((url) => fetch(url).then(checkResponse).then((response) => response.json()))).then((results) => {
+      state.releases = mergeToolReleases(...results.filter((result) => result.status === "fulfilled").map((result) => result.value));
+      state.release = state.releases.find((release) => !release.prerelease) || state.releases[0];
       if (!state.release) throw new Error("No published release was found");
       render();
       loadPackages();
@@ -339,6 +347,7 @@
     compareVersions,
     isWantedPackage,
     packageVersionsForRelease,
+    mergeToolReleases,
     parseAsset,
     parseVersion,
     reconcileCandidates,
