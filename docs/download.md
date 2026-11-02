@@ -13,12 +13,13 @@ description: Guided downloads for the DubUrl CLI, .NET libraries, and JSON-RPC w
 <div
   id="download-app"
   class="download-app"
-  data-repository="Seddryck/DubUrl"
+  data-repository="Seddryck/DubUrl.Tools"
+  data-legacy-repository="Seddryck/DubUrl"
   data-cli-docs-url="{{ '/cli/' | relative_url }}">
   <noscript>
     <div class="download-notice download-notice--error" role="alert">
       This page needs JavaScript to load current releases and packages. You can still use the
-      <a href="https://github.com/Seddryck/DubUrl/releases">GitHub releases page</a>,
+      <a href="https://github.com/Seddryck/DubUrl.Tools/releases">GitHub releases page</a>,
       <a href="https://www.nuget.org/profiles/Seddryck">NuGet profile</a>, or
       <a href="{{ '/cli/' | relative_url }}">CLI installation guide</a>.
     </div>

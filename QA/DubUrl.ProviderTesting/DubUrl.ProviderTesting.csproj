@@ -5,10 +5,6 @@
     <Description>Reusable live provider QA contracts for DubUrl provider modules.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <!-- The private CLI project reference does not propagate its package dependencies to QA consumers. -->
-    <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
-    <PackageReference Include="DubUrl.Schema.Documents" Version="[$(SchemaPackageVersion)]" />
-    <PackageReference Include="CredOS" Version="0.1.0" IncludeAssets="runtime" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="DbReader" Version="4.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
@@ -19,12 +15,14 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.83.3" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
-    <PackageReference Include="System.CommandLine" Version="2.*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
-    <ProjectReference Include="../../DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj" PrivateAssets="all" />
-    <ProjectReference Include="../../DubUrl.Cli/DubUrl.Cli.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../../DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj" />
     <ProjectReference Include="..\..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Only the Tools QA adapter needs the native fixture helpers; runtime libraries stay independent. -->
+    <InternalsVisibleTo Include="DubUrl.Tools.ProviderTesting" />
   </ItemGroup>
 </Project>

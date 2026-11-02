@@ -31,9 +31,9 @@ test("orders stable semantic versions before prereleases", () => {
   assert.deepEqual(versions.sort(download.compareVersions), ["1.1.1", "1.1.0", "1.1.0-beta.10", "1.1.0-beta.2"]);
 });
 
-test("selects package patches only from the release line", () => {
+test("selects library versions independently of the Tools release", () => {
   const packages = ["1.1.0", "1.1.2", "1.2.0", "2.0.0"].map((version) => ({ version, isTool: false }));
-  assert.deepEqual(download.packageVersionsForRelease(packages, "1.1.0"), ["1.1.2", "1.1.0"]);
+  assert.deepEqual(download.packageVersionsForRelease(packages, "1.2.0"), ["2.0.0", "1.2.0", "1.1.2", "1.1.0"]);
 });
 
 test("filters public libraries and user-facing tools", () => {
@@ -56,4 +56,16 @@ test("reconciles invalid downstream choices", () => {
 
 test("rejects failed API responses", () => {
   assert.throws(() => download.checkResponse({ ok: false, status: 503, statusText: "Unavailable" }), /503 Unavailable/);
+});
+
+test("keeps legacy tool downloads available before the first Tools release", () => {
+  const legacy = { id: 1, tag_name: "v0.55.0", draft: false, assets: [asset("duburl-0.55.0-net10.0-win-x64.zip")] };
+  const libraryOnly = { id: 2, tag_name: "v0.56.0", draft: false, assets: [asset("connector-catalog.json")] };
+  assert.deepEqual(download.mergeToolReleases([], [libraryOnly, legacy]), [legacy]);
+});
+
+test("prefers Tools releases while retaining older release URLs", () => {
+  const current = { id: 3, tag_name: "v1.2.0", draft: false, html_url: "https://github.com/Seddryck/DubUrl.Tools/releases/tag/v1.2.0", assets: [asset("duburl-worker-1.2.0-net10.0-win-x64.zip")] };
+  const old = { id: 1, tag_name: "v0.55.0", draft: false, html_url: "https://github.com/Seddryck/DubUrl/releases/tag/v0.55.0", assets: [asset("duburl-0.55.0-net10.0-win-x64.zip")] };
+  assert.deepEqual(download.mergeToolReleases([current], [{ ...current, id: 4 }, old]), [current, old]);
 });

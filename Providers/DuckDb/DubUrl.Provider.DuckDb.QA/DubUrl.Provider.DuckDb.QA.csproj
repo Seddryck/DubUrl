@@ -14,7 +14,6 @@
     <ProjectReference Include="..\DubUrl.Provider.DuckDb.Native\DubUrl.Provider.DuckDb.Native.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
-    <ProjectReference Include="..\..\..\DubUrl.Application\DubUrl.Application.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
     <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
   </ItemGroup>

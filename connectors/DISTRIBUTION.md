@@ -222,6 +222,7 @@ distribution catalog. For example, from the repository root with the .NET 10 run
 
 ```powershell
 try {
+    # Run from a DubUrl.Tools checkout: https://github.com/Seddryck/DubUrl.Tools
     dotnet run --project connectors/Signing/ConnectorCatalog.Sign.csproj -f net10.0 -- C:\staging\catalog.json C:\staging\catalog.json.sig C:\secure\catalog-signing-private.pem enterprise
 } finally {
     Remove-Item Env:DUBURL_CATALOG_SIGNING_PASSWORD -ErrorAction SilentlyContinue

@@ -8,7 +8,8 @@
     <NoWarn>$(NoWarn);CS1998;CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DubUrl.Application\DubUrl.Application.csproj" />
+    <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
+    <PackageReference Include="DubUrl.Schema.Documents" Version="[$(SchemaPackageVersion)]" />
     <ProjectReference Include="..\..\DubUrl.Adomd\DubUrl.Adomd.csproj" />
     <ProjectReference Include="..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
     <ProjectReference Include="..\..\Providers\PostgreSql\DubUrl.Provider.PostgreSql\DubUrl.Provider.PostgreSql.csproj" />

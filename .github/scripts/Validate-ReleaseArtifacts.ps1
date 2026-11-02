@@ -10,6 +10,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $packages = @(
+    @{ Id = 'DubUrl.ProviderTesting'; Assembly = 'DubUrl.ProviderTesting' },
+    @{ Id = 'DubUrl.Authentication.Snowflake'; Assembly = 'DubUrl.Authentication.Snowflake' },
+    @{ Id = 'DubUrl.Authentication.SqlServer'; Assembly = 'DubUrl.Authentication.SqlServer' },
     @{ Id = 'DubUrl'; Assembly = 'DubUrl.Core' },
     @{ Id = 'DubUrl.Provider.Access'; Assembly = 'DubUrl.Provider.Access' },
     @{ Id = 'DubUrl.Provider.Db2'; Assembly = 'DubUrl.Provider.Db2' },
@@ -33,7 +36,6 @@ $packages = @(
     @{ Id = 'DubUrl.Adbc'; Assembly = 'DubUrl.Adbc' },
     @{ Id = 'DubUrl.Provider.DuckDb.Adbc'; Assembly = 'DubUrl.Provider.DuckDb.Adbc' },
     @{ Id = 'DubUrl.Provider.DuckDb.Native'; Assembly = 'DubUrl.Provider.DuckDb.Native' },
-    @{ Id = 'DubUrl.Application'; Assembly = 'DubUrl.Application' },
     @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
 )
 $frameworks = @('net8.0', 'net9.0', 'net10.0')

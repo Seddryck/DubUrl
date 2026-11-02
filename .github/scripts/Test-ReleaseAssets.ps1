@@ -18,15 +18,6 @@ function Assert-Rejected([string] $Message) {
 
 try {
     New-Item -ItemType Directory -Path (Join-Path $fixtureRoot 'cli'), (Join-Path $fixtureRoot 'worker') | Out-Null
-    foreach ($index in 1..18) {
-        New-Item -ItemType File -Path (Join-Path $fixtureRoot "cli/duburl-$index.zip") | Out-Null
-    }
-    foreach ($index in 1..2) {
-        New-Item -ItemType File -Path (Join-Path $fixtureRoot "cli/duburl-$index-setup.exe") | Out-Null
-    }
-    foreach ($index in 1..6) {
-        New-Item -ItemType File -Path (Join-Path $fixtureRoot "worker/duburl-worker-$index.tar.gz") | Out-Null
-    }
     $connectorName = "duburl-connector-example-$version.zip"
     New-Item -ItemType File -Path (Join-Path $fixtureRoot $connectorName) | Out-Null
     @{
@@ -38,7 +29,7 @@ try {
     } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $fixtureRoot 'connector-catalog.json')
 
     $assets = @(& $selector -Version $version -ArtifactDirectory $fixtureRoot)
-    if ($assets.Count -ne 28) { throw "Expected 28 public fixture files, found $($assets.Count)." }
+    if ($assets.Count -ne 2) { throw "Expected two public fixture files, found $($assets.Count)." }
 
     # Internal inventories must never become public release attachments, even in a subdirectory.
     foreach ($relativePath in @('CoreDependencyPaths.txt', 'cli/CoreDependencyPaths.txt', 'worker/validation-inputs.txt')) {
@@ -48,11 +39,6 @@ try {
         Remove-Item -LiteralPath $path
     }
 
-    $archive = Join-Path $fixtureRoot 'cli/duburl-18.zip'
-    Remove-Item -LiteralPath $archive
-    Assert-Rejected 'Expected 18 CLI archives'
-    New-Item -ItemType File -Path (Join-Path $fixtureRoot 'cli/DubUrl-18.zip') | Out-Null
-    Assert-Rejected 'Release assets must be lower-case'
     Write-Host 'Passed release asset checks: complete set, internal metadata exclusion, missing archives, and filename casing.'
 }
 finally {

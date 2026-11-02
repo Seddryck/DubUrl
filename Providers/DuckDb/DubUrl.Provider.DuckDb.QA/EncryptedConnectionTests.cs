@@ -2,7 +2,6 @@ using System.Data;
 using System.Data.Common;
 using System.Reflection;
 using System.Runtime.Loader;
-using DubUrl.Application;
 using DubUrl.Authentication;
 using DubUrl.BulkCopy;
 using DubUrl.Discovery;
@@ -180,7 +179,6 @@ public class EncryptedConnectionTests
         Assert.That(File.Exists(path), Is.False);
         Assert.Throws<FileNotFoundException>(() => connection.Open());
         Assert.That(File.Exists(path), Is.False);
-        Assert.That((await new ConnectionCheckService().CheckAsync(target, new())).Success, Is.False);
     }
 
     [Test]
@@ -317,16 +315,7 @@ public class EncryptedConnectionTests
         using var exclusive = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
     }
 
-    [Test]
-    public async Task ConnectionCheckAndSchemaDeployment_UsePreparedOpening()
-    {
-        var result = await new ConnectionCheckService().CheckAsync(Target(), new ConnectionCheckOptions { Table = "sample" });
-        Assert.That(result.Success, Is.True);
-        var inspected = await new SchemaInspector().InspectAsync(Target());
-        Assert.That(inspected.IsSuccess, Is.True);
-        new SchemaScriptDeployer().DeploySchema(Target(), "CREATE TABLE deployed(id INTEGER)");
-        Assert.That((await new SchemaInspector().InspectAsync(Target())).Schema!.Tables.Values.Any(t => t.Name == "deployed"), Is.True);
-    }
+
 
     [Test]
     public void PlaintextFile_WithKeyDoesNotFallBackToUnencryptedOpening()

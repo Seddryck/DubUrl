@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace DubUrl.ProviderTesting;
 
 [NonParallelizable]
-public abstract class OperatingSystemIdentityQaContract : CliOAuthQaContract
+public abstract class OperatingSystemIdentityQaContract : AuthenticationQaContract
 {
     private PasswordQaDriver IdentityDriver => new(AuthenticationConnectionUrl, AuthenticationRegistry);
     private bool SqlIdentity => IdentityDriver.Provider == "Microsoft.Data.SqlClient";
