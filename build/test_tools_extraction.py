@@ -1,6 +1,7 @@
 """Prevent host dependencies from returning to the library repository."""
 from pathlib import Path
 import unittest
+import re
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +31,13 @@ class ToolsExtractionTests(unittest.TestCase):
             self.assertNotIn(f"\n  {name}:", workflow)
         for package in ("DubUrl.Authentication.SqlServer", "DubUrl.Authentication.Snowflake"):
             self.assertIn(f"package-id: {package}", workflow)
+
+    def test_package_matrix_matches_release_validation(self):
+        workflow = (ROOT / ".github/workflows/ci-release.yml").read_text(encoding="utf-8")
+        validator = (ROOT / ".github/scripts/Validate-ReleaseArtifacts.ps1").read_text(encoding="utf-8")
+        packaged = set(re.findall(r"^\s*- package-id: (\S+)\s*$", workflow, re.MULTILINE))
+        expected = set(re.findall(r"@\{ Id = '([^']+)'", validator))
+        self.assertSetEqual(packaged, expected)
 
 
 if __name__ == "__main__":

@@ -369,6 +369,8 @@ jobs:
           project: DubUrl.Adomd/DubUrl.Adomd.csproj
         - package-id: DubUrl.Adbc
           project: DubUrl.Adbc/DubUrl.Adbc.csproj
+        - package-id: DubUrl.BulkCopy
+          project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
         - package-id: DubUrl.Provider.DuckDb.Adbc
           project: Providers/DuckDb/DubUrl.Provider.DuckDb.Adbc/DubUrl.Provider.DuckDb.Adbc.csproj
         - package-id: DubUrl.Provider.DuckDb.Native
