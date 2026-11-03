@@ -68,7 +68,7 @@ public class OracleSchemaTests
             Assert.That(dialect.DbTypeMapper.ToDictionary()[DbType.String.ToString()], Is.EqualTo("VARCHAR"));
             Assert.That(dialect.SchemaSqlRenderer.RenderColumnType(dialect, "VARCHAR", 12, 0, 0, false), Is.EqualTo("VARCHAR(12)"));
             Assert.That(dialect.Capabilities.SupportsIdentityColumns, Is.False);
-            Assert.That(dialect.Capabilities.SupportsViews, Is.False);
+            Assert.That(dialect.Capabilities.SupportsViews, Is.True);
         });
     }
 
