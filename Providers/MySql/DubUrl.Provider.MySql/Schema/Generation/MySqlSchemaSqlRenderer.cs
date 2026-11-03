@@ -10,20 +10,30 @@ internal sealed class MySqlSchemaSqlRenderer : StandardSchemaSqlRenderer
 
     public override string RenderColumnType(IDialect dialect, string type, int? length, int precision, int scale, bool nativeType)
     {
-        if (type == "TEXT" && length > 0 && !nativeType) type = "VARCHAR";
-        if (type is "VARCHAR" or "CHAR")
-        {
-            if (length is null or -1)
-                throw new ArgumentException($"MySQL {type} requires an explicit bounded length.");
-        }
-        if (type.Contains("TEXT") || type.Contains("BLOB"))
-        {
-            if (length > 0) throw new ArgumentException($"MySQL {type} does not accept a character length; use a bounded VARCHAR/CHAR native type.");
-            return type;
-        }
+        type = ResolveCharacterType(type, length, nativeType);
+        if (type is "VARCHAR" or "CHAR") ValidateCharacterDimensions(type, length, precision, scale);
+        if (type.Contains("TEXT") || type.Contains("BLOB")) return RenderLargeObjectType(type, length);
         return base.RenderColumnType(dialect, type, length, precision, scale, nativeType);
     }
 
+    private static string ResolveCharacterType(string type, int? length, bool nativeType)
+    {
+        if (nativeType && (type.Equals("CHAR", StringComparison.OrdinalIgnoreCase) || type.Equals("VARCHAR", StringComparison.OrdinalIgnoreCase)))
+            return type.ToUpperInvariant();
+        return type == "TEXT" && length > 0 && !nativeType ? "VARCHAR" : type;
+    }
+
+    private static void ValidateCharacterDimensions(string type, int? length, int precision, int scale)
+    {
+        if (length is null or <= 0 || precision != 0 || scale != 0)
+            throw new ArgumentException($"MySQL {type} requires an explicit bounded length without numeric precision or scale.");
+    }
+
+    private static string RenderLargeObjectType(string type, int? length)
+    {
+        if (length > 0) throw new ArgumentException($"MySQL {type} does not accept a character length; use a bounded VARCHAR/CHAR native type.");
+        return type;
+    }
     public override void ValidateKeyColumn(IDialect dialect, string type, string table, string column)
     {
         if (type.Contains("TEXT") || type.Contains("BLOB") || type == "JSON")

@@ -3,7 +3,7 @@ param(
     [switch] $force,
     [string] $config = 'Release',
     [ValidateSet('net8.0', 'net9.0', 'net10.0')]
-    [string[]] $frameworks = @('net8.0', 'net9.0', 'net10.0'),
+    [string[]] $frameworks = @('net10.0'),
     [ValidateRange(1, 65535)] [int] $port = 3306,
     [ValidateRange(30, 1800)] [int] $readinessTimeoutSeconds = 300,
     [hashtable] $sdkVersions = @{ 'net8.0' = '8.0.416'; 'net9.0' = '9.0.308'; 'net10.0' = '10.0.401' }
