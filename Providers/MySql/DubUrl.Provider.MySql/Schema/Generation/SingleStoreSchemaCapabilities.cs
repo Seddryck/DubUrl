@@ -10,10 +10,10 @@ internal static class SingleStoreSchemaCapabilities
             ObjectNames = ObjectNameParts.Name | ObjectNameParts.Database,
             SupportsIdentityColumns = true,
             SupportsStoredGeneratedColumns = true,
-            SupportsVirtualGeneratedColumns = true,
+            SupportsVirtualGeneratedColumns = false,
             SupportsRegularExpressionChecks = true,
             SupportsViews = true,
             SupportsComments = true,
-            NativeTypes = new HashSet<string>(["JSON", "GEOGRAPHYPOINT", "GEOGRAPHY"], StringComparer.OrdinalIgnoreCase),
+            NativeTypes = new HashSet<string>(["JSON", "GEOGRAPHYPOINT", "GEOGRAPHY", "CHAR", "VARCHAR"], StringComparer.OrdinalIgnoreCase),
         };
 }

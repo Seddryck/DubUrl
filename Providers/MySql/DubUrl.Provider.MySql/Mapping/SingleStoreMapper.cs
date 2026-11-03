@@ -16,6 +16,7 @@ namespace DubUrl.Provider.MySql.Mapping;
     "SingleStoreConnector"
 )]
 [ConnectionConfiguration(ApplicationName = "Application Name", Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout", IdleTimeout = "Connection Idle Timeout", MaxLifetime = "Connection Lifetime", Tls = "MySql")]
+[DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.MySql.Discovery.SingleStoreMetadataReader))]
 public class SingleStoreMapper : BaseMapper
 {
     public SingleStoreMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)

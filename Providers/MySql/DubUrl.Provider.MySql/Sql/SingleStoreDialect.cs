@@ -23,7 +23,7 @@ namespace DubUrl.Provider.MySql.Sql;
 [ParentLanguage<SqlLanguage>]
 public class SingleStoreDialect : BaseDialect
 {
-    public override ISchemaSqlRenderer SchemaSqlRenderer => MySqlSchemaSqlRenderer.Default;
+    public override ISchemaSqlRenderer SchemaSqlRenderer => SingleStoreSchemaSqlRenderer.Default;
 
     public override DialectCapabilities Capabilities { get; } = SingleStoreSchemaCapabilities.Create();
 
