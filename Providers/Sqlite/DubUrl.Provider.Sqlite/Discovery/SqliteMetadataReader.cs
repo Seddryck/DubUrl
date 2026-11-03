@@ -13,7 +13,25 @@ public sealed class SqliteMetadataReader : CatalogSchemaMetadataReader
     }
 
     protected override IReadOnlySet<SchemaFeature> UnsupportedFeatures => new HashSet<SchemaFeature>
-        { SchemaFeature.Checks, SchemaFeature.Comments };
+        { SchemaFeature.Comments };
+    private const string DefinitionsSql = "SELECT name AS table_name,sql AS definition FROM main.sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+    protected override string ChecksSql => DefinitionsSql;
+
+    protected override async Task<List<CatalogRow>> ReadCatalogRowsAsync(System.Data.Common.DbConnection connection,
+        string sql, DiscoveryOptions options, CancellationToken cancellationToken)
+    {
+        var rows = await base.ReadCatalogRowsAsync(connection, sql, options, cancellationToken).ConfigureAwait(false);
+        if (sql == ChecksSql)
+            return rows.SelectMany(row => SqliteTableDefinition.Parse(row.Text("definition")).Checks.Select(check =>
+                row.With(("schema_name", "main"), ("check_name", check.Name), ("expression", check.Expression)))).ToList();
+        if (sql != ColumnsSql || !options.Features.Contains(SchemaFeature.Generation)) return rows;
+        var definitions = await QueryAsync(connection, DefinitionsSql, cancellationToken).ConfigureAwait(false);
+        var tables = definitions.ToDictionary(row => row.Text("table_name")!, row => SqliteTableDefinition.Parse(row.Text("definition")), StringComparer.Ordinal);
+        return rows.Select(row => row.Text("generation_expression") is not null
+            && tables.TryGetValue(row.Text("table_name")!, out var table)
+            && table.Generated.TryGetValue(row.Text("column_name")!, out var expression)
+                ? row.With(("generation_expression", expression)) : row).ToList();
+    }
     protected override string TablesSql => """
         SELECT 'main' AS schema_name,name AS table_name FROM main.sqlite_schema
         WHERE type='table' AND name NOT LIKE 'sqlite_%'

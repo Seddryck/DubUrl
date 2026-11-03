@@ -14,6 +14,6 @@ internal static class MysqlSchemaCapabilities
             SupportsRegularExpressionChecks = true,
             SupportsViews = true,
             SupportsComments = true,
-            NativeTypes = new HashSet<string>(["JSON", "GEOMETRY", "VARCHAR", "CHAR", "TEXT", "BLOB"], StringComparer.OrdinalIgnoreCase),
+            NativeTypes = new HashSet<string>(["JSON", "GEOMETRY", "VARCHAR", "CHAR", "TEXT", "BLOB", "BINARY", "DATETIME", "BIT"], StringComparer.OrdinalIgnoreCase),
         };
 }

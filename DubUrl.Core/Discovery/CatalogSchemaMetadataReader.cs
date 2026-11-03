@@ -51,7 +51,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         var views = viewRows.GroupBy(Identity).OrderBy(group => group.Key.Schema, StringComparer.Ordinal).ThenBy(group => group.Key.Name, StringComparer.Ordinal).Select(group =>
         {
             var inventory = group.Where(row => row.Text("column_name") is not null).OrderBy(row => row.Int("ordinal")).Select(MapColumn).ToArray();
-            return TryView(group.Key, inventory, group.First().Text("definition"));
+            return MapView(group.Key, inventory, group.First().Text("definition"));
         }).ToArray();
         return new(tables, coverage, diagnostics) { Views = views };
 
@@ -61,7 +61,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         }
     }
 
-    private MetadataTable MapTable(CatalogRow row, List<CatalogRow> columnRows, List<CatalogRow> keyRows, List<CatalogRow> indexRows, List<CatalogRow> checkRows, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
+    protected virtual MetadataTable MapTable(CatalogRow row, List<CatalogRow> columnRows, List<CatalogRow> keyRows, List<CatalogRow> indexRows, List<CatalogRow> checkRows, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
     {
         var identity = Identity(row);
         // All filters are applied to literal catalog identities by the orchestrator. No user SQL is interpolated.
@@ -89,7 +89,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         };
     }
 
-    private MetadataColumn MapCatalogColumn(CatalogRow column, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
+    protected virtual MetadataColumn MapCatalogColumn(CatalogRow column, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
     {
         var mapped = MapColumn(column);
         if (!options.Features.Contains(SchemaFeature.Generation)) mapped = mapped with { Generation = null };
@@ -156,6 +156,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
             DbType.Boolean when text is "0" or "1" => text == "1",
             DbType.Boolean => bool.Parse(text),
             DbType.Byte => Convert.ToByte(value, CultureInfo.InvariantCulture),
+            DbType.SByte => Convert.ToSByte(value, CultureInfo.InvariantCulture),
             DbType.Int16 => Convert.ToInt16(value, CultureInfo.InvariantCulture),
             DbType.Int32 => Convert.ToInt32(value, CultureInfo.InvariantCulture),
             DbType.Int64 => Convert.ToInt64(value, CultureInfo.InvariantCulture),
@@ -170,7 +171,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         };
     }
 
-    private static MetadataView TryView(MetadataName identity, MetadataColumn[] inventory, string? sql)
+    protected virtual MetadataView MapView(MetadataName identity, MetadataColumn[] inventory, string? sql)
     {
         if (sql is null) return new(identity, inventory);
         var text = sql.Trim().TrimEnd(';').Trim();
