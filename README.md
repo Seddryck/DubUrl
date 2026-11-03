@@ -294,3 +294,5 @@ Please note that `DubUrl` does not install actual drivers, and only provides a s
 
 
 
+
+Provider authors: see the [schema command-plan contract and coordinated release](docs/schema-command-plans.md).

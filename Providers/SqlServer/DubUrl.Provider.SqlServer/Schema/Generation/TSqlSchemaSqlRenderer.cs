@@ -6,6 +6,26 @@ internal sealed class TSqlSchemaSqlRenderer : StandardSchemaSqlRenderer
 {
     internal static TSqlSchemaSqlRenderer Default { get; } = new();
 
+    public override IReadOnlyList<SchemaSqlCommand> PlanCommands(IDialect dialect, IReadOnlyList<SchemaSqlCommand> statements)
+    {
+        var commands = new List<SchemaSqlCommand>();
+        for (var i = 0; i < statements.Count; i++)
+        {
+            var statement = statements[i];
+            if (statement.Operation != SchemaSqlOperation.Comment)
+            {
+                // Every view starts its own command/batch. Other statement scopes are never split.
+                commands.Add(statement);
+                continue;
+            }
+            var comments = new List<string> { statement.CommandText };
+            while (i + 1 < statements.Count && statements[i + 1].Operation == SchemaSqlOperation.Comment)
+                comments.Add(statements[++i].CommandText);
+            commands.Add(new(string.Join("\r\n", comments), SchemaSqlOperation.Comment, "comments"));
+        }
+        return commands;
+    }
+
     public override bool SupportsCommentRendering => true;
 
     public override string RenderColumnType(IDialect dialect, string type, int? length, int precision, int scale, bool nativeType)
