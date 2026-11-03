@@ -17,4 +17,6 @@ internal sealed class SingleStoreSchemaSqlRenderer : StandardSchemaSqlRenderer, 
         => column is null
             ? throw new NotSupportedException("SingleStore table descriptions require ITableDescriptionSqlRenderer during CREATE TABLE; ALTER TABLE COMMENT does not persist them on the supported engine.")
             : string.Empty;
-}
+    public override string RenderGenerated(IDialect dialect, string type, string expression, bool stored)
+        => stored ? $"AS ({expression}) PERSISTED {type}"
+            : throw new NotSupportedException("SingleStore supports persisted computed columns only; virtual generation is not supported.");}
