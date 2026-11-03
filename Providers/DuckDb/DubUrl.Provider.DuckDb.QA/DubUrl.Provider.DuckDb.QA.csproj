@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>false</IsPackable><QaProvider>duckdb</QaProvider></PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.5.6" />
     <PackageReference Include="DuckDB.NET.Data" Version="1.5.6" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
