@@ -142,6 +142,59 @@ public sealed class SingleStoreSchemaTests
         });
     }
 
+    [Test]
+    public void RowstoreCompositeKeysAndUniqueIndexEnforceShardCompatibleUniqueness()
+    {
+        var dialect = Dialect();
+        var renderer = (ITableDefinitionSqlRenderer)dialect.SchemaSqlRenderer;
+        WithTable((command, name) =>
+        {
+            var table = new TableDefinitionContext(new(name.Trim('`')), ["tenant", "code", "region"],
+                UniqueKeys: [new("uq_region", ["tenant", "region"])], Options: new(SchemaTableStorage.Rowstore, ["tenant"]),
+                Indexes: [new("uq_code", [new("tenant"), new("code")], Unique: true)]);
+            var plan = renderer.RenderTableDefinition(dialect, table);
+            command.CommandText = $"{plan.CreatePrefix} {name} (tenant INT NOT NULL, code INT NOT NULL, region INT NOT NULL, {string.Join(", ", plan.Definitions)})";
+            command.ExecuteNonQuery();
+
+            command.CommandText = renderer.RenderCreateIndex(dialect, new(new("ix_ordered"), table, [new("code", true), new("region", false)]));
+            command.ExecuteNonQuery();
+            command.CommandText = $"INSERT INTO {name} VALUES (1,2,3)";
+            command.ExecuteNonQuery();
+            command.CommandText = $"INSERT INTO {name} VALUES (1,2,4)";
+            Assert.That(() => command.ExecuteNonQuery(), Throws.TypeOf<SingleStoreException>().With.Property("Number").EqualTo(1062));
+            command.CommandText = $"INSERT INTO {name} VALUES (1,4,3)";
+            Assert.That(() => command.ExecuteNonQuery(), Throws.TypeOf<SingleStoreException>().With.Property("Number").EqualTo(1062));
+            command.CommandText = $"INSERT INTO {name} VALUES (2,2,3)";
+            command.ExecuteNonQuery();
+            command.CommandText = $"SHOW CREATE TABLE {name}";
+            using var reader = command.ExecuteReader();
+            Assert.That(reader.Read(), Is.True);
+            Assert.That(reader.GetString(1), Does.Contain("KEY `ix_ordered` (`code` DESC,`region`)"));
+        });
+    }
+
+    [Test]
+    public void ColumnstoreSortDirectionIsVerifiedThroughNativeDefinition()
+    {
+        var dialect = Dialect();
+        var renderer = (ITableDefinitionSqlRenderer)dialect.SchemaSqlRenderer;
+        WithTable((command, name) =>
+        {
+            var table = new TableDefinitionContext(new(name.Trim('`')), ["id", "code"], new(null, ["id"]),
+                Options: new(SchemaTableStorage.Columnstore, ["id"], [new("code", true)]));
+            var plan = renderer.RenderTableDefinition(dialect, table);
+            command.CommandText = $"{plan.CreatePrefix} {name} (id INT NOT NULL, code INT, {string.Join(", ", plan.Definitions)})";
+            command.ExecuteNonQuery();
+            command.CommandText = $"INSERT INTO {name} VALUES (1,2)";
+            command.ExecuteNonQuery();
+            Assert.That(() => command.ExecuteNonQuery(), Throws.TypeOf<SingleStoreException>().With.Property("Number").EqualTo(1062));
+            command.CommandText = $"SHOW CREATE TABLE {name}";
+            using var reader = command.ExecuteReader();
+            Assert.That(reader.Read(), Is.True);
+            Assert.That(reader.GetString(1), Does.Contain("SORT KEY").And.Contain("(`code` DESC)"));
+        });
+    }
+
     private static void WithTable(Action<SingleStoreCommand, string> action)
     {
         using var connection = SingleStoreTestDatabase.CreateConnection();
