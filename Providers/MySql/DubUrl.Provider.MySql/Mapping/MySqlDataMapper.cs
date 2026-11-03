@@ -16,6 +16,7 @@ namespace DubUrl.Provider.MySql.Mapping;
     "MySql.Data"
 )]
 [ConnectionConfiguration(Pooling = "Pooling", MinPoolSize = "Minimum Pool Size", MaxPoolSize = "Maximum Pool Size", ConnectionTimeout = "Connection Timeout", CommandTimeout = "Default Command Timeout", MaxLifetime = "Connection Lifetime", Tls = "ConnectorNet", TimeZone = "sql:mysql")]
+[DubUrl.Discovery.SchemaDiscovery(typeof(DubUrl.Provider.MySql.Discovery.MySqlMetadataReader))]
 public class MySqlDataMapper : MySqlConnectorMapper
 {
     public MySqlDataMapper(DbConnectionStringBuilder csb, IDialect dialect, IParametrizer parametrizer)
