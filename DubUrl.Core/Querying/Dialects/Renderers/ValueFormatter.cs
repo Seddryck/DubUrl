@@ -23,7 +23,7 @@ public class ValueFormatter : BaseValueFormatter
         With(new PrefixFormatter<DateTimeOffset>("TIMESTAMPTZ", new TimestampTimeZoneFormatter()));
         With(new PrefixFormatter<TimeSpan>("INTERVAL", new IntervalFormatter()));
         var numericTypes = new Type[] {
-            typeof(byte), typeof(short), typeof(int), typeof(long)
+            typeof(sbyte), typeof(byte), typeof(short), typeof(int), typeof(long)
             , typeof(float), typeof(double)
             , typeof(decimal)
         };
