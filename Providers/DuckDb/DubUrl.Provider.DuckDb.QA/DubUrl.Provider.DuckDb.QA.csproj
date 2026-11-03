@@ -15,7 +15,6 @@
     <ProjectReference Include="..\..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
     <ProjectReference Include="..\..\..\DubUrl.Core\DubUrl.Core.csproj" />
     <ProjectReference Include="..\..\..\QA\DubUrl.ProviderTesting\DubUrl.ProviderTesting.csproj" />
-    <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
   </ItemGroup>
   <ItemGroup><None Update="qa-manifest.json" CopyToOutputDirectory="PreserveNewest" /><QaInfrastructure Include="infrastructure\**\*" /></ItemGroup>
   <Import Project="..\..\..\build\ProviderQaBundle.targets" />

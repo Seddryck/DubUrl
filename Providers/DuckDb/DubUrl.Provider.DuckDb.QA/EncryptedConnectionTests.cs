@@ -4,13 +4,10 @@ using System.Reflection;
 using System.Runtime.Loader;
 using DubUrl.Authentication;
 using DubUrl.BulkCopy;
-using DubUrl.Discovery;
 using DubUrl.Mapping;
-using DubUrl.Provider.DuckDb.Discovery;
 using DubUrl.Provider.DuckDb.Mapping;
 using DubUrl.Provider.DuckDb.Native;
 using DubUrl.Provider.DuckDb.Native.BulkCopy;
-using DubUrl.Schema;
 using DuckDB.NET.Data;
 using NUnit.Framework;
 
@@ -103,7 +100,7 @@ public class EncryptedConnectionTests
     }
 
     [Test]
-    public async Task NativeSchemaCommandsTransactionsAndTypedBulkCopy_WorkOnEncryptedCatalog()
+    public void NativeMetadataCommandsTransactionsAndTypedBulkCopy_WorkOnEncryptedCatalog()
     {
         using (var connection = (DuckDBConnection)Target().Open())
         {
@@ -126,12 +123,6 @@ public class EncryptedConnectionTests
             Assert.That(restrictions[0], Is.Null);
             Assert.That(connection.GetSchema("Tables", ["memory"]).Rows.Cast<DataRow>().Any(row => Equals(row["table_name"], "decoy")), Is.True);
             Assert.That(connection.GetSchema().Rows.Count, Is.GreaterThan(0));
-            var discovery = await new SchemaInspector().InspectAsync(connection, new DuckDbMetadataReader(), new DiscoveryOptions
-            { Features = [SchemaFeature.Tables, SchemaFeature.Columns, SchemaFeature.PrimaryKeys, SchemaFeature.Indexes, SchemaFeature.Views] });
-            Assert.That(discovery.IsSuccess && discovery.IsComplete, Is.True);
-            Assert.That(discovery.Schema!.Tables.Values.Select(t => t.Name), Is.EqualTo(new[] { "sample" }));
-            Assert.That(discovery.Schema.Indexes.Values.Any(i => i.Name == "ix_title"), Is.True);
-            Assert.That(discovery.ViewInventory, Has.Count.EqualTo(1));
         }
         using var data = new DataTable();
         data.Columns.Add("id", typeof(int)); data.Columns.Add("title", typeof(string));

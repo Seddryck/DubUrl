@@ -13,7 +13,7 @@ Provider QA follows the same ownership boundary as provider production code. A p
 
 - `DubUrl.Provider.XYZ` contains production provider registration, mapping, rewriting, dialect, and parameter behavior.
 - `DubUrl.Provider.XYZ.Testing` contains fast unit tests for that production project. It may reference test frameworks and test helpers, but production projects must never reference it.
-- `DubUrl.Provider.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable provider contracts from `DubUrl.ProviderTesting`. Application-level integration tests may consume published Schema packages.
+- `DubUrl.Provider.XYZ.QA` contains live tests, the database driver, and deployment assets. It consumes reusable provider contracts from `DubUrl.ProviderTesting`. Schema deployment, rendering, and discovery integration tests belong in the matching `DubUrl.Schema.XYZ.QA` suite in the Schema repository, including scenarios using encrypted provider connections. Provider QA must not reference Schema packages.
 
 Provider QA projects reference the provider-neutral Core project, published as `DubUrl`, and their own provider implementations explicitly. Shared QA contracts do not pull in an all-provider aggregate.
 
@@ -89,3 +89,14 @@ the image pin, CPU requirements and explicit ODBC exclusions.
 - resolving one provider does not change another provider's resolution.
 
 Provider-owned connectivity, querying, schema, driver, and deployment scenarios must not be copied back into the composition suite. SQLite and PostgreSQL ADO.NET live coverage is now owned by their provider QA projects; their legacy composition fixtures were removed.
+
+## Schema overlap audit
+
+All 22 provider QA projects and their shared provider contracts were checked for Schema references and schema deployment/discovery assertions. DuckDB was the only provider QA project using `DubUrl.Schema`; its encrypted `SchemaInspector` scenario now belongs to `DubUrl.Schema.DuckDb.QA`.
+
+- DuckDB retains encryption, native ADO.NET `GetSchema`, transaction, and typed bulk-copy checks. These verify the provider connection independently of Schema.
+- SingleStore retains native auto-increment type promotion and fixture column/partition checks. Schema QA owns portable identity deployment and discovery.
+- Db2 retains native typed-value and catalog checks; there is no matching Db2 Schema QA suite.
+- MsAccess, PowerBiDesktop, SsasMultidim, SsasTabular, Drill, MsExcel, FirebirdSql, MariaDb, MySql, Oracle, CockroachDb, CrateDb, PostgreSql, QuestDb, Timescale, Sqlite, MsSqlServer, Text, and Trino contain no Schema integration assertions to move.
+
+Creating tables as test setup, querying native catalogs, and testing ADO.NET metadata do not by themselves exercise the Schema library. Keep these provider tests separate from Schema's model, rendering, deployment, and discovery contracts.
