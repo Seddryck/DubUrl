@@ -37,4 +37,15 @@ public class SingleStoreSchemaTests
         Assert.That(() => dialect.SchemaSqlRenderer.ValidateKeyColumn(dialect, "TEXT", "items", "code"), Throws.ArgumentException);
         Assert.That(dialect.Capabilities.NativeTypes.Contains("VARCHAR(32); DROP TABLE items"), Is.False);
     }
+    [Test]
+    public void TableDescriptionsRequireInlineConsumerAndPreserveLiteral()
+    {
+        var dialect = Dialect();
+        var renderer = (ITableDescriptionSqlRenderer)dialect.SchemaSqlRenderer;
+        Assert.That(renderer.RenderTableDescription(dialect, new("items", Database: "store"), "O'Brien — café\r\npath\\x"),
+            Is.EqualTo(" COMMENT = 'O''Brien — café\r\npath\\\\x'"));
+        Assert.That(() => renderer.RenderTableDescription(dialect, new("items", Schema: "wrong"), "text"), Throws.TypeOf<NotSupportedException>());
+        Assert.That(() => dialect.SchemaSqlRenderer.RenderComment(dialect, new("items"), null, "text"), Throws.TypeOf<NotSupportedException>());
+        Assert.That(dialect.SchemaSqlRenderer.RenderComment(dialect, new("items"), "code", "text"), Is.Empty);
+    }
 }
