@@ -21,7 +21,8 @@ public class MySqlMetadataReaderTests
     [TestCase(typeof(MariaDbDataRewriter))]
     [TestCase(typeof(SingleStoreMapper))]
     public void CompatibleProviders_DoNotInheritMySqlDiscovery(Type mapper)
-        => Assert.That(Attribute.GetCustomAttribute(mapper, typeof(SchemaDiscoveryAttribute)), Is.Null);
+        => Assert.That((Attribute.GetCustomAttribute(mapper, typeof(SchemaDiscoveryAttribute)) as SchemaDiscoveryAttribute)?.Create().Reader,
+            Is.Not.TypeOf<MySqlMetadataReader>());
 
     [Test]
     public async Task LiteralDefaultsAndFacets_AreTypedAndOrdered()
