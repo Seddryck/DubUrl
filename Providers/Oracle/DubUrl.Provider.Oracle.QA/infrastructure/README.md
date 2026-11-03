@@ -7,6 +7,8 @@ From the repository root, with PowerShell 7, Docker Compose v2 and the .NET SDKs
 ./QA/DubUrl.QA/Oracle/deploy-oracle-test-env.ps1
 ```
 
+Use `-testFilter 'FullyQualifiedName~OracleSchemaTests'` to run only the native-key and regex schema tests. Run these real-database schema tests only on .NET 10 using `-frameworks @('net10.0')`.
+
 Use `-frameworks @('net10.0')` for a focused run, `-port 1522` if 1521 is busy,
 and `-readinessTimeoutSeconds 1200` for slower hosts. An optional `-sdkVersions`
 hashtable selects locally installed SDKs for each requested framework.
@@ -47,8 +49,23 @@ dictionary column discovery and table removal. Oracle scalar queries use `dual`.
 The shared positional `?`, standalone TIME and ANSI interval contracts are explicitly
 skipped: they do not express the Oracle APIs/syntax tested here. Oracle intervals
 and time-zone types are not claimed as covered. ODBC/OLE DB, bulk ingestion,
-advanced DDL and the extensible schema-discovery API are outside this suite; metadata
+identity/generated columns, comments, views and the extensible schema-discovery API are outside this suite; metadata
 assertions query Oracle's own dictionary. This is functional QA, not benchmarking.
+
+Schema tests render single-table definitions through the published Schema contract,
+then execute each DDL command separately. They verify native CHAR/VARCHAR/VARCHAR2
+primary, unique and foreign keys, invalid insertions, length enforcement and native
+dictionary type/length metadata. VARCHAR emits VARCHAR2, Oracle's stable native
+spelling. Explicit native strings require a bounded positive length, at most 2000
+for CHAR and 4000 for VARCHAR/VARCHAR2 (the STANDARD configuration); extended
+VARCHAR2 sizes are not claimed. Length units follow the database session settings,
+and Oracle still enforces byte and index-key limits. Logical type inference is
+unchanged. See [Oracle data types](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/Data-Types.html).
+
+Regex tests verify REGEXP_LIKE enforcement, quoted/Unicode patterns, literal dots,
+and both shared null behaviors, including Oracle's empty-string-as-NULL behavior.
+These tests do not claim public multi-object deployment support; that requires the
+shared deployment work tracked in [DubUrl.Schema#6](https://github.com/Seddryck/DubUrl.Schema/issues/6).
 
 Results are under `.test-results/oracle/<framework>/`; bundles are under
 `Providers/Oracle/DubUrl.Provider.Oracle.QA/bin/qa/oracle/<version>/<framework>/portable/`.
