@@ -13,6 +13,7 @@ internal static class DuckdbSchemaCapabilities
             SupportsRegularExpressionChecks = true,
             SupportsComments = true,
             SupportsViews = true,
-            NativeTypes = new HashSet<string>(["JSON", "UUID", "HUGEINT"], StringComparer.OrdinalIgnoreCase),
+            // CHAR is a VARCHAR alias; DuckDB accepts but does not enforce declared lengths.
+            NativeTypes = new HashSet<string>(["JSON", "UUID", "HUGEINT", "CHAR", "VARCHAR"], StringComparer.OrdinalIgnoreCase),
         };
 }
