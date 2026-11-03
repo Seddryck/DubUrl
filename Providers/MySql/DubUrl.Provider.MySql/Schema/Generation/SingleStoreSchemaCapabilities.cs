@@ -10,7 +10,7 @@ internal static class SingleStoreSchemaCapabilities
             ObjectNames = ObjectNameParts.Name | ObjectNameParts.Database,
             SupportsIdentityColumns = true,
             SupportsStoredGeneratedColumns = true,
-            SupportsVirtualGeneratedColumns = true,
+            SupportsVirtualGeneratedColumns = false,
             SupportsRegularExpressionChecks = true,
             SupportsViews = true,
             SupportsComments = true,

@@ -116,6 +116,32 @@ public sealed class SingleStoreSchemaTests
         });
     }
 
+    [Test]
+    public void PersistedComputedValuesTrackWritesAndNulls()
+    {
+        var dialect = Dialect();
+        WithTable((command, name) =>
+        {
+            var generated = dialect.SchemaSqlRenderer.RenderGenerated(dialect, "DECIMAL(12,3)", "amount * 2", true);
+            command.CommandText = $"CREATE TABLE {name} (id INT PRIMARY KEY, amount DECIMAL(12,3), doubled {generated}, SHARD KEY(id))";
+            command.ExecuteNonQuery();
+            command.CommandText = $"INSERT INTO {name} (id,amount) VALUES (1,1.125),(2,NULL)";
+            command.ExecuteNonQuery();
+            command.CommandText = $"SELECT doubled FROM {name} WHERE id=1";
+            Assert.That(command.ExecuteScalar(), Is.EqualTo(2.250m));
+            command.CommandText = $"UPDATE {name} SET amount=2.250 WHERE id=1";
+            command.ExecuteNonQuery();
+            command.CommandText = $"SELECT doubled FROM {name} WHERE id=1";
+            Assert.That(command.ExecuteScalar(), Is.EqualTo(4.500m));
+            command.CommandText = $"SELECT doubled FROM {name} WHERE id=2";
+            Assert.That(command.ExecuteScalar(), Is.EqualTo(DBNull.Value));
+            command.CommandText = $"SHOW CREATE TABLE {name}";
+            using var reader = command.ExecuteReader();
+            Assert.That(reader.Read(), Is.True);
+            Assert.That(reader.GetString(1), Does.Contain("PERSISTED decimal(12,3)"));
+        });
+    }
+
     private static void WithTable(Action<SingleStoreCommand, string> action)
     {
         using var connection = SingleStoreTestDatabase.CreateConnection();

@@ -48,4 +48,14 @@ public class SingleStoreSchemaTests
         Assert.That(() => dialect.SchemaSqlRenderer.RenderComment(dialect, new("items"), null, "text"), Throws.TypeOf<NotSupportedException>());
         Assert.That(dialect.SchemaSqlRenderer.RenderComment(dialect, new("items"), "code", "text"), Is.Empty);
     }
+    [Test]
+    public void ComputedColumnsUsePersistedSyntaxAndRejectVirtualGeneration()
+    {
+        var dialect = Dialect();
+        Assert.That(dialect.Capabilities.SupportsStoredGeneratedColumns, Is.True);
+        Assert.That(dialect.Capabilities.SupportsVirtualGeneratedColumns, Is.False);
+        Assert.That(dialect.SchemaSqlRenderer.RenderGenerated(dialect, "DECIMAL(12, 3)", "`amount` * 2", true),
+            Is.EqualTo("AS (`amount` * 2) PERSISTED DECIMAL(12, 3)"));
+        Assert.That(() => dialect.SchemaSqlRenderer.RenderGenerated(dialect, "INT", "1", false), Throws.TypeOf<NotSupportedException>());
+    }
 }
