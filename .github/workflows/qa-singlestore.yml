@@ -28,10 +28,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - framework: net8.0
-            sdk: 8.0.416
-          - framework: net9.0
-            sdk: 9.0.308
           - framework: net10.0
             sdk: 10.0.401
     steps:

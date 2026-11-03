@@ -1,13 +1,13 @@
 # SingleStore provider QA
 
-With PowerShell 7, Docker Compose v2 and the .NET SDKs 8.0.416, 9.0.308 and
+With PowerShell 7, Docker Compose v2 and the .NET SDK
 10.0.401 installed, run from the repository root:
 
 ```powershell
 ./QA/DubUrl.QA/SingleStore/deploy-singlestore-test-env.ps1
 ```
 
-Use `-frameworks @('net10.0')` for a focused run, `-port 3307` for a busy host
+Database QA defaults to .NET 10, matching the schema issue validation scope. Use `-frameworks @('net10.0')` for a focused run, `-port 3307` for a busy host
 port, or `-readinessTimeoutSeconds 600` for slower startup. `-sdkVersions` accepts
 a hashtable mapping requested frameworks to installed SDK versions. The legacy
 `run-singlestore-docker.cmd` forwards to this full QA command; `-force` is retained
@@ -50,8 +50,10 @@ parameter, template and row-limiting contracts, decimal/date/microsecond timesta
 Unicode/null behavior, rendered table creation/removal, dictionary column metadata
 and the two-partition database configuration. A separate test checks SingleStore's
 promotion of auto-increment integers to BIGINT; the shared fixture uses explicit
-integer IDs to preserve the common customer model. Metadata assertions use SingleStore
-SQL; they do not claim an extensible schema metadata reader implementation.
+integer IDs to preserve the common customer model. Metadata assertions cover the registered read-only SingleStore reader, native facets,
+defaults, generated expressions, comments and portable views. Additional schema tests
+verify native character keys, persisted computations and structured shard/index SQL.
+See [schema contracts and follow-up](../../../../docs/singlestore-schema.md).
 ODBC fixtures remain explicitly ignored pending #139 and ODBC is not advertised
 as a passing manifest capability. New bulk ingestion and advanced DDL are outside
 this issue. The Dev Image is for functional QA, not production or benchmarking.
@@ -64,7 +66,7 @@ prepared disposable fixture, set `DUBURL_SINGLESTORE_QA_URL` first.
 
 | CI dimension | Repository evidence and decision |
 | --- | --- |
-| Frameworks | The shared build supports net8.0/net9.0/net10.0; each gets its matching pinned SDK and separate job. |
+| Frameworks | The shared build retains net8.0/net9.0/net10.0; real SingleStore QA runs only on net10.0 with its matching SDK as required by the schema issues. |
 | Runner | Database manifest requires Linux amd64; use Ubuntu 24.04 x64. No additional native runner matrix is introduced. |
 | Deliverable | Existing portable, framework-dependent QA bundle and repository version; no new NuGet package, RID, AOT or executable distribution. |
 | Triggers and permissions | Pull requests, pushes to main and manual runs; read-only repository permission with no license secrets or publishing. |
