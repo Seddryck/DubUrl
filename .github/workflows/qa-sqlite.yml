@@ -33,10 +33,7 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: |
-            8.0.416
-            9.0.308
-            10.0.401
+          dotnet-version: 10.0.401
 
       - name: Run provider QA
         shell: pwsh
@@ -44,7 +41,7 @@ jobs:
           ./QA/DubUrl.QA/Sqlite/deploy-sqlite-test-env.ps1
           -force
           -config Release
-          -frameworks @('net8.0', 'net9.0', 'net10.0')
+          -frameworks @('net10.0')
 
       - name: Upload test results
         if: always()

@@ -21,6 +21,13 @@ internal class SqliteRenderer : AnsiRenderer
                     .With(new FunctionFormatter<DateTimeOffset>("datetime", new TimestampTimeZoneFormatter()))
                     .With(new FunctionFormatter<TimeSpan>("time", new IntervalAsTimeFormatter()))
               , new NullFormatter()
-              , new IdentifierUnquotedFormatter())
+              , new SqliteIdentifierFormatter())
     { }
+}
+
+/// <summary>Formats one literal component; qualification belongs to the object-name renderer.</summary>
+internal sealed class SqliteIdentifierFormatter : IdentifierQuotedFormatter
+{
+    protected override string SurroundByQuotes(string value)
+        => $"\"{value.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
 }
