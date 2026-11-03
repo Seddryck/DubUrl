@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string] $config = 'Release',
+    [string] $testFilter = '',
     [ValidateSet('net8.0', 'net9.0', 'net10.0')]
     [string[]] $frameworks = @('net8.0', 'net9.0', 'net10.0'),
     [ValidateRange(1, 65535)] [int] $port = 1521,
@@ -57,7 +58,7 @@ try {
             Remove-Item -LiteralPath $result -ErrorAction SilentlyContinue
         }
     }
-    Run-ProviderQaSuite -project $project -provider oracle -config $config -frameworks $frameworks -sdkVersions $sdkVersions
+    Run-ProviderQaSuite -project $project -provider oracle -config $config -frameworks $frameworks -sdkVersions $sdkVersions -testFilter $testFilter
 
     foreach ($framework in $frameworks) {
         foreach ($suite in @('complete')) {
