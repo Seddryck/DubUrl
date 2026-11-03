@@ -23,6 +23,7 @@ public class OracleDialect : BaseDialect
     public override DialectCapabilities Capabilities { get; } = new()
     {
         SupportsComments = true,
+        SupportsViews = true,
         SupportsRegularExpressionChecks = true,
         NativeTypes = new HashSet<string>(["CHAR", "VARCHAR", "VARCHAR2"], StringComparer.OrdinalIgnoreCase),
     };

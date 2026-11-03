@@ -4,6 +4,11 @@ namespace DubUrl.Querying.Dialects;
 /// <remarks>Implementations belong to Core or provider assemblies and do not depend on schema models.</remarks>
 public interface ISchemaSqlRenderer
 {
+    /// <summary>Converts trusted rendering units to executable commands, preserving order and internal scopes.</summary>
+    /// <remarks>Inputs are complete units, never arbitrary scripts. Providers own terminators and batching.</remarks>
+    IReadOnlyList<SchemaSqlCommand> PlanCommands(IDialect dialect, IReadOnlyList<SchemaSqlCommand> statements)
+        => statements.ToArray();
+
     /// <summary>Whether this implementation can render engine comments.</summary>
     bool SupportsCommentRendering => false;
 

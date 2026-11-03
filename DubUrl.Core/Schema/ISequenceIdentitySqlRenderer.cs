@@ -6,6 +6,11 @@ public sealed record IdentityColumnContext(string Table, string Column, string? 
 /// <summary>Optional provider-owned rendering for sequence-backed portable identity columns.</summary>
 public interface ISequenceIdentitySqlRenderer
 {
+    /// <summary>Produces explicit commands for prerequisites. Legacy multi-statement strings are not parsed.</summary>
+    IReadOnlyList<SchemaSqlCommand> PlanIdentityPrerequisites(IDialect dialect, IdentityColumnContext column,
+        long seed, long increment, bool dropExisting)
+        => throw new NotSupportedException("This sequence renderer must implement explicit identity prerequisite commands for model deployment.");
+
     string RenderIdentityPrerequisite(IDialect dialect, IdentityColumnContext column, long seed, long increment, bool dropExisting);
     string RenderIdentityColumn(IDialect dialect, IdentityColumnContext column, string type);
 }

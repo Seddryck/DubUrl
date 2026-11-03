@@ -39,11 +39,19 @@ internal sealed class DuckDbSchemaSqlRenderer : StandardSchemaSqlRenderer, ISequ
     }
 
     public string RenderIdentityPrerequisite(IDialect dialect, IdentityColumnContext column, long seed, long increment, bool dropExisting)
+        => string.Join("\r\n", PlanIdentityPrerequisites(dialect, column, seed, increment, dropExisting).Select(command => command.CommandText));
+
+    public IReadOnlyList<SchemaSqlCommand> PlanIdentityPrerequisites(IDialect dialect, IdentityColumnContext column,
+        long seed, long increment, bool dropExisting)
     {
         if (increment == 0) throw new ArgumentOutOfRangeException(nameof(increment));
         var name = SequenceName(dialect, column);
-        var drop = dropExisting ? $"DROP SEQUENCE IF EXISTS {name};\r\n" : "";
-        return $"{drop}CREATE SEQUENCE {name} START {seed.ToString(CultureInfo.InvariantCulture)} INCREMENT BY {increment.ToString(CultureInfo.InvariantCulture)} MINVALUE -9223372036854775808 MAXVALUE 9223372036854775807 NO CYCLE;";
+        var commands = new List<SchemaSqlCommand>();
+        if (dropExisting)
+            commands.Add(new($"DROP SEQUENCE IF EXISTS {name};", SchemaSqlOperation.IdentityPrerequisite, name));
+        commands.Add(new($"CREATE SEQUENCE {name} START {seed.ToString(CultureInfo.InvariantCulture)} INCREMENT BY {increment.ToString(CultureInfo.InvariantCulture)} MINVALUE -9223372036854775808 MAXVALUE 9223372036854775807 NO CYCLE;",
+            SchemaSqlOperation.IdentityPrerequisite, name));
+        return commands;
     }
 
     public string RenderIdentityColumn(IDialect dialect, IdentityColumnContext column, string type)

@@ -24,4 +24,16 @@ internal sealed class OracleSchemaSqlRenderer : StandardSchemaSqlRenderer
 
     public override string RenderRegex(IDialect dialect, string expression, string pattern)
         => $"REGEXP_LIKE({expression}, {pattern})";
+    public override bool SupportsCommentRendering => true;
+
+    public override IReadOnlyList<SchemaSqlCommand> PlanCommands(IDialect dialect, IReadOnlyList<SchemaSqlCommand> statements)
+        => statements.Select(statement => statement.IsProceduralBlock ? statement
+            : statement with { CommandText = RemoveSqlTerminator(statement.CommandText) }).ToArray();
+
+    // Only the known outer SQL terminator is removed. Literals, comments and block contents are never split.
+    private static string RemoveSqlTerminator(string sql)
+    {
+        var text = sql.TrimEnd();
+        return text.EndsWith(';') ? text[..^1] : text;
+    }
 }

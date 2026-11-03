@@ -13,6 +13,9 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
     public StandardSchemaSqlRenderer(ISchemaSqlRenderer fallback)
         => this.fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
 
+    public virtual IReadOnlyList<SchemaSqlCommand> PlanCommands(IDialect dialect, IReadOnlyList<SchemaSqlCommand> statements)
+        => fallback?.PlanCommands(dialect, statements) ?? statements.ToArray();
+
     public virtual bool SupportsCommentRendering => fallback?.SupportsCommentRendering ?? false;
     public virtual bool RequiresForeignKeyDependencyOrder => fallback?.RequiresForeignKeyDependencyOrder ?? false;
     public virtual string RenderColumnComment(IDialect dialect, string description)
