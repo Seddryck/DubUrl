@@ -11,6 +11,6 @@ internal static class SqliteSchemaCapabilities
             SupportsStoredGeneratedColumns = true,
             SupportsVirtualGeneratedColumns = true,
             SupportsViews = true,
-            NativeTypes = new HashSet<string>(["TEXT", "BLOB", "INTEGER", "REAL", "NUMERIC"], StringComparer.OrdinalIgnoreCase),
+            NativeTypes = new HashSet<string>(["TEXT", "BLOB", "INTEGER", "REAL", "NUMERIC", "CHAR", "VARCHAR"], StringComparer.OrdinalIgnoreCase),
         };
 }
