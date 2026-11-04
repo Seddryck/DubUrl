@@ -8,11 +8,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
-		<ProjectReference Include="..\Providers\Access\DubUrl.Provider.Access\DubUrl.Provider.Access.csproj" />
-		<ProjectReference Include="..\Providers\Excel\DubUrl.Provider.Excel\DubUrl.Provider.Excel.csproj" />
-		<ProjectReference Include="..\Providers\MySql\DubUrl.Provider.MySql\DubUrl.Provider.MySql.csproj" />
-		<ProjectReference Include="..\Providers\Oracle\DubUrl.Provider.Oracle\DubUrl.Provider.Oracle.csproj" />
-		<ProjectReference Include="..\Providers\SqlServer\DubUrl.Provider.SqlServer\DubUrl.Provider.SqlServer.csproj" />
+		<PackageReference Include="DubUrl.Provider.Access" Version="$(DubUrlProviderVersion)" />
+		<PackageReference Include="DubUrl.Provider.Excel" Version="$(DubUrlProviderVersion)" />
+		<PackageReference Include="DubUrl.Provider.MySql" Version="$(DubUrlProviderVersion)" />
+		<PackageReference Include="DubUrl.Provider.Oracle" Version="$(DubUrlProviderVersion)" />
+		<PackageReference Include="DubUrl.Provider.SqlServer" Version="$(DubUrlProviderVersion)" />
 	</ItemGroup>
 
 	<Target Name="BoundDubUrlDependencyVersions" AfterTargets="_GetProjectReferenceVersions">

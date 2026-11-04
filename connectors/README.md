@@ -15,7 +15,7 @@ For example, both PostgreSQL archives contain `DubUrl.Provider.PostgreSql.dll` a
 connector-specific `DubUrl.Provider.PostgreSql.deps.json`. The Npgsql archive describes Npgsql dependencies;
 the ODBC archive describes System.Data.Odbc and the shared ODBC implementation.
 
-`Providers/Build/ProviderBinding.Build.csproj` is a non-packable dependency collector used only during
+`connectors/Build/ProviderBinding.Build.csproj` is a non-packable dependency collector used only during
 packaging. Its temporary `ConnectorDependencies.dll` is excluded from every archive. Packaging merges the
 collector's dependency edges into the selected implementation's entry, removes the collector library/runtime
 entry, and writes the implementation-named `.deps.json`. Native, RID-specific, and satellite assets retain
@@ -34,7 +34,7 @@ Installed aliases take precedence over bundled `DubUrl` registrations; duplicate
 are errors. Explicit registries bypass discovery. New default registries observe store changes,
 while existing URLs retain their selected providers.
 
-Every connector dependency set is collected with `Providers/Build/ProviderBinding.Build.csproj`, using the settings in `connector-matrix.json`. There is no PostgreSQL/Npgsql-specific build path or project. Without overrides, the shared project builds PostgreSQL/Npgsql for local solution builds and focused consumer tests.
+Every connector dependency set is collected with `connectors/Build/ProviderBinding.Build.csproj`, using the settings in `connector-matrix.json`. There is no PostgreSQL/Npgsql-specific build path or project. Without overrides, the shared project builds PostgreSQL/Npgsql for local solution builds and focused consumer tests.
 
 Database/driver combinations are distributed as connector packs, without per-driver binding DLLs. The collector is not packable, and the release workflow does not publish a PostgreSQL/Npgsql binding NuGet package.
 
@@ -82,12 +82,12 @@ Definitions do not list assets. The installer verifies the complete archive SHA-
 Provider-specific forward rewriting lives in the referenced `Providers/<Family>/DubUrl.Provider.*`
 implementation projects, not in the connector composition modules. Rewriter source
 and provider fixtures are colocated with their owning implementation package; see
-[provider implementation packages](../Providers/README.md). Connector modules keep
+[provider implementation packages](https://github.com/Seddryck/DubUrl.Providers). Connector modules keep
 responsibility for selecting the driver and registering the provider. Future reverse
 conversion should follow the same implementation ownership boundary.
 
 Provider implementations use their project-specific namespaces; see
-[provider namespace migration](../Providers/NAMESPACES.md). Dialect types
+[provider namespace migration](https://github.com/Seddryck/DubUrl.Providers/tree/refactor/extract-provider-repository/Providers). Dialect types
 use DubUrl.Provider.<Family>.Sql and mapper types use the owning provider's Mapping
 namespace. Existing connector binaries must be rebuilt against the renamed public types.
 Native DuckDB and SqlClient builds also include a typed bulk-copy adapter from

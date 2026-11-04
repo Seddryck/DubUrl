@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="DubUrl.Schema" Version="[$(SchemaPackageVersion)]" />
-		<ProjectReference Include="..\Providers\Build\ProviderBinding.Build.csproj" />
+		<ProjectReference Include="..\connectors\Build\ProviderBinding.Build.csproj" />
     <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.5.6" />
     <PackageReference Include="DuckDB.NET.Data" Version="1.5.6" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
@@ -53,11 +53,25 @@
   <ItemGroup>
     <None Include="..\connectors\connector-matrix.json" Link="connector-matrix.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
-    <ProjectReference Include="../DubUrl.Authentication.SqlServer/DubUrl.Authentication.SqlServer.csproj" />
-    <ProjectReference Include="../DubUrl.Authentication.Snowflake/DubUrl.Authentication.Snowflake.csproj" />
+    <PackageReference Include="DubUrl.Authentication.SqlServer" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Authentication.Snowflake" Version="$(DubUrlProviderVersion)" />
     <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />
-    <ProjectReference Include="..\Providers\*\DubUrl.Provider.*\*.csproj" Exclude="..\Providers\*\*.QA\*.csproj" />
-    <Compile Include="..\Providers\*\DubUrl.Provider.*\Tests\**\*.cs" Link="Providers\%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageReference Include="DubUrl.Provider.Access" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Db2" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Drill" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.DuckDb" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Excel" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.FirebirdSql" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.MySql" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Odbc" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Oracle" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.PostgreSql" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Snowflake" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.SqlServer" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Sqlite" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Teradata" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Text" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Trino" Version="$(DubUrlProviderVersion)" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5">

@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: Seddryck/DubUrl.Providers
-          ref: 9b58d644604987e18f12c385a9e8f12a30584259
+          ref: ae88d434ef1cf69331b14a20f77dcb28018f6d9e
           persist-credentials: false
       - name: Check out Core candidate
         uses: actions/checkout@v7
