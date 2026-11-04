@@ -1,0 +1,7 @@
+name: Prepare provider QA against the Core candidate
+description: Pack the candidate and use it as the only NuGet source for DubUrl.
+runs:
+  using: composite
+  steps:
+    - shell: pwsh
+      run: '& "$env:GITHUB_ACTION_PATH/prepare.ps1"'

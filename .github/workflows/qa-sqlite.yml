@@ -29,12 +29,23 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          repository: Seddryck/DubUrl.Providers
+          ref: 9b58d644604987e18f12c385a9e8f12a30584259
+          persist-credentials: false
+      - name: Check out Core candidate
+        uses: actions/checkout@v7
+        with:
+          path: .qa-core
+          persist-credentials: false
 
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.401
 
+      - name: Prepare QA packages against Core candidate
+        uses: ./.qa-core/.github/actions/prepare-provider-qa
       - name: Run provider QA
         shell: pwsh
         run: >-

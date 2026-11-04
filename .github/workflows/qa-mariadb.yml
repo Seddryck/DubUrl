@@ -36,9 +36,23 @@ jobs:
             sdk: 10.0.401
     steps:
       - uses: actions/checkout@v7
+        with:
+          repository: Seddryck/DubUrl.Providers
+          ref: 9b58d644604987e18f12c385a9e8f12a30584259
+          persist-credentials: false
+      - name: Check out Core candidate
+        uses: actions/checkout@v7
+        with:
+          path: .qa-core
+          persist-credentials: false
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ matrix.sdk }}
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.401
+      - name: Prepare QA packages against Core candidate
+        uses: ./.qa-core/.github/actions/prepare-provider-qa
       - name: Verify Docker Compose
         run: docker compose version
       - name: Run provider QA
