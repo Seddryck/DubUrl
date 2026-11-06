@@ -111,6 +111,13 @@ jobs:
           $context | Set-Pull-Request-Expected-Labels -Config '.github/conventional_commits_labels.json'
         }
   build:
+    env:
+      CORE_UNIT_TEST_PROJECTS: |
+        DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
+        DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj
+        DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj
+        DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj
+        DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj
     name: Build and unit tests (${{ matrix.framework }})
     needs: version
     runs-on: windows-latest
@@ -138,13 +145,7 @@ jobs:
     - name: Test
       shell: pwsh
       run: |
-        $projects = @(
-          'DubUrl.Core.Testing/DubUrl.Core.Testing.csproj',
-          'DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj',
-          'DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj',
-          'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
-          'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj'
-        )
+        $projects = $env:CORE_UNIT_TEST_PROJECTS -split '\s+' | Where-Object { $_ }
         $failedProjects = @()
 
         foreach ($project in $projects) {
@@ -169,15 +170,9 @@ jobs:
     - name: Collect coverage reports
       shell: pwsh
       run: |
-        $projects = @(
-          'DubUrl.Core',
-          'DubUrl.Provider',
-          'DubUrl.OleDb',
-          'DubUrl.Extensions',
-          'DubUrl.Adomd',
-          'DubUrl.Adbc',
-          'DubUrl.BulkCopy'
-        )
+        $projects = $env:CORE_UNIT_TEST_PROJECTS -split '\s+' | Where-Object { $_ } | ForEach-Object {
+          [IO.Path]::GetFileNameWithoutExtension($_) -replace '\.Testing$', ''
+        }
         New-Item -ItemType Directory -Force .coverage | Out-Null
 
         foreach ($project in $projects) {
