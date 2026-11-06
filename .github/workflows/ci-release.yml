@@ -11,6 +11,12 @@ concurrency:
 permissions:
   contents: read
 env:
+    CORE_UNIT_TEST_PROJECTS: |
+      DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
+      DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj
+      DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj
+      DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj
+      DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
@@ -111,13 +117,6 @@ jobs:
           $context | Set-Pull-Request-Expected-Labels -Config '.github/conventional_commits_labels.json'
         }
   build:
-    env:
-      CORE_UNIT_TEST_PROJECTS: |
-        DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
-        DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj
-        DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj
-        DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj
-        DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj
     name: Build and unit tests (${{ matrix.framework }})
     needs: version
     runs-on: windows-latest
@@ -252,8 +251,16 @@ jobs:
       shell: pwsh
       run: |
         $reports = @(Get-ChildItem .coverage -Filter 'coverage.*.xml' -File)
-        if ($reports.Count -ne 21) {
-          throw "Expected 21 coverage reports, found $($reports.Count)."
+        $projects = $env:CORE_UNIT_TEST_PROJECTS -split '\s+' | Where-Object { $_ } | ForEach-Object {
+          [IO.Path]::GetFileNameWithoutExtension($_) -replace '\.Testing$', ''
+        }
+        $expected = foreach ($project in $projects) {
+          foreach ($framework in 'net8.0','net9.0','net10.0') {
+            "coverage.$project.$framework.xml"
+          }
+        }
+        if (Compare-Object -ReferenceObject $expected -DifferenceObject @($reports.Name)) {
+          throw "Expected the $($expected.Count) named Core coverage reports, found $($reports.Count)."
         }
 
         foreach ($report in $reports) {
