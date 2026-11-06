@@ -143,7 +143,7 @@ jobs:
           'DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj',
           'DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj',
           'DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj',
-          'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj',
+          'DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj'
         )
         $failedProjects = @()
 
