@@ -11,12 +11,12 @@ concurrency:
 permissions:
   contents: read
 env:
-    CORE_UNIT_TEST_PROJECTS: |
-      DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
-      DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj
-      DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj
-      DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj
-      DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj
+  CORE_UNIT_TEST_PROJECTS: |
+    DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
+    DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj
+    DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj
+    DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj
+    DubUrl.Adbc.Testing/DubUrl.Adbc.Testing.csproj
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
   DOTNET_NO_WORKLOAD_UPDATE_NOTIFICATION: 1
