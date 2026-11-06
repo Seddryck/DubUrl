@@ -17,12 +17,23 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+        with:
+          repository: Seddryck/DubUrl.Providers
+          ref: ae88d434ef1cf69331b14a20f77dcb28018f6d9e
+          persist-credentials: false
+      - name: Check out Core candidate
+        uses: actions/checkout@v7
+        with:
+          path: .qa-core
+          persist-credentials: false
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: |
             8.0.416
             9.0.308
             10.0.401
+      - name: Prepare QA packages against Core candidate
+        uses: ./.qa-core/.github/actions/prepare-provider-qa
       - name: Run provider QA
         shell: pwsh
         run: ./QA/DubUrl.QA/Drill/deploy-drill-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')

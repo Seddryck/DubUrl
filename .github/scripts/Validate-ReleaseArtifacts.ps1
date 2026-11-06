@@ -10,32 +10,11 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $packages = @(
-    @{ Id = 'DubUrl.ProviderTesting'; Assembly = 'DubUrl.ProviderTesting' },
-    @{ Id = 'DubUrl.Authentication.Snowflake'; Assembly = 'DubUrl.Authentication.Snowflake' },
-    @{ Id = 'DubUrl.Authentication.SqlServer'; Assembly = 'DubUrl.Authentication.SqlServer' },
     @{ Id = 'DubUrl'; Assembly = 'DubUrl.Core' },
-    @{ Id = 'DubUrl.Provider.Access'; Assembly = 'DubUrl.Provider.Access' },
-    @{ Id = 'DubUrl.Provider.Db2'; Assembly = 'DubUrl.Provider.Db2' },
-    @{ Id = 'DubUrl.Provider.Drill'; Assembly = 'DubUrl.Provider.Drill' },
-    @{ Id = 'DubUrl.Provider.DuckDb'; Assembly = 'DubUrl.Provider.DuckDb' },
-    @{ Id = 'DubUrl.Provider.Excel'; Assembly = 'DubUrl.Provider.Excel' },
-    @{ Id = 'DubUrl.Provider.FirebirdSql'; Assembly = 'DubUrl.Provider.FirebirdSql' },
-    @{ Id = 'DubUrl.Provider.MySql'; Assembly = 'DubUrl.Provider.MySql' },
-    @{ Id = 'DubUrl.Provider.Odbc'; Assembly = 'DubUrl.Provider.Odbc' },
-    @{ Id = 'DubUrl.Provider.Oracle'; Assembly = 'DubUrl.Provider.Oracle' },
-    @{ Id = 'DubUrl.Provider.PostgreSql'; Assembly = 'DubUrl.Provider.PostgreSql' },
-    @{ Id = 'DubUrl.Provider.Snowflake'; Assembly = 'DubUrl.Provider.Snowflake' },
-    @{ Id = 'DubUrl.Provider.Sqlite'; Assembly = 'DubUrl.Provider.Sqlite' },
-    @{ Id = 'DubUrl.Provider.SqlServer'; Assembly = 'DubUrl.Provider.SqlServer' },
-    @{ Id = 'DubUrl.Provider.Teradata'; Assembly = 'DubUrl.Provider.Teradata' },
-    @{ Id = 'DubUrl.Provider.Text'; Assembly = 'DubUrl.Provider.Text' },
-    @{ Id = 'DubUrl.Provider.Trino'; Assembly = 'DubUrl.Provider.Trino' },
     @{ Id = 'DubUrl.OleDb'; Assembly = 'DubUrl.OleDb' },
     @{ Id = 'DubUrl.Extensions'; Assembly = 'DubUrl.Extensions' },
     @{ Id = 'DubUrl.Adomd'; Assembly = 'DubUrl.Adomd' },
     @{ Id = 'DubUrl.Adbc'; Assembly = 'DubUrl.Adbc' },
-    @{ Id = 'DubUrl.Provider.DuckDb.Adbc'; Assembly = 'DubUrl.Provider.DuckDb.Adbc' },
-    @{ Id = 'DubUrl.Provider.DuckDb.Native'; Assembly = 'DubUrl.Provider.DuckDb.Native' },
     @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
 )
 $frameworks = @('net8.0', 'net9.0', 'net10.0')

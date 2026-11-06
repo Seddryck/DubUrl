@@ -81,7 +81,7 @@ public sealed class InstalledProviderModuleLoader : IDisposable
                 .SelectMany(assembly => assembly.GetCustomAttributes<SharedProviderDependencyAttribute>())
                 .Select(attribute => attribute.ContractType.Assembly)
                 .Distinct()
-                .SingleOrDefault(assembly => assembly.GetName().FullName == assemblyName.FullName);
+                .SingleOrDefault(assembly => CanShareContract(assembly.GetName(), assemblyName));
             if (sharedApi is not null)
                 return sharedApi;
             var path = _resolver.ResolveAssemblyToPath(assemblyName);
@@ -89,6 +89,15 @@ public sealed class InstalledProviderModuleLoader : IDisposable
             using var stream = File.OpenRead(path);
             return LoadFromStream(stream);
         }
+
+        private static bool CanShareContract(AssemblyName host, AssemblyName requested)
+            // Provider packs can bind to an older published contract. The explicitly
+            // shared host assembly must have the same identity and satisfy its version.
+            => string.Equals(host.Name, requested.Name, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(host.CultureName ?? string.Empty, requested.CultureName ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+                && (host.GetPublicKeyToken() ?? []).SequenceEqual(requested.GetPublicKeyToken() ?? [])
+                && (requested.Version is null || (host.Version is not null
+                    && host.Version.Major == requested.Version.Major && host.Version >= requested.Version));
 
         private static HashSet<string> GetSharedAssemblies()
         {

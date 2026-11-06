@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DbReader" Version="4.0.1" />
+    <PackageReference Include="DuckDB.NET.Bindings.Full" Version="1.5.6" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="DuckDB.NET.Data" Version="1.5.6" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.3" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.12" />
+    <PackageReference Include="NReco.PrestoAdo" Version="1.1.0" />
+    <PackageReference Include="SingleStoreConnector" Version="1.2.0" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.1" />
+    <PackageReference Include="System.Data.Odbc" Version="10.0.12" />
+    <PackageReference Include="System.Data.OleDb" Version="10.0.12" />
+    <PackageReference Include="MySqlConnector" Version="2.6.2" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="10.0.12" />
+    <ProjectReference Include="..\..\DubUrl.Adomd\DubUrl.Adomd.csproj" />
+    <ProjectReference Include="..\..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
+    <ProjectReference Include="..\..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\..\DubUrl.Extensions\DubUrl.Extensions.csproj" />
+    <ProjectReference Include="..\..\DubUrl.OleDb\DubUrl.OleDb.csproj" />
+    <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.5"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets></PackageReference>
+    <PackageReference Include="DubUrl.Provider.Access" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Db2" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Drill" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.DuckDb" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Excel" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.FirebirdSql" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.MySql" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Odbc" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Oracle" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.PostgreSql" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Snowflake" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Sqlite" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.SqlServer" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Teradata" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Text" Version="$(DubUrlProviderVersion)" />
+    <PackageReference Include="DubUrl.Provider.Trino" Version="$(DubUrlProviderVersion)" />
+  </ItemGroup>
+</Project>

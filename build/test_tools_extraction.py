@@ -30,7 +30,7 @@ class ToolsExtractionTests(unittest.TestCase):
         for name in ("package-cli-nuget", "package-worker-nuget", "publish-cli-nuget", "publish-worker-nuget"):
             self.assertNotIn(f"\n  {name}:", workflow)
         for package in ("DubUrl.Authentication.SqlServer", "DubUrl.Authentication.Snowflake"):
-            self.assertIn(f"package-id: {package}", workflow)
+            self.assertNotIn(f"package-id: {package}", workflow)
 
     def test_package_matrix_matches_release_validation(self):
         workflow = (ROOT / ".github/workflows/ci-release.yml").read_text(encoding="utf-8")
