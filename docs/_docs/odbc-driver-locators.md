@@ -77,6 +77,25 @@ Use the workspace hostname and IDs from the compute resource's connection detail
 
 For PAT authentication, append `?AuthMech=3` and pass `token` as the username and the PAT as the password through [runtime credentials]({{ '/authentication/' | relative_url }}).
 
+## Apache Hive
+
+Install and register the **Cloudera ODBC Driver for Apache Hive**, then set up `System.Data.Odbc` as in the [basic example](#basic-example). Use a DubUrl ODBC provider version that includes [HiveServer2 support](https://github.com/Seddryck/DubUrl.Providers/pull/48). DubUrl sets `HiveServerType=2`.
+
+Use `odbc+hive://hive.example.com/analytics` to select the `analytics` database. This form defaults to port 10000 and lets you pass transport settings as driver options. Omit the database to use the driver's default.
+
+Use an explicit scheme to select the transport and TLS settings. The port is optional in each scheme.
+
+| Scheme | Default port | TLS | Example |
+| --- | ---: | --- | --- |
+| `odbc+hive+tcp` | 10000 | Off | `odbc+hive+tcp://hive.example.com/schema/analytics?sasl=0&AuthMech=0` |
+| `odbc+hive+tcps` | 10000 | On | `odbc+hive+tcps://hive.example.com/schema/analytics?sasl=0&AuthMech=0` |
+| `odbc+hive+http` | 10001 | Off | `odbc+hive+http://hive.example.com/schema/analytics` |
+| `odbc+hive+https` | 10001 | On | `odbc+hive+https://hive.example.com:443/gateway/hive/schema/analytics?AuthMech=3` |
+
+With an explicit scheme, use the optional `/schema/<name>` suffix to select the Hive database. HTTP and HTTPS default to the `/cliservice` endpoint. Put a custom endpoint before the schema suffix, as in the HTTPS example, which uses `/gateway/hive`. TCP and TCPS accept only the schema suffix in the URL path. Use `sasl=0` for raw binary Thrift or `sasl=1` for SASL. If you omit both `sasl` and `ThriftTransport`, the driver chooses its default.
+
+Match `AuthMech` to your server configuration. The TCP and TCPS examples use `AuthMech=0` for a server configured without authentication. The HTTPS example uses `AuthMech=3` for username and password authentication. Supply the username and password through [runtime credentials]({{ '/authentication/' | relative_url }}). For HTTPS or TCPS, use `TrustedCerts` with a URL-encoded path to the trusted certificate file if your server uses a private CA.
+
 ## Additional options for selecting the right driver
 
 Some driver manufacturer allow you to install multiple version of their drivers in parallel. The version could be a different release (e.g. version `10.0` and version `11.3`), different encoding (`ANSI` or `Unicode`) or even different architectures (`x64` 64bits or `x86` 32 bits). As such more than a single driver can be identified by DubUrl to be a valid candidate. By default, DubUrl use the following conventions when selecting a driver:

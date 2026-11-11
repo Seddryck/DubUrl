@@ -105,6 +105,42 @@
     "SecondaryColor": "#ffffff"
   },
   {
+    "Class": "SparkDriverLocator",
+    "Database": "Apache Spark",
+    "Aliases": [
+      "spark"
+    ],
+    "NamePattern": "^Simba Spark ODBC Driver$",
+    "Options": [],
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
+  },
+  {
+    "Class": "DatabricksDriverLocator",
+    "Database": "Databricks",
+    "Aliases": [
+      "databricks"
+    ],
+    "NamePattern": "^Databricks ODBC Driver$",
+    "Options": [],
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
+  },
+  {
+    "Class": "HiveDriverLocator",
+    "Database": "Apache Hive",
+    "Aliases": [
+      "hive"
+    ],
+    "NamePattern": "^Cloudera ODBC Driver for Apache Hive$",
+    "Options": [],
+    "Slug": "",
+    "MainColor": "#333333",
+    "SecondaryColor": "#ffffff"
+  },
+  {
     "Class": "MsAccessDriverLocator",
     "Database": "Microsoft Access",
     "Aliases": [
