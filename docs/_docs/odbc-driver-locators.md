@@ -43,6 +43,40 @@ Open a connection to the database named *dbname* and hosted on a server named *s
 using var conn = new ConnectionUrl("odbc+pgsql://{serverName}/{dbName}").Open();
 ```
 
+## Spark SQL and Databricks SQL
+
+These URL forms are part of the upcoming ODBC provider update in [DubUrl.Providers PR #46](https://github.com/Seddryck/DubUrl.Providers/pull/46).
+
+### Spark SQL
+
+Install the **Simba Spark ODBC Driver**. The scheme selects the Thrift transport and TLS. Each example omits the port to use the default.
+
+| Scheme | Default port | TLS | Example |
+| --- | ---: | --- | --- |
+| `odbc+spark+http` | 10001 | Off | `odbc+spark+http://spark.example.com` |
+| `odbc+spark+https` | 10001 | On | `odbc+spark+https://spark.example.com/schema/analytics` |
+| `odbc+spark+tcp` | 10000 | Off | `odbc+spark+tcp://spark.example.com/schema/analytics?sasl=0` |
+| `odbc+spark+tcps` | 10000 | On | `odbc+spark+tcps://spark.example.com/schema/analytics?sasl=1` |
+
+The HTTP schemes set `ThriftTransport=2` and default to `/cliservice`. Put a custom endpoint before the optional `/schema/<name>` suffix. For example, `odbc+spark+https://spark.example.com:443/gateway/spark/schema/analytics` uses port 443, endpoint `/gateway/spark`, and default schema `analytics`. The final `/schema/<name>` pair is reserved, so an HTTP endpoint that itself ends in that pair is unsupported. [Spark Thrift Server defaults](https://spark.apache.org/docs/3.5.8/sql-distributed-sql-engine.html#running-the-thrift-jdbcodbc-server)
+
+The TCP schemes accept `sasl=0` for raw binary Thrift and `sasl=1` for SASL. You can also use the equivalent `ThriftTransport=0` or `ThriftTransport=1`. If you omit both options, the driver chooses its default. Use the authentication settings required by your server. [Simba transport settings](https://documentation.insightsoftware.com/simba-spark-windows-driver-guide/content/odbc/hi/options/ui/thrifttransport.htm)
+
+Omit the schema suffix to use the driver default, `default` for Simba, or pass `Schema` as a driver option. Catalog selection uses Spark session configuration or SQL-qualified names. The explicit schemes reject query options that conflict with the transport, TLS, or path settings. [Simba schema setting](https://documentation.insightsoftware.com/simba-spark-windows-driver-guide/content/odbc/options/database.htm)
+
+### Databricks SQL
+
+Install the **Databricks ODBC Driver**. Both URL forms default to port 443 and use HTTPS Thrift (`ThriftTransport=2`, `SSL=1`). The path selects a warehouse or classic cluster.
+
+| Compute | Example | Generated HTTP path |
+| --- | --- | --- |
+| SQL warehouse | `odbc+databricks://workspace.example.com/warehouse/0123456789abcdef/main/analytics` | `/sql/1.0/warehouses/0123456789abcdef` |
+| Classic cluster | `odbc+databricks://workspace.example.com/cluster/1234567890123456/0405-060708-example/main/analytics` | `/sql/protocolv1/o/1234567890123456/0405-060708-example` |
+
+Use the workspace hostname and IDs from the compute resource's connection details. The examples set the catalog to `main` and the schema to `analytics`. Append just `/main` to set the catalog alone, or omit both names to use the session defaults. A schema segment requires a catalog segment. DubUrl rejects raw HTTP paths and the `HTTPPath`, `Catalog`, and `Schema` query options on this route. [Databricks ODBC compute settings](https://docs.databricks.com/aws/en/integrations/odbc/compute)
+
+For PAT authentication, append `?AuthMech=3` and pass `token` as the username and the PAT as the password through [runtime credentials]({{ '/authentication/' | relative_url }}).
+
 ## Additional options for selecting the right driver
 
 Some driver manufacturer allow you to install multiple version of their drivers in parallel. The version could be a different release (e.g. version `10.0` and version `11.3`), different encoding (`ANSI` or `Unicode`) or even different architectures (`x64` 64bits or `x86` 32 bits). As such more than a single driver can be identified by DubUrl to be a valid candidate. By default, DubUrl use the following conventions when selecting a driver:
