@@ -223,7 +223,6 @@ The operating system is the **client** running DubUrl, not the database server. 
 **OLE DB is supported only on Windows.** All routes require a compatible provider or driver for the client OS and architecture.
 
 - **IBM Db2 and Teradata:** install the OS-specific package/provider and use its supported platform and runtime versions; see [platform prerequisites](#platform-prerequisites).
-- **Trino client options:** set `UseSsl=true` for NReco.PrestoAdo; DubUrl already defaults `TrinoHeaders=1`. Automatic HTTPS selection is tracked in [#1726](https://github.com/Seddryck/DubUrl/issues/1726).
 - **File databases and files:** file access and file passwords are separate from server-account username/password authentication.
 
 ## Prerequisites
@@ -239,6 +238,31 @@ These server requirements apply to every database connection using username/pass
 Configure TLS on the server endpoint and configure the client driver to use it, following the database's requirements. DubUrl's connection options configure the client; they do not change server settings.
 
 If a policy requires MFA or disallows password-only sign-in, use another authentication method supported by the database, such as [Browser sign-in (OAuth)]({{ '/interactive-oauth/' | relative_url }}).
+
+### Trino
+
+Native `trino://` connections use HTTPS by default starting with `DubUrl.Provider.Trino` 0.67.0.
+The provider sets `TrinoHeaders=1` automatically so NReco.PrestoAdo sends `X-Trino-*` protocol headers.
+For a connector built with an earlier provider version, add `UseSsl=true` to enable HTTPS.
+[DubUrl.Provider.Trino on NuGet](https://www.nuget.org/packages/DubUrl.Provider.Trino/0.67.0)
+
+For password authentication, configure TLS on the Trino coordinator or its proxy and use a
+certificate the client trusts. Specify the HTTPS port in the URL if it differs from the native
+provider's default port of `8080`. [Trino TLS configuration](https://trino.io/docs/current/security/tls.html)
+
+```text
+trino://trino.example.com:8443/pg/public
+```
+
+Set `UseSsl=false` for an HTTP-only development fixture that runs without password authentication.
+
+```text
+trino://localhost:8080/pg/public?UseSsl=false
+```
+
+The `odbc+trino://` route uses the installed Trino ODBC driver's TLS and authentication options.
+Configure them in the driver or pass the driver's option names in the URL.
+[Connect through ODBC]({{ '/docs/odbc-driver-locators/' | relative_url }})
 
 ## CLI
 
