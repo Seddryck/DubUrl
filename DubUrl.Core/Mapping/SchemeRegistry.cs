@@ -23,6 +23,9 @@ public class SchemeRegistry : ISchemeRegistry
         => new(registrations);
 
     public ResolvedConnection Resolve(ConnectionUri connectionUri)
+        => TlsScheme.Resolve(connectionUri, this, ResolveMapped);
+
+    private ResolvedConnection ResolveMapped(ConnectionUri connectionUri)
     {
         var registration = GetRegistration(connectionUri.Scheme);
         var mapper = registration.MapperFactory();
@@ -63,6 +66,14 @@ public class SchemeRegistry : ISchemeRegistry
                     _ => ConnectionResolutionDiagnosticCode.ResolutionFailed,
                 },
                 Redact(exception.Message, connectionUri.Password));
+            return false;
+        }
+        catch (Exception exception) when (connectionUri.Scheme.RequiresTls
+            && exception is ArgumentException or NotSupportedException)
+        {
+            resolvedConnection = null;
+            diagnostic = new(ConnectionResolutionDiagnosticCode.ResolutionFailed,
+                "The selected provider route or native URL options could not satisfy the URL's TLS requirement.");
             return false;
         }
     }
@@ -120,5 +131,11 @@ public class SchemeRegistry : ISchemeRegistry
     }
 
     public bool CanHandle(string scheme)
-        => _registrations.ContainsKey(SchemeKey.Parse(scheme).GetRegistryAlias());
+    {
+        var key = SchemeKey.Parse(scheme);
+        if (!_registrations.ContainsKey(key.GetRegistryAlias())) return false;
+        return !key.RequiresHttpsTransport
+            || (TryGetCapability<ConnectionConfigurationCapability>(key, out var capability)
+                && capability?.SupportsHttpsTransport == true);
+    }
 }

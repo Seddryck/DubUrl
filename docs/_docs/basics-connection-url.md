@@ -31,3 +31,8 @@ string connectionUrl = "mssql://{server}/{database_name}?ConnectRetryCount=5&Con
 ```
 
 Braced names in these examples are placeholders, not literal URL text. Percent-encode reserved characters in usernames, passwords, and path values (for example, use `%40` for an at sign inside a password).
+
+Append `+tls` to a supported scheme to require verified TLS. For example,
+`trino+tls://trino.example.com/catalog/schema` selects the same TLS transport as
+`trino://trino.example.com/catalog/schema?UseSsl=true`. Other URL options follow the usual
+query syntax. See the [supported routes and trust settings]({{ '/connection-configuration/#tls-in-connection-urls' | relative_url }}).

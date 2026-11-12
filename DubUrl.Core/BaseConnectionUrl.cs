@@ -52,10 +52,10 @@ public class BaseConnectionUrl
         => ResolveConnection(Parser.Parse(RawUrl));
 
     protected virtual ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
-        => Registry.Resolve(connectionUri);
+        => TlsScheme.Resolve(connectionUri, Registry, Registry.Resolve);
 
     public bool TryGetCapability<TCapability>(out TCapability? capability) where TCapability : class
-        => Registry.TryGetCapability(Parser.Parse(RawUrl).Scheme, out capability);
+        => Registry.TryGetCapability(Parser.Parse(RawUrl).Scheme.ProviderScheme, out capability);
 
     public string Parse() => Result.ConnectionString;
     public virtual IDialect Dialect => Result.Dialect;

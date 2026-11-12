@@ -22,6 +22,11 @@ public sealed class ConnectionConfigurationCapability
     public string? MaxLifetime { get; init; }
     public string? TimeZone { get; init; }
     public string? Tls { get; init; }
+    internal bool SupportsHttpsTransport => Tls == "Trino";
+
+    internal ConnectionConfigurationCapability WithTls(string mapping)
+        => new(applicationName, pooling, minPoolSize, maxPoolSize, connectionTimeout, commandTimeout)
+        { IdleTimeout = IdleTimeout, MaxLifetime = MaxLifetime, TimeZone = TimeZone, Tls = mapping };
 
     internal bool Supports(ConnectionConfigurationRequest request)
         => request.Option switch
