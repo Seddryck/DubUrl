@@ -25,6 +25,7 @@ public record struct MapperInfo(
     public DubUrl.Discovery.SchemaDiscoveryCapability? SchemaDiscovery { get; init; }
     public Type ConnectivityType { get; init; } = typeof(DubUrl.Mapping.Connectivity.NativeConnectivity);
     public DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider { get; init; }
+    public DubUrl.BulkCopy.FileLoadCapability? FileLoad { get; init; }
     public ConnectionConfigurationCapability? ConnectionConfiguration { get; init; }
     public ReadOnlyConnectionCapability? ReadOnlyConnection { get; init; }
     public DubUrl.Authentication.FileSecretConnectionCapability? FileSecretConnection { get; init; }
