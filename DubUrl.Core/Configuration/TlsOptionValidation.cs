@@ -19,7 +19,7 @@ internal static class TlsOptionValidation
     }
 
     private static bool IsAllowed(string keyword, string value, string[] allowed)
-        => keyword is "rootcertificate" or "sslca"
+        => keyword is "rootcertificate" or "sslca" or "trustedcerts"
             ? allowed.Any(path => PathsEqual(path, value))
             : allowed.Contains(value, StringComparer.OrdinalIgnoreCase);
 

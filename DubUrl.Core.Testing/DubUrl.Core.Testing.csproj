@@ -53,6 +53,7 @@
   <ItemGroup>
     <None Include="..\connectors\connector-matrix.json" Link="connector-matrix.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\DubUrl.Core\DubUrl.Core.csproj" />
+    <ProjectReference Include="..\DubUrl.BulkCopy\DubUrl.BulkCopy.csproj" />
     <PackageReference Include="DubUrl.Authentication.SqlServer" Version="$(DubUrlProviderVersion)" />
     <PackageReference Include="DubUrl.Authentication.Snowflake" Version="$(DubUrlProviderVersion)" />
     <ProjectReference Include="..\DubUrl.ProviderPack.TestingModule\DubUrl.ProviderPack.TestingModule.csproj" />

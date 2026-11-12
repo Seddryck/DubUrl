@@ -199,9 +199,14 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
             })
         { BulkCopyProvider = info.BulkCopyProvider };
         if (info.SchemaDiscovery is not null) registration.WithCapabilities(info.SchemaDiscovery);
-        if (info.ConnectionConfiguration is not null) registration.WithCapabilities(info.ConnectionConfiguration);
+        var configuration = info.ConnectionConfiguration;
+        // Specialized ODBC mappers may omit the attribute. TLS is validated against the selected driver.
+        if (configuration?.Tls is null && info.ProviderInvariantName == "System.Data.Odbc")
+            configuration = (configuration ?? new()).WithTls("Odbc");
+        if (configuration is not null) registration.WithCapabilities(configuration);
         if (info.ReadOnlyConnection is not null) registration.WithCapabilities(info.ReadOnlyConnection);
         if (info.FileSecretConnection is not null) registration.WithCapabilities(info.FileSecretConnection);
+        if (info.FileLoad is not null) registration.WithCapabilities(info.FileLoad);
         return registration;
     }
 

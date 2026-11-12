@@ -21,9 +21,9 @@ public class ConnectionUrl : BaseConnectionUrl
     private ConnectionAuthentication? authentication;
     private ConnectionAuthentication RequiredAuthentication => authentication ?? throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
     internal bool HasAuthentication => authentication is not null;
-    public override IDialect Dialect => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme).GetDialect() : base.Dialect;
-    public override IConnectivity Connectivity => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme).GetConnectivity() : base.Connectivity;
-    public override IParametrizer Parametrizer => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme).GetParametrizer() : base.Parametrizer;
+    public override IDialect Dialect => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme.ProviderScheme).GetDialect() : base.Dialect;
+    public override IConnectivity Connectivity => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme.ProviderScheme).GetConnectivity() : base.Connectivity;
+    public override IParametrizer Parametrizer => HasAuthentication ? Registry.GetMapper(Parser.Parse(RawUrl).Scheme.ProviderScheme).GetParametrizer() : base.Parametrizer;
     public override DubUrl.BulkCopy.IBulkCopyProvider? BulkCopyProvider
     {
         get
@@ -49,8 +49,8 @@ public class ConnectionUrl : BaseConnectionUrl
     /// <summary>Checks required route support without acquiring credentials or opening a connection.</summary>
     public void ValidateConfiguration()
     {
-        if (configuration.Length == 0 && !readOnly) return;
         var uri = Parser.Parse(RawUrl);
+        if (configuration.Length == 0 && !readOnly && !uri.Scheme.RequiresTls) return;
         ValidateConfigurationSupport(uri);
         if (authentication is null) _ = Result;
     }
@@ -126,21 +126,29 @@ public class ConnectionUrl : BaseConnectionUrl
     private ConnectionUrl WithRequests(ConnectionConfigurationRequest[] requests)
         => new(RawUrl, Parser, Registry) { authentication = authentication, configuration = [.. configuration, .. requests], readOnly = readOnly };
 
+    private ConnectionConfigurationRequest[] GetConfiguration(ConnectionUri uri)
+        => uri.Scheme.RequiresTls && !configuration.Any(request => request.Option == ConnectionConfigurationOption.Encryption)
+            ? [TlsScheme.DefaultRequest, .. configuration]
+            : configuration;
+
     protected override ResolvedConnection ResolveConnection(ConnectionUri connectionUri)
     {
         if (connectionUri.Options.Keys.Any(key => FileSecretConnectionCapability.IsOption(key, "ENCRYPTION_KEY"))
-            && !Registry.TryGetCapability<FileSecretConnectionCapability>(connectionUri.Scheme, out _))
+            && !Registry.TryGetCapability<FileSecretConnectionCapability>(connectionUri.Scheme.ProviderScheme, out _))
             throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.UnsupportedAuthentication);
-        return ApplyConfiguration(connectionUri, base.ResolveConnection(connectionUri));
+        return ResolveConfiguredConnection(connectionUri);
     }
 
-    private ResolvedConnection ApplyConfiguration(ConnectionUri connectionUri, ResolvedConnection resolved)
+    private ResolvedConnection ResolveConfiguredConnection(ConnectionUri connectionUri)
     {
-        if (configuration.Length == 0 && !readOnly) return resolved;
-        Registry.TryGetCapability<ConnectionConfigurationCapability>(connectionUri.Scheme, out var capability);
+        var resolved = Registry.Resolve(connectionUri.WithProviderScheme());
+        var requests = GetConfiguration(connectionUri);
+        if (requests.Length == 0 && !readOnly) return resolved;
+        Registry.TryGetCapability<ConnectionConfigurationCapability>(connectionUri.Scheme.ProviderScheme, out var capability);
+        TlsScheme.ValidateTransport(connectionUri.Scheme, capability);
         var provider = resolved.ProviderFactory.GetType().FullName ?? resolved.ProviderFactory.GetType().Name;
         var readOnlyCapability = ResolveReadOnlyCapability(connectionUri, provider);
-        var applicable = ResolveConfigurationRequests(connectionUri, capability, provider, out var skipped);
+        var applicable = ResolveConfigurationRequests(connectionUri, requests, capability, provider, out var skipped);
         skippedOptions = skipped.AsReadOnly();
         if (applicable.Count == 0 && !readOnly) return resolved;
         var builder = resolved.ProviderFactory.CreateConnectionStringBuilder()
@@ -156,17 +164,18 @@ public class ConnectionUrl : BaseConnectionUrl
     private ReadOnlyConnectionCapability? ResolveReadOnlyCapability(ConnectionUri connectionUri, string provider)
     {
         if (!readOnly) return null;
-        if (Registry.TryGetCapability<ReadOnlyConnectionCapability>(connectionUri.Scheme, out var capability) && capability is not null)
+        if (Registry.TryGetCapability<ReadOnlyConnectionCapability>(connectionUri.Scheme.ProviderScheme, out var capability) && capability is not null)
             return capability;
         throw new NotSupportedException($"ReadOnly is not supported for database route '{connectionUri.Scheme.GetRegistryAlias()}' using provider '{provider}'. A transaction default or replica-routing hint is not native read-only file access.");
     }
 
     private List<ConnectionConfigurationRequest> ResolveConfigurationRequests(ConnectionUri connectionUri,
-        ConnectionConfigurationCapability? capability, string provider, out List<SkippedConnectionOption> skipped)
+        ConnectionConfigurationRequest[] requests, ConnectionConfigurationCapability? capability, string provider,
+        out List<SkippedConnectionOption> skipped)
     {
         skipped = [];
         var applicable = new List<ConnectionConfigurationRequest>();
-        foreach (var group in configuration.GroupBy(request => request.Option))
+        foreach (var group in requests.GroupBy(request => request.Option))
         {
             // An optional call must never weaken a required setting, irrespective of call order.
             var request = group.LastOrDefault(item => !item.Optional) ?? group.Last();
@@ -339,39 +348,44 @@ public class ConnectionUrl : BaseConnectionUrl
         var uri = Parser.Parse(RawUrl);
         AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
         ValidateConfigurationSupport(uri);
-        var provider = Registry.GetMapper(uri.Scheme).GetProviderName();
-        var context = new AuthenticationContext(provider, uri.Scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
+        var scheme = uri.Scheme.ProviderScheme;
+        var provider = Registry.GetMapper(scheme).GetProviderName();
+        var context = new AuthenticationContext(provider, scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
             uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null)
-        { SupportsFileSecretConnection = Registry.TryGetCapability<FileSecretConnectionCapability>(uri.Scheme, out _) };
+        { SupportsFileSecretConnection = Registry.TryGetCapability<FileSecretConnectionCapability>(scheme, out _) };
         RequiredAuthentication.ValidateContext(context);
+        var requests = GetConfiguration(uri);
         RequiredAuthentication.ValidateConnectionConfiguration(
-            configuration.LastOrDefault(r => r.Option == ConnectionConfigurationOption.Encryption)?.Value as ConnectionEncryption,
+            requests.LastOrDefault(r => r.Option == ConnectionConfigurationOption.Encryption)?.Value as ConnectionEncryption,
             configuration.LastOrDefault(r => r.Option == ConnectionConfigurationOption.Pooling && !r.Optional)?.Value as ConnectionPoolingOptions,
             context);
-        if (configuration.Length > 0)
+        if (requests.Length > 0)
         {
             // Mapping-only preflight: validate native settings before a password prompt, token
             // acquisition or certificate-file load. These placeholders never reach a connection.
             var validationUsername = uri.HasUsername ? uri.Username : "configuration-validation";
             var placeholder = RequiredAuthentication.Kind == ConnectionAuthenticationKind.UsernamePassword
                 ? new UsernamePasswordCredentials(validationUsername, "") : null;
-            _ = ApplyConfiguration(uri, Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, placeholder, context)));
+            _ = ResolveConfiguredConnection(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, placeholder, context));
         }
         if (RequiredAuthentication.Kind == ConnectionAuthenticationKind.ClientCertificate && provider == "System.Data.Odbc")
-            RequiredAuthentication.ValidateMappedConnection(Registry.Resolve(uri).ConnectionString, context);
+            RequiredAuthentication.ValidateMappedConnection(Registry.Resolve(uri.WithProviderScheme()).ConnectionString, context);
         return (uri, context);
     }
 
     private void ValidateConfigurationSupport(ConnectionUri uri)
     {
         ValidateServerTrust();
+        var scheme = uri.Scheme.ProviderScheme;
         // Check policy without mapping an unauthenticated URL: some mappers require
         // credentials or native authentication options supplied by the strategy.
-        if (readOnly && !Registry.TryGetCapability<ReadOnlyConnectionCapability>(uri.Scheme, out _))
+        if (readOnly && !Registry.TryGetCapability<ReadOnlyConnectionCapability>(scheme, out _))
             throw new NotSupportedException("Native read-only access is unsupported for the selected provider route.");
-        if (configuration.Length == 0) return;
-        Registry.TryGetCapability<ConnectionConfigurationCapability>(uri.Scheme, out var capability);
-        foreach (var group in configuration.GroupBy(request => request.Option))
+        var requests = GetConfiguration(uri);
+        if (requests.Length == 0) return;
+        Registry.TryGetCapability<ConnectionConfigurationCapability>(scheme, out var capability);
+        TlsScheme.ValidateTransport(uri.Scheme, capability);
+        foreach (var group in requests.GroupBy(request => request.Option))
         {
             var request = group.LastOrDefault(item => !item.Optional) ?? group.Last();
             if (!request.Optional && capability?.Supports(request) != true)
@@ -390,7 +404,7 @@ public class ConnectionUrl : BaseConnectionUrl
     private DbConnection CreateAuthenticatedConnection(ConnectionUri uri, UsernamePasswordCredentials? credentials, AuthenticationContext context)
     {
         // This transient structured mapping is deliberately never stored in BaseConnectionUrl.Result.
-        var resolved = ApplyConfiguration(uri, Registry.Resolve(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials, context)));
+        var resolved = ResolveConfiguredConnection(AuthenticationConfiguration.Apply(uri, RequiredAuthentication, credentials, context));
         var connection = CreatePreparedConnection(resolved, uri);
         try
         {
@@ -404,7 +418,7 @@ public class ConnectionUrl : BaseConnectionUrl
 
     private DbConnection CreatePreparedConnection(ResolvedConnection resolved, ConnectionUri uri)
     {
-        if (Registry.TryGetCapability<FileSecretConnectionCapability>(uri.Scheme, out var capability) && capability is not null)
+        if (Registry.TryGetCapability<FileSecretConnectionCapability>(uri.Scheme.ProviderScheme, out var capability) && capability is not null)
         {
             var credentials = FileSecretConnectionCapability.GetUrlCredentials(uri, capability.OptionName);
             if (credentials is not null || authentication?.Kind == ConnectionAuthenticationKind.FileSecret)
