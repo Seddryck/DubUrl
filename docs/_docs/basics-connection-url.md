@@ -6,6 +6,8 @@ nav_order: 1
 subtitle: Specify information about your database
 ---
 
+Use the [connection URL builder]({{ '/docs/connection-url-builder/' | relative_url }}) to generate a URL for a supported database and driver.
+
 Each connection URL must specify the selected *ADO.Net Data Provider* to connect to the database. This information is provided in the URL **scheme** (the part of the URL preceding the symbols `://`). If you want to connect to a database hosted on Microsoft SQL Server, you can specify the scheme `mssql`. The scheme for other databases or other ADO.Net providers such as ODBC drivers and OleDb providers can be found [here]({{ '/docs/native-ado-net-providers/' | relative_url }}).
 
 You also need to specify the *server* where the database is located. The server information can be a server name or an IP address. In most cases, you should also specify the *database name* that you're targeting. These two information are respectively provided as the **host** and the **first segment**. of the URL.
