@@ -26,7 +26,8 @@ public class SharedConnectionConfigurationTests
                 .Select(m => m with { ConnectionConfiguration = mapper.GetCustomAttributes(typeof(ConnectionConfigurationAttribute), false)
                     .Cast<ConnectionConfigurationAttribute>().Single().Create() }).ToArray();
         ProviderCatalogBuilder.RegisterMappings(catalog, mappings, _ => factory);
-        return new($"{scheme}://{(scheme == "questdb" ? "alice:test-only" : "alice")}@db.example/{(scheme == "questdb" ? "qdb" : "app")}{options}", catalog.Build());
+        var questDb = scheme is "questdb" or "questdb+tls";
+        return new($"{scheme}://{(questDb ? "alice:test-only" : "alice")}@db.example/{(questDb ? "qdb" : "app")}{options}", catalog.Build());
     }
 
     [TestCase("postgres", typeof(PostgresqlMapper), "Npgsql")]
@@ -57,6 +58,8 @@ public class SharedConnectionConfigurationTests
         Assert.That(native[provider == "Npgsql" ? "Root Certificate" : provider == "ConnectorNet" ? "SslCa" : "SSL CA"], Is.EqualTo(Path.GetFullPath("server-ca.pem")));
         Assert.That(target.Url, Is.EqualTo(original.Url));
         Assert.That(original.Parse(), Is.EqualTo(unchanged));
+        native.ConnectionString = Target(scheme + "+tls", mapper, factory).Parse();
+        Assert.That(native["SSL Mode"].ToString(), Is.EqualTo("VerifyFull"));
     }
 
     [TestCase("?Encrypt=False")]
@@ -75,6 +78,20 @@ public class SharedConnectionConfigurationTests
         Assert.That(native.Encrypt.ToString(), Is.EqualTo("Strict"));
         Assert.That(native.TrustServerCertificate, Is.False);
         Assert.Throws<NotSupportedException>(() => target.WithEncryption(ConnectionEncryption.Tls("ca.pem")).Parse());
+    }
+
+    [Test]
+    public void SqlTlsSchemeRequiresEncryptionAndRejectsCertificateBypass()
+    {
+        var target = Target("mssql+tls", typeof(MsSqlServerMapper), SqlClientFactory.Instance);
+        var settings = new SqlConnectionStringBuilder(target.Parse());
+        Assert.Multiple(() =>
+        {
+            Assert.That(settings.Encrypt, Is.EqualTo(SqlConnectionEncryptOption.Mandatory));
+            Assert.That(settings.TrustServerCertificate, Is.False);
+            Assert.Throws<ArgumentException>(() => Target("mssql+tls", typeof(MsSqlServerMapper),
+                SqlClientFactory.Instance, "?TrustServerCertificate=True").Parse());
+        });
     }
 
     [TestCase("?SSL%20Mode=Prefer")]
@@ -259,12 +276,14 @@ public class SharedConnectionConfigurationTests
         Assert.That(connection.Statements.Single(), Is.EqualTo("SET TIME ZONE INTERVAL -'02:00' HOUR TO MINUTE"));
     }
 
-    [Test]
-    public async Task ConflictingTlsFailsBeforeCredentialAcquisition()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ConflictingTlsFailsBeforeCredentialAcquisition(bool schemeModifier)
     {
         var credentials = new CountingCredentials();
-        var target = Target("postgres", typeof(PostgresqlMapper), NpgsqlFactory.Instance, "?SSL%20Mode=Disable")
-            .WithAuthentication(ConnectionAuthentication.UsernamePassword(credentials)).WithEncryption(ConnectionEncryption.Tls());
+        var target = Target(schemeModifier ? "postgres+tls" : "postgres", typeof(PostgresqlMapper),
+            NpgsqlFactory.Instance, "?SSL%20Mode=Disable").WithAuthentication(ConnectionAuthentication.UsernamePassword(credentials));
+        if (!schemeModifier) target = target.WithEncryption(ConnectionEncryption.Tls());
         await Assert.ThrowsAsync<ArgumentException>(async () => { await using var connection = await target.ConnectAsync(); });
         Assert.That(credentials.Calls, Is.Zero);
     }

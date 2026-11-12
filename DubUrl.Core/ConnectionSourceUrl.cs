@@ -15,7 +15,12 @@ public sealed class ConnectionSourceUrl : BaseConnectionUrl
         var (mode, reason) = ConnectionReusePolicy.Select(options ?? new(),
             new ConnectionReuseContext(Result.ProviderFactory, Result.ConnectionString));
         // Bind both the connection and query metadata to this exact resolution.
-        var context = new ConnectionUrl(Url, new ResolvedRegistry(Result, Registry));
+        var scheme = Parser.Parse(RawUrl).Scheme;
+        var contextUrl = Url;
+        // The captured connection string already includes the URL's TLS configuration.
+        if (scheme.RequiresTls)
+            contextUrl = scheme.ProviderScheme.Canonical + contextUrl[contextUrl.IndexOf(':')..];
+        var context = new ConnectionUrl(contextUrl, new ResolvedRegistry(Result, Registry));
         DbDataSource? dataSource = null;
         var factory = Result.ProviderFactory;
         // The inherited implementation is only a framework shim. Use our guarded factory

@@ -44,6 +44,7 @@ available for application name, pooling and timeouts. Encryption and time zone a
 ```sh
 duburl connection check 'mssql://sql.example.com/app' --os-identity --tls --engine
 duburl connection check 'postgres://alice@db.example.com/app' --password-prompt --ca-certificate server-ca.crt --engine
+duburl connection check 'postgres+tls://alice@db.example.com/app' --password-prompt --engine
 duburl connection check 'postgres://db.example.com/app' --connection-timeout 15s --command-timeout 30s --application-name Reporting --time-zone Europe/Brussels --pooling enabled --pool-max-size 50 --pool-idle-timeout 5m --pool-max-lifetime 1h
 duburl connection check --connection production --tls --engine
 duburl connection check --connection-env DATABASE_URL --tls --engine
@@ -99,6 +100,32 @@ cannot combine its certificate-file mode with a separate CA, and its certificate
 disabled pooling. Native certificate strategies may add a pool discriminator to application metadata.
 Keep certificate options alive for their documented lifetime. Rotation does not revoke existing sessions.
 
+## TLS in connection URLs
+
+Append `+tls` to a supported scheme or alias to require the same verified TLS as
+`WithEncryption(ConnectionEncryption.Tls())` or the CLI `--tls` flag. The modifier works in
+composite schemes such as `odbc+postgres+tls://db.example.com/app`. The driver uses its usual trust
+configuration. On supported routes, use `WithEncryption(ConnectionEncryption.Tls("server-ca.pem"))`
+or `--ca-certificate server-ca.pem` to select a custom CA alongside the modifier.
+
+| Verified TLS URL | Equivalent native URL options |
+|---|---|
+| `trino+tls://trino.example.com/catalog/schema` | `?UseSsl=true` |
+| `postgres+tls://db.example.com/app` | `?SSL%20Mode=VerifyFull&GSS%20Encryption%20Mode=Disable` |
+| `mysql+tls://db.example.com/app` | `?SSL%20Mode=VerifyFull` |
+| `mssql+tls://db.example.com/app` | `?Encrypt=Mandatory&TrustServerCertificate=false` |
+
+Matching TLS query settings and unrelated query options can accompany the modifier. A disabled TLS
+mode, a certificate verification bypass, or conflicting CA settings cause a configuration error.
+See the tables below for native keywords, driver requirements, and supported trust options.
+
+On native Trino, `trino+http+tls://trino.example.com/catalog/schema` and
+`trino+https://trino.example.com/catalog/schema` use the same HTTPS endpoint, provider-specific
+default port, and certificate-chain and hostname verification. Both are equivalent to the
+`trino+tls` form. Specify a port in the URL if your server listens on a different port.
+Routes where `+http` forces plaintext, such as Spark and Hive ODBC, reject `+http+tls` as a
+transport conflict.
+
 ## Native mapping and platform support
 
 These are exact route declarations, checked against the dependency versions in the project. Native
@@ -144,8 +171,22 @@ SQL Server ODBC Driver 18+ and MSOLEDBSQL/MSOLEDBSQL19, psqlODBC Unicode/ANSI (l
 8+ and MariaDB ODBC 3.1+. SQL Server uses native encryption plus verification with external CA trust;
 psqlODBC uses `SSLmode=verify-full` and `Pqopt` for GSS-disable/CA trust; MySQL uses
 `SSLMODE=VERIFY_IDENTITY`/`SSLCA`; MariaDB uses `FORCETLS=1;SSLVERIFY=1`/`SSLCA`. Unknown drivers and DSNs
-are rejected. Drill, Simba Trino, Oracle OLE DB and other transport drivers have no declared TLS mapping.
-These rejections describe this API's coverage, not whether a database supports TLS or mutual TLS.
+are rejected.
+
+The **Simba Spark ODBC Driver**, **Cloudera ODBC Driver for Apache Hive**, **Databricks ODBC Driver**,
+and **Simba Trino ODBC Driver** use `SSL=1` and require certificate-chain and hostname verification.
+Their normal driver trust applies unless you supply a custom CA PEM file through `TrustedCerts`.
+For Spark and Hive, use an ODBC provider version with the named route to use
+`+https+tls` or `+tcps+tls` with the documented endpoint syntax.
+[Spark driver TLS settings](https://documentation.insightsoftware.com/simba-spark-windows-driver-guide/content/odbc/configuring/ssl.htm) ·
+[Hive driver guide](https://docs.cloudera.com/application-resources/latest/connectors/hive-odbc/2-6-11/Cloudera-ODBC-Driver-for-Apache-Hive-Install-Guide.pdf) ·
+[Databricks driver guide](https://docs.databricks.com/aws/en/assets/files/Databricks-ODBC-Connector-Install-and-Configuration-Guide-43c6853780716c1f60a3cb751b43d2fd.pdf) ·
+[Simba Trino driver TLS settings](https://documentation.insightsoftware.com/trino-online-documentation-windows/content/odbc/configuring/ssl.htm)
+
+Other routes reject a verified TLS request when DubUrl has no driver-specific mapping. This includes
+local file transports, Snowflake's built-in HTTPS, Oracle's externally configured TCPS, Drill ODBC,
+and Oracle OLE DB. The current managed Db2 builder lacks a connection-string setting for mandatory
+hostname validation. [Db2 hostname validation](https://www.ibm.com/docs/en/db2/12.1.x?topic=validation-configuring-db2-clients)
 
 ## Timing, pooling and session semantics
 
