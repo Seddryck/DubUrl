@@ -1,4 +1,4 @@
-import { authenticationMethods, buildConnectionUrl, connectionForm } from './connection-url.js';
+import { authenticationMethods, buildConnectionCheckCommand, buildConnectionUrl, connectionForm } from './connection-url.js';
 
 const page = document.getElementById('connection-url-builder');
 const find = id => page.querySelector('#builder-' + id);
@@ -146,7 +146,7 @@ function startBuilder(catalog) {
     }
 
     function renderOutput(form) {
-        const { auth, tls } = form;
+        const { auth } = form;
         const cli = find('cli');
         cli.hidden = true;
         copy.textContent = 'Copy URL';
@@ -164,11 +164,9 @@ function startBuilder(catalog) {
         copy.disabled = false;
         note('result-note', auth.via === 'external' ? 'Complete sign-in in the consuming application.' : '');
 
-        if (auth.cli || (tls?.cli && auth.via === 'url')) {
-            const args = [currentUrl, ...(auth.cli ?? []), ...(tls?.cli ?? [])];
-            const quote = argument => "'" + argument.replaceAll("'", "'\"'\"'") + "'";
-            find('cli-text').textContent = 'duburl connection check ' + args.map((arg, index) =>
-                index === 0 || /\s|['"]/.test(arg) ? quote(arg) : arg).join(' ');
+        const command = buildConnectionCheckCommand(currentUrl, form);
+        if (command) {
+            find('cli-text').textContent = command;
             note('cli-note', auth.id === 'certificate' ? 'Replace the sample certificate and key paths.' : '');
             cli.hidden = false;
         }

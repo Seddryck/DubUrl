@@ -223,6 +223,7 @@
               "label": { "$ref": "#/$defs/text" },
               "secure": { "type": "boolean" },
               "via": { "enum": ["url", "runtime", "scheme"] },
+              "schemeSuffix": { "const": "+tls" },
               "query": { "$ref": "#/$defs/query" },
               "cli": { "$ref": "#/$defs/cli" },
               "library": { "$ref": "#/$defs/text" },
