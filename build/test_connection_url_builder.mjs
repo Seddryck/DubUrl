@@ -13,7 +13,7 @@ function form(routeId, { location, auth, tls } = {}) {
     return connectionForm(catalog, route, locationId, auth ? methods.find(item => item.id === auth) : methods[0], tls);
 }
 
-test('catalog references resolve for every route and endpoint', () => {
+test('driver profiles reference known endpoints and authentication methods', () => {
     assert.equal(new Set(catalog.databases.map(database => database.id)).size, catalog.databases.length);
     assert.equal(new Set(routes.map(route => route.id)).size, routes.length);
     for (const route of routes) {
@@ -29,22 +29,39 @@ test('catalog references resolve for every route and endpoint', () => {
         }
         for (const locationId of route.locations) {
             assert.ok(Object.hasOwn(catalog.locations, locationId), locationId);
-            const location = catalog.locations[locationId];
-            if (route.locations.length > 1) assert.ok(location.label, locationId);
-            const pathFields = (location.path ?? []).flatMap(part => typeof part === 'string' ? [part] :
-                [part.when, part.field, part.split, part.file, part.relativeFile].filter(Boolean));
-            const dependentFields = Object.entries(location.requires ?? {}).flat();
-            for (const id of [...pathFields, ...dependentFields, ...(location.exclusive ?? []).flat()]) {
-                assert.ok(Object.hasOwn(location.fields ?? {}, id), route.id + '/' + id);
-            }
+            if (route.locations.length > 1) assert.ok(catalog.locations[locationId].label, locationId);
+        }
+    }
+});
+
+test('endpoint rules reference declared fields', () => {
+    for (const [locationId, location] of Object.entries(catalog.locations)) {
+        const pathFields = (location.path ?? []).flatMap(part => typeof part === 'string' ? [part] :
+            [part.when, part.field, part.split, part.file, part.relativeFile].filter(Boolean));
+        const dependentFields = Object.entries(location.requires ?? {}).flat();
+        for (const id of [...pathFields, ...dependentFields, ...(location.exclusive ?? []).flat()]) {
+            assert.ok(Object.hasOwn(location.fields ?? {}, id), locationId + '/' + id);
+        }
+    }
+});
+
+test('TLS policies have unique modes and valid defaults', () => {
+    for (const [policyId, policy] of Object.entries(catalog.tlsPolicies)) {
+        const ids = new Set(policy.modes.map(mode => mode.id));
+        assert.equal(ids.size, policy.modes.length, policyId);
+        if (policy.default) assert.ok(ids.has(policy.default), policyId);
+    }
+});
+
+test('each endpoint and authentication choice resolves its TLS modes and field layouts', () => {
+    for (const route of routes) {
+        for (const locationId of route.locations) {
             const methods = authenticationMethods(catalog, route, locationId);
             assert.ok(methods.length, route.id + '/' + locationId);
             for (const auth of methods) {
                 const policyId = auth.tlsOverride ?? route.tls ?? 'driverDefault';
                 assert.ok(Object.hasOwn(catalog.tlsPolicies, policyId), policyId);
                 const policy = catalog.tlsPolicies[policyId];
-                if (policy.default) assert.ok(policy.modes.some(mode => mode.id === policy.default), policyId);
-                assert.equal(new Set(policy.modes.map(mode => mode.id)).size, policy.modes.length);
                 const resolved = connectionForm(catalog, route, locationId, auth);
                 assert.ok(resolved.tls, route.id + '/' + auth.id);
                 for (const field of Object.values(resolved.fields)) {
