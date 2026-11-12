@@ -6,15 +6,19 @@ DubUrl's custom palette lives in `_sass/color_schemes/duburl.scss`; presentation
 From the repository root, run:
 
 ```powershell
+python build/import_schema_docs.py
+python build/import_connection_url_catalog.py
 docker compose -f jekyll-compose.yml up -d
 ```
+
+The site stages the provider catalog and schema at their public URLs. Use a fresh `artifacts/docs-site` directory when regenerating the stage. Update `build/connection-url-catalog.lock.json` with the provider release version and its published ZIP checksum to adopt a new release.
 
 Open http://localhost:4001/DubUrl/docs/installation-duburl/ to preview a documentation page, or http://localhost:4001/DubUrl/ for the simple homepage.
 The first launch installs the locked gems in a Docker volume; later launches reuse that cache.
 Stop the preview with `docker compose -f jekyll-compose.yml down`.
 Use `JEKYLL_PORT` to override the default host port (links use the browser origin).
 
-For a production build:
+For a production build, run the same staging commands and then:
 
 ```powershell
 docker compose -f jekyll-compose.yml run --rm jekyll bash -lc "bundle install && JEKYLL_ENV=production bundle exec jekyll build --strict_front_matter --disable-disk-cache"

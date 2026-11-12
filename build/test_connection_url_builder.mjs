@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { authenticationMethods, buildConnectionCheckCommand, buildConnectionUrl, connectionForm } from '../docs/assets/js/connection-url.js';
 
-const catalog = JSON.parse(readFileSync(new URL('../docs/schemas/connection-url-builder/v2/catalog.json', import.meta.url), 'utf8'));
+const catalog = JSON.parse(readFileSync(new URL('../artifacts/docs-site/schemas/connection-url-builder/v2/catalog.json', import.meta.url), 'utf8'));
 const routes = catalog.databases.flatMap(database => database.routes);
 
 function form(routeId, { location, auth, tls } = {}) {
