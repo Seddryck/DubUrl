@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { authenticationMethods, buildConnectionUrl, connectionForm } from '../docs/assets/js/connection-url.js';
+import { authenticationMethods, buildConnectionCheckCommand, buildConnectionUrl, connectionForm } from '../docs/assets/js/connection-url.js';
 
 const catalog = JSON.parse(readFileSync(new URL('../docs/schemas/connection-url-builder/v2/catalog.json', import.meta.url), 'utf8'));
 const routes = catalog.databases.flatMap(database => database.routes);
@@ -206,9 +206,23 @@ test('file, memory and local-port profiles use their own URL shapes', () => {
     }), 'firebird://qa@fb.example/%2Fsrv%2Fdatabase.fdb');
 });
 
-test('runtime certificate authentication leaves TLS and credential material to DubUrl', () => {
-    const connection = form('npgsql', { auth: 'certificate' });
-    assert.deepEqual(connection.tls.cli, ['--tls']);
-    assert.equal(buildConnectionUrl(connection, { host: 'postgres.example', database: 'db', username: 'qa' }),
-        'postgres://qa@postgres.example/db');
+test('MySQL URLs carry verified TLS for certificate sign-in and explicit TLS selection', () => {
+    const values = { host: 'dbHalloween', database: 'Gifts', username: 'Hercule' };
+    for (const route of ['mysqlconnector', 'mysql-data']) {
+        assert.equal(buildConnectionUrl(form(route), values), 'mysql://Hercule@dbhalloween/Gifts');
+        assert.equal(buildConnectionUrl(form(route, { tls: 'verified' }), values), 'mysql+tls://Hercule@dbhalloween/Gifts');
+        const connection = form(route, { auth: 'certificate', tls: 'default' });
+        const url = buildConnectionUrl(connection, values);
+        assert.equal(url, 'mysql+tls://Hercule@dbhalloween/Gifts');
+        assert.equal(buildConnectionCheckCommand(url, connection),
+            "duburl connection check 'mysql+tls://Hercule@dbhalloween/Gifts' --client-certificate client.crt --client-key client.key");
+    }
+});
+
+test('certificate authentication adds TLS to both native and composite schemes', () => {
+    const values = { host: 'postgres.example', database: 'db', username: 'qa' };
+    assert.equal(buildConnectionUrl(form('npgsql', { auth: 'certificate' }), values),
+        'postgres+tls://qa@postgres.example/db');
+    assert.equal(buildConnectionUrl(form('psqlodbc', { auth: 'certificate' }), values),
+        'odbc+postgres+tls://qa@postgres.example/db');
 });

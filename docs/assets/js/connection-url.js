@@ -138,7 +138,10 @@ function validateLocation(location, fields, value, entered) {
 
 function resolveScheme(route, locationId, tls, value) {
     const schemes = route.schemeByLocation?.[locationId];
-    if (!route.schemeByExtension) return schemes?.[tls?.id] ?? schemes?.default ?? route.scheme;
+    if (!route.schemeByExtension) {
+        const scheme = schemes?.[tls?.id] ?? schemes?.default ?? route.scheme;
+        return scheme + (tls?.schemeSuffix ?? '');
+    }
 
     const extension = /\.([A-Za-z0-9]+)$/.exec(value('file'))?.[1].toLowerCase();
     if (!extension || !Object.hasOwn(route.schemeByExtension, extension)) {
@@ -184,4 +187,13 @@ export function buildConnectionUrl(form, values) {
         + (explicitPort && !portDefinition?.queryKey ? ':' + explicitPort : '')
         + (path.length ? '/' + path.join('/') : '')
         + (options.length ? '?' + options.join('&') : '');
+}
+
+export function buildConnectionCheckCommand(url, { auth, tls }) {
+    if (!auth.cli && !(tls?.cli && auth.via === 'url')) return '';
+
+    const args = [url, ...(auth.cli ?? []), ...(tls?.cli ?? [])];
+    const quote = argument => "'" + argument.replaceAll("'", "'\"'\"'") + "'";
+    return 'duburl connection check ' + args.map((arg, index) =>
+        index === 0 || /\s|['"]/.test(arg) ? quote(arg) : arg).join(' ');
 }
