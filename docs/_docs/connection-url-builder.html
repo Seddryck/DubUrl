@@ -11,7 +11,7 @@ toc: false
 <p>Choose a database and driver to build a DubUrl connection URL. The builder leaves driver defaults implicit. Supply credentials when you open the connection.</p>
 
 <div id="connection-url-builder" data-catalog-url="{{ '/schemas/connection-url-builder/v2/catalog.json' | relative_url }}">
-  <p id="builder-loading" role="status" hidden>Loading connection profiles…</p>
+  <output id="builder-loading" hidden>Loading connection profiles…</output>
   <noscript><p>Enable JavaScript to use the builder, or use the <a href="{{ '/docs/basics-connection-url/' | relative_url }}">connection URL syntax reference</a>.</p></noscript>
   <div class="url-builder-grid" id="builder-content" hidden>
     <form class="url-builder-panel" autocomplete="off" novalidate>
@@ -45,7 +45,7 @@ toc: false
         <button class="btn btn-primary" id="builder-copy" type="button" disabled>Copy URL</button>
       </div>
       <pre><code id="builder-result"></code></pre>
-      <p class="url-builder-note" id="builder-result-note" role="status" hidden></p>
+      <output class="url-builder-note" id="builder-result-note" hidden></output>
       <section class="url-builder-run" id="builder-library" aria-labelledby="builder-library-heading" hidden>
         <h3 id="builder-library-heading">Library configuration</h3>
         <pre><code id="builder-library-text"></code></pre>

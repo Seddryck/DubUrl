@@ -45,6 +45,7 @@ form.url-builder-panel > section + section { border-top: 1px solid var(--builder
 .url-builder-field :focus-visible { outline: 2px solid var(--builder-muted); outline-offset: 2px; }
 .url-builder-note { color: var(--builder-muted); font-size: 0.85rem; overflow-wrap: anywhere; }
 #connection-url-builder p.url-builder-note { margin: 0.6rem 0 0; }
+#builder-result-note:not([hidden]) { display: block; margin-top: 0.6rem; }
 #connection-url-builder summary { cursor: pointer; }
 #connection-url-builder details { margin-top: 0.8rem; }
 #connection-url-builder pre { margin: 0.65rem 0 0; padding: 0.7rem; background: var(--builder-code); border-radius: 0.35rem; white-space: pre-wrap; overflow-wrap: anywhere; }

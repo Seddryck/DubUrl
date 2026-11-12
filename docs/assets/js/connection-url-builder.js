@@ -3,6 +3,16 @@ import { authenticationMethods, buildConnectionUrl, connectionForm } from './con
 const page = document.getElementById('connection-url-builder');
 const find = id => page.querySelector('#builder-' + id);
 
+function addControl(parent, control, id, label, wide) {
+    const wrapper = document.createElement('div');
+    wrapper.className = wide ? 'url-builder-field url-builder-wide' : 'url-builder-field';
+    const title = document.createElement('label');
+    control.id = title.htmlFor = 'builder-input-' + id;
+    title.textContent = label;
+    wrapper.append(title, control);
+    parent.append(wrapper);
+}
+
 async function loadCatalog() {
     find('loading').hidden = false;
     try {
@@ -43,16 +53,6 @@ function startBuilder(catalog) {
         state.locationId = locationId;
         state.authIndex = 0;
         state.tlsId = undefined;
-    }
-
-    function addControl(parent, control, id, label, wide) {
-        const wrapper = document.createElement('div');
-        wrapper.className = wide ? 'url-builder-field url-builder-wide' : 'url-builder-field';
-        const title = document.createElement('label');
-        control.id = title.htmlFor = 'builder-input-' + id;
-        title.textContent = label;
-        wrapper.append(title, control);
-        parent.append(wrapper);
     }
 
     function addSelect(parent, id, label, options, value, change, wide = false) {
@@ -195,4 +195,4 @@ function startBuilder(catalog) {
     render();
 }
 
-loadCatalog();
+await loadCatalog();

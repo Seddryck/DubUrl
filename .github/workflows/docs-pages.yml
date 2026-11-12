@@ -32,7 +32,7 @@ jobs:
       - name: Validate connection capability catalog
         working-directory: docs/schemas/connection-url-builder/v2
         run: |
-          python -m pip install jsonschema==4.26.0
+          python -m pip install --only-binary=:all: jsonschema==4.26.0
           python - <<'PY'
           import json
           from pathlib import Path

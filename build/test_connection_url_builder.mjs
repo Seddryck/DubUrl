@@ -13,9 +13,12 @@ function form(routeId, { location, auth, tls } = {}) {
     return connectionForm(catalog, route, locationId, auth ? methods.find(item => item.id === auth) : methods[0], tls);
 }
 
-test('driver profiles reference known endpoints and authentication methods', () => {
+test('driver profile IDs are unique', () => {
     assert.equal(new Set(catalog.databases.map(database => database.id)).size, catalog.databases.length);
     assert.equal(new Set(routes.map(route => route.id)).size, routes.length);
+});
+
+test('driver profiles reference known authentication methods', () => {
     for (const route of routes) {
         for (const item of route.auth) {
             const id = typeof item === 'string' ? item : item.id;
@@ -24,6 +27,11 @@ test('driver profiles reference known endpoints and authentication methods', () 
                 assert.ok(route.locations.includes(endpoint), endpoint);
             }
         }
+    }
+});
+
+test('driver profiles reference known endpoints', () => {
+    for (const route of routes) {
         for (const endpoint of Object.keys(route.schemeByLocation ?? {})) {
             assert.ok(route.locations.includes(endpoint), endpoint);
         }
@@ -184,7 +192,7 @@ test('Power BI and SSAS omit optional default path parts and keep required marke
 });
 
 test('file, memory and local-port profiles use their own URL shapes', () => {
-    assert.equal(buildConnectionUrl(form('sqlite-native'), { file: 'C:\\Data\\example file.db' }),
+    assert.equal(buildConnectionUrl(form('sqlite-native'), { file: String.raw`C:\Data\example file.db` }),
         'sqlite:///C:/Data/example%20file.db');
     assert.equal(buildConnectionUrl(form('sqlite-native'), { file: '/var/data/example.db' }),
         'sqlite:////var/data/example.db');
