@@ -99,6 +99,14 @@ cannot combine its certificate-file mode with a separate CA, and its certificate
 disabled pooling. Native certificate strategies may add a pool discriminator to application metadata.
 Keep certificate options alive for their documented lifetime. Rotation does not revoke existing sessions.
 
+## Proposed TLS scheme modifier
+
+For routes where `+http` selects the HTTP protocol, the proposed `+tls` modifier would make
+`xyz+http+tls://host/database` equivalent to `xyz+https://host/database`. Both forms would use the same
+HTTPS endpoint, provider-specific default port, and certificate-chain and hostname verification.
+Routes that define `+http` as plaintext-only would reject `+http+tls` as a conflict.
+[Track the proposal in issue #1809](https://github.com/Seddryck/DubUrl/issues/1809).
+
 ## Native mapping and platform support
 
 These are exact route declarations, checked against the dependency versions in the project. Native
