@@ -92,17 +92,16 @@
     "SecondaryColor": "#ffffff"
   },
   {
-    "Class": "TrinoDriverLocator",
-    "Database": "Trino",
+    "Class": "HiveDriverLocator",
+    "Database": "Apache Hive",
     "Aliases": [
-      "tr",
-      "trino"
+      "hive"
     ],
-    "NamePattern": "^(Simba)\\s\\bTrino ODBC Driver$",
+    "NamePattern": "^Cloudera ODBC Driver for Apache Hive$",
     "Options": [],
-    "Slug": "trino",
-    "MainColor": "#DD00A1",
-    "SecondaryColor": "#ffffff"
+    "Slug": "apachehive",
+    "MainColor": "#FDEE21",
+    "SecondaryColor": "#000000"
   },
   {
     "Class": "SparkDriverLocator",
@@ -112,8 +111,8 @@
     ],
     "NamePattern": "^Simba Spark ODBC Driver$",
     "Options": [],
-    "Slug": "",
-    "MainColor": "#333333",
+    "Slug": "apachespark",
+    "MainColor": "#E25A1C",
     "SecondaryColor": "#ffffff"
   },
   {
@@ -124,20 +123,21 @@
     ],
     "NamePattern": "^Databricks ODBC Driver$",
     "Options": [],
-    "Slug": "",
-    "MainColor": "#333333",
+    "Slug": "databricks",
+    "MainColor": "#FF3621",
     "SecondaryColor": "#ffffff"
   },
   {
-    "Class": "HiveDriverLocator",
-    "Database": "Apache Hive",
+    "Class": "TrinoDriverLocator",
+    "Database": "Trino",
     "Aliases": [
-      "hive"
+      "tr",
+      "trino"
     ],
-    "NamePattern": "^Cloudera ODBC Driver for Apache Hive$",
+    "NamePattern": "^(Simba)\\s\\bTrino ODBC Driver$",
     "Options": [],
-    "Slug": "",
-    "MainColor": "#333333",
+    "Slug": "trino",
+    "MainColor": "#DD00A1",
     "SecondaryColor": "#ffffff"
   },
   {
