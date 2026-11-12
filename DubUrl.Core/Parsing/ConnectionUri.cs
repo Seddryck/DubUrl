@@ -57,18 +57,24 @@ public sealed class ConnectionUri : IEquatable<ConnectionUri>
         {
             [key] = value,
         };
-        return new ConnectionUri
+        return Copy(Scheme, updated);
+    }
+
+    internal ConnectionUri WithProviderScheme()
+        => Scheme.RequiresTls ? Copy(Scheme.ProviderScheme, Options) : this;
+
+    private ConnectionUri Copy(SchemeKey scheme, IReadOnlyDictionary<string, string> options)
+        => new()
         {
-            Scheme = Scheme,
+            Scheme = scheme,
             Host = Host,
             Port = Port,
             Username = Username,
             Password = Password,
             HasUsername = HasUsername, HasPassword = HasPassword,
             Segments = Segments,
-            Options = updated,
+            Options = options,
         };
-    }
 
     /// <summary>Formats the URI with its password redacted.</summary>
     public override string ToString() => ToString(redactPassword: true);

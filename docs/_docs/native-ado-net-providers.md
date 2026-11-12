@@ -34,3 +34,7 @@ For SQLite, install the full `Microsoft.Data.Sqlite` package to include the defa
 ### Example
 
 See [Your first database connection]({{ '/docs/first-connection/' | relative_url }}) for a complete PostgreSQL example, including package installation, explicit factory registration, and disposal. Other native providers follow the same sequence using the package, invariant name, and scheme listed above.
+
+Aliases for a TLS-capable provider also accept `+tls`, for example `pgsql+tls://db.example.com/app`.
+Native Trino also accepts `+https` and `+http+tls`. See
+[TLS in connection URLs]({{ '/connection-configuration/#tls-in-connection-urls' | relative_url }}) for provider and driver coverage.

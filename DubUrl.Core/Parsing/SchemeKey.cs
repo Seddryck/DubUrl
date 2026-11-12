@@ -8,6 +8,7 @@ namespace DubUrl.Parsing;
 public sealed class SchemeKey : IEquatable<SchemeKey>
 {
     private readonly IReadOnlyList<string> parts;
+    private readonly SchemeKey? providerScheme;
 
     public SchemeKey(IEnumerable<string> parts)
     {
@@ -21,14 +22,35 @@ public sealed class SchemeKey : IEquatable<SchemeKey>
 
         this.parts = Array.AsReadOnly(normalized);
         Canonical = string.Join('+', normalized).ToLowerInvariant();
+
+        if (normalized.Length < 2) return;
+
+        var providerParts = normalized.Where(part => !Is(part, "tls")).ToArray();
+        var tlsCount = normalized.Length - providerParts.Length;
+        if (tlsCount > 1)
+            throw new ArgumentException("Specify the TLS scheme modifier only once.", nameof(parts));
+
+        RequiresHttpsTransport = providerParts is [var provider, var transport]
+            && !Is(provider, "odbc") && !Is(provider, "oledb") && !Is(provider, "adbc")
+            && (Is(transport, "https") || (tlsCount == 1 && Is(transport, "http")));
+        if (RequiresHttpsTransport)
+            providerScheme = new([providerParts[0]]);
+        else if (tlsCount == 1)
+            providerScheme = new(providerParts);
     }
 
     public IReadOnlyList<string> Parts => parts;
     public string Canonical { get; }
+    internal SchemeKey ProviderScheme => providerScheme ?? this;
+    internal bool RequiresTls => providerScheme is not null;
+    internal bool RequiresHttpsTransport { get; }
+
+    private static bool Is(string part, string value)
+        => part.Equals(value, StringComparison.OrdinalIgnoreCase);
 
     internal string GetRegistryAlias()
     {
-        var aliases = Parts;
+        var aliases = ProviderScheme.Parts;
         var main = aliases.Count == 1
             ? aliases[0]
             : aliases.Contains("oledb", StringComparer.OrdinalIgnoreCase) ? "oledb"

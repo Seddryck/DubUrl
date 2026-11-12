@@ -8,7 +8,7 @@ namespace DubUrl;
 internal static class TransportEncryption
 {
     private const string CaKeyword = "SSLCA";
-    private enum DriverKind { Unsupported, SqlServer, Postgres, MySql, MariaDb }
+    private enum DriverKind { Unsupported, SqlServer, Postgres, MySql, MariaDb, SparkOrHive, Databricks, Trino }
 
     internal static void Apply(DbConnectionStringBuilder builder, ConnectionEncryption encryption, bool odbc)
     {
@@ -23,6 +23,16 @@ internal static class TransportEncryption
             case DriverKind.Postgres: ApplyPostgres(builder, supplied, encryption); break;
             case DriverKind.MySql: ApplyMySql(builder, supplied, encryption); break;
             case DriverKind.MariaDb: ApplyMariaDb(builder, supplied, encryption); break;
+            case DriverKind.SparkOrHive:
+                ApplySimba(builder, supplied, encryption, "AllowSelfSignedServerCert", "CAIssuedCertNamesMismatch");
+                break;
+            case DriverKind.Databricks:
+                ApplySimba(builder, supplied, encryption, "AllowSelfSignedCert", "AllowHostNameCNMismatch");
+                break;
+            case DriverKind.Trino:
+                ApplySimba(builder, supplied, encryption, "AllowSelfSignedServerCert", "AllowHostNameCNMismatch");
+                RequireAndSet(builder, supplied, "AllowHTTPRedirect", "0");
+                break;
             default: Unsupported(); break;
         }
     }
@@ -34,7 +44,13 @@ internal static class TransportEncryption
         if (Matches(driver, @"^PostgreSQL (Unicode|ANSI)(\(x64\))?$")) return DriverKind.Postgres;
         if (Matches(driver, @"^MySQL ODBC (?:[89]|[1-9]\d+)\.\d+(?:\.\d+)? (Unicode |ANSI )?Driver$")) return DriverKind.MySql;
         if (Matches(driver, @"^MariaDB ODBC 3\.[1-9]\d*(?:\.\d+)? Driver$")) return DriverKind.MariaDb;
-        return DriverKind.Unsupported;
+        return driver.ToUpperInvariant() switch
+        {
+            "SIMBA SPARK ODBC DRIVER" or "CLOUDERA ODBC DRIVER FOR APACHE HIVE" => DriverKind.SparkOrHive,
+            "DATABRICKS ODBC DRIVER" => DriverKind.Databricks,
+            "SIMBA TRINO ODBC DRIVER" => DriverKind.Trino,
+            _ => DriverKind.Unsupported
+        };
     }
 
     private static bool Matches(string driver, string pattern)
@@ -81,6 +97,29 @@ internal static class TransportEncryption
         builder["SSLVERIFY"] = 1;
         builder["FORCETLS"] = 1;
         ApplyCa(builder, supplied, encryption.CaPath);
+    }
+
+    private static void ApplySimba(DbConnectionStringBuilder builder, DbConnectionStringBuilder supplied,
+        ConnectionEncryption encryption, string selfSigned, string hostMismatch)
+    {
+        RequireAndSet(builder, supplied, "SSL", "1");
+        // Databricks also recognizes the older spelling of its hostname override.
+        Require(supplied, "CAIssuedCertNamesMismatch", "0");
+        Require(supplied, "AllowHostNameCNMismatch", "0");
+        RequireAndSet(builder, supplied, selfSigned, "0");
+        RequireAndSet(builder, supplied, hostMismatch, "0");
+        if (encryption.CaPath is null && !supplied.ContainsKey("TrustedCerts")) return;
+        RequireAndSet(builder, supplied, "UseSystemTrustStore", "0");
+        if (encryption.CaPath is not string path) return;
+        Require(supplied, "TrustedCerts", path);
+        builder["TrustedCerts"] = path;
+    }
+
+    private static void RequireAndSet(DbConnectionStringBuilder builder, DbConnectionStringBuilder supplied,
+        string keyword, string value)
+    {
+        Require(supplied, keyword, value);
+        builder[keyword] = value;
     }
 
     private static void ApplyCa(DbConnectionStringBuilder builder, DbConnectionStringBuilder supplied, string? path)
