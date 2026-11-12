@@ -1,0 +1,62 @@
+#connection-url-builder {
+    --builder-border: #d7dee2;
+    --builder-muted: #3a515f;
+    --builder-code: #f5f5f5;
+    container-type: inline-size;
+}
+
+#connection-url-builder [hidden] { display: none; }
+.url-builder-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.url-builder-panel {
+    min-width: 0;
+    border: 1px solid var(--builder-border);
+    border-radius: 0.65rem;
+}
+
+form.url-builder-panel > section, .url-builder-output { padding: 1rem; }
+form.url-builder-panel > section + section { border-top: 1px solid var(--builder-border); }
+.url-builder-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+#connection-url-builder h2, #connection-url-builder h3 { margin: 0; font-size: 1rem; line-height: 1.4; }
+#connection-url-builder h3 { font-size: 0.9rem; }
+.url-builder-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.7rem; }
+.url-builder-field { display: grid; align-content: start; gap: 0.25rem; min-width: 0; }
+.url-builder-wide { grid-column: 1 / -1; }
+.url-builder-field label, #connection-url-builder summary { font-size: 0.85rem; font-weight: 650; }
+
+.url-builder-field input, .url-builder-field select {
+    min-width: 0;
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.35rem 0.55rem;
+    color: inherit;
+    background: #fff;
+    border: 1px solid var(--builder-border);
+    border-radius: 0.35rem;
+    font: inherit;
+}
+
+.url-builder-field :focus-visible { outline: 2px solid var(--builder-muted); outline-offset: 2px; }
+.url-builder-note { color: var(--builder-muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+#connection-url-builder p.url-builder-note { margin: 0.6rem 0 0; }
+#builder-result-note:not([hidden]) { display: block; margin-top: 0.6rem; }
+#connection-url-builder summary { cursor: pointer; }
+#connection-url-builder details { margin-top: 0.8rem; }
+#connection-url-builder pre { margin: 0.65rem 0 0; padding: 0.7rem; background: var(--builder-code); border-radius: 0.35rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+#connection-url-builder pre code { padding: 0; background: transparent; }
+#connection-url-builder button:disabled { opacity: 0.55; cursor: default; }
+.url-builder-run { margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--builder-border); }
+
+@container (max-width: 43rem) {
+    .url-builder-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container (max-width: 26rem) {
+    .url-builder-fields { grid-template-columns: minmax(0, 1fr); }
+}

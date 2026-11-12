@@ -1,0 +1,64 @@
+---
+title: Connection URL builder
+parent: Connecting to databases
+nav_order: 2
+toc: false
+---
+
+<link rel="stylesheet" href="{{ '/assets/css/connection-url-builder.css' | relative_url }}">
+<script type="module" src="{{ '/assets/js/connection-url-builder.js' | relative_url }}"></script>
+
+<p>Choose a database and driver to build a DubUrl connection URL. The builder leaves driver defaults implicit. Supply credentials when you open the connection.</p>
+
+<div id="connection-url-builder" data-catalog-url="{{ '/schemas/connection-url-builder/v2/catalog.json' | relative_url }}">
+  <output id="builder-loading" hidden>Loading connection profiles…</output>
+  <noscript><p>Enable JavaScript to use the builder, or use the <a href="{{ '/docs/basics-connection-url/' | relative_url }}">connection URL syntax reference</a>.</p></noscript>
+  <div class="url-builder-grid" id="builder-content" hidden>
+    <form class="url-builder-panel" autocomplete="off" novalidate>
+      <section aria-labelledby="builder-provider-heading">
+        <h2 id="builder-provider-heading">Database and driver</h2>
+        <div class="url-builder-fields" id="builder-provider"></div>
+        <p class="url-builder-note" id="builder-driver-note" hidden></p>
+      </section>
+      <section aria-labelledby="builder-location-heading">
+        <div class="url-builder-heading">
+          <h2 id="builder-location-heading">Connection details</h2>
+          <span class="url-builder-note" id="builder-transport"></span>
+        </div>
+        <div class="url-builder-fields" id="builder-location"></div>
+        <details id="builder-driver-settings" hidden>
+          <summary>Driver selection options</summary>
+          <p class="url-builder-note">Use an installed name that matches the selected driver family.</p>
+          <div class="url-builder-fields" id="builder-driver-fields"></div>
+        </details>
+      </section>
+      <section aria-labelledby="builder-auth-heading">
+        <h2 id="builder-auth-heading">Authentication</h2>
+        <div class="url-builder-fields" id="builder-auth"></div>
+        <p class="url-builder-note" id="builder-auth-note" hidden></p>
+      </section>
+    </form>
+
+    <section class="url-builder-panel url-builder-output" aria-labelledby="builder-output-heading">
+      <div class="url-builder-heading">
+        <h2 id="builder-output-heading">Connection URL</h2>
+        <button class="btn btn-primary" id="builder-copy" type="button" disabled>Copy URL</button>
+      </div>
+      <pre><code id="builder-result"></code></pre>
+      <output class="url-builder-note" id="builder-result-note" hidden></output>
+      <section class="url-builder-run" id="builder-library" aria-labelledby="builder-library-heading" hidden>
+        <h3 id="builder-library-heading">Library configuration</h3>
+        <pre><code id="builder-library-text"></code></pre>
+      </section>
+      <section class="url-builder-run" id="builder-cli" aria-labelledby="builder-cli-heading" hidden>
+        <h3 id="builder-cli-heading">DubUrl CLI</h3>
+        <pre><code id="builder-cli-text"></code></pre>
+        <p class="url-builder-note" id="builder-cli-note" hidden></p>
+      </section>
+    </section>
+  </div>
+</div>
+
+<p>These profiles assume the <a href="{{ '/docs/installation-ado-net-provider/' | relative_url }}">selected provider is installed</a> and the server allows the chosen sign-in method. See <a href="{{ '/authentication/' | relative_url }}">Library authentication</a> or <a href="{{ '/cli-authentication/' | relative_url }}">CLI authentication</a> for runtime setup.</p>
+<p>The built-in Azure Analysis Services mapper currently uses the SSAS Tabular URL mapping. See the <a href="{{ '/docs/connection-string-to-url/#supported-mappings-and-limits' | relative_url }}">mapping limits</a>.</p>
+<p><a href="{{ '/schemas/connection-url-builder/v2/catalog.json' | relative_url }}">Capability catalog (JSON)</a> · <a href="{{ '/schemas/connection-url-builder/v2/schema.json' | relative_url }}">Capability catalog JSON Schema</a></p>

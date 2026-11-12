@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seddryck.github.io/DubUrl/schemas/connection-url-builder/v2/schema.json",
+  "title": "DubUrl connection URL builder catalog",
+  "description": "The fields, URL shapes, TLS policies and authentication methods supported by the DubUrl docs builder.",
+  "type": "object",
+  "required": ["schemaVersion", "layouts", "driverFields", "locations", "tlsPolicies", "authentication", "databases"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 2 },
+    "scope": { "$ref": "#/$defs/text" },
+    "sourceRevisions": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "format": "uri" }
+    },
+    "layouts": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/layout" }
+    },
+    "driverFields": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/api" },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": { "$ref": "#/$defs/id" },
+        "additionalProperties": {
+          "$ref": "#/$defs/field",
+          "required": ["queryKey"]
+        }
+      }
+    },
+    "locations": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/location" }
+    },
+    "tlsPolicies": {
+      "type": "object",
+      "required": ["driverDefault"],
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/tlsPolicy" }
+    },
+    "authentication": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "$ref": "#/$defs/authProperties",
+        "required": ["label", "via"],
+        "unevaluatedProperties": false
+      }
+    },
+    "databases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "routes"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "$ref": "#/$defs/text" },
+          "routes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/route" } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "id": { "type": "string", "pattern": "^[a-z][A-Za-z0-9-]*$" },
+    "idList": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "scheme": { "type": "string", "pattern": "^[a-z][a-z0-9.+-]*$" },
+    "api": { "enum": ["ADO.NET", "ODBC", "OLE DB", "ADBC", "ADOMD.NET"] },
+    "platforms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["Windows", "Linux", "macOS"] } },
+    "query": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/text" },
+      "additionalProperties": { "type": "string" }
+    },
+    "cli": {
+      "description": "Arguments for duburl connection check, following the generated URL.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/text" }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": { "$ref": "#/$defs/text" },
+        "placeholder": { "type": "string" },
+        "inputMode": { "enum": ["text", "numeric", "decimal", "tel", "search", "email", "url"] }
+      }
+    },
+    "field": {
+      "type": "object",
+      "required": ["layout"],
+      "additionalProperties": false,
+      "properties": {
+        "layout": { "$ref": "#/$defs/id", "description": "Name of a reusable control layout." },
+        "label": { "$ref": "#/$defs/text" },
+        "placeholder": { "type": "string" },
+        "required": { "type": "boolean" },
+        "default": {
+          "description": "Value used when the input is empty. Matching ports and split endpoint paths are left to the mapper or driver.",
+          "type": ["string", "integer"]
+        },
+        "defaultUnless": {
+          "$ref": "#/$defs/idList",
+          "description": "Fields that make the advertised port default inapplicable when supplied."
+        },
+        "pattern": { "type": "string", "format": "regex" },
+        "url": { "enum": ["host", "port", "username"] },
+        "queryKey": { "$ref": "#/$defs/text" }
+      },
+      "if": {
+        "anyOf": [
+          { "properties": { "layout": { "const": "port" } }, "required": ["layout"] },
+          { "properties": { "url": { "const": "port" } }, "required": ["url"] }
+        ]
+      },
+      "then": {
+        "properties": { "default": { "type": "integer", "minimum": 1, "maximum": 65535 } }
+      }
+    },
+    "fields": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/field" }
+    },
+    "segment": {
+      "description": "A field reference or a rule that emits one or more URL path segments.",
+      "oneOf": [
+        { "$ref": "#/$defs/id" },
+        {
+          "type": "object",
+          "required": ["literal"],
+          "additionalProperties": false,
+          "properties": {
+            "literal": { "$ref": "#/$defs/text" },
+            "when": { "$ref": "#/$defs/id" },
+            "equalsIgnoreCase": { "$ref": "#/$defs/text" }
+          },
+          "dependentRequired": { "equalsIgnoreCase": ["when"] }
+        },
+        {
+          "type": "object",
+          "required": ["field", "fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "field": { "$ref": "#/$defs/id" },
+            "fallback": { "$ref": "#/$defs/text" },
+            "fallbackWhen": { "$ref": "#/$defs/idList" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["split"],
+          "additionalProperties": false,
+          "properties": {
+            "split": { "$ref": "#/$defs/id" },
+            "reserveSuffix": { "$ref": "#/$defs/text" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["file"],
+          "additionalProperties": false,
+          "properties": { "file": { "$ref": "#/$defs/id" } }
+        },
+        {
+          "type": "object",
+          "required": ["relativeFile"],
+          "additionalProperties": false,
+          "properties": { "relativeFile": { "$ref": "#/$defs/id" } }
+        }
+      ]
+    },
+    "location": {
+      "type": "object",
+      "required": ["transport"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "$ref": "#/$defs/text" },
+        "transport": { "$ref": "#/$defs/text" },
+        "fixedHost": { "$ref": "#/$defs/text" },
+        "fields": { "$ref": "#/$defs/fields" },
+        "path": { "type": "array", "items": { "$ref": "#/$defs/segment" } },
+        "requires": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/id" }
+        },
+        "exclusive": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/idList", "minItems": 2, "maxItems": 2 }
+        }
+      }
+    },
+    "tlsPolicy": {
+      "type": "object",
+      "required": ["modes"],
+      "additionalProperties": false,
+      "properties": {
+        "default": { "$ref": "#/$defs/id" },
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "label": { "$ref": "#/$defs/text" },
+              "secure": { "type": "boolean" },
+              "via": { "enum": ["url", "runtime", "scheme"] },
+              "query": { "$ref": "#/$defs/query" },
+              "cli": { "$ref": "#/$defs/cli" },
+              "library": { "$ref": "#/$defs/text" },
+              "transport": { "$ref": "#/$defs/text" },
+              "transportByProtocol": { "type": "object", "additionalProperties": { "$ref": "#/$defs/text" } }
+            }
+          }
+        }
+      }
+    },
+    "authProperties": {
+      "type": "object",
+      "properties": {
+        "label": { "$ref": "#/$defs/text" },
+        "via": { "enum": ["url", "runtime", "external"] },
+        "fields": { "$ref": "#/$defs/fields" },
+        "fixedUser": { "$ref": "#/$defs/text" },
+        "requiresTls": { "type": "boolean" },
+        "tlsOverride": { "$ref": "#/$defs/id" },
+        "locations": { "$ref": "#/$defs/idList" },
+        "platforms": { "$ref": "#/$defs/platforms" },
+        "query": { "$ref": "#/$defs/query" },
+        "queryByLocation": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/query" }
+        },
+        "cli": { "$ref": "#/$defs/cli" },
+        "library": { "$ref": "#/$defs/text" },
+        "note": { "$ref": "#/$defs/text" }
+      }
+    },
+    "route": {
+      "type": "object",
+      "required": ["id", "api", "driver", "scheme", "locations", "auth"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "api": { "$ref": "#/$defs/api" },
+        "driver": { "$ref": "#/$defs/text" },
+        "platforms": { "$ref": "#/$defs/platforms" },
+        "scheme": { "$ref": "#/$defs/scheme" },
+        "locations": { "$ref": "#/$defs/idList" },
+        "fields": { "$ref": "#/$defs/fields", "description": "Driver overrides for fields declared by a location or the driver's API." },
+        "tls": { "$ref": "#/$defs/id" },
+        "note": { "$ref": "#/$defs/text" },
+        "query": { "$ref": "#/$defs/query" },
+        "schemeByLocation": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["default"],
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": { "$ref": "#/$defs/scheme" }
+          }
+        },
+        "schemeByExtension": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-z0-9]+$" },
+          "additionalProperties": { "$ref": "#/$defs/scheme" }
+        },
+        "auth": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/id" },
+              {
+                "$ref": "#/$defs/authProperties",
+                "properties": { "id": { "$ref": "#/$defs/id" } },
+                "required": ["id"],
+                "unevaluatedProperties": false
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

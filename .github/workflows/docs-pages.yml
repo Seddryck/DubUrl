@@ -2,9 +2,9 @@ name: Documentation website
 on:
   push:
     branches: [main]
-    paths: ['docs/**', 'build/*schema_doc*.py', '.github/workflows/docs-pages.yml']
+    paths: ['docs/**', 'build/*schema_doc*.py', 'build/test_connection_url_builder.mjs', '.github/workflows/docs-pages.yml']
   pull_request:
-    paths: ['docs/**', 'build/*schema_doc*.py', '.github/workflows/docs-pages.yml']
+    paths: ['docs/**', 'build/*schema_doc*.py', 'build/test_connection_url_builder.mjs', '.github/workflows/docs-pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,26 @@ jobs:
           python-version: '3.13'
       - name: Test bundle import
         run: python -m unittest discover -s build -p test_schema_docs.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test connection URL builder
+        run: node --test build/test_connection_url_builder.mjs
+      - name: Validate connection capability catalog
+        working-directory: docs/schemas/connection-url-builder/v2
+        run: |
+          python -m pip install --only-binary=:all: jsonschema==4.26.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          schema = json.loads(Path("schema.json").read_text(encoding="utf-8"))
+          catalog = json.loads(Path("catalog.json").read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(schema)
+          Draft202012Validator(schema, format_checker=FormatChecker()).validate(catalog)
+          PY
       - name: Assemble latest Schema release documentation
         run: python build/import_schema_docs.py
       - uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1
