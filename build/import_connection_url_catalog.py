@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 import re
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, build_opener
 from zipfile import BadZipFile, ZipFile
 
 
@@ -17,6 +18,13 @@ FILES = ("catalog.json", "schema.json")
 MAX_BUNDLE_SIZE = 2 * 1024 * 1024
 RELEASE_URL = "https://github.com/Seddryck/DubUrl.Providers/releases/download"
 BUNDLE = "connection-url-catalog.zip"
+
+
+class HttpsRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if urlsplit(newurl).scheme != "https":
+            raise URLError("The catalog download redirected away from HTTPS")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def read_pin(path):
@@ -35,7 +43,7 @@ def read_pin(path):
 def download(version):
     url = f"{RELEASE_URL}/connection-url-catalog-v{version}/{BUNDLE}"
     try:
-        with urlopen(url, timeout=60) as response:
+        with build_opener(HttpsRedirectHandler()).open(url, timeout=60) as response:
             return response.read(MAX_BUNDLE_SIZE + 1)
     except (URLError, TimeoutError) as error:
         raise ValueError(f"Could not download catalog {version} from {url}: {error}") from error
