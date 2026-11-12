@@ -20,8 +20,8 @@
     border-radius: 0.65rem;
 }
 
-.url-builder-panel > section, .url-builder-output { padding: 1rem; }
-.url-builder-panel > section + section { border-top: 1px solid var(--builder-border); }
+form.url-builder-panel > section, .url-builder-output { padding: 1rem; }
+form.url-builder-panel > section + section { border-top: 1px solid var(--builder-border); }
 .url-builder-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
 #connection-url-builder h2, #connection-url-builder h3 { margin: 0; font-size: 1rem; line-height: 1.4; }
 #connection-url-builder h3 { font-size: 0.9rem; }

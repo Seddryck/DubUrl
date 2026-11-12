@@ -139,13 +139,16 @@ function startBuilder(catalog) {
             auth.note ?? (auth.id === 'password' ? 'Supply the password when opening the connection.' : '')
         ].filter(Boolean).join(' '));
 
+        const library = [auth.library, form.tls?.library].filter(Boolean);
+        find('library-text').textContent = library.join('\n');
+        find('library').hidden = library.length === 0;
         renderOutput(form);
     }
 
     function renderOutput(form) {
         const { auth, tls } = form;
-        const run = find('run');
-        run.hidden = true;
+        const cli = find('cli');
+        cli.hidden = true;
         copy.textContent = 'Copy URL';
         try {
             currentUrl = buildConnectionUrl(form, state.values);
@@ -164,16 +167,10 @@ function startBuilder(catalog) {
         if (auth.cli || (tls?.cli && auth.via === 'url')) {
             const args = [currentUrl, ...(auth.cli ?? []), ...(tls?.cli ?? [])];
             const quote = argument => "'" + argument.replaceAll("'", "'\"'\"'") + "'";
-            find('run-heading').textContent = 'DubUrl CLI';
-            find('run-text').textContent = 'duburl connection check ' + args.map((arg, index) =>
+            find('cli-text').textContent = 'duburl connection check ' + args.map((arg, index) =>
                 index === 0 || /\s|['"]/.test(arg) ? quote(arg) : arg).join(' ');
-            note('run-note', auth.id === 'certificate' ? 'Replace the sample certificate and key paths.' : '');
-            run.hidden = false;
-        } else if (auth.library || tls?.library) {
-            find('run-heading').textContent = 'Library configuration';
-            find('run-text').textContent = [auth.library, tls?.library].filter(Boolean).join('\n');
-            note('run-note', 'Apply these settings when opening the URL.');
-            run.hidden = false;
+            note('cli-note', auth.id === 'certificate' ? 'Replace the sample certificate and key paths.' : '');
+            cli.hidden = false;
         }
     }
 

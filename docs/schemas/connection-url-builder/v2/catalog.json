@@ -1020,7 +1020,8 @@
       "cli": [
         "--password-prompt"
       ],
-      "note": "Enter the personal access token at the password prompt."
+      "library": "ConnectionAuthentication.Password(…)",
+      "note": "Supply the personal access token as the password when opening the connection."
     },
     "databricksOAuthToken": {
       "label": "OAuth token pass-through",
