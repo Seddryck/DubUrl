@@ -110,8 +110,12 @@
         "placeholder": { "type": "string" },
         "required": { "type": "boolean" },
         "default": {
-          "description": "Value used when the input is empty. An implicit port is left to the mapper or driver.",
+          "description": "Value used when the input is empty. Matching ports and split endpoint paths are left to the mapper or driver.",
           "type": ["string", "integer"]
+        },
+        "defaultUnless": {
+          "$ref": "#/$defs/idList",
+          "description": "Fields that make the advertised port default inapplicable when supplied."
         },
         "pattern": { "type": "string", "format": "regex" },
         "url": { "enum": ["host", "port", "username"] },
@@ -142,8 +146,10 @@
           "additionalProperties": false,
           "properties": {
             "literal": { "$ref": "#/$defs/text" },
-            "when": { "$ref": "#/$defs/id" }
-          }
+            "when": { "$ref": "#/$defs/id" },
+            "equalsIgnoreCase": { "$ref": "#/$defs/text" }
+          },
+          "dependentRequired": { "equalsIgnoreCase": ["when"] }
         },
         {
           "type": "object",
@@ -151,7 +157,8 @@
           "additionalProperties": false,
           "properties": {
             "field": { "$ref": "#/$defs/id" },
-            "fallback": { "$ref": "#/$defs/text" }
+            "fallback": { "$ref": "#/$defs/text" },
+            "fallbackWhen": { "$ref": "#/$defs/idList" }
           }
         },
         {

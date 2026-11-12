@@ -72,7 +72,7 @@ function startBuilder(catalog) {
         input.type = 'text';
         input.spellcheck = false;
         if (field.inputMode) input.inputMode = field.inputMode;
-        input.placeholder = String(field.default ?? field.placeholder ?? '');
+        input.placeholder = String(field.placeholder ?? field.default ?? '');
         input.value = state.values[id] ?? '';
         input.required = Boolean(field.required && field.default === undefined);
         input.addEventListener('input', () => {

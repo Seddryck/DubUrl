@@ -69,25 +69,44 @@ function filePath(value, relativeOnly) {
     return [...(normalized.startsWith('/') ? [''] : []), ...parts.map(escapeComponent)];
 }
 
+function endpointPath(path, defaultPath, reserveSuffix) {
+    if (!path) return [];
+    const parts = splitPath(path);
+    if (defaultPath && parts.join('/') === splitPath(defaultPath).join('/')) return [];
+    if (reserveSuffix && parts.at(-2) === reserveSuffix) {
+        throw new Error('Choose an HTTP endpoint that does not end in /' + reserveSuffix + '/<name>.');
+    }
+    return parts.map(escapeComponent);
+}
+
 function encodePath(path, fields, value) {
     return path.flatMap(part => {
         if (typeof part === 'string' || part.field) {
             const id = part.field ?? part;
-            const segment = value(id) || part.fallback;
+            const needsFallback = !part.fallbackWhen || part.fallbackWhen.some(key => value(key));
+            const segment = value(id) || (needsFallback ? part.fallback : '');
             if (segment === '.' || segment === '..') {
                 throw new Error('Enter a valid ' + fields[id].label.toLowerCase() + '.');
             }
             return segment ? [escapeComponent(segment)] : [];
         }
-        if (part.literal) return !part.when || value(part.when) ? [escapeComponent(part.literal)] : [];
-        if (part.file || part.relativeFile) return filePath(value(part.file ?? part.relativeFile), Boolean(part.relativeFile));
-        if (!value(part.split)) return [];
-        const parts = splitPath(value(part.split));
-        if (part.reserveSuffix && parts.at(-2) === part.reserveSuffix) {
-            throw new Error('Choose an HTTP endpoint that does not end in /' + part.reserveSuffix + '/<name>.');
+        if (part.literal) {
+            const condition = value(part.when);
+            const matches = part.equalsIgnoreCase === undefined || condition.toLowerCase() === part.equalsIgnoreCase.toLowerCase();
+            return (!part.when || condition) && matches ? [escapeComponent(part.literal)] : [];
         }
-        return parts.map(escapeComponent);
+        if (part.file || part.relativeFile) return filePath(value(part.file ?? part.relativeFile), Boolean(part.relativeFile));
+        return endpointPath(value(part.split), fields[part.split].default, part.reserveSuffix);
     });
+}
+
+function portOverride(port, field, entered) {
+    if (!port) return '';
+    if (!/^\d{1,5}$/.test(port) || Number(port) < 1 || Number(port) > 65535) {
+        throw new Error('Enter a port from 1 to 65535.');
+    }
+    if (Number(port) === field.default && !field.defaultUnless?.some(entered)) return '';
+    return String(Number(port));
 }
 
 export function buildConnectionUrl(form, values) {
@@ -116,13 +135,9 @@ export function buildConnectionUrl(form, values) {
     }
 
     const portField = role('port');
-    const port = value(portField);
-    if (port && (!/^\d{1,5}$/.test(port) || Number(port) < 1 || Number(port) > 65535)) {
-        throw new Error('Enter a port from 1 to 65535.');
-    }
-    // Implicit ports use the mapper or driver default. Explicit ports may use a vendor keyword.
-    const explicitPort = entered(portField) ? String(Number(port)) : '';
-    const portQueryKey = fields[portField]?.queryKey;
+    const portDefinition = fields[portField];
+    const explicitPort = portOverride(entered(portField), portDefinition, entered);
+    const portQueryKey = portDefinition?.queryKey;
     const path = encodePath(location.path ?? [], fields, value);
     const schemes = route.schemeByLocation?.[locationId];
     let scheme = schemes?.[tls?.id] ?? schemes?.default ?? route.scheme;

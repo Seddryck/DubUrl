@@ -117,7 +117,11 @@
         },
         "port": {
           "layout": "port",
-          "url": "port"
+          "url": "port",
+          "defaultUnless": [
+            "instance"
+          ],
+          "placeholder": "1433 (default instance)"
         },
         "instance": {
           "layout": "text",
@@ -143,7 +147,11 @@
         },
         "port": {
           "layout": "port",
-          "url": "port"
+          "url": "port",
+          "defaultUnless": [
+            "instance"
+          ],
+          "placeholder": "1433 (default instance)"
         },
         "instance": {
           "layout": "text",
@@ -330,7 +338,7 @@
         "httpPath": {
           "layout": "text",
           "label": "HTTP endpoint path",
-          "placeholder": "/cliservice"
+          "default": "/cliservice"
         },
         "schema": {
           "layout": "text",
@@ -477,7 +485,6 @@
     },
     "duckOdbcFile": {
       "transport": "Local file",
-      "fixedHost": "localhost",
       "fields": {
         "file": {
           "layout": "text",
@@ -562,7 +569,10 @@
       "path": [
         {
           "field": "instance",
-          "fallback": "~"
+          "fallback": "~",
+          "fallbackWhen": [
+            "port"
+          ]
         },
         "catalog"
       ]
@@ -602,7 +612,11 @@
       "path": [
         {
           "field": "instance",
-          "fallback": "~"
+          "fallback": "~",
+          "fallbackWhen": [
+            "port",
+            "cube"
+          ]
         },
         "catalog",
         "cube"
@@ -610,7 +624,6 @@
     },
     "powerBiCloud": {
       "transport": "XMLA cloud endpoint",
-      "fixedHost": "api.powerbi.com",
       "fields": {
         "workspace": {
           "layout": "text",
@@ -620,10 +633,14 @@
       },
       "path": [
         {
-          "literal": "v1.0"
+          "literal": "v1.0",
+          "when": "workspace",
+          "equalsIgnoreCase": "v1.0"
         },
         {
-          "literal": "myorg"
+          "literal": "myorg",
+          "when": "workspace",
+          "equalsIgnoreCase": "v1.0"
         },
         "workspace"
       ]
@@ -631,7 +648,6 @@
     "powerBiModel": {
       "label": "Discover by report name",
       "transport": "Local model",
-      "fixedHost": "localhost",
       "fields": {
         "model": {
           "layout": "text",
@@ -671,7 +687,8 @@
         {
           "id": "default",
           "label": "Required",
-          "secure": true
+          "secure": true,
+          "transport": "HTTPS"
         }
       ]
     },
@@ -694,7 +711,6 @@
       ]
     },
     "npgsql": {
-      "default": "verified",
       "modes": [
         {
           "id": "default",
@@ -713,20 +729,10 @@
       ]
     },
     "sqlClient": {
-      "default": "verified",
       "modes": [
         {
           "id": "default",
-          "label": "Driver default"
-        },
-        {
-          "id": "verified",
-          "label": "Require verified TLS",
-          "via": "url",
-          "query": {
-            "Encrypt": "Mandatory",
-            "Trust Server Certificate": "False"
-          },
+          "label": "Driver default (verified TLS)",
           "secure": true
         },
         {
@@ -761,17 +767,9 @@
       "modes": [
         {
           "id": "default",
-          "label": "Driver default"
-        },
-        {
-          "id": "verified",
-          "label": "Require verified TLS",
-          "via": "url",
-          "query": {
-            "Encrypt": "Yes",
-            "TrustServerCertificate": "No"
-          },
-          "secure": true
+          "label": "Driver default (verified TLS)",
+          "secure": true,
+          "transport": "TCP with verified TLS"
         }
       ]
     },
@@ -814,11 +812,8 @@
       "modes": [
         {
           "id": "default",
-          "label": "HTTP",
-          "via": "url",
-          "query": {
-            "UseSsl": "false"
-          }
+          "label": "Driver default",
+          "transport": "HTTP(S)"
         },
         {
           "id": "verified",
@@ -830,8 +825,7 @@
           "secure": true,
           "transport": "HTTPS"
         }
-      ],
-      "default": "verified"
+      ]
     },
     "trinoOdbc": {
       "modes": [
@@ -1007,9 +1001,6 @@
     "thriftUsername": {
       "label": "Username only",
       "via": "url",
-      "query": {
-        "AuthMech": "2"
-      },
       "fields": {
         "username": {
           "layout": "text",
@@ -1035,8 +1026,7 @@
       "label": "OAuth token pass-through",
       "via": "external",
       "query": {
-        "AuthMech": "11",
-        "Auth_Flow": "0"
+        "AuthMech": "11"
       },
       "note": "Supply and refresh Auth_AccessToken at runtime."
     },
@@ -1331,7 +1321,7 @@
           "fields": {
             "port": {
               "layout": "port",
-              "default": 3306
+              "placeholder": "3306"
             }
           },
           "auth": [
@@ -1588,12 +1578,14 @@
             {
               "id": "driver",
               "label": "LDAP username and password (vendor driver)",
-              "requiresTls": true
+              "requiresTls": true,
+              "tlsOverride": "fixed"
             },
             {
               "id": "integrated",
               "label": "Kerberos (OS identity)",
-              "requiresTls": true
+              "requiresTls": true,
+              "tlsOverride": "fixed"
             },
             {
               "id": "driver",
@@ -1619,6 +1611,7 @@
           ],
           "tls": "fixed",
           "auth": [
+            "driver",
             "databricksOAuthM2M",
             "databricksOAuthU2M",
             "databricksOAuthToken",
@@ -1652,6 +1645,7 @@
             }
           },
           "auth": [
+            "driver",
             {
               "id": "thriftNone",
               "queryByLocation": {
@@ -1660,17 +1654,9 @@
                 }
               }
             },
-            {
-              "id": "thriftPassword",
-              "queryByLocation": {
-                "thriftTcp": {
-                  "sasl": "1"
-                }
-              }
-            },
+            "thriftPassword",
             "thriftKerberos",
-            "thriftUsername",
-            "driver"
+            "thriftUsername"
           ]
         }
       ]
@@ -1700,6 +1686,7 @@
             }
           },
           "auth": [
+            "driver",
             {
               "id": "thriftNone",
               "queryByLocation": {
@@ -1708,17 +1695,9 @@
                 }
               }
             },
-            {
-              "id": "thriftPassword",
-              "queryByLocation": {
-                "thriftTcp": {
-                  "sasl": "1"
-                }
-              }
-            },
+            "thriftPassword",
             "thriftKerberos",
-            "thriftUsername",
-            "driver"
+            "thriftUsername"
           ]
         }
       ]
@@ -2061,7 +2040,7 @@
           "fields": {
             "port": {
               "layout": "port",
-              "default": 50000
+              "placeholder": "50000"
             }
           },
           "auth": [
@@ -2353,6 +2332,11 @@
     "npgsql": "https://www.npgsql.org/doc/connection-string-parameters",
     "trinoOdbc": "https://documentation.insightsoftware.com/trino-online-documentation-windows/content/odbc/tri/authentication/intro.htm",
     "sparkOdbc": "https://documentation.insightsoftware.com/simba-spark-windows-driver-guide/content/odbc/sp/strings.htm",
-    "mySqlOdbc": "https://dev.mysql.com/doc/connectors/en/connector-odbc-configuration-connection-parameters.html"
+    "mySqlOdbc": "https://dev.mysql.com/doc/connectors/en/connector-odbc-configuration-connection-parameters.html",
+    "sqlClientDefaults": "https://learn.microsoft.com/en-us/sql/connect/ado-net/connection-options",
+    "sqlOdbc18Defaults": "https://learn.microsoft.com/en-us/sql/connect/odbc/major-version-differences",
+    "sparkOdbcAuth": "https://documentation.insightsoftware.com/simba-spark-windows-driver-guide/content/odbc/options/mechanism.htm",
+    "hiveOdbc": "https://downloads.cloudera.com/connectors/Cloudera_Hive_ODBC_2.8.2.1002/Cloudera-ODBC-Driver-for-Apache-Hive-Install-Guide.pdf",
+    "databricksOAuthFlow": "https://documentation.insightsoftware.com/simba-databricks-odbc-installation-guide/Content/ODBC/sp/Options/UI/Auth_Flow.htm"
   }
 }
