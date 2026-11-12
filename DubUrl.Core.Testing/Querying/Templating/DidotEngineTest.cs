@@ -40,6 +40,20 @@ public class DidotEngineTest
     }
 
     [Test]
+    public void Prepare_ReusedEngine_IsolatesParameterFormatters()
+    {
+        var engine = new DidotEngine(".st");
+        const string template = "$value; format=\"parameter\"$";
+        var first = engine.Prepare(template, parameter: _ => "@first");
+        var second = engine.Prepare(template, parameter: _ => throw new InvalidOperationException("Second formatter failed."));
+        var values = new Dictionary<string, object?> { ["value"] = 1 };
+
+        Assert.That(first.Render(values), Is.EqualTo("@first"));
+        Assert.That(() => second.Render(values), Throws.InvalidOperationException.With.Message.EqualTo("Second formatter failed."));
+        Assert.That(first.Render(values), Is.EqualTo("@first"));
+    }
+
+    [Test]
     public void Render_WithMultipleSubTemplate_Correct()
     {
         var engine = new DidotEngine(".st");

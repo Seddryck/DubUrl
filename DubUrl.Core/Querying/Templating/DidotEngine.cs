@@ -16,9 +16,12 @@ namespace DubUrl.Querying.Templating;
 
 internal class DidotEngine
 {
-    private ITemplateEngine Engine { get; }
+    private readonly string _extension;
 
     public DidotEngine(string extension)
+        => _extension = extension;
+
+    private ITemplateEngine CreateEngine()
     {
         var factory = new TemplateEngineFactory();
         factory.AddOrReplace(".st", Engine => Engine.UseStringTemplate(opt => opt.WithDollarDelimitedExpressions()));
@@ -27,18 +30,20 @@ internal class DidotEngine
         factory.AddOrReplace(".mustache", Engine => Engine.UseMorestachio());
         factory.AddOrReplace(".liquid", Engine => Engine.UseFluid());
         factory.Configure(config => config.WithoutWrapAsModel());
-        Engine = factory.Create(extension);
+        return factory.Create(_extension);
     }
 
     public DidotRenderer Prepare(string source)
-        => new (Engine.Prepare(source));
+        => new (CreateEngine().Prepare(source));
 
     public DidotRenderer Prepare(string source, IDictionary<string, string>? subTemplates = null, IDictionary<string, IDictionary<string, object?>>? @dictionaries = null, DubUrlRenderes.IRenderer? renderer = null, Func<object?, string>? parameter = null)
     {
+        // Formatters and mappings belong to the prepared template.
+        var engine = CreateEngine();
         // StringTemplate catches formatter exceptions. Preserve parameter failures so
         // callers cannot accidentally execute partially rendered SQL.
         var failure = new AsyncLocal<Exception?>();
-        Engine.AddFormatter("parameter", (object? input) =>
+        engine.AddFormatter("parameter", (object? input) =>
         {
             try
             {
@@ -63,15 +68,15 @@ internal class DidotEngine
                 }
                 return renderer.Render(input, format);
             }
-            Engine.AddFormatter("value", (object? input) => RenderChecked(input, "value"));
-            Engine.AddFormatter("identity", (object? input) => RenderChecked(input, "identity"));
+            engine.AddFormatter("value", (object? input) => RenderChecked(input, "value"));
+            engine.AddFormatter("identity", (object? input) => RenderChecked(input, "identity"));
         }
         if (subTemplates is not null)
             foreach (var subTemplate in subTemplates)
-                Engine.AddFunction(subTemplate.Key, () => subTemplate.Value);
+                engine.AddFunction(subTemplate.Key, () => subTemplate.Value);
         if (@dictionaries is not null)
             foreach (var @dictionary in @dictionaries)
-                Engine.AddMappings(@dictionary.Key, @dictionary.Value.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty));
-        return new DidotRenderer(Engine.Prepare(source), failure);
+                engine.AddMappings(@dictionary.Key, @dictionary.Value.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty));
+        return new DidotRenderer(engine.Prepare(source), failure);
     }
 }
