@@ -233,3 +233,14 @@ optional adapter/helper activation boundary. The shared facade disposes engines 
 readers owned by callers. Typed DuckDB appenders and SqlClient bulk objects are disposed on success
 and failure. SqlClient retains batch size 1000, streaming enabled, and timeout 0. This does not add an
 ODBC or PostgreSQL bulk engine.
+
+## File loading
+
+`DubUrl.BulkCopy` exposes `ConnectionUrl.LoadFromFiles(tableName, sourcePath, fileFormat)`.
+The selected provider reads the files from the supplied path and loads them into an existing table.
+The provider defines the accepted path syntax, file formats, and retry behavior.
+
+Core defines `FileLoadCapability` and `IFileLoader`. An explicit provider module can opt in with
+`registration.WithCapabilities(new FileLoadCapability(loader))`. An attributed provider can declare
+`[FileLoad(typeof(MyFileLoader))]` on its mapper. File loading and reader-based `BulkCopy` are
+independent capabilities.
