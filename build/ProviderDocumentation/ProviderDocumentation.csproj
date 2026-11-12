@@ -2,6 +2,8 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- The generated ODBC table requires the Hive, Spark, and Databricks brand metadata. -->
+    <DubUrlProviderVersion>0.66.0</DubUrlProviderVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DbReader" Version="4.0.1" />
