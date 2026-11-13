@@ -2,9 +2,9 @@ name: Documentation website
 on:
   push:
     branches: [main]
-    paths: ['docs/**', 'build/*schema_doc*.py', 'build/*connection_url*', 'build/connection-url-catalog.lock.json', '.github/workflows/docs-pages.yml']
+    paths: ['docs/**', 'build/*schema_doc*.py', 'build/*schema_coverage*', 'build/fixtures/schema-coverage.v1.json', 'build/*connection_url*', 'build/connection-url-catalog.lock.json', '.github/workflows/docs-pages.yml']
   pull_request:
-    paths: ['docs/**', 'build/*schema_doc*.py', 'build/*connection_url*', 'build/connection-url-catalog.lock.json', '.github/workflows/docs-pages.yml']
+    paths: ['docs/**', 'build/*schema_doc*.py', 'build/*schema_coverage*', 'build/fixtures/schema-coverage.v1.json', 'build/*connection_url*', 'build/connection-url-catalog.lock.json', '.github/workflows/docs-pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -26,15 +26,19 @@ jobs:
         run: |
           python -m unittest discover -s build -p test_schema_docs.py
           python -m unittest discover -s build -p test_connection_url_catalog.py
-      - name: Assemble Schema docs and the pinned connection URL catalog
+          python -m unittest discover -s build -p test_schema_coverage.py
+      - name: Assemble documentation and data
         run: |
           python build/import_schema_docs.py
           python build/import_connection_url_catalog.py
+          python build/import_schema_coverage.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Test connection URL builder
         run: node --test build/test_connection_url_builder.mjs
+      - name: Test schema coverage matrix
+        run: node --test build/test_schema_coverage.mjs
       - name: Validate connection capability catalog
         working-directory: artifacts/docs-site/schemas/connection-url-builder/v2
         run: |
@@ -64,6 +68,8 @@ jobs:
         run: python build/check_schema_doc_links.py
       - name: Check the builder and public catalog URLs
         run: python build/import_connection_url_catalog.py --verify-site artifacts/docs-site/_site
+      - name: Check the schema coverage page and public JSON
+        run: python build/import_schema_coverage.py --verify-site artifacts/docs-site/_site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: artifacts/docs-site/_site

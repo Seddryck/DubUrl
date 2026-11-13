@@ -8,10 +8,16 @@ From the repository root, run:
 ```powershell
 python build/import_schema_docs.py
 python build/import_connection_url_catalog.py
+python build/import_schema_coverage.py
 docker compose -f jekyll-compose.yml up -d
 ```
 
 The site stages the provider catalog and schema at their public URLs. Use a fresh `artifacts/docs-site` directory when regenerating the stage. Update `build/connection-url-catalog.lock.json` with the provider release version and its published ZIP checksum to adopt a new release.
+
+The schema feature coverage page uses the latest validated snapshot from the
+[`schema-coverage` branch in DubUrl.Providers](https://github.com/Seddryck/DubUrl.Providers/tree/schema-coverage).
+The build copies that snapshot into the site. For a local preview with test data,
+run `python build/import_schema_coverage.py --report build/fixtures/schema-coverage.v1.json`.
 
 Open http://localhost:4001/DubUrl/docs/installation-duburl/ to preview a documentation page, or http://localhost:4001/DubUrl/ for the simple homepage.
 The first launch installs the locked gems in a Docker volume; later launches reuse that cache.

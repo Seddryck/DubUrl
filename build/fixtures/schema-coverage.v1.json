@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "providerCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "runUrl": "https://github.com/Seddryck/DubUrl.Providers/actions/runs/123/attempts/1",
+  "dubUrlVersion": "0.61.0",
+  "dubUrlSchemaVersion": "0.105.0",
+  "features": [
+    {
+      "id": "native-array",
+      "label": "Native array or list",
+      "group": "Structured types"
+    },
+    {
+      "id": "literal-default",
+      "label": "Literal default",
+      "group": "Column defaults"
+    }
+  ],
+  "providers": [
+    {
+      "id": "sqlserver",
+      "label": "SQL Server",
+      "targets": [
+        {
+          "id": "SqlServer",
+          "variant": "SQL Server 2022",
+          "artifact": "schema-qa-SqlServer",
+          "coverage": {
+            "native-array": {
+              "inspect": {
+                "status": "unverified",
+                "evidence": []
+              },
+              "generate": {
+                "status": "unsupported",
+                "evidence": [
+                  {
+                    "test": "ArrayRejected",
+                    "status": "unsupported",
+                    "outcomes": [
+                      "Passed"
+                    ],
+                    "note": "The renderer rejects native arrays."
+                  }
+                ]
+              }
+            },
+            "literal-default": {
+              "inspect": {
+                "status": "supported",
+                "evidence": [
+                  {
+                    "test": "Shared_DiscoveryDefaults",
+                    "status": "supported",
+                    "outcomes": [
+                      "Passed"
+                    ]
+                  }
+                ]
+              },
+              "generate": {
+                "status": "supported",
+                "evidence": [
+                  {
+                    "test": "Shared_LiteralDefaults",
+                    "status": "supported",
+                    "outcomes": [
+                      "Passed"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "SqlServer-2025",
+          "variant": "SQL Server 2025",
+          "artifact": "schema-qa-SqlServer-2025",
+          "coverage": {
+            "native-array": {
+              "inspect": {
+                "status": "unverified",
+                "evidence": []
+              },
+              "generate": {
+                "status": "unsupported",
+                "evidence": [
+                  {
+                    "test": "ArrayRejected",
+                    "status": "unsupported",
+                    "outcomes": [
+                      "Passed"
+                    ]
+                  }
+                ]
+              }
+            },
+            "literal-default": {
+              "inspect": {
+                "status": "failed",
+                "evidence": [
+                  {
+                    "test": "Shared_DiscoveryDefaults",
+                    "status": "failed",
+                    "outcomes": [
+                      "Failed"
+                    ]
+                  }
+                ]
+              },
+              "generate": {
+                "status": "supported",
+                "evidence": [
+                  {
+                    "test": "Shared_LiteralDefaults",
+                    "status": "supported",
+                    "outcomes": [
+                      "Passed"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "postgresql",
+      "label": "PostgreSQL",
+      "targets": [
+        {
+          "id": "PostgreSql",
+          "variant": "PostgreSQL 17",
+          "artifact": "schema-qa-PostgreSql",
+          "coverage": {
+            "native-array": {
+              "inspect": {
+                "status": "limited",
+                "evidence": [
+                  {
+                    "test": "NativeArrayRoundTrips",
+                    "status": "limited",
+                    "outcomes": [
+                      "Passed"
+                    ],
+                    "note": "Requires rank evidence."
+                  }
+                ]
+              },
+              "generate": {
+                "status": "limited",
+                "evidence": [
+                  {
+                    "test": "NativeArrayRoundTrips",
+                    "status": "limited",
+                    "outcomes": [
+                      "Passed"
+                    ],
+                    "note": "One-dimensional arrays with nullable elements."
+                  }
+                ]
+              }
+            },
+            "literal-default": {
+              "inspect": {
+                "status": "supported",
+                "evidence": [
+                  {
+                    "test": "Shared_DiscoveryDefaults",
+                    "status": "supported",
+                    "outcomes": [
+                      "Passed"
+                    ]
+                  }
+                ]
+              },
+              "generate": {
+                "status": "supported",
+                "evidence": [
+                  {
+                    "test": "Shared_LiteralDefaults",
+                    "status": "supported",
+                    "outcomes": [
+                      "Passed"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "hive",
+      "label": "Apache Hive",
+      "targets": [
+        {
+          "id": "Hive",
+          "variant": null,
+          "artifact": null,
+          "coverage": {
+            "native-array": {
+              "inspect": {
+                "status": "unverified",
+                "evidence": []
+              },
+              "generate": {
+                "status": "unverified",
+                "evidence": []
+              }
+            },
+            "literal-default": {
+              "inspect": {
+                "status": "unverified",
+                "evidence": []
+              },
+              "generate": {
+                "status": "unverified",
+                "evidence": []
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

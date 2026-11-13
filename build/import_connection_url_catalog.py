@@ -23,7 +23,7 @@ BUNDLE = "connection-url-catalog.zip"
 class HttpsRedirectHandler(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         if urlsplit(newurl).scheme != "https":
-            raise URLError("The catalog download redirected away from HTTPS")
+            raise URLError("The download redirected away from HTTPS")
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 

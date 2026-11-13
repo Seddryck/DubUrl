@@ -1,0 +1,56 @@
+---
+title: Schema feature coverage
+parent: Working with schemas
+nav_order: 9
+toc: false
+---
+
+<link rel="stylesheet" href="{{ '/assets/css/schema-coverage.css' | relative_url }}">
+<script type="module" src="{{ '/assets/js/schema-coverage.js' | relative_url }}"></script>
+
+<p>Compare the schema features DubUrl can inspect and generate for each database using results from provider QA.</p>
+
+<div id="schema-coverage" data-report-url="{{ '/schemas/schema-coverage/v1/schema-coverage.v1.json' | relative_url }}">
+  <output id="schema-coverage-status">Loading schema coverage…</output>
+  <noscript><p>Enable JavaScript to use the coverage filters and view test details.</p></noscript>
+  <div id="schema-coverage-content" hidden>
+    <div class="schema-coverage-filters">
+      <details class="schema-coverage-databases">
+        <summary>Databases <span id="schema-coverage-database-count"></span></summary>
+        <div class="schema-coverage-selection">
+          <div class="schema-coverage-actions">
+            <button class="btn" type="button" id="schema-coverage-select-all">Select all</button>
+            <button class="btn" type="button" id="schema-coverage-clear">Clear</button>
+          </div>
+          <fieldset id="schema-coverage-providers">
+            <legend class="sr-only">Databases to compare</legend>
+          </fieldset>
+        </div>
+      </details>
+      <label>Feature group <select id="schema-coverage-group"></select></label>
+      <label>Operation
+        <select id="schema-coverage-operation">
+          <option value="">Inspect and generate</option>
+          <option value="inspect">Inspect</option>
+          <option value="generate">Generate DDL</option>
+        </select>
+      </label>
+    </div>
+    <ul class="schema-coverage-legend" id="schema-coverage-legend" aria-label="Coverage legend"></ul>
+    <output id="schema-coverage-results" class="schema-coverage-muted"></output>
+    <section class="schema-coverage-scroll" id="schema-coverage-scroll" aria-label="Schema feature comparison">
+      <table id="schema-coverage-table" aria-label="Schema feature coverage by database">
+        <thead><tr><th scope="col">Feature</th></tr></thead>
+      </table>
+    </section>
+    <dialog id="schema-coverage-detail" aria-labelledby="schema-coverage-detail-title">
+      <form method="dialog"><button class="btn" type="submit" autofocus>Close</button></form>
+      <h2 id="schema-coverage-detail-title" class="no_toc">QA evidence</h2>
+      <div id="schema-coverage-detail-body"></div>
+    </dialog>
+  </div>
+  <p class="schema-coverage-source">
+    <a href="{{ '/schemas/schema-coverage/v1/schema-coverage.v1.json' | relative_url }}">Coverage JSON</a>
+    <span id="schema-coverage-source"></span>
+  </p>
+</div>
