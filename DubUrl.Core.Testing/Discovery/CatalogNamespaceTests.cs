@@ -32,11 +32,35 @@ public class CatalogNamespaceTests
         Assert.That(metadata.Views.Single().Source, Is.EqualTo(parent));
     }
 
-    private sealed class Reader(string source) : CatalogSchemaMetadataReader
+    [Test]
+    public async Task UnrepresentableDefinitionsRetainTheirTableAndExactMember()
+    {
+        var metadata = await new Reader("parent", includeUnsupported: true).ReadAsync(new Mock<DbConnection>().Object, new());
+        var diagnostics = metadata.Diagnostics;
+        Assert.That(diagnostics.Select(item => item.Object),
+            Is.All.EqualTo(new MetadataName("parent", "sales", "store", "server")));
+        Assert.That(diagnostics.Select(item => item.Code), Is.All.EqualTo("SDI009"));
+        Assert.That(diagnostics.Select(item => item.Coverage), Is.All.EqualTo(MetadataCoverage.Unrepresentable));
+        Assert.That(diagnostics.Select(item => (item.Feature, item.Member, item.Constraint, item.NativeDefinition)), Is.EquivalentTo(new[]
+        {
+            (SchemaFeature.Columns, "node", (string?)null, "hierarchyid"),
+            (SchemaFeature.Columns, "notes", null, "nvarchar(max)"),
+            (SchemaFeature.Defaults, "ordered_at", "DF_ordered", "(getdate())"),
+            (SchemaFeature.Generation, "total", null, "([price]*[quantity])"),
+            (SchemaFeature.Indexes, "IX_parent", null, "NONCLUSTERED; filter: ([id]>(0)); included column: [notes]"),
+            (SchemaFeature.Checks, "CK_parent", null, "([id]>(0) OR [id] IS NULL)")
+        }));
+        Assert.That(diagnostics.Single(item => item.Member == "ordered_at").Message,
+            Does.Contain("ordered_at").And.Contain("DF_ordered").And.Contain("(getdate())"));
+    }
+
+    private sealed class Reader(string source, bool includeUnsupported = false) : CatalogSchemaMetadataReader
     {
         protected override string TablesSql => "tables";
         protected override string ColumnsSql => "columns";
         protected override string KeysSql => "keys";
+        protected override string? IndexesSql => includeUnsupported ? "indexes" : null;
+        protected override string? ChecksSql => includeUnsupported ? "checks" : null;
         protected override string ViewsSql => "views";
         private static CatalogRow Row(string table, params (string Name, object? Value)[] fields)
             => new CatalogRow(new Dictionary<string, object?>
@@ -47,6 +71,13 @@ public class CatalogNamespaceTests
             => Task.FromResult<List<CatalogRow>>(sql switch
             {
                 "tables" => [Row("parent"), Row("child")],
+                "columns" when includeUnsupported =>
+                [
+                    Row("parent", ("column_name", "node"), ("type_name", "hierarchyid")),
+                    Row("parent", ("column_name", "notes"), ("type_name", "nvarchar"), ("length", -1), ("native_type_declaration", "nvarchar(max)")),
+                    Row("parent", ("column_name", "ordered_at"), ("type_name", "datetime"), ("default_name", "DF_ordered"), ("default_expression", "(getdate())")),
+                    Row("parent", ("column_name", "total"), ("type_name", "int"), ("generation_expression", "([price]*[quantity])"))
+                ],
                 "columns" => [Row("parent", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0)),
                     Row("child", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0))],
                 "keys" => [Row("child", ("kind", "FOREIGN KEY"), ("key_name", "fk"), ("column_name", "id"),
@@ -54,6 +85,14 @@ public class CatalogNamespaceTests
                     ("target_catalog", "server"), ("target_column", "id"))],
                 "views" => [Row("projection", ("definition", "SELECT id FROM " + source),
                     ("column_name", "id"), ("type_name", "integer"), ("nullable", 0))],
+                "indexes" =>
+                [
+                    Row("parent", ("index_name", "IX_parent"), ("column_name", "id"), ("unsupported", true),
+                        ("index_kind", "NONCLUSTERED"), ("filter_definition", "([id]>(0))")),
+                    Row("parent", ("index_name", "IX_parent"), ("column_name", "notes"), ("unsupported", true),
+                        ("index_kind", "NONCLUSTERED"), ("filter_definition", "([id]>(0))"), ("included_column", "[notes]"))
+                ],
+                "checks" => [Row("parent", ("check_name", "CK_parent"), ("expression", "([id]>(0) OR [id] IS NULL)"))],
                 _ => []
             });
     }

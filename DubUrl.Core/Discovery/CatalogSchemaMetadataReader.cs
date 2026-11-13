@@ -48,7 +48,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         {
             cancellationToken.ThrowIfCancellationRequested();
             tables.Add(MapTable(row, columnRows, keyRows, indexRows, checkRows, options,
-                (feature, message) => Diagnose(feature, Identity(row), message)));
+                new TableDiagnostics(Identity(row), diagnostics).Add));
         }
         var views = viewRows.GroupBy(Identity).OrderBy(group => group.Key.Schema, StringComparer.Ordinal).ThenBy(group => group.Key.Name, StringComparer.Ordinal).Select(group =>
         {
@@ -56,11 +56,46 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
             return MapView(group.Key, inventory, group.First().Text("definition"));
         }).ToArray();
         return new(tables, coverage, diagnostics) { Views = views };
+    }
 
-        void Diagnose(SchemaFeature feature, MetadataName identity, string message)
+    // Keep the existing provider callback signature for previously compiled readers.
+    private sealed class TableDiagnostics(MetadataName identity, List<DiscoveryDiagnostic> diagnostics)
+    {
+        public void Add(SchemaFeature feature, string message) => Add(feature, message, null, null);
+
+        public void Add(SchemaFeature feature, string message, string? member, string? definition, string? constraint = null)
         {
-            diagnostics.Add(new("SDI009", feature, MetadataCoverage.Unrepresentable, message, identity));
+            // Hosts compiled against the older diagnostic contract still display the details in Message.
+            var memberLabel = feature switch
+            {
+                SchemaFeature.Checks => "Check",
+                SchemaFeature.Indexes => "Index",
+                _ => "Column"
+            };
+            var context = member is null ? "" : $"{memberLabel} {QuoteIdentifier(member)}. ";
+            if (constraint is not null)
+                context += $"Constraint {QuoteIdentifier(constraint)}. ";
+            var native = definition is null ? "" : $" Native definition: {definition}";
+            diagnostics.Add(new("SDI009", feature, MetadataCoverage.Unrepresentable, context + message + native, identity)
+            {
+                Member = member,
+                Constraint = constraint,
+                NativeDefinition = definition
+            });
         }
+
+        private static string QuoteIdentifier(string name)
+            => name.Length > 0 && !char.IsDigit(name[0]) && name.All(c => char.IsLetterOrDigit(c) || c is '_' or '$')
+                ? name : "\"" + name.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
+    }
+
+    private static void Report(Action<SchemaFeature, string> diagnose, SchemaFeature feature, string message,
+        string? member, string? definition, string? constraint = null)
+    {
+        if (diagnose.Target is TableDiagnostics diagnostics)
+            diagnostics.Add(feature, message, member, definition, constraint);
+        else
+            diagnose(feature, message);
     }
 
     private Dictionary<SchemaFeature, MetadataCoverage> CreateCoverage(DiscoveryOptions options)
@@ -76,7 +111,8 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         var identity = Identity(row);
         // All filters are applied to literal catalog identities by the orchestrator. No user SQL is interpolated.
         var columns = columnRows.Where(column => Identity(column) == identity).OrderBy(column => column.Int("ordinal"))
-            .Select(column => MapCatalogColumn(column, options, diagnose)).ToArray();
+            .Select(column => MapCatalogColumn(column, options,
+                (feature, message) => ReportColumn(diagnose, column, feature, message))).ToArray();
         var keys = keyRows.Where(key => Identity(key) == identity).GroupBy(key => (Kind: key.Text("kind"), Name: key.Text("key_name"))).ToArray();
         MetadataKey Key(IEnumerable<CatalogRow> rows) => new(rows.First().Text("key_name"),
             rows.OrderBy(key => key.Int("ordinal")).Select(key => key.Text("column_name")!).ToArray());
@@ -97,6 +133,24 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
             Indexes = indexes,
             Checks = checks
         };
+    }
+
+    private static void ReportColumn(Action<SchemaFeature, string> diagnose, CatalogRow column, SchemaFeature feature, string message)
+    {
+        var declaration = column.Text("native_type_declaration");
+        var definition = feature switch
+        {
+            SchemaFeature.Columns => declaration ?? column.Text("native_type_name") ?? column.Text("type_name"),
+            SchemaFeature.Defaults => column.Text("default_expression"),
+            SchemaFeature.Generation => column.Text("generation_expression") ?? column.Text("on_update_expression"),
+            _ => null
+        };
+        if (feature == SchemaFeature.Columns && declaration is null
+            && column.Int("length") == -1 && definition is not null && !definition.Contains('('))
+            definition += " (unbounded length)";
+
+        Report(diagnose, feature, message, column.Text("column_name"), definition,
+            feature == SchemaFeature.Defaults ? column.Text("default_name") : null);
     }
 
     protected virtual MetadataColumn MapCatalogColumn(CatalogRow column, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
@@ -138,7 +192,17 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         foreach (var index in rows.GroupBy(index => index.Text("index_name")))
         {
             if (index.Any(part => part.Bool("unsupported") == true || part.Text("column_name") is null))
-            { diagnose(SchemaFeature.Indexes, "An expression, filtered, included-column, or specialized index cannot be represented."); continue; }
+            {
+                var details = index.SelectMany(part => new[]
+                    {
+                        part.Text("index_kind"), IndexDetail("filter", part.Text("filter_definition")),
+                        IndexDetail("included column", part.Text("included_column")), part.Text("index_expression")
+                    })
+                    .OfType<string>().Distinct(StringComparer.Ordinal).ToArray();
+                Report(diagnose, SchemaFeature.Indexes, "An expression, filtered, included-column, or specialized index cannot be represented.",
+                    index.Key, details.Length == 0 ? null : string.Join("; ", details));
+                continue;
+            }
             indexes.Add(new(new(index.Key!, identity.Schema, identity.Database, identity.Catalog),
                 index.OrderBy(part => part.Int("ordinal")).Select(part => new MetadataIndexColumn(part.Text("column_name")!, part.Bool("descending"))).ToArray(),
                 index.First().Bool("unique_index") ?? false));
@@ -146,13 +210,16 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         return indexes;
     }
 
+    private static string? IndexDetail(string label, string? value) => value is null ? null : $"{label}: {value}";
+
     private static List<MetadataCheck> MapChecks(IEnumerable<CatalogRow> rows, Action<SchemaFeature, string> diagnose)
     {
         var checks = new List<MetadataCheck>();
         foreach (var check in rows.OrderBy(check => check.Text("check_name"), StringComparer.Ordinal))
         {
             if (DiscoveryExpressions.TryCheck(check.Text("expression") ?? "", check.Text("check_name"), out var mapped)) checks.Add(mapped!);
-            else diagnose(SchemaFeature.Checks, "A check expression cannot be represented.");
+            else Report(diagnose, SchemaFeature.Checks, "A check expression cannot be represented.",
+                check.Text("check_name"), check.Text("expression"));
         }
         return checks;
     }
