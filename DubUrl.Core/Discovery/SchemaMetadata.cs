@@ -11,6 +11,9 @@ public enum MetadataCoverage { Available, Unsupported, Inaccessible, Absent, Unr
 public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, MetadataCoverage Coverage, string Message, MetadataName? Object = null);
 public sealed record DiscoveryOptions
 {
+    private static readonly IReadOnlyList<SchemaFeature> DefaultFeatures =
+        Enum.GetValues<SchemaFeature>().Where(feature => feature != SchemaFeature.Annotations).ToImmutableArray();
+
     /// <summary>Literal database qualifiers, independent of schema and catalog qualifiers.</summary>
     public IReadOnlyList<string> Databases { get; init; } = [];
     /// <summary>Literal catalog qualifiers.</summary>
@@ -18,8 +21,7 @@ public sealed record DiscoveryOptions
     public IReadOnlyList<string> Schemas { get; init; } = [];
     public IReadOnlyList<MetadataName> Tables { get; init; } = [];
     /// <summary>The metadata to request. Annotations can be requested explicitly.</summary>
-    public IReadOnlyList<SchemaFeature> Features { get; init; } =
-        Enum.GetValues<SchemaFeature>().Where(feature => feature != SchemaFeature.Annotations).ToArray();
+    public IReadOnlyList<SchemaFeature> Features { get; init; } = DefaultFeatures;
     public bool IncludeReferencedTables { get; init; }
     public bool AllowPartial { get; init; }
 }

@@ -24,6 +24,8 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
     public async Task<SchemaMetadata> ReadAsync(DbConnection connection, DiscoveryOptions options, CancellationToken cancellationToken = default)
     {
         var coverage = Capabilities.ToDictionary(pair => pair.Key, pair => pair.Value);
+        if (!options.Features.Contains(SchemaFeature.Annotations))
+            coverage.Remove(SchemaFeature.Annotations);
         var diagnostics = new List<DiscoveryDiagnostic>();
         async Task<List<CatalogRow>> Query(string? sql, params SchemaFeature[] features)
         {

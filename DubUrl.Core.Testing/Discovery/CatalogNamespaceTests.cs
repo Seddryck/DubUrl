@@ -7,6 +7,19 @@ namespace DubUrl.Core.Testing.Discovery;
 
 public class CatalogNamespaceTests
 {
+    [Test]
+    public async Task AnnotationCoverageIsReportedOnlyWhenRequested()
+    {
+        var reader = new Reader("parent");
+        var connection = new Mock<DbConnection>().Object;
+        var defaultResult = await reader.ReadAsync(connection, new());
+        var requestedResult = await reader.ReadAsync(connection, new() { Features = [SchemaFeature.Annotations] });
+
+        Assert.That(defaultResult.Coverage.ContainsKey(SchemaFeature.Annotations), Is.False);
+        Assert.That(requestedResult.Coverage[SchemaFeature.Annotations], Is.EqualTo(MetadataCoverage.Unsupported));
+        Assert.That(requestedResult.Tables.All(table => table.Annotations.Count == 0), Is.True);
+    }
+
     [TestCase("parent")]
     [TestCase("server.store.sales.parent")]
     public async Task CatalogMapping_PreservesAllNativeQualifiers(string source)
