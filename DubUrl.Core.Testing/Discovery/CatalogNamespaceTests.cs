@@ -7,17 +7,40 @@ namespace DubUrl.Core.Testing.Discovery;
 
 public class CatalogNamespaceTests
 {
-    [Test]
-    public async Task AnnotationCoverageIsReportedOnlyWhenRequested()
+    [TestCase(SchemaFeature.Annotations, SchemaFeature.ColumnAnnotations)]
+    [TestCase(SchemaFeature.ColumnAnnotations, SchemaFeature.Annotations)]
+    public async Task AnnotationCoverageIsReportedOnlyWhenRequested(SchemaFeature requested, SchemaFeature other)
     {
         var reader = new Reader("parent");
         var connection = new Mock<DbConnection>().Object;
         var defaultResult = await reader.ReadAsync(connection, new());
-        var requestedResult = await reader.ReadAsync(connection, new() { Features = [SchemaFeature.Annotations] });
+        var requestedResult = await reader.ReadAsync(connection, new() { Features = [requested] });
 
-        Assert.That(defaultResult.Coverage.ContainsKey(SchemaFeature.Annotations), Is.False);
-        Assert.That(requestedResult.Coverage[SchemaFeature.Annotations], Is.EqualTo(MetadataCoverage.Unsupported));
+        Assert.That(defaultResult.Coverage.ContainsKey(requested), Is.False);
+        Assert.That(requestedResult.Coverage.ContainsKey(other), Is.False);
+        Assert.That(requestedResult.Coverage[requested], Is.EqualTo(MetadataCoverage.Unsupported));
         Assert.That(requestedResult.Tables.All(table => table.Annotations.Count == 0), Is.True);
+        Assert.That(requestedResult.Tables.SelectMany(table => table.Columns).All(column => column.Annotations.Count == 0), Is.True);
+    }
+
+    [Test]
+    public async Task ColumnAnnotationsCanBeRequestedIndependentlyOfTableAnnotationsAndComments()
+    {
+        var reader = new Reader("parent", supportsColumnAnnotations: true);
+        var connection = new Mock<DbConnection>().Object;
+        var commentsOnly = await reader.ReadAsync(connection, new() { Features = [SchemaFeature.Comments] });
+        var annotationsAndComments = await reader.ReadAsync(connection, new()
+        { Features = [SchemaFeature.Annotations, SchemaFeature.ColumnAnnotations, SchemaFeature.Comments] });
+
+        var commentOnlyColumn = commentsOnly.Tables.Single(table => table.Identity.Name == "parent").Columns.Single();
+        Assert.That(commentOnlyColumn.Comment, Is.EqualTo("Identifier"));
+        Assert.That(commentOnlyColumn.Annotations, Is.Empty);
+        Assert.That(annotationsAndComments.Coverage[SchemaFeature.Annotations], Is.EqualTo(MetadataCoverage.Unsupported));
+        Assert.That(annotationsAndComments.Coverage[SchemaFeature.ColumnAnnotations], Is.EqualTo(MetadataCoverage.Available));
+        Assert.That(annotationsAndComments.Coverage[SchemaFeature.Comments], Is.EqualTo(MetadataCoverage.Available));
+        var column = annotationsAndComments.Tables.Single(table => table.Identity.Name == "parent").Columns.Single();
+        Assert.That(column.Comment, Is.EqualTo("Identifier"));
+        Assert.That(column.Annotations["owner"], Is.EqualTo("sales"));
     }
 
     [TestCase("parent")]
@@ -54,7 +77,7 @@ public class CatalogNamespaceTests
             Does.Contain("ordered_at").And.Contain("DF_ordered").And.Contain("(getdate())"));
     }
 
-    private sealed class Reader(string source, bool includeUnsupported = false) : CatalogSchemaMetadataReader
+    private sealed class Reader(string source, bool supportsColumnAnnotations = false, bool includeUnsupported = false) : CatalogSchemaMetadataReader
     {
         protected override string TablesSql => "tables";
         protected override string ColumnsSql => "columns";
@@ -62,6 +85,15 @@ public class CatalogNamespaceTests
         protected override string? IndexesSql => includeUnsupported ? "indexes" : null;
         protected override string? ChecksSql => includeUnsupported ? "checks" : null;
         protected override string ViewsSql => "views";
+        protected override bool SupportsColumnAnnotations => supportsColumnAnnotations;
+
+        protected override MetadataColumn MapCatalogColumn(CatalogRow row, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
+        {
+            var column = base.MapCatalogColumn(row, options, diagnose);
+            return SupportsColumnAnnotations && options.Features.Contains(SchemaFeature.ColumnAnnotations)
+                ? column with { Annotations = new Dictionary<string, string> { ["owner"] = "sales" } }
+                : column;
+        }
         private static CatalogRow Row(string table, params (string Name, object? Value)[] fields)
             => new CatalogRow(new Dictionary<string, object?>
             { ["table_name"] = table, ["schema_name"] = "sales", ["database_name"] = "store", ["catalog_name"] = "server" }).With(fields);
@@ -78,7 +110,7 @@ public class CatalogNamespaceTests
                     Row("parent", ("column_name", "ordered_at"), ("type_name", "datetime"), ("default_name", "DF_ordered"), ("default_expression", "(getdate())")),
                     Row("parent", ("column_name", "total"), ("type_name", "int"), ("generation_expression", "([price]*[quantity])"))
                 ],
-                "columns" => [Row("parent", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0)),
+                "columns" => [Row("parent", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0), ("comment", "Identifier")),
                     Row("child", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0))],
                 "keys" => [Row("child", ("kind", "FOREIGN KEY"), ("key_name", "fk"), ("column_name", "id"),
                     ("target_table", "parent"), ("target_schema", "sales"), ("target_database", "store"),

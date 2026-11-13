@@ -6,7 +6,7 @@ namespace DubUrl.Discovery;
 
 /// <summary>A catalog identity; components are literal identifiers, never SQL fragments.</summary>
 public sealed record MetadataName(string Name, string? Schema = null, string? Database = null, string? Catalog = null);
-public enum SchemaFeature { Tables, Columns, PrimaryKeys, ForeignKeys, Defaults, Generation, UniqueConstraints, Indexes, Checks, Comments, Views, Annotations }
+public enum SchemaFeature { Tables, Columns, PrimaryKeys, ForeignKeys, Defaults, Generation, UniqueConstraints, Indexes, Checks, Comments, Views, Annotations, ColumnAnnotations }
 public enum MetadataCoverage { Available, Unsupported, Inaccessible, Absent, Unrepresentable }
 public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, MetadataCoverage Coverage, string Message, MetadataName? Object = null)
 {
@@ -20,7 +20,7 @@ public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, Met
 public sealed record DiscoveryOptions
 {
     private static readonly IReadOnlyList<SchemaFeature> DefaultFeatures =
-        Enum.GetValues<SchemaFeature>().Where(feature => feature != SchemaFeature.Annotations).ToImmutableArray();
+        Enum.GetValues<SchemaFeature>().Where(feature => feature is not (SchemaFeature.Annotations or SchemaFeature.ColumnAnnotations)).ToImmutableArray();
 
     /// <summary>Literal database qualifiers, independent of schema and catalog qualifiers.</summary>
     public IReadOnlyList<string> Databases { get; init; } = [];
@@ -28,7 +28,7 @@ public sealed record DiscoveryOptions
     public IReadOnlyList<string> Catalogs { get; init; } = [];
     public IReadOnlyList<string> Schemas { get; init; } = [];
     public IReadOnlyList<MetadataName> Tables { get; init; } = [];
-    /// <summary>The metadata to request. Annotations can be requested explicitly.</summary>
+    /// <summary>The metadata to request. Table and column annotations can be requested independently.</summary>
     public IReadOnlyList<SchemaFeature> Features { get; init; } = DefaultFeatures;
     public bool IncludeReferencedTables { get; init; }
     public bool AllowPartial { get; init; }
@@ -43,6 +43,7 @@ public sealed record MetadataColumn(string Name, int Ordinal, DbType? Type, bool
     public object? Default { get; init; }
     public MetadataGeneration? Generation { get; init; }
     public string? Comment { get; init; }
+    public IReadOnlyDictionary<string, string> Annotations { get; init; } = ImmutableDictionary<string, string>.Empty;
 }
 public sealed record MetadataGeneration(long? Seed = null, long? Increment = null, MetadataExpression? Expression = null, bool Stored = true);
 public sealed record MetadataExpression(string Kind, string? Name = null, object? Value = null, IReadOnlyList<MetadataExpression>? Arguments = null);
