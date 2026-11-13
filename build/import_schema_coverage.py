@@ -3,7 +3,9 @@ import argparse
 import json
 from pathlib import Path
 import re
-from urllib.request import urlopen
+from urllib.request import build_opener
+
+from import_connection_url_catalog import HttpsRedirectHandler
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_PATH = Path("schemas/schema-coverage/v1/schema-coverage.v1.json")
@@ -96,7 +98,7 @@ def validate(data):
 def stage(output, source=None):
     require(output.is_dir(), f"Assemble the documentation site before importing coverage: {output}")
     if source is None:
-        stream = urlopen(REPORT_URL, timeout=60)
+        stream = build_opener(HttpsRedirectHandler()).open(REPORT_URL, timeout=60)
     else:
         stream = source.open("rb")
     with stream:

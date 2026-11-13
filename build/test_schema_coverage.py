@@ -21,9 +21,12 @@ class CoverageImportTests(unittest.TestCase):
 
     def test_download_stages_the_exact_validated_report(self):
         data = FIXTURE.read_bytes()
-        with patch.object(importer, "urlopen", return_value=io.BytesIO(data)) as download:
+        with patch.object(importer, "build_opener") as opener:
+            download = opener.return_value.open
+            download.return_value = io.BytesIO(data)
             importer.stage(self.output)
         download.assert_called_once_with(importer.REPORT_URL, timeout=60)
+        self.assertIsInstance(opener.call_args.args[0], importer.HttpsRedirectHandler)
         self.assertEqual((self.output / importer.REPORT_PATH).read_bytes(), data)
 
     def test_invalid_feature_coverage_is_rejected(self):
@@ -66,7 +69,8 @@ class CoverageImportTests(unittest.TestCase):
         error = HTTPError(importer.REPORT_URL, 404, "Not Found", None, None)
         stderr = io.StringIO()
         with patch("sys.argv", ["import_schema_coverage.py", "--output", str(self.output)]):
-            with patch.object(importer, "urlopen", side_effect=error):
+            with patch.object(importer, "build_opener") as opener:
+                opener.return_value.open.side_effect = error
                 with redirect_stderr(stderr), self.assertRaises(SystemExit) as result:
                     importer.main()
         self.assertEqual(result.exception.code, 1)
