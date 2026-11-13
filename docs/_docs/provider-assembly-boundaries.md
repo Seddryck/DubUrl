@@ -37,7 +37,7 @@ Project folders match their assembly names; the provider-neutral Core project pu
 | `DubUrl.Core/DubUrl.Core.csproj` | Publishes `DubUrl`, containing `DubUrl.Core.dll`; provider-neutral contracts and infrastructure |
 | `DubUrl.Application/BundledProviderCatalog.cs` | Default catalog shared by every application host |
 | `connectors/ConnectorCatalog.targets` | Runs the shared catalog exporter, combining packaging selectors with implementation attributes |
-| `Providers/Build/ProviderBinding.Build.csproj` | Temporary, non-packable dependency collector; only real implementation DLLs and rewritten .deps.json files are packaged |
+| [ProviderBinding.Build.csproj](https://github.com/Seddryck/DubUrl.Providers/blob/main/Providers/Build/ProviderBinding.Build.csproj) | Temporary, non-packable dependency collector; only real implementation DLLs and rewritten .deps.json files are packaged |
 
 Core owns its source files through normal SDK inclusion. The former aggregate project is removed.
 

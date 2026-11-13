@@ -90,6 +90,7 @@ bundle selected database drivers: installing a connector installs its implementa
 managed dependencies, and required native assets.
 
 The official catalog uses schema version 2 in `connector-catalog.json` shipped with each CLI distribution.
+New catalogs and their connector ZIPs are published on [DubUrl.Providers Releases](https://github.com/Seddryck/DubUrl.Providers/releases).
 Its entries and each archive's local `provider-pack.json` use the same `ConnectorDefinition` model:
 identity, installation aliases and a `databases` collection containing each supported database name
 and its attribute-derived schemes,

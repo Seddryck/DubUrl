@@ -12,7 +12,6 @@
       "DubUrl.OleDb.Testing\\DubUrl.OleDb.Testing.csproj",
       "DubUrl.OleDb\\DubUrl.OleDb.csproj",
       "DubUrl.Core.Testing\\DubUrl.Core.Testing.csproj",
-      "connectors\\Build\\ProviderBinding.Build.csproj",
       "DubUrl.Adbc\\DubUrl.Adbc.csproj",
       "DubUrl.Adbc.Testing\\DubUrl.Adbc.Testing.csproj"
     ]

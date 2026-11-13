@@ -74,13 +74,16 @@ Do not add CLI switches or hard-coded host lists just to expose a database. Veri
 
 ## Make the connector distributable
 
+Apply the steps below in [DubUrl.Providers](https://github.com/Seddryck/DubUrl.Providers).
+The matrix and catalog generator in DubUrl supply fixtures for Core tests.
+
 1. Add or update `connectors/connector-matrix.json`: technology key/name and optional assembly override, database selector, family, unique database/driver ID, status, default installation aliases, supported RIDs, and prerequisites. A connector installation alias is distinct from a URL scheme. Avoid stealing an existing default when adding an alternative driver.
 2. Update conditional family/technology project and package references in `Providers/Build/ProviderBinding.Build.csproj`. Keep versions consistent with test and adapter dependencies, including TFM-specific packages and native assets. Check license/redistribution requirements and `connectors/THIRD-PARTY-NOTICES.md`.
 3. Let `connectors/Catalog` derive mappings, schemes, dialects, and implementation assemblies from provider attributes. The matrix selects packaging; do not duplicate implementation types or scheme lists there. Inspect canonical grouping: compatible selections sharing implementation/driver/runtime use one archive with installation aliases.
 4. Verify generated definitions describe every selected database mapping and identify real implementation and driver assemblies. Check the provider-specific `.deps.json`, dependency closure, external prerequisites, optional adapters, native assets, and host-shared assembly exclusions. `ConnectorDependencies.dll` is a temporary collector and must not ship.
 5. Verify the generated Application catalog and CLI connector listing expose the new selection without loading its implementation. Exercise installation/activation and connection resolution using a disposable, task-local provider store when practical.
 
-Use `connectors/Build-ConnectorArtifacts.ps1`, `Test-ConnectorArtifacts.ps1`, `Test-ConnectorArchiveSet.ps1`, and `Test-ConnectorDependencies.ps1` as applicable; read their parameters first. Artifact building currently processes all ready selections, so prefer focused provider/catalog checks first and report when full archive validation is deferred. Use task-local output paths; the build script recreates its output directory.
+Use `connectors/Build-ConnectorArtifacts.ps1`, `Test-ConnectorArtifacts.ps1`, `Test-ConnectorArchiveSet.ps1`, and `Test-ConnectorDependencies.ps1` as applicable; read their parameters first. Artifact building currently processes all ready selections, so prefer focused provider/catalog checks first and report when full archive validation is deferred. Use an empty task-local output directory.
 
 ## Add and run the tests
 
