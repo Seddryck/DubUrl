@@ -23,9 +23,7 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
 
     public async Task<SchemaMetadata> ReadAsync(DbConnection connection, DiscoveryOptions options, CancellationToken cancellationToken = default)
     {
-        var coverage = Capabilities.ToDictionary(pair => pair.Key, pair => pair.Value);
-        if (!options.Features.Contains(SchemaFeature.Annotations))
-            coverage.Remove(SchemaFeature.Annotations);
+        var coverage = CreateCoverage(options);
         var diagnostics = new List<DiscoveryDiagnostic>();
         async Task<List<CatalogRow>> Query(string? sql, params SchemaFeature[] features)
         {
@@ -63,6 +61,14 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         {
             diagnostics.Add(new("SDI009", feature, MetadataCoverage.Unrepresentable, message, identity));
         }
+    }
+
+    private Dictionary<SchemaFeature, MetadataCoverage> CreateCoverage(DiscoveryOptions options)
+    {
+        var coverage = Capabilities.ToDictionary(pair => pair.Key, pair => pair.Value);
+        if (!options.Features.Contains(SchemaFeature.Annotations))
+            coverage.Remove(SchemaFeature.Annotations);
+        return coverage;
     }
 
     protected virtual MetadataTable MapTable(CatalogRow row, List<CatalogRow> columnRows, List<CatalogRow> keyRows, List<CatalogRow> indexRows, List<CatalogRow> checkRows, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
