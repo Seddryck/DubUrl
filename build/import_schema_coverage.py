@@ -3,7 +3,6 @@ import argparse
 import json
 from pathlib import Path
 import re
-from urllib.error import URLError
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +13,7 @@ MAX_REPORT_SIZE = 8 * 1024 * 1024
 STATUSES = {"supported", "limited", "unsupported", "unverified", "failed"}
 OPERATIONS = {"inspect", "generate"}
 RUN_URL = re.compile(
-    r"https://github\.com/Seddryck/DubUrl\.Providers/actions/runs/[0-9]+(?:/attempts/[0-9]+)?"
+    r"https://github\.com/Seddryck/DubUrl\.Providers/actions/runs/\d+(?:/attempts/\d+)?", re.ASCII
 )
 
 
@@ -52,6 +51,20 @@ def validate_cell(cell, location):
         require("note" not in item or nonempty(item["note"]), f"{location} has an invalid evidence note")
 
 
+def validate_target(target, location, feature_ids):
+    for field in ("variant", "artifact"):
+        require(field in target and (target[field] is None or nonempty(target[field])),
+                f"{location} has an invalid {field}")
+    coverage = target.get("coverage")
+    require(isinstance(coverage, dict) and coverage.keys() == feature_ids,
+            f"{location} does not match the report's feature IDs")
+    for feature, cells in coverage.items():
+        require(isinstance(cells, dict) and cells.keys() == OPERATIONS,
+                f"{location}/{feature} must contain inspection and DDL generation")
+        for operation, cell in cells.items():
+            validate_cell(cell, f"{location}/{feature}/{operation}")
+
+
 def validate(data):
     require(len(data) <= MAX_REPORT_SIZE, "Report exceeds the download size limit")
     report = json.loads(data.decode("utf-8"))
@@ -76,18 +89,7 @@ def validate(data):
         targets = provider.get("targets")
         records(targets, f"Targets for provider {provider['id']!r}")
         for target in targets:
-            location = f"{provider['id']}/{target['id']}"
-            for field in ("variant", "artifact"):
-                require(field in target and (target[field] is None or nonempty(target[field])),
-                        f"{location} has an invalid {field}")
-            coverage = target.get("coverage")
-            require(isinstance(coverage, dict) and coverage.keys() == feature_ids,
-                    f"{location} does not match the report's feature IDs")
-            for feature, cells in coverage.items():
-                require(isinstance(cells, dict) and cells.keys() == OPERATIONS,
-                        f"{location}/{feature} must contain inspection and DDL generation")
-                for operation, cell in cells.items():
-                    validate_cell(cell, f"{location}/{feature}/{operation}")
+            validate_target(target, f"{provider['id']}/{target['id']}", feature_ids)
     return report
 
 
@@ -129,7 +131,7 @@ def main():
             verify_site(args.output, args.verify_site, args.baseurl)
         else:
             stage(args.output, args.report)
-    except (OSError, URLError, ValueError) as error:
+    except (OSError, ValueError) as error:
         location = args.verify_site or args.report or REPORT_URL
         parser.exit(1, f"Schema coverage report ({location}): {error}\n")
 

@@ -29,20 +29,23 @@ class CoverageImportTests(unittest.TestCase):
     def test_invalid_feature_coverage_is_rejected(self):
         report = json.loads(FIXTURE.read_bytes())
         report["providers"][0]["targets"][0]["coverage"]["native-array"].pop("inspect")
+        data = json.dumps(report).encode()
         with self.assertRaisesRegex(ValueError, "native-array must contain inspection and DDL generation"):
-            importer.validate(json.dumps(report).encode())
+            importer.validate(data)
 
     def test_unknown_result_state_is_rejected(self):
         report = json.loads(FIXTURE.read_bytes())
         report["providers"][0]["targets"][0]["coverage"]["native-array"]["inspect"]["status"] = "green"
+        data = json.dumps(report).encode()
         with self.assertRaisesRegex(ValueError, "unknown status"):
-            importer.validate(json.dumps(report).encode())
+            importer.validate(data)
 
     def test_untrusted_run_link_is_rejected(self):
         report = json.loads(FIXTURE.read_bytes())
         report["runUrl"] = "https://example.com/Seddryck/DubUrl.Providers/actions/runs/123"
+        data = json.dumps(report).encode()
         with self.assertRaisesRegex(ValueError, "Invalid provider QA run URL"):
-            importer.validate(json.dumps(report).encode())
+            importer.validate(data)
 
     def test_bad_inputs_explain_the_build_failure(self):
         bad = self.output / "invalid.json"

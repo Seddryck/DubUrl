@@ -69,7 +69,13 @@
     gap: 0.25rem 0.5rem;
     max-height: 15rem;
     overflow: auto;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
+
+#schema-coverage-results { display: block; margin-block: 1em; }
 
 #schema-coverage-providers label {
     display: flex;

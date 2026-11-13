@@ -119,6 +119,38 @@ function setup(root, report) {
         return null;
     }
 
+    function resultCell(row, feature, { provider, target }, modes) {
+        const actions = element('div', '', 'schema-coverage-cell');
+        for (const mode of modes) {
+            const result = target.coverage[feature.id][mode];
+            const button = element('button', '', 'schema-coverage-result');
+            button.type = 'button';
+            button.setAttribute('aria-haspopup', 'dialog');
+            button.setAttribute('aria-label', [
+                feature.label, provider.label, operations[mode], statuses[result.status][1]
+            ].join(', '));
+            button.append(element('span', mode === 'inspect' ? 'Inspect' : 'DDL'), marker(result.status));
+            button.addEventListener('click', () => showDetail(feature, provider, target, mode));
+            actions.append(button);
+        }
+        row.insertCell().append(actions);
+    }
+
+    function renderGroup(name, features, view) {
+        const body = table.createTBody();
+        const heading = element('th', name);
+        heading.scope = 'rowgroup';
+        heading.colSpan = view.columns.length + 1;
+        body.insertRow().append(heading);
+        for (const feature of features) {
+            const row = body.insertRow();
+            const label = element('th', feature.label);
+            label.scope = 'row';
+            row.append(label);
+            for (const column of view.columns) resultCell(row, feature, column, view.operations);
+        }
+    }
+
     function render(focusProvider) {
         const view = matrixView(report, { databases, variants, group: group.value, operation: operation.value });
         get('database-count').textContent = '(' + view.columns.length + ' of ' + report.providers.length + ')';
@@ -126,13 +158,11 @@ function setup(root, report) {
             ? view.features.length + ' features across ' + view.columns.length + ' databases'
             : 'Select at least one database to compare.';
         get('scroll').hidden = !view.columns.length;
-        table.replaceChildren();
+        for (const body of [...table.tBodies]) body.remove();
+        const head = table.tHead.rows[0];
+        while (head.cells.length > 1) head.deleteCell(-1);
         if (!view.columns.length) return;
 
-        const head = table.createTHead().insertRow();
-        const featureHeading = element('th', 'Feature');
-        featureHeading.scope = 'col';
-        head.append(featureHeading);
         let focusControl;
         for (const { provider, target } of view.columns) {
             const heading = element('th');
@@ -147,36 +177,7 @@ function setup(root, report) {
             if (!groups.has(feature.group)) groups.set(feature.group, []);
             groups.get(feature.group).push(feature);
         }
-        for (const [name, features] of groups) {
-            const body = table.createTBody();
-            const heading = element('th', name);
-            heading.scope = 'rowgroup';
-            heading.colSpan = view.columns.length + 1;
-            body.insertRow().append(heading);
-            for (const feature of features) {
-                const row = body.insertRow();
-                const label = element('th', feature.label);
-                label.scope = 'row';
-                row.append(label);
-                for (const { provider, target } of view.columns) {
-                    const cell = row.insertCell();
-                    const actions = element('div', '', 'schema-coverage-cell');
-                    for (const mode of view.operations) {
-                        const result = target.coverage[feature.id][mode];
-                        const button = element('button', '', 'schema-coverage-result');
-                        button.type = 'button';
-                        button.setAttribute('aria-haspopup', 'dialog');
-                        button.setAttribute('aria-label', [
-                            feature.label, provider.label, operations[mode], statuses[result.status][1]
-                        ].join(', '));
-                        button.append(element('span', mode === 'inspect' ? 'Inspect' : 'DDL'), marker(result.status));
-                        button.addEventListener('click', () => showDetail(feature, provider, target, mode));
-                        actions.append(button);
-                    }
-                    cell.append(actions);
-                }
-            }
-        }
+        for (const [name, features] of groups) renderGroup(name, features, view);
         focusControl?.focus({ preventScroll: true });
     }
 
@@ -226,7 +227,8 @@ function setup(root, report) {
     get('status').hidden = true;
 }
 
-async function load(root) {
+const root = typeof document === 'undefined' ? null : document.getElementById('schema-coverage');
+if (root) {
     try {
         const response = await fetch(root.dataset.reportUrl);
         if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -236,9 +238,4 @@ async function load(root) {
     } catch (error) {
         root.querySelector('#schema-coverage-status').textContent = 'Could not load the schema coverage report. ' + error.message;
     }
-}
-
-if (typeof document !== 'undefined') {
-    const root = document.getElementById('schema-coverage');
-    if (root) load(root);
 }
