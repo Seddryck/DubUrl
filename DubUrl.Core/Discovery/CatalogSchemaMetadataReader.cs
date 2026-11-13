@@ -16,9 +16,12 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
     protected virtual string? ViewsSql => null;
     protected virtual IReadOnlySet<SchemaFeature> UnsupportedFeatures => new HashSet<SchemaFeature>();
     protected virtual bool SupportsAnnotations => false;
+    protected virtual bool SupportsColumnAnnotations => false;
     public IReadOnlyDictionary<SchemaFeature, MetadataCoverage> Capabilities =>
         Enum.GetValues<SchemaFeature>().ToDictionary(feature => feature,
-            feature => UnsupportedFeatures.Contains(feature) || (feature == SchemaFeature.Annotations && !SupportsAnnotations)
+            feature => UnsupportedFeatures.Contains(feature)
+                || (feature == SchemaFeature.Annotations && !SupportsAnnotations)
+                || (feature == SchemaFeature.ColumnAnnotations && !SupportsColumnAnnotations)
                 ? MetadataCoverage.Unsupported : MetadataCoverage.Available);
 
     public async Task<SchemaMetadata> ReadAsync(DbConnection connection, DiscoveryOptions options, CancellationToken cancellationToken = default)
@@ -68,6 +71,8 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         var coverage = Capabilities.ToDictionary(pair => pair.Key, pair => pair.Value);
         if (!options.Features.Contains(SchemaFeature.Annotations))
             coverage.Remove(SchemaFeature.Annotations);
+        if (!options.Features.Contains(SchemaFeature.ColumnAnnotations))
+            coverage.Remove(SchemaFeature.ColumnAnnotations);
         return coverage;
     }
 
