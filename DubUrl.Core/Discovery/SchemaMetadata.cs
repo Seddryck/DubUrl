@@ -1,22 +1,27 @@
 using System.Data;
 using System.Data.Common;
+using System.Collections.Immutable;
 
 namespace DubUrl.Discovery;
 
 /// <summary>A catalog identity; components are literal identifiers, never SQL fragments.</summary>
 public sealed record MetadataName(string Name, string? Schema = null, string? Database = null, string? Catalog = null);
-public enum SchemaFeature { Tables, Columns, PrimaryKeys, ForeignKeys, Defaults, Generation, UniqueConstraints, Indexes, Checks, Comments, Views }
+public enum SchemaFeature { Tables, Columns, PrimaryKeys, ForeignKeys, Defaults, Generation, UniqueConstraints, Indexes, Checks, Comments, Views, Annotations }
 public enum MetadataCoverage { Available, Unsupported, Inaccessible, Absent, Unrepresentable }
 public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, MetadataCoverage Coverage, string Message, MetadataName? Object = null);
 public sealed record DiscoveryOptions
 {
+    private static readonly IReadOnlyList<SchemaFeature> DefaultFeatures =
+        Enum.GetValues<SchemaFeature>().Where(feature => feature != SchemaFeature.Annotations).ToImmutableArray();
+
     /// <summary>Literal database qualifiers, independent of schema and catalog qualifiers.</summary>
     public IReadOnlyList<string> Databases { get; init; } = [];
     /// <summary>Literal catalog qualifiers.</summary>
     public IReadOnlyList<string> Catalogs { get; init; } = [];
     public IReadOnlyList<string> Schemas { get; init; } = [];
     public IReadOnlyList<MetadataName> Tables { get; init; } = [];
-    public IReadOnlyList<SchemaFeature> Features { get; init; } = Enum.GetValues<SchemaFeature>();
+    /// <summary>The metadata to request. Annotations can be requested explicitly.</summary>
+    public IReadOnlyList<SchemaFeature> Features { get; init; } = DefaultFeatures;
     public bool IncludeReferencedTables { get; init; }
     public bool AllowPartial { get; init; }
 }
@@ -46,6 +51,7 @@ public sealed record MetadataTable(MetadataName Identity, IReadOnlyList<Metadata
     public IReadOnlyList<MetadataIndex> Indexes { get; init; } = [];
     public IReadOnlyList<MetadataCheck> Checks { get; init; } = [];
     public string? Comment { get; init; }
+    public IReadOnlyDictionary<string, string> Annotations { get; init; } = ImmutableDictionary<string, string>.Empty;
 }
 public sealed record MetadataView(MetadataName Identity, IReadOnlyList<MetadataColumn> Columns, MetadataName? Source = null,
     IReadOnlyList<MetadataProjection>? Projections = null);

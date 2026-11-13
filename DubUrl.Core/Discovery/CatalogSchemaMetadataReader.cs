@@ -15,13 +15,15 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
     protected virtual string? ChecksSql => null;
     protected virtual string? ViewsSql => null;
     protected virtual IReadOnlySet<SchemaFeature> UnsupportedFeatures => new HashSet<SchemaFeature>();
+    protected virtual bool SupportsAnnotations => false;
     public IReadOnlyDictionary<SchemaFeature, MetadataCoverage> Capabilities =>
         Enum.GetValues<SchemaFeature>().ToDictionary(feature => feature,
-            feature => UnsupportedFeatures.Contains(feature) ? MetadataCoverage.Unsupported : MetadataCoverage.Available);
+            feature => UnsupportedFeatures.Contains(feature) || (feature == SchemaFeature.Annotations && !SupportsAnnotations)
+                ? MetadataCoverage.Unsupported : MetadataCoverage.Available);
 
     public async Task<SchemaMetadata> ReadAsync(DbConnection connection, DiscoveryOptions options, CancellationToken cancellationToken = default)
     {
-        var coverage = Capabilities.ToDictionary(pair => pair.Key, pair => pair.Value);
+        var coverage = CreateCoverage(options);
         var diagnostics = new List<DiscoveryDiagnostic>();
         async Task<List<CatalogRow>> Query(string? sql, params SchemaFeature[] features)
         {
@@ -59,6 +61,14 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         {
             diagnostics.Add(new("SDI009", feature, MetadataCoverage.Unrepresentable, message, identity));
         }
+    }
+
+    private Dictionary<SchemaFeature, MetadataCoverage> CreateCoverage(DiscoveryOptions options)
+    {
+        var coverage = Capabilities.ToDictionary(pair => pair.Key, pair => pair.Value);
+        if (!options.Features.Contains(SchemaFeature.Annotations))
+            coverage.Remove(SchemaFeature.Annotations);
+        return coverage;
     }
 
     protected virtual MetadataTable MapTable(CatalogRow row, List<CatalogRow> columnRows, List<CatalogRow> keyRows, List<CatalogRow> indexRows, List<CatalogRow> checkRows, DiscoveryOptions options, Action<SchemaFeature, string> diagnose)
