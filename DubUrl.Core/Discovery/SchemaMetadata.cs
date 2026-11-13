@@ -8,7 +8,15 @@ namespace DubUrl.Discovery;
 public sealed record MetadataName(string Name, string? Schema = null, string? Database = null, string? Catalog = null);
 public enum SchemaFeature { Tables, Columns, PrimaryKeys, ForeignKeys, Defaults, Generation, UniqueConstraints, Indexes, Checks, Comments, Views, Annotations, ColumnAnnotations }
 public enum MetadataCoverage { Available, Unsupported, Inaccessible, Absent, Unrepresentable }
-public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, MetadataCoverage Coverage, string Message, MetadataName? Object = null);
+public sealed record DiscoveryDiagnostic(string Code, SchemaFeature Feature, MetadataCoverage Coverage, string Message, MetadataName? Object = null)
+{
+    /// <summary>The column, constraint, or index implicated in the diagnostic. Object remains the owning table.</summary>
+    public string? Member { get; init; }
+    /// <summary>A named constraint on the member column, when available.</summary>
+    public string? Constraint { get; init; }
+    /// <summary>The catalog type, expression, or other native definition that triggered the diagnostic.</summary>
+    public string? NativeDefinition { get; init; }
+}
 public sealed record DiscoveryOptions
 {
     private static readonly IReadOnlyList<SchemaFeature> DefaultFeatures =
