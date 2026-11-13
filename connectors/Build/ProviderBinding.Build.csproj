@@ -30,7 +30,7 @@
     <PackageReference Include="DubUrl.Provider.PostgreSql" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'PostgreSql'" />
     <PackageReference Include="DubUrl.Provider.Snowflake" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'Snowflake'" />
     <PackageReference Include="DubUrl.Provider.Sqlite" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'Sqlite'" />
-    <PackageReference Include="DubUrl.Provider.SqlServer" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'SqlServer'" />
+    <PackageReference Include="DubUrl.Provider.SqlServer" Version="[$(DubUrlSqlServerConnectorProviderVersion)]" Condition="'$(ConnectorFamily)' == 'SqlServer'" />
     <PackageReference Include="DubUrl.Provider.Teradata" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'Teradata'" />
     <PackageReference Include="DubUrl.Provider.Text" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'Text'" />
     <PackageReference Include="DubUrl.Provider.Trino" Version="$(DubUrlProviderVersion)" Condition="'$(ConnectorFamily)' == 'Trino'" />
