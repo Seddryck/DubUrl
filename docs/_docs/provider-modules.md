@@ -82,8 +82,8 @@ implementation assemblies, driver and complete database/scheme inventory; it has
 through `AttributeProviderModule`. Mapper, dialect, parametrizer, URL schemes, and optional capabilities
 come from the attributes; the driver assembly supplies its `DbProviderFactory`.
 Reuse the family's rewriter unless the driver needs different keywords or URL rules. Standard bindings
-are declared in `connectors/connector-matrix.json` and built by
-`Providers/Build/ProviderBinding.Build.csproj`. The exporter groups rows sharing implementation assemblies, driver and runtime compatibility;
+are declared in [the Providers connector matrix](https://github.com/Seddryck/DubUrl.Providers/blob/main/connectors/connector-matrix.json) and built by
+[ProviderBinding.Build.csproj](https://github.com/Seddryck/DubUrl.Providers/blob/main/Providers/Build/ProviderBinding.Build.csproj). The exporter groups rows sharing implementation assemblies, driver and runtime compatibility;
 the build script passes the canonical selection's settings to that same project, including PostgreSQL/Npgsql. Its default settings build PostgreSQL/Npgsql for local
 solution builds and focused consumer tests; no separate Npgsql project is required. Driver bindings
 are distributed as connector packs, and this build project is not published as a NuGet package.
@@ -114,7 +114,7 @@ Applications may pass an explicitly built registry to `ConnectionUrl` or `Connec
 rely on automatic discovery from their NuGet dependencies. Add `DubUrl`, the provider package, and its
 driver; no all-provider aggregate or `DubUrl.Core` compatibility package is produced.
 Adding an independently registered provider does not require editing a built-in provider list.
-Official archive distribution requires updating `connectors/connector-matrix.json`, the applicable
+Official archive distribution requires updating [the Providers connector matrix](https://github.com/Seddryck/DubUrl.Providers/blob/main/connectors/connector-matrix.json), the applicable
 dependencies, and documentation. The shared generator produces catalog and local definitions from the
 matrix and provider attributes. `DubUrl.Application` embeds the generated catalog. The matrix's
 technology table maps driver invariants to build keys and optional assembly names, without listing factory types.

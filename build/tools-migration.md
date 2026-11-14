@@ -2,7 +2,7 @@
 
 Application, CLI and worker are maintained in [DubUrl.Tools](https://github.com/Seddryck/DubUrl.Tools), extracted from commit 63e5ff87 for [issue #1789](https://github.com/Seddryck/DubUrl/issues/1789).
 
-This repository retains core/provider/authentication libraries, native adapters, library/provider QA, and connector pack/catalog publication. It no longer publishes DubUrl.Application, DubUrl-cli, or DubUrl.Worker. Existing releases remain available; new tool distributions come from Tools' NuGet publication and GitHub Releases.
+This repository publishes Core and its companion libraries. [DubUrl.Providers](https://github.com/Seddryck/DubUrl.Providers) owns provider implementations, native adapters, provider QA, and connector pack and catalog publication. Historical releases remain available. New tool distributions come from Tools' NuGet publication and GitHub Releases.
 
 Merge this cleanup and publish the complete library set before merging Tools. Tools initially pins DubUrl libraries to 0.56.0 and Schema to 0.55.1. Authentication and reusable provider QA projects must be published with the rest of the libraries. The feature release publishes the complete package set before Tools adopts it.
 

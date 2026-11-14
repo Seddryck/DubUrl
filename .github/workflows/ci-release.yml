@@ -205,7 +205,6 @@ jobs:
       run: |
         $projects = @(
           'DubUrl.Core/DubUrl.Core.csproj'
-          'connectors/Build/ProviderBinding.Build.csproj'
           'DubUrl.OleDb/DubUrl.OleDb.csproj'
           'DubUrl.Extensions/DubUrl.Extensions.csproj'
           'DubUrl.Adomd/DubUrl.Adomd.csproj'
@@ -371,111 +370,12 @@ jobs:
     - name: Validate release artifacts
       shell: pwsh
       run: ./.github/scripts/Validate-ReleaseArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -NuGetDirectory './.artifacts/nuget'
-  package-connectors:
-    name: Package connector packs and official catalog
-    needs:
-    - version
-    - build
-    - coverage-threshold
-    runs-on: windows-latest
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Set up .NET SDK
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: 10.0.401
-    - name: Check out connector adapters
-      uses: actions/checkout@v7
-      with:
-        repository: Seddryck/DubUrl.Providers
-        ref: ae88d434ef1cf69331b14a20f77dcb28018f6d9e
-        path: .connector-providers
-        persist-credentials: false
-    - name: Pack internal connector adapters
-      shell: pwsh
-      run: |
-        $feed = Join-Path $env:GITHUB_WORKSPACE '.artifacts/connector-adapters'
-        foreach ($project in @(
-          '.connector-providers/Providers/DuckDb/DubUrl.Provider.DuckDb.Native.BulkCopy',
-          '.connector-providers/Providers/SqlServer/DubUrl.Provider.SqlServer.SqlClient.BulkCopy'
-        )) {
-          dotnet pack $project -c Release -p:Version=0.60.0 -p:IsPackable=true -o $feed --nologo
-          if ($LASTEXITCODE) { throw "Packing $project failed." }
-        }
-        Add-Content -LiteralPath $env:GITHUB_ENV -Value "RestoreAdditionalProjectSources=$feed"
-    - name: Test connector archive set validation
-      shell: pwsh
-      run: ./.github/scripts/Test-ConnectorArchiveSet.ps1
-    - name: Build connector artifacts
-      shell: pwsh
-      run: ./connectors/Build-ConnectorArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -OutputDirectory '../.artifacts/connectors'
-    - name: Preserve connector packaging inventory
-      shell: pwsh
-      run: |
-        # Building the lifecycle verifier can rewrite Core's obj inventory.
-        New-Item -ItemType Directory -Force .artifacts/validation-inputs | Out-Null
-        Copy-Item -LiteralPath DubUrl.Core/obj/Release/net8.0/CoreDependencyPaths.txt `
-          -Destination .artifacts/validation-inputs/CoreDependencyPaths.txt
-    - name: Validate connector artifacts and catalog
-      shell: pwsh
-      run: ./connectors/Test-ConnectorArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -ArtifactDirectory './.artifacts/connectors' -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
-    - name: Upload internal connector validation inputs
-      uses: actions/upload-artifact@v7
-      with:
-        name: connector-validation-inputs-${{ needs.version.outputs.semver }}
-        path: .artifacts/validation-inputs/CoreDependencyPaths.txt
-        include-hidden-files: true
-        retention-days: 1
-        if-no-files-found: error
-    - name: Upload connector artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: connector-packs-${{ needs.version.outputs.semver }}
-        path: .artifacts/connectors
-        if-no-files-found: error
-  validate-release-assets:
-    name: Validate release assets
-    needs:
-    - version
-    - package-connectors
-    runs-on: windows-latest
-    steps:
-    - name: Check out tested commit
-      uses: actions/checkout@v7
-    - name: Set up .NET SDK
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: |
-          8.0.416
-          10.0.401
-    - name: Download connector packs and catalog
-      uses: actions/download-artifact@v7
-      with:
-        name: connector-packs-${{ needs.version.outputs.semver }}
-        path: .artifacts/release
-    - name: Download internal connector validation inputs
-      uses: actions/download-artifact@v7
-      with:
-        name: connector-validation-inputs-${{ needs.version.outputs.semver }}
-        path: .artifacts/validation-inputs
-    - name: Test public release asset selection
-      shell: pwsh
-      run: ./.github/scripts/Test-ReleaseAssets.ps1
-    - name: Validate public release assets
-      shell: pwsh
-      run: ./.github/scripts/Get-ReleaseAssets.ps1 -Version '${{ needs.version.outputs.semver }}' -ArtifactDirectory './.artifacts/release'
-    - name: Revalidate connector release assets
-      shell: pwsh
-      run: ./connectors/Test-ConnectorArtifacts.ps1 -Version '${{ needs.version.outputs.semver }}' -ArtifactDirectory './.artifacts/release' -SharedDependencyInventoryPath './.artifacts/validation-inputs/CoreDependencyPaths.txt'
   reserve-release:
     name: Reserve release identity
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
     - version
     - validate-packages
-    - validate-release-assets
-    - package-connectors
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -654,12 +554,10 @@ jobs:
         }
   github-release:
     name: Create GitHub release
-    if: needs.version.outputs.patch == '0'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.version.outputs.patch == '0'
     needs:
     - version
     - publish-nuget
-    - package-connectors
-    - validate-release-assets
     runs-on: windows-latest
     permissions:
       contents: write
@@ -667,21 +565,11 @@ jobs:
     steps:
     - name: Check out tested commit
       uses: actions/checkout@v7
-    - name: Download connector packs and catalog
-      uses: actions/download-artifact@v7
-      with:
-        name: connector-packs-${{ needs.version.outputs.semver }}
-        path: .artifacts/release
     - name: Create release
       shell: pwsh
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        $assets = @(
-          ./.github/scripts/Get-ReleaseAssets.ps1 `
-            -Version '${{ needs.version.outputs.semver }}' `
-            -ArtifactDirectory './.artifacts/release'
-        )
         $tag = 'v${{ needs.version.outputs.semver }}'
         if (gh release view $tag --repo '${{ github.repository }}' 2>$null) {
           Write-Host "Release '$tag' already exists."
@@ -693,7 +581,5 @@ jobs:
             --generate-notes `
             --discussion-category 'Announcements' `
             --verify-tag
+          if ($LASTEXITCODE -ne 0) { throw "Creating release '$tag' failed." }
         }
-
-        gh release upload $tag @($assets.FullName) --clobber --repo '${{ github.repository }}'
-        if ($LASTEXITCODE -ne 0) { throw "Uploading CLI assets to '$tag' failed." }
