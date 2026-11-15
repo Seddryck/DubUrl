@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>DubUrl.Parser</PackageId>
+    <RepositoryUrl>https://github.com/Seddryck/DubUrl</RepositoryUrl>
+    <PackageTags>database;sql;parser</PackageTags>
+    <Description>Parses SQL check expressions into a DubUrl syntax tree.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SqlParserCS" Version="0.6.5" />
+  </ItemGroup>
+</Project>
