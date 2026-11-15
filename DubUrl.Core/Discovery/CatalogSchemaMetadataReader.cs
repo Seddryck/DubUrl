@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using DubUrl.Parser;
 
 namespace DubUrl.Discovery;
 
@@ -122,7 +123,8 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
         MetadataKey Key(IEnumerable<CatalogRow> rows) => new(rows.First().Text("key_name"),
             rows.OrderBy(key => key.Int("ordinal")).Select(key => key.Text("column_name")!).ToArray());
         var indexes = MapIndexes(indexRows.Where(index => Identity(index) == identity), identity, diagnose);
-        var checks = MapChecks(checkRows.Where(check => Identity(check) == identity), diagnose);
+        var (checks, checkPredicates) = MapChecks(checkRows.Where(check => Identity(check) == identity),
+            options.IncludeCheckPredicates, columns, diagnose);
         return new(identity, columns)
         {
             Comment = options.Features.Contains(SchemaFeature.Comments) ? row.Text("comment") : null,
@@ -136,7 +138,8 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
                     ordered.Select(part => part.Text("target_column")!).ToArray());
             }).ToArray() : [],
             Indexes = indexes,
-            Checks = checks
+            Checks = checks,
+            CheckPredicates = checkPredicates
         };
     }
 
@@ -217,16 +220,50 @@ public abstract class CatalogSchemaMetadataReader : ISchemaMetadataReader
 
     private static string? IndexDetail(string label, string? value) => value is null ? null : $"{label}: {value}";
 
-    private static List<MetadataCheck> MapChecks(IEnumerable<CatalogRow> rows, Action<SchemaFeature, string> diagnose)
+    private static (List<MetadataCheck> Comparisons, List<MetadataCheckPredicate> Predicates) MapChecks(
+        IEnumerable<CatalogRow> rows, bool includePredicates, IReadOnlyList<MetadataColumn> columns,
+        Action<SchemaFeature, string> diagnose)
     {
-        var checks = new List<MetadataCheck>();
+        var comparisons = new List<MetadataCheck>();
+        var predicates = new List<MetadataCheckPredicate>();
+        var names = columns.ToLookup(column => column.Name, column => column.Name, StringComparer.OrdinalIgnoreCase);
         foreach (var check in rows.OrderBy(check => check.Text("check_name"), StringComparer.Ordinal))
         {
-            if (DiscoveryExpressions.TryCheck(check.Text("expression") ?? "", check.Text("check_name"), out var mapped)) checks.Add(mapped!);
-            else Report(diagnose, SchemaFeature.Checks, "A check expression cannot be represented.",
-                check.Text("check_name"), check.Text("expression"));
+            var name = check.Text("check_name");
+            var definition = check.Text("expression");
+            if (includePredicates && DiscoveryExpressions.TryCheckPredicate(definition ?? "", name, out var predicate)
+                && BindCheckColumns(predicate!.Expression, names) is { } bound)
+                predicates.Add(predicate with { Expression = bound });
+            else if (DiscoveryExpressions.TryCheck(definition ?? "", name, out var comparison))
+                comparisons.Add(comparison!);
+            else
+                Report(diagnose, SchemaFeature.Checks, "A check expression cannot be represented.", name, definition);
         }
-        return checks;
+        return (comparisons, predicates);
+    }
+
+    private static SqlExpression? BindCheckColumns(SqlExpression expression, ILookup<string, string> names)
+        => expression switch
+        {
+            SqlExpression.BinaryOp binary when BindCheckColumns(binary.Left, names) is { } left
+                && BindCheckColumns(binary.Right, names) is { } right => binary with { Left = left, Right = right },
+            SqlExpression.IsNull test when BindCheckColumns(test.Operand, names) is { } operand
+                => test with { Operand = operand },
+            SqlExpression.IsNotNull test when BindCheckColumns(test.Operand, names) is { } operand
+                => test with { Operand = operand },
+            SqlExpression.Identifier identifier => BindCheckColumn(identifier.Parts[0], names),
+            SqlExpression.Literal => expression,
+            _ => null
+        };
+
+    private static SqlExpression.Identifier? BindCheckColumn(SqlIdentifierPart part, ILookup<string, string> names)
+    {
+        var candidates = names[part.Name];
+        if (candidates.Contains(part.Name, StringComparer.Ordinal))
+            return new([part]);
+
+        var matches = candidates.Take(2).ToArray();
+        return matches.Length == 1 ? new([part with { Name = matches[0] }]) : null;
     }
 
     private static object? ConvertDefault(object? value, DbType? type)

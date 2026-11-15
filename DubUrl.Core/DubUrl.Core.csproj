@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Include="buildTransitive/DubUrl.targets" Pack="true" PackagePath="buildTransitive/" />
     <PackageReference Include="Didot.Core" Version="0.34.0" />
+    <ProjectReference Include="../DubUrl.Parser/DubUrl.Parser.csproj" />
     <InternalsVisibleTo Include="DubUrl.Core.Testing" />
     <InternalsVisibleTo Include="DubUrl.Application" />
   </ItemGroup>

@@ -15,7 +15,7 @@ public class ParserTest
     [TestCase("mssql://197.12.12.45/db", "197.12.12.45")]
     public void Url_Parser_HostParsed(string url, string host = "host")
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Host, Is.EqualTo(host));
@@ -30,7 +30,7 @@ public class ParserTest
     [TestCase("mssql://197.12.12.45:1234/db")]
     public void Url_Parser_PortParsed(string url, int port = 1234)
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Port, Is.EqualTo(port));
@@ -40,7 +40,7 @@ public class ParserTest
     [TestCase("mssql://host/db")]
     public void UrlWithoutPort_Parse_PortZeroParsed(string url)
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Port, Is.EqualTo(0));
@@ -56,7 +56,7 @@ public class ParserTest
     {
         var segments = segmentString.Split(',');
 
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Segments, Is.EqualTo(segments));
@@ -69,7 +69,7 @@ public class ParserTest
     [TestCase("mssql://host:1234/?param1=1&param2=2")]
     public void UrlWithoutSegments_Parser_NoSegmentReturned(string url)
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Segments, Is.Empty);
@@ -83,7 +83,7 @@ public class ParserTest
     [TestCase("mssql://user+name:p+ss@host/db", "user+name", "p+ss")]
     public void Url_Parser_UserInfoParsed(string url, string username = "user", string password = "pwd")
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
@@ -98,7 +98,7 @@ public class ParserTest
     [TestCase("mssql://host:1234/db")]
     public void UrlWithoutUserInfo_Parser_UserAndPasswordEmpty(string url)
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
@@ -118,7 +118,7 @@ public class ParserTest
     public void Url_Parser_SchemeParsed(string url, string expectedList)
     {
         var expected = expectedList.Split(",");
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse(url);
         Assert.That(result, Is.Not.Null);
         foreach (var scheme in expected)
@@ -129,7 +129,7 @@ public class ParserTest
     [Test]
     public void Parse_EmptyHost_HostWithoutSegment()
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse("sqlite://data.db");
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
@@ -142,7 +142,7 @@ public class ParserTest
     [Test]
     public void Parse_EmptyHost_EmptyHost()
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse("sqlite:///data.db");
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>
@@ -156,7 +156,7 @@ public class ParserTest
     [Test]
     public void Parse_EmptyHostAndFirstSegment_EmptyHostAndFirstSegment()
     {
-        var parser = new Parser();
+        var parser = new DubUrl.Parsing.Parser();
         var result = parser.Parse("sqlite:////c:/data.db");
         Assert.That(result, Is.Not.Null);
         Assert.Multiple(() =>

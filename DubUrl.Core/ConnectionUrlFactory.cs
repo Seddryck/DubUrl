@@ -17,11 +17,11 @@ public class ConnectionUrlFactory
     private IParser Parser { get; }
 
     public ConnectionUrlFactory(ISchemeRegistry registry)
-        : this(new Parser(), registry) { }
+        : this(new Parsing.Parser(), registry) { }
 
     /// <summary>Obtains a registry snapshot separately for each newly created URL.</summary>
     public ConnectionUrlFactory(Func<ISchemeRegistry> getSchemeRegistry)
-        : this(new Parser(), getSchemeRegistry) { }
+        : this(new Parsing.Parser(), getSchemeRegistry) { }
 
     internal ConnectionUrlFactory(IParser parser, ISchemeRegistry registry)
         : this(parser, () => registry) { }

@@ -15,7 +15,8 @@ $packages = @(
     @{ Id = 'DubUrl.Extensions'; Assembly = 'DubUrl.Extensions' },
     @{ Id = 'DubUrl.Adomd'; Assembly = 'DubUrl.Adomd' },
     @{ Id = 'DubUrl.Adbc'; Assembly = 'DubUrl.Adbc' },
-    @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' }
+    @{ Id = 'DubUrl.BulkCopy'; Assembly = 'DubUrl.BulkCopy' },
+    @{ Id = 'DubUrl.Parser'; Assembly = 'DubUrl.Parser' }
 )
 $frameworks = @('net8.0', 'net9.0', 'net10.0')
 

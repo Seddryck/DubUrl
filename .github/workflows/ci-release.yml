@@ -211,6 +211,7 @@ jobs:
           'DubUrl.Adomd/DubUrl.Adomd.csproj'
           'DubUrl.Adbc/DubUrl.Adbc.csproj'
           'DubUrl.BulkCopy/DubUrl.BulkCopy.csproj'
+          'DubUrl.Parser/DubUrl.Parser.csproj'
         )
 
         $paths = @(
@@ -316,6 +317,8 @@ jobs:
           project: DubUrl.Adbc/DubUrl.Adbc.csproj
         - package-id: DubUrl.BulkCopy
           project: DubUrl.BulkCopy/DubUrl.BulkCopy.csproj
+        - package-id: DubUrl.Parser
+          project: DubUrl.Parser/DubUrl.Parser.csproj
     steps:
     - name: Check out repository
       uses: actions/checkout@v7

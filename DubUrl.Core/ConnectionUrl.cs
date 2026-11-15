@@ -190,7 +190,7 @@ public class ConnectionUrl : BaseConnectionUrl
         : this(url, DefaultRegistry.Get()) { }
 
     public ConnectionUrl(string url, ISchemeRegistry registry)
-        : this(url, new Parser(), registry) { }
+        : this(url, new Parsing.Parser(), registry) { }
 
     internal ConnectionUrl(string url, IParser parser, ISchemeRegistry registry)
         : base(url, parser, registry) { }

@@ -17,14 +17,14 @@ public sealed class ProviderQaEndpointTests
         var builder=new DbConnectionStringBuilder();
         var mapper=new OracleProviderLocator.OracleEndpointMapper();
         mapper.Accept(new StraightSpecificator(builder));
-        mapper.Execute(new Parser().Parse(url));
+        mapper.Execute(new DubUrl.Parsing.Parser().Parse(url));
         Assert.That(builder["Data Source"],Is.EqualTo(expected));
     }
     [Test]
     public void SqlServerPreservesExplicitLocalDbEndpoint()
     {
         var builder=new DbConnectionStringBuilder();
-        var uri=new Parser().Parse("oledb+mssql://localhost/DubUrl?Data%20Source=%28localdb%29%5CDubUrlQa");
+        var uri=new DubUrl.Parsing.Parser().Parse("oledb+mssql://localhost/DubUrl?Data%20Source=%28localdb%29%5CDubUrlQa");
         var specificator=new StraightSpecificator(builder);
         var options=new OptionsMapper(); options.Accept(specificator); options.Execute(uri);
         var server=new OleDbRewriter.ServerMapper(); server.Accept(specificator); server.Execute(uri);

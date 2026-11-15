@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using DubUrl.Parser;
 
 namespace DubUrl.Discovery;
 
@@ -53,6 +54,46 @@ public static class DiscoveryExpressions
         check = new(name, left!, match.Groups[2].Value, right!);
         return true;
     }
+
+    /// <summary>Parse a portable check expression from a catalog definition.</summary>
+    public static bool TryCheckPredicate(string sql, string? name, out MetadataCheckPredicate? check)
+    {
+        check = null;
+        if (!TryParseCheck(sql, SqlDialect.Generic, out var expression)
+            && (!sql.Contains('[') || !TryParseCheck(sql, SqlDialect.SqlServer, out expression)))
+            return false;
+        if (expression is null || !IsPortableCheckExpression(expression))
+            return false;
+
+        check = new(name, expression);
+        return true;
+    }
+
+    private static bool TryParseCheck(string sql, SqlDialect dialect, out SqlExpression? expression)
+    {
+        try
+        {
+            expression = SqlParserAdapter.ParseCheckExpression(sql, dialect);
+            return true;
+        }
+        catch (Exception error) when (error is FormatException or NotSupportedException)
+        {
+            expression = null;
+            return false;
+        }
+    }
+
+    private static bool IsPortableCheckExpression(SqlExpression expression)
+        => expression switch
+        {
+            SqlExpression.BinaryOp binary => IsPortableCheckExpression(binary.Left) && IsPortableCheckExpression(binary.Right),
+            SqlExpression.IsNull test => IsPortableCheckExpression(test.Operand),
+            SqlExpression.IsNotNull test => IsPortableCheckExpression(test.Operand),
+            SqlExpression.Identifier identifier => identifier.Parts.Length == 1,
+            SqlExpression.Literal.TypedString literal => literal.SqlType is "DATE" or "TIME" or "TIMESTAMP",
+            SqlExpression.Literal => true,
+            _ => false,
+        };
 
     private static bool BalancedOuter(string text)
     {

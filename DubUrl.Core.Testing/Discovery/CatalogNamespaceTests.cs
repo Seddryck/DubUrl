@@ -1,5 +1,6 @@
 using System.Data.Common;
 using DubUrl.Discovery;
+using DubUrl.Parser;
 using Moq;
 using NUnit.Framework;
 
@@ -77,13 +78,49 @@ public class CatalogNamespaceTests
             Does.Contain("ordered_at").And.Contain("DF_ordered").And.Contain("(getdate())"));
     }
 
-    private sealed class Reader(string source, bool supportsColumnAnnotations = false, bool includeUnsupported = false) : CatalogSchemaMetadataReader
+    [TestCase("""(("EndDate" >= "StartDate") OR ("EndDate" IS NULL))""")]
+    [TestCase("(([EndDate] >= [StartDate]) OR ([EndDate] IS NULL))")]
+    public async Task CatalogMapping_PreservesRequestedCheckPredicates(string definition)
+    {
+        var metadata = await new Reader("parent", checkDefinition: definition).ReadAsync(new Mock<DbConnection>().Object,
+            new() { Features = [SchemaFeature.Checks], IncludeCheckPredicates = true });
+
+        var check = metadata.Tables.Single(table => table.Identity.Name == "parent").CheckPredicates.Single();
+        var expression = (SqlExpression.BinaryOp)check.Expression;
+        Assert.Multiple(() =>
+        {
+            Assert.That(metadata.Diagnostics, Is.Empty);
+            Assert.That(check.Name, Is.EqualTo("CK_parent"));
+            Assert.That(expression.Operator, Is.EqualTo(SqlBinaryOperator.Or));
+            Assert.That(expression.Left, Is.TypeOf<SqlExpression.BinaryOp>());
+            Assert.That(expression.Right, Is.TypeOf<SqlExpression.IsNull>());
+        });
+    }
+
+    [Test]
+    public async Task CatalogMapping_ReportsUnsupportedRequestedCheckPredicates()
+    {
+        const string definition = "(EndDate IS NULL OR EndDate IN (1, 2))";
+        var metadata = await new Reader("parent", checkDefinition: definition).ReadAsync(new Mock<DbConnection>().Object,
+            new() { Features = [SchemaFeature.Checks], IncludeCheckPredicates = true });
+
+        var diagnostic = metadata.Diagnostics.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(diagnostic.Code, Is.EqualTo("SDI009"));
+            Assert.That(diagnostic.Member, Is.EqualTo("CK_parent"));
+            Assert.That(diagnostic.NativeDefinition, Is.EqualTo(definition));
+        });
+    }
+
+    private sealed class Reader(string source, bool supportsColumnAnnotations = false, bool includeUnsupported = false,
+        string? checkDefinition = null) : CatalogSchemaMetadataReader
     {
         protected override string TablesSql => "tables";
         protected override string ColumnsSql => "columns";
         protected override string KeysSql => "keys";
         protected override string? IndexesSql => includeUnsupported ? "indexes" : null;
-        protected override string? ChecksSql => includeUnsupported ? "checks" : null;
+        protected override string? ChecksSql => includeUnsupported || checkDefinition is not null ? "checks" : null;
         protected override string ViewsSql => "views";
         protected override bool SupportsColumnAnnotations => supportsColumnAnnotations;
 
@@ -110,6 +147,12 @@ public class CatalogNamespaceTests
                     Row("parent", ("column_name", "ordered_at"), ("type_name", "datetime"), ("default_name", "DF_ordered"), ("default_expression", "(getdate())")),
                     Row("parent", ("column_name", "total"), ("type_name", "int"), ("generation_expression", "([price]*[quantity])"))
                 ],
+                "columns" when checkDefinition is not null =>
+                [
+                    Row("parent", ("column_name", "StartDate"), ("type_name", "date")),
+                    Row("parent", ("column_name", "EndDate"), ("type_name", "date")),
+                    Row("child", ("column_name", "id"), ("type_name", "integer"))
+                ],
                 "columns" => [Row("parent", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0), ("comment", "Identifier")),
                     Row("child", ("column_name", "id"), ("type_name", "integer"), ("nullable", 0))],
                 "keys" => [Row("child", ("kind", "FOREIGN KEY"), ("key_name", "fk"), ("column_name", "id"),
@@ -124,7 +167,7 @@ public class CatalogNamespaceTests
                     Row("parent", ("index_name", "IX_parent"), ("column_name", "notes"), ("unsupported", true),
                         ("index_kind", "NONCLUSTERED"), ("filter_definition", "([id]>(0))"), ("included_column", "[notes]"))
                 ],
-                "checks" => [Row("parent", ("check_name", "CK_parent"), ("expression", "([id]>(0) OR [id] IS NULL)"))],
+                "checks" => [Row("parent", ("check_name", "CK_parent"), ("expression", checkDefinition ?? "([id]>(0) OR [id] IS NULL)"))],
                 _ => []
             });
     }
