@@ -13,6 +13,7 @@ permissions:
 env:
   CORE_UNIT_TEST_PROJECTS: |
     DubUrl.Core.Testing/DubUrl.Core.Testing.csproj
+    DubUrl.Parser.Testing/DubUrl.Parser.Testing.csproj
     DubUrl.OleDb.Testing/DubUrl.OleDb.Testing.csproj
     DubUrl.Extensions.Testing/DubUrl.Extensions.Testing.csproj
     DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj
