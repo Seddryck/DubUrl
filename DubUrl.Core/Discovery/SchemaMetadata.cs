@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using System.Collections.Immutable;
+using DubUrl.Parser;
 
 namespace DubUrl.Discovery;
 
@@ -30,6 +31,8 @@ public sealed record DiscoveryOptions
     public IReadOnlyList<MetadataName> Tables { get; init; } = [];
     /// <summary>The metadata to request. Table and column annotations can be requested independently.</summary>
     public IReadOnlyList<SchemaFeature> Features { get; init; } = DefaultFeatures;
+    /// <summary>Return parsed check predicates in addition to the legacy comparison metadata contract.</summary>
+    public bool IncludeCheckPredicates { get; init; }
     public bool IncludeReferencedTables { get; init; }
     public bool AllowPartial { get; init; }
 }
@@ -52,6 +55,8 @@ public sealed record MetadataForeignKey(string Name, IReadOnlyList<string> Colum
 public sealed record MetadataIndex(MetadataName Identity, IReadOnlyList<MetadataIndexColumn> Columns, bool Unique = false);
 public sealed record MetadataIndexColumn(string Name, bool? Descending = null);
 public sealed record MetadataCheck(string? Name, MetadataExpression Left, string Operator, MetadataExpression Right);
+/// <summary>A named or unnamed row check with a parsed predicate.</summary>
+public sealed record MetadataCheckPredicate(string? Name, SqlExpression Expression);
 public sealed record MetadataTable(MetadataName Identity, IReadOnlyList<MetadataColumn> Columns)
 {
     public MetadataKey? PrimaryKey { get; init; }
@@ -59,6 +64,8 @@ public sealed record MetadataTable(MetadataName Identity, IReadOnlyList<Metadata
     public IReadOnlyList<MetadataKey> UniqueConstraints { get; init; } = [];
     public IReadOnlyList<MetadataIndex> Indexes { get; init; } = [];
     public IReadOnlyList<MetadataCheck> Checks { get; init; } = [];
+    /// <summary>Parsed checks returned when <see cref="DiscoveryOptions.IncludeCheckPredicates"/> is requested.</summary>
+    public IReadOnlyList<MetadataCheckPredicate> CheckPredicates { get; init; } = [];
     public string? Comment { get; init; }
     public IReadOnlyDictionary<string, string> Annotations { get; init; } = ImmutableDictionary<string, string>.Empty;
 }

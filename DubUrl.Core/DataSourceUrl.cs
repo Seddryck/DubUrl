@@ -19,7 +19,7 @@ namespace DubUrl;
 public class DataSourceUrl : BaseConnectionUrl
 {
     public DataSourceUrl(string url, ISchemeRegistry? registry = null)
-        : this(url, new Parser(), (registry ?? DefaultRegistry.Get())) { }
+        : this(url, new Parsing.Parser(), (registry ?? DefaultRegistry.Get())) { }
 
     internal DataSourceUrl(string url, IParser parser, ISchemeRegistry builder)
         : base(url, parser, builder) { }

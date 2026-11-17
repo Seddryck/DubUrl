@@ -1,5 +1,5 @@
 name: Prepare provider QA against the Core candidate
-description: Pack the candidate and use it as the only NuGet source for DubUrl.
+description: Pack DubUrl and DubUrl.Parser from the candidate checkout and restore them from the local feed.
 runs:
   using: composite
   steps:
