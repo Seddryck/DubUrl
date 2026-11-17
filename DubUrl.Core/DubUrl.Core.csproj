@@ -16,7 +16,8 @@
   </ItemGroup>
 
   <!-- Share precisely Core's runtime dependencies, rather than every assembly in the host. -->
-  <Target Name="GenerateSharedDependencies" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveReferences">
+  <Target Name="GenerateSharedDependencies" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveReferences"
+          Condition="'$(NoBuild)' != 'true'">
     <WriteLinesToFile File="$(IntermediateOutputPath)CoreDependencyPaths.txt"
                       Lines="@(RuntimeCopyLocalItems->'%(DestinationSubPath)');@(ResourceCopyLocalItems->'%(DestinationSubPath)');@(RuntimeTargetsCopyLocalItems->'%(DestinationSubPath)')"
                       Overwrite="true" WriteOnlyWhenDifferent="true" />

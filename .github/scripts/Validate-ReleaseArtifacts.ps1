@@ -64,9 +64,12 @@ foreach ($package in $packages) {
         Assert-Condition ('DubUrl.Core' -notin $dependencies) "Package '$($package.Id)' depends on the retired DubUrl.Core package."
         if ($package.Id -eq 'DubUrl') {
             Assert-Condition (@($dependencies | Where-Object { $_ -like 'DubUrl.Provider.*' }).Count -eq 0) 'DubUrl must not bring provider implementations.'
-        }
-        if ($package.Id -eq 'DubUrl') {
             Assert-Condition ($entries -contains 'buildTransitive/DubUrl.targets') "DubUrl package is missing its single-file dependency discovery target."
+            foreach ($framework in $frameworks) {
+                $parserDependency = $specification.SelectSingleNode(
+                    "//*[local-name()='group' and @targetFramework='$framework']/*[local-name()='dependency' and @id='DubUrl.Parser']")
+                Assert-Condition ($parserDependency.version -eq $Version) "DubUrl must depend on DubUrl.Parser $Version for $framework."
+            }
         }
 
     }
