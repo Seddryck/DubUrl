@@ -2,6 +2,9 @@ using System.Data;
 using System.Data.Common;
 using DubUrl.Authentication;
 using DubUrl.Mapping;
+using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Parametrizing;
+using Moq;
 using Microsoft.Data.SqlClient;
 using Npgsql;
 using NUnit.Framework;
@@ -133,6 +136,51 @@ public class OperatingSystemIdentityMappingTests
         Assert.That(() => ConnectionAuthentication.OperatingSystemIdentity().Configure(connection, new(provider, scheme, "db", null, "app", null)),
             Throws.TypeOf<ConnectionAuthenticationException>().With.Property("Code").EqualTo(code));
         Assert.That(connection.State, Is.EqualTo(ConnectionState.Closed));
+    }
+
+    [Test]
+    public async Task RegisteredIdentityAdapterValidatesOptionsAndConfiguresSyncAndAsyncConnections()
+    {
+        var adapter = new Mock<IOperatingSystemIdentityAdapter>();
+        adapter.Setup(item => item.ValidateOption("authmech", "42")).Returns(true);
+        adapter.Setup(item => item.Configure(It.IsAny<DbConnectionStringBuilder>()))
+            .Callback<DbConnectionStringBuilder>(builder => builder["Identity Mode"] = "Adapter");
+        var target = AdapterUrl("identity://db?AuthMech=42", adapter.Object);
+
+        target.ValidateAuthentication();
+        using var sync = (DbConnection)target.Connect();
+        await using var asynchronous = await target.ConnectAsync();
+
+        Assert.That(sync.ConnectionString, Is.EqualTo(asynchronous.ConnectionString));
+        Assert.That(new DbConnectionStringBuilder { ConnectionString = sync.ConnectionString }["Identity Mode"], Is.EqualTo("Adapter"));
+        adapter.Verify(item => item.Configure(It.IsAny<DbConnectionStringBuilder>()), Times.Exactly(2));
+        adapter.Verify(item => item.ValidateOption("authmech", "42"), Times.Exactly(3));
+    }
+
+    [TestCase("identity://user:secret@db?AuthMech=42")]
+    [TestCase("identity://db?AuthMech=42")]
+    public void RegisteredIdentityAdapterPreservesUnclaimedCredentialGuards(string url)
+    {
+        var adapter = new Mock<IOperatingSystemIdentityAdapter>(MockBehavior.Strict);
+        adapter.Setup(item => item.ValidateUsername(null));
+        adapter.Setup(item => item.ValidateOption("authmech", "42")).Returns(false);
+
+        Assert.That(() => AdapterUrl(url, adapter.Object).ValidateAuthentication(),
+            Throws.TypeOf<ConnectionAuthenticationException>()
+                .With.Property("Code").EqualTo(AuthenticationDiagnosticCodes.CredentialConflict));
+    }
+
+    private static ConnectionUrl AdapterUrl(string url, IOperatingSystemIdentityAdapter adapter)
+    {
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(item => item.GetProviderName()).Returns("Test");
+        mapper.Setup(item => item.GetConnectionString()).Returns("Data Source=db");
+        var registration = new ProviderRegistration("Test", ["identity"], "Test",
+            () => System.Data.Odbc.OdbcFactory.Instance, Mock.Of<IDialect>(), Mock.Of<IParametrizer>, _ => mapper.Object)
+            .WithCapabilities(new OperatingSystemIdentityCapability(adapter));
+        var catalog = new ProviderCatalogBuilder();
+        catalog.AddProvider(registration);
+        return new ConnectionUrl(url, catalog.Build()).WithAuthentication(ConnectionAuthentication.OperatingSystemIdentity());
     }
 
     [TestCase("MySqlConnector", "mysql"), TestCase("MySql.Data", "maria")]

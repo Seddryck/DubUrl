@@ -10,9 +10,10 @@ public abstract partial class ConnectionAuthentication
     private sealed class OperatingSystemAuthentication : ConnectionAuthentication
     {
         public override ConnectionAuthenticationKind Kind => ConnectionAuthenticationKind.OperatingSystemIdentity;
+        internal override bool UsesOperatingSystemIdentityAdapter => true;
         public override UsernamePasswordCredentials? Resolve(AuthenticationContext context)
         {
-            OperatingSystemIdentityMappings.ValidateProvider(context);
+            if (context.OperatingSystemIdentityAdapter is null) OperatingSystemIdentityMappings.ValidateProvider(context);
             return null;
         }
         public override ValueTask<UsernamePasswordCredentials?> ResolveAsync(AuthenticationContext context, CancellationToken cancellationToken = default)
@@ -22,10 +23,13 @@ public abstract partial class ConnectionAuthentication
         }
         public override void Configure(DbConnection connection, AuthenticationContext context)
         {
-            OperatingSystemIdentityMappings.ValidateProvider(context);
+            if (context.OperatingSystemIdentityAdapter is null) OperatingSystemIdentityMappings.ValidateProvider(context);
             var builder = new DbConnectionStringBuilder(context.ProviderInvariantName == "System.Data.Odbc")
                 { ConnectionString = connection.ConnectionString };
-            OperatingSystemIdentityMappings.Configure(builder, context);
+            if (context.OperatingSystemIdentityAdapter is { } adapter)
+                adapter.Configure(builder);
+            else
+                OperatingSystemIdentityMappings.Configure(builder, context);
             connection.ConnectionString = builder.ConnectionString;
         }
     }

@@ -11,14 +11,17 @@ internal static class AuthenticationConfiguration
         "certificatethumbprint certificate privatekey privatekeyfile clientstoretemporarycredential").Split(' '), StringComparer.Ordinal);
 
     private static string Normalize(string key) => new(key.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
-    internal static void Validate(ConnectionUri uri, ConnectionAuthentication strategy)
+    internal static void Validate(ConnectionUri uri, ConnectionAuthentication strategy,
+        IOperatingSystemIdentityAdapter? identityAdapter = null)
     {
         if (uri.HasPassword) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
-        if (RejectsUsername(strategy.Kind) && uri.HasUsername) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        if (uri.HasUsername && RejectsUsername(strategy.Kind)) throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
+        identityAdapter?.ValidateUsername(uri.HasUsername ? uri.Username : null);
         var kerberosModes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var option in uri.Options)
         {
             var key = Normalize(option.Key);
+            if (identityAdapter?.ValidateOption(key, option.Value) == true) continue;
             if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && key is "kerberosauthmode" or "authenticationkerberosmode"
                 && (!kerberosModes.Add(key) || !IsCompatibleKerberosMode(uri, key, option.Value)))
                 throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.CredentialConflict);
@@ -84,7 +87,7 @@ internal static class AuthenticationConfiguration
 
     internal static ConnectionUri Apply(ConnectionUri uri, ConnectionAuthentication strategy, UsernamePasswordCredentials? credentials, AuthenticationContext context)
     {
-        if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity)
+        if (strategy.Kind == ConnectionAuthenticationKind.OperatingSystemIdentity && context.OperatingSystemIdentityAdapter is null)
             uri = MySqlOperatingSystemIdentityMappings.PrepareLocation(uri, context);
         if (credentials is null)
         {
