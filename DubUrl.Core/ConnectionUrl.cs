@@ -346,13 +346,18 @@ public class ConnectionUrl : BaseConnectionUrl
     private (ConnectionUri Uri, AuthenticationContext Context) PrepareAuthentication()
     {
         var uri = Parser.Parse(RawUrl);
-        AuthenticationConfiguration.Validate(uri, RequiredAuthentication);
-        ValidateConfigurationSupport(uri);
         var scheme = uri.Scheme.ProviderScheme;
+        var identityAdapter = RequiredAuthentication.UsesOperatingSystemIdentityAdapter
+            && Registry.TryGetCapability<OperatingSystemIdentityCapability>(scheme, out var capability) ? capability?.Adapter : null;
+        AuthenticationConfiguration.Validate(uri, RequiredAuthentication, identityAdapter);
+        ValidateConfigurationSupport(uri);
         var provider = Registry.GetMapper(scheme).GetProviderName();
         var context = new AuthenticationContext(provider, scheme.Canonical, uri.Host, uri.Port == 0 ? null : uri.Port,
             uri.Segments.LastOrDefault(), uri.HasUsername ? uri.Username : null)
-        { SupportsFileSecretConnection = Registry.TryGetCapability<FileSecretConnectionCapability>(scheme, out _) };
+        {
+            SupportsFileSecretConnection = Registry.TryGetCapability<FileSecretConnectionCapability>(scheme, out _),
+            OperatingSystemIdentityAdapter = identityAdapter
+        };
         RequiredAuthentication.ValidateContext(context);
         var requests = GetConfiguration(uri);
         RequiredAuthentication.ValidateConnectionConfiguration(

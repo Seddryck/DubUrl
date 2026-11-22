@@ -25,6 +25,7 @@ public abstract partial class ConnectionAuthentication
 {
     public abstract ConnectionAuthenticationKind Kind { get; }
     internal virtual string? ServerCaPath => null;
+    internal virtual bool UsesOperatingSystemIdentityAdapter => false;
     internal virtual void ValidateConnectionConfiguration(ConnectionEncryption? encryption, ConnectionPoolingOptions? pooling, AuthenticationContext context) { }
     public virtual UsernamePasswordCredentials? Resolve(AuthenticationContext context)
         => null;
@@ -85,6 +86,7 @@ public interface ISynchronousUsernamePasswordCredentialSource : IUsernamePasswor
 public sealed class AuthenticationContext(string providerInvariantName, string scheme, string? host, int? port, string? database, string? username)
 {
     internal bool SupportsFileSecretConnection { get; init; }
+    internal IOperatingSystemIdentityAdapter? OperatingSystemIdentityAdapter { get; init; }
     public string ProviderInvariantName { get; } = providerInvariantName;
     public string Scheme { get; } = scheme;
     public string? Host { get; } = host;

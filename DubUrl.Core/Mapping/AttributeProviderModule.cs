@@ -70,6 +70,7 @@ public sealed class AttributeProviderModule : IDubUrlProviderModule
                 ConnectionConfiguration = group.Key.MapperType.GetCustomAttribute<ConnectionConfigurationAttribute>(inherit: false)?.Create(),
                 ReadOnlyConnection = group.Key.MapperType.GetCustomAttribute<ReadOnlyConnectionAttribute>(inherit: false)?.Create(),
                 FileSecretConnection = group.Key.MapperType.GetCustomAttribute<DubUrl.Authentication.FileSecretConnectionAttribute>(inherit: false)?.Create(),
+                OperatingSystemIdentity = group.Key.MapperType.GetCustomAttribute<DubUrl.Authentication.OperatingSystemIdentityAttribute>(inherit: false)?.Create(),
                 BulkCopyProvider = probe.Attributes(group.Key.MapperType).OfType<BulkCopyProviderAttribute>().SingleOrDefault()?.Create(),
                 FileLoad = group.Key.MapperType.GetCustomAttribute<FileLoadAttribute>(inherit: false)?.Create()
             }).ToArray();
