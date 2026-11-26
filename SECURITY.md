@@ -2,23 +2,18 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Security fixes are published for the latest stable release of DubUrl. If you’re using an older version, upgrade to receive security fixes. You can report a vulnerability even if you found it in an older version.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.2.x  (and up) | :white_check_mark: |
-| 0.1.x   | :x:                |
+See [DubUrl on NuGet](https://www.nuget.org/packages/DubUrl) for the latest stable version.
 
 ## Reporting a Vulnerability
 
-If you've found a security issue in Expressif, you can submit your report with [GitHub's private vulnerabilty reporting feature](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability#privately-reporting-a-security-vulnerability) on the corresponding repository.
+Use [GitHub's private reporting form](https://github.com/Seddryck/DubUrl/security/advisories/new) to report a vulnerability in DubUrl. Please keep vulnerability details out of public issues and discussions.
 
-Please include as much information as possible in your report to better help us understand and resolve the issue: 
+Include the following details when available.
 
-- Where the security issue exists (`Expression`, `Predicate`, `ExpressionBuilder`, `PredicateBuilder` ...)
-- The type of issue (ex. SQL injection, cross-site scripting, missing authorization, etc.)
-- Full paths or links to the source files where the security issue exists, if possible
-- Any special configuration required to reproduce the issue
-- Step-by-step instructions to reproduce the issue
-- Proof of concept or exploit code, if available
+- The affected DubUrl version and package or component
+- The type of vulnerability and its potential impact
+- Relevant source file paths or links
+- The environment and any configuration needed to reproduce the issue
+- Steps to reproduce the issue, with credentials and other sensitive values redacted
