@@ -2,10 +2,9 @@
 
 ## Supported Versions
 
-| DubUrl version | Receives security updates |
-| --- | --- |
-| 0.2.x and later | Yes |
-| 0.1.x | No |
+Security fixes are published for the latest stable release of DubUrl. If you’re using an older version, upgrade to receive security fixes. You can report a vulnerability even if you found it in an older version.
+
+See [DubUrl on NuGet](https://www.nuget.org/packages/DubUrl) for the latest stable version.
 
 ## Reporting a Vulnerability
 
