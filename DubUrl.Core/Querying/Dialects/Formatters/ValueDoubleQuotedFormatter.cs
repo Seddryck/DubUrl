@@ -9,9 +9,9 @@ namespace DubUrl.Querying.Dialects.Formatters;
 public class ValueDoubleQuotedFormatter : IValueFormatter<string>, IValueFormatter<char>
 {
     public string Format(string value)
-        => $"\"{value}\"";
+        => $"\"{value?.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
     public string Format(char value)
-        => $"\"{value}\"";
+        => Format(value.ToString());
     public string Format(object obj)
         => obj switch
         {
