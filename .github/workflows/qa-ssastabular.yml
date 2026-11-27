@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: Seddryck/DubUrl.Providers
-          ref: 9b58d644604987e18f12c385a9e8f12a30584259
+          ref: 58607ead0761b792f0672f9067dcd54275b2fd33
           persist-credentials: false
       - name: Check out Core candidate
         uses: actions/checkout@v7
@@ -34,6 +34,10 @@ jobs:
             10.0.401
       - name: Prepare QA packages against Core candidate
         uses: ./.qa-core/.github/actions/prepare-provider-qa
+      - name: Install SSAS and restore AdventureWorks
+        uses: ./.github/actions/setup-ssas-qa
+        with:
+          mode: tabular
       - name: Run provider QA
         shell: pwsh
         run: ./QA/DubUrl.QA/SsasTabular/deploy-ssastabular-test-env.ps1 -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')

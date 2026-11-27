@@ -52,7 +52,11 @@ $env:NUGET_PACKAGES = $packages
 Add-Content -LiteralPath $env:GITHUB_ENV -Value "NUGET_PACKAGES=$packages"
 & (Join-Path $workspace 'build/Initialize-SchemaQa.ps1')
 
-dotnet restore (Join-Path $workspace 'QA/DubUrl.ProviderTesting') --nologo
+$qaProject = Join-Path $workspace 'QA/DubUrl.Provider.QA'
+if (!(Test-Path -LiteralPath $qaProject)) {
+    $qaProject = Join-Path $workspace 'QA/DubUrl.ProviderTesting'
+}
+dotnet restore $qaProject --nologo
 if ($LASTEXITCODE) { throw 'Could not restore the candidate QA dependencies.' }
 
 foreach ($id in $candidateProjects.Keys) {
