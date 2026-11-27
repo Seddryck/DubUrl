@@ -1,0 +1,104 @@
+name: SSAS Developer runner smoke test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/ssas-developer-runner.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ssas-tabular:
+    name: Install SSAS Developer and query Tabular
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Download SQL Server 2025 Enterprise Developer media
+        run: |
+          $media = New-Item -ItemType Directory -Path (Join-Path $env:RUNNER_TEMP 'ssas-media')
+          $bootstrapper = Join-Path $media.FullName 'SQL2025-SSEI-EntDev.exe'
+          Invoke-WebRequest -Uri 'https://aka.ms/sql2025EnterpriseDev' -OutFile $bootstrapper
+          $download = Start-Process -FilePath $bootstrapper -Wait -PassThru -ArgumentList @(
+            '/Action=Download', '/MediaType=ISO', '/Language=en-US',
+            '/IAcceptSqlServerLicenseTerms', '/Quiet', "/MediaPath=$($media.FullName)"
+          )
+          if ($download.ExitCode -ne 0) {
+            throw "SQL Server media download failed with exit code $($download.ExitCode)."
+          }
+          $iso = @(Get-ChildItem -LiteralPath $media.FullName -Filter '*.iso' -File)
+          if ($iso.Count -ne 1) {
+            throw "Expected one SQL Server ISO, found $($iso.Count)."
+          }
+          "SSAS_ISO=$($iso[0].FullName)" >> $env:GITHUB_ENV
+
+      - name: Install Analysis Services in Tabular mode
+        run: |
+          $volume = Mount-DiskImage -ImagePath $env:SSAS_ISO -PassThru | Get-Volume
+          $setup = "$($volume.DriveLetter):\setup.exe"
+          $runnerAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+          $install = Start-Process -FilePath $setup -Wait -PassThru -ArgumentList @(
+            '/Q', '/ACTION=Install', '/FEATURES=AS', '/ASSERVERMODE=TABULAR',
+            '/INSTANCENAME=DubUrlSSAS', '/IACCEPTSQLSERVERLICENSETERMS', '/UpdateEnabled=False',
+            '/ASSVCACCOUNT="NT Service\MSOLAP$DubUrlSSAS"', '/ASSVCSTARTUPTYPE=Automatic',
+            "/ASSYSADMINACCOUNTS=""$runnerAccount"""
+          )
+          if ($install.ExitCode -ne 0) {
+            $summary = Join-Path $env:ProgramFiles 'Microsoft SQL Server\170\Setup Bootstrap\Log\Summary.txt'
+            if (Test-Path -LiteralPath $summary) {
+              Get-Content -LiteralPath $summary -Tail 100
+            }
+            throw "Analysis Services setup failed with exit code $($install.ExitCode)."
+          }
+          Start-Service -Name 'MSOLAP$DubUrlSSAS'
+          Set-Service -Name SQLBrowser -StartupType Manual
+          Start-Service -Name SQLBrowser
+
+      - name: Deploy a minimal model and assert the DAX result
+        run: |
+          Install-PSResource -Name SqlServer -Version 22.4.5.1 -Repository PSGallery -TrustRepository
+          Import-Module SqlServer -RequiredVersion 22.4.5.1
+          $server = 'localhost\DubUrlSSAS'
+          $model = @{
+            createOrReplace = @{
+              object = @{ database = 'DubUrlSmoke' }
+              database = @{
+                name = 'DubUrlSmoke'
+                compatibilityLevel = 1500
+                model = @{
+                  culture = 'en-US'
+                  tables = @(@{
+                    name = 'Smoke'
+                    columns = @(@{
+                      name = 'Value'
+                      dataType = 'int64'
+                      type = 'calculatedTableColumn'
+                      sourceColumn = '[Value]'
+                    })
+                    partitions = @(@{
+                      name = 'Smoke'
+                      mode = 'import'
+                      source = @{ type = 'calculated'; expression = 'ROW("Value", 42)' }
+                    })
+                  })
+                }
+              }
+            }
+          } | ConvertTo-Json -Depth 15 -Compress
+          Invoke-ASCmd -Server $server -Query $model | Out-Null
+          $refresh = '{"refresh":{"type":"full","objects":[{"database":"DubUrlSmoke"}]}}'
+          Invoke-ASCmd -Server $server -Query $refresh | Out-Null
+
+          $query = 'EVALUATE SELECTCOLUMNS(Smoke, "Answer", Smoke[Value])'
+          [xml]$result = Invoke-ASCmd -Server $server -Database DubUrlSmoke -Query $query
+          $cells = @($result.SelectNodes("//*[local-name()='row']/*"))
+          if ($cells.Count -ne 1 -or $cells[0].InnerText -ne '42') {
+            throw "Expected exactly one result cell with value 42. Received: $($result.OuterXml)"
+          }
+          Write-Host "SSAS Tabular returned $($cells[0].InnerText)."
+          'SSAS Tabular returned **42** from the DubUrlSmoke model.' >> $env:GITHUB_STEP_SUMMARY
