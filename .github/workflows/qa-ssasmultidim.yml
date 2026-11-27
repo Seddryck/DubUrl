@@ -34,6 +34,8 @@ jobs:
             10.0.401
       - name: Prepare QA packages against Core candidate
         uses: ./.qa-core/.github/actions/prepare-provider-qa
+        with:
+          core-version: '0.70.2'
       - name: Install SSAS and restore AdventureWorks
         uses: ./.github/actions/setup-ssas-qa
         with:
