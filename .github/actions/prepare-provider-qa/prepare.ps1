@@ -21,6 +21,7 @@ foreach ($id in $candidateProjects.Keys) {
 }
 
 # Exact package ID mappings take precedence over wildcard mappings.
+$schemaMapping = '<packageSource key="schema"><package pattern="DubUrl.Schema" /><package pattern="DubUrl.Schema.Documents" /></packageSource>'
 $escapedFeed = [Security.SecurityElement]::Escape($feed)
 $schemaFeed = Join-Path $workspace 'artifacts/schema-feed'
 New-Item -ItemType Directory -Force $schemaFeed | Out-Null
@@ -40,7 +41,7 @@ $config = @"
       <package pattern="DubUrl" />
       <package pattern="DubUrl.Parser" />
     </packageSource>
-    <packageSource key="schema"><package pattern="DubUrl.Schema" /><package pattern="DubUrl.Schema.Documents" /></packageSource>
+    $schemaMapping
     <packageSource key="nuget.org"><package pattern="*" /></packageSource>
   </packageSourceMapping>
 </configuration>
@@ -51,6 +52,10 @@ Set-Content -LiteralPath (Join-Path $workspace 'NuGet.Config') -Value $config
 $env:NUGET_PACKAGES = $packages
 Add-Content -LiteralPath $env:GITHUB_ENV -Value "NUGET_PACKAGES=$packages"
 & (Join-Path $workspace 'build/Initialize-SchemaQa.ps1')
+if (!(Get-ChildItem -LiteralPath $schemaFeed -Filter 'DubUrl.Schema.*.nupkg' -File)) {
+    # Provider checkouts using published Schema packages leave the candidate feed empty.
+    Set-Content -LiteralPath (Join-Path $workspace 'NuGet.Config') -Value $config.Replace($schemaMapping, '')
+}
 
 $qaProject = Join-Path $workspace 'QA/DubUrl.Provider.QA'
 if (!(Test-Path -LiteralPath $qaProject)) {
