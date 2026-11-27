@@ -212,6 +212,17 @@ using DubUrl.BulkCopy;
 connection.BulkCopy("Customer", reader);
 ```
 
+To request a table-level lock during a copy, pass `BulkCopyOptions`:
+
+```csharp
+connection.BulkCopy("Customer", reader, new BulkCopyOptions { TableLock = true });
+```
+
+The SQL Server SqlClient adapter uses its native bulk update lock. The selected provider
+determines which concurrent operations the lock blocks. Providers without equivalent
+support, including DuckDB, throw `NotSupportedException` before reading any rows. When
+`TableLock` is false (the default), the provider uses its normal locking behavior.
+
 For separately deployed adapter/helper assemblies, supply search directories:
 
 ```csharp

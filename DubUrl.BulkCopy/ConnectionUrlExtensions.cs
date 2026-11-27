@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -25,6 +25,18 @@ public static class ConnectionUrlExtensions
     /// <summary>Performs bulk copy with lazy resolution of optional driver dependencies.</summary>
     public static void BulkCopy(this ConnectionUrl connectionUrl, string tableName, IDataReader dataReader,
         IBulkCopyDependencyResolver dependencies)
+        => BulkCopy(connectionUrl, tableName, dataReader, default, dependencies);
+
+    /// <summary>Performs bulk copy with the requested options.</summary>
+    /// <exception cref="NotSupportedException">The provider cannot honor the requested options.</exception>
+    public static void BulkCopy(this ConnectionUrl connectionUrl, string tableName, IDataReader dataReader,
+        BulkCopyOptions options)
+        => BulkCopy(connectionUrl, tableName, dataReader, options, BulkCopyDependencyResolver.Default);
+
+    /// <summary>Performs bulk copy with the requested options and dependency resolver.</summary>
+    /// <exception cref="NotSupportedException">The provider cannot honor the requested options.</exception>
+    public static void BulkCopy(this ConnectionUrl connectionUrl, string tableName, IDataReader dataReader,
+        BulkCopyOptions options, IBulkCopyDependencyResolver dependencies)
     {
         ArgumentNullException.ThrowIfNull(connectionUrl, nameof(connectionUrl));
         ArgumentNullException.ThrowIfNull(tableName, nameof(tableName));
@@ -33,7 +45,10 @@ public static class ConnectionUrlExtensions
 
         var factory = new BulkCopyEngineFactory(dependencies);
         using var bulkCopy = factory.Create(connectionUrl);
-        bulkCopy.Write(tableName, dataReader);
+        if (options == default)
+            bulkCopy.Write(tableName, dataReader);
+        else
+            bulkCopy.Write(tableName, dataReader, options);
     }
 
     /// <summary>Loads existing files into a table using the selected provider's file-loading capability.</summary>
