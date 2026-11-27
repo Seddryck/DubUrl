@@ -43,6 +43,25 @@ public class AdbcConnectionTests
     [TearDown]
     public void TearDown() => DbProviderFactories.UnregisterFactory(Provider);
 
+    [TestCase(AdbcStatusCode.Timeout)]
+    [TestCase(AdbcStatusCode.Cancelled)]
+    public void DatabaseUrl_TranslatesOnlyTheAdbcTimeoutStatus(AdbcStatusCode status)
+    {
+        var providerError = new AdbcException("ADBC operation interrupted", status);
+        statement.Setup(x => x.ExecuteQuery()).Throws(providerError);
+        using var url = new DatabaseUrl("adbc+duckdb://");
+
+        if (status == AdbcStatusCode.Timeout)
+        {
+            var translated = Assert.Throws<DubUrlCommandTimeoutException>(() => url.ExecuteReader("SELECT 42"));
+            Assert.That(translated!.InnerException, Is.SameAs(providerError));
+        }
+        else
+        {
+            Assert.That(Assert.Throws<AdbcException>(() => url.ExecuteReader("SELECT 42")), Is.SameAs(providerError));
+        }
+    }
+
     [TestCase("adbc+duckdb:///customer.db", "customer.db")]
     [TestCase("duckdb+adbc:///customer.db", "customer.db")]
     [TestCase("ADBC+DUCK:///customer.db", "customer.db")]

@@ -19,14 +19,14 @@ internal sealed class DatabaseCommandExecutor
     {
         using var lease = _source().Acquire();
         using var command = CreateCommand(commandProvider, lease.Handle);
-        return consume(command);
+        return CommandTimeoutTranslation.Execute(() => consume(command));
     }
 
     public T ExecuteReader<T>(ICommandProvider commandProvider, Func<IDataReader, T> consume)
     {
         using var lease = _source().Acquire();
         using var command = CreateCommand(commandProvider, lease.Handle);
-        using var reader = command.ExecuteReader();
+        using var reader = new OwnedDataReader(CommandTimeoutTranslation.Execute(command.ExecuteReader));
         return consume(reader);
     }
 
@@ -52,7 +52,7 @@ internal sealed class DatabaseCommandExecutor
             var command = CreateCommand(commandProvider, lease.Handle);
             try
             {
-                var reader = command.ExecuteReader();
+                var reader = CommandTimeoutTranslation.Execute(command.ExecuteReader);
                 return new OwnedDataReader(reader, command, lease);
             }
             catch
@@ -76,7 +76,7 @@ internal sealed class DatabaseCommandExecutor
             var command = CreateDbCommand(commandProvider, lease.Connection);
             try
             {
-                var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                var reader = await CommandTimeoutTranslation.ExecuteAsync(command.ExecuteReaderAsync, cancellationToken).ConfigureAwait(false);
                 return new OwnedDataReader(reader, command, lease);
             }
             catch
@@ -99,7 +99,7 @@ internal sealed class DatabaseCommandExecutor
     {
         await using var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
         await using var command = CreateDbCommand(commandProvider, lease.Connection);
-        return await consume(command, cancellationToken).ConfigureAwait(false);
+        return await CommandTimeoutTranslation.ExecuteAsync(token => consume(command, token), cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<T> ExecuteReaderAsync<T>(
@@ -109,7 +109,8 @@ internal sealed class DatabaseCommandExecutor
     {
         await using var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
         await using var command = CreateDbCommand(commandProvider, lease.Connection);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        await using var reader = new OwnedDataReader(
+            await CommandTimeoutTranslation.ExecuteAsync(command.ExecuteReaderAsync, cancellationToken).ConfigureAwait(false));
         return await consume(reader, cancellationToken).ConfigureAwait(false);
     }
 
@@ -117,7 +118,7 @@ internal sealed class DatabaseCommandExecutor
     {
         using var lease = _source().Acquire();
         using var command = CreateCommand(commandProvider, lease.Handle);
-        using var reader = command.ExecuteReader();
+        using var reader = new OwnedDataReader(CommandTimeoutTranslation.Execute(command.ExecuteReader));
 
         while (reader.Read())
             yield return project(reader);
@@ -130,7 +131,8 @@ internal sealed class DatabaseCommandExecutor
     {
         await using var lease = await _source().AcquireAsync(cancellationToken).ConfigureAwait(false);
         await using var command = CreateDbCommand(commandProvider, lease.Connection);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        await using var reader = new OwnedDataReader(
+            await CommandTimeoutTranslation.ExecuteAsync(command.ExecuteReaderAsync, cancellationToken).ConfigureAwait(false));
 
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             yield return project(reader);
