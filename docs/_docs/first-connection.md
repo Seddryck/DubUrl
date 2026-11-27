@@ -11,6 +11,7 @@ This example opens an existing PostgreSQL database and reads its version. You ne
 
 ```shell
 dotnet add package DubUrl
+dotnet add package DubUrl.Provider.PostgreSql
 dotnet add package Npgsql
 ```
 
