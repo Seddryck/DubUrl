@@ -5,30 +5,6 @@ namespace DubUrl.Querying;
 
 internal static class CommandTimeoutTranslation
 {
-    internal static T Execute<T>(Func<T> operation)
-    {
-        try
-        {
-            return operation();
-        }
-        catch (Exception exception) when (IsMatch(exception))
-        {
-            throw new DubUrlCommandTimeoutException(exception);
-        }
-    }
-
-    internal static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await operation(cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception exception) when (!cancellationToken.IsCancellationRequested && IsMatch(exception))
-        {
-            throw new DubUrlCommandTimeoutException(exception);
-        }
-    }
-
     // Match structured diagnostics from optional drivers without loading their assemblies in Core.
     // Only call this from command execution and result reading boundaries.
     internal static bool IsMatch(Exception exception)

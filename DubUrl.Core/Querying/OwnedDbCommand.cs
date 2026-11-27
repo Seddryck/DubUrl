@@ -36,8 +36,8 @@ internal sealed class OwnedDbCommand : IDbCommand
 
     public void Cancel() => _command.Cancel();
     public IDbDataParameter CreateParameter() => _command.CreateParameter();
-    public int ExecuteNonQuery() => Execute(() => CommandTimeoutTranslation.Execute(_command.ExecuteNonQuery));
-    public object? ExecuteScalar() => Execute(() => CommandTimeoutTranslation.Execute(_command.ExecuteScalar));
+    public int ExecuteNonQuery() => Execute(_command.ExecuteNonQuery);
+    public object? ExecuteScalar() => Execute(_command.ExecuteScalar);
     public void Prepare() => Execute(() => { _command.Prepare(); return 0; });
     public IDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
 
@@ -48,7 +48,7 @@ internal sealed class OwnedDbCommand : IDbCommand
             EnsureActive();
             try
             {
-                var reader = CommandTimeoutTranslation.Execute(() => _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection));
+                var reader = SqlErrorTranslation.Execute(_command, () => _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection));
                 _ownershipTransferred = true;
                 return new OwnedDataReader(reader, _command, _owner);
             }
@@ -65,7 +65,7 @@ internal sealed class OwnedDbCommand : IDbCommand
         lock (_sync)
         {
             EnsureActive();
-            return action();
+            return SqlErrorTranslation.Execute(_command, action);
         }
     }
 

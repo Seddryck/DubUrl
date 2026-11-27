@@ -6,79 +6,90 @@ using System.Threading;
 namespace DubUrl.Querying;
 
 /// <summary>
-/// A reader that owns its underlying reader and, when returned by DatabaseUrl, its command and connection lease.
+/// A reader that owns the underlying reader, command, and connection lease. Closing it releases all three.
 /// </summary>
 public sealed class OwnedDataReader : DbDataReader
 {
     private readonly IDataReader _reader;
-    private readonly IDbCommand? _command;
-    private readonly IDisposable? _owner;
+    private readonly IDbCommand _command;
+    private readonly IDisposable _owner;
     private readonly DisposalCompletion _disposal = new();
 
-    internal OwnedDataReader(IDataReader reader, IDbCommand? command = null, IDisposable? owner = null)
+    internal OwnedDataReader(IDataReader reader, IDbCommand command, IDisposable owner)
         => (_reader, _command, _owner) = (reader, command, owner);
 
     public override int Depth => _reader.Depth;
     public override int FieldCount => _reader.FieldCount;
-    public override bool HasRows => CommandTimeoutTranslation.Execute(() => _reader is DbDataReader { HasRows: true });
+    public override bool HasRows => ReadField(() => _reader is DbDataReader { HasRows: true });
     public override bool IsClosed => _reader.IsClosed;
     public override int RecordsAffected => _reader.RecordsAffected;
-    public override object this[int ordinal] => CommandTimeoutTranslation.Execute(() => _reader[ordinal]);
-    public override object this[string name] => CommandTimeoutTranslation.Execute(() => _reader[name]);
+    public override object this[int ordinal] => ReadField(() => _reader[ordinal]);
+    public override object this[string name] => ReadField(() => _reader[name]);
 
-    public override bool GetBoolean(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetBoolean(ordinal));
-    public override byte GetByte(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetByte(ordinal));
+    public override bool GetBoolean(int ordinal) => ReadField(() => _reader.GetBoolean(ordinal));
+    public override byte GetByte(int ordinal) => ReadField(() => _reader.GetByte(ordinal));
     public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length)
-        => CommandTimeoutTranslation.Execute(() => _reader.GetBytes(ordinal, dataOffset, buffer, bufferOffset, length));
-    public override char GetChar(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetChar(ordinal));
+        => ReadField(() => _reader.GetBytes(ordinal, dataOffset, buffer, bufferOffset, length));
+    public override char GetChar(int ordinal) => ReadField(() => _reader.GetChar(ordinal));
     public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length)
-        => CommandTimeoutTranslation.Execute(() => _reader.GetChars(ordinal, dataOffset, buffer, bufferOffset, length));
-    public override string GetDataTypeName(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetDataTypeName(ordinal));
-    public override DateTime GetDateTime(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetDateTime(ordinal));
-    public override decimal GetDecimal(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetDecimal(ordinal));
-    public override double GetDouble(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetDouble(ordinal));
-    public override IEnumerator GetEnumerator() => new DbEnumerator(this, closeReader: false);
-    public override Type GetFieldType(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetFieldType(ordinal));
-    public override float GetFloat(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetFloat(ordinal));
-    public override Guid GetGuid(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetGuid(ordinal));
-    public override short GetInt16(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetInt16(ordinal));
-    public override int GetInt32(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetInt32(ordinal));
-    public override long GetInt64(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetInt64(ordinal));
-    public override string GetName(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetName(ordinal));
-    public override int GetOrdinal(string name) => CommandTimeoutTranslation.Execute(() => _reader.GetOrdinal(name));
-    public override string GetString(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetString(ordinal));
-    public override object GetValue(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.GetValue(ordinal));
-    public override int GetValues(object[] values) => CommandTimeoutTranslation.Execute(() => _reader.GetValues(values));
-    public override bool IsDBNull(int ordinal) => CommandTimeoutTranslation.Execute(() => _reader.IsDBNull(ordinal));
-    public override bool NextResult() => CommandTimeoutTranslation.Execute(_reader.NextResult);
-    public override bool Read() => CommandTimeoutTranslation.Execute(_reader.Read);
+        => ReadField(() => _reader.GetChars(ordinal, dataOffset, buffer, bufferOffset, length));
+    public override string GetDataTypeName(int ordinal) => ReadField(() => _reader.GetDataTypeName(ordinal));
+    public override DateTime GetDateTime(int ordinal) => ReadField(() => _reader.GetDateTime(ordinal));
+    public override decimal GetDecimal(int ordinal) => ReadField(() => _reader.GetDecimal(ordinal));
+    public override double GetDouble(int ordinal) => ReadField(() => _reader.GetDouble(ordinal));
+    public override IEnumerator GetEnumerator()
+        => new ReaderEnumerator(SqlErrorTranslation.Execute(_command, ((IEnumerable)_reader).GetEnumerator), _command);
+    public override Type GetFieldType(int ordinal) => ReadField(() => _reader.GetFieldType(ordinal));
+    public override float GetFloat(int ordinal) => ReadField(() => _reader.GetFloat(ordinal));
+    public override Guid GetGuid(int ordinal) => ReadField(() => _reader.GetGuid(ordinal));
+    public override short GetInt16(int ordinal) => ReadField(() => _reader.GetInt16(ordinal));
+    public override int GetInt32(int ordinal) => ReadField(() => _reader.GetInt32(ordinal));
+    public override long GetInt64(int ordinal) => ReadField(() => _reader.GetInt64(ordinal));
+    public override string GetName(int ordinal) => ReadField(() => _reader.GetName(ordinal));
+    public override int GetOrdinal(string name) => ReadField(() => _reader.GetOrdinal(name));
+    public override string GetString(int ordinal) => ReadField(() => _reader.GetString(ordinal));
+    public override object GetValue(int ordinal) => ReadField(() => _reader.GetValue(ordinal));
+    public override int GetValues(object[] values) => ReadField(() => _reader.GetValues(values));
+    public override bool IsDBNull(int ordinal) => ReadField(() => _reader.IsDBNull(ordinal));
+    public override bool NextResult() => SqlErrorTranslation.Execute(_command, _reader.NextResult);
+    public override bool Read() => SqlErrorTranslation.Execute(_command, _reader.Read);
 
     public override Task<bool> NextResultAsync(CancellationToken cancellationToken)
         => _reader is DbDataReader dbReader
-            ? CommandTimeoutTranslation.ExecuteAsync(dbReader.NextResultAsync, cancellationToken)
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.NextResultAsync(cancellationToken), cancellationToken)
             : base.NextResultAsync(cancellationToken);
 
     public override Task<bool> ReadAsync(CancellationToken cancellationToken)
         => _reader is DbDataReader dbReader
-            ? CommandTimeoutTranslation.ExecuteAsync(dbReader.ReadAsync, cancellationToken)
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.ReadAsync(cancellationToken), cancellationToken)
             : base.ReadAsync(cancellationToken);
 
     public override T GetFieldValue<T>(int ordinal)
         => _reader is DbDataReader dbReader
-            ? CommandTimeoutTranslation.Execute(() => dbReader.GetFieldValue<T>(ordinal))
+            ? ReadField(() => dbReader.GetFieldValue<T>(ordinal))
             : base.GetFieldValue<T>(ordinal);
 
     public override Task<T> GetFieldValueAsync<T>(int ordinal, CancellationToken cancellationToken)
         => _reader is DbDataReader dbReader
-            ? CommandTimeoutTranslation.ExecuteAsync(token => dbReader.GetFieldValueAsync<T>(ordinal, token), cancellationToken)
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.GetFieldValueAsync<T>(ordinal, cancellationToken), cancellationToken)
             : base.GetFieldValueAsync<T>(ordinal, cancellationToken);
 
     public override Task<bool> IsDBNullAsync(int ordinal, CancellationToken cancellationToken)
         => _reader is DbDataReader dbReader
-            ? CommandTimeoutTranslation.ExecuteAsync(token => dbReader.IsDBNullAsync(ordinal, token), cancellationToken)
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.IsDBNullAsync(ordinal, cancellationToken), cancellationToken)
             : base.IsDBNullAsync(ordinal, cancellationToken);
 
-    public override DataTable? GetSchemaTable() => CommandTimeoutTranslation.Execute(_reader.GetSchemaTable);
+    public override DataTable? GetSchemaTable() => ReadField(_reader.GetSchemaTable);
+
+    private T ReadField<T>(Func<T> read) => SqlErrorTranslation.Execute(_command, read);
+
+    private sealed class ReaderEnumerator(IEnumerator enumerator, IDbCommand command) : IEnumerator, IDisposable
+    {
+        public object Current => SqlErrorTranslation.Execute(command, () => enumerator.Current);
+        public bool MoveNext() => SqlErrorTranslation.Execute(command, enumerator.MoveNext);
+        public void Reset() => enumerator.Reset();
+        public void Dispose() => (enumerator as IDisposable)?.Dispose();
+    }
 
     public override void Close() => Dispose();
 
@@ -100,13 +111,11 @@ public sealed class OwnedDataReader : DbDataReader
         {
             try
             {
-                if (_command is not null)
-                    await ConnectionSource.DisposeConnectionAsync(_command, asynchronous).ConfigureAwait(false);
+                await ConnectionSource.DisposeConnectionAsync(_command, asynchronous).ConfigureAwait(false);
             }
             finally
             {
-                if (_owner is not null)
-                    await ConnectionSource.DisposeConnectionAsync(_owner, asynchronous).ConfigureAwait(false);
+                await ConnectionSource.DisposeConnectionAsync(_owner, asynchronous).ConfigureAwait(false);
             }
         }
     }

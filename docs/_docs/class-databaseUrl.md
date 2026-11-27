@@ -57,6 +57,18 @@ DubUrl checks these diagnostics only while executing a command or reading its re
 | DuckDB.NET.Data, NReco.PrestoAdo (Trino), and ADOMD.NET | Native exception propagates. DubUrl has no verified command-specific signal for these routes. |
 | Other and custom providers | Native exception propagates unless the provider uses one of the supported transports or exception types above. |
 
+## SQL execution errors
+
+`DatabaseUrl` and its MicroOrm API classify command execution and result-reading failures when a supported driver supplies a specific structured diagnostic.
+
+- `DubUrlSqlSyntaxException` indicates a SQL syntax error.
+- `DubUrlTableNotFoundException` indicates a missing table or table-like source, such as an Access query or a text file used as a table.
+- `DubUrlConstraintViolationException` indicates an integrity constraint violation.
+
+Each is a `DubUrlException`. Its `InnerException` contains the original provider exception and diagnostics. Ambiguous and unrecognized codes propagate as the original exception. For example, SQL Server error `208`, Oracle error `942`, and Snowflake error `002003` can refer to inaccessible objects. SQLite and DuckDB.NET provide a distinct code for constraint violations, while their generic parsing and preparation errors propagate unchanged.
+
+The same behavior applies to asynchronous reads, streamed rows, and DubUrl's owned reader. Commands created and executed directly through a connection or connection lease follow the provider's exception behavior.
+
 ## Task guides
 
 - <span id="read-a-value"></span>[Read scalar values]({{ '/docs/read-scalars/' | relative_url }}).

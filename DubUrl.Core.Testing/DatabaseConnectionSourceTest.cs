@@ -350,6 +350,103 @@ public class DatabaseConnectionSourceTest
         rig.Readers[1].Verify(r => r.DisposeAsync(), Times.Once);
     }
 
+    [TestCase("42601", typeof(DubUrlSqlSyntaxException))]
+    [TestCase("42P01", typeof(DubUrlTableNotFoundException))]
+    [TestCase("23505", typeof(DubUrlConstraintViolationException))]
+    [TestCase("42000", typeof(Npgsql.PostgresException))]
+    [TestCase("XX000", typeof(Npgsql.PostgresException))]
+    [TestCase("57014", typeof(Npgsql.PostgresException))]
+    public void StructuredSqlState_ClassifiesScalarFailuresOrPreservesOriginal(string state, Type expectedType)
+    {
+        var original = new Npgsql.PostgresException("The message does not determine classification.", "ERROR", "ERROR", state);
+        using var rig = new Rig { ExecuteError = original };
+        using var database = rig.Database();
+
+        var thrown = Assert.Catch(() => database.ReadScalar("SELECT 42"));
+
+        Assert.That(thrown, Is.TypeOf(expectedType));
+        Assert.That(thrown is DubUrlException ? thrown.InnerException : thrown, Is.SameAs(original));
+    }
+
+    [Test]
+    public async Task StructuredFailure_IsTranslatedDuringAsyncExecutionAndResultConsumption()
+    {
+        var original = new Npgsql.PostgresException("Provider diagnostic.", "ERROR", "ERROR", "42P01");
+        using var rig = new Rig { ExecuteError = original };
+        await using var database = rig.Database();
+
+        var scalar = await Assert.ThrowsAsync<DubUrlTableNotFoundException>(() => database.ReadScalarAsync("SELECT 42"));
+        var executeReader = await Assert.ThrowsAsync<DubUrlTableNotFoundException>(() => database.ExecuteReaderAsync("SELECT 42"));
+        rig.ExecuteError = null;
+        rig.ReadError = original;
+
+        var materialized = await Assert.ThrowsAsync<DubUrlTableNotFoundException>(() => database.ReadFirstAsync("SELECT 42"));
+        var streamed = await Assert.ThrowsAsync<DubUrlTableNotFoundException>(async () =>
+        {
+            await foreach (var _ in database.ReadMultipleAsync("SELECT 42")) { }
+        });
+        await using var reader = await database.ExecuteReaderAsync("SELECT 42");
+        var rawRead = await Assert.ThrowsAsync<DubUrlTableNotFoundException>(() => reader.ReadAsync());
+        var nextResult = await Assert.ThrowsAsync<DubUrlTableNotFoundException>(() => reader.NextResultAsync());
+
+        foreach (var error in new[] { scalar, executeReader, materialized, streamed, rawRead, nextResult })
+            Assert.That(error!.InnerException, Is.SameAs(original));
+    }
+
+    [TestCase(1003, typeof(DubUrlSqlSyntaxException))]
+    [TestCase(100072, typeof(DubUrlConstraintViolationException))]
+    [TestCase(2003, typeof(Snowflake.Data.Client.SnowflakeDbException))]
+    public void SnowflakeVendorCode_ClassifiesOnlySpecificDiagnostics(int code, Type expectedType)
+    {
+        var original = new Snowflake.Data.Client.SnowflakeDbException("42000", code, "Provider diagnostic.", "query");
+        using var rig = new Rig { ExecuteError = original };
+        using var database = rig.Database();
+
+        var thrown = Assert.Catch(() => database.ReadScalar("SELECT 42"));
+
+        Assert.That(thrown, Is.TypeOf(expectedType));
+        Assert.That(thrown is DubUrlException ? thrown.InnerException : thrown, Is.SameAs(original));
+    }
+    [Test]
+    public void UnknownProviderAndNonSqlFailures_PreserveOriginalException()
+    {
+        using var rig = new Rig();
+        using var database = rig.Database();
+
+        foreach (var error in new Exception[]
+        {
+            new UnknownProviderException(),
+            new Microsoft.Data.Sqlite.SqliteException("no such table", 1),
+            new TimeoutException(),
+            new OperationCanceledException()
+        })
+        {
+            rig.ExecuteError = error;
+            Assert.That(Assert.Catch(() => database.ReadScalar("SELECT 42")), Is.SameAs(error));
+        }
+    }
+
+    private sealed class UnknownProviderException : DbException
+    {
+        public override string SqlState => "42P01";
+    }
+
+    [Test]
+    public async Task DuckDb_TranslatesConstraintCodeAndPreservesGenericCommandErrors()
+    {
+        DbProviderFactories.RegisterFactory("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance);
+        await using var source = new ConnectionSourceUrl("duckdb://memory").Create();
+        await using var database = new DatabaseUrl(source);
+        await using (await database.ExecuteReaderAsync("CREATE TABLE error_test (id INTEGER PRIMARY KEY)")) { }
+        await using (await database.ExecuteReaderAsync("INSERT INTO error_test VALUES (1)")) { }
+
+        var duplicate = await Assert.ThrowsAsync<DubUrlConstraintViolationException>(
+            () => database.ExecuteReaderAsync("INSERT INTO error_test VALUES (1)"));
+        Assert.That(duplicate!.InnerException, Is.TypeOf<DuckDB.NET.Data.DuckDBException>());
+        Assert.Throws<DuckDB.NET.Data.DuckDBException>(() => database.ReadScalar("SELEC 1"));
+        Assert.Throws<DuckDB.NET.Data.DuckDBException>(() => database.ReadScalar("SELECT * FROM missing_error_test"));
+    }
+
     [Test]
     public async Task OwnedSource_DisposalWaitsForActiveReader()
     {
