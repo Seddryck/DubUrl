@@ -48,7 +48,7 @@ internal sealed class OwnedDbCommand : IDbCommand
             EnsureActive();
             try
             {
-                var reader = _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection);
+                var reader = SqlErrorTranslation.Execute(_command, () => _command.ExecuteReader(behavior & ~CommandBehavior.CloseConnection));
                 _ownershipTransferred = true;
                 return new OwnedDataReader(reader, _command, _owner);
             }
@@ -65,7 +65,7 @@ internal sealed class OwnedDbCommand : IDbCommand
         lock (_sync)
         {
             EnsureActive();
-            return action();
+            return SqlErrorTranslation.Execute(_command, action);
         }
     }
 

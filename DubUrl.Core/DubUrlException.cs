@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,4 +9,6 @@ namespace DubUrl;
 public abstract class DubUrlException : Exception
 {
     public DubUrlException(string message) : base(message) { }
+
+    protected DubUrlException(string message, Exception innerException) : base(message, innerException) { }
 }
