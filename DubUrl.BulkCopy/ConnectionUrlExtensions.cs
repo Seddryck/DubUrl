@@ -43,6 +43,8 @@ public static class ConnectionUrlExtensions
         ArgumentNullException.ThrowIfNull(dataReader, nameof(dataReader));
         ArgumentNullException.ThrowIfNull(dependencies, nameof(dependencies));
 
+        options.Validate();
+
         var factory = new BulkCopyEngineFactory(dependencies);
         using var bulkCopy = factory.Create(connectionUrl);
         if (options == default)

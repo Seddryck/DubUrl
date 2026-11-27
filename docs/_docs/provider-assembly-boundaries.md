@@ -223,6 +223,27 @@ determines which concurrent operations the lock blocks. Providers without equiva
 support, including DuckDB, throw `NotSupportedException` before reading any rows. When
 `TableLock` is false (the default), the provider uses its normal locking behavior.
 
+SQL Server and DuckDB support three transaction modes for reader-based bulk copy:
+
+| Mode | Commit behavior |
+| --- | --- |
+| `ProviderDefault` | Use the provider's existing behavior. This is the default. |
+| `WholeCopy` | Commit after the entire copy succeeds. A failure rolls back all rows written by that copy. |
+| `PerBatch` | Commit each batch independently. Earlier batches stay committed if a later batch fails. |
+
+```csharp
+connection.BulkCopy("Customer", reader, new BulkCopyOptions
+{
+    TransactionMode = BulkCopyTransactionMode.PerBatch,
+    BatchSize = 500
+});
+```
+
+`BatchSize` applies to `PerBatch` and defaults to 1,000 when omitted. The last batch can be smaller.
+On SQL Server, `TableLock` can be combined with either explicit transaction mode. In `PerBatch`
+mode the lock is requested for each batch. DuckDB reports an unsupported `TableLock` request
+even when a transaction mode is configured.
+
 For separately deployed adapter/helper assemblies, supply search directories:
 
 ```csharp
