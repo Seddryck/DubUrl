@@ -8,26 +8,31 @@ internal static class SqlErrorTranslation
 {
     private enum ErrorKind { Unknown, Syntax, TableNotFound, Constraint, Preserve }
 
-    internal static T Execute<T>(IDbCommand command, Func<T> action)
+    internal static T Execute<T>(IDbCommand command, Func<T> action, CancellationToken cancellationToken = default)
     {
         try { return action(); }
-        catch (Exception error) when (Translate(error, command) is { } translated) { throw translated; }
+        catch (Exception error) when (Translate(error, command, cancellationToken) is { } translated) { throw translated; }
     }
 
-    internal static async Task<T> ExecuteAsync<T>(IDbCommand command, Func<Task<T>> action)
+    internal static async Task<T> ExecuteAsync<T>(IDbCommand command, Func<Task<T>> action, CancellationToken cancellationToken)
     {
         try { return await action().ConfigureAwait(false); }
-        catch (Exception error) when (Translate(error, command) is { } translated) { throw translated; }
+        catch (Exception error) when (Translate(error, command, cancellationToken) is { } translated) { throw translated; }
     }
 
-    internal static DubUrlException? Translate(Exception error, IDbCommand command)
-        => Classify(error, command) switch
+    private static Exception? Translate(Exception error, IDbCommand command, CancellationToken cancellationToken)
+    {
+        if (CommandTimeoutTranslation.IsMatch(error))
+            return cancellationToken.IsCancellationRequested ? null : new DubUrlCommandTimeoutException(error);
+
+        return Classify(error, command) switch
         {
             ErrorKind.Syntax => new DubUrlSqlSyntaxException(error),
             ErrorKind.TableNotFound => new DubUrlTableNotFoundException(error),
             ErrorKind.Constraint => new DubUrlConstraintViolationException(error),
             _ => null
         };
+    }
 
     private static ErrorKind Classify(Exception error, IDbCommand command)
     {

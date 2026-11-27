@@ -20,7 +20,7 @@ public sealed class OwnedDataReader : DbDataReader
 
     public override int Depth => _reader.Depth;
     public override int FieldCount => _reader.FieldCount;
-    public override bool HasRows => _reader is DbDataReader dbReader && dbReader.HasRows;
+    public override bool HasRows => ReadField(() => _reader is DbDataReader { HasRows: true });
     public override bool IsClosed => _reader.IsClosed;
     public override int RecordsAffected => _reader.RecordsAffected;
     public override object this[int ordinal] => ReadField(() => _reader[ordinal]);
@@ -33,20 +33,20 @@ public sealed class OwnedDataReader : DbDataReader
     public override char GetChar(int ordinal) => ReadField(() => _reader.GetChar(ordinal));
     public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length)
         => ReadField(() => _reader.GetChars(ordinal, dataOffset, buffer, bufferOffset, length));
-    public override string GetDataTypeName(int ordinal) => _reader.GetDataTypeName(ordinal);
+    public override string GetDataTypeName(int ordinal) => ReadField(() => _reader.GetDataTypeName(ordinal));
     public override DateTime GetDateTime(int ordinal) => ReadField(() => _reader.GetDateTime(ordinal));
     public override decimal GetDecimal(int ordinal) => ReadField(() => _reader.GetDecimal(ordinal));
     public override double GetDouble(int ordinal) => ReadField(() => _reader.GetDouble(ordinal));
     public override IEnumerator GetEnumerator()
         => new ReaderEnumerator(SqlErrorTranslation.Execute(_command, ((IEnumerable)_reader).GetEnumerator), _command);
-    public override Type GetFieldType(int ordinal) => _reader.GetFieldType(ordinal);
+    public override Type GetFieldType(int ordinal) => ReadField(() => _reader.GetFieldType(ordinal));
     public override float GetFloat(int ordinal) => ReadField(() => _reader.GetFloat(ordinal));
     public override Guid GetGuid(int ordinal) => ReadField(() => _reader.GetGuid(ordinal));
     public override short GetInt16(int ordinal) => ReadField(() => _reader.GetInt16(ordinal));
     public override int GetInt32(int ordinal) => ReadField(() => _reader.GetInt32(ordinal));
     public override long GetInt64(int ordinal) => ReadField(() => _reader.GetInt64(ordinal));
-    public override string GetName(int ordinal) => _reader.GetName(ordinal);
-    public override int GetOrdinal(string name) => _reader.GetOrdinal(name);
+    public override string GetName(int ordinal) => ReadField(() => _reader.GetName(ordinal));
+    public override int GetOrdinal(string name) => ReadField(() => _reader.GetOrdinal(name));
     public override string GetString(int ordinal) => ReadField(() => _reader.GetString(ordinal));
     public override object GetValue(int ordinal) => ReadField(() => _reader.GetValue(ordinal));
     public override int GetValues(object[] values) => ReadField(() => _reader.GetValues(values));
@@ -56,13 +56,30 @@ public sealed class OwnedDataReader : DbDataReader
 
     public override Task<bool> NextResultAsync(CancellationToken cancellationToken)
         => _reader is DbDataReader dbReader
-            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.NextResultAsync(cancellationToken))
-            : Task.FromResult(NextResult());
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.NextResultAsync(cancellationToken), cancellationToken)
+            : base.NextResultAsync(cancellationToken);
 
     public override Task<bool> ReadAsync(CancellationToken cancellationToken)
         => _reader is DbDataReader dbReader
-            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.ReadAsync(cancellationToken))
-            : Task.FromResult(Read());
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.ReadAsync(cancellationToken), cancellationToken)
+            : base.ReadAsync(cancellationToken);
+
+    public override T GetFieldValue<T>(int ordinal)
+        => _reader is DbDataReader dbReader
+            ? ReadField(() => dbReader.GetFieldValue<T>(ordinal))
+            : base.GetFieldValue<T>(ordinal);
+
+    public override Task<T> GetFieldValueAsync<T>(int ordinal, CancellationToken cancellationToken)
+        => _reader is DbDataReader dbReader
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.GetFieldValueAsync<T>(ordinal, cancellationToken), cancellationToken)
+            : base.GetFieldValueAsync<T>(ordinal, cancellationToken);
+
+    public override Task<bool> IsDBNullAsync(int ordinal, CancellationToken cancellationToken)
+        => _reader is DbDataReader dbReader
+            ? SqlErrorTranslation.ExecuteAsync(_command, () => dbReader.IsDBNullAsync(ordinal, cancellationToken), cancellationToken)
+            : base.IsDBNullAsync(ordinal, cancellationToken);
+
+    public override DataTable? GetSchemaTable() => ReadField(_reader.GetSchemaTable);
 
     private T ReadField<T>(Func<T> read) => SqlErrorTranslation.Execute(_command, read);
 

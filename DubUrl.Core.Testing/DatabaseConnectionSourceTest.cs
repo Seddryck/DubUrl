@@ -14,6 +14,8 @@ public class DatabaseConnectionSourceTest
     {
         public List<string> CleanupCalls { get; } = [];
 
+        public IDbCommand Prepare() => PrepareCommand(new InlineCommand("SELECT 42", NullQueryLogger.Instance));
+
         protected override void Dispose(bool disposing)
         {
             CleanupCalls.Add(disposing ? "sync" : "unmanaged");
@@ -76,6 +78,89 @@ public class DatabaseConnectionSourceTest
         Assert.That(Convert.ToInt32(tables), Is.EqualTo(1));
     }
 
+    [Test]
+    public async Task ConfirmedTimeout_DuringExecution_PreservesProviderExceptionAndReleasesLease()
+    {
+        var providerError = new Npgsql.NpgsqlException("Driver timeout", new TimeoutException());
+        using var rig = new Rig { ExecuteError = providerError };
+        await using var database = rig.Database();
+
+        Assert.That(Assert.Throws<DubUrlCommandTimeoutException>(() => database.ReadScalar("SELECT 42"))!.InnerException,
+            Is.SameAs(providerError));
+        Assert.That((await Assert.ThrowsAsync<DubUrlCommandTimeoutException>(() => database.ReadScalarAsync("SELECT 42")))!.InnerException,
+            Is.SameAs(providerError));
+        Assert.That(Assert.Throws<DubUrlCommandTimeoutException>(() => database.ExecuteReader("SELECT 42"))!.InnerException,
+            Is.SameAs(providerError));
+        Assert.That((await Assert.ThrowsAsync<DubUrlCommandTimeoutException>(() => database.ExecuteReaderAsync("SELECT 42")))!.InnerException,
+            Is.SameAs(providerError));
+
+        using var derivedDatabase = new DerivedDatabase(rig.Source);
+        using (var command = derivedDatabase.Prepare())
+            Assert.That(Assert.Throws<DubUrlCommandTimeoutException>(() => command.ExecuteNonQuery())!.InnerException,
+                Is.SameAs(providerError));
+
+        rig.ExecuteError = null;
+        Assert.That(await database.ReadScalarAsync<int>("SELECT 42"), Is.EqualTo(42));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ConfirmedTimeout_WhileReading_PreservesProviderException(bool nextResult)
+    {
+        var providerError = new Npgsql.NpgsqlException("Driver timeout", new TimeoutException());
+        using var rig = new Rig();
+        await using var database = rig.Database();
+
+        using (var reader = database.ExecuteReader("SELECT 42"))
+        {
+            Assert.That(reader.Read(), Is.True);
+            rig.ReadError = providerError;
+            Assert.That(Assert.Throws<DubUrlCommandTimeoutException>(() => { _ = nextResult ? reader.NextResult() : reader.Read(); })!.InnerException,
+                Is.SameAs(providerError));
+        }
+
+        await using (var reader = await database.ExecuteReaderAsync("SELECT 42"))
+        {
+            Assert.That((await Assert.ThrowsAsync<DubUrlCommandTimeoutException>(() => nextResult ? reader.NextResultAsync() : reader.ReadAsync()))!.InnerException,
+                Is.SameAs(providerError));
+        }
+
+        Assert.That(Assert.Throws<DubUrlCommandTimeoutException>(() => database.ReadMultiple("SELECT 42").ToList())!.InnerException,
+            Is.SameAs(providerError));
+        Assert.That((await Assert.ThrowsAsync<DubUrlCommandTimeoutException>(() => database.ReadFirstAsync("SELECT 42")))!.InnerException,
+            Is.SameAs(providerError));
+
+        await using var rows = database.ReadMultipleAsync("SELECT 42").GetAsyncEnumerator();
+        Assert.That((await Assert.ThrowsAsync<DubUrlCommandTimeoutException>(() => rows.MoveNextAsync().AsTask()))!.InnerException,
+            Is.SameAs(providerError));
+    }
+
+    [Test]
+    public async Task TimeoutShapedConnectionErrorAndAmbiguousCommandErrors_PropagateUnwrapped()
+    {
+        var providerError = new Npgsql.NpgsqlException("Open timeout", new TimeoutException());
+        using var rig = new Rig { OpenError = providerError };
+        await using var database = rig.Database();
+        Assert.That(Assert.Throws<Npgsql.NpgsqlException>(() => database.ReadScalar("SELECT 42")), Is.SameAs(providerError));
+
+        rig.OpenError = null;
+        var serverCancellation = new Npgsql.PostgresException("canceling statement", "ERROR", "ERROR", "57014");
+        rig.ExecuteError = serverCancellation;
+        Assert.That((await Assert.ThrowsAsync<Npgsql.PostgresException>(() => database.ReadScalarAsync("SELECT 42"))), Is.SameAs(serverCancellation));
+
+        rig.ExecuteError = new OperationCanceledException("Canceled", new TimeoutException());
+        Assert.That((await Assert.ThrowsAsync<OperationCanceledException>(() => database.ReadScalarAsync("SELECT 42"))), Is.SameAs(rig.ExecuteError));
+    }
+
+    [TestCase(270007, true)]
+    [TestCase(270005, false)]
+    public void SnowflakeCancellation_RequiresTheDriversRequestTimeoutCode(int code, bool expected)
+    {
+        var detail = new Snowflake.Data.Client.SnowflakeDbException("HY000", code, "Driver detail", "");
+        var providerError = new OperationCanceledException("Query interrupted", detail);
+        Assert.That(CommandTimeoutTranslation.IsMatch(providerError), Is.EqualTo(expected));
+    }
+
     private sealed class Rig : IDisposable
     {
         public readonly Mock<DbConnection> Connection = new();
@@ -83,8 +168,8 @@ public class DatabaseConnectionSourceTest
         public readonly List<Mock<DbDataReader>> Readers = [];
         public readonly Mock<CommandProvisionerFactory> Provisioners = new();
         public readonly ConnectionSource Source;
-        public Exception? ExecuteError, ReadError;
         public bool FailCreate, FailProvision, FailExecute, FailRead, FailMap;
+        public Exception? OpenError, ExecuteError, ReadError;
         public int Rows = 2;
         public int Opens;
 
@@ -92,17 +177,29 @@ public class DatabaseConnectionSourceTest
         {
             var state = ConnectionState.Closed;
             Connection.SetupGet(c => c.State).Returns(() => state);
-            Connection.Setup(c => c.Open()).Callback(() => { state = ConnectionState.Open; Opens++; });
-            Connection.Setup(c => c.OpenAsync(It.IsAny<CancellationToken>())).Callback(() => { state = ConnectionState.Open; Opens++; }).Returns(Task.CompletedTask);
+            void Open()
+            {
+                if (OpenError is not null) throw OpenError;
+                state = ConnectionState.Open;
+                Opens++;
+            }
+            Connection.Setup(c => c.Open()).Callback(Open);
+            Connection.Setup(c => c.OpenAsync(It.IsAny<CancellationToken>())).Callback(Open).Returns(Task.CompletedTask);
             Connection.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
             Connection.Protected().Setup<DbCommand>("CreateDbCommand").Returns(() =>
             {
                 if (FailCreate) throw new InvalidOperationException("Create failed.");
                 var command = new Mock<DbCommand>();
                 command.SetupGet(c => c.CommandText).Returns("SELECT 42");
-                command.Setup(c => c.ExecuteScalar()).Returns(() => ExecuteError is not null ? throw ExecuteError : FailExecute ? throw new InvalidOperationException() : 42);
+                object Scalar()
+                {
+                    if (ExecuteError is not null) throw ExecuteError;
+                    return FailExecute ? throw new InvalidOperationException() : 42;
+                }
+                command.Setup(c => c.ExecuteScalar()).Returns(Scalar);
+                command.Setup(c => c.ExecuteNonQuery()).Returns(() => (int)Scalar());
                 command.Setup(c => c.ExecuteScalarAsync(It.IsAny<CancellationToken>())).Returns(() =>
-                    ExecuteError is not null ? Task.FromException<object?>(ExecuteError) : FailExecute ? Task.FromException<object?>(new InvalidOperationException()) : Task.FromResult<object?>(42));
+                    Task.FromResult<object?>(Scalar()));
                 command.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
                 command.Protected().Setup<DbDataReader>("ExecuteDbDataReader", ItExpr.IsAny<CommandBehavior>()).Returns(CreateReader);
                 command.Protected().Setup<Task<DbDataReader>>("ExecuteDbDataReaderAsync", ItExpr.IsAny<CommandBehavior>(), ItExpr.IsAny<CancellationToken>())
@@ -121,10 +218,15 @@ public class DatabaseConnectionSourceTest
             if (FailExecute) throw new InvalidOperationException("Execute failed.");
             var reader = new Mock<DbDataReader>();
             int reads = 0;
-            bool Read() => ReadError is not null ? throw ReadError : FailRead ? throw new InvalidOperationException("Read failed.") : reads++ < Rows;
+            bool Read()
+            {
+                if (ReadError is not null) throw ReadError;
+                return FailRead ? throw new InvalidOperationException("Read failed.") : reads++ < Rows;
+            }
             reader.Setup(r => r.Read()).Returns(Read);
             reader.Setup(r => r.ReadAsync(It.IsAny<CancellationToken>())).Returns(() => Task.FromResult(Read()));
-            reader.Setup(r => r.NextResultAsync(It.IsAny<CancellationToken>())).Returns(() => ReadError is not null ? Task.FromException<bool>(ReadError) : Task.FromResult(false));
+            reader.Setup(r => r.NextResult()).Returns(Read);
+            reader.Setup(r => r.NextResultAsync(It.IsAny<CancellationToken>())).Returns(() => Task.FromResult(Read()));
             reader.SetupGet(r => r.FieldCount).Returns(1);
             reader.Setup(r => r.GetName(0)).Returns("Value");
             reader.Setup(r => r.GetValue(0)).Returns(() => FailMap ? throw new InvalidOperationException("Map failed.") : 42);
