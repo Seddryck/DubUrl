@@ -21,21 +21,13 @@ jobs:
     steps:
       - name: Download SQL Server 2025 Enterprise Developer media
         run: |
-          $media = New-Item -ItemType Directory -Path (Join-Path $env:RUNNER_TEMP 'ssas-media')
-          $bootstrapper = Join-Path $media.FullName 'SQL2025-SSEI-EntDev.exe'
-          Invoke-WebRequest -Uri 'https://aka.ms/sql2025EnterpriseDev' -OutFile $bootstrapper
-          $download = Start-Process -FilePath $bootstrapper -Wait -PassThru -ArgumentList @(
-            '/Action=Download', '/MediaType=ISO', '/Language=en-US',
-            '/IAcceptSqlServerLicenseTerms', '/Quiet', "/MediaPath=$($media.FullName)"
-          )
-          if ($download.ExitCode -ne 0) {
-            throw "SQL Server media download failed with exit code $($download.ExitCode)."
+          $iso = Join-Path $env:RUNNER_TEMP 'SQLServer2025-x64-ENU-EntDev.iso'
+          curl.exe --fail --location --retry 3 --silent --show-error --output $iso `
+            'https://download.microsoft.com/download/dea8c210-c44a-4a9d-9d80-0c81578860c5/ENU/SQLServer2025-x64-ENU-EntDev.iso'
+          if ($LASTEXITCODE -ne 0) {
+            throw "SQL Server ISO download failed with exit code $LASTEXITCODE."
           }
-          $iso = @(Get-ChildItem -LiteralPath $media.FullName -Filter '*.iso' -File)
-          if ($iso.Count -ne 1) {
-            throw "Expected one SQL Server ISO, found $($iso.Count)."
-          }
-          "SSAS_ISO=$($iso[0].FullName)" >> $env:GITHUB_ENV
+          "SSAS_ISO=$iso" >> $env:GITHUB_ENV
 
       - name: Install Analysis Services in Tabular mode
         run: |
