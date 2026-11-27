@@ -1,7 +1,14 @@
 name: Prepare provider QA against the Core candidate
 description: Pack DubUrl and DubUrl.Parser from the candidate checkout and restore them from the local feed.
+inputs:
+  core-version:
+    description: DubUrl package version expected by the checked-out provider QA projects.
+    required: false
+    default: '0.60.0'
 runs:
   using: composite
   steps:
     - shell: pwsh
+      env:
+        QA_CORE_VERSION: ${{ inputs.core-version }}
       run: '& "$env:GITHUB_ACTION_PATH/prepare.ps1"'

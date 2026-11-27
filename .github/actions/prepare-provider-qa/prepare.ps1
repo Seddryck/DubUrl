@@ -6,7 +6,7 @@ $feed = Join-Path $workspace 'artifacts/core-candidate-feed'
 $tempRoot = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [IO.Path]::GetTempPath() }
 $packages = Join-Path $tempRoot ('dqa-' + [Guid]::NewGuid().ToString('N').Substring(0,8))
 $coreRoot = Join-Path $workspace '.qa-core'
-$version = '0.60.0'
+$version = $env:QA_CORE_VERSION
 $candidateProjects = [ordered]@{
     'DubUrl.Parser' = 'DubUrl.Parser/DubUrl.Parser.csproj'
     'DubUrl' = 'DubUrl.Core/DubUrl.Core.csproj'
@@ -21,6 +21,7 @@ foreach ($id in $candidateProjects.Keys) {
 }
 
 # Exact package ID mappings take precedence over wildcard mappings.
+$schemaMapping = '<packageSource key="schema"><package pattern="DubUrl.Schema" /><package pattern="DubUrl.Schema.Documents" /></packageSource>'
 $escapedFeed = [Security.SecurityElement]::Escape($feed)
 $schemaFeed = Join-Path $workspace 'artifacts/schema-feed'
 New-Item -ItemType Directory -Force $schemaFeed | Out-Null
@@ -40,7 +41,7 @@ $config = @"
       <package pattern="DubUrl" />
       <package pattern="DubUrl.Parser" />
     </packageSource>
-    <packageSource key="schema"><package pattern="DubUrl.Schema" /><package pattern="DubUrl.Schema.Documents" /></packageSource>
+    $schemaMapping
     <packageSource key="nuget.org"><package pattern="*" /></packageSource>
   </packageSourceMapping>
 </configuration>
@@ -51,8 +52,16 @@ Set-Content -LiteralPath (Join-Path $workspace 'NuGet.Config') -Value $config
 $env:NUGET_PACKAGES = $packages
 Add-Content -LiteralPath $env:GITHUB_ENV -Value "NUGET_PACKAGES=$packages"
 & (Join-Path $workspace 'build/Initialize-SchemaQa.ps1')
+if (!(Get-ChildItem -LiteralPath $schemaFeed -Filter 'DubUrl.Schema.*.nupkg' -File)) {
+    # Provider checkouts using published Schema packages leave the candidate feed empty.
+    Set-Content -LiteralPath (Join-Path $workspace 'NuGet.Config') -Value $config.Replace($schemaMapping, '')
+}
 
-dotnet restore (Join-Path $workspace 'QA/DubUrl.ProviderTesting') --nologo
+$qaProject = Join-Path $workspace 'QA/DubUrl.Provider.QA'
+if (!(Test-Path -LiteralPath $qaProject)) {
+    $qaProject = Join-Path $workspace 'QA/DubUrl.ProviderTesting'
+}
+dotnet restore $qaProject --nologo
 if ($LASTEXITCODE) { throw 'Could not restore the candidate QA dependencies.' }
 
 foreach ($id in $candidateProjects.Keys) {
