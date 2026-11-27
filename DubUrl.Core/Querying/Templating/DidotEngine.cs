@@ -1,4 +1,5 @@
 using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Formatters;
 using DubUrl.Querying.Dialects.Renderers;
 using System;
 using System.Collections;
@@ -40,7 +41,7 @@ internal class DidotEngine
     {
         // Formatters and mappings belong to the prepared template.
         var engine = CreateEngine();
-        // StringTemplate catches formatter exceptions. Preserve parameter failures so
+        // StringTemplate catches formatter exceptions. Preserve binding and identifier failures so
         // callers cannot accidentally execute partially rendered SQL.
         var failure = new AsyncLocal<Exception?>();
         engine.AddFormatter("parameter", (object? input) =>
@@ -66,7 +67,15 @@ internal class DidotEngine
                     catch (ArgumentException exception) { failure.Value ??= exception; }
                     return string.Empty;
                 }
-                return renderer.Render(input, format);
+                try
+                {
+                    return renderer.Render(input, format);
+                }
+                catch (InvalidIdentifierException exception)
+                {
+                    failure.Value ??= exception;
+                    return string.Empty;
+                }
             }
             engine.AddFormatter("value", (object? input) => RenderChecked(input, "value"));
             engine.AddFormatter("identity", (object? input) => RenderChecked(input, "identity"));

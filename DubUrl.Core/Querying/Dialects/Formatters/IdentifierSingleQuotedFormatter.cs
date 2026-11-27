@@ -9,5 +9,5 @@ namespace DubUrl.Querying.Dialects.Formatters;
 public class IdentifierSingleQuotedFormatter : IdentifierQuotedFormatter
 {
     protected override string SurroundByQuotes(string value)
-        => $"'{value}'";
+        => $"'{value?.Replace("'", "''", StringComparison.Ordinal)}'";
 }

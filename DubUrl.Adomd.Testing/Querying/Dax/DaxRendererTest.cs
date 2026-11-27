@@ -12,6 +12,7 @@ public class DaxRendererTest
 {
     [TestCase("foo", "'foo'")]
     [TestCase("foo bar", "'foo bar'")]
+    [TestCase("'a''b'", "'''a''''b'''")]
     public void Render_Identity_Expected(string value, string expected)
         => Assert.That(new DaxRenderer().Render(value, "Identity"), Is.EqualTo(expected));
 
@@ -20,6 +21,8 @@ public class DaxRendererTest
     [TestCase(1, "1")]
     [TestCase(1.2, "1.2")]
     [TestCase(true, "TRUE")]
+    [TestCase("a\"b", "\"a\"\"b\"")]
+    [TestCase('"', "\"\"\"\"")]
     public void Render_Value_Expected(object value, string expected)
         => Assert.That(new DaxRenderer().Render(value, "Value"), Is.EqualTo(expected));
 

@@ -5,6 +5,7 @@ using DubUrl.Provider.Oracle.Mapping;
 using DubUrl.Provider.PostgreSql.Mapping;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
+using DubUrl.Querying.Dialects.Formatters;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.Parametrizing;
 using DubUrl.Querying.Reading;
@@ -226,6 +227,36 @@ public class BoundTemplateTest
             Assert.That(command.Parameters.Cast<DbParameter>().Select(p => p.Value), Is.EqualTo(new[] { 42, 42 }));
             if (command is OracleCommand oracle) Assert.That(oracle.BindByName, Is.True);
         });
+    }
+
+    [Test]
+    public void Render_RejectedIdentifier_ThrowsAndCanBeRetried()
+    {
+        var rejection = new InvalidIdentifierException("This dialect rejected the identifier.");
+        var renderer = new Mock<IRenderer>();
+        renderer.Setup(r => r.Render("invalid", "identity")).Throws(rejection);
+        renderer.Setup(r => r.Render("ordinary", "identity")).Returns("\"ordinary\"");
+        var dialect = Mock.Of<IDialect>(d => d.Renderer == renderer.Object);
+        var template = new InlineTemplateCommandFactory(dialect, new NamedParametrizer())
+            .Create("SELECT 1 FROM $table; format=\"identity\"$");
+        var values = new Dictionary<string, object?> { ["table"] = "invalid" };
+
+        Assert.That(Assert.Throws<InvalidIdentifierException>(() => template.Render(values)), Is.SameAs(rejection));
+        Assert.That(Assert.Throws<InvalidIdentifierException>(() => template.RenderCommand(values)), Is.SameAs(rejection));
+
+        values["table"] = "ordinary";
+        Assert.That(template.RenderCommand(values).CommandText, Is.EqualTo("SELECT 1 FROM \"ordinary\""));
+    }
+
+    [Test]
+    public void Execute_DuckDbIdentifierContainingQuote_ReadsTheNamedRelation()
+    {
+        using var database = new DatabaseUrl("duckdb://memory");
+        var template = database.CreateTemplate(
+            """WITH "Odd""Name" AS (SELECT 42 AS n) SELECT n FROM $table; format="identity"$""");
+        var values = new Dictionary<string, object?> { ["table"] = "Odd\"Name" };
+
+        Assert.That(database.ReadScalar<int>(template, values), Is.EqualTo(42));
     }
 
     [Test]

@@ -14,18 +14,21 @@ public class FormattersTest
     [Test]
     [TestCase("foo", "`foo`")]
     [TestCase("foo bar", "`foo bar`")]
+    [TestCase("a``b`", "`a````b```")]
     public void BacktickIdentifier_Format_Match(string value, string expected)
         => Assert.That(new IdentifierBacktickFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase("foo", "\"foo\"")]
     [TestCase("foo bar", "\"foo bar\"")]
+    [TestCase("\"a\"\"b\"", "\"\"\"a\"\"\"\"b\"\"\"")]
     public void QuotedIdentifier_Format_Match(string value, string expected)
         => Assert.That(new IdentifierQuotedFormatter().Format(value), Is.EqualTo(expected));
 
     [Test]
     [TestCase("foo", "[foo]")]
     [TestCase("foo bar", "[foo bar]")]
+    [TestCase("[a]]b]", "[[a]]]]b]]]")]
     public void SquareBracketIdentifier_Format_Match(string value, string expected)
         => Assert.That(new IdentifierSquareBracketFormatter().Format(value), Is.EqualTo(expected));
 

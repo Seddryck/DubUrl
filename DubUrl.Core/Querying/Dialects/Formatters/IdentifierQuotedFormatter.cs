@@ -12,7 +12,7 @@ public class IdentifierQuotedFormatter : IIdentifierFormatter
         => SurroundByQuotes(value);
 
     protected virtual string SurroundByQuotes(string value)
-        => $"\"{value}\"";
+        => $"\"{value?.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
 
     public string Format(object obj)
          => obj is string value ? Format(value) : throw new Exception();
