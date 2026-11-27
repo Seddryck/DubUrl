@@ -27,6 +27,9 @@ public sealed class LazyBulkCopyProvider : IBulkCopyProvider
         IBulkCopyDependencyResolver dependencies) : IBulkCopyEngine
     {
         public void Write(string tableName, IDataReader dataReader)
+            => Write(tableName, dataReader, default);
+
+        public void Write(string tableName, IDataReader dataReader, BulkCopyOptions options)
         {
             var driverAssembly = connectionUrl.GetProviderFactory().GetType().Assembly;
             dependencies.Execute(driverAssembly, () =>
@@ -37,7 +40,10 @@ public sealed class LazyBulkCopyProvider : IBulkCopyProvider
                 var adapter = (IBulkCopyProvider)(Activator.CreateInstance(type)
                     ?? throw new InvalidOperationException($"Bulk-copy adapter '{provider.TypeName}' could not be constructed."));
                 using var engine = adapter.Create(connectionUrl, dependencies);
-                engine.Write(tableName, dataReader);
+                if (options == default)
+                    engine.Write(tableName, dataReader);
+                else
+                    engine.Write(tableName, dataReader, options);
             });
         }
 
