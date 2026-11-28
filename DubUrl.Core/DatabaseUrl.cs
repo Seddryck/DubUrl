@@ -121,6 +121,11 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
     protected IAsyncEnumerable<T> StreamAsync<T>(ICommandProvider commandProvider, Func<DbDataReader, T> project, CancellationToken cancellationToken)
         => _executor.StreamAsync(commandProvider, project, cancellationToken);
 
+    /// <summary>Binds a literal table name to this database without opening a connection.</summary>
+    /// <remarks>Omitted qualifiers are resolved by the database session.</remarks>
+    public TableTarget Table(string name, string? schema = null, string? database = null, string? catalog = null)
+        => new(this, name, schema, database, catalog);
+
     public InlineTemplateCommand CreateTemplate(string source)
         => _inlineTemplateCommandFactory.Create(source);
 
@@ -426,6 +431,13 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
         => _executor.ExecuteOwnedReaderAsync(commandProvider, cancellationToken);
 
     #endregion
+
+    internal void ExecuteNonQuery(string query)
+        => _executor.ExecuteScalar(new InlineCommand(query, QueryLogger), command => command.ExecuteNonQuery());
+
+    internal Task ExecuteNonQueryAsync(string query, CancellationToken cancellationToken)
+        => _executor.ExecuteScalarAsync(new InlineCommand(query, QueryLogger),
+            (command, token) => command.ExecuteNonQueryAsync(token), cancellationToken);
 
     private T? NormalizeReturnType<T>(object obj)
     {

@@ -18,6 +18,11 @@ public abstract class BaseDialect : IDialect
     public IDbTypeMapper DbTypeMapper { get; }
     public ISqlFunctionMapper SqlFunctionMapper { get; }
     public virtual ISchemaSqlRenderer SchemaSqlRenderer => StandardSchemaSqlRenderer.Instance;
+    public virtual TableSqlRenderer TableSqlRenderer => TableSqlRenderer.Default;
+
+    public virtual string RenderTableName(SchemaSqlObjectName table)
+        => StandardSchemaSqlRenderer.RenderDefaultTableName(this, table);
+
     public virtual DialectCapabilities Capabilities => DialectCapabilities.Default;
     public virtual string[] Aliases { get; }
     public virtual ILanguage Language { get; }

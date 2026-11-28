@@ -21,6 +21,7 @@ public class ConnectionUrlTest
     public void CreateBatch_SupportedConnection_OpensAndReturnsProviderBatch()
     {
         var connection = new Mock<DbConnection>(MockBehavior.Strict);
+        connection.Protected().Setup("Dispose", ItExpr.Is<bool>(disposing => !disposing));
         var batch = new Mock<DbBatch>().Object;
         connection.SetupGet(x => x.CanCreateBatch).Returns(true);
         connection.Setup(x => x.Open());

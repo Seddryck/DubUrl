@@ -43,4 +43,11 @@ internal class AdomdConnectionWrapper : DbConnection, IDbConnection, IDubUrlConn
     public override void Open() => Connection.Open();
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotImplementedException();
     protected override DbCommand CreateDbCommand() => new AdomdCommandWrapper(InnerConnection);
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            InnerConnection.Dispose();
+        base.Dispose(disposing);
+    }
 }
