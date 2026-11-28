@@ -43,3 +43,26 @@ using var connection = new ConnectionUrl(url, registry).Open();
 ```
 
 Use a URL such as `powerbi://api.powerbi.com/v1.0/myorg/{dataset}`, replacing the dataset placeholder and configuring authentication for your environment. `powerbi`, `pbi`, `pbiazure`, `pbipremium`, and `powerbipremium` select the same Power BI mapping.
+
+### Discover the server mode
+
+Retrieve `AnalysisServicesMetadataCapability` from the connection URL and pass it an open connection.
+
+```csharp
+using DubUrl.Adomd;
+
+var connectionUrl = new ConnectionUrl(url, registry);
+if (connectionUrl.TryGetCapability<AnalysisServicesMetadataCapability>(out var metadata)
+    && metadata is not null)
+{
+    using var connection = connectionUrl.Open();
+    var mode = metadata.GetServerMode(connection);
+    // Use mode to select Tabular or Multidimensional discovery.
+}
+```
+
+`GetServerMode` maps legacy `Default` and `SharePoint` values to `Multidimensional`
+and `Tabular`, respectively. If the mode element is absent and the metadata reports
+an SSAS major version earlier than 11, it returns `Multidimensional`. Missing,
+malformed, or unrecognized metadata otherwise returns `Unknown`, so callers can
+choose their own fallback. ADOMD errors from the Discover request propagate to the caller.
