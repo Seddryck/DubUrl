@@ -10,12 +10,82 @@ using DubUrl.Parsing;
 using DubUrl.Querying.Dialects;
 using DubUrl.Querying.Parametrizing;
 using Moq;
+using Moq.Protected;
 using NUnit.Framework;
 
 namespace DubUrl.Core.Testing;
 
 public class ConnectionUrlTest
 {
+    [Test]
+    public void CreateBatch_SupportedConnection_OpensAndReturnsProviderBatch()
+    {
+        var connection = new Mock<DbConnection>(MockBehavior.Strict);
+        connection.Protected().Setup("Dispose", ItExpr.Is<bool>(disposing => !disposing));
+        var batch = new Mock<DbBatch>().Object;
+        connection.SetupGet(x => x.CanCreateBatch).Returns(true);
+        connection.Setup(x => x.Open());
+        connection.Protected().Setup<DbBatch>("CreateDbBatch").Returns(() =>
+        {
+            connection.Verify(x => x.Open(), Times.Once);
+            return batch;
+        });
+
+        var result = BatchConnectionUrl(connection.Object).CreateBatch();
+
+        Assert.That(result, Is.SameAs(batch));
+    }
+
+    [Test]
+    public void CreateBatch_UnsupportedConnection_DisposesWithoutOpening()
+    {
+        var connection = new Mock<DbConnection>();
+        var url = BatchConnectionUrl(connection.Object);
+
+        Assert.Throws<NotSupportedException>(() => url.CreateBatch());
+
+        connection.Verify(x => x.Open(), Times.Never);
+        connection.Protected().Verify("CreateDbBatch", Times.Never());
+        connection.Protected().Verify("Dispose", Times.Once(), ItExpr.Is<bool>(disposing => disposing));
+    }
+
+    [Test]
+    public void CreateBatch_ConnectionWithoutDbBatchApi_DisposesWithoutOpening()
+    {
+        var connection = new Mock<IDbConnection>();
+        var url = BatchConnectionUrl(connection.Object);
+
+        Assert.Throws<NotSupportedException>(() => url.CreateBatch());
+
+        connection.Verify(x => x.Open(), Times.Never);
+        connection.Verify(x => x.Dispose(), Times.Once);
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    public void CreateBatch_ProviderFailure_DisposesConnectionAndPreservesError(bool failOnOpen)
+    {
+        var failure = new InvalidOperationException("Provider failure");
+        var connection = new Mock<DbConnection>();
+        connection.SetupGet(x => x.CanCreateBatch).Returns(true);
+        if (failOnOpen)
+            connection.Setup(x => x.Open()).Throws(failure);
+        else
+            connection.Protected().Setup<DbBatch>("CreateDbBatch").Throws(failure);
+        var url = BatchConnectionUrl(connection.Object);
+
+        Assert.That(Assert.Throws<InvalidOperationException>(() => url.CreateBatch()), Is.SameAs(failure));
+
+        connection.Protected().Verify("Dispose", Times.Once(), ItExpr.Is<bool>(disposing => disposing));
+    }
+
+    private static ConnectionUrl BatchConnectionUrl(IDbConnection connection)
+    {
+        var url = new Mock<ConnectionUrl>("mssql://localhost/db");
+        url.Setup(x => x.Connect()).Returns(connection);
+        return url.Object;
+    }
+
     private static ResolvedConnection Resolved(string connectionString = "", DbProviderFactory? providerFactory = null)
         => new(
             connectionString,
