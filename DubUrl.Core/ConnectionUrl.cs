@@ -218,16 +218,50 @@ public class ConnectionUrl : BaseConnectionUrl
         var connection = Connect();
         try
         {
-            if (authentication is not null) authentication.OpenConnection((DbConnection)connection);
-            else connection.Open();
+            OpenPrepared(connection);
             return connection;
         }
-        catch (Exception exception)
+        catch
         {
             connection.Dispose();
-            if (authentication is not null && exception is not (OperationCanceledException or ConnectionAuthenticationException) && !IsNativeTimeout(exception))
-                throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
             throw;
+        }
+    }
+
+    /// <summary>Creates an ADO.NET batch on a new open connection.</summary>
+    /// <remarks>The caller owns both the batch and its <see cref="DbBatch.Connection"/>.
+    /// Dispose the batch before disposing the connection.</remarks>
+    /// <exception cref="NotSupportedException">The selected provider does not support ADO.NET batching.</exception>
+    public DbBatch CreateBatch()
+    {
+        var connection = Connect();
+        try
+        {
+            if (connection is not DbConnection { CanCreateBatch: true } dbConnection)
+                throw new NotSupportedException($"The connection type '{connection.GetType().FullName}' does not support ADO.NET batching.");
+
+            OpenPrepared(dbConnection);
+            return dbConnection.CreateBatch();
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
+    }
+
+    private void OpenPrepared(IDbConnection connection)
+    {
+        try
+        {
+            if (authentication is not null) authentication.OpenConnection((DbConnection)connection);
+            else connection.Open();
+        }
+        catch (Exception exception) when (authentication is not null
+            && exception is not (OperationCanceledException or ConnectionAuthenticationException)
+            && !IsNativeTimeout(exception))
+        {
+            throw new ConnectionAuthenticationException(AuthenticationDiagnosticCodes.AuthenticationFailed);
         }
     }
 

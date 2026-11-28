@@ -40,6 +40,38 @@ Console.WriteLine(command.ExecuteScalar());
 
 The default registry resolves factories that normally produce `DbConnection` instances, but the public return contract is `IDbConnection`. Use an explicit cast/type check before depending on provider-specific or asynchronous `DbConnection` members.
 
+## Execute a batch
+
+`CreateBatch()` returns the provider's ADO.NET `DbBatch` on a new open connection. It throws
+`NotSupportedException` before opening the connection if the provider lacks ADO.NET batching.
+Dispose the batch first, then its connection.
+
+```csharp
+var batch = connectionUrl.CreateBatch();
+await using var batchConnection = batch.Connection!;
+await using (batch)
+{
+    var first = batch.CreateBatchCommand();
+    first.CommandText = "SELECT 1";
+    batch.BatchCommands.Add(first);
+
+    var second = batch.CreateBatchCommand();
+    second.CommandText = "SELECT 2";
+    batch.BatchCommands.Add(second);
+
+    await using var reader = await batch.ExecuteReaderAsync();
+    do
+    {
+        while (await reader.ReadAsync())
+            Console.WriteLine(reader.GetInt32(0));
+    }
+    while (await reader.NextResultAsync());
+}
+```
+
+Add one batch command for each SQL command you want to send. For SQL Server scripts, split at
+`GO` separators before adding the commands. Error handling and transaction behavior follow the provider.
+
 ## Required and optional defaults
 
 `WithReadOnly()` requires verified native read-only access to the primary database. It is strict and
