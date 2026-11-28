@@ -56,6 +56,7 @@ $fixture = switch ($Provider) {
 
 $composeFile = Join-Path $providerRoot "Providers/$($fixture.Project)/infrastructure/compose.yaml"
 $overrideFile = New-TemporaryFile
+$restoreConfig = New-TemporaryFile
 $composeProject = "duburl-batch-$([guid]::NewGuid().ToString('N').Substring(0, 12))"
 $composeArgs = @('compose', '--project-name', $composeProject, '-f', $composeFile, '-f', $overrideFile.FullName)
 $previousUrl = [Environment]::GetEnvironmentVariable($fixture.UrlVariable)
@@ -65,7 +66,20 @@ try {
     Push-Location $coreRoot
     try {
         $testProject = 'DubUrl.Core.Testing/DubUrl.Core.Testing.csproj'
-        dotnet build $testProject --configuration Release --nologo
+        # The enclosing provider checkout maps Schema packages to its own candidate feed.
+        # Restore Core's test dependencies from the published feed used by standalone Core CI.
+        @"
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  </packageSources>
+</configuration>
+"@ | Set-Content -LiteralPath $restoreConfig.FullName
+        dotnet restore $testProject --configfile $restoreConfig.FullName --nologo
+        if ($LASTEXITCODE) { throw 'Could not restore the Core batch test dependencies.' }
+        dotnet build $testProject --configuration Release --no-restore --nologo
         if ($LASTEXITCODE) { throw 'Could not build the Core batch tests.' }
 
         # Use the existing service with a private, dynamically allocated IPv4 port.
@@ -120,5 +134,5 @@ services:
 finally {
     [Environment]::SetEnvironmentVariable($fixture.UrlVariable, $previousUrl)
     if ($infrastructureStarted) { docker @composeArgs down --volumes }
-    Remove-Item -LiteralPath $overrideFile.FullName
+    Remove-Item -LiteralPath $overrideFile.FullName, $restoreConfig.FullName
 }
