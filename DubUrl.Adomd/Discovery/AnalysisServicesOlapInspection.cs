@@ -81,12 +81,8 @@ internal sealed partial class AnalysisServicesModelInspection
         var isPerspective = scope.Id.Kind == AnalyticalObjectKind.Perspective;
         if (isPerspective)
             inventory.Record(AnalyticalFeature.PerspectiveMembership, result.Coverage, rowset);
-        foreach (var row in result.Rows)
+        foreach (var row in result.Rows.Where(row => IsInScope(row, scope.Name)))
         {
-            if (Text(row, "CATALOG_NAME") is { } rowCatalog && rowCatalog != catalog
-                || Text(row, "CUBE_NAME") is { } rowScope && rowScope != scope.Name)
-                continue;
-
             var uniqueName = Require(row, $"{prefix}_UNIQUE_NAME", feature);
             if (uniqueName is null)
             {
@@ -95,20 +91,7 @@ internal sealed partial class AnalysisServicesModelInspection
                 continue;
             }
 
-            var parent = scope.Id;
-            if (parentKind is { } parentType && parentField is not null)
-            {
-                var parentName = Require(row, parentField, feature);
-                if (parentName is not null)
-                    parent = Id(parentType, parentName, scope.Name);
-            }
-            else if (hasLegacyTables && Text(row, "MEASUREGROUP_NAME") is { } group)
-            {
-                var tableId = Id(AnalyticalObjectKind.Table, group, scope.Name);
-                if (inventory.Contains(tableId))
-                    parent = tableId;
-            }
-
+            var parent = FindOlapParent(row, scope, feature, parentKind, parentField, hasLegacyTables);
             var id = Id(kind, uniqueName, scope.Name);
             Add(feature, id, Text(row, $"{prefix}_NAME") ?? uniqueName, Text(row, $"{prefix}_CAPTION"), parent,
                 uniqueName, typeField is null ? null : AnalysisServicesInventory.DataType(row, typeField, tabular: false),
@@ -116,6 +99,28 @@ internal sealed partial class AnalysisServicesModelInspection
             if (isPerspective)
                 inventory.Include(scope.Id, id);
         }
+    }
+
+    private bool IsInScope(DataRow row, string scope)
+        => (Text(row, "CATALOG_NAME") is not { } rowCatalog || rowCatalog == catalog)
+            && (Text(row, "CUBE_NAME") is not { } rowScope || rowScope == scope);
+
+    private AnalyticalObjectId FindOlapParent(DataRow row, AnalyticalObject scope, AnalyticalFeature feature,
+        AnalyticalObjectKind? parentKind, string? parentField, bool hasLegacyTables)
+    {
+        if (parentKind is { } parentType && parentField is not null)
+        {
+            var parentName = Require(row, parentField, feature);
+            return parentName is null ? scope.Id : Id(parentType, parentName, scope.Name);
+        }
+
+        if (hasLegacyTables && Text(row, "MEASUREGROUP_NAME") is { } group)
+        {
+            var tableId = Id(AnalyticalObjectKind.Table, group, scope.Name);
+            if (inventory.Contains(tableId))
+                return tableId;
+        }
+        return scope.Id;
     }
 
     private void ReadLegacyTables(IReadOnlyDictionary<string, AnalyticalObject> scopes)

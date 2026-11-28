@@ -59,6 +59,17 @@ internal sealed partial class AnalysisServicesModelInspection
         if (perspectives.Rows.Count == 0)
             return;
 
+        var perspectiveTables = ReadPerspectiveTables();
+        if (perspectiveTables.Values.Any(table => !table.IncludeAll))
+        {
+            ReadExplicitMembership("TMSCHEMA_PERSPECTIVE_COLUMNS", "ColumnID", AnalyticalObjectKind.Column, perspectiveTables);
+            ReadExplicitMembership("TMSCHEMA_PERSPECTIVE_MEASURES", "MeasureID", AnalyticalObjectKind.Measure, perspectiveTables);
+        }
+        inventory.LimitPerspectiveCoverage(AnalyticalFeature.Tables, AnalyticalFeature.Columns, AnalyticalFeature.Measures);
+    }
+
+    private Dictionary<string, (AnalyticalObjectId Perspective, AnalyticalObjectId Table, bool IncludeAll)> ReadPerspectiveTables()
+    {
         const AnalyticalFeature feature = AnalyticalFeature.PerspectiveMembership;
         var perspectiveTables = new Dictionary<string, (AnalyticalObjectId Perspective, AnalyticalObjectId Table, bool IncludeAll)>();
         foreach (var row in Read("TMSCHEMA_PERSPECTIVE_TABLES", feature).Rows)
@@ -82,13 +93,7 @@ internal sealed partial class AnalysisServicesModelInspection
                     inventory.Include(perspectiveId, child);
             }
         }
-
-        if (perspectiveTables.Values.Any(table => !table.IncludeAll))
-        {
-            ReadExplicitMembership("TMSCHEMA_PERSPECTIVE_COLUMNS", "ColumnID", AnalyticalObjectKind.Column, perspectiveTables);
-            ReadExplicitMembership("TMSCHEMA_PERSPECTIVE_MEASURES", "MeasureID", AnalyticalObjectKind.Measure, perspectiveTables);
-        }
-        inventory.LimitPerspectiveCoverage(AnalyticalFeature.Tables, AnalyticalFeature.Columns, AnalyticalFeature.Measures);
+        return perspectiveTables;
     }
 
     private void ReadExplicitMembership(string rowset, string memberField, AnalyticalObjectKind kind,
