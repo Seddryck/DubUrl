@@ -40,6 +40,31 @@ Console.WriteLine(command.ExecuteScalar());
 
 The default registry resolves factories that normally produce `DbConnection` instances, but the public return contract is `IDbConnection`. Use an explicit cast/type check before depending on provider-specific or asynchronous `DbConnection` members.
 
+## Execute a SQL Server script
+
+Use `CanExecuteScript` to discover support without opening a connection. It reports whether
+the registry handles the URL as a SQL Server route. Other routes throw `NotSupportedException`
+from `ExecuteScriptAsync`.
+
+```csharp
+var sqlServer = new ConnectionUrl("mssql://localhost/demo");
+if (sqlServer.CanExecuteScript)
+{
+    await sqlServer.ExecuteScriptAsync("""
+        CREATE TABLE #items (id int);
+        GO
+        INSERT INTO #items VALUES (1);
+        GO 2
+        """, cancellationToken);
+}
+```
+
+Put `GO` on its own line, optionally followed by a positive repeat count and comments.
+Batches run in order on one connection, so the temporary table in this example survives
+the first separator. Execution stops when a command fails. Transaction control belongs to
+the script, and earlier changes may already be committed. The API is for executing scripts
+without returning result sets. It supports `GO` as the client directive.
+
 ## Required and optional defaults
 
 `WithReadOnly()` requires verified native read-only access to the primary database. It is strict and

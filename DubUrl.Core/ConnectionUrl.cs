@@ -261,6 +261,55 @@ public class ConnectionUrl : BaseConnectionUrl
     public virtual ValueTask<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
         => OpenConfiguredAsync(null, cancellationToken);
 
+    /// <summary>Indicates whether the URL selects a registered SQL Server script route.</summary>
+    /// <remarks>Discovery does not open a connection or acquire credentials.</remarks>
+    public bool CanExecuteScript
+    {
+        get
+        {
+            var scheme = Parser.Parse(RawUrl).Scheme;
+            var parts = scheme.ProviderScheme.Canonical.Split('+');
+            var database = parts switch
+            {
+                [var name] => name,
+                ["odbc" or "oledb", var name] => name,
+                [var name, "odbc" or "oledb"] => name,
+                _ => null
+            };
+            return database is "mssql" or "ms" or "sqlserver" or "mssqlserver"
+                && Registry.CanHandle(scheme.Canonical);
+        }
+    }
+
+    /// <summary>Executes a SQL Server script containing optional GO batch separators.</summary>
+    /// <remarks>Batches run in order on one connection. An execution error stops the script.</remarks>
+    /// <exception cref="NotSupportedException">The URL does not support script execution.</exception>
+    public async Task ExecuteScriptAsync(string script, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(script);
+        if (!CanExecuteScript)
+            throw new NotSupportedException("Script execution is only supported for registered SQL Server routes.");
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var batches = SqlServerScript.Split(script, cancellationToken);
+        if (batches.Count == 0)
+            return;
+
+        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var batch in batches)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await using var command = connection.CreateCommand();
+            command.CommandText = batch.Text;
+
+            for (var iteration = 0; iteration < batch.Repetitions; iteration++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
     /// <summary>Creates an owned connection, applies caller configuration before opening through the selected strategy, and disposes it on failure.</summary>
     public virtual ValueTask<DbConnection> OpenAsync(Action<DbConnection> configureConnection, CancellationToken cancellationToken = default)
     {
