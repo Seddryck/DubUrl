@@ -69,63 +69,86 @@ internal static class SqlServerScript
             TokenCount = quoteEnd == '\0' ? 0 : 1;
             for (var index = 0; index < line.Length;)
             {
-                var current = line[index];
-                var next = index + 1 < line.Length ? line[index + 1] : '\0';
+                var remaining = line[index..];
                 if (quoteEnd != '\0')
-                {
-                    index++;
-                    if (current == quoteEnd)
-                    {
-                        if (next == quoteEnd)
-                            index++;
-                        else
-                            quoteEnd = '\0';
-                    }
-                }
+                    index += ReadQuotedText(remaining);
                 else if (commentDepth > 0)
-                {
-                    if (current == '/' && next == '*')
-                    {
-                        commentDepth++;
-                        index += 2;
-                    }
-                    else if (current == '*' && next == '/')
-                    {
-                        commentDepth--;
-                        index += 2;
-                    }
-                    else
-                        index++;
-                }
-                else if (current == '-' && next == '-')
+                    index += ReadBlockComment(remaining);
+                else if (remaining.StartsWith("--", StringComparison.Ordinal))
                     break;
-                else if (current == '/' && next == '*')
+                else if (remaining.StartsWith("/*", StringComparison.Ordinal))
                 {
                     commentDepth = 1;
                     index += 2;
                 }
-                else if (char.IsWhiteSpace(current))
+                else if (char.IsWhiteSpace(remaining[0]))
                     index++;
                 else
-                {
-                    LastTokenStart = index;
-                    TokenCount++;
-                    if (current is '\'' or '"' or '[')
-                    {
-                        quoteEnd = current == '[' ? ']' : current;
-                        index++;
-                    }
-                    else
-                    {
-                        index++;
-                        while (index < line.Length && !StartsTriviaOrQuote(line[index..]))
-                            index++;
-                        if (TokenCount == 1 && line[LastTokenStart..index].Equals("GO", StringComparison.OrdinalIgnoreCase))
-                            GoStart = LastTokenStart;
-                    }
-                    LastTokenEnd = index;
-                }
+                    index = ScanToken(line, index);
             }
+        }
+
+        private int ScanToken(ReadOnlySpan<char> line, int start)
+        {
+            var end = start + 1;
+            var first = line[start];
+            TokenCount++;
+
+            if (first is '\'' or '"' or '[')
+                quoteEnd = first == '[' ? ']' : first;
+            else
+            {
+                while (end < line.Length && !StartsTriviaOrQuote(line[end..]))
+                    end++;
+                if (TokenCount == 1 && line[start..end].Equals("GO", StringComparison.OrdinalIgnoreCase))
+                    GoStart = start;
+            }
+
+            LastTokenStart = start;
+            LastTokenEnd = end;
+            return end;
+        }
+
+        private int ReadQuotedText(ReadOnlySpan<char> text)
+        {
+            for (var index = 0; index < text.Length; index++)
+            {
+                if (text[index] != quoteEnd)
+                    continue;
+                if (index + 1 < text.Length && text[index + 1] == quoteEnd)
+                {
+                    index++;
+                    continue;
+                }
+
+                quoteEnd = '\0';
+                return index + 1;
+            }
+
+            return text.Length;
+        }
+
+        private int ReadBlockComment(ReadOnlySpan<char> text)
+        {
+            var index = 0;
+            while (index < text.Length && commentDepth > 0)
+            {
+                var remaining = text[index..];
+                if (remaining.StartsWith("/*", StringComparison.Ordinal))
+                {
+                    commentDepth++;
+                    index += 2;
+                }
+                else if (remaining.StartsWith("*/", StringComparison.Ordinal))
+                {
+                    commentDepth--;
+                    index += 2;
+                }
+                else
+                    index++;
+            }
+
+            return index;
         }
 
         private static bool StartsTriviaOrQuote(ReadOnlySpan<char> text)
