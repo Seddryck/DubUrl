@@ -432,6 +432,13 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
 
     #endregion
 
+    internal void ExecuteNonQuery(string query)
+        => _executor.ExecuteScalar(new InlineCommand(query, QueryLogger), command => command.ExecuteNonQuery());
+
+    internal Task ExecuteNonQueryAsync(string query, CancellationToken cancellationToken)
+        => _executor.ExecuteScalarAsync(new InlineCommand(query, QueryLogger),
+            (command, token) => command.ExecuteNonQueryAsync(token), cancellationToken);
+
     private T? NormalizeReturnType<T>(object obj)
     {
         var caster = ConnectionUrl.Dialect.Casters

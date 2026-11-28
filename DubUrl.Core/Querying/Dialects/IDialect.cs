@@ -21,6 +21,9 @@ public interface IDialect
     ISqlFunctionMapper SqlFunctionMapper { get; }
     DialectCapabilities Capabilities { get; }
 
+    /// <summary>Renders queries that operate on a table or view.</summary>
+    TableSqlRenderer TableSqlRenderer => TableSqlRenderer.Default;
+
     /// <summary>Validates the supplied qualifiers and renders a table name for SQL queries.</summary>
     string RenderTableName(SchemaSqlObjectName table)
         => SchemaSqlRenderer.RenderObjectName(this, table.Catalog, table.Database, table.Schema, table.Name);
