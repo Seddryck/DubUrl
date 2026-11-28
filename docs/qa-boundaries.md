@@ -69,7 +69,10 @@ using the native ADO.NET routes.
 dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj -f net10.0 --filter 'FullyQualifiedName~ConnectionUrlBatchLiveTests'
 ```
 
-A case skips when its URL is unset. The tests require no preloaded data and make no schema changes.
+The SQL Server, PostgreSQL, and MySQL provider QA workflows supply these URLs automatically from their
+Compose fixtures. Each job requires its batch case to pass on .NET 8, 9, and 10 and uploads the TRX files
+with the provider test results. For local runs, a case skips when its URL is unset. The batch tests require
+no preloaded data and make no schema changes.
 
 ## QA bundles
 

@@ -48,6 +48,12 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: ./QA/DubUrl.QA/MsSqlServer/deploy-mssqlserver-test-env.ps1 -force -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
+      - name: Run live Core batch test
+        shell: pwsh
+        run: >-
+          ./.qa-core/.github/scripts/Invoke-ProviderBatchQa.ps1
+          -Provider mssqlserver
+          -Frameworks @('net8.0', 'net9.0', 'net10.0')
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
