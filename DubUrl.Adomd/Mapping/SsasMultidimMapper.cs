@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Adomd.Mapping;
 
 [AnalysisServicesMetadata]
+[AnalysisServicesAnalyticalDiscovery(false)]
 [Mapper<SsasMultidimDatabase, NamedParametrizer>(
     "Microsoft.AnalysisServices.AdomdClient"
 )]

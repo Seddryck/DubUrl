@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace DubUrl.Adomd.Mapping;
 
 [AnalysisServicesMetadata]
+[AnalysisServicesAnalyticalDiscovery]
 [Mapper<PowerBiPremiumDatabase, NamedParametrizer>(
     "Microsoft.AnalysisServices.AdomdClient"
 )]
