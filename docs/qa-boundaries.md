@@ -53,6 +53,24 @@ schema with generated credentials. Run the same entry point locally and in CI:
 See [Oracle QA infrastructure](https://github.com/Seddryck/DubUrl/tree/main/Providers/Oracle/DubUrl.Provider.Oracle.QA/infrastructure)
 for prerequisites, focused framework selection, image pinning and coverage limits.
 
+## Live ADO.NET batch checks
+
+`ConnectionUrlBatchLiveTests` exercises the Core batch API with two parameterized, read-only commands
+against real servers. Set the applicable environment variables to DubUrl connection URLs for test databases
+using the native ADO.NET routes.
+
+| Database | Environment variable | URL scheme |
+| --- | --- | --- |
+| SQL Server | `DUBURL_SQLSERVER_BATCH_QA_URL` | `mssql` |
+| PostgreSQL | `DUBURL_POSTGRESQL_BATCH_QA_URL` | `pgsql` |
+| MySQL | `DUBURL_MYSQL_BATCH_QA_URL` | `mysql` |
+
+```powershell
+dotnet test DubUrl.Core.Testing/DubUrl.Core.Testing.csproj -f net10.0 --filter 'FullyQualifiedName~ConnectionUrlBatchLiveTests'
+```
+
+A case skips when its URL is unset. The tests require no preloaded data and make no schema changes.
+
 ## QA bundles
 
 Every provider QA project imports `build/ProviderQaBundle.targets`, owns a validated `qa-manifest.json`, and declares its infrastructure files with `QaInfrastructure`. Create a complete versioned bundle for one target framework with:
