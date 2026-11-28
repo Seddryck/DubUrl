@@ -43,6 +43,17 @@ jobs:
       - name: Run provider QA
         shell: pwsh
         run: ./QA/DubUrl.QA/SsasMultidim/deploy-ssasmultidim-test-env.ps1 -config Release -frameworks @('net8.0', 'net9.0', 'net10.0')
+      - name: Verify formatted MDX cells through DubUrl.Adomd
+        shell: pwsh
+        env:
+          DUBURL_ADOMD_TEST_CONNECTION: 'Data Source=localhost\multidim;Initial Catalog=AdventureWorks;Locale Identifier=1033'
+        run: |
+          dotnet test .qa-core/DubUrl.Adomd.Testing/DubUrl.Adomd.Testing.csproj -c Release -f net10.0 --filter FullyQualifiedName~ExecuteCellSet_AdventureWorks --logger "trx;LogFileName=adomd-cellset.trx" --results-directory .test-results/ssasmultidim
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          [xml] $results = Get-Content .test-results/ssasmultidim/adomd-cellset.trx -Raw
+          if ([int] $results.TestRun.ResultSummary.Counters.passed -ne 1) {
+            throw 'The ADOMD cellset test did not pass.'
+          }
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
