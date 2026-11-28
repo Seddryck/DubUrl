@@ -208,6 +208,7 @@ public sealed class ProviderCatalogBuilder : IProviderCatalogBuilder
         if (info.FileSecretConnection is not null) registration.WithCapabilities(info.FileSecretConnection);
         if (info.FileLoad is not null) registration.WithCapabilities(info.FileLoad);
         if (info.OperatingSystemIdentity is not null) registration.WithCapabilities(info.OperatingSystemIdentity);
+        if (info.Capabilities is not null) registration.WithCapabilities(info.Capabilities);
         return registration;
     }
 

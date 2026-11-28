@@ -30,6 +30,7 @@ public record struct MapperInfo(
     public ReadOnlyConnectionCapability? ReadOnlyConnection { get; init; }
     public DubUrl.Authentication.FileSecretConnectionCapability? FileSecretConnection { get; init; }
     public DubUrl.Authentication.OperatingSystemIdentityCapability? OperatingSystemIdentity { get; init; }
+    internal object[]? Capabilities { get; init; }
 }
 
 /// <summary>A snapshot of an existing Database attribute and the type carrying it.</summary>

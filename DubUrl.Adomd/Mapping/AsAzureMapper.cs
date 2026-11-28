@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace DubUrl.Adomd.Mapping;
 
+[AnalysisServicesMetadata]
 [Mapper<AsAzureDatabase, NamedParametrizer>(
     "Microsoft.AnalysisServices.AdomdClient"
 )]
