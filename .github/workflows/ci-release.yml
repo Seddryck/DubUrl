@@ -416,7 +416,6 @@ jobs:
           -Built '${{ needs.version.outputs.semver }}' `
           -Recalculated '${{ steps.gitversion.outputs.semVer }}'
     - name: Reserve release tag
-      if: needs.version.outputs.patch == '0'
       shell: pwsh
       run: |
         Import-Module ./.github/scripts/CliReleaseGuards.psm1 -Force
