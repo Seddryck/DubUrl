@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
@@ -22,6 +23,8 @@ public sealed class AnalysisServicesMetadataCapability
     /// <exception cref="ArgumentNullException"><paramref name="connection"/> is null.</exception>
     /// <exception cref="NotSupportedException"><paramref name="connection"/> does not use ADOMD.</exception>
     /// <exception cref="InvalidOperationException"><paramref name="connection"/> is closed.</exception>
+    [SuppressMessage("Performance", "S2325:Make methods that don't access instance data static",
+        Justification = "Callers invoke this operation on the capability instance returned by provider discovery.")]
     public AnalysisServicesServerMode GetServerMode(IDbConnection connection)
     {
         ArgumentNullException.ThrowIfNull(connection);
