@@ -251,7 +251,38 @@ var target = new ConnectionUrl("mssql://server.database.windows.net/app")
 await using var connection = await target.OpenAsync(cancellationToken);
 ```
 
-For a different application token source, implement `ISqlServerTokenSource`. Return a `SqlAuthenticationToken` with the token and its real expiry for the requested authority/resource. Do not put a token, private key, or client secret in the URL.
+### Externally managed token files
+
+Use `FileTokenSource` from `DubUrl.Authentication.SqlServer` when another process acquires and rotates the Microsoft Entra token. Configure that process to obtain a token for the SQL resource and identity your application uses. Give the application read access to the file and restrict access to the credential writer and authorized readers.
+
+The file is a UTF-8 JSON object with two case-sensitive string properties.
+
+```json
+{
+  "access_token": "<access token from the issuer>",
+  "expires_on": "2030-01-01T12:30:00Z"
+}
+```
+
+`expires_on` must be the issuer's actual expiry. Use `yyyy-MM-ddTHH:mm:ss[.fffffff](Z|±HH:mm)`, with uppercase `T` and `Z`, mandatory seconds, and one to seven digits when including a fractional second. For example, `2030-01-01T13:30:00.123+01:00` includes a numeric offset. The source requires this JSON format and rejects bare tokens, timestamps without an offset, and expired credentials.
+
+```csharp
+using DubUrl;
+using DubUrl.Authentication.SqlServer;
+
+var source = new FileTokenSource(tokenFilePath);
+var target = new ConnectionUrl("mssql://server.database.windows.net/app")
+    .WithAuthentication(SqlServerAuthentication.TokenCallback(source));
+await using var connection = await target.OpenAsync(cancellationToken);
+```
+
+For rotation, write the complete new JSON to a private temporary file in the same directory, close it, then atomically replace the configured file. This lets a concurrent reader see a complete old or new credential. Reuse the same source and authentication strategy for the same identity. The source reads the file each time SqlClient invokes the callback. A pooled connection may already be authenticated, so SqlClient may skip the callback on a logical open.
+
+If the file cannot supply usable credentials, inspect `exception.Data[FileTokenSource.FailureDetailKey]` on the `ConnectionAuthenticationException` for remediation guidance.
+
+### Custom token sources
+
+For a different application token source, implement `ISqlServerTokenSource`. Return a `SqlAuthenticationToken` with the token and its real expiry for the requested authority/resource. Keep tokens, private keys, and client secrets out of the URL.
 
 Reuse a source/strategy for one identity. When changing an application identity or certificate, retire its old pooled connections; an already authenticated database session does not sign in again just because the certificate changes.
 
