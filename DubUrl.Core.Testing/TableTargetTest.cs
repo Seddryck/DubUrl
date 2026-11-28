@@ -44,6 +44,19 @@ public partial class TableTargetTest
     }
 
     [Test]
+    public void Table_RejectsIncompleteSqlServerQualification()
+    {
+        var dialects = new DialectRegistryBuilder();
+        dialects.AddDialect<DubUrl.Provider.SqlServer.Sql.TSqlDialect>(["mssql"]);
+        using var database = CreateDatabase(Mock.Of<DbProviderFactory>(), dialects.Build().Get("mssql"));
+
+        Assert.Throws<NotSupportedException>(() => database.Table("orders", database: "live"));
+        Assert.Throws<NotSupportedException>(() => database.Table("orders", schema: "sales", catalog: "remote"));
+        Assert.That(database.Table("orders", schema: "sales", database: "live").SqlName,
+            Is.EqualTo("[live].[sales].[orders]"));
+    }
+
+    [Test]
     public void Table_RejectsEmptyNamesAndUnsupportedQualifiers()
     {
         using var database = CreateDatabase(Mock.Of<DbProviderFactory>());

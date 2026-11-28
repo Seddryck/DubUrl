@@ -76,6 +76,19 @@ public class StandardSchemaSqlRenderer : ISchemaSqlRenderer
     public virtual string RenderIdentifier(IDialect dialect, string name)
         => fallback?.RenderIdentifier(dialect, name) ?? dialect.Renderer.Render(name, "identity");
 
+    internal static string RenderDefaultTableName(IDialect dialect, SchemaSqlObjectName table)
+    {
+        var parts = dialect.Capabilities.ObjectNames;
+        // Dropping an intermediate qualifier can change the meaning of a multipart name.
+        if (table.Catalog is not null && table.Database is null && parts.HasFlag(ObjectNameParts.Database))
+            throw new NotSupportedException("A catalog-qualified table requires a database name for this dialect.");
+        if ((table.Catalog is not null || table.Database is not null) && table.Schema is null
+            && parts.HasFlag(ObjectNameParts.Schema))
+            throw new NotSupportedException("A database- or catalog-qualified table requires a schema for this dialect.");
+
+        return dialect.SchemaSqlRenderer.RenderObjectName(dialect, table.Catalog, table.Database, table.Schema, table.Name);
+    }
+
     public virtual string RenderObjectName(IDialect dialect, string? catalog, string? database, string? schema, string name)
     {
         if (fallback is not null)

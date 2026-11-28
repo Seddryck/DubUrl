@@ -1,4 +1,4 @@
-using DubUrl.Mapping;
+﻿using DubUrl.Mapping;
 using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
@@ -21,7 +21,7 @@ public abstract class BaseDialect : IDialect
     public virtual TableSqlRenderer TableSqlRenderer => TableSqlRenderer.Default;
 
     public virtual string RenderTableName(SchemaSqlObjectName table)
-        => SchemaSqlRenderer.RenderObjectName(this, table.Catalog, table.Database, table.Schema, table.Name);
+        => StandardSchemaSqlRenderer.RenderDefaultTableName(this, table);
 
     public virtual DialectCapabilities Capabilities => DialectCapabilities.Default;
     public virtual string[] Aliases { get; }

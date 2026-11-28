@@ -1,4 +1,4 @@
-using DubUrl.Querying.Dialects.Casters;
+﻿using DubUrl.Querying.Dialects.Casters;
 using DubUrl.Querying.Dialects.Functions;
 using DubUrl.Querying.Dialects.Renderers;
 using DubUrl.Querying.TypeMapping;
@@ -26,7 +26,7 @@ public interface IDialect
 
     /// <summary>Validates the supplied qualifiers and renders a table name for SQL queries.</summary>
     string RenderTableName(SchemaSqlObjectName table)
-        => SchemaSqlRenderer.RenderObjectName(this, table.Catalog, table.Database, table.Schema, table.Name);
+        => StandardSchemaSqlRenderer.RenderDefaultTableName(this, table);
 
     /// <summary>SQL syntax used by schema generation; override for provider-specific operations.</summary>
     ISchemaSqlRenderer SchemaSqlRenderer => StandardSchemaSqlRenderer.Instance;
