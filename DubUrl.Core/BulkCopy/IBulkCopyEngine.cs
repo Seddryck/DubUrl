@@ -23,6 +23,11 @@ public interface IBulkCopyEngine : IDisposable
     /// <exception cref="NotSupportedException">The provider cannot honor the requested options.</exception>
     void Write(string tableName, IDataReader dataReader, BulkCopyOptions options)
     {
+        options.Validate();
+
+        if (options.TransactionMode != BulkCopyTransactionMode.ProviderDefault)
+            throw new NotSupportedException($"TransactionMode '{options.TransactionMode}' is not supported by the selected bulk-copy provider.");
+
         if (options.TableLock)
             throw new NotSupportedException("TableLock is not supported by the selected bulk-copy provider.");
 
