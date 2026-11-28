@@ -27,6 +27,17 @@ public sealed class AnalysisServicesMetadataCapability
         Justification = "Callers invoke this operation on the capability instance returned by provider discovery.")]
     public AnalysisServicesServerMode GetServerMode(IDbConnection connection)
     {
+        var adomd = RequireOpenConnection(connection);
+        var restrictions = new AdomdRestrictionCollection
+        {
+            new AdomdRestriction("ObjectExpansion", "ReferenceOnly")
+        };
+        using var metadata = adomd.GetSchemaDataSet("DISCOVER_XML_METADATA", restrictions);
+        return ReadServerMode(metadata);
+    }
+
+    internal static AdomdConnection RequireOpenConnection(IDbConnection connection)
+    {
         ArgumentNullException.ThrowIfNull(connection);
 
         var adomd = connection switch
@@ -38,12 +49,7 @@ public sealed class AnalysisServicesMetadataCapability
         if (adomd.State != ConnectionState.Open)
             throw new InvalidOperationException("GetServerMode requires an open ADOMD connection.");
 
-        var restrictions = new AdomdRestrictionCollection
-        {
-            new AdomdRestriction("ObjectExpansion", "ReferenceOnly")
-        };
-        using var metadata = adomd.GetSchemaDataSet("DISCOVER_XML_METADATA", restrictions);
-        return ReadServerMode(metadata);
+        return adomd;
     }
 
     internal static AnalysisServicesServerMode ReadServerMode(DataSet metadata)
