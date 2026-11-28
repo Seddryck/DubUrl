@@ -1,4 +1,4 @@
-﻿using DubUrl.Mapping;
+using DubUrl.Mapping;
 using DubUrl.MicroOrm;
 using DubUrl.Querying;
 using DubUrl.Querying.Dialects;
@@ -120,6 +120,11 @@ public partial class DatabaseUrl : IAsyncDatabaseUrl
 
     protected IAsyncEnumerable<T> StreamAsync<T>(ICommandProvider commandProvider, Func<DbDataReader, T> project, CancellationToken cancellationToken)
         => _executor.StreamAsync(commandProvider, project, cancellationToken);
+
+    /// <summary>Binds a literal table name to this database without opening a connection.</summary>
+    /// <remarks>Omitted qualifiers are resolved by the database session.</remarks>
+    public TableTarget Table(string name, string? schema = null, string? database = null, string? catalog = null)
+        => new(this, name, schema, database, catalog);
 
     public InlineTemplateCommand CreateTemplate(string source)
         => _inlineTemplateCommandFactory.Create(source);
